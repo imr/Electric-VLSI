@@ -226,9 +226,6 @@ public abstract class ArcProto
 	{
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
-
-        // arcprotos are always considered in the database
-//        setLinked(true);
 	}
 
 	// ------------------------ public methods -------------------------------

@@ -490,9 +490,6 @@ public class PrimitiveNode implements NodeProto, Comparable
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
-
-        // Prototypes are always assumed to be linked into the database
-//        setLinked(true);
 	}
 
 	// ------------------------- public methods -------------------------------

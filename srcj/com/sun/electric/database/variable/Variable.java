@@ -267,7 +267,7 @@ public class Variable
     /**
      * Set if this variable is linked to an ElectricObject
      */
-    public void setLinked(boolean linked) { this.linked = linked; }
+    void setLinked(boolean linked) { this.linked = linked; }
 
     /**
      * Returns true if variable is linked to a linked database object, false otherwise.
@@ -291,7 +291,7 @@ public class Variable
 	public boolean isActuallyLinked()
 	{
 		ElectricObject owner = getOwner();
-		return owner != null && owner.isActuallyLinked() && owner.getVar(key) == this;
+		return owner != null && owner.isLinked() && owner.getVar(key) == this;
 	}
 
 	/**

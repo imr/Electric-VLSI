@@ -172,7 +172,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		this.nameDescriptor = TextDescriptor.getNodeTextDescriptor(this);
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
-        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -239,7 +238,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst makeDummyInstance(NodeProto np)
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
-		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), 0, null);
+		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), 0, null, null, -1);
 		return ni;
 	}
 
@@ -304,8 +303,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		NodeInst ni = lowLevelAllocate();
-		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
-		if (name != null) ni.setName(name);
+		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent, name, -1)) return null;
 
 		// before lowLevelLink, place where the name is assigned if original is null
 		ni.setTechSpecific(techBits);
@@ -727,10 +725,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param name the name of this NodeInst
+	 * @param duplicate duplicate index of this NodeInst
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(NodeProto protoType, Point2D center, double width, double height, int angle,
-		Cell parent)
+		Cell parent, String name, int duplicate)
 	{
 		if (getParent() != null && this.protoType != null)
 			System.out.println("NodeInst " + this + " of type " + this.protoType + " is populated again in " + getParent());
@@ -752,6 +752,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		this.sX = DBMath.round(width);
 		this.sY = DBMath.round(height);
 		this.angle = angle % 3600;
+		this.name = Name.findName(name);
+		this.duplicate = duplicate;
 
 		// fill in the geometry
 		redoGeometric();
@@ -768,10 +770,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			System.out.println("NodeInst can't be linked because it is a dummy object");
 			return true;
 		}
-		if (!isUsernamed())
+		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name))
 		{
-			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
-				if (setNameKey(parent.getAutoname(getBasename()))) return true;
+			name = parent.getAutoname(getBasename());
+			duplicate = 0;
 		}
 		if (checkAndRepair(true, null) > 0) return true;
 
@@ -780,7 +782,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         if (nodeUsage == null) return true;
 		this.duplicate = parent.addNode(this);
 		parent.linkNode(this);
-        setLinked(true);
 		return false;
 	}
 
@@ -793,7 +794,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		parent.removeNode(this);
 		parent.unLinkNode(this);
 		parent.checkInvariants();
-        setLinked(false);
 	}
 
 	/**
@@ -856,18 +856,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method tells if this NodeInst is linked to parent Cell.
 	 * @return true if this NodeInst is linked to parent Cell.
 	 */
-	public boolean isLinked() { return nodeIndex >= 0; }
-
-    /**
-     * Returns true if this NodeInst is completely linked into database.
-	 * This means there is path to this NodeInstElectricObjects through lists:
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes-> NodeInst
-     */
-	public boolean isActuallyLinked()
+	public boolean isLinked()
 	{
-		Cell parent = getParent();
-		return parent != null && parent.isActuallyLinked() &&
-			0 <= nodeIndex && nodeIndex < parent.getNumNodes() && parent.getNode(nodeIndex) == this;
+		try
+		{
+			return parent != null && parent.isLinked() && parent.getNode(nodeIndex) == this;
+		} catch (IndexOutOfBoundsException e)
+		{
+			return false;
+		}
 	}
 
     /**
@@ -2356,21 +2353,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/**
 	 * Low-level access method to change name of this NodeInst.
 	 * @param name new name of this NodeInst.
+	 * @param duplicate new duplicate number of this NodeInst or negative value.
 	 */
-	public void lowLevelSetNameKey(Name name, int duplicate)
+	public void lowLevelRename(Name name, int duplicate)
 	{
-		if (isLinked())
-		{
-			parent.removeNode(this);
-			this.name = name;
-			this.duplicate = duplicate;
-			this.duplicate = parent.addNode(this);
-			parent.checkInvariants();
-		} else
-		{
-			this.name = name;
-			this.duplicate = duplicate;
-		}
+		parent.removeNode(this);
+		this.name = name;
+		this.duplicate = duplicate;
+		this.duplicate = parent.addNode(this);
+		parent.checkInvariants();
 	}
 
 	/**

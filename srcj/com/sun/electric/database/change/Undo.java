@@ -507,14 +507,22 @@ public class Undo
 			}
 			if (type == Type.OBJECTRENAME)
 			{
-				if (obj instanceof Geometric)
+				if (obj instanceof NodeInst)
 				{
-					Geometric geom = (Geometric)obj;
+					NodeInst ni = (NodeInst)obj;
 					Name oldName = (Name)o1;
 					int oldDuplicate = i1;
-					o1 = geom.getNameKey();
-					i1 = geom.getDuplicate();
-					geom.lowLevelSetNameKey(oldName, oldDuplicate);
+					o1 = ni.getNameKey();
+					i1 = ni.getDuplicate();
+					ni.lowLevelRename(oldName, oldDuplicate);
+				} else if (obj instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)obj;
+					Name oldName = (Name)o1;
+					int oldDuplicate = i1;
+					o1 = ai.getNameKey();
+					i1 = ai.getDuplicate();
+					ai.lowLevelRename(oldName, oldDuplicate);
 				} else if (obj instanceof Cell)
 				{
 					Cell cell = (Cell)obj;

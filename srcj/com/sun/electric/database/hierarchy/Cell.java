@@ -302,18 +302,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		/**
-		 * Returns true if this CellGroup is completely linked into database.
-		 * This means there is path to Cells of this CellGroup through lists:
-		 * Library&#46;libraries->Library&#46;cells-> Cell
-		 */
-		public boolean isActuallyLinked()
-		{
-			if (cells.isEmpty()) return false;
-			Cell firstCell = (Cell)cells.iterator().next();
-			return firstCell.isActuallyLinked();
-		}
-
-		/**
 		 * Method to check invariants in this CellGroup.
 		 * @exception AssertionError if invariants are not valid
 		 */
@@ -409,7 +397,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		cellBounds = new Rectangle2D.Double();
 		boundsEmpty = true;
 		boundsDirty = false;
-        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -720,15 +707,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	private void rename(CellName cellName)
 	{
-        if (cellName == null) return; // error generating thd new name
-		if (cellName.equals(this.cellName)) return;
 		checkChanging();
-		if (!isLinked())
-		{
-			System.out.println("attempt to rename unlinked Cell " + noLibDescribe());
-			return;
-		}
+		assert isLinked();
 		if (cellName == null) return;
+		if (cellName.equals(this.cellName)) return;
 
 		// do the rename
 		CellName oldCellName = this.cellName;
@@ -763,7 +745,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean lowLevelPopulate(String name)
 	{
-		checkChanging();
 		assert !isLinked();
 		CellName n = CellName.parseName(name);
 		if (n == null) return true;
@@ -777,12 +758,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean lowLevelLink()
 	{
-		checkChanging();
-		if (isLinked())
-		{
-			System.out.println(this+" already linked");
-			return true;
-		}
+		lib.checkChanging();
+		assert !isLinked();
 		if (cellName == null)
 		{
 			System.out.println(this+" has bad name");
@@ -802,7 +779,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		// success
-		setLinked(true);
+		Library.databaseObjs.add(this);
 		checkInvariants();
 		return false;
 	}
@@ -832,7 +809,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				((Cell)np).usagesOf.remove(nu);
 		}
 
-		setLinked(false);
+		Library.databaseObjs.remove(this);
 	}
 
 	/**
@@ -1742,11 +1719,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void removeNode(NodeInst ni)
 	{
 		checkChanging();
-		if (!ni.isActuallyLinked())
-		{
-			System.out.println("Cell " + this +" doesn't contain node " + ni);
-			return;
-		}
+		assert ni.isLinked();
 		NodeUsage nu = ni.getNodeUsage();
 		if (nu == null || !nu.contains(ni))
 		{
@@ -1980,11 +1953,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void removeArc(ArcInst ai)
 	{
 		checkChanging();
-		if (!ai.isActuallyLinked())
-		{
-			System.out.println("Cell " + this +" doesn't contain arc " + ai);
-			return;
-		}
+		assert ai.isLinked();
 		int arcIndex = ai.getArcIndex();
 		ArcInst removedAi = (ArcInst) arcs.remove(arcIndex);
 		assert removedAi == ai;
@@ -3506,13 +3475,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public boolean isMultiPage() { return (userBits & MULTIPAGE) != 0; }
 	
     /**
-     * Returns true if this Cell is completely linked into database.
-	 * This means there is path to this Cell through lists:
-	 * Library&#46;libraries->Library&#46;cells-> Cell
+     * Returns true if this Cell is linked into database.
+     * @return true if this Cell is linked into database.
      */
-	public boolean isActuallyLinked()
+	public boolean isLinked()
 	{
-		return lib != null && lib.isActuallyLinked() && lib.contains(this);
+		return Library.databaseObjs.contains(this);
 	}
 
 	/**
@@ -3542,6 +3510,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	void check()
 	{
+		assert Library.databaseObjs.contains(this);
+		assert cellName != null;
 		assert getVersion() > 0;
 
 		for (int i = 0; i < exports.length; i++)

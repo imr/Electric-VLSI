@@ -86,6 +86,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
 	/** static list of all libraries in Electric */			private static TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
+	/** static set of all linked libraries and cells */		static HashSet/*<Object>*/ databaseObjs = new HashSet/*<Object>*/();
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -96,7 +97,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	private Library()
 	{
 		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
-        setLinked(false);
 	}
 
 	/**
@@ -135,12 +135,12 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		lib.libName = legalName;
 		lib.libFile = libFile;
         lib.referencedLibs = new ArrayList/*<Library>*/();
-        lib.setLinked(true);
 
 		// add the library to the global list
 		synchronized (libraries)
 		{
 			libraries.put(legalName, lib);
+			databaseObjs.add(lib);
 		}
 
         // always broadcast library changes
@@ -228,11 +228,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		synchronized (libraries)
 		{
 			libraries.remove(libName);
+			databaseObjs.remove(this);
 		}
 
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
-		setLinked(false);
 
 		// always broadcast library changes
 		Undo.setNextChangeQuiet(false);
@@ -452,12 +452,12 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	// ----------------- public interface --------------------
 
     /**
-     * Returns true if this Library is completely linked into database.
-	 * This means that it is contained in Library&#46;libraries.
+     * Returns true if this Library is linked into database.
+     * @return true if this Library is linked into database.
      */
-	public boolean isActuallyLinked()
+	public boolean isLinked()
 	{
-		return libraries.get(libName) == this;
+		return databaseObjs.contains(this);
 	}
 
 	/**
@@ -485,6 +485,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	private void check()
 	{
+		assert databaseObjs.contains(this);
 		assert libName != null;
 		assert libName.length() > 0;
 		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
@@ -534,6 +535,21 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 				assert !libNames.contains(libName) : "case insensitive " + libName;
 				libNames.add(libName);
 				lib.check();
+			}
+			for (Iterator it = databaseObjs.iterator(); it.hasNext(); )
+			{
+				Object o = it.next();
+				Library lib;
+				if (o instanceof Cell)
+				{
+					Cell cell = (Cell)o;
+					lib = cell.getLibrary();
+					assert lib.contains(cell);
+				} else
+				{
+					lib = (Library)o;
+				}
+				assert libraries.get(lib.libName) == lib;
 			}
 			//long endTime = System.currentTimeMillis();
 			//float finalTime = (endTime - startTime) / 1000F;

@@ -60,7 +60,6 @@ public abstract class ElectricObject
 	// ------------------------ private data ------------------------------------
 
 	/** extra variables (null if no variables yet) */		private TreeMap vars;
-	/** if object is linked into database */                private boolean linked;
 
 	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
 	/** all variable keys addressed by lower case name */	private static final HashMap varLowCaseKeys = new HashMap();
@@ -70,37 +69,15 @@ public abstract class ElectricObject
 	/**
 	 * The constructor is not used.
 	 */
-	protected ElectricObject() { linked = false; }
+	protected ElectricObject() {}
 
 	// ------------------------ public methods -------------------
 
     /**
      * Returns true if object is linked into database
      */
-    public boolean isLinked() { return linked; }
+    public abstract boolean isLinked();
 
-    /**
-     * Sets the flag that says the object is linked into the database.
-     * This should only be called by extending objects in their
-     * lowLevelLink and lowLevelUnlink methods.
-     * @param linked true if object is now linked, false if not.
-     */
-    protected void setLinked(boolean linked) { this.linked = linked; }
-	
-    /**
-     * Returns true if this ElectricObject is completely linked into database.
-	 * This means there is path to this ElectricObjects through a chain of lists.
-	 * Below is a chain of lists for every subclass of ElectricObjects:
-	 *
-	 * Library&#46;libraries-> Library
-	 * Library&#46;libraries->Library&#46;cells-> Cell
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;ports-> Export
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes-> NodeInst
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes->NodeInst&#46;portInsts-> PortInst
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;arcs-> ArcInst
-     */
-	public abstract boolean isActuallyLinked();
-	
 	/**
 	 * Method to return the Variable on this ElectricObject with a given name.
 	 * @param name the name of the Variable.
@@ -1242,6 +1219,12 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	public void checkChanging() {
 //        if (!isDatabaseObject()) return;
         Job.checkChanging();
+// 		if (!isLinked())
+// 		{
+// 			String msg = "Changing ElectricObject is not in Database";
+//             System.out.println(msg);
+// 			ActivityLogger.logException(new IllegalStateException(msg));
+// 		}
     }
 
     public void checkExamine() {

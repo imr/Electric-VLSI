@@ -75,7 +75,7 @@ public class Name implements Comparable
 			return null;
 		} catch (NumberFormatException e)
 		{
-			return e.toString();
+			return e.getMessage();
 		}
 	}
 
@@ -526,6 +526,7 @@ public class Name implements Comparable
 			if (c == '@') throw new NumberFormatException("'@' in brackets");
 		}
 		if ((flags & TEMP) != 0 && (flags & LIST) != 0) throw new NumberFormatException("list of temporary names");
+		if (bracket != -1) throw new NumberFormatException("Unclosed bracket");
 		return flags;
 	}
 }

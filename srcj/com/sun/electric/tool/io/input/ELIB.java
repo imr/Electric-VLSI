@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -137,7 +136,7 @@ public class ELIB extends LibraryFiles
 	/** the number of ArcInsts in the library */							private int arcCount;
 	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
 	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
-	/** list of the Names of the ArcInsts in the library */					private Name [] arcNameList;
+	/** list of the Names of the ArcInsts in the library */					private String [] arcNameList;
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
@@ -355,7 +354,7 @@ public class ELIB extends LibraryFiles
 		nodeInstList = new LibraryFiles.NodeInstList();
 		nodeInstList.theNode = new NodeInst[nodeCount];
 		nodeInstList.protoType = new NodeProto[nodeCount];
-		nodeInstList.name = new Name[nodeCount];
+		nodeInstList.name = new String[nodeCount];
 		nodeInstList.lowX = new int[nodeCount];
 		nodeInstList.highX = new int[nodeCount];
 		nodeInstList.lowY = new int[nodeCount];
@@ -369,7 +368,7 @@ public class ELIB extends LibraryFiles
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
 		arcTypeList = new ArcProto[arcCount];
-		arcNameList = new Name[arcCount];
+		arcNameList = new String[arcCount];
 		arcWidthList = new int[arcCount];
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
@@ -1427,7 +1426,7 @@ public class ELIB extends LibraryFiles
 				ai = ArcInst.lowLevelAllocate();
 
 			ArcProto ap = arcTypeList[i];
-			Name name = arcNameList[i];
+			String name = arcNameList[i];
 			double width = arcWidthList[i] / lambdaX;
 			double headX = (arcHeadXPosList[i] - xoff) / lambdaX;
 			double headY = (arcHeadYPosList[i] - yoff) / lambdaY;
@@ -1504,8 +1503,7 @@ public class ELIB extends LibraryFiles
 			}
 			ai.lowLevelSetUserbits(arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle);
-			if (name != null) ai.setNameKey(name);
+			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
 			if ((arcUserBits[i]&ELIBConstants.ISNEGATED) != 0)
 			{
 				Connection con = ai.getTail();
@@ -1529,7 +1527,7 @@ public class ELIB extends LibraryFiles
 	{
 		NodeInst ni = nodeInstList.theNode[i];
 		NodeProto np = nodeInstList.protoType[i];
-		Name name = nodeInstList.name[i];
+		String name = nodeInstList.name[i];
 		double lowX = nodeInstList.lowX[i]-xoff;
 		double lowY = nodeInstList.lowY[i]-yoff;
 		double highX = nodeInstList.highX[i]-xoff;
@@ -1701,8 +1699,7 @@ public class ELIB extends LibraryFiles
 		// convert outline information, if present
 		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
 		ni.lowLevelSetUserbits(nodeInstList.userBits[i]);
-		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-		if (name != null) ni.setNameKey(name);
+		ni.lowLevelPopulate(np, center, width, height, rotation, cell, name, -1);
 		ni.lowLevelLink();
 
         // if this was a dummy cell, log instance as an error so the user can find easily
@@ -2295,7 +2292,7 @@ public class ELIB extends LibraryFiles
 		{
 			String instName = readString();
 			if (instName.length() > 0)
-				ni.setName(instName);
+				nodeInstList.name[nodeIndex] = instName;
 		}
 
 		// ignore the geometry index (versions 4 or older)
@@ -2384,7 +2381,7 @@ public class ELIB extends LibraryFiles
 		{
 			String instName = readString();
 			if (instName.length() > 0)
-				ai.setName(instName);
+				arcNameList[arcIndex] = instName;
 		}
 
 		// read the head information
@@ -2605,16 +2602,14 @@ public class ELIB extends LibraryFiles
 				{
 					NodeInst ni = (NodeInst)obj;
 					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
-					Name name = makeGeomName(ni, newAddr, newtype);
-					nodeInstList.name[index] = name;
+					nodeInstList.name[index] = convertGeomName(newAddr, newtype);
 					continue;
 				}
 				if (obj instanceof ArcInst && varKeys.getKey(key) == ArcInst.ARC_NAME)
 				{
 					ArcInst ai = (ArcInst)obj;
 					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
-					Name name = makeGeomName(ai, newAddr, newtype);
-					arcNameList[index] = name;
+					arcNameList[index] = convertGeomName(newAddr, newtype);
 					continue;
 				}
 			}

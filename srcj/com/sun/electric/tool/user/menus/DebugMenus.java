@@ -49,9 +49,6 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.ELIB1;
-import com.sun.electric.tool.io.input.JELIB1;
-import com.sun.electric.tool.io.input.LibraryStatistics;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.misc.LayerCoverageJob;
@@ -203,14 +200,6 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { varStatistics(); } });
-	    dimaMenu.addMenuItem("Lib test", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { libTestCommand(); } });
-	    dimaMenu.addMenuItem("Scan home dirs", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { homeDirsCommand(); } });
-	    dimaMenu.addMenuItem("Read home libs", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { homeLibsCommand(); } });
-	    dimaMenu.addMenuItem("Var names", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { varNamesCommand(); } });
     }
 
 	// ---------------------- For Regression Testing -----------------
@@ -1269,137 +1258,4 @@ P 704883 0 0
 		vcnt[c] += numVars;
 	}
 
-	private static void libTestCommand()
-	{
-        String fileName = OpenFile.chooseInputFile(FileType.LIBRARYFORMATS, null);
-        //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
-        if (fileName == null) return;
-		// start a job to do the input
-		FileType type = OpenFile.getOpenFileType(fileName, FileType.JELIB);
-		URL fileURL = TextUtils.makeURLToFile(fileName);
-		LibTestJob job = new LibTestJob(fileURL, type);
-	}
-
-	/**
-	 * Class to test library file.
-	 */
-	private static class LibTestJob extends Job
-	{
-		URL fileURL;
-		FileType type;
-
-		protected LibTestJob(URL fileURL, FileType type)
-		{
-			super("Lib test", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.fileURL = fileURL;
-			this.type = type;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			if (type == FileType.JELIB)
-				JELIB1.convertLibrary(fileURL, "test.jelib");
-			else if (type == FileType.ELIB);
-				ELIB1.convertLibrary(fileURL, "test.jelib");
-			return true;
-		}
-	}
-
-
-	private static String homeRegressionDir = "/home/nad/electric/regression";
-
-	private static void homeDirsCommand()
-	{
-		String[] dirNames = { "/home/nad" };
-		new HomeDirsJob(dirNames, homeRegressionDir);
-	}
-
-	/**
-	 * Class to scan home directories.
-	 */
-	private static class HomeDirsJob extends Job
-	{
-		String[] dirNames;
-		String regressionDir;
-
-		protected HomeDirsJob(String[] dirNames, String regressionDir)
-		{
-			super("Scan home dirs", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.dirNames = dirNames;
-			this.regressionDir = regressionDir;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			LibraryStatistics stat = LibraryStatistics.scanDirectories(dirNames);
-			stat.writeList(regressionDir + "/data/home.list");
-			stat.reportFileLength();
-			return true;
-		}
-	}
-
-	private static void homeLibsCommand()
-	{
-		new HomeLibsJob(homeRegressionDir);
-	}
-
-	/**
-	 * Class to read home library files.
-	 */
-	private static class HomeLibsJob extends Job
-	{
-		String regressionDir;
-
-		protected HomeLibsJob(String regressionDir)
-		{
-			super("Read Libs", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.regressionDir = regressionDir;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			LibraryStatistics stat = LibraryStatistics.readList(regressionDir + "/data/home.list");
-			stat.readLibraries();
-			stat.writeSerialized(regressionDir + "/tools/IO/output/home.ser");
-			stat.reportFileLength();
-			stat.reportMemoryUsage();
-			stat.reportJelib(regressionDir + "/tools/IO/output/home.jlib");
-			stat.reportVariableNames(regressionDir + "/tools/IO/output/home.var");
-
-			LibraryStatistics stat1 = LibraryStatistics.readSerialized(regressionDir + "/tools/IO/output/home.ser");
-			stat1.writeList(regressionDir + "/data/home.list");
-			stat1.reportFileLength();
-
-			return true;
-		}
-	}
-
-	private static void varNamesCommand()
-	{
-		new VarNamesJob(homeRegressionDir);
-	}
-
-	/**
-	 * Class to read home library files.
-	 */
-	private static class VarNamesJob extends Job
-	{
-		String regressionDir;
-
-		protected VarNamesJob(String regressionDir)
-		{
-			super("Var names", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.regressionDir = regressionDir;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			LibraryStatistics.readVariableNames(regressionDir + "/tools/IO/output/proj.var");
-			return true;
-		}
-	}
 }

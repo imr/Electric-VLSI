@@ -481,7 +481,7 @@ public class Routing extends Listener
 		}
 
 		// first validate the source cell
-		if (!copiedTopologyCell.isActuallyLinked())
+		if (!copiedTopologyCell.isLinked())
 		{
 			System.out.println("Copied cell is no longer valid");
 			return;

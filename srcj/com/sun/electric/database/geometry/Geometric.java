@@ -53,10 +53,7 @@ public abstract class Geometric extends ElectricObject
 	/**
 	 * The constructor is only called from subclasses.
 	 */
-	protected Geometric()
-	{
-        setLinked(false);
-	}
+	protected Geometric() {}
 
 	/**
 	 * Method to set the parent Cell of this Geometric.
@@ -149,32 +146,44 @@ public abstract class Geometric extends ElectricObject
 	public abstract int getDuplicate();
 
 	/**
-	 * Method to set the name of this Geometric.
-	 * @param name name of this geometric.
+	 * Method to rename this Geometric.
+	 * This Geometric must be linked to database.
+	 * @param name new name of this geometric.
 	 * @return true on error
 	 */
 	public boolean setName(String name)
 	{
+		assert isLinked();
 		Name key = null;
-		if (name != null && name != "") key = Name.findName(name);
-		return setNameKey(key);
+		if (name != null && name.length() > 0)
+		{
+			if (name.equals(getName())) return false;
+			key = Name.findName(name);
+		} else
+		{
+			if (!isUsernamed()) return false;
+			key = parent.getAutoname(getBasename());
+		}
+		if (checkNameKey(key)) return true;
+		if (parent.hasTempName(key) && !name.equalsIgnoreCase(getName()))
+		{
+			System.out.println(parent + " already has Geometric with temporary name \""+name+"\"");
+			return true;
+		}
+		Name oldName = getNameKey();
+		int oldDuplicate = getDuplicate();
+		lowLevelRename(key, -1);
+		Undo.renameGeometric(this, oldName, oldDuplicate);
+		return false;
 	}
 
 	/**
-	 * Method to set the name key  of this Geometric.
-	 * @param name name key of this geometric.
+	 * Method to check the new name key of this Geometric.
+	 * @param name new name key of this geometric.
 	 * @return true on error.
 	 */
-	public boolean setNameKey(Name name)
+	protected boolean checkNameKey(Name name)
 	{
-		if (name == null)
-		{
-			if (!isLinked()) {
-				lowLevelSetNameKey(null, -1);
-				return false;
-			}
-			name = parent.getAutoname(getBasename());
-		}
 		if (!name.isValid())
 		{
 			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to " +
@@ -192,18 +201,10 @@ public abstract class Geometric extends ElectricObject
 				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to " +
 					(this instanceof NodeInst ? "node" : "arc"));
 			else
-				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to " + describe());
+				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to " +
+					(this instanceof NodeInst ? "node" : "arc"));
 			return true;
 		}
-		if (isLinked() && parent.hasTempName(name))
-		{
-			System.out.println(parent + " already has Geometric with temporary name \""+name+"\"");
-			return true;
-		}
-		Name oldName = getNameKey();
-		int oldDuplicate = getDuplicate();
-		lowLevelSetNameKey(name, -1);
-		if (isLinked()) Undo.renameGeometric(this, oldName, oldDuplicate);
 		return false;
 	}
 
@@ -212,13 +213,7 @@ public abstract class Geometric extends ElectricObject
 	 * @param name new name of this Geometric.
 	 * @param duplicate new duplicate number of this Geometric or negative value.
 	 */
-	public abstract void lowLevelSetNameKey(Name name, int duplicate);
-
-	/**
-	 * Abstract method tells if this Geometric is linked to parent Cell.
-	 * @return true if this Geometric is linked to parent Cell.
-	 */
-	public abstract boolean isLinked();
+	public abstract void lowLevelRename(Name name, int duplicate);
 
 	/**
 	 * Abstract method gives prefix for autonaming.

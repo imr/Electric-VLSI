@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+BUG: (01/18/05, DN) "ElectricObject.isLinked()" can return true for objects of deleted cell.
+FIX: Reimplement "isLinked()" so that it became the same as former "isActuallyLinked()".
+
 IMP: (01/17/05, DN) Deterministic output of ELIB and ReadableDump:
      Only referenced objects and variable keys are written;
      Userbits of objects contain only bits used in Java Electric;

@@ -960,7 +960,7 @@ public class TextDescriptor implements Serializable
      */
 	public boolean isActuallyLinked()
 	{
-		if (owner == null || !owner.isActuallyLinked()) return false;
+		if (owner == null || !owner.isLinked()) return false;
 		for (Iterator it = owner.getVariables(); it.hasNext();) {
 			Variable var = (Variable)it;
 			if (var.getTextDescriptor() == this) return true;

@@ -541,7 +541,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             (so.getHighYOffset() - so.getLowYOffset()) / 2);
         AffineTransform trans = NodeInst.pureRotate(angle, false, false);
         trans.transform(pt, pt);
-        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
+        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
         np.getTechnology().setPrimitiveFunction(ni, func);
         np.getTechnology().setDefaultOutline(ni);
 

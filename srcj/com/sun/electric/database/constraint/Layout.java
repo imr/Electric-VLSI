@@ -1233,7 +1233,7 @@ public class Layout extends Constraints
 
 			// create a fake node with these values
 			NodeInst oldNi = NodeInst.lowLevelAllocate();
-			oldNi.lowLevelPopulate(bottomNi.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, bottomNi.getParent());
+			oldNi.lowLevelPopulate(bottomNi.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, bottomNi.getParent(), null, -1);
 			bottomNi = oldNi;
 		}
 		PrimitiveNode np = (PrimitiveNode)bottomNi.getProto();
@@ -1259,7 +1259,7 @@ public class Layout extends Constraints
 
 		// create a fake node with these values
 		NodeInst oldNi = NodeInst.lowLevelAllocate();
-		oldNi.lowLevelPopulate(ni.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, ni.getParent());
+		oldNi.lowLevelPopulate(ni.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, ni.getParent(), null, -1);
 
 		// use the fake node to determine the former transformation matrix
 		return oldNi.rotateOut();

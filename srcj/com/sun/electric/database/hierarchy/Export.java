@@ -92,7 +92,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	{
 		super();
 		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
-        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -236,6 +235,8 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public void kill()
 	{
+		checkChanging();
+
 		Collection oldPortInsts = lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
@@ -295,6 +296,8 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public boolean move(PortInst newPi)
 	{
+		checkChanging();
+
 		NodeInst newno = newPi.getNodeInst();
 		PortProto newsubpt = (PortProto)newPi.getPortProto();
 
@@ -337,7 +340,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	{
 		// initialize the parent object
 		this.parent = parent;
-		lowLevelRename(Name.findName(protoName));
+		this.name = Name.findName(protoName);
 		return false;
 	}
 
@@ -348,7 +351,8 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public void lowLevelRename(Name newName)
 	{
-		if (isLinked()) parent.moveExport(portIndex, newName.toString());
+		assert isLinked();
+		parent.moveExport(portIndex, newName.toString());
 		this.name = newName;
 	}
 
@@ -380,10 +384,10 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public boolean lowLevelLink(Collection oldPortInsts)
 	{
+		assert parent.isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
 		parent.addExport(this, oldPortInsts);
-        setLinked(true);
 		return false;
 	}
 
@@ -393,9 +397,9 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public Collection lowLevelUnlink()
 	{
+		assert isLinked();
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
-        setLinked(false);
 		return parent.removeExport(this);
 	}
 
@@ -494,12 +498,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routing to check whether changing of this cell allowed or not.
-	 * By default checks whole database change. Overriden in subclasses.
-	 */
-	public void checkChanging() { if (parent != null) parent.checkChanging(); }
-
-	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
@@ -518,22 +516,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * @return the index of this Export.
 	 */
 	public int getPortIndex() { return portIndex; }
-
-	/**
-	 * Method to return the Text Descriptor of this Export.
-	 * Text Descriptors tell how to display the port name.
-	 * This method is equivalent to <code>getTextDescriptor(Export.EXPORT_NAME_ID)</code>.
-	 * @return the Text Descriptor of this Export.
-	 */
-//	public TextDescriptor getTextDescriptor() { return descriptor; }
-
-	/**
-	 * Method to set the Text Descriptor of this Export.
-	 * Text Descriptors tell how to display the port name.
-	 * This method is equivalent to <code>setTextDescriptor(Export.EXPORT_NAME_ID, descriptor)</code>.
-	 * @param descriptor the Text Descriptor of this Export.
-	 */
-//	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
 	 * Returns the TextDescriptor on this Export selected by name.
@@ -566,6 +548,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public void setTextDescriptor(String varName, TextDescriptor td)
 	{
+		checkChanging();
 		if (varName == EXPORT_NAME_TD)
 			this.descriptor.copy(td);
 		else
@@ -673,6 +656,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public void setCharacteristic(PortCharacteristic characteristic)
 	{
+		checkChanging();
 		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
 	}
 
@@ -737,13 +721,13 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * Method to set this PortProto to be always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
-	public void setAlwaysDrawn() { userBits |= PORTDRAWN; }
+	public void setAlwaysDrawn() { checkChanging(); userBits |= PORTDRAWN; }
 
 	/**
 	 * Method to set this PortProto to be not always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
-	public void clearAlwaysDrawn() { userBits &= ~PORTDRAWN; }
+	public void clearAlwaysDrawn() { checkChanging(); userBits &= ~PORTDRAWN; }
 
 	/**
 	 * Method to tell whether this PortProto is always drawn.
@@ -757,14 +741,14 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
-	public void setBodyOnly() { userBits |= BODYONLY; }
+	public void setBodyOnly() { checkChanging(); userBits |= BODYONLY; }
 
 	/**
 	 * Method to set this PortProto to exist in the body and icon of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
-	public void clearBodyOnly() { userBits &= ~BODYONLY; }
+	public void clearBodyOnly() { checkChanging(); userBits &= ~BODYONLY; }
 
 	/**
 	 * Method to tell whether this PortProto exists only in the body of a cell.
@@ -775,16 +759,18 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
 
     /**
-     * Returns true if this Export is completely linked into database.
-	 * This means there is path to this Export through lists:
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;ports-> Export
+     * Returns true if this Export is linked into database.
+     * @return true if this Export is linked into database.
      */
-	public boolean isActuallyLinked()
+	public boolean isLinked()
 	{
-		if (parent == null) return false;
-		int portIndex = getPortIndex();
-		return parent.isActuallyLinked() &&
-			0 <= portIndex && portIndex < parent.getNumPorts() && parent.getPort(portIndex) == this;
+		try
+		{
+			return parent.isLinked() && parent.getPort(portIndex) == this;
+		} catch (IndexOutOfBoundsException e)
+		{
+			return false;
+		}
 	}
 
 	/**

@@ -302,16 +302,6 @@ public class View implements Comparable/*<View>*/
 		return (View)viewNames.get(name);
 	}
 
-    /**
-     * Returns true if this View is completely linked into database.
-	 * This means this View is contained in View&#46;views
-     */
-	public boolean isActuallyLinked()
-	{
-		assert views.contains(this);
-		return true;
-	}
-
 	/**
 	 * Method to return the full name of this View.
 	 * @return the full name of this View.

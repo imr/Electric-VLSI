@@ -62,7 +62,6 @@ import java.util.Iterator;
 public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
-	static final boolean NEWJELIB = false;
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
@@ -290,10 +289,7 @@ public class Input
 			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == FileType.JELIB)
 		{
-			if (NEWJELIB)
-				in = new JELIB1();
-			else
-				in = new JELIB();
+			in = new JELIB();
 			if (in.openTextInput(fileURL)) return null;
 		} else if (type == FileType.READABLEDUMP)
 		{
@@ -387,34 +383,6 @@ public class Input
 				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 			return;
 		}
-	}
-
-	/**
-	 * Method to set name of Geometric object.
-	 * @param geom the Geometric object.
-	 * @param value name of object
-	 * @param type type mask.
-	 */
-	protected Name makeGeomName(Geometric geom, Object value, int type)
-	{
-		if (value == null || !(value instanceof String)) return null;
-		String str = (String)value;
-		Name name = Name.findName(str);
-		if ((type & ELIBConstants.VDISPLAY) != 0)
-		{
-			if (name.isTempname())
-			{
-				String newS = "";
-				for (int i = 0; i < str.length(); i++)
-				{
-					char c = str.charAt(i);
-					if (c == '@') c = '_';
-					newS += c;
-				}
-				name = Name.findName(newS);
-			}
-		} else if (!name.isTempname()) return null;
-		return name;
 	}
 
 	private static String [] fontNames = null;

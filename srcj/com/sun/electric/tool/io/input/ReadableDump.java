@@ -34,7 +34,6 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -72,7 +71,7 @@ public class ReadableDump extends LibraryFiles
 	{
 		private ArcInst []   arcList;
 		private ArcProto []  arcProto;
-		private Name []      arcInstName;
+		private String []    arcInstName;
 		private int []       arcWidth;
 		private NodeInst []  arcHeadNode;
 		private String []    arcHeadPort;
@@ -508,7 +507,7 @@ public class ReadableDump extends LibraryFiles
 			if (np == Generic.tech.cellCenterNode)
 			{
 				NodeInst ni = nil.theNode[j];
-				Name name = nil.name[j];
+				String name = nil.name[j];
 				int lowX = nil.lowX[j];
 				int lowY = nil.lowY[j];
 				int highX = nil.highX[j];
@@ -518,8 +517,7 @@ public class ReadableDump extends LibraryFiles
 				Point2D center = new Point2D.Double(xoff / lambdaX, yoff / lambdaY);
 				double width = (highX - lowX) / lambdaX;
 				double height = (highY - lowY) / lambdaY;
-				ni.lowLevelPopulate(np, center, width, height, nil.rotation[j], cell);
-				if (name != null) ni.setNameKey(name);
+				ni.lowLevelPopulate(np, center, width, height, nil.rotation[j], cell, name, -1);
 				ni.lowLevelLink();
 			}
 		}
@@ -532,7 +530,7 @@ public class ReadableDump extends LibraryFiles
 			if (np == null) continue;
 			if (np == Generic.tech.cellCenterNode) continue;
 			NodeInst ni = nil.theNode[j];
-			Name name = nil.name[j];
+			String name = nil.name[j];
 			int lowX = nil.lowX[j];
 			int lowY = nil.lowY[j];
 			int highX = nil.highX[j];
@@ -581,8 +579,7 @@ public class ReadableDump extends LibraryFiles
 				trans.transform(shift, shift);
 				center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 			}
-			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-			if (name != null) ni.setNameKey(name);
+			ni.lowLevelPopulate(np, center, width, height, rotation, cell, name, -1);
 			ni.lowLevelLink();
 
 			// convert outline information, if present
@@ -622,7 +619,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			ArcInst ai = ail.arcList[j];
 			ArcProto ap = ail.arcProto[j];
-			Name name = ail.arcInstName[j];
+			String name = ail.arcInstName[j];
 			double width = ail.arcWidth[j] / lambda;
 			if (!ail.arcHeadNode[j].isLinked() || !ail.arcTailNode[j].isLinked()) continue;
 			PortInst headPortInst = ail.arcHeadNode[j].findPortInst(ail.arcHeadPort[j]);
@@ -646,8 +643,7 @@ public class ReadableDump extends LibraryFiles
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle);
-			if (name != null) ai.setNameKey(name);
+			ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle, name, -1);
 			ai.lowLevelLink();
 		}
 	}
@@ -1094,7 +1090,7 @@ public class ReadableDump extends LibraryFiles
 			nodeInstList[curCellNumber] = nil;
 			nil.theNode = new NodeInst[2];
 			nil.protoType = new NodeProto[2];
-			nil.name = new Name[2];
+			nil.name = new String[2];
 			nil.lowX = new int[2];
 			nil.highX = new int[2];
 			nil.lowY = new int[2];
@@ -1160,7 +1156,7 @@ public class ReadableDump extends LibraryFiles
 		nodeInstList[curCellNumber] = nil;
 		nil.theNode = new NodeInst[nodeInstCount];
 		nil.protoType = new NodeProto[nodeInstCount];
-		nil.name = new Name[nodeInstCount];
+		nil.name = new String[nodeInstCount];
 		nil.lowX = new int[nodeInstCount];
 		nil.highX = new int[nodeInstCount];
 		nil.lowY = new int[nodeInstCount];
@@ -1184,7 +1180,7 @@ public class ReadableDump extends LibraryFiles
 		arcInstList[curCellNumber] = ail;
 		ail.arcList = new ArcInst[arcInstCount];
 		ail.arcProto = new ArcProto[arcInstCount];
-		ail.arcInstName = new Name[arcInstCount];
+		ail.arcInstName = new String[arcInstCount];
 		ail.arcWidth = new int[arcInstCount];
 		ail.arcHeadNode = new NodeInst[arcInstCount];
 		ail.arcHeadPort = new String[arcInstCount];
@@ -1302,7 +1298,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordNodNam()
 	{
-		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setName(keyWord);
+		nodeInstList[curCellNumber].name[curNodeInstIndex] = keyWord;
 	}
 
 	/**
@@ -1417,7 +1413,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordArcNam()
 	{
-		arcInstList[curCellNumber].arcList[curArcInstIndex].setName(keyWord);
+		arcInstList[curCellNumber].arcInstName[curArcInstIndex] = keyWord;
 	}
 
 	/**
@@ -1789,16 +1785,14 @@ public class ReadableDump extends LibraryFiles
 				{
 					NodeInst ni = (NodeInst)naddr;
 					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
-					Name name = makeGeomName(ni, value, type);
-					nodeInstList[curCellNumber].name[curNodeInstIndex] = name;
+					nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName(value, type);
 					continue;
 				}
 				if (naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME)
 				{
 					ArcInst ai = (ArcInst)naddr;
 					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
-					Name name = makeGeomName(ai, value, type);
-					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
+					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName(value, type);
 					continue;
 				}
 			}

@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
@@ -38,9 +37,10 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.io.File;
 import java.net.URL;
@@ -75,7 +75,7 @@ public abstract class LibraryFiles extends Input
 	{
 		protected NodeInst []  theNode;
 		protected NodeProto [] protoType;
-		protected Name []      name;
+		protected String []    name;
 		protected int []       lowX;
 		protected int []       highX;
 		protected int []       lowY;
@@ -99,8 +99,6 @@ public abstract class LibraryFiles extends Input
 	public static void initializeLibraryInput()
 	{
 		libsBeingRead = new ArrayList();
-		if (NEWJELIB)
-			LibraryContents.initializeLibraryInput();
 	}
 
 	public boolean readInputLibrary()
@@ -483,8 +481,6 @@ public abstract class LibraryFiles extends Input
 //		convertOldLibraries();
         // clean up init (free LibraryFiles for garbage collection)
         libsBeingRead.clear();
-		if (NEWJELIB)
-			LibraryContents.terminateLibraryInput();
 	}
 
 // 	private static void convertOldLibraries()
@@ -528,6 +524,33 @@ public abstract class LibraryFiles extends Input
 			return newS;
 		}
 		return s;
+	}
+
+	/**
+	 * Method to conver name of Geometric object.
+	 * @param value name of object
+	 * @param type type mask.
+	 */
+	protected String convertGeomName(Object value, int type)
+	{
+		if (value == null || !(value instanceof String)) return null;
+		String str = (String)value;
+		int indexOfAt = str.indexOf('@');
+		if ((type & ELIBConstants.VDISPLAY) != 0)
+		{
+			if (indexOfAt >= 0)
+			{
+				String newS = "";
+				for (int i = 0; i < str.length(); i++)
+				{
+					char c = str.charAt(i);
+					if (c == '@') c = '_';
+					newS += c;
+				}
+				str = newS;
+			}
+		} else if (indexOfAt < 0) return null;
+		return str;
 	}
 
 	/**

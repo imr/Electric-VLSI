@@ -68,8 +68,6 @@ public class PrimitiveArc extends ArcProto implements Comparable
 		this.tech = tech;
 		this.layers = layers;
 		setFactoryDefaultWidth(defaultWidth);
-        // Prototypes are always assumed to be linked into the database
-//        setLinked(true);        
 	}
 
 	// ------------------------ public methods -------------------------------

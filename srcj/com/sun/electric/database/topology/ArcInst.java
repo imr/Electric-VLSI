@@ -198,7 +198,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the head node
 		NodeInst niH = NodeInst.lowLevelAllocate();
-		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
+		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piH = niH.getOnlyPortInst();
 		Rectangle2D boundsH = piH.getBounds();
 		double xH = boundsH.getCenterX();
@@ -206,7 +206,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the tail node
 		NodeInst niT = NodeInst.lowLevelAllocate();
-		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
+		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piT = niT.getOnlyPortInst();
 		Rectangle2D boundsT = piT.getBounds();
 		double xT = boundsT.getCenterX();
@@ -214,7 +214,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the arc that connects them
 		ArcInst ai = ArcInst.lowLevelAllocate();
-		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT), 0);
+		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT), 0, null, -1);
 		return ai;
 	}
 
@@ -264,7 +264,7 @@ public class ArcInst extends Geometric implements Comparable
 		if (type == null || head == null || tail == null) return null;
 
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle)) return null;
+		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle, name, -1)) return null;
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
 		{
 			if (!ai.stillInPort(ai.getHead(), headPt, false))
@@ -289,7 +289,6 @@ public class ArcInst extends Geometric implements Comparable
 				return null;
 			}
 		}
-		if (name != null) ai.setName(name);
 		if (ai.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -394,10 +393,12 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param tailPort the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param defAngle the default angle of this arc (if the endpoints are coincident).
+	 * @param name the name of this ArcInst
+	 * @param duplicate duplicate index of this ArcInst
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double width,
-		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt, int defAngle)
+		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt, int defAngle, String name, int duplicate)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -424,6 +425,8 @@ public class ArcInst extends Geometric implements Comparable
 			return true;
 		}
 		this.parent = parent;
+		this.name = Name.findName(name);
+		this.duplicate = duplicate;
 
 		// make sure the arc can connect to these ports
 		PortProto headProto = headPort.getPortProto();
@@ -459,10 +462,10 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean lowLevelLink()
 	{
-		if (!isUsernamed())
+		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name))
 		{
-			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
-				if (setNameKey(parent.getAutoname(BASENAME))) return true;
+			name = parent.getAutoname(BASENAME);
+			duplicate = 0;
 		}
 
 		// attach this arc to the two nodes it connects
@@ -950,22 +953,15 @@ public class ArcInst extends Geometric implements Comparable
 	/**
 	 * Low-level access method to change name of this ArcInst.
 	 * @param name new name of this ArcInst.
-	 * @param duplicate new duplicate number of this Geometric or negative value.
+	 * @param duplicate new duplicate number of this ArcInst or negative value.
 	 */
-	public void lowLevelSetNameKey(Name name, int duplicate)
+	public void lowLevelRename(Name name, int duplicate)
 	{
-		if (isLinked())
-		{
-			parent.removeArc(this);
-			this.name = name;
-			this.duplicate = duplicate;
-			this.duplicate = parent.addArc(this);
-			parent.checkInvariants();
-		} else
-		{
-			this.name = name;
-			this.duplicate = duplicate;
-		}
+		parent.removeArc(this);
+		this.name = name;
+		this.duplicate = duplicate;
+		this.duplicate = parent.addArc(this);
+		parent.checkInvariants();
 	}
 
 	/**
@@ -1175,22 +1171,19 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public final int getArcIndex() { return arcIndex; }
 
-	/**
-	 * Method tells if this ArcInst is linked to parent Cell.
-	 * @return true if this ArcInst is linked to parent Cell.
-	 */
-	public boolean isLinked() { return arcIndex >= 0; }
-
     /**
-     * Returns true if this ArcInst is completely linked into database.
-	 * This means there is path to this ArcInstElectricObjects through lists:
-	 * Library&#46;libraries->Library&#46;cells->Cell&#46;arcs-> ArcInst
+     * Returns true if this ArcInst is linked into database.
+     * @return true if this ArcInst is linked into database.
      */
-	public boolean isActuallyLinked()
+	public boolean isLinked()
 	{
-		Cell parent = getParent();
-		return parent != null && parent.isActuallyLinked() &&
-			0 <= arcIndex && arcIndex < parent.getNumArcs() && parent.getArc(arcIndex) == this;
+		try
+		{
+			return parent != null && parent.isLinked() && parent.getArc(arcIndex) == this;
+		} catch (IndexOutOfBoundsException e)
+		{
+			return false;
+		}
 	}
 
 	/**
