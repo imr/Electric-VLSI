@@ -683,7 +683,6 @@ public class Technology
 	 * Method to initialize a technology. This will check and restore
 	 * default values stored as preferences
 	 */
-	//public void init() {}
 	public void init()
 	{
 		// remember the arc widths as specified by previous defaults
@@ -1681,6 +1680,30 @@ public class Technology
 	}
 
 	/**
+	 * Method to determine if cut case is considered multi cut
+	 * It gets overridden by TSMC90
+	 */
+	public boolean isMultiCutInTechnology(MultiCutData mcd)
+	{
+		return (mcd.numCuts() > 1);
+	}
+
+	/**
+	 * Multicut conditions depend upon technologies
+	 * @param ni
+	 * @return
+	 */
+	public boolean isMultiCutCase(NodeInst ni)
+	{
+		NodeProto np = ni.getProto();
+		if (np instanceof Cell) return false;
+		PrimitiveNode pnp = (PrimitiveNode)np;
+		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
+
+		return (isMultiCutInTechnology(new MultiCutData(ni, pnp.getSpecialValues())));
+	}
+
+	/**
 	 * Class MultiCutData determines the locations of cuts in a multi-cut contact node.
 	 */
 	public static class MultiCutData
@@ -1768,6 +1791,18 @@ public class Technology
 		 * @return the number of cuts in the contact node.
 		 */
 		public int numCuts() { return cutsTotal; }
+
+		/**
+		 * Method to return the number of cuts along X axis in the contact node.
+		 * @return the number of cuts in the contact node along X axis.
+		 */
+		public int numCutsX() { return cutsX; }
+
+		/**
+		 * Method to return the number of cuts along Y axis in the contact node.
+		 * @return the number of cuts in the contact node along Y axis.
+		 */
+		public int numCutsY() { return cutsY; }
 
 		/**
 		 * Method to fill in the contact cuts of a MOS contact when there are

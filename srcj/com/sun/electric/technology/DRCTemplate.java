@@ -64,6 +64,7 @@ public class DRCTemplate
     public double distance;		/* the spacing of the rule */
     public double maxW;         /* max length where spacing is valid */
     public String nodeName;		/* the node that is used by the rule */
+	public boolean multiCut;         /* multi cut rule */
 
     public DRCTemplate(String rule, int when, int ruleType, String layer1, String layer2, double distance, String nodeName)
     {
@@ -88,8 +89,19 @@ public class DRCTemplate
             default:
         }
     }
-    // For different spacing depending on wire length
-    public DRCTemplate(String rule, int when, int ruleType, double maxW, String layer1, String layer2, double distance)
+
+	/**
+	 * For different spacing depending on wire length and multi cuts
+	 * @param rule
+	 * @param when
+	 * @param ruleType
+	 * @param maxW
+	 * @param layer1
+	 * @param layer2
+	 * @param distance
+	 * @param multiCut
+	 */
+    public DRCTemplate(String rule, int when, int ruleType, double maxW, String layer1, String layer2, double distance, boolean multiCut)
     {
         this.rule = rule;
         this.when = when;
@@ -98,6 +110,7 @@ public class DRCTemplate
         this.layer2 = layer2;
         this.distance = distance;
         this.maxW = maxW;
+		this.multiCut = multiCut;
 
         switch (ruleType)
         {
@@ -113,6 +126,16 @@ public class DRCTemplate
         }
     }
 
+	/**
+	 * Method for spacing rules in single layers
+	 * @param name
+	 * @param when
+	 * @param type
+	 * @param maxW
+	 * @param value
+	 * @param arrayL
+	 * @return
+	 */
     public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[])
 	{
 		// Clone same rule for different layers
@@ -121,13 +144,24 @@ public class DRCTemplate
 		for (int i = 0; i < length; i++)
 		{
 			String layer = arrayL[i];
-			DRCTemplate r = new DRCTemplate(name, when, type, maxW, layer, null, value);
+			DRCTemplate r = new DRCTemplate(name, when, type, maxW, layer, null, value, false);
 			list.add(r);
 		}
 		return list;
 	}
 
-    public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[][])
+	/**
+	 * For multi cuts as well
+	 * @param name
+	 * @param when
+	 * @param type
+	 * @param maxW
+	 * @param value
+	 * @param arrayL
+	 * @param multiCut
+	 * @return
+	 */
+    public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[][], boolean multiCut)
 	{
 		// Clone same rule for different layers
 		int length = arrayL.length;
@@ -137,7 +171,7 @@ public class DRCTemplate
 			String []layers = arrayL[i];
 			if (layers.length != 2)
 				System.out.println("Invalid number of layers in DRC::makeRuleTemplates");
-			DRCTemplate r = new DRCTemplate(name, when, type, maxW, layers[0], layers[1], value);
+			DRCTemplate r = new DRCTemplate(name, when, type, maxW, layers[0], layers[1], value, multiCut);
 			list.add(r);
 		}
 		return list;

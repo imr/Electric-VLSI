@@ -979,7 +979,7 @@ public class Quick
 		boolean baseMulti = false;
 		if (geom instanceof NodeInst)
 		{
-			baseMulti = isMultiCut((NodeInst)geom);
+			baseMulti = tech.isMultiCutCase((NodeInst)geom);
 		}
 
 		// search in the area surrounding the box
@@ -1012,7 +1012,7 @@ public class Quick
 		// determine if original object has multiple contact cuts
 		boolean baseMulti = false;
 		if (geom instanceof NodeInst)
-			baseMulti = isMultiCut((NodeInst)geom);
+			baseMulti = tech.isMultiCutCase((NodeInst)geom);
 
 		// search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
@@ -1110,13 +1110,12 @@ public class Quick
 						subPolyList[i].transform(rTrans);
 					    /* Step 1 */
 					boolean multi = baseMulti;
-					if (!multi) multi = isMultiCut(ni);
+					if (!multi) multi = tech.isMultiCutCase(ni);
 					for(int j=0; j<tot; j++)
 					{
 						Poly npoly = subPolyList[j];
 						Layer nLayer = npoly.getLayer();
 						if (nLayer == null) continue;
-						//if (nLayer.isNonElectrical()) continue; // covered by isSpecialNode
                         //npoly.transform(rTrans);
 
 						Rectangle2D nPolyRect = npoly.getBounds2D();
@@ -1678,7 +1677,7 @@ public class Quick
 			trans = oNi.rotateOut();
 			nodeInstPolyList = tech.getShapeOfNode(oNi, null, true, ignoreCenterCuts);
 			convertPseudoLayers(oNi, nodeInstPolyList);
-			baseMulti = isMultiCut(oNi);
+			baseMulti = tech.isMultiCutCase(oNi);
 		} else
 		{
 			ArcInst oAi = (ArcInst)geom;
@@ -1881,6 +1880,8 @@ public class Quick
 	 */
 	private void checkEnumerateInstances(Cell cell)
 	{
+		if (job != null && job.checkAbort()) return;
+
 		// number all of the instances in this cell
 		checkTimeStamp++;
 		List subCheckProtos = new ArrayList();
@@ -2247,23 +2248,6 @@ public class Quick
 		}
 
 		return errorFound;
-	}
-
-	/**
-	 * Method to determine whether node "ni" is a multiple cut contact.
-	 * @param ni
-	 * @return
-	 */
-	private boolean isMultiCut(NodeInst ni)
-	{
-		NodeProto np = ni.getProto();
-		if (np instanceof Cell) return false;
-		PrimitiveNode pnp = (PrimitiveNode)np;
-		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
-		double [] specialValues = pnp.getSpecialValues();
-		Technology.MultiCutData mcd = new Technology.MultiCutData(ni, specialValues);
-		if (mcd.numCuts() > 1) return true;
-		return false;
 	}
 
 	/**

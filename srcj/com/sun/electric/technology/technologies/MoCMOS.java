@@ -338,8 +338,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("7.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
 
-		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        6),
-		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        4),
+		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        6, false),
+		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        4, false),
 
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
@@ -366,8 +366,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("9.3",  DRCTemplate.ALL,               DRCTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
 
-		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        8),
-		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        6),
+		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        8, false),
+		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        6, false),
 
 		new DRCTemplate("11.1", DRCTemplate.SU, DRCTemplate.MINWID,   "Polysilicon-2",   null,            7,  null),
 		new DRCTemplate("11.1", DRCTemplate.SC, DRCTemplate.MINWID,   "Polysilicon-2",   null,            3,  null),
@@ -410,10 +410,10 @@ public class MoCMOS extends Technology
 		new DRCTemplate("15.3", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M3,    DRCTemplate.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
 		new DRCTemplate("15.3", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
 
-		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8),
-		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6),
+		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8, false),
+		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6, false),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8, false),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6, false),
 
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via3",            null,            3,  null),
@@ -438,9 +438,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("22.3", DRCTemplate.M4,    DRCTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("22.3", DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
 
-		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        12),
-		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8),
-		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6),
+		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        12, false),
+		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8, false),
+		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6, false),
 
 		new DRCTemplate("24.1", DRCTemplate.ALL, DRCTemplate.MINWID,  "Thick-Active",    null,            4,  null),
 		new DRCTemplate("24.2", DRCTemplate.ALL, DRCTemplate.SPACING, "Thick-Active",   "Thick-Active",   4, null),
@@ -469,9 +469,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("26.3", DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("26.3", DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
 
-		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8),
-		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8),
-		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        6),
+		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8, false),
+		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8, false),
+		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        6, false),
 
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via5",            null,            4,  null),
@@ -491,7 +491,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("30.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("30.3", DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8)
+		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8, false)
 	};
 
 	// -------------------- private and protected methods ------------------------
