@@ -51,8 +51,6 @@ public class EvalJavaBsh
 
     // ------------------------ private data ------------------------------------
 
-	/** the singleton object of this class. */		public static EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
-
     /** The bean shell interpreter eval method */   private static Method evalMethod;
     /** The bean shell interpreter source method */ private static Method sourceMethod;
     /** The bean shell interpreter set method */    private static Method setMethod;
@@ -66,6 +64,8 @@ public class EvalJavaBsh
     /** The bean shell interpreter object */        private Object envObject;
     /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
     /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
+
+    /** the singleton object of this class. */		public static EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
 
     /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = false;
     /** turn on stack trace stmts for exceptions */ private static boolean DEBUGSTACKTRACE = false;
@@ -213,7 +213,8 @@ public class EvalJavaBsh
     public Object P(String name) throws IgnorableException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
-        if (val == null) throw new IgnorableException("Lookup of "+name+" not found");
+        if (val == null)
+            throw new IgnorableException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
@@ -229,7 +230,8 @@ public class EvalJavaBsh
     public Object PAR(String name) throws IgnorableException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);
-        if (val == null) throw new IgnorableException("Far lookup of "+name+" not found");
+        if (val == null)
+            throw new IgnorableException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
@@ -333,7 +335,7 @@ public class EvalJavaBsh
                 returnVal = evalMethod.invoke(envObject, new Object[] {line});
             }
         } catch (Exception e) {
-            handleInvokeException(e, "Bean shell error evaluating "+line);
+            returnVal = handleInvokeException(e, "Bean shell error evaluating "+line);
         }
         return returnVal;
     }
@@ -367,14 +369,15 @@ public class EvalJavaBsh
      * Handle exceptions thrown by attempting to invoke a reflected method or constructor.
      * @param e The exception thrown by the invoked method or constructor.
      * @param description a description of the event to be printed with the error message.
+     * @return a string describing the error
      */
-    private static void handleInvokeException(Exception e, String description) {
+    private static String handleInvokeException(Exception e, String description) {
 
         if (e instanceof InvocationTargetException) {
             // This wraps an exception thrown by the method invoked.
             Throwable t = e.getCause();
             if (t != null)
-                handleBshError((Exception)t, description);
+                return handleBshError((Exception)t, description);
         }
         else if (e instanceof IllegalArgumentException) {
             System.out.println(description+": "+e.getMessage());
@@ -389,15 +392,18 @@ public class EvalJavaBsh
             System.out.println(description+": "+e.getMessage());
             e.printStackTrace(System.out);
         }
+        return e.getMessage();
     }
 
     /**
      * Handle Bean Shell evaluation errors.  Sends it to system.out.
      * @param e the TargetError exception thrown.
      * @param description a description of the event that caused the error to be thrown.
+     * @return a string describing the error
      */
-    private static void handleBshError(Exception e, String description)
+    private static String handleBshError(Exception e, String description)
     {
+        String message = null;
         if (targetErrorClass.isInstance(e)) {
             // The Bean Shell had an error
             Throwable t = doGetTarget(e);
@@ -407,15 +413,19 @@ public class EvalJavaBsh
                         System.out.println("IngorableException: "+description+": "+t.getMessage());
                         if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                     }
+                    message = t.getMessage();
                 } else {
                     System.out.println(description+": "+t.getMessage());
                     if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
+                    message = t.getMessage();
                 }
             }
         } else {
             System.out.println("Unhandled Bsh Exception: "+description+": "+e.getMessage());
             if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
+            message = e.getMessage();
         }
+        return message;
     }
 
 }

@@ -199,7 +199,7 @@ public class VarContext
      * @return an object representing the evaluated variable,
      * or null if no var or default var found.
      */
-    public Object lookupVarEval(String name)
+    protected Object lookupVarEval(String name)
     {
         if (ni == null) return null;
         Variable var = ni.getVar(name);
@@ -220,7 +220,8 @@ public class VarContext
 //             }
             var = np.getVar(name);
         }
-        if (var == null) return "Var "+name.replaceFirst("ATTR_", "")+" not found";
+        //if (var == null) return "Var "+name.replaceFirst("ATTR_", "")+" not found";
+        if (var == null) return null;
         // evaluate var in it's context
         return this.pop().evalVar(var, ni);
     }
@@ -233,7 +234,7 @@ public class VarContext
      * @param name the name of the variable
      * @return evaluated Object, or null if not found
      */
-    public Object lookupVarFarEval(String name)
+    protected Object lookupVarFarEval(String name)
     {
 		// look up the entire stack, starting with end
 		VarContext scan = this;
