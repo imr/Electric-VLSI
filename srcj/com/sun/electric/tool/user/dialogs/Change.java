@@ -76,7 +76,7 @@ public class Change extends EDialog
 
 	private static boolean nodesAndArcs = false;
 	private static int whatToChange = CHANGE_SELECTED;
-	private static Geometric geomToChange;
+	private List geomsToChange;                  // List of Geometrics to change
     private static String libSelected = null;
 	private JList changeList;
 	private DefaultListModel changeListModel;
@@ -86,20 +86,22 @@ public class Change extends EDialog
 	{
 		// first make sure something is selected
 		List highs = Highlight.getHighlighted(true, true);
-		Geometric geomToChange = null;
-		if (highs.size() > 0) geomToChange = (Geometric)highs.get(0);
-		if (geomToChange == null)
+		List geomsToChange = new ArrayList();
+        for (Iterator it = highs.iterator(); it.hasNext(); ) {
+            geomsToChange.add(it.next());
+        }
+        if (geomsToChange.size() == 0)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"Select an object before changing it.");
 			return;
 		}
-		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomToChange);
+		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomsToChange);
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Change */
-	private Change(java.awt.Frame parent, boolean modal, Geometric geomToChange)
+	private Change(java.awt.Frame parent, boolean modal, List geomsToChange)
 	{
 		super(parent, modal);
 		initComponents();
@@ -138,7 +140,8 @@ public class Change extends EDialog
 		});
 
 		// find out what is going to be changed
-		Change.geomToChange = geomToChange;
+		this.geomsToChange = geomsToChange;
+        Geometric geomToChange = (Geometric)geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			librariesPopup.setEnabled(true);
@@ -222,6 +225,7 @@ public class Change extends EDialog
 		if (src == changeInCell) whatToChange = CHANGE_CELL; else
 		if (src == changeInLibrary) whatToChange = CHANGE_LIBRARY; else
 		if (src == changeEverywhere) whatToChange = CHANGE_EVERYWHERE;
+        Geometric geomToChange = (Geometric)geomsToChange.get(0);
 		if (whatToChange == CHANGE_EVERYWHERE)
 		{
 			if (geomToChange instanceof ArcInst)
@@ -247,6 +251,7 @@ public class Change extends EDialog
 		changeListModel.clear();
 		changeNodeProtoList.clear();
 		Technology curTech = Technology.getCurrent();
+        Geometric geomToChange = (Geometric)geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			if (showCells.isSelected())
@@ -364,11 +369,13 @@ public class Change extends EDialog
 
 		public boolean doIt()
 		{
+            for (Iterator geomit = dialog.geomsToChange.iterator(); geomit.hasNext(); ) {
+                Geometric geomToChange = (Geometric)geomit.next();
 			// handle node replacement
-			if (Change.geomToChange instanceof NodeInst)
+			if (geomToChange instanceof NodeInst)
 			{
 				// get node to be replaced
-				NodeInst ni = (NodeInst)Change.geomToChange;
+				NodeInst ni = (NodeInst)geomToChange;
 
 				// disallow replacing if lock is on
 				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return false;
@@ -558,7 +565,7 @@ public class Change extends EDialog
 			} else
 			{
 				// get arc to be replaced
-				ArcInst ai = (ArcInst)Change.geomToChange;
+				ArcInst ai = (ArcInst)geomToChange;
 
 				// disallow replacement if lock is on
 				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return false;
@@ -729,6 +736,7 @@ public class Change extends EDialog
 						" arcs connected to this replaced with " + ap.describe());
 				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 			}
+            }
 			return true;
 		}
 

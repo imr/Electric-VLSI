@@ -379,6 +379,12 @@ public class NodeInst extends Geometric implements Nodable
 			SizeOffset newSO = np.getProtoSizeOffset();
 			newXS = getXSize() - oldSO.getLowXOffset() - oldSO.getHighXOffset() + newSO.getLowXOffset() + newSO.getHighXOffset();
 			newYS = getYSize() - oldSO.getLowYOffset() - oldSO.getHighYOffset() + newSO.getLowYOffset() + newSO.getHighYOffset();
+            // if less than min size, set it to min size
+            if (newXS < np.getDefWidth()) newXS = np.getDefWidth();
+            if (newYS < np.getDefHeight()) newYS = np.getDefHeight();
+            // if old prim is min size, set new prim to min size
+            if (getXSize() == getProto().getDefWidth()) newXS = np.getDefWidth();
+            if (getYSize() == getProto().getDefHeight()) newYS = np.getDefHeight();
 		}
 		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;

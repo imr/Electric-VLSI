@@ -1,3 +1,27 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: RouteElementArc.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -87,8 +111,8 @@ public class RouteElementArc extends RouteElement {
         RouteElementArc e = new RouteElementArc(RouteElementAction.deleteArc, arcInstToDelete.getParent());
         e.arcProto = arcInstToDelete.getProto();
         e.arcWidth = arcInstToDelete.getWidth();
-        e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHead().getPortInst());
-        e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTail().getPortInst());
+        e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHead().getPortInst(), arcInstToDelete.getHead().getLocation());
+        e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTail().getPortInst(), arcInstToDelete.getTail().getLocation());
         e.arcName = arcInstToDelete.getName();
         e.headConnPoint = arcInstToDelete.getHead().getLocation();
         e.tailConnPoint = arcInstToDelete.getTail().getLocation();
@@ -179,22 +203,31 @@ public class RouteElementArc extends RouteElement {
     /**
      * Used to update end points of new arc if they change
      * Only valid if called on newArcs, does nothing otherwise.
+     * @return true if either (a) this arc does not use oldEnd, or
+     * (b) this arc replaced oldEnd with newEnd, and no longer uses oldEnd at all.
      */
-    public void replaceArcEnd(RouteElementPort oldEnd, RouteElementPort newEnd) {
+    public boolean replaceArcEnd(RouteElementPort oldEnd, RouteElementPort newEnd) {
         if (getAction() == RouteElementAction.newArc) {
+            Poly poly = newEnd.getConnectingSite();
             if (headRE == oldEnd) {
-                headRE = newEnd;
-                // update book-keeping
-                oldEnd.removeConnectingNewArc(this);
-                newEnd.addConnectingNewArc(this);
+                if (poly != null && poly.contains(headConnPoint)) {
+                    headRE = newEnd;
+                    // update book-keeping
+                    oldEnd.removeConnectingNewArc(this);
+                    newEnd.addConnectingNewArc(this);
+                }
             }
             if (tailRE == oldEnd) {
-                tailRE = newEnd;
-                // update book-keeping
-                oldEnd.removeConnectingNewArc(this);
-                newEnd.addConnectingNewArc(this);
+                if (poly != null && poly.contains(tailConnPoint)) {
+                    tailRE = newEnd;
+                    // update book-keeping
+                    oldEnd.removeConnectingNewArc(this);
+                    newEnd.addConnectingNewArc(this);
+                }
             }
         }
+        if (headRE == oldEnd || tailRE == oldEnd) return false;
+        return true;
     }
 
     /**
@@ -235,7 +268,7 @@ public class RouteElementArc extends RouteElement {
             headPoly = headPi.getPoly();
             if (!headPoly.isInside(headPoint)) {
                 // can't connect
-                System.out.println("Arc head point ("+headPoint.getX()+","+headPoint.getY()+") not inside port "+headPi);
+                System.out.println("Arc head point ("+headPoint.getX()+","+headPoint.getY()+") not inside port "+headPi+": "+headPi.getBounds());
                 return null;
             }
 			Poly tailPoly = tailPi.getPoly();
@@ -257,7 +290,7 @@ public class RouteElementArc extends RouteElement {
             tailPoly = tailPi.getPoly();
             if (!tailPoly.isInside(tailPoint)) {
                 // can't connect
-                System.out.println("Arc tail point ("+tailPoint.getX()+","+tailPoint.getY()+") not inside port "+tailPi);
+                System.out.println("Arc tail point ("+tailPoint.getX()+","+tailPoint.getY()+") not inside port "+tailPi+": "+tailPi.getBounds());
                 return null;
             }
 

@@ -71,10 +71,6 @@ public abstract class Router {
     // ------------------ Protected Abstract Router Methods -----------------
 
     /**
-     * Plan a route starting from the end of the passed in route, to
-     * the new end, "endRE".
-     */
-    /**
      * Plan a route from startRE to endRE.
      * startRE in this case will be route.getEndRE().  This builds upon whatever
      * route is already in 'route'. 
@@ -94,28 +90,6 @@ public abstract class Router {
     // --------------------------- Public Methods ---------------------------
 
     /**
-     * Plan a route starting from startPort, and ending at endPort
-     * @param route the list of RouteElements describing route to be modified
-     * @param cell the cell in which to create the route
-     * @param startPort the start of the route
-     * @param endPort the end of the route
-     * @param hint can be used as a hint to the router for determining route.
-     *        Ignored if null
-     * @return false on error, route should be ignored.
-     */
-/*    public boolean planRoute(Route route, Cell cell, PortInst startPort, PortInst endPort, Point2D hint) {
-        Point2D startPoint = new Point2D.Double(0,0); = InteractiveRouter.getExistingPortEndPoint(startPort, hint);
-        Point2D endPoint = new Point2D.Double(0,0); InteractiveRouter.getExistingPortEndPoint(endPort, hint);
-        getConnectingPoints(startPort.getPoly(), endPort.getPoly());
-        RouteElement startRE = RouteElement.existingPortInst(startPort, startPoint);
-        RouteElement endRE = RouteElement.existingPortInst(endPort, endPoint);
-        route.add(startRE);
-        route.setStart(startRE);
-        route.setEnd(startRE);
-        return planRoute(route, cell, endRE, hint);
-    }*/
-
-    /**
      * Create the route within a Job.
      * @param route the route to create
      * @param cell the cell in which to create the route
@@ -128,13 +102,18 @@ public abstract class Router {
     public abstract String toString();
 
     /**
-     * Create the route, but not in a Job. If
+     * Create the route, but does not wrap Job around it
+     * (useful if already being called from a Job).  This still
+     * must be called from within a Job context, however.
      * @param route the route to create
      * @param cell the cell in which to create the route
      * @param verbose if true, prints objects created
      * @return
      */
     public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose) {
+
+        Job.checkChanging();
+
         // check if we can edit this cell
         if (CircuitChanges.cantEdit(cell, null, true)) {
             //Highlight.clear();
@@ -280,15 +259,6 @@ public abstract class Router {
             }
         }
         return null;
-    }
-
-    protected static void replaceRouteElementArcPin(Route route, RouteElementPort bisectPinRE, RouteElementPort newPinRE) {
-        // go through route and update newArcs
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
-            RouteElement e = (RouteElement)it.next();
-            if (e instanceof RouteElementArc)
-                ((RouteElementArc)e).replaceArcEnd(bisectPinRE, newPinRE);
-        }
     }
 
     /**

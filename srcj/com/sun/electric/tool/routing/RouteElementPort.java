@@ -1,3 +1,27 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: RouteElementPort.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,7 +61,8 @@ public class RouteElementPort extends RouteElement {
     /** location to create Node */                  private Point2D location;
     /** size aspect that is seen on screen */       private double width, height;
     /** if this bisects an arc */                   private boolean isBisectArcPin;
-    /** newArcs connecting to this */               private List newArcs;
+    /** RouteElementArcs connecting to this */      private List newArcs;
+    /** port site spatial extents (db units) */     private Poly portInstSite;
 
     /** This contains the newly created instance, or the instance to delete */ private NodeInst nodeInst;
     /** This contains the newly created portinst, or the existing port inst */ private PortInst portInst;
@@ -66,6 +91,8 @@ public class RouteElementPort extends RouteElement {
         e.setNodeSize(new Dimension2D.Double(width, height));
         e.nodeInst = null;
         e.portInst = null;
+        Point2D [] points = {location};
+        e.portInstSite = new Poly(points);
         return e;
     }
 
@@ -83,6 +110,7 @@ public class RouteElementPort extends RouteElement {
         e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSize(), nodeInstToDelete.getYSize()));
         e.nodeInst = nodeInstToDelete;
         e.portInst = null;
+        e.portInstSite = null;
         return e;
     }
 
@@ -93,7 +121,20 @@ public class RouteElementPort extends RouteElement {
      * we start building the route.
      * @param existingPortInst the already existing portInst to connect to
      */
-    public static RouteElementPort existingPortInst(PortInst existingPortInst) {
+    public static RouteElementPort existingPortInst(PortInst existingPortInst, Point2D portInstSite) {
+        Point2D [] points = {portInstSite};
+        Poly poly = new Poly(points);
+        return existingPortInst(existingPortInst, poly);
+    }
+
+    /**
+     * Factory method for making a dummy RouteElement for an
+     * existing PortInst. This is usually use to demark the
+     * start and/or ends of the route, which exist before
+     * we start building the route.
+     * @param existingPortInst the already existing portInst to connect to
+     */
+    public static RouteElementPort existingPortInst(PortInst existingPortInst, Poly portInstSite) {
         RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.existingPortInst, existingPortInst.getNodeInst().getParent());
         NodeInst nodeInst = existingPortInst.getNodeInst();
         e.np = nodeInst.getProto();
@@ -104,6 +145,7 @@ public class RouteElementPort extends RouteElement {
         e.setNodeSize(new Dimension2D.Double(nodeInst.getXSize(), nodeInst.getYSize()));
         e.nodeInst = nodeInst;
         e.portInst = existingPortInst;
+        e.portInstSite = portInstSite;
         return e;
     }
 
@@ -226,6 +268,12 @@ public class RouteElementPort extends RouteElement {
         if (size.getWidth() > defWidth) width = size.getWidth(); else width = defWidth;
         if (size.getHeight() > defHeight) height = size.getHeight(); else height = defHeight;
     }
+
+    /**
+     * Get a polygon that defines the port dimensions.
+     * May return null.
+     */
+    public Poly getConnectingSite() { return portInstSite; }
 
     /**
      * Perform the action specified by RouteElementAction <i>action</i>.

@@ -1567,6 +1567,7 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
+        fireEndChangeBatch(batch);
 
         // restore highlights (must be done after all other tools have
         // responded to changes)
@@ -1627,6 +1628,7 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
+        fireEndChangeBatch(batch);
 
         // set highlights to what they were before undo
         List highlights = new ArrayList();

@@ -226,7 +226,7 @@ public class VerticalRoute {
         double width;
         if (startRE != null) {
             if (startRE.isBisectArcPin() && location.equals(startRE.getLocation())) {
-                Router.replaceRouteElementArcPin(route, startRE, vertRoute.getStart());
+                route.replaceBisectPin(startRE, vertRoute.getStart());
                 route.remove(startRE);
                 if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
             } else {
@@ -238,7 +238,7 @@ public class VerticalRoute {
         }
         if (endRE != null) {
             if (endRE.isBisectArcPin() && location.equals(endRE.getLocation())) {
-                Router.replaceRouteElementArcPin(route, endRE, vertRoute.getEnd());
+                route.replaceBisectPin(endRE, vertRoute.getEnd());
                 route.remove(endRE);
                 if (route.getEnd() == endRE) route.setEnd(vertRoute.getEnd());
             } else {

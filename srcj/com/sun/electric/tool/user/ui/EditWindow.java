@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
@@ -86,7 +87,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class EditWindow extends JPanel
 	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener
+        HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx = 0, offy = 0;
@@ -178,6 +179,7 @@ public class EditWindow extends JPanel
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
 
@@ -467,6 +469,7 @@ public class EditWindow extends JPanel
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
         Highlight.removeHighlightListener(this);
+        Undo.removeDatabaseChangeListener(this);
 	}
 
 	// ************************************* SCROLLING *************************************
@@ -2617,4 +2620,13 @@ public class EditWindow extends JPanel
 		GlyphVector gv = font.createGlyphVector(frc, text);
 		return gv;
 	}
+
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        // if cell was deleted, set cell to null
+        if ((cell != null) && !cell.isLinked()) setCell(null, VarContext.globalContext, false);
+    }
+
+    public void databaseChanged(Undo.Change evt) {
+
+    }
 }

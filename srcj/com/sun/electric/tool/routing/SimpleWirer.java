@@ -112,12 +112,10 @@ public class SimpleWirer extends InteractiveRouter {
 
         // startRE and endRE can be connected with an arc.  If one of them is a bisectArcPin,
         // and can be replaced by the other, just replace it and we're done.
-        if (isElementReplacable(startRE, endRE)) {
-            Router.replaceRouteElementArcPin(route, startRE, endRE);
+        if (route.replaceBisectPin(startRE, endRE)) {
             route.remove(startRE);
             return true;
-        } else if (isElementReplacable(endRE, startRE)) {
-            Router.replaceRouteElementArcPin(route, endRE, startRE);
+        } else if (route.replaceBisectPin(endRE, startRE)) {
             route.remove(endRE);
             route.setEnd(startRE);
             return true;
@@ -151,17 +149,6 @@ public class SimpleWirer extends InteractiveRouter {
         }
 
         return true;
-    }
-
-    /**
-     * Checks to see if re is a bisect arc pin, and if it can be replaced with replacement
-     * @return true if re is replacable by replacement
-     */
-    private boolean isElementReplacable(RouteElementPort re, RouteElementPort replacement) {
-        if (!re.isBisectArcPin()) return false;
-        // if replacement is an existing port inst, see if re's location lies within port
-        //if (re.getLocation().equals(replacement.getConnPoint())) return true;
-        return false;
     }
 
     /**

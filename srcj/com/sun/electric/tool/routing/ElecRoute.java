@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Route.java
+ * File: ElecRoute.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -26,25 +26,23 @@ package com.sun.electric.tool.routing;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
- * Specifies a route to be created.  Note that the order if items
- * in a route is meaningless.  The only thing that specifies order is the
- * start and end of the route.
- * <p>
- * Author: gainsley
+ * Specifies a route to be created.  Stores only ElecRouteElements, which only
+ * hold electrical information, as opposed to geometric information.
+ * <P>This route is built in the first pass of the route to see how things will
+ * be electrically connected, before it deals with the geometric placement
+ * of elements.
  */
+public class ElecRoute extends ArrayList {
 
-public class Route extends ArrayList {
-
-    private RouteElementPort routeStart;       // start of route
-    private RouteElementPort routeEnd;         // end of route
+    private ElecRouteElementPort routeStart;            // start of route
+    private ElecRouteElementPort routeEnd;              // end of route
 
     // ---------------------- Constructors ---------------------------
 
     /** Constructs an empty route */
-    public Route() {
+    public ElecRoute() {
         super();
         routeStart = null;
         routeEnd = null;
@@ -54,10 +52,10 @@ public class Route extends ArrayList {
      * in the order they are returned by the route iterator, and having
      * the same start and end RouteElement (if Collection is a Route).
      */
-    public Route(Collection c) {
+    public ElecRoute(Collection c) {
         super(c);
-        if (c instanceof Route) {
-            Route r = (Route)c;
+        if (c instanceof ElecRoute) {
+            ElecRoute r = (ElecRoute)c;
             routeStart = r.getStart();
             routeEnd = r.getEnd();
         } else {
@@ -67,7 +65,7 @@ public class Route extends ArrayList {
     }
 
     /** Constructs an empty route with the specified initial capacity */
-    public Route(int initialCapacity) {
+    public ElecRoute(int initialCapacity) {
         super(initialCapacity);
         routeStart = null;
         routeEnd = null;
@@ -76,9 +74,8 @@ public class Route extends ArrayList {
 
     // ------------------------------- Route Methods -----------------------------------
 
-
     /** Sets the start of the Route */
-    public void setStart(RouteElementPort startRE) {
+    public void setStart(ElecRouteElementPort startRE) {
         if (!contains(startRE)) {
             add(startRE);
             //System.out.println("Route.setStart Error: argument not part of list");
@@ -88,10 +85,10 @@ public class Route extends ArrayList {
     }
 
     /** Get the start of the Route */
-    public RouteElementPort getStart() { return routeStart; }
+    public ElecRouteElementPort getStart() { return routeStart; }
 
     /** Sets the end of the Route */
-    public void setEnd(RouteElementPort endRE) {
+    public void setEnd(ElecRouteElementPort endRE) {
         if (!contains(endRE)) {
             add(endRE);
             //System.out.println("Route.setEnd Error: argument not part of list");
@@ -101,44 +98,17 @@ public class Route extends ArrayList {
     }
 
     /** Get the end of the Route */
-    public RouteElementPort getEnd() { return routeEnd; }
+    public ElecRouteElementPort getEnd() { return routeEnd; }
 
     /**
      * Reverse the Route. This just swaps and the start and end
      * RouteElements, because the order of the list does not matter.
      */
     public void reverseRoute() {
-        RouteElementPort re = routeStart;
+        ElecRouteElementPort re = routeStart;
         routeStart = routeEnd;
         routeEnd = re;
     }
 
-    /**
-     * Attempts to replace the bisectPin by replacement. Returns true
-     * if any replacements done, and bisect pin is no longer used.
-     * otherwise returns false. This method currently requires both
-     * bisectPin and replacement to be part of this Route when this
-     * method is called.
-     * @param bisectPin the port pin to replace
-     * @param replacement the port pin to replace bisectPin with.
-     * @return true if any replacements done and bisectPin no longer used,
-     * false otherwise.
-     */
-    public boolean replaceBisectPin(RouteElementPort bisectPin, RouteElementPort replacement) {
-        if (!bisectPin.isBisectArcPin()) return false;
-        assert(contains(bisectPin));
-        assert(contains(replacement));
-
-        boolean success = true;
-        for (Iterator it = iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
-            if (re instanceof RouteElementArc) {
-                RouteElementArc reArc = (RouteElementArc)re;
-                if (!reArc.replaceArcEnd(bisectPin, replacement))
-                    success = false;            // reArc still contains reference to bisectPin
-            }
-        }
-        return success;
-    }
 
 }

@@ -552,6 +552,7 @@ public class WindowFrame
 	public static void setCurrentWindowFrame(WindowFrame wf)
 	{
         synchronized(windowList) {
+            //if (curWindowFrame == wf) return;
 		    curWindowFrame = wf;
         }
 		if (wf != null)

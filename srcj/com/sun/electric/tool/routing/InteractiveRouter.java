@@ -150,7 +150,9 @@ public abstract class InteractiveRouter extends Router {
 
         if (!started) startInteractiveRoute();
 
-        RouteElementPort startRE = RouteElementPort.existingPortInst(startPort);
+        Point2D startLoc = new Point2D.Double(startPort.getPoly().getCenterX(), startPort.getPoly().getCenterY());
+        Poly poly = getConnectingSite(startPort, startLoc);
+        RouteElementPort startRE = RouteElementPort.existingPortInst(startPort, poly);
         Route route = new Route();
         route.add(startRE); route.setStart(startRE);
         route.setEnd(startRE);
@@ -160,8 +162,7 @@ public abstract class InteractiveRouter extends Router {
             cancelInteractiveRoute();
             return false;
         }
-        Point2D loc = startRE.getLocation();
-        vroute.buildRoute(route, startRE.getCell(), loc, loc, loc);
+        vroute.buildRoute(route, startRE.getCell(), startLoc, startLoc, startLoc);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         Highlight.clear();
@@ -227,16 +228,19 @@ public abstract class InteractiveRouter extends Router {
 
         // special case: if both objects are arc insts, check if they intersect
         // if they intersect, connect them there
-        if ((startObj instanceof ArcInst) && endObj instanceof ArcInst) {
+/*        if ((startObj instanceof ArcInst) && endObj instanceof ArcInst) {
             if (connectIntersectingArcs(route, (ArcInst)startObj, (ArcInst)endObj)) {
                 // arcs intersected, return new route
                 return route;
             }
-        }
+        }*/
 
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
         getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint);
+
+        Poly startPoly = getConnectingSite(startObj, clicked);
+        Poly endPoly = getConnectingSite(endObj, clicked);
 
         PortInst existingStartPort = null;
         PortInst existingEndPort = null;
@@ -248,7 +252,7 @@ public abstract class InteractiveRouter extends Router {
         if (startObj instanceof PortInst) {
             // portinst: just wrap in RouteElement
             existingStartPort = (PortInst)startObj;
-            startRE = RouteElementPort.existingPortInst(existingStartPort);
+            startRE = RouteElementPort.existingPortInst(existingStartPort, startPoly);
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
@@ -259,7 +263,7 @@ public abstract class InteractiveRouter extends Router {
             // find closest portinst to start from
             existingStartPort = ((NodeInst)startObj).findClosestPortInst(clicked);
             if (existingStartPort != null) {
-                startRE = RouteElementPort.existingPortInst(existingStartPort);
+                startRE = RouteElementPort.existingPortInst(existingStartPort, startPoly);
             }
         }
         if (startRE == null) {
@@ -275,7 +279,7 @@ public abstract class InteractiveRouter extends Router {
             if (endObj instanceof PortInst) {
                 // portinst: just wrap in RouteElement
                 existingEndPort = (PortInst)endObj;
-                endRE = RouteElementPort.existingPortInst(existingEndPort);
+                endRE = RouteElementPort.existingPortInst(existingEndPort, endPoly);
             }
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
@@ -287,7 +291,7 @@ public abstract class InteractiveRouter extends Router {
                 // find closest portinst to start from
                 existingEndPort = ((NodeInst)endObj).findClosestPortInst(clicked);
                 if (existingEndPort != null) {
-                    endRE = RouteElementPort.existingPortInst(existingEndPort);
+                    endRE = RouteElementPort.existingPortInst(existingEndPort, endPoly);
                 }
             }
             if (endRE == null) {
@@ -328,9 +332,14 @@ public abstract class InteractiveRouter extends Router {
 
         // favors arcs for location of contact cuts
         if (reverseRoute) {
+            // swap RE's
             RouteElementPort re = startRE;
             startRE = endRE;
             endRE = re;
+            // swap connecting points
+            Point2D p = startPoint;
+            startPoint = endPoint;
+            endPoint = p;
         }
 
         // special check: if both are existing port insts and are same port, do nothing
@@ -396,6 +405,16 @@ public abstract class InteractiveRouter extends Router {
             double x = getClosestValue(lowerBoundX, upperBoundX, clicked.getX());
             startPoint.setLocation(x, startPoint.getY());
             endPoint.setLocation(x, endPoint.getY());
+        } else {
+            // otherwise, use closest point in bounds to the other port
+            // see which one is higher in X...they don't overlap, so any X coord in bounds is comparable
+            if (startBounds.getMinX() > endBounds.getMaxX()) {
+                startPoint.setLocation(startBounds.getMinX(), startPoint.getY());
+                endPoint.setLocation(endBounds.getMaxX(), endPoint.getY());
+            } else {
+                startPoint.setLocation(startBounds.getMaxX(), startPoint.getY());
+                endPoint.setLocation(endBounds.getMinX(), endPoint.getY());
+            }
         }
         // if bounds share y-space, use closest y within that space to clicked point
         double lowerBoundY = Math.max(startBounds.getMinY(), endBounds.getMinY());
@@ -404,7 +423,46 @@ public abstract class InteractiveRouter extends Router {
             double y = getClosestValue(lowerBoundY, upperBoundY, clicked.getY());
             startPoint.setLocation(startPoint.getX(), y);
             endPoint.setLocation(endPoint.getX(), y);
+        } else {
+            // otherwise, use closest point in bounds to the other port
+            // see which one is higher in Y...they don't overlap, so any Y coord in bounds is comparable
+            if (startBounds.getMinY() > endBounds.getMaxY()) {
+                startPoint.setLocation(startPoint.getX(), startBounds.getMinY());
+                endPoint.setLocation(endPoint.getX(), endBounds.getMaxY());
+            } else {
+                startPoint.setLocation(startPoint.getX(), startBounds.getMaxY());
+                endPoint.setLocation(endPoint.getX(), endBounds.getMinY());
+            }
         }
+
+        // final special case: if arc inst lined up with port, use closest end point of arc
+        // to point (i.e. ignore where user clicked).
+/*        if (startObj instanceof ArcInst) {
+            ArcInst ai = (ArcInst)startObj;
+            if (endPoint.getX() == ai.getHead().getLocation().getX() &&
+                endPoint.getX() == ai.getTail().getLocation().getX()) {
+                double y = getClosestValue(startBounds.getMinY(), startBounds.getMaxY(), endPoint.getY());
+                startPoint.setLocation(startPoint.getX(), y);
+            }
+            if (endPoint.getY() == ai.getHead().getLocation().getY() &&
+                endPoint.getY() == ai.getTail().getLocation().getY()) {
+                double x = getClosestValue(startBounds.getMinX(), startBounds.getMaxX(), endPoint.getX());
+                startPoint.setLocation(x, startPoint.getY());
+            }
+        }
+        if (endObj instanceof ArcInst) {
+            ArcInst ai = (ArcInst)endObj;
+            if (startPoint.getX() == ai.getHead().getLocation().getX() &&
+                startPoint.getX() == ai.getTail().getLocation().getX()) {
+                double y = getClosestValue(endBounds.getMinY(), endBounds.getMaxY(), startPoint.getY());
+                endPoint.setLocation(endPoint.getX(), y);
+            }
+            if (startPoint.getY() == ai.getHead().getLocation().getY() &&
+                startPoint.getY() == ai.getTail().getLocation().getY()) {
+                double x = getClosestValue(endBounds.getMinX(), endBounds.getMaxX(), startPoint.getX());
+                endPoint.setLocation(x, endPoint.getY());
+            }
+        }*/
     }
 
 
@@ -421,6 +479,8 @@ public abstract class InteractiveRouter extends Router {
      * @return a poly describing where something can connect to
      */
     protected static Poly getConnectingSite(ElectricObject obj, Point2D clicked) {
+
+        assert(clicked != null);
 
         if (obj instanceof NodeInst) {
             PortInst pi = ((NodeInst)obj).findClosestPortInst(clicked);
@@ -486,7 +546,7 @@ public abstract class InteractiveRouter extends Router {
      * point along the arc.  This may bisect the arc, in which case
      * we delete the current arc, add in a pin at the appropriate
      * place, and create 2 new arcs to the old arc head/tail points.
-     * The bisection point depends on where the user clicked, but it
+     * The bisection point depends on where the user point, but it
      * is always a point on the arc.
      * <p>
      * Note that this method adds the returned RouteElement to the
@@ -494,17 +554,17 @@ public abstract class InteractiveRouter extends Router {
      * This method should NOT add the returned RouteElement to the route.
      * @param route the route so far
      * @param arc the arc to draw from/to
-     * @param clicked where the user clicked
+     * @param point point on or near arc
      * @return a RouteElement holding the new pin at the bisection
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D clicked) {
+    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point) {
 
         Point2D head = arc.getHead().getLocation();
         Point2D tail = arc.getTail().getLocation();
-        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst());
-        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst());
+        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst(), head);
+        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst(), tail);
         RouteElementPort startRE = null;
         // find extents of wire
         double minX, minY, maxX, maxY;
@@ -522,13 +582,13 @@ public abstract class InteractiveRouter extends Router {
         // for efficiency purposes, we are going to assume the arc is
         // either vertical or horizontal for bisecting the arc
         if (head.getX() == tail.getX()) {
-            // line is vertical, see if clicked point bisects
-            if (clicked.getY() > minY && clicked.getY() < maxY) {
-                Point2D location = new Point2D.Double(head.getX(), clicked.getY());
+            // line is vertical, see if point point bisects
+            if (point.getY() > minY && point.getY() < maxY) {
+                Point2D location = new Point2D.Double(head.getX(), point.getY());
                 startRE = bisectArc(route, arc, location);
             }
             // not within Y bounds, choose closest pin
-            else if (clicked.getY() <= minY) {
+            else if (point.getY() <= minY) {
                 if (minYpin == head) startRE = headRE; else startRE = tailRE;
             } else {
                 if (minYpin == head) startRE = tailRE; else startRE = headRE;
@@ -536,13 +596,13 @@ public abstract class InteractiveRouter extends Router {
         }
         // check if arc is horizontal
         else if (head.getY() == tail.getY()) {
-            // line is horizontal, see if clicked bisects
-            if (clicked.getX() > minX && clicked.getX() < maxX) {
-                Point2D location = new Point2D.Double(clicked.getX(), head.getY());
+            // line is horizontal, see if point bisects
+            if (point.getX() > minX && point.getX() < maxX) {
+                Point2D location = new Point2D.Double(point.getX(), head.getY());
                 startRE = bisectArc(route, arc, location);
             }
             // not within X bounds, choose closest pin
-            else if (clicked.getX() <= minX) {
+            else if (point.getX() <= minX) {
                 if (minXpin == head) startRE = headRE; else startRE = tailRE;
             } else {
                 if (minXpin == head) startRE = tailRE; else startRE = headRE;
@@ -550,8 +610,8 @@ public abstract class InteractiveRouter extends Router {
         }
         // arc is not horizontal or vertical, draw from closest pin
         else {
-            double headDist = clicked.distance(head);
-            double tailDist = clicked.distance(tail);
+            double headDist = point.distance(head);
+            double tailDist = point.distance(tail);
             if (headDist < tailDist)
                 startRE = headRE;
             else
@@ -622,7 +682,7 @@ public abstract class InteractiveRouter extends Router {
         ArcProto useArc = getArcToUse(startRE.getPortProto(), endRE.getPortProto());
         if (useArc != null) {
             // replace one of the bisect pins with the other
-            replaceRouteElementArcPin(route, endRE, startRE);
+            //replaceRouteElementArcPin(route, endRE, startRE);
             // note that endRE was never added to the route, otherwise we'd remove it here
         } else {
             VerticalRoute vroute = new VerticalRoute(route.getEnd(), endRE);
@@ -662,8 +722,8 @@ public abstract class InteractiveRouter extends Router {
         newPinRE.setBisectArcPin(true);
 
         // make dummy end pins
-        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst());
-        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst());
+        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst(), head);
+        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst(), tail);
         headRE.setShowHighlight(false);
         tailRE.setShowHighlight(false);
         // add two arcs to rebuild old startArc

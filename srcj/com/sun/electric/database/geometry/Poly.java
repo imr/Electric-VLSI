@@ -351,7 +351,7 @@ public class Poly implements Shape
 	 */
 	private void initialize(Point2D [] points)
 	{
-		this.style = null;
+		this.style = Type.CLOSED;
 		this.points = points;
 		this.layer = null;
 		this.bounds = null;
