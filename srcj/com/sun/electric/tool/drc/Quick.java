@@ -509,7 +509,7 @@ public class Quick
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !onlyFirstError)
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !DRC.isIgnoreHierarchicalAreaChecking() && !onlyFirstError)
 			checkMinArea(cell);
 
 		// now look at every node and arc here
@@ -2595,6 +2595,8 @@ public class Quick
 	 */
 	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell, int net, int globalIndex)
 	{
+        if(DRC.isIgnorePolySelectChecking()) return false;
+
 		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
 
