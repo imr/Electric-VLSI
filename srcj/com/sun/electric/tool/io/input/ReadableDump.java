@@ -332,6 +332,7 @@ public class ReadableDump extends LibraryFiles
 //			}
 //		}
 
+		if (allCellsArray == null) return true; // error
 		if (mainCell >= 0)
 			lib.setCurCell(allCellsArray[mainCell]);
 
@@ -355,6 +356,8 @@ public class ReadableDump extends LibraryFiles
 
 		// recursively scan the nodes to the bottom and only proceed when everything below is built
 		int cellIndex = cell.getTempInt();
+		if (nodeInstList == null)
+			return; // error
 		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
 		NodeProto [] nodePrototypes = null;
