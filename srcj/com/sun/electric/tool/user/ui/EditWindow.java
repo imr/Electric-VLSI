@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -52,9 +53,19 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
+import com.sun.electric.tool.user.ui.WaveformWindow.Panel;
+import com.sun.electric.tool.user.ui.WaveformWindow.Signal;
+
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -66,6 +77,8 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -155,6 +168,8 @@ public class EditWindow extends JPanel
         	1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
     /** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
 
+	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
+
 	// ************************************* CONSTRUCTION *************************************
 
     // constructor
@@ -176,7 +191,7 @@ public class EditWindow extends JPanel
         cellHistoryLocation = -1;
         scale = 1;
 
-		// the total panel in the waveform window
+		// the total panel in the edit window
 		overall = new JPanel();
 		overall.setLayout(new GridBagLayout());
 
@@ -209,6 +224,9 @@ public class EditWindow extends JPanel
 		overall.add(this, gbc);
 		setOpaque(false);
 		setLayout(null);
+
+		// a drop target for the signal panel
+		DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, editWindowDropTarget, true);
 
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()
@@ -365,8 +383,89 @@ public class EditWindow extends JPanel
 		return new Point(lastXPosition, lastYPosition);
 	}
 
-	// ************************************* INFORMATION *************************************
+	// ************************************* WHEN DROPPING A CELL NAME FROM THE EXPLORER TREE *************************************
 
+	private static class EditWindowDropTarget implements DropTargetListener
+	{
+		public void dragEnter(DropTargetDragEvent e)
+		{
+			e.acceptDrag(e.getDropAction());
+			Cell cell = getDroppedCell(e);
+			System.out.println("Entered dragging cell "+cell);
+		}
+	
+		public void dragOver(DropTargetDragEvent e)
+		{
+			e.acceptDrag(e.getDropAction());
+		}
+	
+		public void dropActionChanged(DropTargetDragEvent e)
+		{
+			e.acceptDrag(e.getDropAction());
+		}
+
+		public void dragExit(DropTargetEvent e) {}
+	
+		public void drop(DropTargetDropEvent dtde)
+		{
+			Cell cell = getDroppedCell(dtde);
+			System.out.println("Dropped cell "+cell);
+		}
+
+		public Cell getDroppedCell(DropTargetEvent dte)
+		{
+			Object data = null;
+			DropTargetDropEvent dropE = null;
+			DropTargetDragEvent dragE = null;
+			if (dte instanceof DropTargetDropEvent) dropE = (DropTargetDropEvent)dte;
+			if (dte instanceof DropTargetDragEvent) dragE = (DropTargetDragEvent)dte;
+			try
+			{
+				if (dte instanceof DropTargetDropEvent)
+				{
+					dropE.acceptDrop(DnDConstants.ACTION_LINK);
+					data = dropE.getTransferable().getTransferData(DataFlavor.stringFlavor);
+					if (data == null)
+						throw new NullPointerException();
+				} else if (dte instanceof DropTargetDragEvent)
+				{
+					dragE.acceptDrag(DnDConstants.ACTION_LINK);
+					DataFlavor [] flavors = dragE.getCurrentDataFlavors();
+					System.out.print("Source="+dragE.getSource()+" Got "+flavors.length+" flavors:");
+					for(int i=0; i<flavors.length; i++) System.out.print(" "+flavors[i].getParameter("humanPresentableName"));
+					System.out.println();
+//					data = dragE.getDropTargetContext().getTransferable().getTransferData(DataFlavor.stringFlavor);
+//					if (data == null)
+//						throw new NullPointerException();
+				}
+			} catch (Throwable t)
+			{
+                ActivityLogger.logException(t);
+				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
+				return null;
+			}
+			if (!(data instanceof String))
+			{
+				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
+				return null;
+			}
+			String cellName = (String)data;
+			DropTarget dt = null;
+			if (dte instanceof DropTargetDropEvent) dt = (DropTarget)dropE.getSource();
+			if (!(dt.getComponent() instanceof JPanel))
+			{
+				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
+				return null;
+			}
+			EditWindow op = (EditWindow)dt.getComponent();
+
+			if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
+			return (Cell)Cell.findNodeProto(cellName);
+		}
+	}
+
+	// ************************************* INFORMATION *************************************
+	
 	/**
 	 * Method to return the top-level JPanel for this EditWindow.
 	 * The actual EditWindow object is below the top level, surrounded by scroll bars.
@@ -2430,10 +2529,15 @@ public class EditWindow extends JPanel
 					}
 				}
                 PortInst pi = cellVarContext.getPortInst();
-				setCell(parent, context, true, true);
-				if (foundHistory != null) {
+				if (foundHistory != null)
+				{
+					setCell(parent, context, true, false);
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
+			        repaintContents(null);
+				} else
+				{
+					setCell(parent, context, true, true);
 				}
 
 				// highlight node we came from

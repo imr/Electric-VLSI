@@ -4,13 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01au: *********************************
 
-BUG: (12/9/04, GVG) DRC bug related to active contacts touching transistors (function activeOnTransistorRecurse): wrong
-detection of poly ports (Bug #72).
+BUG: (12/9/04, SMR) Going "Up Hierarchy" may display the cell twice (Bug #74).
+FIX: In EditWindow.upHierarchy(), do not request full display if adjusting view.
+
+BUG: (12/9/04, GVG) DRC bug related to active contacts touching transistors (function activeOnTransistorRecurse):
+     wrong detection of poly ports (Bug #72).
 FIX: search based on names instead of networks otherwise active ports connected to poly via other contacts get ignored
 
 IMP: (12/9/04, GVG) ERC profiling results: (1) less getWellLayerType calls (2) no checkForAbort in visitNodeInst
 
-BUG: (12/9/04, DN) Thousands of ArrayIndexOutOfBoundsException drawing Highlights(Bug #79).
+BUG: (12/9/04, DN) Thousands of ArrayIndexOutOfBoundsException drawing Highlights (Bug #79).
 FIX: Addition check isActuallyLinked() in Netlist class.y
 
 BUG: (12/9/04, DN) Network tool crashes if cell contains cell from it's own cellgroup (Bug #75).

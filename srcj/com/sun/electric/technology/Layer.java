@@ -425,7 +425,11 @@ public class Layer
 	 * @return true if this Layer is visible.
 	 */
 	//public boolean isVisible() { return visible; }
-    public boolean isVisible() { return getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean(); }
+    public boolean isVisible()
+    {
+    	if (tech == null) return true;
+    	return getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean();
+    }
 
 	/**
 	 * Method to set whether this Layer is visible.
