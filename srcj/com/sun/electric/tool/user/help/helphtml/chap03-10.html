@@ -1,0 +1,46 @@
+<!-- HEADER 3-10: Copying Cells Between Libraries -->
+
+In general, different libraries are completely separate collections of cells that do not relate.
+For example,
+two cells in different libraries can have the same name without being the same size or having the same content.
+Although a cell from one library can be used as an instance in another,
+this causes the two libraries to be linked together.
+It may be simpler to copy the cells from one library to another,
+thus allowing a single library to contain the entire design.
+<P>
+The <B>Cross-Library Copy...</B> command of the <B>Cells</B> menu provides a dialog for copying cells between libraries.
+<P>
+<TABLE><TR><TD>
+The left and right columns show the contents of two different libraries
+(and the pulldowns above each column let you select the two libraries that you want to use).
+When there is a cell with the same name in both libraries,
+the system compares modification dates to determine which is newer, 
+The "Examine Contents"
+button compares the contents of cells whose dates are different and displays an indication of whether they are actually different or just out of date.
+The "Examine Contents Quietly" button does the same thing, but it does not explain which differences have been found.
+The "List differences" button shows all differences in the messages window.
+</TD><TD><CENTER><IMG SRC="fig03-05.png" ALT="Figure 3.5"></CENTER></TD></TR></TABLE>
+<P>
+By choosing a cell in the right-hand library and clicking "&lt;&lt; Copy", that cell is copied into the left-hand library.
+The "Copy &gt;&gt;" button does the reverse.
+If "Delete after copy" is checked, the buttons change to "&lt;&lt; Move" and "Move &gt;&gt;".
+<P>
+The system can be requested to copy additional cells that relate to the selected one.
+By checking "Copy subcells", all subcells of the copied cell are also transfered.
+By checking "Copy related views", all related views (icon, schematic, layout, etc.) are also transfered.
+<P>
+When there is a reference to an instance inside of a copied cell, and that instance already exists in the destination library,
+there are many ways to handle the transfer.
+For example, library "Frank" has cell "A" which has, inside of it, an instance of cell "B" ("B" is also in library "Frank").
+You want to copy cell "A" to library "Tom", but there is already a cell called "B" in library "Tom".
+These things may happen:
+<UL>
+<LI>If "Copy subcells" is checked, then a new version of "Tom:B" is created from "Frank:B",
+and this cell is instantiated in the copied "Tom:A".
+<LI>If "Copy subcells" is not checked, the instance in the new "Tom:A" points to the old "Frank:B".
+<LI>If "Copy subcells" is not checked and "Use existing subcells" is checked,
+the instance in the new "Tom:A" points to the existing cell "Tom:B".
+In order for this to work, however, the size and exports of "Tom:B" must match the original in "Frank:B".
+</UL>
+
+<!-- TRAILER -->

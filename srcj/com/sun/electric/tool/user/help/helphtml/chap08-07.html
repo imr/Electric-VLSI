@@ -1,0 +1,111 @@
+<!-- HEADER 8-7: Pad Frame Generation -->
+
+The Pad Frame generator reads a disk file and places a ring of pads around your chip.
+The pads are contained in a separate library, and are copied into the current library to construct the pad frame.
+<P>
+The format of the pad frame disk file is as follows:
+
+<CENTER><TABLE>
+<TR><TD><CODE>celllibrary LIBRARYFILE [copy]</CODE></TD><TD>; Identifies the file with the pads</TD></TR>
+<TR><TD><CODE>facet PADFRAMECELL</CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
+<TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places your circuit in the center of the pad frame</TD></TR>
+<TR><TD><CODE>align PADCELL INPUTPORT OUTPUTPORT</CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
+<TR><TD><CODE>place PADCELL [GAP] [PORTASSOCIATION]</CODE></TD><TD>; Places a pad into the pad frame</TD></TR>
+<TR><TD><CODE>rotate DIRECTION</CODE></TD><TD>; Turns the corner in pad placement</TD></TR>
+</TABLE></CENTER>
+<P>
+The file must have exactly one <CODE>celllibrary</CODE> and <CODE>cell</CODE> statement,
+as they identify the pad library and the pad frame cell.
+If the <CODE>celllibrary</CODE> line ends with the keyword <CODE>copy</CODE>,
+then cells from that library are copied into the library with the pad ring (by default, they are merely instantiated,
+creating a cross-library reference to the pads library).
+The file may have only one <CODE>core</CODE> statement to place your top-level circuit inside of the pad frame.
+If there is no <CODE>core</CODE> statement,
+then pads are placed without any circuit in the middle.
+<P>
+The <CODE>align</CODE> statement is used to identify connection points on the pads that will be used for placement.
+Each pad should have an input and an output port that define the edges of the pad.
+These ports are typically the on the power or ground rails that run through the pad.
+When placing pads, the output port of one pad is aligned with the input port of the next pad.
+<P>
+Each pad that is placed with a <CODE>place</CODE>
+statement is aligned with the previous pad according to the alignment factor.
+A <I>gap</I> can be given in the placement that spreads the two pads by the specified distance.
+For example, the statement:
+<CENTER><CODE>place padIn gap=100</CODE></CENTER>
+requests that the "padIn" pad be placed so that its input port is 100 lambda units away from the previous pad's output port.
+<P>
+If a core cell has been given, you can also indicate wiring between the pads and the core ports.
+This is done by having one or more <I>port associations</I> in the <CODE>place</CODE> statements.
+The format of a port association is simply <CODE>PADPORT = COREPORT</CODE>.
+For example, the statement:
+<CENTER><CODE>place padOut tap=y</CODE></CENTER>
+indicates that the "tap" port on the placed pad will connect to the "y" port on the core cell.
+<P>
+The port association can also create an export on the pad.
+The statement:
+<CENTER><CODE>place padOut export tap=o7</CODE></CENTER>
+creates an export on the pad from its "tap" port and names it "o7".
+<P>
+The <CODE>rotate</CODE> statement rotates subsequent pads by the specified amount.
+The statement has only two forms: <CODE>rotate c</CODE> to rotate clockwise,
+and <CODE>rotate cc</CODE> to rotate counterclockwise.
+<P>
+Here is an example of a pad frame disk file, with the finished layout.
+The array file is "pads4u.arr" (from the "Examples" folder) and it expects to find a cell called "tool-PadFrame"
+(found in the "samples.txt" library,
+which you can read with the <B>Readable Dump</B> subcommand of the <B>Import</B> command of the <B>File</B> menu).
+<P>
+<CENTER><TABLE>
+<TR><TD><CODE>; specify the library with the pads&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
+<TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_gnd{lay} gnd_in=gnd</CODE></TD></TR>
+<TR><TD><CODE>; create a cell called "padframe"</CODE></TD>        <TD><CODE>place PAD_vdd{lay} m1m2=vdd</CODE></TD></TR>
+<TR><TD><CODE>facet padframe</CODE></TD>                           <TD></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>; place the right edge of pads</CODE></TD></TR>
+<TR><TD><CODE>; place this cell as the "core"</CODE></TD>	       <TD><CODE>rotate c</CODE></TD></TR>
+<TR><TD><CODE>core tool-PadFrame</CODE></TD>                       <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=pulse</CODE></TD></TR>
+<TR><TD><CODE>; set the alignment of the pads</CODE></TD>          <TD><CODE>place PAD_spacer{lay}</CODE></TD></TR>
+<TR><TD><CODE>;  (with input and output export)</CODE></TD>        <TD></TD></TR>
+<TR><TD><CODE>align PAD_in{lay}     dvddL dvddR</CODE></TD>        <TD><CODE>; place the bottom edge of pads</CODE></TD></TR>
+<TR><TD><CODE>align PAD_out{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>rotate c</CODE></TD></TR>
+<TR><TD><CODE>align PAD_vdd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD><CODE>align PAD_gnd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out1</CODE></TD></TR>
+<TR><TD><CODE>align PAD_corner{lay} dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out2</CODE></TD></TR>
+<TR><TD><CODE>align PAD_spacer{lay} dvddL dvddR</CODE></TD>        <TD></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>; place the left edge of pads</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>rotate c</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in1</CODE></TD></TR>
+<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in2</CODE></TD></TR>
+</TABLE></CENTER>
+<P>
+<TABLE><TR><TD><IMG SRC="fig09-16.png" ALT="Figure 9.16" BORDER=0></TD><TD>
+This file places 8 pads in a ring (2 on each side) and also places corner "pads" for making bends.
+The input pads connect to the 2 input ports "a1" and "a2".
+The output pads connect to the 3 output ports "out1", "out2", and "out3"
+The power and ground pads connect to the "vdd" and "gnd" ports.
+<P>
+Note that the generator places pad instances, but does not wire them to each other.
+In order to create a uniform ring of power and ground between the pads,
+you can use the Auto-router or the Mimic-router (see <A HREF="chap09-05.html#chap09-05">Section 9-5</A>).
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+Connections between pads and ports of the core cell use Unrouted arcs
+(from the Generic technology, see <A HREF="chap07-09.html#chap07-09">Section 7-9</A>).
+These arcs can be converted to real geometry with the river router.
+To do this, you must select arcs on one side of the pad frame and use the <B>River-Route</B>
+subcommand of the <B>Routing</B> command of the <B>Tools</B> menu
+(see <A HREF="chap09-05.html#chap09-05">Section 9-5</A> for more on routing).
+Because the river router always pushes geometry to the left and bottom,
+this will work for the left and bottom sides only.
+To route the top and right sides, you must rotate the entire circuit
+(select everything and rotate 180 degrees).
+After routing the top and right (now left and bottom)
+you can rotate the circuit back to its original position.
+The finished layout is shown here, fully instantiated.
+</TD><TD><IMG SRC="fig09-17.png" ALT="Figure 9.17" BORDER=0></TD></TR></TABLE>
+
+<!-- TRAILER -->

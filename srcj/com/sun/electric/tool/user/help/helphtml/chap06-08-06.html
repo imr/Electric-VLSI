@@ -1,0 +1,59 @@
+<!-- HEADER 6-8-6: Cell Parameters -->
+
+Parameters are special types of attributes that communicate information down the hierarchy,
+from a cell instance to its contents.
+One example of the use of cell parameters is in the SPICE primitives where user-defined values (such as voltage)
+are communicated into the icon for generation in the SPICE deck (see <A HREF="chap09-04.html#chap09-04">Section 9-4</A>).
+<P>
+Another use of cell parameters is to parameterize the size of a transistor in a schematic
+(or to parameterize the scalable layout transistors in the MOSIS CMOS technology, see <A HREF="chap07-05.html#chap07-05">Section 7-5</A>)
+The transistor width and length can be defined in terms of the parameter value,
+allowing a single cell to take on many different forms.
+By combining these parameters with the interpretive language facility,
+an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size
+(see <A HREF="chap11-01.html#chap11-01">Section 11-1</A> for more on interpretive languages).
+<P>
+Parameters are created with the <B>Cell Parameters...</B> subcommand of the <B>Attributes</B> command of the <B>Info</B> menu.
+<TABLE><TR><TD>
+The dialog shows the existing parameters, and allows you to create and delete them.
+Each parameter has a default value that will be used if no instance value can be found.
+You can also set the type of electrical unit that this parameter describes (capacitance, cesistance, etc.)
+See section <A HREF="chap07-02.html#chap07-02">Section 7-2</A> for more on these units.
+</TD><TD><CENTER><IMG SRC="fig06-20.png" ALT="Figure 6.20"></CENTER></TD></TR></TABLE>
+<P>
+Cell parameters are implemented as inheritable attributes.
+Inheritble attributes are automatically placed on each newly-created node instance
+(thus, they are inherited from the prototype to the instance).
+Inside of the cell, the parameter is shown with its name, default value, and actual value from up the hierarchy.
+For example, the parameter defined in the above dialog will appear in the cell as the string "Strength=?;def=2".
+This means that the actual value from up the hierarchy is not known ("?") but the default is 2.
+<P>
+When an instance of this cell is created, a new attribute will be placed on it with the default value.
+In this example, the instance will have the text "Strength=2" on it.
+Since this attribute is separate from the defining one in the cell, you can edit and change its value.
+Besides clicking on the text to edit the value,
+you can also see all parameters on a node by selecting the "Parameters" button in the node's <B>Get Info</B> dialog.
+Once an instance is created with a parameter value, you can descend the hierarchy from that instance and see
+the actual parameter value inside of the cell.
+So, if you changed the instance text to read "Strength=15", then descending into the cell will show the string
+"Strength=15;def=2".
+<P>
+A parameter, defined in a cell, always appears on every instance of that cell.
+If you have added a parameter after creating instances, use the <B>Update Inheritance</B>
+or <B>Update Inheritance All Libraries</B> commands.
+<P>
+In schematics, the location of a parameter on an icon is determined by the location of that parameter on the sample icon,
+inside of the schematic cell.
+If you make changes to the parameter locations on the sample icon,
+you can propagate those changes to icon instances with the commands
+<B>Update Locations</B> (updates only the selected icon instances) or <B>Update Locations All Libraries</B>
+(updates all icon instances).
+<P>
+If you do not wish to see a parameter's text on any instance, select the parameter text inside of the cell,
+use <B>Get Info</B> from the <B>Info</B> menu, and check "Visible only inside cell".
+To override the visibility of cell parameters on an instance, use the <B>See All Parameters on Node</B>,
+<B>Hide All Parameters on Node</B>, and <B>Default Parameter Visibility</B> subcommands of the
+<B>Attributes</B> command of the <B>Info</B> menu.
+These commands make all parameters visible, invisible, or back to their default as specified in the cell.
+
+<!-- TRAILER -->

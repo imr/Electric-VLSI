@@ -1,0 +1,32 @@
+<!-- HEADER 8-2-1: Incremental DRC -->
+
+The incremental design-rule checker is always running, examining your work,
+and issuing error messages when an error is detected.
+The user should be warned that the incremental design-rule checker does not examine hierarchy.
+This means that if a cell instance is used in a circuit,
+the incremental design-rule checker does not examine its contents to see how that interacts with other layout surrounding the instance.
+To check the complete hierarchy, use the <B>Check Hierarchically</B> subcommand.
+<P>
+To control the DRC,
+use the <B>DRC Options...</B> subcommand of the <B>DRC</B> command of the <B>Tools</B> menu.
+<P>
+<TABLE><TR><TD>
+By default, the incremental design-rule checker is on.
+To turn it off, uncheck the "On" checkbox in the "Incremental DRC" section.
+While the tool is off, Electric keeps track of all cells that change.
+When the tool is turned back on it rechecks all of those changed cells.
+Thus, the incremental design-rule checker can be made into a "batch" tool by keeping it off until circuit layout is complete.
+<P>
+MOS contact nodes automatically increase the number of cuts when they grow larger
+(see <A HREF="chap07-04.html#chap07-04">Section 7-4</A>).
+Because of this,
+very large contact nodes can create excessive work for the design-rule checker as it examines each of the cuts.
+To save time, check the "Ignore center cuts in large contacts" check box,
+which will examine only the cut layers around the edges of contact nodes.
+<P>
+</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
+<P>
+After errors have been reported, you can review them by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
+If you wish to recheck an entire cell, use the <B>Check this Level Only</B> subcommand.
+
+<!-- TRAILER -->

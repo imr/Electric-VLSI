@@ -1,0 +1,21 @@
+<!-- HEADER 2-2-1: Node Creation -->
+
+Node creation is done by selecting a node from the component menu on the left,
+or by using one of the <B>New</B> commands of the <B>Edit</B> menu (<B>New Cell Instance</B>,
+<B>New Analog Part</B>, <B>New Spice Part</B>,
+<B>New Pure Layer Node</B>, <B>New Special Object</B>).
+These commands then wait for a click in the editing window to place the component.
+The location of the cursor is aligned to the nearest grid unit,
+and this adjustment can be controlled with the <B>Alignment Options...</B> command of the <B>Windows</B> menu.
+<P>
+When placing a node, the cursor points to the <I>grab point</I> of the newly created node.
+By default, this is the center (for primitives) or the lower-left corner (for cell instances).
+Primitive nodes can use the lower-left corner as the grab-point by unchecking the
+"Center-based primitives" checkbox in the <B>Selection Options...</B> subcommand of the <B>Selection</B> command of the <B>Edit</B> menu.
+When this is unchecked, the <B>Get Info</B> dialog shows the node's lower-left position,
+rather than its center.
+<P>
+Cell instances can change their grab-point by placing a Cell-Center node inside of their layout
+(see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).
+
+<!-- TRAILER -->

@@ -1,0 +1,60 @@
+<!-- HEADER 7-1-1: Technologies -->
+
+A <I>technology</I> is an environment in which design is done.
+Technologies can be layout specific, for example MOSIS CMOS,
+or they can be abstract, for example Schematics and Artwork.
+There are multiple CMOS variations to handle popular design rules such as MOSIS, D.O.D.,
+and even round geometry.
+A simple Bipolar technology is available.
+Even Gallium Arsenide technologies have been built into Electric,
+but because they made use of proprietary design-rules, they are not distributed with the system.
+<P>
+The library "samples.txt" contains a number of examples of the different technologies in Electric
+(you can read it with the <B>Readable Dump</B> subcommand of the <B>Import</B> command of the <B>File</B> menu).
+The table below lists the examples:
+<P>
+<CENTER><TABLE BORDER=1>
+<TR><TD WIDTH=30%><B>Cell</B></TD><TD WIDTH=25%><B>Technology</B></TD><TD WIDTH=40%><B>Description</B></TD></TR>
+<TR><TD>tech-MOSISCMOS</TD><TD>mocmos</TD><TD>MOSIS CMOS rules</TD></TR>
+<TR><TD>tech-RoundCMOS</TD><TD>rcmos</TD><TD>Experimental round CMOS rules</TD></TR>
+<TR><TD>tech-nMOS</TD><TD>nmos</TD><TD>n-Channel MOS rules</TD></TR>
+<TR><TD>tech-SchematicsDigital</TD><TD>schematics, digital</TD><TD>Digital schematics layout</TD></TR>
+<TR><TD>tech-SchematicsAnalog</TD><TD>schematics, analog</TD><TD>Analog schematics layout</TD></TR>
+<TR><TD>tech-PCB</TD><TD>pcb</TD><TD>Printed-circuit board layout</TD></TR>
+<TR><TD>tech-DigitalFilter</TD><TD>efido</TD><TD>Digital filter architecture</TD></TR>
+<TR><TD>tech-GEM</TD><TD>gem</TD><TD>Temporal logic specification</TD></TR>
+<TR><TD>tech-Artwork</TD><TD>artwork</TD><TD>Graphical design</TD></TR>
+</TABLE></CENTER>
+<P>
+Electric makes no restrictions about mixing components from different technologies.
+While editing a cell,
+you can switch technologies and start using new components along side the ones from the former technology.
+It is up to the designer to ensure that the resulting circuit is sensible.
+<P>
+<H3>What is in a Technology</H3>
+<P>
+Each technology consists of a set of primitive nodes and arcs.
+These, in turn, are constructed from one or more <I>layers</I>.
+Each technology also includes information necessary to do design,
+such as design rules, connectivity rules, simulation attributes, etc.
+<P>
+Within a technology, there are three classes of primitive nodes:
+<I>pins</I>, <I>components</I>, and <I>pure-layer nodes</I>.
+The pins are used to join arcs, so there is one pin for every arc in the technology.
+The components are the basic nodes used in design: contacts, transistors, etc.
+Finally, the pure-layer nodes are used for geometric manipulation,
+so there is one for every layer in the technology.
+<P>
+The component menu on the left side of the editing window contains arcs at the bottom
+(the menu entries with red borders), pin nodes above that
+(these appear as boxes with a cross inside),
+and components at the top
+(the more complex layer combinations).
+The pure-layer nodes are not in the components menu,
+but are available from the <B>New Pure-Layer Node</B> command of the <B>Edit</B> menu
+(see <A HREF="chap06-10.html#chap06-10">Section 6-10</A>).
+Note that if you use the <B>Components Menu...</B> command of the <B>Windows</B> menu,
+and increase the number of menu entries,
+then the pure-layer nodes will be visible in the components menu.
+
+<!-- TRAILER -->

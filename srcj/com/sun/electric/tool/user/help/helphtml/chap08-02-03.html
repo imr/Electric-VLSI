@@ -1,0 +1,44 @@
+<!-- HEADER 8-2-3: Design Rules -->
+<P>
+Three types of errors are detected by the incremental and hierarchical design-rule checkers.
+<I>Spacing</I> errors are caused by geometry that is too close, but not connected.
+<I>Notch</I> errors are caused by geometry that is too close, but connected.
+<I>Minimum size</I> errors are caused by geometry that is too small.
+<P>
+In addition to examining geometry,
+the design-rule checkers use connectivity information to help find violations.
+This use of network information helps the designer to debug circuit connectivity.
+For example, if two overlapping nodes are not joined by an arc,
+they may be considered to be in violation,
+even if their geometry looks right.
+This is because the checkers know what is connected and have a separate set of rules for such situations.
+<P>
+The <B>DRC Rules...</B> dialog allows you to examine and modify the spacing limits for the current technology.
+You can select "Layers" or "Nodes".
+When "Nodes" are selected, you may set the minimum size of each node in the current technology.
+<P>
+When "Layers" are selected, you may set the minimum size of each layer as well as inter-layer spacing
+(between that and the "To Layer").
+Use the "Show only lines with rules" to restrict the displayed rules to those with valid values.
+Each spacing rule comes in two flavors: connected and unconnected.
+The connected rules apply to two different layers that are electrically connected;
+the unconnected rules apply to unconnected layers.
+A special Edge rule applies only to unconnected layers and ignores overlap when considering spacing distance.
+The connected and unconnected rules come in three styles: normal, wide, and multiple cut.
+The Wide rules apply when either layer is wider than a specified amount.
+The Multiple cut rules apply when either layer is part of a multi-cut contact.
+In addition to specifying a spacing distance,
+you can give a description of the rule that will be reported by the design-rule checker.
+The "Factory Reset of Rules" button restores all rules to the original set built into Electric.
+<P>
+<CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER>
+<P>
+Note that the MOSIS CMOS design rule 6.7b is not checked by Electric
+because it is difficult to detect properly.
+This error is never fatal,
+and the worst case of missing this error is that active and poly are closer by 1/2 lambda,
+which merely results in an increase in capacitive coupling between them.
+If this fringing capacitance is important,
+you've probably got so much polysilicon in your circuit that it has bigger problems.
+
+<!-- TRAILER -->

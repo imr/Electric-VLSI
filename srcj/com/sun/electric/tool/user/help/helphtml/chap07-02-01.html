@@ -1,0 +1,52 @@
+<!-- HEADER 7-2-1: Units -->
+
+Electric stores all geometry in terms of an <I>internal unit</I> of distance,
+but displays all distances in terms of a <I>display unit</I>.
+In addition, Electric uses a basic grid unit called <I>lambda</I>,
+which provides for scalable design.
+<P>
+To change the value of the internal unit, the display units, or the value of lambda,
+use the <B>Change Units...</B> command of the <B>Technology</B> menu.
+<P>
+<CENTER><IMG SRC="fig07-01.png" ALT="Figure 7.1"></CENTER>
+<P>
+The rest of this section describes the use of this dialog.
+<P>
+<H3>Lambda</H3>
+<P>
+The right side of the <B>Change Units...</B> is used to manipulate the value of Lambda.
+Lambda is the basic unit of design, expressed in internal units.
+For example, the MOSIS CMOS technology has transistors that are 2x3 lambda units in size,
+and a value of lambda that is 400.
+Because the internal unit is the half-nanometer (the half millimicron),
+400 internal units is 0.2 microns,
+and the transistor is 0.4 by 0.6 microns in size.
+Note that the value of lambda is shown in the status area.
+<P>
+Each library has a list of lambda values for each technology.
+This means that two libraries can have different lambda values for the same technology,
+and this can cause trouble if the libraries reference each other.
+Because of this, when a library is read in with lambda values that are different from existing libraries,
+you are presented with a dialog to help resolve these differences.
+<P>
+<CENTER><IMG SRC="fig07-19.png" ALT="Figure 7.19"></CENTER>
+<P>
+You can choose to scale the new library or the existing libraries so that they match.
+You can also choose to ignore the problem if you know that the inconsistent lambda values will not cause trouble.
+<P>
+If you use the <B>Change Units...</B> command and change the value of lambda,
+you have three choices for how to adjust the existing circuitry:
+<UL>
+<LI>"Change no libraries" causes the technology to scale, but existing objects are left alone.
+This may cause existing objects to change their aspect ratio, even if they don't change their physical size.
+<LI>"Change current library" causes the technology and all objects in the current library to scale.
+The objects and their cells will now be at a different size, but will appear the same as before.
+<LI>"Change all libraries" causes the technology and all objects in all libraries to scale.
+The objects and their cells will now be at a different size, but will appear the same as before.
+</UL>
+For example, if you change lambda for the "mocmossub" technology from 400 to 800,
+and you scale the libraries, then the existing 2x3 lambda transistor will be affected.
+Its area area will now be 0.8 by 1.2 microns in size.
+Thus, lambda-based designs are scalable to the desired process.
+
+<!-- TRAILER -->

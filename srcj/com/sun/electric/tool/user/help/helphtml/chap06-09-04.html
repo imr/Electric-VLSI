@@ -1,0 +1,38 @@
+<!-- HEADER 6-9-4: Power and Ground -->
+
+Identification of a power network is done by finding:
+<UL>
+<LI>a Power node from the Schematic technology;
+<LI>an export in the current cell that has the "power" characteristic;
+<LI>an export in the current cell that begins with the letters "vdd", "vcc",
+"pwr", or "power";
+<LI>a port on a component in the current cell that has either of the above two properties.
+</UL>
+Ground networks use the same rules,
+except that the acceptable port names begin with "vss", "gnd", or "ground".
+<P>
+By default,
+supply networks defined with the Power and Ground nodes of the Schematic technology are combined into one network.
+This means, for example, that two arcs,
+each connected to a separate Ground node,
+appear on the same network regardless of their actual connectivity in the circuit.
+<P>
+Although this unification is the proper thing to do for schematics,
+it is not always proper for IC layout.
+For example, in MOS technologies,
+two ports exported with the "power" characteristic are not on the same net unless they are actually connected
+(there may be multiple power rails that do not connect).
+As a circuit debugging aid to ensure that power and ground networks are properly connected,
+Electric can be instructed to unify power and ground networks in ALL technologies, regardless of their actual connectivity.
+The <B>Network Options...</B> subcommand of the <B>Network</B> command of the <B>Tools</B>
+menu has the "Unify Power and Ground" item which causes all power and ground networks to be combined.
+This unification of all supply rails can be disabled by unchecking the menu entry.
+By highlighting power and ground networks with and without this option,
+designers can see whether all of their supply rails are fully connected.
+<P>
+The <B>Validate Power and Ground</B> subcommand of the <B>Network</B> command of the <B>Tools</B> menu checks all power and
+ground networks in the circuit.
+Any power or ground networks that are named according to the prefixes listed above must have the proper characteristics.
+If, for example, a power network is called "gnd007", then it will be flagged by this command.
+
+<!-- TRAILER -->

@@ -1,0 +1,43 @@
+<!-- HEADER 3-5: Moving Up and Down the Hierarchy -->
+
+Each editing window in Electric displays a single cell.
+Editing changes can be made only to that cell, and not to any subcells that appear as instances.
+Thus, you may be able to see the contents of a cell instance,
+but you cannot edit it.
+<P>
+To edit a cell instance, use the <B>Down Hierarchy</B> command of the <B>Cells</B>
+menu.
+This command will descend into the definition of the currently selected cell instance.
+The contents will appear at the same size and location as the instance,
+and you will now be able to edit the contents.
+<P>
+<!-- NEED 5in -->
+If the instance is rotated or mirrored, going <B>Down Hierarchy</B> will show it in its original,
+untransformed orientation.
+The command <B>Down Hierarchy in Place</B> does not have this limitation:
+if an instance is rotated or mirrored, this command allows you to edit the cell in that orientation.
+Also, the <B>Down Hierarchy in Place</B> command shows the upper level of hierarchy that surrounds the instance
+(although it is shaded because you cannot edit it).
+In the figure below, the left side is the upper-level of hierarchy, with an instance shown.
+The right side is the result of <B>Down Hierarchy in Place</B>, showing the upper level shaded.
+<P>
+<CENTER><IMG SRC="fig03-22.png" ALT="Figure 3.22"></CENTER>
+<P>
+If an icon is selected, the <B>Down Hierarchy</B> will take you to the associated schematic.
+If the icon that is selected is already in its own schematic
+(you can place an icon inside its own schematic for documentation purposes),
+then the <B>Down Hierarchy</B> command takes you to the actual icon so that you can edit it.
+<P>
+The <B>Up Hierarchy</B> command pops you to the next higher cell in the hierarchy.
+If there was an associated <B>Down Hierarchy</B> command,
+then this returns you to the place where you started, up the hierarchy.
+If the <B>Down Hierarchy</B> command was not used,
+Electric attempts to figure out the next higher cell in the hierarchy,
+switching icons for schematics where appropriate.
+If there are multiple possibilities
+(because the current cell is used in many locations) then you will be prompted for a specific location.
+<P>
+When going down or up the hierarchy, if an export or port is selected,
+then the equivalent port or export is shown after the level of hierarchy has changed.
+
+<!-- TRAILER -->

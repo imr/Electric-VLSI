@@ -1,0 +1,49 @@
+<!-- HEADER 7-3-2: CIF Control -->
+
+CIF options are controlled with the <B>CIF Options...</B> subcommand of the <B>IO Options</B>
+command of the <B>File</B> menu.
+<P>
+<CENTER><IMG SRC="fig07-10.png" ALT="Figure 7.10"></CENTER>
+<P>
+This dialog controls the conversion between layers in Electric and layers in the CIF file.
+By clicking on an Electric layer, you can type a new CIF layer into the dialog.
+<P>
+By default, CIF output writes the entire hierarchy below the current cell.
+If you check the "Output Mimics Display" item,
+cell instances that are unexpanded will be represented as an outline in the CIF file.
+This is useful when the CIF output is intended for hardcopy display,
+and only the screen contents is desired.
+To revert to the default state, uncheck the item.
+<P>
+Another option is whether or not to merge adjoining geometry.
+This is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
+The default action is to write each node and arc individually.
+This makes the file larger because of redundant box information,
+however it is faster to generate and uses simpler constructs.
+If you check the "Output Merges Boxes" item,
+all connecting regions on the same layer are merged into one complex polygon.
+This requires more processing, produces a smaller file, and generates more complex constructs.
+<P>
+Another option is whether or not to instantiate the circuit in the CIF.
+By default, the currently displayed cell becomes the top level of the CIF file,
+and is instantiated at the end of the CIF.
+This causes the CIF file to display the current cell.
+If the CIF file is to be used as a library, with no current cell,
+then uncheck the "Output Instantiates Top Level" checkbox, and there will be no invocation of the current cell.
+<P>
+The "Normalize Coordinates" option causes the coordinate system of each CIF cell to be centered at zero.
+<P>
+When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
+If you check the "Input Squares Wires" item,
+CIF input assumes that wire ends are square and extend by half of their width.
+<P>
+You can request that resolution errors be checked during CIF output.
+In addition, by selecting "Show Resolution Errors",
+the errors are can be reviewed, one at a time, after CIF output is done.
+The "Output resolution" field is the minimum coordinate value that can be safely written in CIF
+(due to CIF's use of the centimicron as the smallest unit).
+All geometry of that size or less will be flagged during CIF output.
+For example, current MOSIS rules require that no boundaries be quarter-lambda or less,
+so a value of .25 in this field will detect such violations.
+
+<!-- TRAILER -->

@@ -1,0 +1,72 @@
+<!-- HEADER 4-9: Printing -->
+
+To make a paper copy of the contents of the current window,
+use the <B>Print...</B> command of the <B>File</B> menu.
+On UNIX, this command produces a temporary PostScript file,
+which is then spooled to the printer.
+<P>
+On the Macintosh and Windows,
+an image of the selected circuitry can be obtained with the <B>Copy</B> command of the <B>Edit</B> menu.
+This command copies the highlighted circuitry to the clipboard,
+which can then be pasted into most drawing applications and word processors.
+<P>
+On Windows, the resolution of printing and copying can be controlled by setting the "Print and Copy resolution factor"
+in the <B>Print Options...</B> dialog shown below.
+Changing this factor from 1 to 2 causes twice the detail in each axis, and an image that is 4 times larger.
+<P>
+As an alternative to printing, you can request PostScript or HPGL files.
+These files describe the circuitry graphically, and can be printed or inserted in other documents.
+To get PostScript,
+use the <B>PostScript</B> subcommand of the <B>Export</B> command of the <B>File</B> menu.
+To get HPGL, use the <B>HPGL</B> subcommand.
+<P>
+<TABLE><TR><TD>
+The <B>Print Options...</B> command of the <B>File</B> menu provides a number of options for generating print files.
+The default is to include the entire cell,
+but you can choose to print only what is highlighted or only what is displayed by selecting the appropriate buttons.
+Note that when printing the highlighted area,
+a precise selection can be made with the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:meta-right  Windows:alt-right  Mac:cmd-opt-click">rectangle select</A></I> button.
+For both PostScript and Macintosh printing,
+the "Plot Date In Corner" option causes additional information to appear in the corner of the plot.
+On UNIX systems, you can choose the printer to use.
+</TD><TD><CENTER><IMG SRC="fig04-05.png" ALT="Figure 4.5"></CENTER></TD></TR></TABLE>
+<P>
+There are many PostScript options.
+<UL>
+<LI>
+The "Encapsulated" checkbox causes the PostScript output to be insertable in other documents.
+For encapsulated PostScript, it is also possible to specify, for each cell, a scale to use.
+<LI>
+There are four color choices: "Black&amp;White",
+which uses stipple patterns for the layers;
+"Color" which uses solid colors,
+but does not handle overlap (because PostScript does not handle transparency);
+"Color Stippled" which uses color stipple patterns for better overlap;
+and "Color Merged" which precomputes the layer overlap to produce a better-looking plot, but takes more time.
+<LI>
+You can specify the size of the page
+(choose "Printer" for devices that print onto single pieces of paper,
+and "Plotter" for devices that print onto continuous rolls of paper).
+The "Margin" field is the amount of white space to leave on the sides.
+All distances in the "Height", "Width", and "Margin" fields are in inches.
+<LI>
+You can choose to rotate the image by 90 degrees so that it fits better on the page.
+The default is "No Rotation", but the popup can switch to "Rotate plot 90 degrees" or
+"Auto-rotate plot to fit".
+<LI>
+You can request that PostScript files be synchronized with the current cell.
+Checking the "Synchronize to file" checkbox prompts you for a file name,
+which is stored with the current cell.
+Whenever you write any PostScript,
+Electric checks all synchronized cells to see if they are newer than their associated disk file.
+If they are newer, the files are regenerated.
+Thus, you can specify PostScript files for many different cells in a library,
+and when PostScript is generated, all of the files will be properly updated to reflect the state of the design.
+</UL>
+<P>
+For HPGL, you can choose the version that you want to generate
+(HPGL or HPGL/2).
+If you choose HPGL/2, you can specify the scale of the plot.
+
+<!-- TRAILER -->

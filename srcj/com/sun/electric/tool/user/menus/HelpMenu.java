@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.help.HelpViewer;
+import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.prototype.NodeProto;
@@ -73,9 +74,13 @@ public class HelpMenu {
             helpMenu.addMenuItem("About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
         }
-        helpMenu.addMenuItem("Help Index", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
+		helpMenu.addMenuItem("Help Index...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
+		helpMenu.addMenuItem("User's Manual...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
+
         helpMenu.addSeparator();
+
         helpMenu.addMenuItem("Make fake circuitry", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
         helpMenu.addMenuItem("Make fake simulation window", null,
@@ -93,11 +98,17 @@ public class HelpMenu {
         dialog.setVisible(true);
     }
 
-    public static void toolTipsCommand()
-    {
-        HelpViewer dialog = new HelpViewer(TopLevel.getCurrentJFrame(), false, null);
-        dialog.setVisible(true);
-    }
+	public static void toolTipsCommand()
+	{
+		HelpViewer dialog = new HelpViewer(TopLevel.getCurrentJFrame(), false, null);
+		dialog.setVisible(true);
+	}
+
+	public static void userManualCommand()
+	{
+		ManualViewer dialog = new ManualViewer(TopLevel.getCurrentJFrame());
+		dialog.setVisible(true);
+	}
 
     public static void makeFakeCircuitryCommand()
     {

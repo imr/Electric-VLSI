@@ -385,7 +385,7 @@ public class Layer
 		{
 			if (factory == null) factory = "";
 			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "IO Options, " + what + " tab", what + " for layer " + name + " in technology " + tech.getTechName());
+			pref.attachToObject(tech, "IO/" + what + " tab", what + " for layer " + name + " in technology " + tech.getTechName());
 			map.put(this, pref);
 		}
 		return pref;
@@ -397,7 +397,7 @@ public class Layer
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref(what + "ParasiticFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "Tool Options, Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name);
+			pref.attachToObject(tech, "Tools/Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name);
 			map.put(this, pref);
 		}
 		return pref;

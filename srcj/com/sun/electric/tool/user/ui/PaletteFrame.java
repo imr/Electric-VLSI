@@ -140,6 +140,7 @@ public class PaletteFrame
 		palette.panel = new PalettePanel(palette);
         palette.panel.setFocusable(true);
 		palette.selector = new JComboBox();
+		palette.selector.setLightWeightPopupEnabled(false);
 		List techList = Technology.getTechnologiesSortedByName();
 		for(Iterator it = techList.iterator(); it.hasNext(); )
 		{

@@ -2,6 +2,21 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/27/04, SMR) Impelemented incremental DRC.
+
+IMP: (6/25/04, SMR) Waveform window improvements:
+     Each panel is numbered, have a pulldown of panels, can hide/show panels;
+     Fixed bogus time values, such as 1.999ns;
+     Time cursors are dashed-lines;
+     Right-click on signal in signal-names panel changes its color
+
+IMP: (6/24/04, SMR) Waveform window improvements:
+     Double-click on signal in explorer tree to add it to current panel;
+     Adding the same signal to a panel doesn't add it twice: changes its color;
+     Tooltips on all buttons.
+
+IMP: (6/25/04, SMR) Implemented "Help / User's Manual" and began to convert C manual.
+
 IMP: (6/25/04, GVG) First version working of 3D View. 
 
 IMP: (6/25/04, RK) Added NCC Local processing step to find user-understandable differences

@@ -1,0 +1,46 @@
+<!-- HEADER 8-4-4: Spice and Verilog Primitives -->
+
+Electric has a set of SPICE elements (DC Voltage Source, CCCS, Pulse, etc.)
+that create appropriate SPICE deck cards.
+These elements are found in the readable dump file "spiceparts.txt" in the "lib" directory.
+This library consists of a set of icon cells that describe the various SPICE primitives,
+and each icon has a special <I>Spice Template</I> that describes the SPICE card to generate.
+<P>
+Users can define their own SPICE elements by creating new icons in this or a new library.
+The icon must have graphics, exports, parameters, and a template.
+Parameters are created with the <B>Cell Parameters...</B> subcommand of the <B>Attributes</B>
+command of the <B>Info</B> menu (see <A HREF="chap06-08.html#chap06-08">Section 6-8</A> for more on parameters).
+The SPICE template is created with the <B>Set Generic SPICE Template</B> subcommand of the <B>Simulation (SPICE)</B>
+command of the <B>Tools</B> menu.
+If the template is specific to a particular version of SPICE, use the appropriate template subcommand
+(<B>Set SPICE 2 Template</B>, <B>Set SPICE 3 Template</B>, <B>Set HSPICE Template</B>, <B>Set PSPICE Template</B>,
+<B>Set GnuCAP Template</B>, or <B>Set SmartSPICE Template</B>).
+<P>
+You can also create Verilog elements by using the <B>Set Verilog Template</B> subcommand of the <B>Simulation (Verilog)</B>
+command of the <B>Tools</B> menu.
+This template has the format as illustrated below.
+Note that a single cell can contain both Verilog and multiple SPICE templates.
+<P>
+<!-- NEED 3in -->
+<TABLE><TR><TD>
+The DC Voltage Source primitive is illustrated here.
+Graphics is placed to describe the look of the symbol (a "battery" look).
+Exports are created at the top and bottom of the battery with the names "plus" and "minus".
+A single parameter is defined called "Voltage" with a default value of "0V".
+Finally, a SPICE template is created that has the string
+<BR><CENTER><CODE>V$(node_name) $(plus) $(minus) DC $(Voltage)</CODE></CENTER><BR>
+</TD><TD><CENTER><IMG SRC="fig09-23.png" ALT="Figure 9.23"></CENTER></TD></TR></TABLE>
+<P>
+This string contains substitution expressions of the form <CODE>$(SOMETHING)</CODE>
+where <CODE>SOMETHING</CODE> can be an export name, a variable, or "node_name".
+So, in this example, <CODE>$(node_name)</CODE> will be replaced with the name of the voltage node;
+<CODE>$(plus)</CODE> will be replaced with the net name attached to the positive terminal;
+and <CODE>$(Voltage)</CODE> will be replaced with the voltage value specified by the user.
+<P>
+The set of SPICE primitives in Electric is useful, but far from complete.
+A second set, called "SpicePartsS3", is tailored towards special SPICE3 primitives.
+There are no Verilog primitives in the current release of Electric.
+Users who define new primitives are encouraged to share these with the entire community by contacting
+<A HREF="mailto:info@staticfreesoft.com">Static Free Software</A>.
+
+<!-- TRAILER -->

@@ -1,0 +1,21 @@
+<!-- HEADER 3-8: Rearranging Cell Hierarchy -->
+
+In order to manipulate hierarchical circuits,
+it is useful to create and delete levels of the hierarchy.
+The <B>Package into Cell...</B> command of the <B>Cells</B>
+menu collects everything in the highlighted area into a new cell.
+You will be prompted for the cell name.
+The most convenient way to specify an area for packaging is to use the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:meta-right  Windows:alt-right  Mac:cmd-opt-click">rectangle select</A></I>
+button and drag a rectangle.
+Every node touching the area is included in the new cell.
+All arcs between nodes in the area are also included.
+The highlighted circuitry is not affected.
+<P>
+The opposite function is the removal of levels of hierarchy.
+This is done with the <B>Extract Cell Instance</B> command,
+which takes the currently highlighted cell instances and replaces them with their contents.
+Repeated use of this command goes further down the hierarchy until it is fully instantiated.
+All arcs that were connected to the cell instances are reconnected to the correct parts of the instantiated circuitry.
+
+<!-- TRAILER -->

@@ -1,0 +1,22 @@
+<!-- HEADER 4-6-1: Electric's Color Model -->
+
+The subcommands in the <B>Color Options</B> command of the <B>Windows</B>
+menu control the appearance of individual layers in the editing window.
+Before explaining these commands,
+it is useful to understand the distinction between <I>transparent</I> and <I>opaque</I> layers in Electric.
+<P>
+On color displays, up to five of the layers can be transparent,
+meaning that when they overlap each other, it is possible to see all of them.
+Typically, the most commonly used layers are transparent because it is both faster to draw and clearer to distinguish.
+The remaining layers in a technology are opaque,
+meaning that when drawn,
+they completely obscure anything underneath.
+These layers typically have stipple patterns so that they do not cover all of the bits.
+In this way, the opaque layers can combine without obscuring the display.
+Because stipple patterns are slower to draw, and because opaque color does obscure,
+the less common layers are drawn in this style.
+When editing colors, the opaque layers have only one color,
+whereas the transparent layers have up to 16 different colors,
+considering their interaction with other transparent layers.
+
+<!-- TRAILER -->

@@ -1,0 +1,33 @@
+<!-- HEADER 6-8-4: Text Defaults -->
+
+To change the default size and grab-point of all new text,
+use the <B>Text Options...</B> command of the <B>Windows</B> menu.
+The top part of the dialog lets you set the default size, face,
+and style of text that will appear in
+different locations (on cell instances, on nonlayout text,
+on exports, on nodes, and on arcs).
+Nonlayout text is the freestanding text that is created with the <B>Text (nonlayout)</B>
+subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
+<P>
+<TABLE><TR><TD>
+<BR><BR><BR>
+The center section of the dialog has two unrelated controls.
+The field labeled "Text editor"
+allows you to choose which style of text editing to use when working with large amounts of text
+(see <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text windows).
+The "New text visible only inside cell"
+checkbox requests that nonlayout text objects be drawn only when inside of the cell,
+and not when instances of the cell are expanded.
+<BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig06-08.png" ALT="Figure 6.8"></CENTER></TD></TR></TABLE>
+<P>
+The lower-left part of the dialog lets you set the grab-point of subsequently created text.
+The lower-right part of the dialog controls "smart placement" of text,
+which adjusts the grab point according to the environment of the text.
+This currently applies only to export names,
+which are placed relative to the arc connecting to the exported node.
+For example, if a node on the left end of a wire is has an export,
+and the "Smart Horizontal Placement" is set to "Inside",
+then the export text will attach on the left side, causing the label to appear inside of the wire.
+
+<!-- TRAILER -->

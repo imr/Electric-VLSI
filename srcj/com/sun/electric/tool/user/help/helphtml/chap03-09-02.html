@@ -1,0 +1,55 @@
+<!-- HEADER 3-9-2: Reading Libraries -->
+
+The <B>Open Library...</B> command of the <B>File</B> menu brings a new library into Electric from disk.
+These disk files are in a private binary format (that is, not readable outside of Electric).
+<P>
+Besides Electric libraries,
+it is possible to read circuit descriptions that are in other formats with the <B>Import</B> command of the <B>File</B> menu.
+Most of these commands place the data into a new library that has the same name as the disk file.
+When reading these files,
+it is important that the current technology be set to the one in the file so that proper layer conversion can be done
+(use the <B>Change Current Technology...</B> command of the <B>Technology</B> menu).
+These formats can be read:
+<UL>
+<LI><B>Caltech Intermediate Format (CIF)</B> is used to describe integrated circuit layout.
+It contains no connectivity, so after the library is read,
+it does not know about transistors and contacts: just layers.
+Use the <B>CIF Options...</B> subcommand of the <B>IO Options</B> command to affect how CIF is read.
+<LI><B>Stream (GDS II)</B> is also used to describe integrated circuit layout.
+It contains no connectivity, so after the library is read,
+it does not know about transistors and contacts: just layers.
+Use the <B>GDS Options...</B> subcommand of the <B>IO Options</B> command to affect how GDS is read.
+On Windows, it is possible to select multiple files for input.
+If you do this, all of the GDS will be read into the current library.
+<LI><B>Electronic Design Interchange Format (EDIF)</B> is used to describe both schematics and layout.
+Electric reads EDIF version 2 0 0.
+<LI><B>VHDL</B> is a hardware description language that describes the structure of a circuit.
+When VHDL is read, it is not converted to layout,
+but instead is placed into a text cell with the {vhdl} view.
+<LI><B>Library Exchange Format (LEF)</B> is an interchange format that describes the cells in a library.
+The cells that are read in contain ports, but very little contents.
+<LI><B>Design Exchange Format (DEF)</B> is an interchange format that describes the contents of a library.
+DEF input often makes use of associated LEF files which must already have been read.
+Use the <B>DEF Options...</B> subcommand of the <B>IO Options</B> command to affect how DEF is read.
+<LI><B>AutoCAD DXF</B> is a solid-modeling interchange format,
+and so it may contain 3D objects that cannot be read into Electric.
+Nevertheless, Electric creates a library of artwork primitives as well as it can
+(you must switch to the Artwork technology before importing DXF).
+Use the <B>DXF Options...</B> subcommand of the <B>IO Options</B> command to affect how DXF is read.
+<LI><B>Standard Delay Format (SDF)</B> is used to read test vector parameters and place them on cells in the current library.
+Before this data can be used by the simulator, one of the three sets
+(<B>Typical</B>, <B>Minimum</B>, or <B>Maximum</B>) must be selected with the <B>Annotate Delay Data (ALS)</B>
+subcommand of the <B>Simulate</B> command of the <B>Tools</B> menu.
+<LI><B>Schematic User Environment (SUE)</B> is a schematic editor that captures a single cell in each file.
+The circuitry in SUE files is added to the current library instead of being placed in its own library
+(because many SUE files may have to be read to build up a single Electric library).
+<LI><B>Readable Dump</B> is an Electric-specific format that captures the entire database,
+but in an editable text format.
+Because it is text, it is slower to read than Electric's binary files,
+and takes up more space on disk.
+However, it can be transferred between machines more reliably and can be edited if necessary.
+</UL>
+See <A HREF="chap07-03.html#chap07-03">Section 7-3</A>
+for more information on external formats.
+
+<!-- TRAILER -->

@@ -1,0 +1,59 @@
+<!-- HEADER 7-6-1: The Artwork Technology -->
+
+The Artwork technology is an unusual technology that provides general-purpose sketching facilities.
+To obtain this technology,
+use the <B>Change Current Technology...</B> command of the <B>Technology</B> menu and select "artwork".
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-05.png" ALT="Figure 7.5"></CENTER></TD><TD>
+This technology has nodes for many typical graphic objects such as rectangles,
+triangles, circles, and arrowheads.
+Polygonal and Spline nodes allow arbitrary shapes to be defined.
+Text is created with the <B>Text (nonlayout)</B> subcommand of the <B>New Special Object</B>
+command of the <B>Edit</B> menu.
+Of course, nodes from all other technologies can be used as special electronic symbols when artwork is generated.
+Conversely, these artwork nodes can be used to embellish designs done in all other technologies. 
+<P>
+There are four different polygon styles: opened, closed, filled, and spline.
+The opened polygon can be drawn with solid lines, dotted lines,
+dashed lines, or thicker lines.
+These nodes require that you use the <B>Outline Edit</B> command of the <B>Edit</B> menu to describe them
+(see <A HREF="chap06-10.html#chap06-10">Section 6-10</A>).
+</TD></TR></TABLE>
+<P>
+Circles can be outlines (normal or thick) or filled.
+The default shape is round, but elongation of the node produces an ellipse.
+In addition, by using the <B>Get Info</B> command of the <B>Info</B> menu,
+the outline circles can be reduced to a portion of the circle
+(from 1 to 360 degrees).
+<P>
+Arrow heads can be drawn in two different styles: simple or filled.
+The simple arrow head is the default and consists of two lines.
+The filled arrow head looks better because it is made of polygons.
+Use the <B>Technology Options...</B> command of the <B>Technology</B>
+menu and set the "Arrows filled" checkbox in the "Artwork" section to control this feature.
+<P>
+The "Export" entry creates an export for use in icons.
+After clicking on them entry, you have the choice of selecting "Wire", "Bus", or "Universal" exports
+(see the <B>Icon Options...</B> command of the <B>View</B> menu).
+<P>
+The illustration below shows how outline information,
+applied to Artwork nodes, results in different shapes.
+In each of the shapes, the outline has the same 5 points, as illustrated in the upper-left.
+The nodes interpret this outline information to produce their shape.
+Note that the spline curve does not run through the outline points,
+only near them.
+<CENTER><IMG SRC="fig07-15.png" ALT="Figure 7.15"></CENTER>
+<P>
+The final feature of the Artwork technology is its ability to set the color of any of its nodes or arcs.
+Use the <B>Get Info</B> command of the <B>Info</B> menu to set the color of any node or arc.
+<P>
+<TABLE><TR><TD>
+You can also use the <B>Artwork Color...</B> subcommand of the <B>Special Function</B> command the <B>Edit</B>
+menu to change the color or pattern.
+Predefined patterns are available along the top of the dialog.
+The transparent colors are taken from the current color map,
+which in turn is taken from the most recently selected technology
+(other than the Artwork technology).
+</TD><TD><CENTER><IMG SRC="fig07-06.png" ALT="Figure 7.6"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

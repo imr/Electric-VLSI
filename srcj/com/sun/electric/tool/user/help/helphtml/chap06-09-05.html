@@ -1,0 +1,20 @@
+<!-- HEADER 6-9-5: Global Networks -->
+
+When wiring an IC layout, the only way to get a signal from one point to another is to physically place the wires.
+Signals that span a large circuit, such as power and ground, must be carefully wired together at each level of the hierarchy.
+<P>
+In schematics, however, it is often the case that a signal is used commonly without specially being wired or exported.
+Examples of such signals are power, ground, clocks, etc.
+The power and ground signals can be established in any schematic with the use of the Power and Ground nodes.
+To create another such signal, use the Global node of the schematics technology.
+<P>
+The Global node is diamond-shaped, and it has a name and characteristics similar to exports (input, output, etc.)
+All signals with the same global name are considered to be connected when netlisting occurs.
+Thus, the Global symbol can be used to route clock signals, as well as to define multiple power and ground rails.
+Note that with multiple power and ground rails, only one of them is the true "power and ground" as defined by the Power and Ground symbols.
+All others, declared with Global nodes, are not true power and ground signals, but are simply globals.
+<P>
+Not all netlisters in Electric use Global signals.
+At this time, only SPICE, Verilog, IRSIM, and the Network Consistency Checker make proper use of this feature.
+
+<!-- TRAILER -->

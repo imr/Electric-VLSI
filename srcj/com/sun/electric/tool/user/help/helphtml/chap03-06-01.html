@@ -1,0 +1,79 @@
+<!-- HEADER 3-6-1: Export Creation -->
+
+All nodes in Electric have connection sites, called <I>ports</I>,
+which indicate where wires may be attached.
+The primitive nodes have predefined ports,
+but ports on cell instances must be defined by the user.
+To do this, simply select a port on a node inside the cell,
+and turn it into an <I>export</I>,
+which makes it available on all instances of the current cell.
+Although most ports are on nodes along the edge of the cell,
+Electric makes no port location restrictions,
+so they may appear anywhere.
+<P>
+To see the location of all ports on the selected nodes, use the <B>Show Ports on Node</B>
+command of the <B>Export</B> menu.
+To see all exports that have been defined in the current cell,
+use the <B>Show Exports</B> command of the <B>Export</B> menu.
+The <B>List Exports</B> command gives the same information, but in text form and the <B>Summarize Exports</B>
+command gives a text list that is reduced where sensible.
+<P>
+<TABLE><TR><TD>
+To create an export,
+select a port on a node and use the <B>Create Export...</B> command of the <B>Export</B> menu.
+The resulting dialog requests an export name and some characteristics.
+</TD><TD><CENTER><IMG SRC="fig03-02.png" ALT="Figure 3.2"></CENTER></TD></TR></TABLE>
+<P>
+All export names on a cell must be unique;
+if a nonunique name is given, it is modified to be unique.
+This modification involves adding "_1", "_2", etc. to the end of scalar export names,
+or changing the index (from [1] to [2], etc.) for indexed export names.
+Like cell names, export names may not contain spaces,
+tabs, or unprintable characters.
+Although no case distinction is made between uppercase and lowercase characters,
+the original case usage is preserved.
+<P>
+Behavioral characteristics can be associated with an export by selecting the appropriate field in the export creation dialog.
+These behavior characteristics are stored with the export and used primarily by simulators.
+The characteristics include the following:
+<UL>
+<LI>Directional: "input", "output", and "bidirectional".
+<LI>Supply: "power" and "ground".
+<LI>Clocking: "clock" (a generic clock export) and "clock phase 1" through "clock phase 6".
+<LI>Reference: "reference input", "reference output", and "reference base".
+In addition, reference exports carry an associated export name that is used by the CIF netlister.
+</UL>
+<P>
+The "Always drawn" check box requests that the export label should always appear,
+regardless of the connection or expansion of its cell.
+Typically, an export label on an instance of a cell is not displayed when that port is connected to an arc or when the instance is expanded.
+This check box overrides the suppression.
+<P>
+Another special check box, "Body only," requests that this export not appear when an icon is generated for the cell.
+This is useful for power and ground exports or duplicate connection sites on a single network.
+<P>
+There are three special exporting commands that are primarily used in array-based layout.
+If a cell instance is replicated many times and the instances are wired together,
+then ports on the edge of the array are the only ones that are not wired.
+These ports define the connections for the next level of hierarchy.
+What you want to do is to create exports for all unwired ports on all cell instances.
+To do this, use the <B>Re-Export Everything</B> command of the <B>Export</B> menu,
+which generates unique names as it exports all unwired ports on cell instances.
+To do this same function, but only on the currently highlighted nodes, use <B>Re-Export Highlighted</B>.
+To do this same function, but only for Power and Ground exports, use <B>Re-Export Power and Ground</B>.
+Note that ports on primitive nodes are not exported with these commands.
+See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more about arrays,
+and see <A HREF="chap09-05.html#chap09-05">Section 9-5</A> for more on automatic wiring.
+<P>
+Another special case in export creation is the <B>Add Export from Library...</B> command,
+which copies exports from another library to the current one.
+The other library is examined for cells whose names match ones in the current library.
+When a cell is found in the other library,
+all of its exports are copied to the cell in the current library
+(if they don't already exist) and placed in the same location.
+This command is useful in managing standard cell libraries that are imported from other file formats
+(see <A HREF="chap03-09.html#chap03-09">Section 3-9</A> on Standard Cell Libraries).
+Because some formats contain geometry and others contain connectivity,
+this command is needed to put them together.
+
+<!-- TRAILER -->

@@ -1,0 +1,43 @@
+<!-- HEADER 4-10: Text Windows -->
+
+<TABLE><TR><TD>
+Certain commands cause text to appear in a window or window partition.
+This happens when a text-only view of a cell is edited (VHDL, Verilog, Netlists, or Documentation),
+when SPICE model cards are edited,
+or when design rules are being modified in the technology editor.
+</TD><TD><CENTER><IMG SRC="fig04-12.png" ALT="Figure 4.12"></CENTER></TD></TR></TABLE>
+<P>
+There are two styles of text editing that can be used in these text windows.
+The default is a traditional "point-and-click" style which lets you select text with the cursor and replace/insert by typing.
+You can cut-and-paste with the <B>Cut</B>,
+<B>Copy</B>, and <B>Paste</B> commands of the <B>Edit</B> menu.
+<P>
+The other style of text editing is modeled after the EMACS text editor,
+and can be selected with the <B>Text Options...</B> command of the <B>Windows</B> menu.
+The EMACS-like text editor has only the basic commands and does not support macros,
+mini-buffers, split windows, or any advanced features.
+It exists only for those who demand the style of EMACS, even at a minimal level.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-13.png" ALT="Figure 4.13"></CENTER></TD><TD>
+Searching is done with the <B>Find Text...</B> subcommand of the <B>Special Function</B> command of the <B>Edit</B> menu.
+You can find and/or replace text with the appropriate buttons.
+Check boxes allow the search to be case sensitive and to go in the reverse direction.
+In addition, you can jump directly to a specified line number.
+</TD></TR></TABLE>
+<P>
+Note the <B>Find Text...</B> command can also be used to find text in a circuit.
+<P>
+If the text window is a text-only view of a cell, and if there are other layout
+views of the cell also on the screen, then you can make associations between the two.
+Just select the name of the network in the text window and use the <B>Show Network</B>
+subcommand of the <B>Network</B> command of the <B>Tools</B> menu.
+<P>
+Note that there is no "saving" of text windows because they are editing internal data structures.
+Therefore every change updates the information in Electric
+(but the library must be saved to truly preserve changes).
+<P>
+The contents of a text window can be saved to disk with the <B>Write Text Cell...</B>
+command of the <B>Cells</B> menu to save just the text.
+Use <B>Read Text Cell...</B> to read a file into a text window.
+
+<!-- TRAILER -->

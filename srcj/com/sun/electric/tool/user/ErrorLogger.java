@@ -328,6 +328,8 @@ public class ErrorLogger implements ActionListener {
     /** Current Logger */               private static ErrorLogger currentLogger;
     /** List of all loggers */          private static List allLoggers = new ArrayList();
 
+	private static boolean alreadyExplained = false;
+
     private int trueNumErrors;
     private int errorLimit;
     private List allErrors;
@@ -416,6 +418,11 @@ public class ErrorLogger implements ActionListener {
         return el;
     }
 
+	/**
+	 * Method to remove all logged errors from this errorlog.
+	 */
+	public synchronized void clearAllErrors() { allErrors.clear(); }
+
     /** Get the current logger */
     public synchronized static ErrorLogger getCurrent() {
         synchronized(allLoggers) {
@@ -476,7 +483,11 @@ public class ErrorLogger implements ActionListener {
         if (errs > 0 && explain)
         {
             //System.out.println(errorSystem+" FOUND "+numErrors()+" ERRORS");
-            System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
+            if (!alreadyExplained)
+            {
+				alreadyExplained = true;
+	            System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
+            }
         }
         WindowFrame.wantToRedoErrorTree();
         synchronized(allLoggers) {

@@ -402,15 +402,15 @@ public class Array extends EDialog
 			double cY = dialog.bounds.getCenterY();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
-			NodeInst [] nodesToCheck = null;
+			Geometric [] geomsToCheck = null;
 			boolean [] validity = null;
 			int checkNodeCount = 0;
 			if (lastDRCGood)
 			{
-				nodesToCheck = new NodeInst[lastXRepeat * lastYRepeat];
+				geomsToCheck = new NodeInst[lastXRepeat * lastYRepeat];
 				validity = new boolean[lastXRepeat * lastYRepeat];
 				if (nodeList.size() == 1)
-					nodesToCheck[checkNodeCount++] = (NodeInst)nodeList.get(0);
+					geomsToCheck[checkNodeCount++] = (NodeInst)nodeList.get(0);
 			}
 
 			// create the array
@@ -500,7 +500,7 @@ public class Array extends EDialog
 					ni.setTempObj(newNi);
 					if (lastDRCGood && firstNode)
 					{
-						nodesToCheck[checkNodeCount++] = newNi;
+						geomsToCheck[checkNodeCount++] = newNi;
 						firstNode = false;
 					}
 				}
@@ -572,13 +572,13 @@ public class Array extends EDialog
 			// if only arraying where DRC valid, check them now and delete what is not valid
 			if (lastDRCGood)
 			{
-				Quick.checkDesignRules(cell, checkNodeCount, nodesToCheck, validity, false);
+				Quick.checkDesignRules(cell, checkNodeCount, geomsToCheck, validity, false);
 				for(int i=1; i<checkNodeCount; i++)
 				{
 					if (!validity[i])
 					{
 						// delete the node
-						nodesToCheck[i].kill();
+						((NodeInst)geomsToCheck[i]).kill();
 					}
 				}
 			}

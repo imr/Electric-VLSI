@@ -1,0 +1,34 @@
+<!-- HEADER 8-5-2: Mimic Stitching -->
+
+One problem with the auto-stitcher is that it may take a different view of the circuit than originally intended.
+In an area where more than two cells meet,
+the auto-stitcher may place many wires in an attempt to connect all touching ports.
+Another problem with the auto-stitcher is that it makes explicit only what is already implicit,
+and so cannot add all necessary wires.
+<P>
+To control the wiring of arrays of cells more directly,
+there is the mimic-router.
+This tool lets the designer place a wire between two cells,
+and then it adds other wires between all other similarly configured cells in the circuit.
+Thus, it mimics your actions.
+<P>
+Specifically, it mimics single wires (if you make a multibend wire, that cannot be mimicked)
+in all situations where the same ports on the same type of nodes exist,
+separated by the same distance.
+<P>
+The <B>Routing Options...</B> command provides variations on these rules.
+First, you can request that the mimic stitcher also mimic wire deletions.
+Second, you can request that the mimic stitcher relax its restriction about mimicing arcs
+(by allowing the ports to be different, the nodes to be different, or the node sizes to be different).
+You can also ask the mimic stitcher to work interactively,
+which causes it to examine all possible restriction sets,
+offering to route wires with increasingly relaxed acceptance criteria.
+<P>
+To turn on the mimic-stitcher, use the <B>Enable Mimic-Stitching</B> subcommand,
+and to disable the subsystem, use the command in the same menu location, which now reads <B>Disable Mimic-Stitching</B>.
+You can also request that the mimic-stitcher run just once
+(mimicing the very last wire that was created or deleted) by using the <B>Mimic-Stitch Now</B> command.
+Finally, you can request that the mimic-stitcher run just once, mimicing the currently selected arc,
+by using the <B>Mimic-Selected</B> command.
+
+<!-- TRAILER -->

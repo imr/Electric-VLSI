@@ -1,0 +1,32 @@
+<!-- HEADER 3-9-1: Introduction to Libraries -->
+
+A <I>library</I> is a collection of cells and cells that forms a consistent hierarchy.
+To enforce this consistency,
+Electric stores an entire library in one disk file that is read or written at one time.
+It is possible, however, to have multiple libraries in Electric.
+Only one library is the current one, and this sometimes affects commands that work at the library level.
+When there are multiple libraries, you can switch between them with the <B>Change Current Library...</B>
+command of the <B>File</B> menu.
+To see which libraries are read in, use the <B>List Libraries</B> command.
+<P>
+To create a new, empty library, use the <B>New Library...</B> command of the <B>File</B> menu.
+To change the name of the current library, use the <B>Rename Library...</B> command.
+To delete a library, use the <B>Close Library</B> command.
+This removes only the memory representation, not the disk file.
+Note that library changes are too vast to be tracked by the database-change mechanism and so are not undoable.
+<P>
+It is possible to link two libraries by placing an instance of a cell from one library into another
+(this is done with the <B>New Cell Instance...</B> command of the <B>Edit</B> menu).
+When this happens, the library with the instance
+(the main library) is linked to the library with the actual cell (this is the <I>reference library</I>).
+Because the reference library is needed to complete the main library,
+it will be read whenever the main library is read.
+<P>
+If referenced libraries are edited independently,
+it is possible that a reference to a cell in another library will not match the actual cell in that library.
+When this happens, Electric creates a "placeholder" cell that matches the original specification.
+Thus, the link to the referenced library is broken because the cell there does not fit where the instance should be.
+To see a list of all placeholder cells that were created because of such problems,
+use the <B>General Cell Lists...</B> command of the <B>Cells</B> menu and select "Only placeholder cells".
+
+<!-- TRAILER -->

@@ -1,0 +1,34 @@
+<!-- HEADER 2-3: Circuit Deletion -->
+
+To remove circuitry, select nodes and/or arcs and use the <B>Erase</B> command from the <B>Edit</B> menu.
+A keyboard shortcut for this is the Delete key.
+If there is a highlighted area rather than a highlighted object,
+everything in the area is erased.
+<P>
+Note that an arc always connects two nodes, and therefore it cannot remain if one of the nodes is gone.
+This means that certain rules apply to circuit deletion:
+<P>
+(1) When a node is erased, all connecting arcs are also deleted.
+However, if a node is deleted that has exactly two arcs,
+connected as though the node were in the middle of a single arc,
+then the node and two arcs are replaced with a single arc.
+<P>
+(2) In the interest of cleanliness, if an arc is erased,
+any isolated pins are also erased.
+<P>
+<TABLE><TR><TD>
+(3) If an erased node has an export on it (as in the example below),
+then the export disappears and so do all arcs connected to the port on instances of the current cell
+(for more information on hierarchy, see <A HREF="chap03-01.html#chap03-01">Chapter 3</A>).
+</TD><TD><CENTER><IMG SRC="fig02-06.png" ALT="Figure 2.6"></CENTER></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-14.png" ALT="Figure 3.14"></CENTER></TD><TD>
+<!-- NEED 3in -->
+The <B>Erase Geometry</B> command erases all geometry in the highlighted area.
+All arcs that cross into that area will be truncated.
+Thus, this command truly erases geometry, independent of the structure of nodes and arcs.
+Note that the area to be erased is adjusted by the current alignment values
+(see <A HREF="chap04-07.html#chap04-07">Section 4-7</A>).
+</TD></TR></TABLE>
+
+<!-- TRAILER -->

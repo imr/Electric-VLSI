@@ -1,0 +1,37 @@
+<!-- HEADER 6-9-2: Naming Networks -->
+
+Network names are derived from export names and arcs that are named in a cell.
+The name given to an export is the network name for all arcs connected to that export.
+Similarly, the name given to an arc
+(by setting the name field in the <B>Get Info</B> command) becomes the name of the network for all connected arcs.
+You can rename a network by changing the specific export or arc,
+or by using the <B>Rename Network...</B> command of the <B>Info</B> menu.
+<P>
+Two phenomena can occur in network naming: a network can be <I>multiply named</I>,
+and it can <I>span disjoint circuitry</I>.
+A network has multiple names when two or more connected arcs or exports are named with different names.
+For example, if you make an export on a contact node and call it "clock",
+then you select an arc connected to that contact node and name it "sig",
+the circuitry will be on the network "clock/sig."
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
+The other phenomenon of network naming is that a single network can include unconnected parts of the circuit.
+This happens when arcs in unconnected parts of the circuit are given the same name.
+This causes the two arcs to be implicitly joined into one network.
+Because this network naming phenomena is most commonly used in schematics,
+the unification of like-named networks only happens in cells with the "schematic" view.
+To cause this same effect in all views (such as "layout"),
+use the <B>Network Options...</B> subcommand of the <B>Network</B> command of the <B>Tools</B>
+menu and check the "Unify all like-named nets" item.
+</TD></TR></TABLE>
+<P>
+You can also use this dialog to request that all networks that start with a particular set of letters should be unified.
+For example, if the "Unify Networks that start with" field is set to "clk",
+then the networks "clk01" and "clkExtra" will be merged into a single network.
+Multiple merges can be specified, separated by spaces.
+For example, if the field is "pwr gnd" then all nets starting with "pwr" will be merged, and all nets starting with "gnd" will be merged.
+<P>
+When busses must be automatically generated (during netlisting, for example)
+the bus indices can be set to start at 0 or 1, and they can ascend or descend.
+
+<!-- TRAILER -->

@@ -1,0 +1,65 @@
+<!-- HEADER 3-7-3: Cell Preferences -->
+
+To examine and set more information about existing cells,
+use the <B>Cell Options...</B> command of the <B>Cells</B> menu:
+<P>
+<CENTER><IMG SRC="fig03-10.png" ALT="Figure 3.10"></CENTER>
+<P>
+The upper part of the dialog provides options on a per-cell basis
+(choose the library and the cell and then set its options).
+The checkbox "Disallow modification of anything in this cell",
+allows you to control whether the contents of a cell is editable or not.
+When modification is disallowed, no changes may be made.
+This is useful when you want to allow examination without accidental modification.
+The checkbox "Disallow modification of instances in this cell",
+also prevents changes to the selected cell, but in this case, only sub-instances are locked.
+This is useful when you have a correct instance placement and are doing wiring.
+Buttons on the right allow you to set or clear these flags for all cells.
+<TABLE><TR><TD>
+If you make a change that has been disallowed,
+a dialog appears that asks if you want to override the lock.
+You may make the change, disallow the change, or remove the lock
+(which effectively unchecks the locks in the <B>Cell Options...</B> dialog).
+</TD><TD><CENTER><IMG SRC="fig03-15.png" ALT="Figure 3.15"></CENTER></TD></TR></TABLE>
+<P>
+The check box "Part of a cell-library"
+indicates that this cell is from a library of standard cells and should be treated accordingly.
+Buttons on the right allow you to set or clear this flag for all cells.
+Most dialogs that list cells can remove those from cell-libraries to keep the list simpler.
+<P>
+The check box "Use technology editor on this cell"
+indicates that this cell part of a technology editor library.
+Editing of cells in a technology editor library is done in a special mode (indicated with a yellow border in the window).
+See <A HREF="chap08-02.html#chap08-02">Section 8-2</A> for more information about technology editing.
+<P>
+The "Expand new instances" and "Unexpand new instances"
+buttons choose whether newly created instances of this cell are expanded
+(contents visible) or unexpanded (drawn with a black outline)
+See <A HREF="chap03-04.html#chap03-04">Section 3-4</A> for more on expansion.
+<P>
+The "Characteristic Spacing" is the spacing of this cell when arrayed
+(see <A HREF="chap06-04.html#chap06-04">Section 6-4</A>).
+<P>
+The lower part of the dialog contains options that will apply to all cells.
+The check box "Check Cell dates during creation"
+requests that date information be used to ensure a proper circuit building sequence.
+When this box is checked,
+warning messages will be issued when editing a cell that has more recent subcell instances.
+Electric tracks cell creation and revision dates,
+and this information can be displayed with the <B>Describe this Cell</B>
+command and others in the <B>Cells</B> menu.
+<P>
+The check box "Switch technology to match current cell"
+requests that the current technology automatically change whenever the current cell changes so that the two match.
+<P>
+The check box "Place Cell-Center in new cells"
+requests that all newly created cells have a Cell-Center node (named "Facet-Center" for historical reasons) placed at the origin
+(see <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more on Cell centers).
+<P>
+The check box "Tiny cells hashed out"
+requests that cells be displayed with a gray hash pattern when they are too tiny for their contents to be distinguished.
+Without this option, all geometry is drawn, which can take a long time.
+You can control the threshold of "tinyness" by setting the number of lambda units per pixel.
+Any view in which this many lambda units are shown in pixel will be too small to display fully.
+
+<!-- TRAILER -->

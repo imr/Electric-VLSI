@@ -1,0 +1,35 @@
+<!-- HEADER 2-2-3: Special Cases -->
+
+When connecting between two objects that are on different layers, Electric will insert a via to change layers.
+Only one via can be inserted.
+Thus, you can wire from a metal-1 pin to a metal-2 pin, and a single via will be created;
+but you cannot wire from a metal-1 pin to a metal-3 pin, because that would require two vias.
+When a via is inserted, it is placed closest to the "destination" node (or farthest from the original node).
+<P>
+The width of a new arc is automatically chosen according to a number of factors.
+The default width is set in the <B>New Arc Options...</B> command of the <B>Arc</B> menu.
+If there are other arcs of this type already connected to the new one,
+and they are wider than normal, then the new arc will use that width.
+<P>
+Note that all arcs overlap their endpoint by half of their width,
+so very wide arcs may overlap their destination with too much geometry.
+You can turn off this overlap by using the <B>Ends-extend</B> command of the <B>Arc</B> menu.
+<P>
+<TABLE><TR><TD>
+An unusual circuit creation command is the <B>Insert Jog In Arc</B> command of the <B>Edit</B> menu.
+This command inserts a jog in the highlighted arc by replacing it with three new arcs.
+Two of the new arcs run to the location of the cursor,
+and the third arc is perpendicular to them, connecting the ends at the cursor location
+(initially it has zero length).
+Once the jog is inserted, either half of the arc may be moved without affecting the other half,
+and the perpendicular arc will keep the circuit connected.
+</TD><TD><CENTER><IMG SRC="fig02-11.png" ALT="Figure 2.11"></CENTER></TD></TR></TABLE>
+<P>
+Beginning users often leave many extra pins in their circuits.
+With the <B>Cleanup Pins</B> subcommand of the <B>Cleanup Cell</B> command of the <B>Edit</B> menu,
+these pins are automatically removed from your circuit, leaving a cleaner network.
+The command does other pin organizations, such as making sure that text on these pins is located correctly,
+identifying zero-sized pins, and identifying oversized pins.
+The <B>Cleanup Pins Everywhere</B> command does this function for all cells at once.
+
+<!-- TRAILER -->

@@ -2027,7 +2027,7 @@ public class Technology extends ElectricObject
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("Mininum" + what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tool Options, Spice tab", getTechShortName() + " Min. " + what);
+			pref.attachToObject(this, "Tools/Spice tab", getTechShortName() + " Min. " + what);
 		}
 		return pref;
 	}
@@ -2264,7 +2264,7 @@ public class Technology extends ElectricObject
 	{
 		this.scaleRelevant = scaleRelevant;
 		prefScale = Pref.makeDoublePref(getScaleVariableName(), prefs, factory);
-		Pref.Meaning meaning = prefScale.attachToObject(this, "IO Options, Scale tab", getTechShortName() + " scale");
+		Pref.Meaning meaning = prefScale.attachToObject(this, "Technology/Scale tab", getTechShortName() + " scale");
 		meaning.setValidOption(isScaleRelevant());
 	}
 

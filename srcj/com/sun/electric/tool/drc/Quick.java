@@ -200,7 +200,8 @@ public class Quick
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
 	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
 	/** for tracking the time of good DRC. */					private boolean haveGoodDRCDate;
-    /** for logging errors */                                   private ErrorLogger errorLogger;
+	/** for logging errors */                                   private ErrorLogger errorLogger;
+	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 
 	/* for figuring out which layers are valid for DRC */
 	private Technology layersValidTech = null;
@@ -220,13 +221,13 @@ public class Quick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * If "justArea" is TRUE, only check in the selected area.
 	 */
-	public static void checkDesignRules(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
+	public static void checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
 	{
 		Quick q = new Quick();
-		q.doCheck(cell, count, nodesToCheck, validity, justArea);
+		q.doCheck(cell, count, geomsToCheck, validity, justArea);
 	}
 
-	private void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
+	private void doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -256,6 +257,7 @@ public class Quick
 		// initialize all cells for hierarchical network numbering
 		checkProtos = new HashMap();
 		checkInsts = new HashMap();
+
 		// initialize cells in tree for hierarchical network numbering
 		Netlist netlist = cell.getNetlist(false);
 		CheckProto cp = checkEnumerateProtos(cell, netlist);
@@ -356,11 +358,11 @@ public class Quick
 
 		// now do the DRC
 		haveGoodDRCDate = false;
-		errorLogger = ErrorLogger.newInstance("DRC");
+		errorLogger = null;
 		if (count == 0)
 		{
-
-			// just do standard DRC here
+			// just do full DRC here
+			errorLogger = ErrorLogger.newInstance("DRC (full)");
 //			if (!dr_quickparalleldrc) begintraversehierarchy();
 			checkThisCell(cell, 0, bounds);
 //			if (!dr_quickparalleldrc) endtraversehierarchy();
@@ -369,13 +371,21 @@ public class Quick
 			errorLogger.sortErrors();
 		} else
 		{
-			// check only these "count" instances
-			checkTheseInstances(cell, count, nodesToCheck, validity);
+			// check only these "count" instances (either an incremental DRC or a quiet one...from Array command)
+			if (validity == null)
+			{
+				// not a quiet DRC, so it must be incremental
+				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
+				errorLoggerIncremental.clearAllErrors();
+				errorLogger = errorLoggerIncremental;
+			}
+
+			checkTheseGeometrics(cell, count, geomsToCheck, validity);
 		}
 
-		errorLogger.termLogging(true);
+		if (errorLogger != null) errorLogger.termLogging(true);
 
-		if (haveGoodDRCDate)
+		if (haveGoodDRCDate && count == 0)
 		{
 			// some cells were sucessfully checked: save that information in the database
 			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
@@ -472,9 +482,10 @@ public class Quick
 		System.out.println("Checking cell " + cell.describe());
 
 		// remember how many errors there are on entry
-		int errCount = errorLogger.numErrors();
+		int errCount = 0;
+		if (errorLogger != null) errCount = errorLogger.numErrors();
 
-		// now look at every primitive node and arc here
+		// now look at every node and arc here
 		totalErrorsFound = 0;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -512,15 +523,18 @@ public class Quick
 		}
 
 		// if there were no errors, remember that
-		int localErrors = errorLogger.numErrors() - errCount;
-		if (localErrors == 0)
+		if (errorLogger != null)
 		{
-			goodDRCDate.put(cell, new Date());
-			haveGoodDRCDate = true;
-			System.out.println("   No errors found");
-		} else
-		{
-			System.out.println("   FOUND " + localErrors + " ERRORS");
+			int localErrors = errorLogger.numErrors() - errCount;
+			if (localErrors == 0)
+			{
+				goodDRCDate.put(cell, new Date());
+				haveGoodDRCDate = true;
+				System.out.println("   No errors found");
+			} else
+			{
+				System.out.println("   FOUND " + localErrors + " ERRORS");
+			}
 		}
 
 		return totalErrorsFound;
@@ -678,6 +692,15 @@ public class Quick
 		// get current position in traversal hierarchy
 //		gethierarchicaltraversal(state->hierarchybasesnapshot);
 
+		// get transformation out of the instance
+		AffineTransform upTrans = ni.translateOut();
+		AffineTransform rTrans = ni.rotateOut();
+		upTrans.preConcatenate(rTrans);
+
+		// get network numbering for the instance
+		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
+
 		// look for other instances surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
 		Rectangle2D searchBounds = new Rectangle2D.Double(
@@ -705,17 +728,6 @@ public class Quick
 				nearNodeBounds.getMinY()-worstInteractionDistance,
 				nearNodeBounds.getWidth() + worstInteractionDistance*2,
 				nearNodeBounds.getHeight() + worstInteractionDistance*2);
-			AffineTransform downTrans = ni.rotateIn();
-			AffineTransform tTransI = ni.translateIn();
-			downTrans.preConcatenate(tTransI);
-			EMath.transformRect(subBounds, downTrans);
-
-			AffineTransform upTrans = ni.translateOut();
-			AffineTransform rTrans = ni.rotateOut();
-			upTrans.preConcatenate(rTrans);
-
-			CheckInst ci = (CheckInst)checkInsts.get(ni);
-			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 			// recursively search instance "ni" in the vicinity of "oNi"
 //			if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
@@ -1252,32 +1264,32 @@ public class Quick
 			// crop out parts of any arc that is covered by an adjoining node
 			trueBox1 = new Rectangle2D.Double(trueBox1.getMinX(), trueBox1.getMinY(), trueBox1.getWidth(), trueBox1.getHeight());
 			trueBox2 = new Rectangle2D.Double(trueBox2.getMinX(), trueBox2.getMinY(), trueBox2.getWidth(), trueBox2.getHeight());
-boolean debug = false;
+//boolean debug = false;
 //if (tech.sameLayer(layer1, layer2) && layer1.getName().equals("P-Active")) debug = true;
-if (debug) System.out.println("Cropping box that is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+//if (debug) System.out.println("Cropping box that is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			if (geom1 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
 					trueBox1, layer2, net2, geom2, trueBox2))
 						return false;
-if (debug) System.out.println("   Node1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+//if (debug) System.out.println("   Node1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1))
 					return false;
-if (debug) System.out.println("   Arc1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+//if (debug) System.out.println("   Arc1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
 					trueBox2, layer1, net1, geom1, trueBox1))
 						return false;
-if (debug) System.out.println("   Node2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+//if (debug) System.out.println("   Node2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2))
 					return false;
-if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+//if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
 //if (debug)
 //{
@@ -1400,89 +1412,99 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 		return true;
 	}
 
-	/*************************** QUICK DRC SEE IF INSTANCES CAUSE ERRORS ***************************/
+	/*************************** QUICK DRC SEE IF GEOMETRICS CAUSE ERRORS ***************************/
 
 	/**
-	 * Method to examine, in cell "cell", the "count" instances in "nodesToCheck".
+	 * Method to examine, in cell "cell", the "count" instances in "geomsToCheck".
 	 * If they are DRC clean, set the associated entry in "validity" to TRUE.
 	 */
-	private void checkTheseInstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
+	private void checkTheseGeometrics(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity)
 	{
 		int globalIndex = 0;
-		Netlist netlist = getCheckProto(cell).netlist;
+		CheckProto cp = getCheckProto(cell);
 
-		// loop through all of the instances to be checked
+		// loop through all of the objects to be checked
 		for(int i=0; i<count; i++)
 		{
-			NodeInst ni = nodesToCheck[i];
-			validity[i] = true;
-
-			// look for other instances surrounding this one
-			Rectangle2D nodeBounds = ni.getBounds();
-			Rectangle2D searchBounds = new Rectangle2D.Double(
-				nodeBounds.getMinX()-worstInteractionDistance,
-				nodeBounds.getMinY()-worstInteractionDistance,
-				nodeBounds.getWidth() + worstInteractionDistance*2,
-				nodeBounds.getHeight() + worstInteractionDistance*2);
-			for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
+			Geometric geomToCheck = geomsToCheck[i];
+			boolean errors = false;
+			if (geomToCheck instanceof NodeInst)
 			{
-				Geometric geom = (Geometric)it.next();
-				if (geom instanceof ArcInst)
+				NodeInst ni = (NodeInst)geomToCheck;
+				if (ni.getProto() instanceof Cell)
 				{
-					if (checkGeomAgainstInstance(netlist, geom, ni))
-					{
-						validity[i] = false;
-						break;
-					}
-					continue;
-				}
-				NodeInst oNi = (NodeInst)geom;
-				if (oNi.getProto() instanceof PrimitiveNode)
+					errors = checkThisCellPlease(ni);
+				} else
 				{
-					// found a primitive node: check it against the instance contents
-					if (checkGeomAgainstInstance(netlist, geom, ni))
-					{
-						validity[i] = false;
-						break;
-					}
-					continue;
+					errors = checkNodeInst(ni, 0);
 				}
-
-				// ignore if it is one of the instances in the list
-				boolean found = false;
-				for(int j=0; j<count; j++)
-					if (oNi == nodesToCheck[j]) { found = true;   break; }
-				if (found) continue;
-
-				// found other instance "oNi", look for everything in "ni" that is near it
-				Rectangle2D subNodeBounds = oNi.getBounds();
-				Rectangle2D subBounds = new Rectangle2D.Double(
-					subNodeBounds.getMinX()-worstInteractionDistance,
-					subNodeBounds.getMinY()-worstInteractionDistance,
-					subNodeBounds.getWidth() + worstInteractionDistance*2,
-					subNodeBounds.getHeight() + worstInteractionDistance*2);
-				AffineTransform downTrans = ni.rotateIn();
-				AffineTransform tTransI = ni.translateIn();
-				downTrans.preConcatenate(tTransI);
-				EMath.transformRect(subBounds, downTrans);
-
-				AffineTransform upTrans = ni.translateOut();
-				AffineTransform rTrans = ni.rotateOut();
-				upTrans.preConcatenate(rTrans);
-
-				CheckInst ci = (CheckInst)checkInsts.get(ni);
-				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
-
-				// recursively search instance "ni" in the vicinity of "oNi"
-				if (checkCellInstContents(subBounds, (Cell)ni.getProto(), upTrans,
-					localIndex, oNi, globalIndex))
-				{
-					// errors were found: bail
-					validity[i] = false;
-					break;
-				}
+			} else
+			{
+				ArcInst ai = (ArcInst)geomToCheck;
+				errors = checkArcInst(cp, ai, 0);
 			}
+			if (validity != null) validity[i] = !errors;
 		}
+	}
+
+	private boolean checkThisCellPlease(NodeInst ni)
+	{
+		Cell cell = ni.getParent();
+		Netlist netlist = getCheckProto(cell).netlist;
+		int globalIndex = 0;
+
+		// get transformation out of this instance
+		AffineTransform upTrans = ni.translateOut();
+		AffineTransform rTrans = ni.rotateOut();
+		upTrans.preConcatenate(rTrans);
+
+		// get network numbering information for this instance
+		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		if (ci == null) return false;
+		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
+
+		// look for other objects surrounding this one
+		Rectangle2D nodeBounds = ni.getBounds();
+		Rectangle2D searchBounds = new Rectangle2D.Double(
+			nodeBounds.getMinX() - worstInteractionDistance,
+			nodeBounds.getMinY() - worstInteractionDistance,
+			nodeBounds.getWidth() + worstInteractionDistance*2,
+			nodeBounds.getHeight() + worstInteractionDistance*2);
+		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof ArcInst)
+			{
+				if (checkGeomAgainstInstance(netlist, geom, ni)) return true;
+				continue;
+			}
+			NodeInst oNi = (NodeInst)geom;
+			if (oNi.getProto() instanceof PrimitiveNode)
+			{
+				// found a primitive node: check it against the instance contents
+				if (checkGeomAgainstInstance(netlist, geom, ni)) return true;
+				continue;
+			}
+
+//			// ignore if it is one of the geometrics in the list
+//			boolean found = false;
+//			for(int j=0; j<count; j++)
+//				if (oNi == geomsToCheck[j]) { found = true;   break; }
+//			if (found) continue;
+
+			// found other instance "oNi", look for everything in "ni" that is near it
+			Rectangle2D subNodeBounds = oNi.getBounds();
+			Rectangle2D subBounds = new Rectangle2D.Double(
+				subNodeBounds.getMinX() - worstInteractionDistance,
+				subNodeBounds.getMinY() - worstInteractionDistance,
+				subNodeBounds.getWidth() + worstInteractionDistance*2,
+				subNodeBounds.getHeight() + worstInteractionDistance*2);
+
+			// recursively search instance "ni" in the vicinity of "oNi"
+			if (checkCellInstContents(subBounds, (Cell)ni.getProto(), upTrans,
+				localIndex, oNi, globalIndex)) return true;
+		}
+		return false;
 	}
 
 	/**
@@ -1496,7 +1518,7 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 		Cell subCell = geom.getParent();
 		boolean baseMulti = false;
 		Technology tech = null;
-		Poly [] nodeInstPolyList;
+		Poly [] nodeInstPolyList = null;
 		AffineTransform trans = EMath.MATID;
 		if (geom instanceof NodeInst)
 		{
@@ -1504,8 +1526,8 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 			NodeInst oNi = (NodeInst)geom;
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
-			nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
-			convertPseudoLayers(ni, nodeInstPolyList);
+			nodeInstPolyList = tech.getShapeOfNode(oNi, null, true, ignoreCenterCuts);
+			convertPseudoLayers(oNi, nodeInstPolyList);
 			baseMulti = isMultiCut(oNi);
 		} else
 		{
@@ -1513,9 +1535,11 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 			tech = oAi.getProto().getTechnology();
 			nodeInstPolyList = tech.getShapeOfArc(oAi);
 		}
+		if (nodeInstPolyList == null) return false;
 		int tot = nodeInstPolyList.length;
 
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
+		if (ci == null) return false;
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 		// examine the polygons on this node
@@ -1954,7 +1978,7 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to determine whether node "ni" is a multiple cut contact.
 	 */
 	private boolean isMultiCut(NodeInst ni)
@@ -2897,6 +2921,7 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 		Poly poly1, Geometric geom1, Layer layer1, int net1,
 		Poly poly2, Geometric geom2, Layer layer2, int net2)
 	{
+		if (errorLogger == null) return;
 //		// if this error is being ignored, don't record it
 //		var = getvalkey((INTBIG)cell, VNODEPROTO, VGEOM|VISARRAY, dr_ignore_listkey);
 //		if (var != NOVARIABLE)

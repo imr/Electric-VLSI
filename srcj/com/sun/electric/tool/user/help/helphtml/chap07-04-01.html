@@ -1,0 +1,38 @@
+<!-- HEADER 7-4-1: The MOS Technologies -->
+
+There are both nMOS and CMOS technologies available in Electric,
+with many different design rules.
+Use the <B>Change Current Technology...</B> command of the <B>Technology</B> menu to select one.
+<P>
+There is one nMOS technology: "nmos"
+(the specifications used in the Mead and Conway textbook).
+<P>
+There are many more CMOS technologies available.
+The most basic is "cmos", which uses an idealized set of design-rules from a paper by Griswold.
+The "mocmos" process has two layers of polysilicon and up to 6 layers of metal with standard,
+submicron, or deep rules (this is the default technology, and it is described more fully in the next section).
+There is even "rcmos", which uses round geometry!
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-16.png" ALT="Figure 7.16"></CENTER></TD><TD>
+Each MOS technology has two transistors
+(enhancement and depletion in nMOS technologies, <I>n</I> and <I>p</I> in CMOS).
+These nodes can have serpentine paths by highlighting them and using the <B>Outline Edit</B>
+command of the <B>Edit</B> menu
+(see <A HREF="chap06-10.html#chap06-10">Section 6-10</A>).
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+The contact cuts in the MOS technologies automatically increase the number of cut layers when the contact grows in size.
+For very large contacts, however, the display of these cuts can waste time.
+Therefore, when very large contacts are displayed at small scale,
+the interior cuts are not drawn (as shown on the right).
+Be assured, however, that the cuts are actually there, and will appear in all appropriate output.
+</TD><TD><CENTER><IMG SRC="fig07-18.png" ALT="Figure 7.18"></CENTER></TD></TR></TABLE>
+<P>
+Although individual MOS nodes and arcs have the proper amount of implant around them,
+a collection of such objects may result in an irregular implant boundary.
+To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area.
+Also, you can do this automatically with the <B>Coverage Implants</B>
+subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
+
+<!-- TRAILER -->

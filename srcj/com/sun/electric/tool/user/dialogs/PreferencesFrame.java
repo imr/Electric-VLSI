@@ -30,7 +30,6 @@ import com.sun.electric.tool.user.dialogs.options.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +42,8 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 
 /**
  * Class to handle the "PreferencesFrame" dialog.
@@ -382,7 +383,7 @@ public class PreferencesFrame extends EDialog
 		}
 	}
 
-	private static class TreeHandler implements MouseListener, MouseMotionListener, javax.swing.event.TreeExpansionListener
+	private static class TreeHandler implements MouseListener, TreeExpansionListener
 	{
 		private PreferencesFrame dialog;
 
@@ -391,9 +392,7 @@ public class PreferencesFrame extends EDialog
 		public void mouseClicked(MouseEvent e) {}
 		public void mouseEntered(MouseEvent e) {}
 		public void mouseExited(MouseEvent e) {}
-		public void mouseMoved(MouseEvent e) {}
 		public void mouseReleased(MouseEvent e) {}
-		public void mouseDragged(MouseEvent e) {}
 
 		public void mousePressed(MouseEvent e)
 		{
@@ -413,11 +412,11 @@ public class PreferencesFrame extends EDialog
 			dialog.pack();
 		}
 
-		public void treeCollapsed(javax.swing.event.TreeExpansionEvent e)
+		public void treeCollapsed(TreeExpansionEvent e)
 		{
 			dialog.pack();
 		}
-		public void treeExpanded(javax.swing.event.TreeExpansionEvent e)
+		public void treeExpanded(TreeExpansionEvent e)
 		{
 			TreePath tp = e.getPath();
 			if (tp.getPathCount() == 2)

@@ -1,0 +1,41 @@
+<!-- HEADER 8-2-2: Hierarchical DRC -->
+
+The hierarchical design-rule checker uses the same rules and techniques as the incremental checker,
+but it is able to check across levels of hierarchy.
+To run it, use the <B>Check Hierarchically</B> subcommand of the <B>DRC</B> command of the <B>Tools</B> menu.
+To check only a selected subset of the current cell, use <B>Check Selection Area Hierarchically</B>.
+<P>
+To help guide the design-rule checker, a "cloaking" layer can be placed over areas that are not to be examined.
+This cloaking layer is created by using the <B>DRC Exclusion</B>
+subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
+Any errors that fall inside of this node's area are ignored.
+<P>
+After analysis of the circuit,
+you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
+You can also see a list of errors in the Cell Explorer (see <A HREF="chap03-07.html#chap03-07">Section 3-7</A>).
+<P>
+After a cell has passed Hierarchical DRC with no errors, it is tagged with the current date.
+In subsequent runs of the Hierarchical DRC, if the cell has not been modified since that date,
+it is not rechecked.
+(However, if you change the DRC rules or the technology options, all date information is cleared.)
+If you wish to force all cells to be rechecked,
+use the "Clear valid DRC dates" button in the <B>DRC Options...</B> dialog.
+To see which cells have passed Hierarchical DRC,
+use the <B>General Cell Lists...</B> command of the <B>Cells</B> menu
+(a "D" is shown in on the right for cells that are DRC current).
+<P>
+Another way to speed up Hierarchical DRC is to check the "Just 1 error per cell" entry in the
+<B>DRC Options...</B> dialog.
+This tells the system to stop checking a cell after the first error has been found.
+By using this option, you can more quickly determine <I>which</I> cells in the design are correct,
+without knowing exactly where the errors lie.
+Then, you can go to the cells with errors and do a more complete check.
+<P>
+If you are fortunate enough to have a computer with more than 1 processor,
+the DRC can take advantage of this when doing hierarchical checking.
+Check "Use multiple processors" in the <B>DRC Options...</B> dialog and tell it how
+many processors to use.
+The value of this field sets the number of parallel threads that will be spawned to do the DRC,
+so it can be more than the number of processors.
+
+<!-- TRAILER -->

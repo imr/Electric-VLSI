@@ -1,0 +1,86 @@
+<!-- HEADER 2-4-2: Other Modification -->
+
+Another way to move a node is to use the <B>Get Info</B> command of the <B>Info</B> menu,
+and type new X and Y positions.
+This dialog allows other modifications to be made as well (orientation, etc.)
+<TABLE><TR><TD>
+The dialog shows the location of the grab-point of the node,
+which may be in any number of positions (see <A HREF="chap02-02.html#chap02-02">Section 2-2</A>).
+Note that the default unit for typed values is <I>lambda</I>,
+unless another unit is explicitly mentioned (for more information on lambda,
+<A HREF="chap07-02.html#chap07-02">Section 7-2</A>).
+</TD><TD><CENTER><IMG SRC="fig02-01.png" ALT="Figure 2.1"></CENTER></TD></TR></TABLE>
+<P>
+The dialog also has a field for the node's name.
+This name is not related to network information, but it can be used for identification.
+If a schematic node is given an arrayed name (such as "and[0:3]") then it indicates that the node is arrayed that many times.
+Nodes (and arcs) can automatically be given names with the <B>Name All In Cell</B> and
+<B>Name All In Library</B> subcommands of the <B>Special Function</B> command of the <B>Edit</B> menu.
+When naming nodes, the prefix used depends on the node function (see the <B>New Node Options...</B>
+command of the <B>Edit</B> menu).
+<P>
+Note the "Easy to Select" checkbox in this dialog.
+If you uncheck it,
+you will have to use the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:meta-left  Windows:alt-left  Mac:opt-click">special select</A></I>
+button to select the node in the future.
+This feature allows you to eliminate pieces of circuitry from active editing.
+<P>
+This dialog is modeless: it can remain on the screen while other editing is being done.
+If a different node is selected, the dialog updates to show that node's information.
+The "Apply" button changes the selected node to match the new values typed into the dialog.
+<P>
+The <B>Get Info</B> dialog can also expand to show more information.
+When the "More" button is clicked, it grows to full size as shown.
+To make the dialog default to full size, use the <B>General Options...</B> subcommand of the <B>User Interface</B>
+command of the <B>Info</B> menu and check "Expandable dialogs default to fullsize".
+<P>
+<TABLE><TR><TD>
+The full size <B>Get Info</B> dialog has many new controls,
+which vary according to the type of node selected:
+<UL>
+<LI>"Expanded" and "Unexpanded" control how the node is drawn (if it is a cell instance).
+An expanded instance is one that shows its contents; an unexpanded instance is drawn as a black box.
+<P>
+<LI>"Only Visible Inside Cell" 
+indicates that this node will not be drawn when the current cell is viewed from higher-up the hierarchy.
+<P>
+<LI>"Locked" nodes may not be changed (moved, deleted).
+<P>
+<LI>A scroll area that can view "Ports", "Parameters", or "Attributes".
+</UL>
+</TD><TD><CENTER><IMG SRC="fig02-13.png" ALT="Figure 2.13"></CENTER></TD></TR></TABLE>
+<P>
+By default, a list of the node's ports is shown, including any exports, connections, and highlight details.
+If the "Attributes" button is selected, the list shows the attributes on the node.
+If the "Parameters" button is selected, the list shows the parameters on the node
+Parameters are similar to attributes: they both are fields on the node.
+However, parameters are also fields inside of the defining cell.
+When "Attributes" or "Parameters" are selected, the entries in the list let you modify individual values,
+and the "Attributes" button brings up an extended dialog for them.
+<P>
+<!-- NEED 4in -->
+If many objects are selected,
+you can move them by a specific distance with the <B>Move Objects By...</B>
+subcommand of the <B>Move</B> command of the <B>Edit</B> menu.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig02-12.png" ALT="Figure 2.12"></CENTER></TD><TD>
+If many nodes are selected, the <B>Get Info</B> command will list all of them,
+and allow position and size changes to be made at once to each in the group.
+If a position and size value appears in the dialog,
+it means that this value is the same on every selected node.
+If the field is blank, it means that there are different values.
+</TD></TR></TABLE>
+<P>
+Changes are only made in the fields where you type a value.
+To see the full "Get Info" dialog for the selected node, click on the "Info" button.
+To remove an item from the list (not the circuit, just this list) use the "Remove" button.
+If only two objects are selected, this dialog shows the distance between their centers.
+<P>
+The multi-object <B>Get Info</B> dialog also allows you to change selection style with the "For everything:" popup
+(see <A HREF="chap02-01.html#chap02-01">Section 2-1</A> for more on selection styles).
+When many exports are selected,
+the dialog allows you to change their characteristics with the "For all selected exports:" popup
+(see <A HREF="chap03-06.html#chap03-06">Section 3-6</A> for more on exports).
+
+<!-- TRAILER -->

@@ -1,0 +1,50 @@
+<!-- HEADER 6-2: Creation Defaults -->
+
+The <B>Duplicate</B> command is useful because a node may have been modified (rotated,
+scaled, etc.) and duplication preserves all of those changes.
+Using <B>Copy</B> and <B>Paste</B> does the same thing.
+Another way to create nodes that are nonstandard is to set creation defaults.
+<P>
+The <B>New Node Options...</B> command of the <B>Edit</B>
+menu provides a dialog for changing this information on subsequently created nodes.
+You can change the default size of any primitive node in the current technology by choosing the node and changing the values.
+Note that the default unit for typed values is <I>lambda</I>,
+unless another unit is explicitly mentioned (for more on lambda, see <A HREF="chap07-02.html#chap07-02">Section 7-2</A>).
+You can change the default orientation of these primitives by checking "Override default orientation"
+and then entering the new rotation and transposition.
+<P>
+<CENTER><IMG SRC="fig06-01.png" ALT="Figure 6.1"></CENTER>
+<P>
+The options in the middle section of the dialog apply to all new nodes.
+You can specify a default orientation (rotation and transposition).
+For more on orientation, see <A HREF="chap02-06.html#chap02-06">Section 2-6</A>.
+<P>
+The check box "Disallow modification of locked primitives" requests that all lockable primitive node instances be anchored.
+Once locked, these nodes cannot be created, deleted,
+or modified in any way.
+Typically, only primitives in "array" technologies are lockable
+(such as the FPGA technology, described in <A HREF="chap07-08.html#chap07-08">Section 7-8</A>),
+presuming that these components will be used to define the fixed circuitry that is then customized.
+Design of the fixed circuitry is done with this lock off,
+and then the customization phase is done with this lock on.
+<P>
+The check box "Move after Duplicate" allows duplicated objects to be positioned interactively.
+This is the default condition.
+However, if this is unchecked,
+then the <B>Duplicate</B> command of the <B>Edit</B> menu will place a copy automatically,
+without allowing the new location to be specified by the cursor.
+This has the advantage that it learns the location to use from past actions,
+so repeated <B>Duplicate</B> commands can be used to automatically place things regularly.
+<P>
+The check box "Duplicate/Array/Extract copies exports" requests that all node-copying operations also copy their exports.
+This includes the <B>Duplicate</B> and <B>Array</B> commands of the <B>Edit</B>
+menu and the <B>Extract Cell Instance</B> command of the <B>Cells</B> menu.
+By default, exports are not copied with their nodes.
+<P>
+The bottom section of the dialog allows you to specify node names to be used for the different types of nodes.
+These names are used when automatically naming nodes during netlisting.
+They are also used by the <B>Name All In Cell</B> and
+<B>Name All In Library</B> subcommands of the <B>Special Function</B> command of the <B>Edit</B> menu,
+which apply names to nodes and arcs.
+
+<!-- TRAILER -->

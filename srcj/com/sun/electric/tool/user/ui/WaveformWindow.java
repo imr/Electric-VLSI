@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,6 +45,8 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Graphics2D;
+import java.awt.BasicStroke;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
@@ -66,6 +69,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -75,6 +80,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,7 +96,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JCheckBox;
 import javax.swing.JSplitPane;
+import javax.swing.JComboBox;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -102,7 +112,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static int panelSizeDigital = 30;
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
-		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
+		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.YELLOW};
 
 	/**
 	 * Test method to build a waveform with fake data.
@@ -182,6 +192,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** the left side: with signal names etc. */			private JPanel leftHalf;
 		/** the right side: with signal traces */				private JPanel rightHalf;
 		/** the button to close this panel. */					private JButton close;
+		/** the button to hide this panel. */					private JButton hide;
 		/** the button to delete selected signal. */			private JButton deleteSignal;
 		/** the button to delete all signals. */				private JButton deleteAllSignals;
 		/** displayed range along horozintal axis */			private double minTime, maxTime;
@@ -192,15 +203,19 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if this waveform panel is selected */			private boolean selected;
+		/** true if this waveform panel is hidden */			private boolean hidden;
 		/** true if this waveform panel is analog */			private boolean isAnalog;
 		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
+		/** the number of this panel. */						private int panelNumber;
 
 		private int dragStartX, dragStartY;
 		private int dragEndX, dragEndY;
 
 		private static final int VERTLABELWIDTH = 60;
 		private static Color background = null;
+		private static int nextPanelNumber = 1;
 
+		private static final ImageIcon iconHidePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimHide.gif"));
 		private static final ImageIcon iconClosePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimClose.gif"));
 		private static final ImageIcon iconDeleteSignal = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDelete.gif"));
 		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
@@ -212,6 +227,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			this.waveWindow = waveWindow;
 			this.isAnalog = isAnalog;
 			this.selected = false;
+			this.panelNumber = nextPanelNumber++;
 
 			// setup this panel window
 			int height = panelSizeDigital;
@@ -240,20 +256,32 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 0;
-			gbc.gridwidth = 4;   gbc.gridheight = 1;
+			gbc.gridwidth = 5;   gbc.gridheight = 1;
 			gbc.weightx = 1;     gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(4, 0, 4, 0);
 			leftHalf.add(sep, gbc);
 
+			// the name of this panel
+			JLabel label = new JLabel(Integer.toString(panelNumber));
+			label.setToolTipText("Identification number of this waveform panel");
+			gbc.gridx = 0;       gbc.gridy = 1;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;  gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			leftHalf.add(label, gbc);
+
 			// the close button for this panel
 			close = new JButton(iconClosePanel);
 			close.setBorderPainted(false);
 			close.setDefaultCapable(false);
-			gbc.gridx = 0;       gbc.gridy = 1;
+			close.setToolTipText("Close this waveform panel");
+			gbc.gridx = 1;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0.25;  gbc.weighty = 0;
+			gbc.weightx = 0.2;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 0, 0, 0);
@@ -262,6 +290,23 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				public void actionPerformed(ActionEvent evt) { closePanel(); }
 			});
+
+			// the hide button for this panel
+			hide = new JButton(iconHidePanel);
+			hide.setBorderPainted(false);
+			hide.setDefaultCapable(false);
+			hide.setToolTipText("Hide this waveform panel");
+			gbc.gridx = 2;       gbc.gridy = 1;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;  gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.NORTH;
+			gbc.fill = GridBagConstraints.NONE;
+			gbc.insets = new Insets(0, 0, 0, 0);
+			leftHalf.add(hide, gbc);
+			hide.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { hidePanel(); }
+			});
 	
 			if (isAnalog)
 			{
@@ -269,9 +314,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				deleteSignal = new JButton(iconDeleteSignal);
 				deleteSignal.setBorderPainted(false);
 				deleteSignal.setDefaultCapable(false);
-				gbc.gridx = 1;       gbc.gridy = 1;
+				deleteSignal.setToolTipText("Remove selected signals from waveform panel");
+				gbc.gridx = 3;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
-				gbc.weightx = 0.25;  gbc.weighty = 0;
+				gbc.weightx = 0.2;  gbc.weighty = 0;
 				gbc.anchor = GridBagConstraints.NORTH;
 				gbc.fill = GridBagConstraints.NONE;
 				gbc.insets = new Insets(0, 0, 0, 0);
@@ -285,9 +331,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				deleteAllSignals = new JButton(iconDeleteAllSignals);
 				deleteAllSignals.setBorderPainted(false);
 				deleteAllSignals.setDefaultCapable(false);
-				gbc.gridx = 2;       gbc.gridy = 1;
+				deleteAllSignals.setToolTipText("Remove all signals from waveform panel");
+				gbc.gridx = 4;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
-				gbc.weightx = 0.25;  gbc.weighty = 0;
+				gbc.weightx = 0.2;  gbc.weighty = 0;
 				gbc.anchor = GridBagConstraints.NORTH;
 				gbc.fill = GridBagConstraints.NONE;
 				gbc.insets = new Insets(0, 0, 0, 0);
@@ -304,7 +351,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			signalButtonsPane = new JScrollPane(signalButtons);
 			signalButtonsPane.setPreferredSize(new Dimension(100, height));
 			gbc.gridx = 0;       gbc.gridy = 2;
-			gbc.gridwidth = 3;   gbc.gridheight = 1;
+			gbc.gridwidth = 5;   gbc.gridheight = 1;
 			gbc.weightx = 1;     gbc.weighty = 1;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.BOTH;
@@ -351,11 +398,55 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			waveWindow.left.add(leftHalf);
 			waveWindow.right.add(rightHalf);
 			waveWindow.wavePanels.add(this);
+
+			// rebuild list of panels
+			waveWindow.rebuildPanelList();
+			waveWindow.redrawAll();
+		}
+
+		public void hidePanel()
+		{
+			waveWindow.hidePanel(this);
 		}
 
 		public void closePanel()
 		{
 			waveWindow.closePanel(this);
+		}
+
+		private void addSignalToPanel(Simulate.SimSignal sSig)
+		{
+			// see if the signal is already there
+			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
+			{
+				JButton but = (JButton)it.next();
+				Signal ws = (Signal)waveSignals.get(but);
+				if (ws.sSig == sSig)
+				{
+					// found it already: just change the color
+					Color color = ws.sSig.getSignalColor();
+					int index = 0;
+					for( ; index<colorArray.length; index++)
+					{
+						if (color.equals(colorArray[index])) { index++;   break; }
+					}
+					if (index >= colorArray.length) index = 0;
+					ws.sSig.setSignalColor(colorArray[index]);
+					but.setForeground(colorArray[index]);
+					signalButtons.repaint();
+					repaint();
+					return;
+				}
+			}
+
+			// not found: add it
+			int sigNo = waveSignals.size();
+			sSig.setSignalColor(colorArray[sigNo % colorArray.length]);
+			Signal wsig = new Signal(this, sSig);
+			signalButtons.validate();
+			signalButtons.repaint();
+			signalButtonsPane.validate();
+			repaint();
 		}
 
 		private void deleteSignalFromPanel()
@@ -406,6 +497,9 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 		private Font waveWindowFont;
 		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
+
+		/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
+		/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
 		/**
 		 * Method to repaint this WaveformWindow.
@@ -610,6 +704,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			}
 
 			// draw the time cursors
+			Graphics2D g2 = (Graphics2D)g;
+			g2.setStroke(dashedLine);
 			int x = scaleTimeToX(waveWindow.mainTime);
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
@@ -617,6 +713,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			x = scaleTimeToX(waveWindow.extTime);
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
+			g2.setStroke(solidLine);
 			
 			// show dragged area if there
 			if (draggingArea)
@@ -878,10 +975,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			this.repaint();
 		}
 
-		// the MouseListener events
-		public void mousePressed(MouseEvent evt)
+		private void makeSelectedPanel()
 		{
-			// set this to be the selected panel
 			for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
@@ -896,7 +991,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				selected = true;
 				this.repaint();
 			}
-	
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			// set this to be the selected panel
+			makeSelectedPanel();
+
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
 			if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
@@ -1238,13 +1340,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			if (panel != null)
 			{
 				// overlay this signal onto an existing panel
-				int sigNo = panel.waveSignals.size();
-				sSig.setSignalColor(colorArray[sigNo % colorArray.length]);
-				Signal wsig = new Signal(panel, sSig);
-				panel.signalButtons.validate();
-				panel.signalButtons.repaint();
-				panel.signalButtonsPane.validate();
-				panel.repaint();
+				panel.addSignalToPanel(sSig);
+				panel.makeSelectedPanel();
 				dtde.dropComplete(true);
 				return;
 			}
@@ -1347,6 +1444,63 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
 
+		private static class SignalButton extends MouseAdapter
+		{
+			private static final int BUTTON_SIZE = 15;
+
+			private Signal signal;
+
+			SignalButton(Signal signal) { this.signal = signal; }
+
+			public void mouseClicked(MouseEvent e)
+			{
+				if((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0)
+				{
+					if (!signal.highlighted)
+					{
+						signal.wavePanel.clearHighlightedSignals();
+						signal.wavePanel.addHighlightedSignal(signal);
+						signal.wavePanel.makeSelectedPanel();
+					}
+					JPopupMenu menu = new JPopupMenu("Color");
+					for(int i=0; i < colorArray.length; i++)
+						addColoredButton(menu, colorArray[i]);
+
+					menu.show(signal.sigButton, e.getX(), e.getY());
+				}
+			}
+			private void addColoredButton(JPopupMenu menu, Color color)
+			{
+				BufferedImage bi = new BufferedImage(BUTTON_SIZE, BUTTON_SIZE, BufferedImage.TYPE_INT_RGB);
+				for(int y=0; y<BUTTON_SIZE; y++)
+				{
+					for(int x=0; x<BUTTON_SIZE; x++)
+					{
+						bi.setRGB(x, y, color.getRGB());
+					}
+				}
+				ImageIcon redIcon = new ImageIcon(bi);
+				JMenuItem menuItem = new JMenuItem(redIcon);
+				menu.add(menuItem);
+				menuItem.addActionListener(new ChangeSignalColorListener(signal, color));
+			}
+		}
+
+		static class ChangeSignalColorListener implements ActionListener
+		{
+			Signal signal;
+			Color col;
+
+			ChangeSignalColorListener(Signal signal, Color col) { super();  this.signal = signal;   this.col = col; }
+
+			public void actionPerformed(ActionEvent evt)
+			{
+				signal.sSig.setSignalColor(col);
+				signal.sigButton.setForeground(col);
+				signal.wavePanel.repaint();
+			}
+		};
+
 		public Signal(Panel wavePanel, Simulate.SimSignal sSig)
 		{
 			this.wavePanel = wavePanel;
@@ -1364,6 +1518,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
 			});
+			sigButton.addMouseListener(new SignalButton(this));
 		}
 
 		private void signalNameClicked(ActionEvent evt)
@@ -1375,6 +1530,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				// standard click: add this as the only trace
 				ws.wavePanel.clearHighlightedSignals();
 				ws.wavePanel.addHighlightedSignal(ws);
+				ws.wavePanel.makeSelectedPanel();
 
 				// a single signal: show it in the schematic
 				ws.showNetworkInSchematic();
@@ -1427,6 +1583,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** the "refresh" button. */							private JButton refresh;
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
+	/** the list of panels. */								private JComboBox signalNameList;
+	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
@@ -1470,7 +1628,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
-		gbc.gridwidth = 8;   gbc.gridheight = 1;
+		gbc.gridwidth = 9;   gbc.gridheight = 1;
 		gbc.weightx = 1;     gbc.weighty = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
@@ -1483,6 +1641,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			JButton addPanel = new JButton(iconAddPanel);
 			addPanel.setBorderPainted(false);
 			addPanel.setDefaultCapable(false);
+			addPanel.setToolTipText("Create new waveform panel");
 			gbc.gridx = 0;       gbc.gridy = 0;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0;     gbc.weighty = 0;
@@ -1499,6 +1658,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		timeLock = new JButton(iconLockTime);
 		timeLock.setBorderPainted(false);
 		timeLock.setDefaultCapable(false);
+		timeLock.setToolTipText("Lock all panels in time");
 		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -1514,6 +1674,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		refresh = new JButton(iconRefresh);
 		refresh.setBorderPainted(false);
 		refresh.setDefaultCapable(false);
+		refresh.setToolTipText("Reread stimuli data file and update waveforms");
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -1529,6 +1690,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		growPanel = new JButton(iconGrowPanel);
 		growPanel.setBorderPainted(false);
 		growPanel.setDefaultCapable(false);
+		growPanel.setToolTipText("Increase minimum panel height");
 		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -1544,6 +1706,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		shrinkPanel = new JButton(iconShrinkPanel);
 		shrinkPanel.setBorderPainted(false);
 		shrinkPanel.setDefaultCapable(false);
+		shrinkPanel.setToolTipText("Decrease minimum panel height");
 		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -1556,8 +1719,25 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			public void actionPerformed(ActionEvent evt) { growPanels(0.8); }
 		});
 
-		mainPos = new JLabel("Main:");
+		signalNameList = new JComboBox();
+		signalNameList.setToolTipText("Show or hide waveform panels");
+		signalNameList.setLightWeightPopupEnabled(false);
 		gbc.gridx = 5;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(signalNameList, gbc);
+		signalNameList.addItem("Panel 1");
+		signalNameList.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { togglePanelName(); }
+		});
+
+		mainPos = new JLabel("Main:");
+		mainPos.setToolTipText("The main (white) time cursor");
+		gbc.gridx = 6;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1565,7 +1745,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(mainPos, gbc);
 		extPos = new JLabel("Ext:");
-		gbc.gridx = 6;       gbc.gridy = 0;
+		extPos.setToolTipText("The extension (yellow) time cursor");
+		gbc.gridx = 7;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1573,7 +1754,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(extPos, gbc);
 		delta = new JLabel("Delta:");
-		gbc.gridx = 7;       gbc.gridy = 0;
+		delta.setToolTipText("Time distance between cursors");
+		gbc.gridx = 8;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1583,6 +1765,32 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 		// a drop target for the overall waveform window
 		DropTarget dropTarget = new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+	}
+
+	private void togglePanelName()
+	{
+		if (rebuildingSignalNameList) return;
+		String panelName = (String)signalNameList.getSelectedItem();
+		int spacePos = panelName.indexOf(' ');
+		if (spacePos >= 0) panelName = panelName.substring(spacePos+1);
+		int index = TextUtils.atoi(panelName);
+
+		// toggle its state
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (wp.panelNumber == index)
+			{
+				if (wp.hidden)
+				{
+					showPanel(wp);
+				} else
+				{
+					hidePanel(wp);
+				}
+				break;
+			}
+		}
 	}
 
 	/**
@@ -1638,6 +1846,19 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 * @return the cell that is shown in this window.
 	 */
 	public Cell getCell() { return sd.getCell(); }
+
+	private void rebuildPanelList()
+	{
+		rebuildingSignalNameList = true;
+		signalNameList.removeAllItems();
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next(); 
+			signalNameList.addItem("Panel " + Integer.toString(wp.panelNumber) + (wp.hidden ? " (HIDDEN)" : ""));
+		}
+		signalNameList.setSelectedIndex(0);
+		rebuildingSignalNameList = false;
+	}
 
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
 	{
@@ -1949,7 +2170,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 		// get proper time unit to use
 		double scaled = time * 1.0E17;
-		long intTime = (long)scaled;
+		long intTime = Math.round(scaled);
 		String secType = null;
 		int scalePower = 0;
 		if (scaled < 200000.0 && intTime < 100000)
@@ -1958,35 +2179,35 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			scalePower = -15;
 		} else
 		{
-			scaled = time * 1.0E14;   intTime = (long)scaled;
+			scaled = time * 1.0E14;   intTime = Math.round(scaled);
 			if (scaled < 200000.0 && intTime < 100000)
 			{
 				secType = "p" + unit;
 				scalePower = -12;
 			} else
 			{
-				scaled = time * 1.0E11;   intTime = (long)scaled;
+				scaled = time * 1.0E11;   intTime = Math.round(scaled);
 				if (scaled < 200000.0 && intTime < 100000)
 				{
 					secType = "n" + unit;
 					scalePower = -9;
 				} else
 				{
-					scaled = time * 1.0E8;   intTime = (long)scaled;
+					scaled = time * 1.0E8;   intTime = Math.round(scaled);
 					if (scaled < 200000.0 && intTime < 100000)
 					{
 						secType = "u" + unit;
 						scalePower = -6;
 					} else
 					{
-						scaled = time * 1.0E5;   intTime = (long)scaled;
+						scaled = time * 1.0E5;   intTime = Math.round(scaled);
 						if (scaled < 200000.0 && intTime < 100000)
 						{
 							secType = "m" + unit;
 							scalePower = -3;
 						} else
 						{
-							scaled = time * 1.0E2;  intTime = (long)scaled;
+							scaled = time * 1.0E2;  intTime = Math.round(scaled);
 							secType = unit;
 							scalePower = 0;
 						}
@@ -2028,6 +2249,37 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		left.remove(wp.leftHalf);
 		right.remove(wp.rightHalf);
 		wavePanels.remove(wp);
+		rebuildPanelList();
+		overall.validate();
+		redrawAll();
+	}
+
+	/**
+	 * Method called when a Panel is to be hidden.
+	 * @param wp the Panel to hide.
+	 */
+	public void hidePanel(Panel wp)
+	{
+		if (wp.hidden) return;
+		wp.hidden = true;
+		left.remove(wp.leftHalf);
+		right.remove(wp.rightHalf);
+		rebuildPanelList();
+		overall.validate();
+		redrawAll();
+	}
+
+	/**
+	 * Method called when a Panel is to be shown.
+	 * @param wp the Panel to show.
+	 */
+	public void showPanel(Panel wp)
+	{
+		if (!wp.hidden) return;
+		wp.hidden = false;
+		left.add(wp.leftHalf);
+		right.add(wp.rightHalf);
+		rebuildPanelList();
 		overall.validate();
 		redrawAll();
 	}
@@ -2140,6 +2392,19 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			wp.setValueRange(lowValue, highValue);
 		}
 		getPanel().validate();
+	}
+
+	public void addSignalToPanel(Simulate.SimSignal sig)
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (wp.selected)
+			{
+				wp.addSignalToPanel(sig);
+				return;
+			}
+		}
 	}
 
 	/**

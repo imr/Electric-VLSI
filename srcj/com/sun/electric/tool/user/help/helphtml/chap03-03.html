@@ -1,0 +1,41 @@
+<!-- HEADER 3-3: Creating Instances -->
+
+To place an instance of a cell in another cell,
+use the "Inst." button in the component menu.
+After choosing a cell from the popup list, click in the edit window to place the instance.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-17.png" ALT="Figure 3.17"></CENTER></TD><TD>
+Another way to place an instance of a cell is to use the <B>New Cell Instance...</B> command of the <B>Edit</B> menu.
+You will be shown a list of cells that are available for creation.
+After selecting one, click to create an instance in the current cell.
+<P>
+Three checkboxes allow you to limit the list of cells.
+By checking "Show relevant cells only" only those cells that have the same view type as the current one will be shown.
+By unchecking "Show old versions" the list will remove old versions of cells.
+By unchecking "Show cells from Cell-Library" the list will remove cells that come from a cell library.
+<P>
+If you place an instance from a different library, that library will be linked to the current one.
+Linked libraries are read from disk together, and form a single hierarchy that spans multiple files.
+See <A HREF="chap03-09.html#chap03-09">Section 3-9</A> for
+more on libraries.
+</TD></TR></TABLE>
+<P>
+An alternate way to create a cell instance is to duplicate an existing one on the screen.
+This requires that an instance of that particular cell already exist.
+Highlight the existing cell and use the <B>Duplicate</B> command of the <B>Edit</B> menu.
+Then move the cursor to the intended location of the new instance and click to create the copy.
+Note that this command copies all attributes of the original node including its orientation.
+<P>
+<TABLE><TR><TD>
+<BR><BR><BR><BR><BR>
+When a cell instance is being created,
+the cursor points to its <I>grab point</I>.
+Normally, the grab point is at the lower-left corner,
+but it can be modified by the placement of a <I>Facet-Center</I> node inside of the cell.
+To place this, use the <B>Cell Center</B> subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
+You must place it inside of the cell definition,
+and it affects the grab point for all subsequent creation of cell instances.
+<BR><BR><BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig03-08.png" ALT="Figure 3.8"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

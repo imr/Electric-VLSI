@@ -1,0 +1,93 @@
+<!-- HEADER 6-8-5: Text Attributes -->
+
+You can place arbitrary text attributes on nearly any part of the circuit by using the <B>Define...</B>
+subcommand of the <B>Attributes</B> command of the <B>Info</B> menu.
+<P>
+<CENTER><IMG SRC="fig06-18.png" ALT="Figure 6.18"></CENTER>
+<P>
+Attributes can be placed on these objects (selected in the upper-left):
+<UL>
+<LI>The current cell.
+<LI>The currently selected node.
+<LI>Any of the exports in the current cell
+(select the particular export from the list in the upper-right).
+<LI>Any of the ports on the current selected node
+(select the particular port from the list in the upper-right).
+<LI>The currently selected arc.
+</UL>
+The list of attributes is shown on the left.
+You can create a new attribute by typing its name in the "Attribute name:"
+field and its value in the "Value:" field and then clicking the "Create Attribute" button.
+You can delete an attribute with the "Delete Attribute" button.
+A selected attribute can have its value changed by typing a new value and clicking the "Change Value" button.
+An attribute's name can be changed with the "Rename Attribute" button.
+<P>
+Just below the attribute's value is a field that reads "Not Code".
+This can be changed to one of the interpretive languages in Electric.
+When this happens, the attribute value is treated as code that is sent to that interpreter.
+Then, the true value of the attribute is the evaluation of that code.
+For example, if the value of an attribute is "(+ 3 5)" and the attribute is set to be LISP code,
+then the LISP interpreter will be invoked, and the attribute will actually be "8".
+For more on interpretive languages, see <A HREF="chap11-01.html#chap11-01">Section 11-1</A>.
+<P>
+You can change the type of unit by using the popup menu on the bottom
+(choices are capacitance, resistance, inductance, current, voltage, or distance).
+See section <A HREF="chap07-02.html#chap07-02">Section 7-2</A> for more on these units.
+<P>
+For attributes on cells or exports,
+you can request that they be inheritable with the "Instances inherit" checkbox.
+When this is checked, newly created instances of the cell will have copies of this attribute on them.
+Using this scheme, an attribute can be considered to be a <I>parameter</I>,
+where values set on the instances are used inside of the cell.
+The "Is Parameter" checkbox should be selected in this case
+(note that the proper way to create parameters is with the <B>Cell Parameters...</B> subcommand, not this dialog).
+If you check "Visible only inside cell" in the attribute's <B>Get Info</B> dialog,
+then the inherited attributes will not be displayed.
+<P>
+It is often desirable to have attribute values that have unique names.
+If the value of an inherited attribute has "++" in it,
+then the number before it will be incremented after inheritance.
+Similarly, a "--" indicates that the number be decremented after inheritance.
+This allows an inherited attribute to be unique with each inheritance.
+<P>
+<TABLE><TR><TD>
+Another way to create attributes with unique values is to place a "?" in the attribute value and then use the
+<B>Enumerate...</B> subcommand on the attribute name.
+This command finds all occurrences of that attribute, and replaces the "?" with a unique numeric value.
+</TD><TD><CENTER><IMG SRC="fig06-19.png" ALT="Figure 6.19"></CENTER></TD></TR></TABLE>
+<P>
+If you create a new inheritable attribute and wish to propagate it to existing instances,
+select the instance and use the <B>Update Inheritance</B> subcommand of the <B>Attributes</B> command of the <B>Info</B> menu.
+To propagate attributes to all instances, use <B>Update Inheritance All Libraries</B>.
+<P>
+You can control the way that an attribute is displayed in the circuit by selecting the appropriate entry in the "Show:" popup.
+You can request that various combinations of the attribute's name, value, and inherited value be displayed.
+When an attribute is shown, additional information is relevant.
+The grab-point of the text can be chosen from the list in the lower-right.
+The X and Y offset of the text from the attached object can be specified.
+The size of the text can be specified in relative or absolute units.
+The font of the text can be chosen from the popup list.
+The style of the text can be any combination of Italic, Bold, or Underline.
+You can even specify the orientation of the text, in 90-degree increments.
+<P>
+When there are too many visible attributes, the display can become cluttered.
+Use the <B>Layer Visibility</B> command of the <B>Windows</B> menu to control the text.
+(attributes on nodes are controlled by the "Node Text" checkbox; those on arcs with the "Arc Text" checkbox, etc.)
+<P>
+Special buttons exist in the upper-right for applying changes to many ports or exports.
+By using the "Add", "Remove", "Add All",
+or "Remove All" buttons, you can select a subset of names (those with a ">" are selected).
+Then, by using the "Make Array" button,
+the currently selected attribute is copied to all selected locations.
+<P>
+The "Done" button terminates this dialog.
+Note that there is no "Cancel" button: this dialog makes changes as they are entered.
+<P>
+<TABLE><TR><TD>
+To help organize the attributes in a circuit,
+the <B>Attribute Report...</B> subcommand of the <B>Attributes</B> command of the <B>Info</B>
+menu lists every occurrence of a particular attribute name.
+You can also request that this command dump the report to a disk file.
+</TD><TD><CENTER><IMG SRC="fig06-21.png" ALT="Figure 6.21"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

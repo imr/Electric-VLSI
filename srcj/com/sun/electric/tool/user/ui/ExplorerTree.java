@@ -637,6 +637,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						tree.expandPath(currentPath);
 					return;
 				}
+				if (currentSelectedObject instanceof Simulate.SimSignal)
+				{
+					Simulate.SimSignal sig = (Simulate.SimSignal)currentSelectedObject;
+					if (wf.getContent() instanceof WaveformWindow)
+					{
+						WaveformWindow ww = (WaveformWindow)wf.getContent();
+						ww.addSignalToPanel(sig);
+					}
+					return;
+				}
 
 				if (currentSelectedObject instanceof Job)
 				{

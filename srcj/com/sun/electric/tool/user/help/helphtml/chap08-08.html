@@ -1,0 +1,65 @@
+<!-- HEADER 8-8: Logical Effort -->
+
+The Logical Effort tool examines a digital schematic and determines the optimal transistor size to use in order to get maximum speed.
+The tool is based on the book <A HREF="http://www.mkp.com/books_catalog/catalog.asp?ISBN=1-55860-557-6"><I>Logical Effort</I></A>,
+by Ivan Sutherland, Bob Sproull, and David Harris (Morgan Kaufmann, San Francisco, 1999).
+<P>
+When the Logical Effort tool runs,
+it annotates each digital schematic gate with a fanout ratio that can be used to size the transistors inside of that gate.
+It is up to the designer (or potentially some other tool)
+to use this information in the actual IC layout.
+<P>
+The Logical Effort tool has two functions: <I>path analysis</I> and <I>whole-cell analysis</I>.
+<P>
+In path analysis, the user must select two points in the circuit that define the ends of a path.
+Selection of these two points is done by clicking the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:left  Windows:left  Mac:click">selection</A></I>
+button over the first point,
+and then using the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-left  Windows:shift-left  Mac:shift-click">toggle select</A></I> button on the second.
+Capacitive loading on the ends of the path can be specified by creating Load objects and parameterizing their capacitance.
+These Load objects are created with the <B>New Arc Load</B> subcommand of the <B>Logical Effort</B> command of the <B>Tools</B> menu.
+To do the path analysis, use the <B>Analyze Path</B> subcommand,
+which determines the optimal fanout for each step in the path.
+Besides marking each gate with a fanout value (shown in the form of "h=2.5"),
+intermediate capacitance values are displayed along the path.
+<P>
+In whole-cell analysis,
+the Logical Effort tool iteratively applies capacitive loading constaints until the circuit fanout is determined.
+Once again capacitances can be set with the <B>New Arc Load</B>
+subcommand of the <B>Logical Effort</B> command of the <B>Tools</B> menu.
+Then, the <B>Analyze Cell</B> subcommand iterates over the circuit,
+attempting to find ratios that are less than or equal to the maximum stage gain (initially 3).
+As with path analysis, each gate is marked with a fanout value,
+and intermediate capacitances are displayed in the circuit.
+To change the maximum stage gain that is used in whole-cell analysis,
+use the <B>Logical Effort Options...</B> subcommand of the <B>Logical Effort</B> command of the <B>Tools</B> menu.
+<P>
+<TABLE><TR><TD>
+<BR><BR><BR>
+Besides setting the maximum stage gain for whole-cell analysis,
+the <B>Logical Effort Options...</B> subcommand of the <B>Logical Effort</B>
+command of the <B>Tools</B> menu allows other settings.
+You can request that intermediate capacitance values not be displayed after analysis,
+and you can request that the analyzed nodes be highlighted.
+Also, you set the wire ratio for each arc (a value used in load computation).
+<BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig09-14.png" ALT="Figure 9.14"></CENTER></TD></TR></TABLE>
+<P>
+It is possible to override the default calculation of the logical effort on a single node by using the
+<B>Set Node Effort...</B> subcommand of the <B>Logical Effort</B> command of the <B>Tools</B> menu.
+The value entered is shown in the form "g=2" on the node, and is used in subsequent analysis.
+<P>
+An example of Logical Effort can be found in the "samples.txt" library
+(you can read the library with the <B>Readable Dump</B> subcommand of the <B>File</B> menu).
+Edit the cell "tool-LogicalEffort" and use the <B>Analyze Cell</B> subcommand on it.
+<P>
+There are three commands that analyze the circuit as an aid to doing Logical Effort.
+The <B>Estimate Delays</B> subcommand computes load factors for every network in the cell.
+This information is not generally useful, and is provided for future Logical Effort analyses.
+The <B>Show Network Loads</B> subcommand lists every network in the current cell,
+showing the wire length, load, and other information.
+The <B>Analyze Network</B> subcommand shows a detailed analysis of the currently selected network,
+including the area and perimeter information for each layer, as well as load information.
+
+<!-- TRAILER -->

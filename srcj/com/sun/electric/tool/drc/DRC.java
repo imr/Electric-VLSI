@@ -23,12 +23,15 @@
  */
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -36,23 +39,26 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Date;
 import java.util.prefs.Preferences;
 
 /**
  * This is the Design Rule Checker tool.
  */
-public class DRC extends Tool
+public class DRC extends Listener
 {
-	// ---------------------- private and protected methods -----------------
-
-	/** the DRC tool. */		public static DRC tool = new DRC();
+	/** the DRC tool. */								public static DRC tool = new DRC();
+	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
 
 	/** key of Variable with width limit for wide rules. */
 	public static final Variable.Key WIDE_LIMIT = ElectricObject.newKey("DRC_wide_limit");
@@ -95,6 +101,8 @@ public class DRC extends Tool
 
 	/** key of Variable for last valid DRC date on a Cell. */
 	public static final Variable.Key LAST_GOOD_DRC = ElectricObject.newKey("DRC_last_good_drc");
+
+	/****************************** DESIGN RULES ******************************/
 
 	/**
 	 * Class to define a complete set of design rules.
@@ -239,7 +247,8 @@ public class DRC extends Tool
 		}
 	}
 
-	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
+	/****************************** TOOL CONTROL ******************************/
+
 	/**
 	 * The constructor sets up the DRC tool.
 	 */
@@ -253,8 +262,180 @@ public class DRC extends Tool
 	 */
 	public void init()
 	{
-//		setOn();
+		setOn();
 	}
+
+	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
+	private static boolean incrementalRunning = false;
+
+	private static void includeGeometric(Geometric geom)
+	{
+		if (!isIncrementalDRCOn()) return;
+		Cell cell = geom.getParent();
+		synchronized (cellsToCheck)
+		{
+			HashSet cellSet = (HashSet)cellsToCheck.get(cell);
+			if (cellSet == null)
+			{
+				cellSet = new HashSet();
+				cellsToCheck.put(cell, cellSet);
+			}
+			cellSet.add(geom);
+		}
+	}
+
+	private static void removeGeometric(Geometric geom)
+	{
+		if (!isIncrementalDRCOn()) return;
+		Cell cell = geom.getParent();
+		synchronized (cellsToCheck)
+		{
+			HashSet cellSet = (HashSet)cellsToCheck.get(cell);
+			if (cellSet != null) cellSet.remove(geom);
+		}
+	}
+
+	private static void doIncrementalDRCTask()
+	{
+		if (!isIncrementalDRCOn()) return;
+		if (incrementalRunning) return;
+
+		Library curLib = Library.getCurrent();
+		if (curLib == null) return;
+		Cell cellToCheck = curLib.getCurCell();
+		HashSet cellSet = null;
+
+		// get a cell to check
+		synchronized (cellsToCheck)
+		{
+			if (cellToCheck != null)
+				cellSet = (HashSet)cellsToCheck.get(cellToCheck);
+			if (cellSet == null && cellsToCheck.size() > 0)
+			{
+				cellToCheck = (Cell)cellsToCheck.keySet().iterator().next();
+				cellSet = (HashSet)cellsToCheck.get(cellToCheck);
+			}
+			if (cellSet != null)
+				cellsToCheck.remove(cellToCheck);
+		}
+
+		// if there is a cell to check, do it
+		if (cellSet != null)
+		{
+			Geometric [] objectsToCheck = new Geometric[cellSet.size()];
+			int i = 0;
+			for(Iterator it = cellSet.iterator(); it.hasNext(); )
+				objectsToCheck[i++] = (Geometric)it.next();
+			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
+		}
+	}
+
+	private static class CheckLayoutIncrementally extends Job
+	{
+		Cell cell;
+		Geometric [] objectsToCheck;
+
+		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
+		{
+			super("DRC in cell " + cell.describe(), tool, Job.Type.EXAMINE, null, null, Job.Priority.ANALYSIS);
+			this.cell = cell;
+			this.objectsToCheck = objectsToCheck;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			incrementalRunning = true;
+			long startTime = System.currentTimeMillis();
+			Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, false);
+			long endTime = System.currentTimeMillis();
+			int errorCount = ErrorLogger.getCurrent().numErrors();
+			if (errorCount > 0)
+			{
+				System.out.println("Incremental DRC found " + errorCount + " errors");
+			}
+			incrementalRunning = false;
+			doIncrementalDRCTask();
+			return true;
+		}
+	}
+
+	/**
+	 * Method to announce the end of a batch of changes.
+	 */
+	public void endBatch()
+	{
+		doIncrementalDRCTask();
+	}
+
+	/**
+	 * Method to announce a change to a NodeInst.
+	 * @param ni the NodeInst that was changed.
+	 * @param oCX the old X center of the NodeInst.
+	 * @param oCY the old Y center of the NodeInst.
+	 * @param oSX the old X size of the NodeInst.
+	 * @param oSY the old Y size of the NodeInst.
+	 * @param oRot the old rotation of the NodeInst.
+	 */
+	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	{
+		includeGeometric(ni);
+	}
+
+	/**
+	 * Method to announce a change to many NodeInsts at once.
+	 * @param nis the NodeInsts that were changed.
+	 * @param oCX the old X centers of the NodeInsts.
+	 * @param oCY the old Y centers of the NodeInsts.
+	 * @param oSX the old X sizes of the NodeInsts.
+	 * @param oSY the old Y sizes of the NodeInsts.
+	 * @param oRot the old rotations of the NodeInsts.
+	 */
+	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot)
+	{
+		for(int i=0; i<nis.length; i++)
+			includeGeometric(nis[i]);
+	}
+
+	/**
+	 * Method to announce a change to an ArcInst.
+	 * @param ai the ArcInst that changed.
+	 * @param oHX the old X coordinate of the ArcInst head end.
+	 * @param oHY the old Y coordinate of the ArcInst head end.
+	 * @param oTX the old X coordinate of the ArcInst tail end.
+	 * @param oTY the old Y coordinate of the ArcInst tail end.
+	 * @param oWid the old width of the ArcInst.
+	 */
+	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	{
+		includeGeometric(ai);
+	}
+
+	/**
+	 * Method to announce the creation of a new ElectricObject.
+	 * @param obj the ElectricObject that was just created.
+	 */
+	public void newObject(ElectricObject obj)
+	{
+		if (obj instanceof Geometric)
+		{
+			includeGeometric((Geometric)obj);
+		}
+	}
+
+	/**
+	 * Method to announce the deletion of an ElectricObject.
+	 * @param obj the ElectricObject that was just deleted.
+	 */
+	public void killObject(ElectricObject obj)
+	{
+		if (obj instanceof Geometric)
+		{
+			removeGeometric((Geometric)obj);
+		}
+	}
+
+	/****************************** DRC INTERFACE ******************************/
 
 	/**
 	 * Method to check the current cell hierarchically.
@@ -502,6 +683,7 @@ public class DRC extends Tool
 	public static double getWorstSpacingDistance(Technology tech)
 	{
 		Rules rules = getRules(tech);
+		if (rules == null) return -1;
 		double worstInteractionDistance = 0;
 		for(int i = 0; i < rules.uTSize; i++)
 		{
@@ -524,6 +706,7 @@ public class DRC extends Tool
 	{
 		Technology tech = layer.getTechnology();
 		Rules rules = getRules(tech);
+		if (rules == null) return -1;
 		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
@@ -547,6 +730,7 @@ public class DRC extends Tool
 	{
 		Technology tech = layer1.getTechnology();
 		Rules rules = getRules(tech);
+		if (rules == null) return null;
 		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
 		double dist = rules.edgeList[pIndex].doubleValue();
 		if (dist < 0) return null;
@@ -562,6 +746,7 @@ public class DRC extends Tool
 	public static double getWideLimit(Technology tech)
 	{
 		Rules rules = getRules(tech);
+		if (rules == null) return -1;
 		return rules.wideLimit.doubleValue();
 	}
 
@@ -579,6 +764,7 @@ public class DRC extends Tool
 	{
 		Technology tech = layer1.getTechnology();
 		Rules rules = getRules(tech);
+		if (rules == null) return null;
 		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
 
 		double bestDist = -1;
@@ -632,6 +818,7 @@ public class DRC extends Tool
 	{
 		Technology tech = layer1.getTechnology();
 		Rules rules = getRules(tech);
+		if (rules == null) return false;
 		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
 		if (rules.conList[pIndex].doubleValue() >= 0) return true;
 		if (rules.unConList[pIndex].doubleValue() >= 0) return true;
@@ -653,6 +840,7 @@ public class DRC extends Tool
 	{
 		Technology tech = layer.getTechnology();
 		Rules rules = getRules(tech);
+		if (rules == null) return null;
 		int index = layer.getIndex();
 		double dist = rules.minWidth[index].doubleValue();
 		if (dist < 0) return null;
@@ -1060,7 +1248,7 @@ public class DRC extends Tool
 	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
 	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", DRC.tool.prefs, false);
-    static { cacheIgnoreCenterCuts.attachToObject(DRC.tool, "Tool Options, DRC tab", "DRC ignores center cuts in large contacts"); }
+    static { cacheIgnoreCenterCuts.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.

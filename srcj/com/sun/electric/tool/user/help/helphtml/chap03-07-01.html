@@ -1,0 +1,53 @@
+<!-- HEADER 3-7-1: Cell Lists -->
+
+The most basic cell information that you can get is a list of cells.
+This can be done with the <B>Edit Cell...</B> command of the <B>Cells</B> menu.
+The dialog will show the cell names (at which point you can cancel the dialog).
+<P>
+To get some basic information about the current cell
+(size, dates, etc) use the <B>Describe this Cell</B> command of the <B>Cells</B> menu.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-21.png" ALT="Figure 3.21"></CENTER></TD><TD>
+To get such information for a subset of cells, use the <B>General Cell Lists...</B> command.
+<P>
+The dialog selects a subset of the cells in the current library.
+<P>
+The section labeled "Which cells:" selects the cells to be listed
+(all, only those used in other cells,
+only those NOT used in the current cell,
+only those in the current cell,
+or only "placeholder" cells: those created because of cross-library dependency failures).
+<P>
+The section labeled "View filter:" allows only certain views to be displayed.
+<P>
+The section labeled "Version filter:" allows removal of older or newer versions of cells.
+<P>
+The section labeled "Display ordering:" controls the order in which the selected cells will be listed.
+<P>
+The section labeled "Destination:" allows you to dump this listing to a disk file,
+formatted for spreadsheets (tab-separated).
+</TD></TR></TABLE>
+<P>
+The last six columns show the usage and five state bits.
+The usage is the number of times that this cell appears as an instance in other cells.
+The state bits are:
+"L" (if the cell contents are locked),
+"I" (if instances of the cell are locked),
+"C" (if the cell is part of a cell library),
+"D" (if the cell has passed design-rule checking),
+and "N" (if the cell has passed network consistency checking).
+<P>
+To see all exports in the current cell,
+use the <B>Export</B> menu commands <B>List Exports</B>
+(for a text listing) or <B>Show Exports</B> (for a graphical indication).
+To see a list of exports that are electrically connected to the current object,
+at multiple levels of hierarchy,
+use the <B>List Exports on Network</B> and <B>List Exports below Network</B> commands from the <B>Info</B> menu.
+<P>
+For more cell information, use the subcommands of the <B>Special Cell Lists</B> submenu of the <B>Cells</B> menu.
+The <B>List Nodes in this Cell</B> subcommand shows all nonprimitive nodes in the current cell.
+The <B>List Cell Instances</B> subcommand shows all cell instances below the current cell.
+The <B>List Cell Usage...</B> subcommand looks up the hierarchy and finds cells that contain the
+a particular cell as an instance (you will be prompted for the particular cell).
+
+<!-- TRAILER -->

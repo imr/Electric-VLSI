@@ -86,8 +86,6 @@ public class DRCTab extends PreferencePanel
 		});
 
 		// not yet
-		drcIncrementalOn.setSelected(false);
-		drcIncrementalOn.setEnabled(false);
 		drcUseMultipleThreads.setEnabled(false);
 		drcNumberOfThreads.setEditable(false);
 		drcEditRulesDeck.setEnabled(false);		

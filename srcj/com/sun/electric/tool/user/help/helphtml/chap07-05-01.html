@@ -1,0 +1,89 @@
+<!-- HEADER 7-5-1: The Schematics Technology -->
+
+The Schematic technology allows you to design using digital schematic components.
+To obtain this technology,
+use the <B>Change Current Technology...</B> command of the <B>Technology</B> menu and select "schematic, digital".
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig07-03.png" ALT="Figure 7.3"></CENTER></TD><TD>
+There are two arcs in the Schematic technology: the wire (blue) and the bus (green).
+These arcs can be drawn at 45 degree angles.
+One typically names busses with array names (for example "insig[0:7]"),
+and then names wires with scalar names (for example "insig[1]").
+See <A HREF="chap06-09.html#chap06-09">Section 6-9</A> for more on bus naming.
+To make a physical connection of a wire to a bus,
+the bus pin can connect to either, so it acts as a tap.
+In addition, the Wire Con node connects wires to busses,
+or connects busses of different width, replicating the narrower side to make it as wide as the wider side.
+Use the <B>Rip Bus Signals</B> subcommand of the <B>Network</B> command of the <B>Tools</B>
+menu to automatically add taps to a bus.
+<P>
+Digital schematics are built with the And, Or, Xor, Buffer,
+Multiplexor, and Flip-Flop nodes that appear in the component menu.
+By attaching arcs to these components and negating them
+(with the <B>Negated</B> command of the <B>Arc</B> menu), these turn into NAND, NOR,
+Inverter, and many other specialized components.
+Note that the size of the negating bubble can be controlled by using the <B>Technology Options...</B>
+command of the <B>Technology</B> menu and setting the "Negating Bubble Size" value in the "Schematics" section.
+</TD></TR></TABLE>
+<P>
+The And, Or, and Xor nodes can accept any number of input connections on the left,
+so they require some care in wiring.
+The left side has one large input port that allows an arbitrary number of connections.
+Initially, wires may attach at only three input locations, spaced evenly along the left side.
+However, when all three locations are connected, the node automatically expands,
+adding additional space along the side for new arcs.
+The Multiplexor node also has a variable-sized port on the left side.
+<P>
+To properly wire inputs to an And, Or, Xor, or Multiplexor node, cursor placement is very important,
+for it determines which of the locations to use on the left side.
+If an arc gets connected in the wrong location,
+try connecting more arcs until one appears in the right place, and then delete the unwanted ones.
+<P>
+<H3>Analog Schematics</H3>
+<P>
+To do analog schematic design,
+use the <B>Change Current Technology...</B> command of the <B>Technology</B> menu and select "schematic, analog".
+The component menu will present a selection of analog schematic nodes.
+Even without switching to this technology,
+analog components are always available from the <B>New Analog Part</B> and <B>New SPICE Part</B>
+commands of the <B>Edit</B> menu.
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig07-04.png" ALT="Figure 7.4"></CENTER></TD><TD>
+The analog nodes can have user-settable values displayed on them.
+When a node is created, you may be prompted for an appropriate value.
+<P>
+Transistors can be 3-port or 4-port (with bias),
+and are switched with the "3-Port" and "4-Port" entries.
+<P>
+The Switch node can take an arbitrary number of poles.
+Simply stretch it along the line of the poles and their number will grow.
+To do this, use the <B>Size</B> command of the <B>Edit</B> menu.
+<P>
+The "Spice" entry presents a popup menu of Spice parts
+(the same as is found in the <B>New SPICE Part</B> command).
+More information about the use of these parts can be found in the <A HREF="chap09-04.html#chap09-04">Section 9-4</A>.
+<P>
+The "Inst." entry presents a popup menu of all cell instances.
+<P>
+The "Global" node defines a global signal name that spans levels of hierarchy
+(see <A HREF="chap06-09.html#chap06-09">Section 6-9</A>).
+</TD></TR></TABLE>
+<P>
+The Resistor can be treated as a connecting or nonconnecting node.
+By default, it does not connect the networks on its two ends,
+and this is the correct way to treat it when doing low-level simulation such as SPICE.
+However, for higher-level simulations (such as Verilog)
+the resistor should be ignored and treated as if it connects its two networks.
+To make this happen, use the <B>Network Options...</B> subcommand of the <B>Network</B> command of the <B>Tools</B>
+menu and check "Ignore Resistors".
+Note that if resistors are being ignored, SPICE deck generation will temporarily include them while the netlist is being created.
+<P>
+Some commands that analyze a schematic circuit need to know which layout technology will be used to fabricate the design.
+For example, when generating a SPICE deck from a schematic,
+it is necessary to know the sizes and parasitics that are associated with the actual circuit.
+To set the layout technology to use for schematic circuits, use the <B>Technology Options...</B>
+command of the <B>Technology</B> menu and set the "Use Lambda values from this Technology" field.
+
+<!-- TRAILER -->

@@ -1,0 +1,23 @@
+<!-- HEADER 8-4-1: Introduction to Simulation -->
+
+The <B>Simulation (Built-in)</B> command of the <B>Tools</B> menu controls the internal simulator,
+ which can simulate schematics, IC layout, and VHDL specifications.
+<A HREF="chap10-01.html#chap10-01">Chapter 10</A> discusses this simulator more fully.
+<P>
+The <B>Simulation (SPICE)</B>, <B>Simulation (Verilog)</B>, and
+<B>Simulation (Others)</B> commands of the <B>Tools</B>
+menu are able to produce input specifications for a number of different simulators.
+All these commands work on the current cell and require that all named points be exports.
+It is also necessary to have power and ground exports.
+<P>
+The possible simulators include circuit-level (SPICE, Maxwell),
+switch-level (IRSIM, ESIM, RSIM, RNL, COSMOS, and MOSSIM), gate-level
+(ABEL-PAL), and functional (VERILOG, TEGAS, and SILOS).
+In addition, you can generate a deck for the FastHenry inductance analysis system.
+<P>
+To produce an input deck for any of these simulators,
+use the <B>Write XXX Deck</B> command (where <B>XXX</B> is the simulator's name).
+In addition to these simulators, an EDIF netlist can be produced with the <B>EDIF
+(Electronic Design Interchange Format)</B> subcommand of the <B>Export</B> command of the <B>File</B> menu.
+
+<!-- TRAILER -->

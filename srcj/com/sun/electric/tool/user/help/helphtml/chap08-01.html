@@ -1,0 +1,43 @@
+<!-- HEADER 8-1: Introduction to Tools -->
+
+There are many different tools available in Electric for doing both synthesis and analysis of circuitry.
+Synthesis tools include routers, compactors, circuit generators, and so on.
+Analysis tools include design-rule checkers, network comparison, and many simulators.
+To see a list of tools, including which ones are active,
+use the <B>List Tools</B> command of the <B>Tools</B> menu.
+This chapter covers many of the tools available in Electric.
+<A HREF="chap10-01.html#chap10-01">Chapter 10</A> goes into greater detail on the simulation tool.
+<P>
+Overall control of tools is available with the <B>General Options...</B> subcommand of the <B>User Interface</B>
+command of the <B>Info</B> menu.
+<TABLE><TR><TD>
+By clicking "Beep after long jobs", you can request that the system make a sound after long jobs have finished (those that take more than 1 hour).
+<P>
+When drawing arcs, Electric makes "clicking" sounds for each arc drawn.
+This can be disabled by unclicking "Click sounds when arcs are created".
+</TD><TD><CENTER><IMG SRC="fig09-21.png" ALT="Figure 9.21"></CENTER></TD></TR></TABLE>
+<P>
+Expandable dialogs (currently only the node <B>Get Info</B> dialog) start off small.
+By clicking "Expandable dialogs default to fullsize", these dialogs will start off in their larger size.
+<P>
+Most netlisters insert date and version information in the comments at the head of the generated file.
+You can request that this information be omitted by unclicking "Include date and version in output files".
+<P>
+Most of the commands to generate an input deck for a simulator (a netlist) prompt the user for the desired file.
+If "Show file-selection dialog before writing netlists" is unchecked, however, the file is written (or overwritten)
+without prompt.
+This is useful in repetitive iterations of design/simulate, and saves the cumbersome file-selection dialog.
+However, it can be dangerous because it overwrites files without asking.
+<P>
+You can set the maximum number of errors that will be reported at once.
+By default, there is no limit to the number of errors.
+<P>
+Finally, you can set the delay that is built-in to the click-and-drag action.
+To prevent mouse-jitter from moving objects when selecting them, the system waits a half second
+after a click before accepting movements.
+This delay can be altered here.
+<P>
+The "Advanced" button brings up a dialog of special commands that are not for general usage.
+If you do click this button, please use the "Cancel" button to terminate the dialog.
+
+<!-- TRAILER -->

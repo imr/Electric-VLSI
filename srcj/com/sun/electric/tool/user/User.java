@@ -1029,7 +1029,7 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
-	static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Schematics use scale values from this technology"); }
+	static { cacheSchematicTechnology.attachToObject(User.tool, "Technology/Technology tab", "Schematics use scale values from this technology"); }
 	/**
 	 * Method to choose the layout technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -1103,7 +1103,7 @@ public class User extends Listener
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
 	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanPref("IncludeDateAndVersionInOutput", User.tool.prefs, true);
-    static { cacheIncludeDateAndVersionInOutput.attachToObject(User.tool, "Edit Options, General tab", "Include date and version in output"); }
+    static { cacheIncludeDateAndVersionInOutput.attachToObject(User.tool, "General/General tab", "Include date and version in output"); }
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
