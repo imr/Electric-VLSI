@@ -109,7 +109,7 @@ public abstract class Topology extends Output
 	protected abstract void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context);
 
 	/** Abstract method to convert a network name to one that is safe for this format */
-	protected abstract String getSafeNetName(String name);
+	protected abstract String getSafeNetName(String name, boolean bus);
 
 	/** Abstract method to convert a cell name to one that is safe for this format */
 	protected abstract String getSafeCellName(String name);
@@ -698,7 +698,7 @@ public abstract class Topology extends Output
 			for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)it.next();
-				cas.name = getSafeNetName(cas.name);
+				cas.name = getSafeNetName(cas.name, true);
 //				if (cas.low == cas.high) cas.name = cas.name + "_" + cas.low + "_";
 			}
 
@@ -741,7 +741,7 @@ public abstract class Topology extends Output
 					for(int k=cas.low; k<=cas.high; k++)
 					{
 						CellSignal cs = cas.signals[k-cas.low];
-						cs.name = getSafeNetName(cas.name + "[" + k + "]");
+						cs.name = getSafeNetName(cas.name + "[" + k + "]", false);
 					}
 				}
 			}
@@ -749,7 +749,7 @@ public abstract class Topology extends Output
             // just get safe net names for all cell signals
             for (Iterator it = cni.cellSignalsSorted.iterator(); it.hasNext(); ) {
                 CellSignal cs = (CellSignal)it.next();
-                cs.name = getSafeNetName(cs.name);
+                cs.name = getSafeNetName(cs.name, false);
             }
         }
 

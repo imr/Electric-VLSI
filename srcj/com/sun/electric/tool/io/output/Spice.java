@@ -622,7 +622,7 @@ public class Spice extends Topology
                 }
 
 				String modelChar = "X";
-				if (no.getName() != null) modelChar += getSafeNetName(no.getName());
+				if (no.getName() != null) modelChar += getSafeNetName(no.getName(), false);
 				StringBuffer infstr = new StringBuffer();
 				infstr.append(modelChar);
 				for(Iterator sIt = subCni.getCellSignals(); sIt.hasNext(); )
@@ -853,7 +853,7 @@ public class Spice extends Topology
 				modelChar = "Q";
 //				biasn = subnet != NOSPNET ? subnet : 0;
 			}
-			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName());
+			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName(), false);
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(modelChar + " " + drainCs.getName() + " " + gateCs.getName() + " " + sourceCs.getName());
 			if (biasCs != null) infstr.append(" " + biasCs.getName());
@@ -1168,7 +1168,7 @@ public class Spice extends Topology
                 infstr.append(cs.getName());
             } else if (paramName.equalsIgnoreCase("node_name"))
             {
-                infstr.append(getSafeNetName(no.getName()));
+                infstr.append(getSafeNetName(no.getName(), false));
             } else
             {
                 // no port name found, look for variable name
@@ -1196,7 +1196,7 @@ public class Spice extends Topology
 	 */
 	protected String getSafeCellName(String name)
 	{
-		return getSafeNetName(name);
+		return getSafeNetName(name, false);
 	}
 
 	/** Method to return the proper name of Power */
@@ -1261,7 +1261,7 @@ public class Spice extends Topology
 	 * Method to adjust a network name to be safe for Spice output.
 	 * Spice has a list of legal punctuation characters that it allows.
 	 */
-	protected String getSafeNetName(String name)
+	protected String getSafeNetName(String name, boolean bus)
 	{
 		// simple names are trivially accepted as is
 		boolean allAlNum = true;
@@ -1474,7 +1474,7 @@ public class Spice extends Topology
 			return;
 		}
 
-		if (ni.getName() != null) partName += getSafeNetName(ni.getName());
+		if (ni.getName() != null) partName += getSafeNetName(ni.getName(), false);
 
         // add Mfactor if there
         StringBuffer sbExtra = new StringBuffer(extra);

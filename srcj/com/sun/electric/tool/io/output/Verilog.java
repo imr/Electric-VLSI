@@ -723,7 +723,7 @@ public class Verilog extends Topology
 				infstr.append(cs.getName());
 			} else if (paramName.equalsIgnoreCase("node_name"))
 			{
-				infstr.append(getSafeNetName(no.getName()));
+				infstr.append(getSafeNetName(no.getName(), false));
 			} else
 			{
 				// no port name found, look for variable name
@@ -978,7 +978,7 @@ public class Verilog extends Topology
 	 */
 	protected String getSafeCellName(String name)
 	{
-		return getSafeNetName(name);
+		return getSafeNetName(name, false);
 	}
 
 	/** Method to return the proper name of Power */
@@ -1010,8 +1010,9 @@ public class Verilog extends Topology
 	 * Verilog does not permit nonnumeric indices, so "P[A]" is converted to "P_A_"
 	 * Verilog does not permit multidimensional arrays, so "P[1][2]" is converted to "P_1_[2]"
 	 *   and "P[1][T]" is converted to "P_1_T_"
+	 * @param bus true if this is a bus name.
 	 */
-	protected String getSafeNetName(String name)
+	protected String getSafeNetName(String name, boolean bus)
 	{
 		// simple names are trivially accepted as is
 		boolean allAlnum = true;
@@ -1023,7 +1024,7 @@ public class Verilog extends Topology
 		{
 			char chr = name.charAt(i);
 			if (chr == '[') { openSquareCount++;   openSquarePos = i; }
-			if (!TextUtils.isLetterOrDigit(chr)) { allAlnum = false;   break; }
+			if (!TextUtils.isLetterOrDigit(chr)) allAlnum = false;
 		}
 		if (allAlnum && Character.isLetter(name.charAt(0))) return name;
 
@@ -1033,6 +1034,7 @@ public class Verilog extends Topology
 			if (openSquarePos+1 >= name.length() ||
 				!Character.isDigit(name.charAt(openSquarePos+1))) openSquareCount = 0;
 		}
+		if (bus) openSquareCount = 0;
 
 		StringBuffer sb = new StringBuffer();
 		for(int t=0; t<name.length(); t++)

@@ -873,7 +873,7 @@ public class Silos extends Topology
 	/**
 	 * Method to adjust a network name to be safe for Silos output.
 	 */
-	protected String getSafeNetName(String name) { return name; }
+	protected String getSafeNetName(String name, boolean bus) { return name; }
 
 	/**
 	 * Method to obtain Netlist information for a cell.
