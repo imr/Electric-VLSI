@@ -74,7 +74,7 @@ public class TextUtils
 		double v = 0;
 		try
 		{
-            Number n = parseUserInput(text);
+            Number n = parsePostFixNumber(text);
 			v = n.doubleValue();
 
 		} catch (NumberFormatException ex)
@@ -123,7 +123,7 @@ public class TextUtils
 	 *     If the number begins with "0x", presume base 16.
 	 *     Otherwise presume base 10.
 	 * <LI>This method can handle numbers that affect the sign bit.
-	 *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormat exception.
+	 *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormatPostFix exception.
 	 *     This method properly returns -1.
 	 * <LI>This method does not require that the entire string be part of the number.
 	 *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
@@ -199,7 +199,7 @@ public class TextUtils
 		return(num * sign);
 	}
 
-	private static NumberFormat numberFormat = null;
+	private static NumberFormat numberFormatPostFix = null;
 
 	/**
 	 * Method to convert a double to a string.
@@ -207,16 +207,16 @@ public class TextUtils
 	 * @param v the double value to format.
 	 * @return the string representation of the number.
 	 */
-	public static String formatDouble(double v)
+	public static String formatDoublePostFix(double v)
 	{
-		if (numberFormat == null) {
-            numberFormat = NumberFormat.getInstance();
+		if (numberFormatPostFix == null) {
+            numberFormatPostFix = NumberFormat.getInstance();
             try {
-                DecimalFormat d = (DecimalFormat)numberFormat;
+                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);
             } catch (Exception e) {}
         }
-        numberFormat.setMaximumFractionDigits(3);
+        numberFormatPostFix.setMaximumFractionDigits(3);
         int unitScaleIndex = 0;
         if (v != 0) {
             while ((Math.abs(v) > 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
@@ -235,25 +235,45 @@ public class TextUtils
                     maxDecimals++;
                     v2 *= 10;
                 }
-                numberFormat.setMaximumFractionDigits(maxDecimals);
+                numberFormatPostFix.setMaximumFractionDigits(maxDecimals);
             }
         }
         UnitScale u = UnitScale.findFromIndex(unitScaleIndex);
-		String result = numberFormat.format(v);
+		String result = numberFormatPostFix.format(v);
 		return result + u.getPostFix();
 	}
 
 	private static NumberFormat numberFormatSpecific = null;
 
+    /**
+     * Method to convert a double to a string.
+     * If the double has no precision past the decimal, none will be shown.
+     * @param v the double value to format.
+     * @return the string representation of the number.
+     */
+    public static String formatDouble(double v)
+    {
+        return formatDouble(v, 0);
+    }
+
 	/**
-	 * Method to convert a double to a string, with a guaranteed number of digits to the right of the decimal point.
+	 * Method to convert a double to a string.
+     * It will show up to 'numFractions' digits past the decimal point if numFractions is greater
+     * than zero. If numFractions is 0, it will show infinite (as far as doubles go) precision.
+     * If the double has no precision past the decimal, none will be shown.
 	 * @param v the double value to format.
 	 * @param numFractions the number of digits to the right of the decimal point.
 	 * @return the string representation of the number.
 	 */
 	public static String formatDouble(double v, int numFractions)
 	{
-		if (numberFormatSpecific == null) numberFormatSpecific = NumberFormat.getInstance();
+		if (numberFormatSpecific == null) {
+            numberFormatSpecific = NumberFormat.getInstance();
+            try {
+                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
+                d.setDecimalSeparatorAlwaysShown(false);
+            } catch (Exception e) {}
+        }
 		numberFormatSpecific.setMaximumFractionDigits(numFractions);
 		numberFormatSpecific.setMinimumFractionDigits(numFractions);
 		return numberFormatSpecific.format(v);
@@ -529,7 +549,7 @@ public class TextUtils
 		}
 		return value + postFix;
         */
-        return formatDouble(value);
+        return formatDoublePostFix(value);
 	}
 
 	/**
@@ -577,11 +597,12 @@ public class TextUtils
      * @return a Number that represents the string in its entirety
      * @throws NumberFormatException if the String is not a parsable Number.
      */
-    public static Number parseUserInput(String s) throws NumberFormatException {
+    public static Number parsePostFixNumber(String s) throws NumberFormatException {
         // remove character denoting multiplier at end, if any
 
         Number n = null;                                    // the number
         Number m = null;                                    // the multiplier
+
         for (int i=0; i<UnitScale.allUnits.length; i++) {
             UnitScale u = UnitScale.allUnits[i];
 
@@ -603,6 +624,7 @@ public class TextUtils
                 }
             }
         }
+
         // if no valid postfix found, just parse number
         if (n == null) n = parseNumber(s);
 
@@ -633,17 +655,23 @@ public class TextUtils
      */
     private static Number parseNumber(String s) throws NumberFormatException {
         // try to do the conversion
+        if (s.equals("1")) {
+            Number nn = new Integer(1);
+        }
+
         Number n = null;
         try {
             n = new Integer(s);
-        } catch (NumberFormatException e) {}
-        try {
-            n = new Long(s);
-        } catch (NumberFormatException e) {}
-        try {
-            n = new Double(s);
-        } catch (NumberFormatException e) {}
-
+        } catch (NumberFormatException e) {
+            // elib format does not know what a Long is
+            //try {
+            //    n = new Long(s);
+            //} catch (NumberFormatException ee) {
+                try {
+                    n = new Double(s);
+                } catch (NumberFormatException eee) {}
+            //}
+        }
         if (n == null) {
             NumberFormatException e = new NumberFormatException(s + "cannot be parsed into a Number");
             throw e;

@@ -139,9 +139,11 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { runCommand(); }});
         jongMenu.addMenuItem("Start defunct Job", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { startDefunctJob(); }});
+        jongMenu.addMenuItem("Add String var", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { addStringVar(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
- 
+
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
 	    gildaMenu.addMenuItem("Check Wells", null,
@@ -162,7 +164,7 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, true); } });
 
         /****************************** Dima's TEST MENU ******************************/
- 
+
         MenuBar.Menu dimaMenu = new MenuBar.Menu("Dima", 'D');
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Plot diode", null,
@@ -830,6 +832,36 @@ public class DebugMenus {
 			System.out.println(var.getKey().getName() + ": " +obj);
 		}
 	}
+
+    public static void addStringVar() {
+        EditWindow curEdit = EditWindow.needCurrent();
+        if (Highlight.getNumHighlights() == 0) return;
+        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+            Highlight h = (Highlight)it.next();
+            if (h.getType() == Highlight.Type.EOBJ) {
+                ElectricObject eobj = h.getElectricObject();
+                AddStringVar job = new AddStringVar(eobj);
+                break;
+            }
+        }
+    }
+
+    private static class AddStringVar extends Job {
+        private ElectricObject eobj;
+
+        private AddStringVar(ElectricObject eobj) {
+            super("AddStringVar", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.eobj = eobj;
+            startJob();
+        }
+
+        public boolean doIt() {
+            eobj.newVar("ATTR_XXX", "1");
+            System.out.println("Added var ATTR_XXX as String \"1\"");
+            return true;
+        }
+    }
+
 
     public static void shakeDisplay() {
         //RedisplayTest job = new RedisplayTest(50);

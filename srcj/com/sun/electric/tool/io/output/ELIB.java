@@ -1071,6 +1071,9 @@ public class ELIB extends Output
 				}
 				varObj = newPoints;
 			}
+            if (type == 0) {
+                System.out.println("Wrote Type 0 for Variable "+key.getName()+", value "+varObj);
+            }
 			writeBigInteger(type);
 
 			// write the text descriptor

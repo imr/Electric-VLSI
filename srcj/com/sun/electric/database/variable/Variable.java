@@ -136,17 +136,24 @@ public class Variable
         // user input text may describe a number that is not parsable by the Java Bean Shell
         // (such as 0.01p, which equals 0.01E-12). To prevent this being a problem, any String
         // that is convertible to a Number via the above definition is done so here.
+/*
         if (addr instanceof String) {
             try {
-                Number n = TextUtils.parseUserInput((String)addr);
+                Number n = TextUtils.parsePostFixNumber((String)addr);
+                String s = (String)addr;
                 addr = n;
+                System.out.print("For Variable "+key.getName()+": ");
+                if (n instanceof Integer) System.out.println("Converted "+s+" to Integer "+(Integer)n);
+                if (n instanceof Long) System.out.println("Converted "+s+" to Long "+(Long)n);
+                if (n instanceof Double) System.out.println("Converted "+s+" to Double "+(Double)n);
             } catch (java.lang.NumberFormatException e) {}
         }
+*/
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
 	}
-    
+
 	/**
 	 * Method to check if this Variable can be changed.
 	 */
@@ -396,7 +403,7 @@ public class Variable
             // user sets it to Java code, which will then also convert it to a Number.
             if (addr instanceof String) {
                 try {
-                    Number n = TextUtils.parseUserInput((String)addr);
+                    Number n = TextUtils.parsePostFixNumber((String)addr);
                     addr = n;
                 } catch (NumberFormatException e) {}
             }

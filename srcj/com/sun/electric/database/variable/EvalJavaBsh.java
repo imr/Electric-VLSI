@@ -233,7 +233,7 @@ public class EvalJavaBsh
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
-            Number d = TextUtils.parseUserInput(val.toString());
+            Number d = TextUtils.parsePostFixNumber(val.toString());
             val = d;
             if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
         } catch (java.lang.NumberFormatException e) {
