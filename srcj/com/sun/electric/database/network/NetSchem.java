@@ -692,9 +692,14 @@ class NetSchem extends NetCell {
 				drawnWidths[drawn] = name.busWidth();
 				continue;
 			}
-			if (oldWidth != newWidth)
-				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict name width <" +
-								   drawnNames[drawn] + "> and <" + name);
+			if (oldWidth != newWidth) {
+				String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict name width <" +
+								   drawnNames[drawn] + "> and <" + name;
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                // TODO: what to highlight?
+                //log.addGeom(ni, true, 0, null);
+            }
 		}
 		for (int i = 0; i < numArcs; i++) {
 			int drawn = drawns[arcsOffset + i];
@@ -709,9 +714,14 @@ class NetSchem extends NetCell {
 				drawnWidths[drawn] = newWidth;
 				continue;
 			}
-			if (oldWidth != newWidth)
-				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
-								   drawnNames[drawn] + "> and <" + name + ">");
+			if (oldWidth != newWidth) {
+				String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
+								   drawnNames[drawn] + "> and <" + name + ">";
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                // TODO: what to highlight?
+                //log.addGeom(ni, true, 0, null);
+            }
 		}
 		ArcProto busArc = Schematics.tech.bus_arc;
 		for (int i = 0; i < numArcs; i++) {
@@ -754,9 +764,13 @@ class NetSchem extends NetCell {
 					drawnWidths[drawn] = newWidth;
 					continue;
 				}
-				if (oldWidth != newWidth) 
-					System.out.println("Network: Schematic cell " + cell.describe() + " has net <" +
-						drawnNames[drawn] + "> with width conflict in connection " + pi.describe());
+				if (oldWidth != newWidth)  {
+					String msg = "Network: Schematic cell " + cell.describe() + " has net <" +
+						drawnNames[drawn] + "> with width conflict in connection " + pi.describe();
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                    log.addPoly(pi.getPoly(), true);
+                }
 			}
 		}
 		for (int i = 0; i < drawnWidths.length; i++) {
@@ -868,8 +882,11 @@ class NetSchem extends NetCell {
 			} else if (ai2 == null) {
 				ai2 = ai;
 			} else {
-				System.out.println("Network: Schematic cell " + cell.describe() + " has connector " + ni.describe() + 
-					" which merges more than two arcs");
+				String msg = "Network: Schematic cell " + cell.describe() + " has connector " + ni.describe() +
+					" which merges more than two arcs";
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                log.addGeom(ni, true, 0, null);
 				return;
 			}
 		}

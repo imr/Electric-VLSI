@@ -58,7 +58,7 @@ public class Network extends Listener
 
 	/** NetCells. */								private static NetCell[] cells;
 
-    /** The logger for logging Network errors */    protected static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors");
+    /** The logger for logging Network errors */    protected static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
     /** sort keys for sorting network errors */     protected static final int errorSortNetworks = 0;
                                                     protected static final int errorSortNodes = 1;
                                                     protected static final int errorSortPorts = 2;

@@ -340,7 +340,8 @@ public class ErrorLogger implements ActionListener {
     private ErrorLogger() {}
 
     /**
-     * Create a new ErrorLogger instance.
+     * Create a new ErrorLogger instance, with persistent set false, so
+     * it can be deleted from tree
      */
     public static synchronized ErrorLogger newInstance(String system)
     {
@@ -348,7 +349,10 @@ public class ErrorLogger implements ActionListener {
     }
 
     /**
-     * Create a new ErrorLogger instance
+     * Create a new ErrorLogger instance. If persistent is true, it cannot be
+     * delete from the explorer tree (although deletes will clear it, thereby removing
+     * it until another error is logged to it). This is useful for tools that report
+     * errors incrementally, such as the Network tool.
      * @param system the name of the system logging errors
      * @param persistent if true, this error tree cannot be deleted
      * @return a new ErrorLogger for logging errors
@@ -406,6 +410,7 @@ public class ErrorLogger implements ActionListener {
         allErrors.add(el);
         currentErrorNumber = allErrors.size()-1;
 
+        if (persistent) WindowFrame.wantToRedoErrorTree();
         return el;
     }
 
