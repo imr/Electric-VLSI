@@ -178,7 +178,7 @@ public class PadGenerator
 									if (str.hasMoreTokens())
 									{
 										keyWord = str.nextToken();
-										cell = Cell.newInstance(Library.getCurrent(), keyWord);
+										cell = Cell.makeInstance(Library.getCurrent(), keyWord);
 										if (cell == null)
 										{
 											System.out.println("Line " + lineno + ": unable to create cell " + keyWord);
@@ -483,7 +483,7 @@ public class PadGenerator
 
 									//corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
 									Point2D pointCenter = new Point2D.Double(centerX, centerY);
-									NodeInst ni = NodeInst.newInstance(np, pointCenter, np.getDefWidth(), np.getDefHeight(), angle, cell, null);
+									NodeInst ni = NodeInst.makeInstance(np, pointCenter, np.getDefWidth(), np.getDefHeight(), angle, cell, null);
 									if (ni == null)
 									{
 										System.out.println("Line " + lineno + ": problem creating" + np.describe() + " instance");
@@ -535,7 +535,7 @@ public class PadGenerator
 					EditWindow.gridAlign(center, 1);
 
 					SizeOffset so = corenp.getSizeOffset();
-					NodeInst ni = NodeInst.newInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, cell, null);
+					NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, cell, null);
 
 					for(Iterator it=arrayPortAssociate.iterator(); it.hasNext(); )
 					{

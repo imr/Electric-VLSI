@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
 import com.sun.electric.tool.user.dialogs.GetInfoArc;
@@ -55,6 +56,7 @@ public class User extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the User Interface tool. */		public static User tool = new User();
+	/** key of Variable holding rotation overrides for primitives. */	public static final Variable.Key PLACEMENT_ANGLE = ElectricObject.newKey("USER_placement_angle");
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
@@ -499,4 +501,56 @@ public class User extends Tool
 	 * @param on true if new nodes are mirrored in X.
 	 */
 	public static void setNewNodeMirrorX(boolean on) { tool.prefs.putBoolean("NewNodeMirrorX", on);   flushOptions(); }
+
+	/**
+	 * Routine to tell whether cell instances are all be easy-to-select.
+	 * The default is "true".
+	 * @return true if cell instances are all be easy-to-select.
+	 */
+	public static boolean isEasySelectionOfCellInstances() { return tool.prefs.getBoolean("EasySelectionOfCellInstances", true); }
+	/**
+	 * Routine to set whether cell instances are all be easy-to-select.
+	 * @param on true if cell instances are all to be easy-to-select.
+	 */
+	public static void setEasySelectionOfCellInstances(boolean on) { tool.prefs.putBoolean("EasySelectionOfCellInstances", on);   flushOptions(); }
+
+	private static boolean annotationTextInvalid = true;
+	private static boolean annotationTextHardCache = false;
+
+	/**
+	 * Routine to tell whether annotation text is easy-to-select.
+	 * The default is "true".
+	 * @return true if annotation text is easy-to-select.
+	 */
+	public static boolean isEasySelectionOfAnnotationText()
+	{
+		if (annotationTextInvalid)
+		{
+			annotationTextHardCache = tool.prefs.getBoolean("EasySelectionOfAnnotationText", true);
+			annotationTextInvalid = false;
+		}
+		return annotationTextHardCache;
+	}
+	/**
+	 * Routine to set whether annotation text is easy-to-select.
+	 * @param on true if annotation text is easy-to-select.
+	 */
+	public static void setEasySelectionOfAnnotationText(boolean on)
+	{
+		tool.prefs.putBoolean("EasySelectionOfAnnotationText", annotationTextHardCache = on);
+		flushOptions();
+	}
+
+	/**
+	 * Routine to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
+	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static boolean isDraggingMustEncloseObjects() { return tool.prefs.getBoolean("DraggingMustEncloseObjects", false); }
+	/**
+	 * Routine to set whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static void setDraggingMustEncloseObjects(boolean on) { tool.prefs.putBoolean("DraggingMustEncloseObjects", on);   flushOptions(); }
+
 }

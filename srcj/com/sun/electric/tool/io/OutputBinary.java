@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -421,6 +422,42 @@ public class OutputBinary extends Output
 			writeBigInteger((int)tech.getScale());
 		}
 
+		// convert any PortInst variables to NodeInst Variables
+		for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		{
+			Cell cell = (Cell)cIt.next();
+			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					for(Iterator it = pi.getVariables(); it.hasNext(); )
+					{
+						Variable var = (Variable)it.next();
+						if (var.isDontSave()) continue;
+
+						// convert this PortInst variable to a NodeInst variable
+						StringBuffer sb = new StringBuffer();
+						String portName = pi.getPortProto().getProtoName();
+						int len = portName.length();
+						for(int j=0; j<len; j++)
+						{
+							char ch = portName.charAt(j);
+							if (ch == '\\' || ch == '_') sb.append('\\');
+							sb.append(ch);
+						}
+						String newVarName = "ATTRP_" + sb.toString() + "_" + var.getKey().getName();
+						Undo.setNextChangeQuiet();
+						Variable newVar = ni.newVar(newVarName, var.getObject());
+						if (var.isDisplay()) newVar.setDisplay();
+						if (var.isJava()) newVar.setJava();
+						newVar.setDescriptor(var.getTextDescriptor());
+					}
+				}
+			}
+		}
+
 		// write the global namespace
 		writeNameSpace();
 
@@ -520,6 +557,33 @@ public class OutputBinary extends Output
 			{
 				NodeInst ni = (NodeInst)nit.next();
 				writeNodeInst(ni);
+			}
+		}
+
+		// remove any PortInst variables that were converted to NodeInst Variables
+		for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		{
+			Cell cell = (Cell)cIt.next();
+			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				boolean found = true;
+				while (found)
+				{
+					found = false;
+					for(Iterator it = ni.getVariables(); it.hasNext(); )
+					{
+						Variable var = (Variable)it.next();
+						String varName = var.getKey().getName();
+						if (varName.startsWith("ATTRP_"))
+						{
+							Undo.setNextChangeQuiet();
+							ni.delVar(var.getKey());
+							found = true;
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -837,29 +901,22 @@ public class OutputBinary extends Output
 	private int writeVariables(ElectricObject obj, double scale)
 		throws IOException
 	{
+		// count the number of persistent variables
 		int count = 0;
-		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
-			count++;
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDontSave()) count++;
 		}
-		writeBigInteger(count);
-		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
-		{
-			Geometric geom = (Geometric)obj;
-			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
-			writeSmallInteger((short)key.getIndex());
-			int type = BinaryConstants.VSTRING;
-			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;
-			writeBigInteger(type);
 
-			// write the text descriptor of name
-			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet0());
-			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet1());
-			putOutVar(geom.getName());
-		}
+		// add one more for Geometrics with names
+		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
+			count++;
+
+		// write the number of Variables
+		writeBigInteger(count);
+
+		// write the variables
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
@@ -901,6 +958,23 @@ public class OutputBinary extends Output
 				putOutVar(varObj);
 			}
 		}
+
+		// write the node or arc name
+		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
+		{
+			Geometric geom = (Geometric)obj;
+			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
+			writeSmallInteger((short)key.getIndex());
+			int type = BinaryConstants.VSTRING;
+			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;
+			writeBigInteger(type);
+
+			// write the text descriptor of name
+			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet0());
+			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet1());
+			putOutVar(geom.getName());
+		}
+
 		return(count);
 	}
 

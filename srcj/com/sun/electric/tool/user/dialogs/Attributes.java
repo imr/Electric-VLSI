@@ -592,7 +592,7 @@ public class Attributes extends javax.swing.JDialog
 			pointsButton.setSelected(true);
 
 			// figure out how many units the point value is
-			EditWindow wnd = Highlight.getHighlightedWindow();
+			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) unitsSize.setEditable(false); else
 			{
 				double u = wnd.getTextUnitSize(height);
@@ -606,7 +606,7 @@ public class Attributes extends javax.swing.JDialog
 			unitsButton.setSelected(true);
 
 			// figure out how many points the unit value is
-			EditWindow wnd = Highlight.getHighlightedWindow();
+			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) pointsSize.setEditable(false); else
 			{
 				int p = wnd.getTextPointSize(height);

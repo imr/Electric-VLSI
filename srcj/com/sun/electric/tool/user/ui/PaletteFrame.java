@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -78,6 +79,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JDesktopPane;
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.PopupMenuListener;
@@ -893,6 +895,7 @@ public class PaletteFrame
 		private boolean isDrawn;
 		private boolean isTextNode;
 		private PalettePanel window;
+		private int defAngle;
 
 		private PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
 		{
@@ -902,6 +905,20 @@ public class PaletteFrame
 			this.oldCursor = oldCursor;
 			this.isDrawn = false;
 			this.isTextNode = false;
+
+			// get default creation angle
+			NodeProto np = null;
+			if (toDraw instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)toDraw;
+				np = ni.getProto();
+			}
+			if (toDraw instanceof NodeProto)
+			{
+				np = (NodeProto)toDraw;
+			}
+			if (np == null) defAngle = 0; else
+				defAngle = np.getDefPlacementAngle();
 		}
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
@@ -934,9 +951,17 @@ public class PaletteFrame
 				SizeOffset so = np.getSizeOffset();
 				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				double lowX = drawnLoc.getX() - trueSizeX/2;
-				double lowY = drawnLoc.getY() - trueSizeY/2;
-				Highlight h = Highlight.addArea(new Rectangle2D.Double(lowX, lowY, trueSizeX, trueSizeY), wnd.getCell());
+				Poly poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
+				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
+					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
+				poly.transform(trans);
+				Point2D [] points = poly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					int last = i-1;
+					if (i == 0) last = points.length - 1;
+					Highlight.addLine(points[last], points[i], wnd.getCell());
+				}
 				isDrawn = true;
 				wnd.repaint();
 			}
@@ -948,6 +973,12 @@ public class PaletteFrame
 			oldx = evt.getX();
 			oldy = evt.getY();
 			EditWindow wnd = (EditWindow)evt.getSource();
+			if (wnd.getCell() == null)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cannot create node: this window has no cell in it");
+				return;
+			}
 			Point2D where = wnd.screenToDatabase(oldx, oldy);
 			wnd.gridAlign(where, 1);
 
@@ -1039,7 +1070,16 @@ public class PaletteFrame
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
 			if (isTextNode) width = height = 0;
-			NodeInst newNi = NodeInst.newInstance(np, where, width, height, 0, cell, null);
+
+			// get default creation angle
+			int defAngle = np.getDefPlacementAngle();
+			if (defAngle >= 3600)
+			{
+				defAngle %= 3600;
+				width = -width;
+			}
+
+			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);
 			if (newNi == null) return;
 			if (isTextNode)
 			{
@@ -1055,9 +1095,6 @@ public class PaletteFrame
 			} else
 			{
 				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
-				if (np instanceof Cell && np.isWantExpanded())
-					newNi.setExpanded();
-				np.getTechnology().setDefaultOutline(newNi);
 				Highlight.addGeometric(newNi);
 			}
 			Highlight.finished();

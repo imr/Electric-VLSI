@@ -1134,6 +1134,65 @@ public class InputBinary extends Input
 			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
+
+		// convert "ATTRP_" variables on NodeInsts to be on PortInsts
+		for(int i=startNode; i<endNode; i++)
+		{
+			NodeInst ni = nodeList[i];
+			boolean found = true;
+			while (found)
+			{
+				found = false;
+				for(Iterator it = ni.getVariables(); it.hasNext(); )
+				{
+					Variable origVar = (Variable)it.next();
+					Variable.Key origVarKey = origVar.getKey();
+					String origVarName = origVarKey.getName();
+					if (origVarName.startsWith("ATTRP_"))
+					{
+						// the form is "ATTRP_portName_variableName" with "\" escapes
+						StringBuffer portName = new StringBuffer();
+						String varName = null;
+						int len = origVarName.length();
+						for(int j=6; j<len; j++)
+						{
+							char ch = origVarName.charAt(j);
+							if (ch == '\\')
+							{
+								j++;
+								portName.append(origVarName.charAt(j));
+								continue;
+							}
+							if (ch == '_')
+							{
+								varName = origVarName.substring(j+1);
+								break;
+							}
+							portName.append(ch);
+						}
+						if (varName != null)
+						{
+							String thePortName = portName.toString();
+							PortInst pi = ni.findPortInst(thePortName);
+							if (pi != null)
+							{
+System.out.println("Setting variable '"+varName+"' on port "+thePortName);
+								Variable var = pi.newVar(varName, origVar.getObject());
+								if (var != null)
+								{
+									if (origVar.isDisplay()) var.setDisplay();
+									if (origVar.isJava()) var.setJava();
+									var.setDescriptor(origVar.getTextDescriptor());									
+								}
+								ni.delVar(origVarKey);
+								found = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -1998,25 +2057,6 @@ public class InputBinary extends Input
 			{
 				Variable.Key varKey = realKey[key];
 				Variable var = null;
-
-				// "ATTRP_" variables on NodeInsts should really be on PortInsts
-//				if (obj instanceof NodeInst && varKey.getName().startsWith("ATTRP_"))
-//				{
-//					String realName = varKey.getName().substring(6);
-//					int portNameLen = realName.indexOf('_');
-//					if (portNameLen > 0)
-//					{
-//						NodeInst ni = (NodeInst)obj;
-//						String portName = realName.substring(0, portNameLen);
-//						PortInst pi = ni.findPortInst(portName);
-//						if (pi != null)
-//						{
-//							var = obj.newVar(realName.substring(portNameLen+1), newAddr);
-//						}
-//					}
-//				}
-
-				// just assign it normally
 				if (var == null)
 				{
 					var = obj.newVar(varKey, newAddr);

@@ -46,6 +46,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
@@ -89,13 +90,15 @@ import javax.swing.JPanel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 
 /*
  * This class defines an editing window for circuitry.
  */
 
 public class EditWindow extends JPanel
-	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
+	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener, Scrollable
 {
     /** the window scale */									private double scale;
     /** the window offset */								private double offx, offy;
@@ -164,7 +167,14 @@ public class EditWindow extends JPanel
 		return null;
 	}
 
-    // ************************************* RENDERING A WINDOW *************************************
+	public static EditWindow getCurrent()
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return null;
+		return wf.getEditWindow();
+	}
+
+	// ************************************* RENDERING A WINDOW *************************************
 
 	public void redraw()
 	{
@@ -187,7 +197,8 @@ public class EditWindow extends JPanel
         Graphics2D g2 = (Graphics2D)g;
 
 		// to enable keys to be recieved
-		requestFocus();
+		if (cell != null && cell == Library.getCurrent().getCurCell())
+			requestFocus();
 
 		// redo the explorer tree if it changed
 		ExplorerTree.rebuildExplorerTree();
@@ -1009,7 +1020,7 @@ public class EditWindow extends JPanel
             HashSet found = new HashSet();
             for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
                 Library lib = (Library)libIt.next();
-                System.out.println("checking library "+lib);
+//                System.out.println("checking library "+lib);
                 for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
                     Cell cel = (Cell)cellIt.next();
                     if (cel == this.cell) continue; // don't add myself
@@ -1130,7 +1141,13 @@ public class EditWindow extends JPanel
 	public static EventListener getListener() { return curMouseListener; }
 
 	// the MouseListener events
-	public void mousePressed(MouseEvent evt) { curMouseListener.mousePressed(evt); }
+	public void mousePressed(MouseEvent evt)
+	{
+		EditWindow wnd = (EditWindow)evt.getSource();
+		WindowFrame.setCurrentWindowFrame(wnd.wf);
+
+		curMouseListener.mousePressed(evt);
+	}
 	public void mouseReleased(MouseEvent evt) { curMouseListener.mouseReleased(evt); }
 	public void mouseClicked(MouseEvent evt) { curMouseListener.mouseClicked(evt); }
 	public void mouseEntered(MouseEvent evt) { curMouseListener.mouseEntered(evt); }
@@ -1147,6 +1164,34 @@ public class EditWindow extends JPanel
 	public void keyPressed(KeyEvent evt) { curKeyListener.keyPressed(evt); }
 	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
 	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
+
+	// the Scrollable events
+	public Dimension getPreferredScrollableViewportSize()
+	{
+		return new Dimension(500, 500);
+	}
+
+	public int getScrollableBlockIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
+	{
+		if (orientation == SwingConstants.HORIZONTAL)
+			return visibleRect.width - 50;
+		return visibleRect.height - 50;
+	}
+
+	public boolean getScrollableTracksViewportHeight()
+	{
+		return true;
+	}
+
+	public boolean getScrollableTracksViewportWidth()
+	{
+		return true;
+	}
+
+	public int getScrollableUnitIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
+	{
+		return 1;
+	}
 
 	// ************************************* MISCELLANEOUS *************************************
 
@@ -1172,8 +1217,10 @@ public class EditWindow extends JPanel
 		redraw();
 		if (cell == null) wf.setTitle("***NONE***"); else
 	        wf.setTitle(cell.describe());
+
+		if (User.isCheckCellDates()) cell.checkCellDates();
 	}
-	
+
 	public boolean isDoingAreaDrag() { return doingAreaDrag; }
 
 	public void setDoingAreaDrag() { doingAreaDrag = true; }
@@ -1187,5 +1234,4 @@ public class EditWindow extends JPanel
 	public Point getEndDrag() { return endDrag; }
 
 	public void setEndDrag(int x, int y) { endDrag.setLocation(x, y); }
-
 }

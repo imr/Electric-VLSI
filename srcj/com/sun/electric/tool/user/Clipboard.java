@@ -161,7 +161,7 @@ public class Clipboard
 			}
 
 			// determine the cell with these geometrics
-			EditWindow wnd = Highlight.getHighlightedWindow();
+			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) return;
 			Cell parent = wnd.getCell();
 
@@ -200,7 +200,7 @@ public class Clipboard
 			}
 
 			// determine the cell with these geometrics
-			EditWindow wnd = Highlight.getHighlightedWindow();
+			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) return;
 			Cell parent = wnd.getCell();
 
@@ -245,7 +245,7 @@ public class Clipboard
 			}
 
 			// find out where the paste is going
-			EditWindow wnd = Highlight.getHighlightedWindow();
+			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) return;
 			Cell parent = wnd.getCell();
 			// special case of pasting on top of selected objects

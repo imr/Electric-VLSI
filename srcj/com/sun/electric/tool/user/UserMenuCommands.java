@@ -260,17 +260,14 @@ public final class UserMenuCommands
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
 		menuBar.add(cellMenu);
 
-		cellMenu.addMenuItem("New Cell...", null,
+		cellMenu.addMenuItem("Cell Control...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
+		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
 		cellMenu.addMenuItem("Delete Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
 		cellMenu.addMenuItem("Cross-Library Copy...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
-
-		cellMenu.addSeparator();
- 
-		cellMenu.addMenuItem("Cell Options...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellOptionsCommand(); }});
 
 		cellMenu.addSeparator();
  
@@ -659,7 +656,7 @@ public final class UserMenuCommands
      */
     public static void exportCellCommand(Output.ExportType type)
     {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         Cell cell = curEdit.getCell();
         if (cell == null) {
             System.out.println("No Cell in current window");
@@ -994,10 +991,12 @@ public final class UserMenuCommands
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 
+		boolean ignoreCells = !User.isEasySelectionOfCellInstances();
 		Highlight.clear();
 		for(Iterator it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+			if ((ni.getProto() instanceof Cell) && ignoreCells) continue;
 			Highlight.addGeometric(ni);
 		}
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -1009,6 +1008,16 @@ public final class UserMenuCommands
     }
 
 	// ---------------------- THE CELL MENU -----------------
+
+	/**
+	 * This routine implements the command to do cell options.
+	 */
+	public static void cellControlCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		CellOptions dialog = new CellOptions(jf, true);
+		dialog.show();
+	}
 
     /** 
      * This command opens a dialog box to edit a Cell.
@@ -1027,7 +1036,7 @@ public final class UserMenuCommands
 	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
-		CircuitChanges.deleteCell(curCell);
+		CircuitChanges.deleteCell(curCell, true);
     }
 
 	/**
@@ -1040,21 +1049,11 @@ public final class UserMenuCommands
 		dialog.show();
 	}
 
-	/**
-	 * This routine implements the command to do cell options.
-	 */
-	public static void cellOptionsCommand()
-	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		CellOptions dialog = new CellOptions(jf, true);
-		dialog.show();
-	}
-
     /**
      * This command pushes down the hierarchy
      */
 	public static void downHierCommand() {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         curEdit.downHierarchy();
     }
 
@@ -1062,7 +1061,7 @@ public final class UserMenuCommands
      * This command goes up the hierarchy
      */
     public static void upHierCommand() {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         curEdit.upHierarchy();
     }
 
@@ -1262,7 +1261,7 @@ public final class UserMenuCommands
 	public static void fullDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = TopLevel.getCurrentEditWindow();
+        EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// make the circuit fill the window
@@ -1273,7 +1272,7 @@ public final class UserMenuCommands
 	public static void zoomOutDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = TopLevel.getCurrentEditWindow();
+        EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// zoom out by a factor of two
@@ -1285,7 +1284,7 @@ public final class UserMenuCommands
 	public static void zoomInDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = TopLevel.getCurrentEditWindow();
+        EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// zoom in by a factor of two
@@ -1297,7 +1296,7 @@ public final class UserMenuCommands
 	public static void focusOnHighlightedCommand()
 	{
 		// get the current window
-        EditWindow wnd = TopLevel.getCurrentEditWindow();
+        EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// focus on highlighting
@@ -1311,7 +1310,7 @@ public final class UserMenuCommands
 	 */
 	public static void toggleGridCommand()
 	{
-		EditWindow wnd = TopLevel.getCurrentEditWindow();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd != null)
 		{
 			wnd.setGrid(!wnd.getGrid());
@@ -1328,7 +1327,7 @@ public final class UserMenuCommands
     // Logical Effort Tool
     public static void analyzeCellCommand()
     {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         if (curEdit == null) {
             System.out.println("Please select valid window first");
             return;
@@ -1391,7 +1390,7 @@ public final class UserMenuCommands
 
     public static void irsimNetlistCommand()
     {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         if (curEdit == null) {
             System.out.println("Please select valid window first");
             return;
@@ -1742,7 +1741,7 @@ public final class UserMenuCommands
     }
 
     public static void evalVarsOnObject() {
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        EditWindow curEdit = EditWindow.getCurrent();
         if (Highlight.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
             return;

@@ -42,12 +42,14 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -307,7 +309,7 @@ public class Cell extends NodeProto
 	 */
 	private Cell()
 	{
-//		this.versionGroup = new VersionGroup(this);
+//		setIndex(cellNumber++);
 		this.cellIndex = cellNumber++;
 		nodes = new ArrayList();
 		usagesIn = new HashMap();
@@ -327,6 +329,38 @@ public class Cell extends NodeProto
 	}
 
 	/****************************** CREATE, DELETE ******************************/
+
+	/**
+	 * Factory method to create a new Cell.
+	 * Also does auxiliary things to create the Cell, such as placing a cell-center if requested.
+	 * @param lib the Library in which to place this cell.
+	 * @param name the name of this cell.
+	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * However, the name can be fully qualified with version and view information.
+	 * For example, "foo;2{sch}".
+	 * @return the newly created cell (null on error).
+	 */
+	public static Cell makeInstance(Library lib, String name)
+	{
+		Job.checkChanging();
+		Cell cell = lowLevelAllocate(lib);
+		if (cell.lowLevelPopulate(name)) return null;
+		if (cell.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		Undo.newObject(cell);
+
+		// add cell-center if requested
+		if (User.isPlaceCellCenter())
+		{
+			NodeProto cellCenterProto = NodeProto.findNodeProto("generic:Facet-Center");
+			NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
+				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null);
+			cellCenter.setVisInside();
+			cellCenter.setHardSelect();
+		}
+		return cell;
+	}
 
 	/**
 	 * Factory method to create a new Cell.
@@ -1641,8 +1675,7 @@ public class Cell extends NodeProto
 		}
 		if (parents != null)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
-			JOptionPane.showMessageDialog(jf, "Cannot " + action + " cell " + describe() +
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " cell " + describe() +
 				" because it is used in " + parents,
 					action + " failed", JOptionPane.ERROR_MESSAGE);
 			return true;
@@ -1859,6 +1892,107 @@ public class Cell extends NodeProto
 // 		}
 // 		return connPorts;
 // 	}
+
+	/****************************** DATES ******************************/
+
+	/**
+	 * Routine to get the creation date of this Cell.
+	 * @return the creation date of this Cell.
+	 */
+	public Date getCreationDate() { return creationDate; }
+
+	/**
+	 * Routine to set this Cell's creation date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param creationDate the date of this Cell's creation.
+	 */
+	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
+
+	/**
+	 * Routine to return the revision date of this Cell.
+	 * @return the revision date of this Cell.
+	 */
+	public Date getRevisionDate() { return revisionDate; }
+
+	/**
+	 * Routine to set this Cell's last revision date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param revisionDate the date of this Cell's last revision.
+	 */
+	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
+
+	/**
+	 * Routine to set this Cell's revision date to the current time.
+	 */
+	public void madeRevision()
+	{
+		checkChanging();
+		revisionDate = new Date();
+	}
+
+	private static FlagSet cellDateFlagSet;
+
+	/**
+	 * Routine to check the current cell to be sure that no subcells have a more recent date.
+	 * This is invoked when the "Check cell dates" feature is enabled in the New Nodes tab of
+	 * the Edit Options dialog.
+	 */
+	public void checkCellDates()
+	{
+		cellDateFlagSet = NodeProto.getFlagSet(1);
+
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell oCell = (Cell)cIt.next();
+				oCell.clearBit(cellDateFlagSet);
+			}
+		}
+		checkCellDate(getRevisionDate());
+		cellDateFlagSet.freeFlagSet();
+	}
+
+	/*
+	 * Recursive routine to check sub-cell revision times.
+	 * @param rev_time the revision date of the top-level cell.
+	 * Nothing below it can be newer.
+	 */
+	private void checkCellDate(Date rev_time)
+	{
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (!(np instanceof Cell)) continue;
+			Cell subCell = (Cell)np;
+
+			// ignore recursive references (showing icon in contents)
+			if (subCell.isIconOf(this)) continue;
+			if (!subCell.isBit(cellDateFlagSet))
+			{
+				subCell.checkCellDate(rev_time); // recurse
+			}
+
+			Cell contentsCell = subCell.contentsView();
+			if (contentsCell != null)
+			{
+				if (!contentsCell.isBit(cellDateFlagSet))
+				{
+					contentsCell.checkCellDate(rev_time); // recurse
+				}
+			}
+		}
+
+		// check this cell
+		setBit(cellDateFlagSet); /* flag that we have seen this one */
+		if (!getRevisionDate().after(rev_time)) return;
+
+		// possible error in hierarchy
+		System.out.println("WARNING: sub-cell " + describe() +
+			" has been edited since the last revision to the current cell");
+	}
 
 	/****************************** MISCELLANEOUS ******************************/
 
@@ -2099,37 +2233,6 @@ public class Cell extends NodeProto
 		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
 		return tech;
 	}
-
-	/**
-	 * Routine to get the creation date of this Cell.
-	 * @return the creation date of this Cell.
-	 */
-	public Date getCreationDate() { return creationDate; }
-
-	/**
-	 * Routine to set this Cell's creation date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
-	 * @param creationDate the date of this Cell's creation.
-	 */
-	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
-
-	/**
-	 * Routine to return the revision date of this Cell.
-	 * @return the revision date of this Cell.
-	 */
-	public Date getRevisionDate() { return revisionDate; }
-
-	/**
-	 * Routine to set this Cell's last revision date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
-	 * @param revisionDate the date of this Cell's last revision.
-	 */
-	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
-
-	/**
-	 * Routine to set this Cell's revision date to the current time.
-	 */
-	public void madeRevision() { checkChanging(); this.revisionDate = new Date(); }
 
 	/**
 	 * Finds the Schematic Cell associated with this Icon Cell.

@@ -295,15 +295,18 @@ public class CircuitChanges
 
 	/****************************** DELETE A CELL ******************************/
 
-	public static void deleteCell(Cell cell)
+	public static void deleteCell(Cell cell, boolean confirm)
 	{
 		// see if this cell is in use anywhere
 		if (cell.isInUse("delete")) return;
 
 		// make sure the user really wants to delete the cell
-		JFrame jf = TopLevel.getCurrentJFrame();
-		int response = JOptionPane.showConfirmDialog(jf, "Are you sure you want to delete cell " + cell.describe() + "?");
-		if (response != JOptionPane.YES_OPTION) return;
+		if (confirm)
+		{
+			JFrame jf = TopLevel.getCurrentJFrame();
+			int response = JOptionPane.showConfirmDialog(jf, "Are you sure you want to delete cell " + cell.describe() + "?");
+			if (response != JOptionPane.YES_OPTION) return;
+		}
 
 		// delete the cell
 		DeleteCell job = new DeleteCell(cell);
@@ -562,7 +565,7 @@ public class CircuitChanges
 
 			// create the new icon cell
 			String iconCellName = curCell.getProtoName() + "{ic}";
-			iconCell = Cell.newInstance(lib, iconCellName);
+			iconCell = Cell.makeInstance(lib, iconCellName);
 			if (iconCell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot create Icon cell " + iconCellName,
@@ -570,15 +573,6 @@ public class CircuitChanges
 				return;
 			}
 			iconCell.setWantExpanded();
-
-			// create the Cell Center instance if requested
-			if (User.isPlaceCellCenter())
-			{
-				NodeInst pinNi = NodeInst.newInstance(Generic.tech.cellCenterNode, new Point2D.Double(0,0), 0, 0, 0, iconCell, null);
-				if (pinNi == null) return;
-				pinNi.setHardSelect();
-				pinNi.setVisInside();
-			}
 
 			// determine number of inputs and outputs
 			int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
@@ -673,28 +667,31 @@ public class CircuitChanges
 			int exampleLocation = User.getIconGenInstanceLocation();
 			Point2D iconPos = new Point2D.Double(0,0);
 			Rectangle2D cellBounds = curCell.getBounds();
+			Rectangle2D iconBounds = iconCell.getBounds();
+			double halfWidth = iconBounds.getWidth() / 2;
+			double halfHeight = iconBounds.getHeight() / 2;
 			switch (exampleLocation)
 			{
 				case 0:		// upper-right
-					iconPos.setLocation(cellBounds.getMaxX(), cellBounds.getMaxY());
+					iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMaxY()+halfHeight);
 					break;
 				case 1:		// upper-left
-					iconPos.setLocation(cellBounds.getMinX(), cellBounds.getMaxY());
+					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMaxY()+halfHeight);
 					break;
 				case 2:		// lower-right
-					iconPos.setLocation(cellBounds.getMaxX(), cellBounds.getMinY());
+					iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMinY()-halfHeight);
 					break;
 				case 3:		// lower-left
-					iconPos.setLocation(cellBounds.getMinX(), cellBounds.getMinY());
+					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
 					break;
 			}
 			EditWindow.gridAlign(iconPos, 1);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = NodeInst.newInstance(iconCell, iconPos, px, py, 0, curCell, null);
+			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, curCell, null);
 			if (ni != null)
 			{
-				ni.setExpanded();
+//				ni.setExpanded();
 
 				// now inherit parameters that now do exist
 				inheritAttributes(ni);

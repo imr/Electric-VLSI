@@ -35,6 +35,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
 
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -230,7 +232,12 @@ public class NewCell extends javax.swing.JDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		String name = cellName.getText();
+		String name = cellName.getText().trim();
+		if (name.length() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must type a cell name");
+			return;
+		}
 		String viewName = (String)view.getSelectedItem();
 		View v = View.findView(viewName);
 		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
@@ -272,26 +279,16 @@ public class NewCell extends javax.swing.JDialog
 		public void doIt()
 		{
 			// should ensure that the name is valid
-			Cell cell = Cell.newInstance(lib, cellName);
+			Cell cell = Cell.makeInstance(lib, cellName);
 			if (cell == null)
 			{
 				System.out.println("Unable to create cell " + cellName);
 				return;
 			}
 
-			// add cell-center if requested
-			if (User.isPlaceCellCenter())
-			{
-				NodeProto cellCenterProto = NodeProto.findNodeProto("generic:Facet-Center");
-				NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
-					cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null);
-				cellCenter.setVisInside();
-				cellCenter.setHardSelect();
-			}
-
 			if (!newWindow)
 			{
-				EditWindow wnd = Highlight.getHighlightedWindow();
+				EditWindow wnd = EditWindow.getCurrent();
 				if (wnd != null)
 				{
 					wnd.setCell(cell, VarContext.globalContext);

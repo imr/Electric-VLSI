@@ -499,63 +499,6 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the current window in which the highlights reside.
-	 * @return the EditWindow to redraw with the highlighted objects.
-	 * Prints an error messagen returns null if no EditWindow can be determined.
-	 */
-	public static EditWindow getHighlightedWindow()
-	{
-		EditWindow undisplayedAlternate = null;
-		EditWindow curWind = TopLevel.getCurrentEditWindow();
-		Library lib = Library.getCurrent();
-		Cell cell = lib.getCurCell();
-		if (cell != null)
-		{
-			if (curWind != null && curWind.getCell() == cell) return curWind;
-
-//			!!! find a beter way to determine the CURRENT window !!!
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				curWind = wf.getEditWindow();
-				if (curWind != null) break;
-				if (curWind.getCell() == cell) break;
-			}
-		}
-
-		if (getNumHighlights() > 0)
-		{
-			// determine the cell with these geometrics
-			for(Iterator it = getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() == Type.GEOM || h.getType() == Type.BBOX || h.getType() == Type.LINE)
-				{
-					Cell parent = h.getGeom().getParent();
-					if (curWind != null && curWind.getCell() == parent) return curWind;
-					EditWindow wnd = EditWindow.findWindow(parent);
-					if (wnd != null) undisplayedAlternate = wnd;
-				}
-			}
-			if (undisplayedAlternate != null)
-				return undisplayedAlternate;
-		}
-
-		if (curWind != null) return curWind;
-
-		// just take any window
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			curWind = wf.getEditWindow();
-			if (curWind != null) return curWind;
-		}
-
-		System.out.println("No current window");
-		return null;
-	}
-
-	/**
 	 * Routine to set a screen offset for the display of highlighting.
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.
@@ -629,7 +572,7 @@ public class Highlight
 		{
 			Geometric nextGeom = sea.nextObject();
 			if (nextGeom == null) break;
-			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd, directHitDist);
+			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd, directHitDist, false);
 			if (h == null) continue;
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
@@ -1105,6 +1048,8 @@ public class Highlight
 		// make a list of things under the cursor
 		List list = new ArrayList();
 
+		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
+
 		// this is the distance from an object that is necessary for a "direct hit"
 		double directHitDist = 0;
 		if (wnd != null)
@@ -1124,8 +1069,13 @@ public class Highlight
 				{
 					Poly poly = polys[i];
 					poly.setExactTextBounds(wnd);
-					double dist = poly.polyDistance(bounds);
-					if (dist >= directHitDist) continue;
+					if (areaMustEnclose)
+					{
+						if (!poly.isInside(bounds)) continue;
+					} else
+					{
+						if (poly.polyDistance(bounds) >= directHitDist) continue;
+					}
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
@@ -1147,8 +1097,13 @@ public class Highlight
 					// do we need to do this? !!!
 					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
-					double dist = poly.polyDistance(bounds);
-					if (dist >= directHitDist) continue;
+					if (areaMustEnclose)
+					{
+						if (!poly.isInside(bounds)) continue;
+					} else
+					{
+						if (poly.polyDistance(bounds) >= directHitDist) continue;
+					}
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
@@ -1169,8 +1124,13 @@ public class Highlight
 				{
 					Poly poly = polys[i];
 					poly.setExactTextBounds(wnd);
-					double dist = poly.polyDistance(bounds);
-					if (dist >= directHitDist) continue;
+					if (areaMustEnclose)
+					{
+						if (!poly.isInside(bounds)) continue;
+					} else
+					{
+						if (poly.polyDistance(bounds) >= directHitDist) continue;
+					}
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
@@ -1205,18 +1165,18 @@ public class Highlight
 					case 0:			// check Cell instances
 						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 					case 1:			// check arcs
 						if (!(geom instanceof ArcInst)) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 					case 2:			// check primitive nodes
 						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof Cell) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 				}
@@ -1233,18 +1193,29 @@ public class Highlight
 	 * @param bounds the selected area or point.
 	 * @param wnd the window being examined (null to ignore window scaling).
 	 * @param directHitDist the slop area to forgive when searching (a few pixels in screen space, transformed to database units).
+	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
 	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D bounds,
-		EditWindow wnd, double directHitDist)
+		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
+		if (areaMustEnclose)
+		{
+			Rectangle2D geomBounds = geom.getBounds();
+			Poly poly = new Poly(geomBounds.getCenterX(), geomBounds.getCenterY(), geomBounds.getWidth(), geomBounds.getHeight());
+			if (!poly.isInside(bounds)) return null;
+		}
+
 		if (geom instanceof NodeInst)
 		{
 			// examine a node object
 			NodeInst ni = (NodeInst)geom;
 
 			// do not "find" hard-to-find nodes if "findSpecial" is not set
-			if (!findSpecial && ni.isHardSelect()) return null;
+			boolean hardToSelect = ni.isHardSelect();
+			boolean ignoreCells = !User.isEasySelectionOfCellInstances();
+			if ((ni.getProto() instanceof Cell) && ignoreCells) hardToSelect = true;
+			if (!findSpecial && hardToSelect) return null;
 
 			// do not include primitives that have all layers invisible
 //			if (ni.getProto() instanceof PrimitiveNode && (ni->proto->userbits&NINVISIBLE) != 0) return;
@@ -1336,6 +1307,13 @@ public class Highlight
 					Layer.Function lf = layer.getFunction();
 					if (!lf.isPoly() && !lf.isDiff()) continue;
 					poly.transform(trans);
+//					if (areaMustEnclose)
+//					{
+//						if (!poly.isInside(bounds)) continue;
+//					} else
+//					{
+//						if (poly.polyDistance(bounds) >= directHitDist) continue;
+//					}
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
 				}

@@ -97,7 +97,7 @@ public class Spice
 
 	public static void writeSpiceDeck()
 	{
-		EditWindow wnd = TopLevel.getCurrentEditWindow();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 		if (wnd.getCell() == null) return;
 		String fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.SPI, null, wnd.getCell().getProtoName());

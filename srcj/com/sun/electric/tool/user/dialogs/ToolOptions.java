@@ -51,6 +51,8 @@ import javax.swing.JScrollPane;
 import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 
 
@@ -133,12 +135,38 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 	}
 
+	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
+
 	/** Creates new form ToolOptions */
 	public ToolOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+
+		// if the last know tab name is available, find that tab again
+		if (currentTabName != null)
+		{
+			int numTabs = tabPane.getTabCount();
+			for(int i=0; i<numTabs; i++)
+			{
+				String tabName = tabPane.getTitleAt(i);
+				if (tabName.equals(currentTabName))
+				{
+					tabPane.setSelectedIndex(i);
+					break;
+				}
+			}
+		}
+
+		// listen for changes in the current tab
+        tabPane.addChangeListener(new ChangeListener()
+        {
+            public void stateChanged(ChangeEvent evt)
+            {
+				currentTabName = tabPane.getTitleAt(tabPane.getSelectedIndex());
+            }
+        });
 
 		// get current information
 		curTech = Technology.getCurrent();
@@ -354,17 +382,17 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceCellList = new JList(spiceCellListModel);
 		spiceCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		spiceCell.setViewportView(spiceCellList);
-		spiceCellList.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceCellListClick(); }
-		});
 		for(Iterator it = curLib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			spiceCellListModel.addElement(cell.noLibDescribe());
 		}
 		spiceCellList.setSelectedIndex(0);
-		spiceCellListClick();
+		spiceCellList.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceCellListClick(); }
+		});
+//		spiceCellListClick();
 //		spiceCell.getDocument().addDocumentListener(new CellDocumentListener(spiceCellModelOptions, spiceCellList, curLib));
 	}
 
@@ -878,7 +906,7 @@ public class ToolOptions extends javax.swing.JDialog
         spiceModel = new javax.swing.ButtonGroup();
         netDefaultOrder = new javax.swing.ButtonGroup();
         verilogModel = new javax.swing.ButtonGroup();
-        tabs = new javax.swing.JTabbedPane();
+        tabPane = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
         jLabel30 = new javax.swing.JLabel();
         drcIncrementalOn = new javax.swing.JCheckBox();
@@ -1165,7 +1193,7 @@ public class ToolOptions extends javax.swing.JDialog
             }
         });
 
-        tabs.setToolTipText("");
+        tabPane.setToolTipText("");
         drc.setLayout(new java.awt.GridBagLayout());
 
         jLabel30.setText("Incremental DRC:");
@@ -1293,7 +1321,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         drc.add(drcEditRulesDeck, gridBagConstraints);
 
-        tabs.addTab("DRC", drc);
+        tabPane.addTab("DRC", drc);
 
         designRules.setLayout(new java.awt.GridBagLayout());
 
@@ -1618,7 +1646,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         designRules.add(drMultiUnconnectedRule, gridBagConstraints);
 
-        tabs.addTab("Design Rules", designRules);
+        tabPane.addTab("Design Rules", designRules);
 
         spice.setLayout(new java.awt.GridBagLayout());
 
@@ -2126,7 +2154,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.weighty = 0.5;
         spice.add(spice6, gridBagConstraints);
 
-        tabs.addTab("Spice", spice);
+        tabPane.addTab("Spice", spice);
 
         verilog.setLayout(new java.awt.GridBagLayout());
 
@@ -2207,7 +2235,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         verilog.add(verFileName, gridBagConstraints);
 
-        tabs.addTab("Verilog", verilog);
+        tabPane.addTab("Verilog", verilog);
 
         fastHenry.setLayout(new java.awt.GridBagLayout());
 
@@ -2393,7 +2421,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         fastHenry.add(fhAfterAction, gridBagConstraints);
 
-        tabs.addTab("Fast Henry", fastHenry);
+        tabPane.addTab("Fast Henry", fastHenry);
 
         wellCheck.setLayout(new java.awt.GridBagLayout());
 
@@ -2500,7 +2528,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         wellCheck.add(wellFindFarthestDistance, gridBagConstraints);
 
-        tabs.addTab("Well Check", wellCheck);
+        tabPane.addTab("Well Check", wellCheck);
 
         antennaRules.setLayout(new java.awt.GridBagLayout());
 
@@ -2547,7 +2575,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         antennaRules.add(antMaxRatio, gridBagConstraints);
 
-        tabs.addTab("Antenna Rules", antennaRules);
+        tabPane.addTab("Antenna Rules", antennaRules);
 
         network.setLayout(new java.awt.GridBagLayout());
 
@@ -2674,7 +2702,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         network.add(jLabel29, gridBagConstraints);
 
-        tabs.addTab("Network", network);
+        tabPane.addTab("Network", network);
 
         ncc.setLayout(new java.awt.BorderLayout());
 
@@ -3023,7 +3051,7 @@ public class ToolOptions extends javax.swing.JDialog
 
         ncc.add(jPanel2, java.awt.BorderLayout.CENTER);
 
-        tabs.addTab("NCC", ncc);
+        tabPane.addTab("NCC", ncc);
 
         logicalEffort.setLayout(new java.awt.GridBagLayout());
 
@@ -3194,7 +3222,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 11;
         logicalEffort.add(leWireRatio, gridBagConstraints);
 
-        tabs.addTab("Logical Effort", logicalEffort);
+        tabPane.addTab("Logical Effort", logicalEffort);
 
         routing.setLayout(new java.awt.GridBagLayout());
 
@@ -3295,7 +3323,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         routing.add(routMimicInteractive, gridBagConstraints);
 
-        tabs.addTab("Routing", routing);
+        tabPane.addTab("Routing", routing);
 
         compaction.setLayout(new java.awt.GridBagLayout());
 
@@ -3315,7 +3343,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         compaction.add(compVerbose, gridBagConstraints);
 
-        tabs.addTab("Compaction", compaction);
+        tabPane.addTab("Compaction", compaction);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -3324,7 +3352,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        getContentPane().add(tabs, gridBagConstraints);
+        getContentPane().add(tabPane, gridBagConstraints);
 
         cancel.setText("Cancel");
         cancel.addActionListener(new java.awt.event.ActionListener()
@@ -3715,7 +3743,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
     private javax.swing.JCheckBox spiceWriteTransSizesInLambda;
-    private javax.swing.JTabbedPane tabs;
+    private javax.swing.JTabbedPane tabPane;
     private javax.swing.JButton verBrowse;
     private javax.swing.JScrollPane verCells;
     private javax.swing.JCheckBox verDefWireTrireg;

@@ -150,12 +150,12 @@ public class EMath
 		int num = 0;
 		int sign = 1;
 		int len = s.length();
-		if (s.charAt(pos) == '-')
+		if (pos < len && s.charAt(pos) == '-')
 		{
 			pos++;
 			sign = -1;
 		}
-		if (s.charAt(pos) == '0')
+		if (pos < len && s.charAt(pos) == '0')
 		{
 			pos++;
 			base = 8;

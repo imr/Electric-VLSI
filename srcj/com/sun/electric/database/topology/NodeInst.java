@@ -51,6 +51,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -138,6 +139,39 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
+
+	/**
+	 * Routine to create a NodeInst and do extra things necessary for it.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param name name of new NodeInst
+	 * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
+		int angle, Cell parent, String name)
+	{
+		NodeInst ni = newInstance(protoType, center, width, height, angle, parent, name);
+		if (ni != null)
+		{
+			// set default information from the prototype
+			if (protoType instanceof Cell)
+			{
+				// for cells, use the default expansion on this instance
+				if (protoType.isWantExpanded()) ni.setExpanded();
+			} else
+			{
+				// for primitives, set a default outline if appropriate
+				protoType.getTechnology().setDefaultOutline(ni);
+			}
+		}
+		return ni;
+	}
 
 	/**
 	 * Routine to create a NodeInst.
@@ -855,9 +889,10 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
+		boolean easyAnnotation = User.isEasySelectionOfAnnotationText();
 		int nodeNameText = 0;
-		if (hardToSelect && protoType instanceof Cell && !isExpanded()) nodeNameText = 1;
-		int dispVars = numDisplayableVariables(false);
+		int dispVars = 0;
+		if (easyAnnotation) dispVars = numDisplayableVariables(false);
 		int numExports = getNumExports();
 		int numExportVariables = 0;
 		for(Iterator it = getExports(); it.hasNext(); )
@@ -871,7 +906,7 @@ public class NodeInst extends Geometric implements Nodable
 		int start = 0;
 
 		// add in the cell name if appropriate
-		if (nodeNameText != 0)
+		if (easyAnnotation && (nodeNameText != 0))
 		{
 			double cX = getCenterX();
 			double cY = getCenterY();
@@ -894,7 +929,6 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			Export pp = (Export)it.next();
 			polys[start] = pp.getNamePoly();
-//System.out.println("Port poly bounds "+polys[start].getBounds2D());
 			start++;
 
 			// add in variables on the exports
@@ -906,7 +940,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// add in the displayable variables
-		addDisplayableVariables(getBounds(), polys, start, wnd, false);
+		if (easyAnnotation) addDisplayableVariables(getBounds(), polys, start, wnd, false);
 		return polys;
 	}
 

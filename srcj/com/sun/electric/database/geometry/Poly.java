@@ -589,6 +589,73 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Routine to tell whether a coordinates of this Poly are inside of a Rectangle2D.
+	 * @param bounds the Rectangle2D in question.
+	 * @return true if this Poly is completely inside of the bounds.
+	 */
+	public boolean isInside(Rectangle2D bounds)
+	{
+		if (style == Type.CIRCLE || style == Type.THICKCIRCLE || style == Type.DISC)
+		{
+			Point2D ctr = points[0];
+			double dx = Math.abs(ctr.getX() - points[1].getX());
+			double dy = Math.abs(ctr.getY() - points[1].getY());
+			double rad = Math.max(dx, dy);
+			if (!bounds.contains(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad))) return false;
+			if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
+			return true;
+		}
+		for(int i=0; i<points.length; i++)
+		{
+			if (!bounds.contains(points[i])) return false;
+		}
+		return true;
+	}
+//		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
+//		{
+//			// first see if the point is at the proper angle from the center of the arc
+//			int ang = EMath.figureAngle(points[0], pt);
+//			int endangle = EMath.figureAngle(points[0], points[1]);
+//			int startangle = EMath.figureAngle(points[0], points[2]);
+//			double angrange;
+//			if (endangle > startangle)
+//			{
+//				if (ang < startangle || ang > endangle) return false;
+//				angrange = endangle - startangle;
+//			} else
+//			{
+//				if (ang < startangle && ang > endangle) return false;
+//				angrange = 3600 - startangle + endangle;
+//			}
+//
+//			// now see if the point is the proper distance from the center of the arc
+//			double dist = points[0].distance(pt);
+//			double wantdist;
+//			if (ang == startangle || angrange == 0)
+//			{
+//				wantdist = points[0].distance(points[1]);
+//			} else if (ang == endangle)
+//			{
+//				wantdist = points[0].distance(points[2]);
+//			} else
+//			{
+//				double startdist = points[0].distance(points[1]);
+//				double enddist = points[0].distance(points[2]);
+//				if (enddist == startdist) wantdist = startdist; else
+//				{
+//					wantdist = startdist + (ang - startangle) / angrange *
+//						(enddist - startdist);
+//				}
+//			}
+//			if (dist == wantdist) return true;
+//			return false;
+//		}
+
+		// I give up
+//		return false;
+//	}
+
+	/**
 	 * Routine to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
 	 * This Poly is modified in place to reduce its size.
 	 * @param pi the PortInst that describes this Poly.

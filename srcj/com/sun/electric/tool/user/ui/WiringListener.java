@@ -298,7 +298,7 @@ class WiringListener
 					{
 						// create the nodeInst
 						Cell cell = wl.getCellBeingWired();
-						NodeInst newNi = NodeInst.newInstance(wp.getNodeType(), wp.getNodeLocation(),
+						NodeInst newNi = NodeInst.makeInstance(wp.getNodeType(), wp.getNodeLocation(),
 							wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null);
 						if (newNi == null) return;
 						nodesCreated++;

@@ -34,6 +34,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.user.User;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -986,6 +987,23 @@ public abstract class NodeProto extends ElectricObject
 	 * @return the temporary Object on this NodeProto.
 	 */
 	public Object getTempObj() { return tempObj; }
+
+	/**
+	 * Abstract routine to return the default rotation for new instances of this NodeProto.
+	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this NodeProto.
+	 * If the value is 3600 or greater, it means that X should be mirrored.
+	 */
+	public int getDefPlacementAngle()
+	{
+		int defAngle = User.getNewNodeRotation();
+		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
+		if (var != null)
+		{
+			Integer rot = (Integer)var.getObject();
+			defAngle = rot.intValue();
+		}
+		return defAngle;
+	}
 
 	/**
 	 * Abstract routine to return the default width of this NodeProto.

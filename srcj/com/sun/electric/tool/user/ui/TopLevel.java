@@ -34,8 +34,6 @@ import java.util.List;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.Cursor;
 
 import javax.swing.JFrame;
@@ -49,10 +47,10 @@ import javax.swing.ImageIcon;
 
 
 /**
- * @author wc147374
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * Class to define a top-level window.
+ * In MDI mode (used by Windows to group multiple documents into a single window) this class is
+ * used for that single top window.
+ * In SDI mode (used elsewhere to give each cell its own window) this class is used many times for each window.
  */
 public class TopLevel extends JFrame
 {
@@ -79,8 +77,6 @@ public class TopLevel extends JFrame
 	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop;
 	/** The main frame (if MDI). */							private static TopLevel topLevel;
-	/** The current window frame (only 1 if MDI). */		private static TopLevel current;
-	/** A list of all frames (if SDI). */					private static List windowList = new ArrayList();
 	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
@@ -94,8 +90,6 @@ public class TopLevel extends JFrame
 	public TopLevel(String name, Dimension screenSize)
 	{
 		super(name);
-		addWindowListener(new WindowsEvents(this));
-		addWindowFocusListener(new WindowsEvents(this));
 		setSize(screenSize);
 		getContentPane().setLayout(new BorderLayout());
 		setVisible(true);
@@ -114,8 +108,6 @@ public class TopLevel extends JFrame
 		if (!isMDIMode())
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-		windowList.add(this);
-		current = this;
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	}
 
@@ -186,17 +178,7 @@ public class TopLevel extends JFrame
 	 * This is used on Windows.
 	 * @return true if Electric is in MDI mode.
 	 */
-	public static boolean isMDIMode()
-	{
-		return mdi;
-	}
-
-	/**
-	 * Routine to return an iterator over all top-level windows.
-	 * This only makes sense in SDI mode, where there are multiple top-level windows.
-	 * @return an iterator over all top-level windows.
-	 */
-	public static Iterator getWindows() { return windowList.iterator(); }
+	public static boolean isMDIMode() { return mdi; }
 
 	/**
 	 * Routine to return component palette window.
@@ -212,46 +194,11 @@ public class TopLevel extends JFrame
 	public static Dimension getScreenSize() { return new Dimension(scrnSize); }
 
 	/**
-	 * Routine to remove a window from the list of top-level windows.
-	 * This only makes sense in SDI mode, where there are multiple top-level windows.
-	 * @param tl the top-level window to remove.
-	 */
-	public static void removeWindow(TopLevel tl) { windowList.remove(tl); }
-
-	/**
-	 * Routine to set the current top-level window.
-	 * This only makes sense in SDI mode, where there are multiple top-level windows.
-	 * @param tl the top-level window to make current.
-	 */
-	public static void setCurrentWindow(TopLevel tl) { current = tl; }
-
-	/**
 	 * Routine to add an internal frame to the desktop.
 	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
 	 * @param jif the internal frame to add.
 	 */
 	public static void addToDesktop(JInternalFrame jif) { desktop.add(jif); }
-
-	/**
-	 * Routine to return the current EditWindow.
-	 * @return the current EditWindow.
-	 */
-	public static EditWindow getCurrentEditWindow()
-	{
-		if (isMDIMode())
-        {
-        	JInternalFrame frame = desktop.getSelectedFrame();
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				if (wf.getInternalFrame() == frame) return wf.getEditWindow();
-			}
-			return null;
-        } else
-        {
-        	return current.getEditWindow();
-        }
-	}
 
 	public static Cursor getCurrentCursor() { return cursor; }
 
@@ -280,7 +227,8 @@ public class TopLevel extends JFrame
 			return topLevel;
  		} else
         {
-        	return current;
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			return wf.getFrame();
         }
 	}
 
@@ -295,42 +243,4 @@ public class TopLevel extends JFrame
 	 * @param wnd the EditWindow to associatd with this.
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
-}
-
-
-class WindowsEvents extends WindowAdapter
-{
-	TopLevel window;
-	
-	WindowsEvents(TopLevel tl)
-	{
-		super();
-		this.window = tl;	
-	}
-
-	public void windowGainedFocus(WindowEvent e)
-	{
-		if (TopLevel.isMDIMode()) return;
-		TopLevel.setCurrentWindow(window);
-	}
-	
-	public void windowClosing(WindowEvent e)
-	{
-		if (TopLevel.isMDIMode())
-		{
-			UserMenuCommands.quitCommand();
-		}
-		for(Iterator it = TopLevel.getWindows(); it.hasNext(); )
-		{
-			TopLevel tl = (TopLevel)it.next();
-			if (tl != window)
-			{
-				TopLevel.removeWindow(window);
-				window.dispose();
-				TopLevel.setCurrentWindow(tl);
-				return;
-			}
-		}
-		System.out.println("Cannot delete the last window");
-	}		
 }

@@ -33,6 +33,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -151,6 +152,10 @@ public class CellOptions extends javax.swing.JDialog
 		charXSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, true));
 		charYSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, false));
 
+		confirmDelete.setSelected(true);
+
+		rename.setEnabled(false);
+
 		loadCellList();
 	}
 
@@ -189,6 +194,7 @@ public class CellOptions extends javax.swing.JDialog
 		OldValues ov = (OldValues)origValues.get(cell);
 		if (ov != null)
 		{
+			cellName.setText(cell.getProtoName());
 			disallowModAnyInCell.setSelected(ov.disAllMod);
 			disallowModInstInCell.setSelected(ov.disInstMod);
 			partOfCellLib.setSelected(ov.inCellLib);
@@ -282,10 +288,15 @@ public class CellOptions extends javax.swing.JDialog
         jLabel3 = new javax.swing.JLabel();
         charYSpacing = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
+        editCell = new javax.swing.JButton();
+        cellName = new javax.swing.JTextField();
+        rename = new javax.swing.JButton();
+        delete = new javax.swing.JButton();
+        confirmDelete = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("New Cell");
+        setTitle("Cell Control");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -305,7 +316,7 @@ public class CellOptions extends javax.swing.JDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -323,7 +334,7 @@ public class CellOptions extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
@@ -361,9 +372,9 @@ public class CellOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cellPane, gridBagConstraints);
 
         disallowModAnyInCell.setText("Disallow modification of anything in this cell");
@@ -646,8 +657,97 @@ public class CellOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         getContentPane().add(jLabel4, gridBagConstraints);
 
+        editCell.setText("Edit Cell");
+        editCell.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editCellActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(editCell, gridBagConstraints);
+
+        cellName.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(cellName, gridBagConstraints);
+
+        rename.setText("Rename Cell");
+        rename.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                renameActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(rename, gridBagConstraints);
+
+        delete.setText("Delete Cell");
+        delete.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                deleteActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(delete, gridBagConstraints);
+
+        confirmDelete.setText("Confirm Delete");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(confirmDelete, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+	private void renameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_renameActionPerformed
+	{//GEN-HEADEREND:event_renameActionPerformed
+		System.out.println("Can't rename yet");
+	}//GEN-LAST:event_renameActionPerformed
+
+	private void deleteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteActionPerformed
+	{//GEN-HEADEREND:event_deleteActionPerformed
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		String cellName = (String)cellList.getSelectedValue();
+		if (cellName == null) return;
+		Cell cell = lib.findNodeProto(cellName);
+		boolean confirm = confirmDelete.isSelected();
+		CircuitChanges.deleteCell(cell, confirm);
+		loadCellList();
+	}//GEN-LAST:event_deleteActionPerformed
+
+	private void editCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editCellActionPerformed
+	{//GEN-HEADEREND:event_editCellActionPerformed
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		String cellName = (String)cellList.getSelectedValue();
+		if (cellName == null) return;
+		Cell cell = lib.findNodeProto(cellName);
+		WindowFrame.createEditWindow(cell);
+		ok(null);
+	}//GEN-LAST:event_editCellActionPerformed
 
 	private void unexpandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unexpandNewInstancesActionPerformed
 	{//GEN-HEADEREND:event_unexpandNewInstancesActionPerformed
@@ -896,6 +996,7 @@ public class CellOptions extends javax.swing.JDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
+    private javax.swing.JTextField cellName;
     private javax.swing.JScrollPane cellPane;
     private javax.swing.JTextField charXSpacing;
     private javax.swing.JTextField charYSpacing;
@@ -903,8 +1004,11 @@ public class CellOptions extends javax.swing.JDialog
     private javax.swing.JButton clearDisallowModInstInCell;
     private javax.swing.JButton clearPartOfCellLib;
     private javax.swing.JButton clearUseTechEditor;
+    private javax.swing.JCheckBox confirmDelete;
+    private javax.swing.JButton delete;
     private javax.swing.JCheckBox disallowModAnyInCell;
     private javax.swing.JCheckBox disallowModInstInCell;
+    private javax.swing.JButton editCell;
     private javax.swing.JRadioButton expandNewInstances;
     private javax.swing.ButtonGroup expansion;
     private javax.swing.JLabel jLabel1;
@@ -914,6 +1018,7 @@ public class CellOptions extends javax.swing.JDialog
     private javax.swing.JComboBox libraryPopup;
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox partOfCellLib;
+    private javax.swing.JButton rename;
     private javax.swing.JButton setDisallowModAnyInCell;
     private javax.swing.JButton setDisallowModInstInCell;
     private javax.swing.JButton setPartOfCellLib;

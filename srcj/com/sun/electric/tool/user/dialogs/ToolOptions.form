@@ -29,7 +29,7 @@
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
   <SubComponents>
-    <Container class="javax.swing.JTabbedPane" name="tabs">
+    <Container class="javax.swing.JTabbedPane" name="tabPane">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value=""/>
       </Properties>

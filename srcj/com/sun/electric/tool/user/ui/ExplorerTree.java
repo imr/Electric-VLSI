@@ -867,7 +867,7 @@ public class ExplorerTree extends JTree
 		private void deleteCellAction()
 		{
 			Cell cell = (Cell)currentSelectedObject;
-			CircuitChanges.deleteCell(cell);
+			CircuitChanges.deleteCell(cell, true);
 		}
 
 		private void renameCellAction()
