@@ -46,6 +46,10 @@ public class PortInst
 		Rectangle2D r = portProto.getPoly(nodeInst).getBounds2D();
 		return r;
 	}
+	public Poly getPoly()
+	{
+		return portProto.getPoly(nodeInst);
+	}
 
 	/** Can this PortInst be connected to a particular type of arc? */
 //	public boolean connectsTo(ArcProto arc)

@@ -208,11 +208,11 @@ public class NodeInst extends Geometric
 		System.out.println(" Prototype: " + prototype.describe());
 		super.getInfo();
 		System.out.println(" Ports:");
-		for(Iterator it = prototype.getPorts(); it.hasNext();)
+		for(Iterator it = getPorts(); it.hasNext();)
 		{
-			PortProto pp = (PortProto) it.next();
-			Poly p = pp.getPoly(this);
-			System.out.println("     " + pp + " at " + p.getCenterX() + "," + p.getCenterY());
+			PortInst pi = (PortInst) it.next();
+			Poly p = pi.getPoly();
+			System.out.println("     " + pi.getPortProto() + " at " + p.getCenterX() + "," + p.getCenterY());
 		}
 		if (connections.size() != 0)
 		{
@@ -347,6 +347,26 @@ public class NodeInst extends Geometric
 		transform.translate(dx, dy);
 		return transform;
 	}
+	
+	public AffineTransform translateOut()
+	{
+		// to transform out of this node instance, first translate inner coordinates to outer
+		Cell lowerCell = (Cell)prototype;
+		Rectangle2D bounds = lowerCell.getBounds();
+		double dx = getX() - bounds.getX();
+		double dy = getY() - bounds.getY();
+		AffineTransform transform = new AffineTransform();
+		transform.translate(dx, dy);
+		return transform;
+	}
+	
+	public AffineTransform rotateOut()
+	{
+		// to transform out of this node instance, first translate inner coordinates to outer
+		AffineTransform transform = new AffineTransform();
+		transform.setToRotation(angle, cX, cY);
+		return transform;
+	}
 
 	/** Get an iterator for all PortInst's */
 	public Iterator getPorts()
@@ -369,6 +389,20 @@ public class NodeInst extends Geometric
 	public PortInst findPort(String name)
 	{
 		return (PortInst) portMap.get(name);
+	}
+
+	/**
+	 * routine to determine whether pin display should be supressed by counting
+	 * the number of arcs and seeing if there are one or two and also by seeing if
+	 * the node has exports (then draw it if there are three or more).
+	 * Returns true if the pin should be supressed.
+	 */
+	public boolean pinUseCount()
+	{
+		if (connections.size() > 2) return false;
+		if (exports.size() != 0) return true;
+		if (connections.size() == 0) return false;
+		return true;
 	}
 
 	/**

@@ -567,9 +567,9 @@ public class Cell extends NodeProto
 					if (highy > cellHighY) cellHighY = highy;
 				}
 			}
-			elecBounds.x = (cellLowX + cellHighX) / 2.0;
+			elecBounds.x = cellLowX;
 			elecBounds.width = cellHighX - cellLowX;
-			elecBounds.y = (cellLowY + cellHighY) / 2.0;
+			elecBounds.y = cellLowY;
 			elecBounds.height = cellHighY - cellLowY;
 			boundsDirty = false;
 		}

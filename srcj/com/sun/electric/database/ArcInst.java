@@ -83,6 +83,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		ends[end ? 1 : 0] = c;
 	}
+	public Connection getConnection(int end)
+	{
+		return ends[end];
+	}
 
 	// Remove this ArcInst.  Will also remove the connections on either
 	// side.
@@ -350,6 +354,113 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public String getName()
 	{
 		return (String) getVar(VAR_ARC_NAME);
+	}
+
+	Poly makearcpoly(double len, double wid, Poly.Type style)
+	{
+		Point2D end1 = ends[0].getLocation();
+		Point2D end2 = ends[1].getLocation();
+
+		/* zero-width polygons are simply lines */
+		if (wid == 0)
+		{
+			Poly poly = new Poly(new Point2D[]{end1, end2});
+			poly.setStyle(style);
+			return poly;
+		}
+
+		/* determine the end extension on each end */
+		double e1 = wid/2;
+		double e2 = wid/2;
+//		if ((ai->userbits&NOEXTEND) != 0)
+//		{
+//			/* nonextension arc: set extension to zero for all included ends */
+//			if ((ai->userbits&NOTEND0) == 0) e1 = 0;
+//			if ((ai->userbits&NOTEND1) == 0) e2 = 0;
+//		} else if ((ai->userbits&ASHORT) != 0)
+//		{
+//			/* shortened arc: compute variable extension */
+//			e1 = tech_getextendfactor(wid, ai->endshrink&0xFFFF);
+//			e2 = tech_getextendfactor(wid, (ai->endshrink>>16)&0xFFFF);
+//		}
+
+		/* make the polygon */
+		Poly poly = tech_makeendpointpoly(len, wid, getAngle(), end1, e1, end2, e2);
+		if (poly != null) poly.setStyle(style);
+		return poly;
+	}
+
+	Poly tech_makeendpointpoly(double len, double wid, double angle, Point2D end1, double e1,
+		Point2D end2, double e2)
+	{
+		double temp, xextra, yextra, xe1, ye1, xe2, ye2, w2, sa, ca;
+
+		w2 = wid / 2;
+		double x1 = end1.getX();   double y1 = end1.getY();
+		double x2 = end2.getX();   double y2 = end2.getY();
+
+		/* somewhat simpler if rectangle is manhattan */
+		if (angle < 0) angle += Math.PI * 2;
+		if (angle == Math.PI/2 || angle == Math.PI/2*3)
+		{
+			if (y1 > y2)
+			{
+				temp = y1;   y1 = y2;   y2 = temp;
+				temp = e1;   e1 = e2;   e2 = temp;
+			}
+			Poly poly = new Poly(new Point2D.Double[] {
+				new Point2D.Double(x1 - w2, y1 - e1),
+				new Point2D.Double(x1 + w2, y1 - e1),
+				new Point2D.Double(x2 + w2, y2 + e2),
+				new Point2D.Double(x2 - w2, y2 + e2)});
+			return poly;
+		}
+		if (angle == 0 || angle == Math.PI)
+		{
+			if (x1 > x2)
+			{
+				temp = x1;   x1 = x2;   x2 = temp;
+				temp = e1;   e1 = e2;   e2 = temp;
+			}
+			Poly poly = new Poly(new Point2D.Double[] {
+				new Point2D.Double(x1 - e1, y1 - w2),
+				new Point2D.Double(x1 - e1, y1 + w2),
+				new Point2D.Double(x2 + e2, y2 + w2),
+				new Point2D.Double(x2 + e2, y2 - w2)});
+			return poly;
+		}
+
+		/* nonmanhattan arcs cannot have zero length so re-compute it */
+//		if (len == 0) len = computedistance(x1,y1, x2,y2);
+//		if (len == 0)
+//		{
+//			sa = sine(angle);
+//			ca = cosine(angle);
+//			xe1 = x1 - mult(ca, e1);
+//			ye1 = y1 - mult(sa, e1);
+//			xe2 = x2 + mult(ca, e2);
+//			ye2 = y2 + mult(sa, e2);
+//			xextra = mult(ca, w2);
+//			yextra = mult(sa, w2);
+//		} else
+//		{
+//			/* work out all the math for nonmanhattan arcs */
+//			xe1 = x1 - muldiv(e1, (x2-x1), len);
+//			ye1 = y1 - muldiv(e1, (y2-y1), len);
+//			xe2 = x2 + muldiv(e2, (x2-x1), len);
+//			ye2 = y2 + muldiv(e2, (y2-y1), len);
+//
+//			/* now compute the corners */
+//			xextra = muldiv(w2, (x2-x1), len);
+//			yextra = muldiv(w2, (y2-y1), len);
+//		}
+//		Poly poly = new Poly(new Point2D.Double[] {
+//			new Point2D.Double(yextra + xe1, ye1 - xextra),
+//			new Point2D.Double(xe1 - yextra, xextra + ye1),
+//			new Point2D.Double(xe2 - yextra, xextra + ye2),
+//			new Point2D.Double(yextra + xe2, ye2 - xextra)});
+//		return poly;
+		return null;
 	}
 
 	/** Printable version of this ArcInst */

@@ -45,10 +45,10 @@ public class Export extends PortProto
 	}
 
 	/** Get the PortProto that was exported to create this Export. */
-	PortInst getOriginalPort() { return originalPort; }
+	public PortInst getOriginalPort() { return originalPort; }
 
 	/** Get the NodeInst that the port returned by getOriginal belongs to */
-	NodeInst getOriginalNode() { return originalNode; }
+	public NodeInst getOriginalNode() { return originalNode; }
 
 	/** Get the outline of this Export, relative to some arbitrary
 	 * instance of this Export's parent, passed in as a Geometric

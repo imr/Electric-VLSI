@@ -3,6 +3,7 @@ package com.sun.electric.database;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.awt.geom.Point2D;
 
 /**
  * A Technology object contains PrimitiveNodes and ArcProtos.  There may
@@ -175,6 +176,13 @@ public class Technology extends ElectricObject
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
+		
+		// see if the node is "wiped" (not drawn)
+		if (ni.isWiped()) return null;
+		if (prototype.isWipeOn1or2())
+		{
+			if (ni.pinUseCount()) return null;
+		}
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
 
@@ -230,30 +238,15 @@ public class Technology extends ElectricObject
 		double highY = ai.getY() + halfHeight;
 		
 		// construct the polygons
-//		Poly [] polys = new Poly[primLayers.length];
-//		for(int i = 0; i < primLayers.length; i++)
-//		{
-//			Technology.ArcLayer primLayer = primLayers[i];
-//			int representation = primLayer.getRepresentation();
-//			Poly.Type style = primLayer.getStyle();
-//			if (representation == Technology.NodeLayer.BOX)
-//			{
-//				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
-//				{
-//				} else
-//				{
-//					double portLowX = ai.getX() + primLayer.leftEdge.getMultiplier() * ai.getXSize() + primLayer.leftEdge.getAdder();
-//					double portHighX = ai.getX() + primLayer.rightEdge.getMultiplier() * ai.getXSize() + primLayer.rightEdge.getAdder();
-//					double portLowY = ai.getY() + primLayer.bottomEdge.getMultiplier() * ai.getYSize() + primLayer.bottomEdge.getAdder();
-//					double portHighY = ai.getY() + primLayer.topEdge.getMultiplier() * ai.getYSize() + primLayer.topEdge.getAdder();
-//					double portX = (portLowX + portHighX) / 2;
-//					double portY = (portLowY + portHighY) / 2;
-//					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-//				}
-//			}
-//		}
-//		return polys;
-		return null;
+		Poly [] polys = new Poly[primLayers.length];
+		for(int i = 0; i < primLayers.length; i++)
+		{
+			Technology.ArcLayer primLayer = primLayers[i];
+			polys[i] = ai.makearcpoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+			if (polys[i] == null) return null;
+			polys[i].setLayer(primLayer.getLayer());
+		}
+		return polys;
 	}
 
 	/**
@@ -263,20 +256,20 @@ public class Technology extends ElectricObject
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int [] specialValues = np.getSpecialValues();
-		if (specialValues[0] == PrimitiveNode.SERPTRANS)
-		{
-			// serpentine transistors use a more complex port determination (tech_filltransport)
-			Poly portpoly = new Poly(0, 0, 0, 0);
-			return portpoly;
-		} else
+//		if (specialValues[0] == PrimitiveNode.SERPTRANS)
+//		{
+//			// serpentine transistors use a more complex port determination (tech_filltransport)
+//			Poly portpoly = new Poly(0, 0, 0, 0);
+//			return portpoly;
+//		} else
 		{
 			// standard port determination, see if there is outline information
-			if (np.isHoldsOutline())
-			{
-				// outline may determinesthe port
-				Poly portpoly = new Poly(1, 2, 3, 4);
-				return portpoly;
-			} else
+//			if (np.isHoldsOutline())
+//			{
+//				// outline may determinesthe port
+//				Poly portpoly = new Poly(1, 2, 3, 4);
+//				return portpoly;
+//			} else
 			{
 				// standard port computation
 				double halfWidth = ni.getXSize() / 2;

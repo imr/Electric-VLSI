@@ -63,7 +63,7 @@ public class Poly implements Shape
 	private Layer layer;
 	private Point2D points[];
 	private Rectangle2D.Double bounds;
-	private int style;
+	private Poly.Type style;
 
 	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
 	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS=        077;
@@ -104,7 +104,7 @@ public class Poly implements Shape
 	{
 		this.points = points;
 		layer = null;
-		style = 0;
+		style = null;
 		bounds = null;
 	}
 
@@ -119,15 +119,15 @@ public class Poly implements Shape
 			new Point2D.Double(cX+halfWidth, cY+halfHeight),
 			new Point2D.Double(cX-halfWidth, cY+halfHeight)};
 		layer = null;
-		style = 0;
+		style = null;
 		bounds = null;
 	}
 
 	public Layer getLayer() { return layer; }
 	public void setLayer(Layer layer) { this.layer = layer; }
 
-	public int getStyle() { return style; }
-	public void setStyle(int style) { this.style = style; }
+	public Poly.Type getStyle() { return style; }
+	public void setStyle(Poly.Type style) { this.style = style; }
 
 	/** Get a transformed copy of this polygon, including scale, offset,
 	 * and rotation.
@@ -135,6 +135,7 @@ public class Poly implements Shape
 	public void transform(AffineTransform af)
 	{
 		af.transform(points, 0, points, 0, points.length);
+//		af.transform(points, points);
 	}
 
 	// SHAPE REQUIREMENTS:
