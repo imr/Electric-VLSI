@@ -448,16 +448,19 @@ public class Spice extends Topology
 					double perim = poly.getPerimeter();
 					double area = poly.getArea();
 
+                    //System.out.println("Layer "+layer.getFunction().toString()+" (lambda): area="+(area*maskScale*maskScale)+", perim="+(perim*maskScale));
 					// accumulate this information
-					if (layerIsDiff(layer))
-					{
-						spNet.diffArea += area * maskScale * maskScale;
-						spNet.diffPerim += perim * maskScale;
-					} else
-					{
-						spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
-						spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
-					}
+                    double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
+                    if (layerIsDiff(layer)) {
+                        spNet.diffArea += area * maskScale * maskScale;
+                        spNet.diffPerim += perim * maskScale;
+                    } else {
+                        area = area * scale * scale / 1000000; // area in square microns
+                        perim = perim * scale / 1000;           // perim in microns
+                        spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
+                        spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
+                        //System.out.println("Layer "+layer.getFunction().toString()+" (microns): area="+(area*maskScale*maskScale)+", perim="+(perim*maskScale));
+                    }
 				}
 			}		
 		}
@@ -881,6 +884,9 @@ public class Spice extends Topology
 			{
 				double w = maskScale * size.getDoubleWidth();
 				double l = maskScale * size.getDoubleLength();
+                // get gate length subtraction in lambda
+                double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
+                l -= lengthSubtraction;
 				if (!Simulation.isSpiceWriteTransSizeInLambda())
 				{
 					// make into microns (convert to nanometers then divide by 1000)
@@ -897,7 +903,10 @@ public class Spice extends Topology
 				{
                     // schematic transistors may be text
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
-                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                        if (lengthSubtraction != 0)
+                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+ lengthSubtraction));
+                        else
+                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
                     } else {
                         infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
@@ -917,8 +926,14 @@ public class Spice extends Topology
                     if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
 				}
 			} else {
-                if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String))
-                    infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                // get gate length subtraction in lambda
+                double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
+                if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
+                    if (lengthSubtraction != 0)
+                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+lengthSubtraction));
+                    else
+                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                }
                 if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
                     infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
             }
@@ -959,22 +974,22 @@ public class Spice extends Topology
 					}
 					if (as > 0.0)
 					{
-						infstr.append(" AS=" + TextUtils.formatDouble(as, 2));
+						infstr.append(" AS=" + TextUtils.formatDouble(as, 3));
 						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
 					}
 					if (ad > 0.0)
 					{
-						infstr.append(" AD=" + TextUtils.formatDouble(ad, 2));
+						infstr.append(" AD=" + TextUtils.formatDouble(ad, 3));
 						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
 					}
 					if (ps > 0.0)
 					{
-						infstr.append(" PS=" + TextUtils.formatDouble(ps, 2));
+						infstr.append(" PS=" + TextUtils.formatDouble(ps, 3));
 						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
 					}
 					if (pd > 0.0)
 					{
-						infstr.append(" PD=" + TextUtils.formatDouble(pd, 2));
+						infstr.append(" PD=" + TextUtils.formatDouble(pd, 3));
 						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
 					}
 				}
@@ -1008,7 +1023,7 @@ public class Spice extends Topology
 							first = false;
 							multiLinePrint(true, "** Extracted Parasitic Elements:\n");
 						}
-						multiLinePrint(false, "C" + capacNum + " " + cs.getName() + " 0 " + TextUtils.formatDouble(spNet.nonDiffCapacitance, 2) + "F\n");
+						multiLinePrint(false, "C" + capacNum + " " + cs.getName() + " 0 " + TextUtils.formatDouble(spNet.nonDiffCapacitance, 2) + "fF\n");
 						capacNum++;
 					}
 				}

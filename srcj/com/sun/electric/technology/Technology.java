@@ -546,6 +546,7 @@ public class Technology
 	/** scale for this Technology. */						private Pref prefScale;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
+    /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
 
 	/****************************** CONTROL ******************************/
 
@@ -2313,6 +2314,34 @@ public class Technology
 		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance);
 		prefMinCapacitance.setDouble(minCapacitance);
 	}
+
+    /**
+     * Gets the gate length subtraction for this Technology (in microns).
+     * This is used because there is sometimes a subtracted offset from the layout
+     * to the drawn length.
+     * @return the gate length subtraction for this Technology
+     */
+    public double getGateLengthSubtraction()
+    {
+        if (prefGateLengthSubtraction == null)
+        {
+            prefGateLengthSubtraction = Pref.makeDoublePref("Gate Length Subtraction (microns) " + "IN" + getTechName(), prefs, 0);
+            prefGateLengthSubtraction.attachToObject(this, "Tools/Spice tab", getTechShortName() + " Gate Length Subtraction (microns)");
+        }
+        return prefGateLengthSubtraction.getDouble();
+    }
+
+    /**
+     * Sets the gate length subtraction for this Technology (in microns)
+     * This is used because there is sometimes a subtracted offset from the layout
+     * to the drawn length.
+     * @param value the subtraction value for a gate length in microns
+     */
+    public void setGateLengthSubtraction(double value)
+    {
+        getGateLengthSubtraction();
+        prefGateLengthSubtraction.setDouble(value);
+    }
 
 	/**
 	 * Method to set default parasitic values on this Technology.

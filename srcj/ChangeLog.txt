@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01an: *********************************
 
+FIX (11/12/04, JKG) Parasitic extraction of capacitance in the Spice netlister
+    now works properly.
+
+IMP/MAN (11/12/04, JKG) Added units to parasitic section of Spice Options Tab,
+    added new option "Gate Length Subtraction".
+
 IMP: (11/12/04, SMR) Resizing a node lets you make it smaller without jumping corners.
 
 IMP/MAN (11/12/04, JKG) Added command Tool->Network->List Total Wire Lengths on All Networks
