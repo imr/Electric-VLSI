@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01o: *********************************
 
+IMP: (9/14/04, SMR) Can now print waveform windows.
+
+IMP/MAN: (9/14/04, SMR) Added "Eagle", "Pads", and "ECAD" netlist output.
 
 ************************* Version 8.01n: *********************************
 

@@ -103,6 +103,12 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
+		exportSubMenu.addMenuItem("Eagle...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EAGLE, false); } });
+		exportSubMenu.addMenuItem("Pads...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.PADS, false); } });
+		exportSubMenu.addMenuItem("ECAD...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.ECAD, false); } });
 		exportSubMenu.addMenuItem("PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
@@ -526,8 +532,8 @@ public class FileMenu {
 
         // special case for spice
         if (type == OpenFile.Type.SPICE &&
-                !Simulation.getSpiceRunChoice().equals(Simulation.spiceRunChoiceDontRun)) {
-
+			!Simulation.getSpiceRunChoice().equals(Simulation.spiceRunChoiceDontRun))
+        {
             // check if user specified working dir
             if (Simulation.getSpiceUseRunDir())
                 filePath = Simulation.getSpiceRunDir() + File.separator + filePath;
@@ -623,21 +629,6 @@ public class FileMenu {
  		if (pageFormat == null)
 			pageFormat = pj.defaultPage();
 
-		// resize the window if this is a WaveformWindow
-		Dimension oldSize = null;
-		if (wf.getContent() instanceof WaveformWindow)
-		{
-			System.out.println("Cannot print the waveform window");
-			return;
-//			int iw = (int)pageFormat.getImageableWidth();
-//			int ih = (int)pageFormat.getImageableHeight();
-//			JPanel overall = wf.getContent().getPanel();
-//			oldSize = overall.getSize();
-//			overall.setSize(iw, ih);
-//			overall.validate();
-//			overall.repaint();
-		}
-
 		ElectricPrinter ep = new ElectricPrinter();
 		ep.setPrintWindow(wf);
         pj.setPrintable(ep, pageFormat);
@@ -667,81 +658,63 @@ public class FileMenu {
 
         if (pj.printDialog())
         {
+			// disable double-buffering so prints look better
+			JPanel overall = wf.getContent().getPanel();
+			RepaintManager currentManager = RepaintManager.currentManager(overall);
+			currentManager.setDoubleBufferingEnabled(false);
+
+			// resize the window if this is a WaveformWindow
+			Dimension oldSize = null;
+			if (wf.getContent() instanceof WaveformWindow)
+			{
+				int iw = (int)pageFormat.getImageableWidth();
+				int ih = (int)pageFormat.getImageableHeight();
+				oldSize = overall.getSize();
+				overall.setSize(iw, ih);
+				overall.validate();
+				overall.repaint();
+			}
+
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
 				IOTool.setPrinterName(printerToUse.getName());
-//			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize));
-            PrintJob job = new PrintJob(wf, pj, oldSize);
+			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize));
         }
     }
 
-//	private static class PrintJobAWT implements Runnable
-//	{
-//		private WindowFrame wf;
-//		private PrinterJob pj;
-//		private Dimension oldSize;
-//
-//		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize)
-//		{
-//			this.wf = wf;
-//			this.pj = pj;
-//			this.oldSize = oldSize;
-//		}
-//
-//		public void run()
-//		{
-//			try {
-//				pj.print();
-//			} catch (PrinterException pe)
-//			{
-//				System.out.println("Print aborted.");
-//			}
-//
-//			if (oldSize != null)
-//			{
-//				JPanel overall = wf.getContent().getPanel();
-//				overall.setSize(oldSize);
-//				overall.validate();
-//			}
-//		}
-//	}
+	private static class PrintJobAWT implements Runnable
+	{
+		private WindowFrame wf;
+		private PrinterJob pj;
+		private Dimension oldSize;
 
-    /**
-     * Class to print a cell in a new thread.
-     */
-    private static class PrintJob extends Job
-    {
-    	private WindowFrame wf;
-        private PrinterJob pj;
-        private Dimension oldSize;
-
-        public PrintJob(WindowFrame wf, PrinterJob pj, Dimension oldSize)
-        {
-            super("Print "+wf.getTitle(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize)
+		{
 			this.wf = wf;
 			this.pj = pj;
 			this.oldSize = oldSize;
-            startJob();
-        }
+		}
 
-        public boolean doIt()
-        {
-            try {
-                pj.print();
-            } catch (PrinterException pe)
-            {
-                System.out.println("Print aborted.");
-            }
+		public void run()
+		{
+			try {
+				pj.print();
+			} catch (PrinterException pe)
+			{
+				System.out.println("Print aborted.");
+			}
+
+			JPanel overall = wf.getContent().getPanel();
+			RepaintManager currentManager = RepaintManager.currentManager(overall);
+			currentManager.setDoubleBufferingEnabled(true);
 
 			if (oldSize != null)
 			{
-				JPanel overall = wf.getContent().getPanel();
 				overall.setSize(oldSize);
 				overall.validate();
 			}
-            return true;
-        }
-    }
+		}
+	}
 
     private static class ElectricPrinter implements Printable
     {
@@ -778,7 +751,7 @@ public class FileMenu {
 	                offscreen.drawImage(null);
 	                img = offscreen.getImage();
 	            }
-	
+
 	            // copy the image to the page
 	            int ix = (int)pageFormat.getImageableX();
 	            int iy = (int)pageFormat.getImageableY();
@@ -787,7 +760,10 @@ public class FileMenu {
 			} else if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				ww.printIt(g);
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+				JPanel printArea = wf.getContent().getPanel();
+				printArea.paint(g);
 				return Printable.PAGE_EXISTS;
 			}
 

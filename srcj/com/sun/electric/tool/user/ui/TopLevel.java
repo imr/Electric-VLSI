@@ -183,6 +183,9 @@ public class TopLevel extends JFrame
 				osMode = Mode.MDI;
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+
+				// force simple newline characters
+				System.setProperty("line.separator", "\n");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
 				os = OS.UNIX;

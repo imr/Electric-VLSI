@@ -119,7 +119,7 @@ public class IRSIM extends Output
             NodeProto np = no.getProto();						// check if prototype is Primitive transistor
             if (!(np instanceof PrimitiveNode)) return true;	// descend and enumerate
             PrimitiveNode pn = (PrimitiveNode)np;
-			NodeInst ni = (NodeInst)no; 						// Nodable is NodeInst because it is primitnive node
+			NodeInst ni = (NodeInst)no; 						// Nodable is NodeInst because it is primitive node
             if (!(ni.isPrimitiveTransistor())) return false;	// not transistor, ignore
             boolean isNMOS = false;
             if (ni.getFunction() == NodeProto.Function.TRANMOS ||

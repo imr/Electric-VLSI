@@ -1254,6 +1254,10 @@ public class CircuitChanges
 							"Delete failed", JOptionPane.ERROR_MESSAGE);
 					return false;
 				}
+				if (eobj instanceof NodeInst)
+				{
+					if (cantEdit(cell, (NodeInst)eobj, true)) continue;
+				}
 				oneGeom = (Geometric)eobj;
 				deleteList.add(eobj);
 			}
@@ -1514,7 +1518,6 @@ public class CircuitChanges
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
-				if (cantEdit(cell, ni, true)) continue;
 				if (ni.getFlagValue(deleteFlag) != 0)
 					ni.setFlagValue(deleteFlag, 2);
 			}

@@ -238,6 +238,17 @@ public class Clipboard
 
 			// make sure deletion is allowed
 			if (CircuitChanges.cantEdit(parent, null, true)) return false;
+			List deleteList = new ArrayList();
+			for(Iterator it = geoms.iterator(); it.hasNext(); )
+			{
+				Geometric g = (Geometric)it.next();
+				if (g instanceof NodeInst)
+				{
+					if (CircuitChanges.cantEdit(parent, (NodeInst)g, true)) continue;
+				}
+				deleteList.add(g);
+			}
+			geoms = deleteList;
 
 			// copy objects to clipboard
 			copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(mouseDB.getX(), mouseDB.getY()));

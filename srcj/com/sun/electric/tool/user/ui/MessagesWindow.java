@@ -349,7 +349,6 @@ public class MessagesWindow
 
 	private void copyText(boolean all, boolean cut)
 	{
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		if (all)
 		{
 			if (cut)
@@ -358,6 +357,7 @@ public class MessagesWindow
 				info.cut();
 			} else
 			{
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 				clipboard.setContents(new StringSelection(info.getText()), this);
 			}
 		} else

@@ -55,9 +55,9 @@ import java.util.ArrayList;
  */
 public class Verilog extends Topology
 {
-	/* maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
-	/* name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
-	/* name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
+	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
+	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
+	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
 
 	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = ElectricObject.newKey("VERILOG_code");
 	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = ElectricObject.newKey("VERILOG_declaration");

@@ -3828,20 +3828,6 @@ public class WaveformWindow implements WindowContent
 		//wf.redoExplorerTreeIfRequested();
 	}
 
-	public void printIt(Graphics g)
-	{
-		overall.paint(g);
-		left.paint(g);
-		right.paint(g);
-		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
-		{
-			Panel wp = (Panel)it.next();
-			wp.paint(g);
-		}
-		if (mainTimePanel != null)
-			mainTimePanel.paint(g);
-	}
-
 	public void fireCellHistoryStatus()
 	{
 	}

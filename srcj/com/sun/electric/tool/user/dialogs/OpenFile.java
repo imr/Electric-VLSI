@@ -45,27 +45,30 @@ public class OpenFile
 	public static class Type
 	{
 		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
-		/** Describes JELIB files.*/			public static final Type JELIB        = new Type("JELIB", new String[] {"jelib"}, "Library File (jelib)");
-		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
-		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
-		/** Describes HTML files. */			public static final Type HTML         = new Type("HTML", new String[] {"html"}, "HTML File (html)");
-		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
-		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
-		/** Describes GDS files. */				public static final Type GDS          = new Type("GDS", new String[] {"gds"}, "GDS File (gds)");
-		/** Describes PostScript files. */		public static final Type POSTSCRIPT   = new Type("PostScript", new String[] {"ps"}, "PostScript (ps)");
-		/** Describes SPICE decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
-		/** Describes SPICE standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
-		/** Describes PSpice standard output.*/	public static final Type PSPICEOUT    = new Type("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output FIle (spo)");
-		/** Describes HSpice output. */			public static final Type HSPICEOUT    = new Type("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
-		/** Describes Raw Spice output. */		public static final Type RAWSPICEOUT  = new Type("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
-		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 		/** Describes CDL decks.*/				public static final Type CDL          = new Type("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
-		/** Describes VERILOG decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
-		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
-		/** Describes MAXWELL decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
+		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
+		/** Describes Eagle files.*/			public static final Type EAGLE        = new Type("Eagle", new String[] {"txt"}, "Eagle File (txt)");
+		/** Describes ECAD files.*/				public static final Type ECAD         = new Type("ECAD", new String[] {"enl"}, "ECAD File (enl)");
+		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
+		/** Describes GDS files. */				public static final Type GDS          = new Type("GDS", new String[] {"gds"}, "GDS File (gds)");
+		/** Describes HSpice output. */			public static final Type HSPICEOUT    = new Type("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
+		/** Describes HTML files. */			public static final Type HTML         = new Type("HTML", new String[] {"html"}, "HTML File (html)");
 		/** Describes IRSIM decks. */			public static final Type IRSIM        = new Type("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
 		/** Describes Java source. */			public static final Type JAVA         = new Type("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
+		/** Describes JELIB files.*/			public static final Type JELIB        = new Type("JELIB", new String[] {"jelib"}, "Library File (jelib)");
+		/** Describes MAXWELL decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 		/** Describes Pad Frame Array spec. */	public static final Type PADARR       = new Type("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
+		/** Describes Pads files. */			public static final Type PADS         = new Type("Pads", new String[] {"asc"}, "Pads File (asc)");
+		/** Describes PostScript files. */		public static final Type POSTSCRIPT   = new Type("PostScript", new String[] {"ps"}, "PostScript (ps)");
+		/** Describes PSpice standard output.*/	public static final Type PSPICEOUT    = new Type("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output FIle (spo)");
+		/** Describes Raw Spice output. */		public static final Type RAWSPICEOUT  = new Type("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
+		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
+		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
+		/** Describes SPICE decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
+		/** Describes SPICE standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
+		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
+		/** Describes VERILOG decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
+		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 
 		private final String name;
 		private final String [] extensions;

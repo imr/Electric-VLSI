@@ -257,6 +257,15 @@ public class Output
 		} else if (type == OpenFile.Type.CIF)
 		{
 			CIF.writeCIFFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.EAGLE)
+		{
+			Eagle.writeEagleFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.ECAD)
+		{
+			ECAD.writeECADFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.PADS)
+		{
+			Pads.writePadsFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.GDS)
 		{
 			GDS.writeGDSFile(cell, context, filePath);
