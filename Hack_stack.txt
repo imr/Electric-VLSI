@@ -1,0 +1,245 @@
+FIXED:
+	Upper-level text is shown when editing "down in-place" (for JonG)
+
+TO DO:
+	Music: scanned A-Ramones
+	Last FrameMaker files:
+		DevelE / Electric / docs / ELM User's Guide.fm
+		DevelE / Electric / docs / Internals / *.fm
+		DevelE / Electric / docs / Talks / Internals Course Slides.fm
+		Personal / Facts / Bands / Who Cares - Insert.fm		
+Dima ID: 146861 department: 562-363-4073 (under Greg)
+
+Things to do:
+	The whole "Copy Subcells" issue (also, it leaves cross-library references in place)
+	Multipage Schematics:
+		Multiple exports with the same name on different pages?
+		Multiple cell-centers?
+		Adjust coordinate space?
+		Fix EDIF to use it
+	Mimic stitcher doesn't preview arcs to be created
+	Things that aren't undoable (and don't mark the library "dirty"):
+		Negating arcs
+		Setting a cell's technology
+	Ability to click and drag a cell from the Explorer window to create an instance
+		(ExplorerTree.dragGestureRecognized() starts the action)
+	Waveform window:
+		Instead of using zoom tool, double-click on an axis or something to manually enter the limits (for Justin)
+		Ability to "export PostScript" (for Justin)
+		Why does cursor change to zoom mode automatically after plotting signal from list (for Ian)
+		List HSpice exports at the lower level, not the upper level (for Ian)
+		Reload button doesn't update signals panel on left (for Justin)
+		Have "Measure" mode cross panel boundaries (for Robert)
+ 		Why does VCR control have trouble stopping?
+		On Mac, dragging signal names from the explorer list drags a box the size of the explorer window (RD-103)
+		If you add some signals, close the viewer, open it, add some more
+			signals, close it and restarts, often the second set of signals that you
+			add are not remembered (JonL)
+		Want horizontal grid lines (JonL)
+ 	Simulation:
+		Verilog output doesn't handle negating bubbles
+		IRSIM does not write parasitics
+	Automatic icon generation (for Tom):
+		Thick black box instead of thin red box
+		Have nice little black tabs extending from box for each export
+		Tabs and exports move appropriately when black box resized (alternatively, could allow user to specify size of box upon generation)
+		Place exports same relative location as in schematic
+	Multi-line text that is Boxed is not drawn right
+	Pasting without the "move after paste" doesn't do intelligent remembering of offset
+	How to show results of good NCC?
+		(how about ^K)
+		How about boolean of whether it's passed NCC (for CellLists)
+
+Yea, yea:
+	Change the term "Node" to "Shape" for outline primitives:
+		Types of nodes: pins, contacts, specials (transistors, etc.), and "shapes"
+	On Windows, maximize an edit window then click on component menu title bar...big mess
+	Way to find all resources that start with a string (for LibFile.getSpicePartsLibraries())
+	Have DRC do CIF-style grid checking
+	Have "Layer Visibility" offer range by height, so for example you can make M1-M4 invisible (for Tom)
+
+JOptionPane:
+	ERROR MESSAGE:
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "You did something wrong", "Error Has Happened", JOptionPane.ERROR_MESSAGE);
+	CONFIRMATION:
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "OK?");
+		if (response == JOptionPane.YES_OPTION) return "Want Yes";
+	PROMPT FOR TYPED VALUE:
+		String editedValue = JOptionPane.showInputDialog("The Value:", "initial");
+		if (editedValue == null) return;
+	CHOOSE AMONG SMALL NUMBER OF CHOICES:
+		String [] options = {"Yes", "No", "Cancel"};
+		int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+			"What do you want?", "Dialog to Make a Decision",
+			JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, "No");
+		if (ret == 0) return "Want Yes";
+		if (ret == 1) return "Want No";
+		if (ret == 2) return "Want Cancel";
+	CHOOSE AMONG LARGE NUMBER OF CHOICES:
+		String [] manyOptions = {"a", "b", "c", "d", "e", "f"};
+        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Choose one",
+            "Make a Choice", JOptionPane.QUESTION_MESSAGE, null, manyOptions, "c");
+        if (chosen == null) return;
+
+============================ UNCONVERTED FROM C ELECTRIC ============================
+
+High priority:
+	Schematic technology: Complex bus-pin visibility when viewed from up the hierarchy
+	"Window / Saved Views"
+	"Window / Highlight Layer"
+	"Window / Component Menu..."
+	Input: LEF
+	Input: DEF
+	Input: DXF
+	IRSIM simulator
+	ALS simulator
+	Special get-info dialogs for transistor size, resistance, etc.
+	Compaction
+	Technology editing
+	PSpice (aka spice3) output cannot be read
+
+Low priority:
+	Project management
+	Edge alignment
+	Technologies: fpga
+	"Technology / Document Technology"
+	Output: HPGL
+	Dracula interface
+	CMOS PLA generation
+	Convert to VHDL ("View / Make VHDL View")
+	VHDL compiler
+	Silicon compiler
+
+Will never happen:
+	Network: "Analyze Cell Network"
+	nMOS PLA generation
+	"Window / Window Partitions"
+	MOCMOS stick figures
+   	Ability to disable differential ports on AND, OR, and XOR
+	Multithreaded DRC
+	Technologies: cmosdodn, epic7s, ziptronics
+
+============================ THE C STACK ============================
+
+Steps to do conversion:
+	Convert:
+		NODEPROTO: "FACET_message", "FACET_original_facet", "FACET_characteristic_spacing",
+			"FACET_essentialbounds", "FACET_schematic_page_size"
+		TOOL: "USER_facet_explorer_textsize", "USER_default_facet_text_size"
+
+Simulation:
+	Frequency plots
+	Set any signal onto the X axis, not just time
+	Ability to display amperes
+	Logarithmic axes
+	Measurement files (et1.mt0), how do I plot them?
+	If the resistance of a net between two exports exceeds the min resistance, the two exports should be netlisted
+		separately with a resistor between.  Otherwise, they can be merged into a single net.
+	SPICE netlisting of AS, AD, PS, and PD fields should work like irsim
+	Verilog needs way to set gate delays and gate signal strengths on per-instance basis
+	IRSIM:
+		Making a bus in IRSIM with "b" should create a "vector" command
+		Inserting stimulus inside of "c" must break it into individual "s" commands
+		Handle "@" command for commandfiles
+		by default, put clocks first, then inputs, then bidir, then outputs, then internal nets
+		by default, display the exported signals and explicitly named internal nets
+		support the analyzer (ana for short) IRSIM command to add signals to the list being viewed
+		provide hierarchy browser to add signals.  Three panes: hierarchy level, exports, internal signals
+		use hierarchy browser to go up and down levels.  In it, provide an option to view the sch/layout during sim.
+		accept IRSIM stimulus at the command line as well as in a command file (essentially replace
+			command language accepted by the simulator window, at least for IRSIM)
+		Remove "0b", "0x" and "0" prefixes from busses, say what base in upper-left
+		"clear all vectors" doesn't work if there is a command-file after base is changed
+		round cursor location to either .5 or .1 multiples of scale that fits in window
+		autoscroll when dragging signals in simulation window
+		ability to drag multiple selected signals
+		add signal by typing "a" when signal is selected in layout or sch window
+DRC:
+	Graphical DRC specification
+	Option to correct errors
+	Save the DRC errors somewhere so that when electric crashes you don't have to re-run DRC
+		for 8 hrs to get back to where you were before the crash.
+	If you place a pure layer node of active, it must be surrounded by 2 lambda of 
+		select on all sides
+	DRC doesn't flag MOSIS rule 8.5
+ERC:
+	Tying ERC results to NCC to validate 4th (bias) port
+	ERC to find shortest (geometrically) path between two points on a network
+	Check that all power connected together, all ground connected together
+	Find short circuits (from power to ground)
+	Count transistors wired in parallel
+	Way to display "loops" in a circuit
+	Way to find the closest nontouching point on a network
+	Find components with floating nodes
+Routing:
+	Channel router
+	River routing:
+		Should be able to route to the top or right (does bottom/left)
+		Way to get "unrouted" wires to mimic sensibly
+		Way to place unrouted wires intelligently
+		Handle mixed-arc river routing (route only selected?)
+
+Miscellaneous:
+	Node extractor
+	Tapered arcs
+	Multifinger transistors in schematics (more than 1 base/emitter)
+	Way to un-skeletonize ("library merge" command to copy more recent/real cells)
+	Propagate cell date/version hierarchically
+	Overview window
+	Prevent negative wires during moves
+	Under the "Windows" menu if would be nice to include a list of all the open windows
+	Butting substrate contacts
+	Transistor primitives should have bus ports instead of wire ports
+	Scheme for describing facet dependencies (i.e. "netlist generated from VHDL") and give warnings on edit
+	Prevent Compactor from moving "facet center".  Option to move toward it
+	"cleanup" should handle:
+		Unattached/unexported wire obscured by other wire
+		Wire that doubles back on itself
+	Technology editor:
+		Cannot reconstruct the Multiplier primitive from the Efido technology
+		Should allow serpentine transistors that don't have crossing active
+		Can there be two contact cuts in a primitive? what about multi-cut situations?
+	EPS bounding box not right when image is rotated
+	Generalized listing of exports:
+		How do I search for all power type exports that DON'T have a certain name?
+		How do I search for all exports that are on the Vdd or ground nets?
+	Never create non 45-degree polygons for closed geometries, such as the letter `a' in layout text
+	Constraints:
+		An "anchor" constraint
+		Add simpler constraints to replace rigidity and orthogonality
+			wire length/angle flexibility, wire-to-node angle flexibility
+		Add more constraints for more powerful work
+			wire length/angle range, wire-to-node angle range
+
+============================ DOCUMENTS ============================
+
+Sun memos:
+	smr-001 / 2000-0094: A Vision for Chip Design
+	smr-002 / 2000-0731: Release of Electric version 6.02
+	smr-003 / 2001-0173: Release of Electric version 6.03
+	smr-004 / 2001-0396: Release of Electric version 6.04
+	smr-005 / 2002-0084: Permission to use Cadence CDL format in Electric
+	smr-006 / 2002-0085: Release of Electric version 6.05
+	smr-007 / 2002-0098: Electric User's Manual, version 6.05
+	smr-008 / 2002-0099: Electric Internals Manual, version 6.05
+	smr-009 / 2002-0381: Release of Electric version 6.06
+	smr-010 / 2002-0384: Electric User's Manual, version 6.06
+	smr-011 / 2002-0385: Electric Internals Manual, version 6.06
+	smr-012 / 2002-0507: Procedures for Managing Development of the Electric VLSI Design System
+	smr-013 / 2002-0890: Abandoned...now 2003-0168 (smr-018)
+	smr-014 / 2002-0903: Release of Electric version 6.07
+	smr-015 / 2002-0911: Electric User's Manual, version 6.07
+	smr-016 / 2002-0912: Electric Internals Manual, version 6.07
+	smr-017 / 2003-0086: Electric Project Review (2/20/03)
+	smr-018 / 2003-0168: Extending the Power of Naming in the Electric VLSI Design System
+	smr-019 / 2003-0382: Release of Electric version 6.08
+	smr-020 / 2003-0383: Electric User's Manual, version 6.08
+	smr-021 / 2003-0384: Electric Internals Manual, version 6.08
+	smr-022 / 2004-0054: Tools in the Java Implementation of Electric
+	smr-023 / 2004-0425: Cell Scaling in Java Electric
+	smr-024 / 2004-0555: The Journey from C to Java: Experiences Translating Electric
+	smr-025 / 2004-0561: Release of Electric versions 7.00 and 8.00
+	smr-026 / 2004-0607: Electric User's Manual, version 7.00
+	smr-027 / 2004-0609: Electric User's Manual, version 8.00
+	smr-028 / 2004-0779: A New Library File Format for Electric
+When a document is released, make a folder called /proj/async/tr/drop-box/smlxxxx-xxxx and put it there
