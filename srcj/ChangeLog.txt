@@ -2,6 +2,15 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (7/1/04, SMR) "Insert Jog In Arc" works wrong for arcs that are not on grid.
+FIX: Now keeps inserted jog inside of the arc.
+
+IMP: (7/1/04, SMR) Created "com.sun.electric.plugins" package for extras.
+
+IMP: (7/1/04, SMR) Maxwell now includes net names.
+
+IMP: (6/30/04, SMR) Added "refresh" button to waveform window to re-read simulation data.
+
 IMP: (6/30/04, SMR) Maxwell output writes contact cuts, scales to microns.
 
 IMP: (6/30/04, SMR) AND, OR, and XOR gates now scale properly.

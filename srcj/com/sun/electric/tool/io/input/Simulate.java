@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -373,7 +374,7 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 
 		protected ReadSimulationOutput(OpenFile.Type type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
-			super("Read Simulation Output", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Read Simulation Output", IOTool.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
 			this.is = is;
 			this.fileURL = fileURL;
@@ -467,6 +468,17 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
 				wp.setValueRange(lowValue, highValue);
 				wp.makeSelectedPanel();
+			} else
+			{
+				// put all top-level signals in
+				for(int i=0; i<sd.signals.size(); i++)
+				{
+					Simulate.SimDigitalSignal sDSig= (Simulate.SimDigitalSignal)sd.signals.get(i);
+					if (sDSig.getSignalContext() != null) continue;
+					WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
+					wp.makeSelectedPanel();
+					new WaveformWindow.Signal(wp, sDSig);
+				}
 			}
 		}
 		ww.getPanel().validate();

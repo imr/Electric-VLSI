@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -187,7 +188,7 @@ public class GDS extends Geometry
 		}
 
 		// now write exports
-		if (getGDSOutDefaultTextLayer() >= 0)
+		if (IOTool.getGDSOutDefaultTextLayer() >= 0)
 		{
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
@@ -219,12 +220,12 @@ public class GDS extends Geometry
 				selectLayer(layer);
 
 				int textLayer, pinLayer;
-				textLayer = pinLayer = getGDSOutDefaultTextLayer();
+				textLayer = pinLayer = IOTool.getGDSOutDefaultTextLayer();
 				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
 				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
 
 				// put out a pin if requested
-				if (isGDSOutWritesExportPins())
+				if (IOTool.isGDSOutWritesExportPins())
 				{
 					poly.transform(trans);
 					writePoly(poly, pinLayer);
@@ -273,7 +274,7 @@ public class GDS extends Geometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return isGDSOutMergesBoxes();
+		return IOTool.isGDSOutMergesBoxes();
 	}
 
 	protected boolean selectLayer(Layer layer)
@@ -526,7 +527,7 @@ public class GDS extends Geometry
 		for(int k=0; k<str.length(); k++)
 		{
 			char ch = str.charAt(k);
-			if (isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
+			if (IOTool.isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
 			if (ch != '$' && !Character.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
 				ch = '_';
 			ret += ch;
@@ -807,7 +808,7 @@ public class GDS extends Geometry
 	private void outputString(String ptr, int n)
 	{
 		int i = 0;
-		if (isGDSOutUpperCase())
+		if (IOTool.isGDSOutUpperCase())
 		{
 			// convert to upper case
 			for( ; i<ptr.length(); i++)

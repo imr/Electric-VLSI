@@ -865,8 +865,8 @@ public class EditMenu {
         private Point2D getInsertPoint(MouseEvent evt)
         {
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			EditWindow.gridAlign(mouseDB);
             Point2D insert = DBMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
-            EditWindow.gridAlign(insert);
             return insert;
         }
 

@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -102,8 +103,8 @@ public class CIF extends Geometry
 
 		// initialize preferences
 		minAllowedResolution = 0;
-		if (isCIFOutCheckResolution())
-			minAllowedResolution = getCIFOutResolution();
+		if (IOTool.isCIFOutCheckResolution())
+			minAllowedResolution = IOTool.getCIFOutResolution();
 
         errorLogger = ErrorLogger.newInstance("CIF resolution");
 	}
@@ -139,7 +140,7 @@ public class CIF extends Geometry
 
 	protected void done()
 	{
-		if (isCIFOutInstantiatesTopLevel())
+		if (IOTool.isCIFOutInstantiatesTopLevel())
 			writeLine("C " + cellNumber + ";");
 		writeLine("E");
 
@@ -203,7 +204,7 @@ public class CIF extends Geometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return isCIFOutMergesBoxes();
+		return IOTool.isCIFOutMergesBoxes();
 	}
 
 	/**
@@ -270,7 +271,7 @@ public class CIF extends Geometry
 		Cell cell = (Cell)ni.getProto();
 
 		// if mimicing display and unexpanded, draw outline
-		if (!ni.isExpanded() && isCIFOutMimicsDisplay())
+		if (!ni.isExpanded() && IOTool.isCIFOutMimicsDisplay())
 		{
 			Rectangle2D bounds = ni.getBounds();
 			Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
@@ -390,7 +391,7 @@ public class CIF extends Geometry
 			NodeProto np = ni.getProto();
 			if (np instanceof Cell)
 			{
-				if (!ni.isExpanded() && isCIFOutMimicsDisplay())
+				if (!ni.isExpanded() && IOTool.isCIFOutMimicsDisplay())
 				{
 					return false;
 				}

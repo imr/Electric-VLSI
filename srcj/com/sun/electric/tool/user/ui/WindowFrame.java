@@ -362,6 +362,7 @@ public class WindowFrame
 	private boolean wantToRedoLibraryTree = false;
 	private boolean wantToRedoJobTree = false;
 	private boolean wantToRedoErrorTree = false;
+	private boolean wantToRedoSignalTree = false;
 
 	public static void wantToRedoLibraryTree()
 	{
@@ -393,9 +394,16 @@ public class WindowFrame
 		}
 	}
 
+	public void wantToRedoSignalTree()
+	{
+		wantToRedoSignalTree = true;
+		content.loadExplorerTree(rootNode);
+		redoExplorerTreeIfRequested();
+	}
+
 	public void redoExplorerTreeIfRequested()
 	{
-		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree) return;
+		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
 		HashMap expanded = new HashMap();
@@ -408,6 +416,7 @@ public class WindowFrame
 			jobExplorerNode = Job.getExplorerTree();
 		if (wantToRedoErrorTree)
 			errorExplorerNode = ErrorLogger.getExplorerTree();
+		wantToRedoLibraryTree = wantToRedoJobTree = wantToRedoErrorTree = wantToRedoSignalTree = false;
 
 		// rebuild the tree
 		rootNode.removeAllChildren();

@@ -715,8 +715,15 @@ public class Cell extends NodeProto implements Comparable
 				if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
 					version == c.getVersion())
 				{
-					System.out.println("Already a cell with this version");
-					return true;
+					System.out.println("Already have cell " + c.getName() + " with version " + version + ", generating a new version");
+					version = 1;
+					for (Iterator vIt = lib.getCells(); vIt.hasNext();)
+					{
+						c = (Cell) vIt.next();
+						if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
+							c.getVersion() >= version)
+								version = c.getVersion() + 1;
+					}
 				}
 			}
 		} else

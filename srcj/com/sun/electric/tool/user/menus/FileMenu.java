@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
@@ -540,7 +541,7 @@ public class FileMenu {
         pj.setPrintable(ep);
 
         // see if a default printer should be mentioned
-        String pName = Output.getPrinterName();
+        String pName = IOTool.getPrinterName();
         PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
         PrintService printerToUse = null;
         for(int i=0; i<printers.length; i++)
@@ -566,7 +567,7 @@ public class FileMenu {
         {
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
-                Output.setPrinterName(printerToUse.getName());
+				IOTool.setPrinterName(printerToUse.getName());
             PrintJob job = new PrintJob(printCell, pj);
         }
     }

@@ -56,6 +56,7 @@ import java.util.HashMap;
 public class Maxwell extends Output
 {	
 	HashMap maxNetMap;
+	HashMap boxNames;
 	int boxNumber;
 
 	/**
@@ -88,6 +89,7 @@ public class Maxwell extends Output
 	private void initialize(Cell cell)
 	{
 		maxNetMap = new HashMap();
+		boxNames = new HashMap();
 		boxNumber = 1;
 
 		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getName() + "\n");
@@ -110,22 +112,23 @@ public class Maxwell extends Output
 		for(Iterator it = maxNetMap.keySet().iterator(); it.hasNext(); )
 		{
 			Integer index = (Integer)it.next();
-			List layerList = (List)maxNetMap.get(index);
-			if (layerList.size() <= 1) continue;
+			List boxList = (List)maxNetMap.get(index);
+			if (boxList.size() <= 1) continue;
 			printWriter.print("Unite {");
 			boolean first = true;
-			for(Iterator lIt = layerList.iterator(); lIt.hasNext(); )
+			for(Iterator lIt = boxList.iterator(); lIt.hasNext(); )
 			{
 				Integer boxNum = (Integer)lIt.next();
 				if (first) first = false; else
 					printWriter.print(" ");
-				printWriter.print("\"Box-" + boxNum + "\"");
+				String boxName = (String)boxNames.get(boxNum);
+				printWriter.print("\"" + boxName + "\"");
 			}
 			printWriter.print("}\n");
 		}
 	}
 
-	private void writePolygon(Poly poly, int globalNetNum)
+	private void writePolygon(Poly poly, int globalNetNum, JNetwork net)
 	{
 		Layer layer = poly.getLayer();
 		if (layer.getTechnology() != Technology.getCurrent()) return;
@@ -140,11 +143,11 @@ public class Maxwell extends Output
 
 		// find this network object
 		Integer index = new Integer(globalNetNum);
-		List layerList = (List)maxNetMap.get(index);
-		if (layerList == null)
+		List boxList = (List)maxNetMap.get(index);
+		if (boxList == null)
 		{
-			layerList = new ArrayList();
-			maxNetMap.put(index, layerList);
+			boxList = new ArrayList();
+			maxNetMap.put(index, boxList);
 		}
 
 		// convert to microns
@@ -153,9 +156,12 @@ public class Maxwell extends Output
 		double lY = box.getMinY() * scale / 1000;
 		double wid = box.getWidth() * scale / 1000;
 		double hei = box.getHeight() * scale / 1000;
+		String netName = net.describe() + "-" + boxNumber;
 		printWriter.print("Box pos3 " + lX + " " + lY + " " + layer.getName() + "-Bot   " +
-			wid + " " + hei + " " + layer.getName() + "-Hei \"Box-" + boxNumber + "\"\n");
-		layerList.add(new Integer(boxNumber));
+			wid + " " + hei + " " + layer.getName() + "-Hei \"" + netName + "\"\n");
+		Integer boxNum = new Integer(boxNumber);
+		boxList.add(boxNum);
+		boxNames.put(boxNum, netName);
 		boxNumber++;
 	}
 
@@ -192,7 +198,7 @@ public class Maxwell extends Output
 					JNetwork net = netList.getNetwork(pi);
 					if (net == null) continue;
 					int globalNetNum = info.getNetID(net);
-					generator.writePolygon(poly, globalNetNum);
+					generator.writePolygon(poly, globalNetNum, net);
 				}
 			}
 
@@ -209,7 +215,7 @@ public class Maxwell extends Output
 					poly.transform(info.getTransformToRoot());
 					JNetwork net = netList.getNetwork(ai, 0);
 					int globalNetNum = info.getNetID(net);
-					generator.writePolygon(poly, globalNetNum);
+					generator.writePolygon(poly, globalNetNum, net);
 				}
 			}
             return true;

@@ -73,7 +73,7 @@ import java.util.Date;
  * This class manages writing files in different formats.
  * The class is subclassed by the different file writers.
  */
-public class Output extends IOTool
+public class Output//extends IOTool
 {
 	/** file path */                            protected String filePath;
 	/** for writing text files */               protected PrintWriter printWriter;
@@ -447,8 +447,8 @@ public class Output extends IOTool
 
 	protected void emitCopyright(String prefix, String postfix)
 	{
-		if (!isUseCopyrightMessage()) return;
-		String str = getCopyrightMessage();
+		if (!IOTool.isUseCopyrightMessage()) return;
+		String str = IOTool.getCopyrightMessage();
 		int start = 0;
 		while (start < str.length())
 		{
@@ -477,7 +477,7 @@ public class Output extends IOTool
 			bounds.setRect(bounds.getCenterX(), bounds.getCenterY(), wid, hei);
 		}
 
-		if (getPlotArea() != 0)
+		if (IOTool.getPlotArea() != 0)
 		{
 			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null)
@@ -485,7 +485,7 @@ public class Output extends IOTool
 				System.out.println("No current window: printing entire cell");
 			} else
 			{
-				if (getPlotArea() == 2)
+				if (IOTool.getPlotArea() == 2)
 				{
 					bounds = wnd.getDisplayedBounds();
 				} else

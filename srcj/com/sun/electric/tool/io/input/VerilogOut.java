@@ -369,7 +369,7 @@ public class VerilogOut extends Simulate
 			{
 				Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
 				String context = sSig.getSignalContext();
-				if (context.length() <= len) sSig.setSignalContext(""); else
+				if (context.length() <= len) sSig.setSignalContext(null); else
 					sSig.setSignalContext(context.substring(len+1));
 			}
 		}

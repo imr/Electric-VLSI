@@ -534,7 +534,7 @@ public class Technology extends ElectricObject
 		technologies.add(this);
 	}
 
-	private static final String [] extraTechnologies = {"TSMC90"};
+	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
 
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
@@ -559,7 +559,7 @@ public class Technology extends ElectricObject
 		{
 			try
 			{
-				Class extraTechClass = Class.forName("com.sun.electric.technology.technologies." + extraTechnologies[i]);
+				Class extraTechClass = Class.forName("com.sun.electric.plugins." + extraTechnologies[i]);
 				extraTechClass.getMethod("setItUp", null).invoke(null, null);
 	 		} catch (Exception e) {}
 		}

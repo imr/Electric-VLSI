@@ -69,6 +69,17 @@
         </delete>
     </target>
 
+    <target name="jarTSMC90" depends="init" description="Make binary Jar plugin for TSMC 90">
+        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
+            <include name="com/sun/electric/plugins/tsmc90/TSMC90.java"/>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
+        </javac>
+        <jar basedir="." compress="true" jarfile="TSMC90.jar">
+            <include name="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
+        </jar>
+        <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
+    </target>
+
     <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
         <property name="version" value=""/>
         <unjar dest="." src="${AppleJava}"/> 
@@ -82,7 +93,7 @@
             <exclude name="electric${version}.jar"/>
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/technology/technologies/TSMC90.*"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
@@ -108,7 +119,7 @@
             <exclude name="electric${version}.jar"/>
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/technology/technologies/TSMC90.*"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
         </jar>
         <delete file="electric${version}.mf"/>
         <delete dir="com/apple"/>

@@ -1852,7 +1852,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			wp.signalButtons.repaint();
 			wp.repaint();
 		}
-		getSignalsForExplorer();
+		wf.wantToRedoSignalTree();
 		System.out.println("Simulation data refreshed from disk");
 	}
 
@@ -1913,7 +1913,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 	private DefaultMutableTreeNode getSignalsForExplorer()
 	{
-System.out.println("Loading signal explorer tree");
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
 		HashMap contextMap = new HashMap();
 		contextMap.put("", signalsExplorerTree);
@@ -1972,14 +1971,24 @@ System.out.println("Loading signal explorer tree");
 		return null;
 	}
 
+	/**
+	 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.
+	 */
 	public void highlightChanged()
 	{
+		// start by removing all highlighting in the waveform
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.clearHighlightedSignals();
+		}
+
 		Set highSet = Highlight.getHighlightedNetworks();
 		if (highSet.size() == 1)
 		{
 			JNetwork net = (JNetwork)highSet.iterator().next();
 			String netName = net.describe();
-
+System.out.println("Looking for waveform signal "+netName);
 			// look at all signal names in the cell
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
@@ -1990,17 +1999,43 @@ System.out.println("Loading signal explorer tree");
 				for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 				{
 					Signal ws = (Signal)sIt.next();
-					if (netName.equals(ws.sSig.getSignalName()))
+					String signalName = ws.sSig.getSignalName();
+					if (netName.equals(signalName))
 					{
-						for(Iterator oIt = wavePanels.iterator(); oIt.hasNext(); )
-						{
-							Panel oWp = (Panel)oIt.next();
-							oWp.clearHighlightedSignals();
-						}
-
 						wp.addHighlightedSignal(ws);
 						repaint();
 						return;
+					}
+
+					// if the signal name has underscores, see if all alphabetic characters match
+					if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
+					{
+						signalName += "_";
+					}
+					if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
+					{
+						boolean matches = true;
+						for(int i=0; i<signalName.length(); i++)
+						{
+							char sigChar = signalName.charAt(i);
+							char netChar = netName.charAt(i);
+							if (Character.isLetterOrDigit(sigChar) != Character.isLetterOrDigit(netChar))
+							{
+								matches = false;
+								break;
+							}
+							if (Character.isLetterOrDigit(sigChar) && sigChar != netChar)
+							{
+								matches = false;
+								break;
+							}
+						}
+						if (matches)
+						{
+							wp.addHighlightedSignal(ws);
+							repaint();
+							return;
+						}
 					}
 				}
 			}
@@ -2424,16 +2459,27 @@ System.out.println("Loading signal explorer tree");
 		getPanel().validate();
 	}
 
-	public void addSignalToPanel(Simulate.SimSignal sig)
+	public void addSignal(Simulate.SimSignal sig)
 	{
-		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		if (sig instanceof Simulate.SimAnalogSignal)
 		{
-			Panel wp = (Panel)it.next();
-			if (wp.selected)
+			// add analog signal on top of current panel
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
-				wp.addSignalToPanel(sig);
-				return;
+				Panel wp = (Panel)it.next();
+				if (wp.selected)
+				{
+					wp.addSignalToPanel(sig);
+					return;
+				}
 			}
+		} else
+		{
+			// add digital signal in new panel
+			Panel wp = new Panel(this, false);
+			Signal wsig = new Signal(wp, sig);
+			overall.validate();
+			wp.repaint();
 		}
 	}
 

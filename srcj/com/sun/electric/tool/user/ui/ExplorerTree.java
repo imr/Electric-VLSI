@@ -643,7 +643,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (wf.getContent() instanceof WaveformWindow)
 					{
 						WaveformWindow ww = (WaveformWindow)wf.getContent();
-						ww.addSignalToPanel(sig);
+						ww.addSignal(sig);
 					}
 					return;
 				}

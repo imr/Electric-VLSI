@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -119,7 +120,7 @@ public class PostScript extends Output
 		if (!error)
 		{
 			System.out.println(filePath + " written");
-			if (cell != null) setPrintEPSSavedDate(cell, new Date());
+			if (cell != null) IOTool.setPrintEPSSavedDate(cell, new Date());
 		}
 		return error;
 	}
@@ -152,7 +153,7 @@ public class PostScript extends Output
 
 		// get control options
 		psUseColor = psUseColorStip = psUseColorMerge = false;
-		switch (PostScript.getPrintColorMethod())
+		switch (IOTool.getPrintColorMethod())
 		{
 			case 1:		// color
 				psUseColor = true;
@@ -164,14 +165,14 @@ public class PostScript extends Output
 				psUseColor = psUseColorMerge = true;
 				break;
 		}
-		boolean usePlotter = PostScript.isPrintForPlotter();
-		plotDates = PostScript.isPlotDate();
-		boolean epsFormat = isPrintEncapsulated();
+		boolean usePlotter = IOTool.isPrintForPlotter();
+		plotDates = IOTool.isPlotDate();
+		boolean epsFormat = IOTool.isPrintEncapsulated();
 //		if (printit) epsFormat = false;
 
-		double pageWid = getPrintWidth() * 75;
-		double pageHei = getPrintHeight() * 75;
-		double pageMarginPS = getPrintMargin() * 75;
+		double pageWid = IOTool.getPrintWidth() * 75;
+		double pageHei = IOTool.getPrintHeight() * 75;
+		double pageMarginPS = IOTool.getPrintMargin() * 75;
 		double pageMargin = pageMarginPS;		// not right!!!
 
 		// determine the area of interest
@@ -179,7 +180,7 @@ public class PostScript extends Output
 		if (printBounds == null) return;
 
 		boolean rotatePlot = false;
-		switch (PostScript.getPrintRotation())
+		switch (IOTool.getPrintRotation())
 		{
 			case 1:		// rotate 90 degrees
 				rotatePlot = true;
@@ -249,7 +250,7 @@ public class PostScript extends Output
 		double unitsY = (pageHei-pageMargin*2) * PSSCALE;
 		if (epsFormat)
 		{
-			double scale = getPrintEPSScale(cell);
+			double scale = IOTool.getPrintEPSScale(cell);
 			if (scale != 0)
 			{
 				unitsX *= scale;
@@ -611,7 +612,7 @@ public class PostScript extends Output
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell aCell = (Cell)cIt.next();
-					Variable var = aCell.getVar(POSTSCRIPT_FILENAME);
+					Variable var = aCell.getVar(IOTool.POSTSCRIPT_FILENAME);
 					if (var != null)
 					{
 						String fileName = (String)var.getObject();
@@ -652,11 +653,11 @@ public class PostScript extends Output
 			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
-				String syncFileName = getPrintEPSSynchronizeFile(oCell);
+				String syncFileName = IOTool.getPrintEPSSynchronizeFile(oCell);
 				if (syncFileName.length() == 0) continue;
 
 				// existing file: check the date to see if it should be overwritten
-				Date lastSavedDate = getPrintEPSSavedDate(oCell);
+				Date lastSavedDate = IOTool.getPrintEPSSavedDate(oCell);
 				if (lastSavedDate != null)
 				{
 					Date lastChangeDate = oCell.getRevisionDate();

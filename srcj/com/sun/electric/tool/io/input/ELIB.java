@@ -201,7 +201,11 @@ public class ELIB extends LibraryFiles
 		layoutTech = null;
 
 		// read the magic number and determine whether bytes are swapped
-		if (readHeader()) return true;
+		if (readHeader())
+		{
+			System.out.println("Error reading header");
+			return true;
+		}
 
 		// get count of objects in the file
 		toolCount = readBigInteger();
@@ -735,7 +739,11 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the global namespace
-		if (readNameSpace()) return true;
+		if (readNameSpace())
+		{
+			System.out.println("Error reading namespace");
+			return true;
+		}
 
 		// read the library variables
 		if (readVariables(lib, -1) < 0) return true;
@@ -835,7 +843,11 @@ public class ELIB extends LibraryFiles
 		{
 			Cell cell = nodeProtoList[i];
 			if (cell == null) continue;
-			if (readNodeProto(cell, i)) return true;
+			if (readNodeProto(cell, i))
+			{
+				System.out.println("Error reading cell");
+				return true;
+			}
 		}
 
 		// initialize for processing cell groups
@@ -888,7 +900,11 @@ public class ELIB extends LibraryFiles
 		{
 			Cell cell = nodeProtoList[i];
 			if (cell != null) continue;
-			if (readExternalNodeProto(lib, i)) return true;
+			if (readExternalNodeProto(lib, i))
+			{
+				System.out.println("Error reading external cell");
+				return true;
+			}
 		}
 
 		// now that external cells are resolved, fix all variables that may have used them
@@ -953,11 +969,19 @@ public class ELIB extends LibraryFiles
 				for(int look = bot; look != top; look = geomMoreUp[look])
 					if (!geomType[look])
 				{
-					if (readArcInst(arcIndex)) return true;
+					if (readArcInst(arcIndex))
+					{
+						System.out.println("Error reading arc");
+						return true;
+					}
 					arcIndex++;
 				} else
 				{
-					if (readNodeInst(nodeIndex, cellIndex)) return true;
+					if (readNodeInst(nodeIndex, cellIndex))
+					{
+						System.out.println("Error reading node");
+						return true;
+					}
 					nodeIndex++;
 				}
 			} else
@@ -965,12 +989,20 @@ public class ELIB extends LibraryFiles
 				// version 5 and later find the arcs and nodes in linear order
 				for(int j=0; j<arcCounts[cellIndex]; j++)
 				{
-					if (readArcInst(arcIndex)) return true;
+					if (readArcInst(arcIndex))
+					{
+						System.out.println("Error reading arc");
+						return true;
+					}
 					arcIndex++;
 				}
 				for(int j=0; j<nodeCounts[cellIndex]; j++)
 				{
-					if (readNodeInst(nodeIndex, cellIndex)) return true;
+					if (readNodeInst(nodeIndex, cellIndex))
+					{
+						System.out.println("Error reading node index " + nodeIndex + " in cell " + cell.describe() + " of library " + lib.getName());
+						return true;
+					}
 					nodeIndex++;
 				}
 			}
@@ -1598,10 +1630,12 @@ public class ELIB extends LibraryFiles
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
 			AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
 			trans.transform(shift, shift);
-            if (magic <= ELIBConstants.MAGIC13) {
+            if (magic <= ELIBConstants.MAGIC13)
+            {
                 // version 13 and later stores and uses anchor location
                 center.setLocation(anchorX, anchorY);
-            } else {
+            } else
+            {
                 center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
             }
 		}
@@ -1756,7 +1790,7 @@ public class ELIB extends LibraryFiles
 			}
 			bytesSwapped = true;
 		}
-		
+
 		// determine the size of "big" and "small" integers as well as characters on disk
 		if (magic <= ELIBConstants.MAGIC10)
 		{
@@ -2468,7 +2502,11 @@ public class ELIB extends LibraryFiles
 					for(int j=0; j<len; j++)
 					{
 						Object ret = getInVar(newtype);
-						if (ret == null) return(-1);
+						if (ret == null)
+						{
+							System.out.println("Error reading array variable type");
+							return -1;
+						}
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
 					
@@ -2476,7 +2514,11 @@ public class ELIB extends LibraryFiles
 			} else
 			{
 				newAddr = getInVar(newtype);
-				if (newAddr == null) return(-1);
+				if (newAddr == null)
+				{
+					System.out.println("Error reading variable type " + newtype);
+					return -1;
+				}
 			}
 
 			// copy this variable into database
@@ -2522,7 +2564,11 @@ public class ELIB extends LibraryFiles
 
 			// set the variable
 			Variable var = obj.newVar(varKey, newAddr);
-			if (var == null) return(-1);
+			if (var == null)
+			{
+				System.out.println("Error reading variable");
+				return -1;
+			}
 			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1));
 			var.lowLevelSetFlags(newtype);
 
@@ -2530,7 +2576,7 @@ public class ELIB extends LibraryFiles
 //			if (type == VTECHNOLOGY)
 //				changedtechnologyvariable(keyval);
 		}
-		return(count);
+		return count;
 	}
 
 	/**
@@ -2581,7 +2627,11 @@ public class ELIB extends LibraryFiles
 				return readString();
 			case ELIBConstants.VNODEINST:
 				i = readBigInteger();
-				if (i < 0 || i >= nodeCount) return null;
+				if (i < 0 || i >= nodeCount)
+				{
+					System.out.println("Variable of type NodeInst has index " + i + " when range is 0 to " + nodeCount);
+					return null;
+				}
 				return nodeInstList.theNode[i];
 			case ELIBConstants.VNODEPROTO:
 				i = readBigInteger();
@@ -2594,20 +2644,31 @@ public class ELIB extends LibraryFiles
 				return convertPortProto(i);
 			case ELIBConstants.VARCINST:
 				i = readBigInteger();
-				if (i < 0 || i >= arcCount) return null;
+				if (i < 0 || i >= arcCount)
+				{
+					System.out.println("Variable of type ArcInst has index " + i + " when range is 0 to " + arcCount);
+					return null;
+				}
 				return arcList[i];
 			case ELIBConstants.VGEOM:
 				readBigInteger();
+				System.out.println("Cannot read variable of type Geometric");
 				return null;
 			case ELIBConstants.VTECHNOLOGY:
 				i = readBigInteger();
-				if (i == -1) return null;
+				if (i == -1)
+				{
+					System.out.println("Variable of type Technology has negative index");
+					return null;
+				}
 				return getTechList(i);
 			case ELIBConstants.VPORTARCINST:
 				readBigInteger();
+				System.out.println("Cannot read variable of type PortArcInst");
 				return null;
 			case ELIBConstants.VPORTEXPINST:
 				readBigInteger();
+				System.out.println("Cannot read variable of type PortExpInst");
 				return null;
 			case ELIBConstants.VLIBRARY:
 				String libName = readString();
@@ -2628,8 +2689,10 @@ public class ELIB extends LibraryFiles
 				return tool;
 			case ELIBConstants.VRTNODE:
 				readBigInteger();
+				System.out.println("Cannot read variable of type RTNode");
 				return null;
 		}
+		System.out.println("Cannot read variable of type " + (ty&ELIBConstants.VTYPE));
 		return null;
 	}
 
@@ -2895,6 +2958,7 @@ public class ELIB extends LibraryFiles
 		{
 			// disk and memory match: read the data
 			int len = readBigInteger();
+			if (len <= 0) return "";
 			byte [] stringBytes = new byte[len];
 			int ret = dataInputStream.read(stringBytes, 0, len);
 			if (ret != len) throw new IOException();
