@@ -164,7 +164,7 @@ public class PolyQTree extends GeometryHandler
 			{
 				PolyNode geo = (PolyNode)i.next();
 				PolyNode clone = new PolyNode(geo); // Only clone can be transformed.
-				clone.transform(trans);
+				if (trans != null) clone.transform(trans);
 				add(layer, clone, false);
 			}
 		}

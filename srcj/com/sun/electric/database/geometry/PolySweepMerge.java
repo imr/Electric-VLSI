@@ -151,7 +151,7 @@ public class PolySweepMerge extends GeometryHandler
             for (int i = 0; i < otherAreas.size(); i++)
             {
                 Area area = (Area)otherAreas.get(i);
-                area.transform(tTrans);
+                if (tTrans != null) area.transform(tTrans);
                 Rectangle2D rect = area.getBounds2D();
                 double areaMinX = rect.getMinX();
                 double areaMaxX = rect.getMaxX();
