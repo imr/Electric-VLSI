@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -4771,6 +4772,17 @@ public class WaveformWindow implements WindowContent
 	 */
 	public void replaceAllText(String replace) {}
 
+    /**
+     * Method to export directly PNG file
+     * @param ep
+     * @param filePath
+     */
+    public void writeImage(ElectricPrinter ep, String filePath)
+    {
+        BufferedImage img = getOffScreenImage(ep);
+        PNG.writeImage(img, filePath);
+    }
+    
 	/**
 	 * Method to print window using offscreen canvas
 	 * @param ep Image observer plus printable object

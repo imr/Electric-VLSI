@@ -104,4 +104,12 @@ public interface WindowContent
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
 	public abstract BufferedImage getOffScreenImage(ElectricPrinter ep); // For printing and export purposes
+
+    /**
+     * Saving method should be done in display thread (valid at least for 3D)
+     * to guarantee correct rasting.
+     * @param ep
+     * @param filePath
+     */
+    public abstract void writeImage(ElectricPrinter ep, String filePath);
 }

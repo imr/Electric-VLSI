@@ -2,8 +2,10 @@ package com.sun.electric.plugins.j3d.utils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import javax.media.j3d.*;
 import javax.vecmath.*;
+import javax.imageio.ImageIO;
 //import com.sun.image.codec.jpeg.*;
 
 /** Class CapturingCanvas3D, using the instructions from the Java3D 
@@ -13,7 +15,7 @@ import javax.vecmath.*;
 
 
     public static void captureImage(CapturingCanvas3D MyCanvas3D) {
-	MyCanvas3D.writeJPEG_ = true;
+	MyCanvas3D.writePNG_ = true;
 	MyCanvas3D.repaint();
     }
 
@@ -26,50 +28,56 @@ import javax.vecmath.*;
 
 public class J3DCanvas3D extends Canvas3D  {
 
-    public boolean writeJPEG_;
+    public String filePath = null;
+    public boolean writePNG_;
     public BufferedImage img;
 
-    public J3DCanvas3D(GraphicsConfiguration gc) {
-	super(gc);
+    public J3DCanvas3D(GraphicsConfiguration gc)
+    {
+	    super(gc);
     }
 
-    public void postSwap() {
-	if(writeJPEG_) {
-	    System.out.println("Writing JPEG");
-	    GraphicsContext3D  ctx = getGraphicsContext3D();
-	    // The raster components need all be set!
-	    Raster ras = new Raster(
-                   new Point3f(-1.0f,-1.0f,-1.0f),
-		   Raster.RASTER_COLOR,
-		   0,0,
-		   512,512,
-		   new ImageComponent2D(
-                             ImageComponent.FORMAT_RGB,
-			     new BufferedImage(512,512,
-					       BufferedImage.TYPE_INT_RGB)),
-		   null);
+    public void postSwap()
+    {
+        if(writePNG_)
+        {
+            Dimension dim = getScreen3D().getSize();
 
-	    ctx.readRaster(ras);
+            GraphicsContext3D  ctx = getGraphicsContext3D();
+            // The raster components need all be set!
 
-	    // Now strip out the image info
-	    img = ras.getImage().getImage();
+            Raster ras = new Raster(
+                       new Point3f(-1.0f, -1.0f, -1.0f),
+               Raster.RASTER_COLOR,
+               0,0,
+               dim.width, dim.height,
+               new ImageComponent2D(
+                                 ImageComponent.FORMAT_RGB,
+                     new BufferedImage(dim.width, dim.height,
+                               BufferedImage.TYPE_INT_RGB)),
+               null);
 
+            ctx.readRaster(ras);
 
-		writeJPEG_ = false;
+            // Now strip out the image info
+            img = ras.getImage().getImage();
+            writePNG_ = false;
 
-	    // write that to disk....
-//	    try {
-//		FileOutputStream out = new FileOutputStream("Capture"+postSwapCount_+".jpg");
-//		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
-//		JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
-//		param.setQuality(0.9f,false); // 90% qualith JPEG
-//		encoder.setJPEGEncodeParam(param);
-//		encoder.encode(img);
-//		writeJPEG_ = false;
-//		out.close();
-//	    } catch ( IOException e ) {
-//		System.out.println("I/O exception!");
-//	    }
-	}
+            if (filePath != null)
+            {
+                File tmp = new File(filePath);
+                try
+                {
+                    ImageIO.write(img, "PNG", tmp);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+
+                filePath = null;
+            }
+        }
+
     }
 }

@@ -817,8 +817,10 @@ public class FileMenu {
         {
 			PrinterJob pj = PrinterJob.getPrinterJob();
 	        ElectricPrinter ep = getOutputPreferences(wnd, pj);
-            BufferedImage img = wnd.getOffScreenImage(ep);
-			PNG.writeImage(img, filePath);
+            // Export has to be done in same thread as offscreen raster (valid for 3D at least)
+            wnd.writeImage(ep, filePath);
+//            BufferedImage img = wnd.getOffScreenImage(ep);
+//			PNG.writeImage(img, filePath);
             return true;
         }
 	}

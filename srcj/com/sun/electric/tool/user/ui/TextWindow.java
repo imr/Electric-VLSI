@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -652,6 +653,16 @@ public class TextWindow
 			if (found) textArea.replaceRange(theLine, startPos, endPos);
 		}
 	}
+
+    /**
+     * Method to export directly PNG file
+     * @param ep
+     * @param filePath
+     */
+    public void writeImage(ElectricPrinter ep, String filePath)
+    {
+        System.out.println("TextWindow:writeImage not implemented");
+    }
 
 	/**
 	 * Method to print window using offscreen canvas

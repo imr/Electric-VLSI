@@ -44,8 +44,6 @@ public class PNG extends Output
 		// just do this file
 		//writeCellToFile(cell, context, filePath);
 		File tmp = new File(filePath);
-//        TIFFDecodeParam des = new TIFFDecodeParam();
-//        JAI.create("filestore", img, filePath+"mio", "PNG");
 
 		if (!canWriteFormat("PNG"))
 		{
@@ -55,19 +53,10 @@ public class PNG extends Output
 
         try {
             ImageIO.write(img, "PNG", tmp);
-//            	FileOutputStream out = new FileOutputStream("Capture"+".jpg");
-//		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
-//            PNGImageEncoder enc = new PNGImageEncoder(out, null);
-//            PNGEncodeParam p = new PNGEncodeParam();
-//		JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
-//		param.setQuality(0.9f,false); // 90% qualith JPEG
-//		encoder.setJPEGEncodeParam(param);
-//		encoder.encode(img);
-//		out.close();
         }
         catch (Exception e)
         {
-	        //e.printStackTrace();
+	        e.printStackTrace();
             System.out.println("PNG output '" + filePath + "' cannot be generated");
         }
 	}

@@ -50,6 +50,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -3281,6 +3282,18 @@ public class EditWindow extends JPanel
 //     public void databaseChanged(Undo.Change evt) {}
     
 //     public boolean isGUIListener() { return true; }
+
+
+    /**
+     * Method to export directly PNG file
+     * @param ep
+     * @param filePath
+     */
+    public void writeImage(ElectricPrinter ep, String filePath)
+    {
+        BufferedImage img = getOffScreenImage(ep);
+        PNG.writeImage(img, filePath);
+    }
 
 	/**
 	 * Method to print window using offscreen canvas

@@ -42,6 +42,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
@@ -226,7 +227,7 @@ public class View3DWindow extends JPanel
 		translateB = translate;
 
         JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
-        zoom.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
+        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
         zoom.setSchedulingBounds(infiniteBounds);
         zoom.setFactor(0.7);    // default 0.4
         BranchGroup zoomBG = new BranchGroup();
@@ -319,7 +320,7 @@ public class View3DWindow extends JPanel
      * Method to create axes for reference
      * @return
      */
-    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label)
+    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label, double length)
     {
         // Create Axes;
         TransformGroup branch = new TransformGroup(); // This transform will control all movements
@@ -339,10 +340,11 @@ public class View3DWindow extends JPanel
         axes.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 
         Transform3D cylinderTrans = new Transform3D();
-        Vector3d cylinderLocation = new Vector3d(0, 10, 0); // Cylinder and cone are along Y
+        Vector3d cylinderLocation = new Vector3d(0, length/2, 0); // Cylinder and cone are along Y
         cylinderTrans.setTranslation(cylinderLocation);
         TransformGroup cylinderG = new TransformGroup(cylinderTrans);
-        Primitive axis = new Cylinder(1, 20);
+        float diameter = (float)length*.03f;
+        Primitive axis = new Cylinder(diameter, (float)length);
         axis.setAppearance(J3DAppearance.axisApp);
         cylinderG.addChild(axis);
         axes.addChild(cylinderG);
@@ -352,7 +354,7 @@ public class View3DWindow extends JPanel
             font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 8),
                      new FontExtrusion());
         Text3D txt = new Text3D(font3D, label,
-             new Point3f( -label.length()/2.0f, 22, 0));
+             new Point3f( -label.length()/2.0f, (float)length, 0));
         Shape3D sh = new Shape3D();
         sh.setGeometry(txt);
         sh.setAppearance(J3DAppearance.axisApp);
@@ -360,10 +362,10 @@ public class View3DWindow extends JPanel
 
         // Arrow
         Transform3D arrowTrans = new Transform3D();
-        Vector3d arrowLocation = new Vector3d(0, 20, 0); // Cylinder and cone are along Y
+        Vector3d arrowLocation = new Vector3d(0, length, 0); // Cylinder and cone are along Y
         arrowTrans.set(arrowLocation);
         TransformGroup arrowG = new TransformGroup(arrowTrans);
-        Primitive arrow = new Cone(1.5f, 4);
+        Primitive arrow = new Cone(1.5f * diameter, (float)length/3);
         arrow.setAppearance(J3DAppearance.axisApp);
         arrowG.addChild(arrow);
 
@@ -435,12 +437,14 @@ public class View3DWindow extends JPanel
 
         // Create Axes
         Rectangle2D cellBnd = cell.getBounds();
-        Vector3d center = new Vector3d(cellBnd.getMinX(), cellBnd.getMinY(), 0);
+        double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
+        length *= 0.1;
+        Vector3d center = new Vector3d(cellBnd.getMinX() - length, cellBnd.getMinY() - length, 0);
         axes = new BranchGroup();
         axes.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-        createAxis(axes, J3DUtils.axisX, center, "X");
-        createAxis(axes, J3DUtils.axisY, center, "Y");
-        createAxis(axes, J3DUtils.axisZ, center, "Z");
+        createAxis(axes, J3DUtils.axisX, center, "X", length);
+        createAxis(axes, J3DUtils.axisY, center, "Y", length);
+        createAxis(axes, J3DUtils.axisZ, center, "Z", length);
         objRoot.addChild(axes);
 
         // new arrow
@@ -984,6 +988,18 @@ public class View3DWindow extends JPanel
 		}
 	}
 
+    /**
+     * Method to export directly PNG file
+     * @param ep
+     * @param filePath
+     */
+    public void writeImage(ElectricPrinter ep, String filePath)
+    {
+        canvas.filePath = filePath;
+        canvas.writePNG_ = true;
+        canvas.repaint();
+    }
+
 	/**
 	 * Method to print window using offscreen canvas
 	 * @param ep Image observer plus printable object
@@ -992,13 +1008,13 @@ public class View3DWindow extends JPanel
 	public BufferedImage getOffScreenImage(ElectricPrinter ep)
     {
 		BufferedImage bImage = ep.getBufferedImage();
-        //int OFF_SCREEN_SCALE = 3;
+        int OFF_SCREEN_SCALE = 3;
 
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
 		{
             //Forcint the repaint
-            canvas.writeJPEG_ = true;
+            canvas.writePNG_ = true;
             canvas.repaint();
             bImage = canvas.img;
 
