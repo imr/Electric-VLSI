@@ -568,7 +568,7 @@ public class Undo
 				int oldDescript1 = descript.lowLevelGet1();
 				int oldColorIndex = descript.getColorIndex();
 				descript.lowLevelSet(i1, i2);
-				descript.setColorIndex(i3);
+				descript.lowLevelSetColorIndex(i3);
 				i1 = oldDescript0;
 				i2 = oldDescript1;
 				i3 = oldColorIndex;
