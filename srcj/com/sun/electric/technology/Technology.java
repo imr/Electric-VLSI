@@ -3481,6 +3481,7 @@ public class Technology implements Comparable
     public Object[][] getNodesGrouped()
     {
         // Check if some metal layers are not used
+        if (nodeGroups == null) return null;
         List list = new ArrayList(nodeGroups.length);
         for (int i = 0; i < nodeGroups.length; i++)
         {
