@@ -1570,7 +1570,7 @@ public class InputBinary extends Input
 
 			newCell = true;
 			System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
-			c.setVal("IO_true_library", elib.getLibName());
+			c.setVar("IO_true_library", elib.getLibName());
 		}
 		nodeProtoList[cellIndex] = c;
 
@@ -1930,7 +1930,7 @@ public class InputBinary extends Input
 			boolean invalid = obj.isDeprecatedVariable(realName[key]);
 			if (!invalid)
 			{
-				Variable var = obj.setVal(realName[key], newAddr);
+				Variable var = obj.setVar(realName[key], newAddr);
 				if (var == null) return(-1);
 				var.getTextDescriptor().lowLevelSet(descript0, descript1);
 				var.lowLevelSetFlags(newtype);

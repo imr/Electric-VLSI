@@ -36,11 +36,11 @@ import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.tool.Tool;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.prefs.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.*;
+import java.awt.geom.AffineTransform;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.
@@ -63,6 +63,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     
     /** LESizer to do sizing */                 private LESizer lesizer;
     /** Where to direct output */               private PrintStream out;
+    /** Mapping between NodeInst and Instance */private HashMap instancesMap;
     
     /** Creates a new instance of LENetlister */
     public LENetlister(LESizer lesizer, OutputStream ostream) {
@@ -77,6 +78,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         keeperRatio = prefs.getFloat("keeperRatio", (float)0.1);
         
         this.lesizer = lesizer;
+        this.instancesMap = new HashMap();
         this.out = new PrintStream(ostream);
     }        
     
@@ -109,16 +111,30 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     }
     
     public void size() {
-        lesizer.printDesign();
-        boolean verbose = true;
+        //lesizer.printDesign();
+        boolean verbose = false;
         lesizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
-        out.println("---------After optimization:------------");
-        lesizer.printDesign();
+        //out.println("---------After optimization:------------");
+        //lesizer.printDesign();
+    }
+    
+    public void updateSizes() {
+        Set allEntries = instancesMap.entrySet();
+        for (Iterator it = allEntries.iterator(); it.hasNext();) {
+            Map.Entry entry = (Map.Entry)it.next();
+            NodeInst ni = (NodeInst)entry.getKey();
+            Instance inst = (Instance)entry.getValue();
+            String varName = "LEDRIVE_" + inst.getName();
+            ni.setVar(varName, new Float(inst.getLeX()));
+        }
     }
         
+    public HashMap getInstancesMap() { return instancesMap; }
+
+    public HierarchyEnumerator.CellInfo newCellInfo() { return new LECellInfo(); }
+
     public boolean enterCell(HierarchyEnumerator.CellInfo info) {
-        out.println("Entering cell "+info.getCell());
-        
+        ((LECellInfo)info).leInit();
         return true;
     }
     
@@ -147,7 +163,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         else return true;                           // descend into and process
         
         // build leGate instance
-        out.println("------------------------------------");
+        //out.println("------------------------------------");
         ArrayList pins = new ArrayList();
         Cell schCell = ni.getProtoEquivalent();
         for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
@@ -162,15 +178,41 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
-            out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
+            //out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
         }
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
-        lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
-        out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        Instance inst = lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
+        //out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        instancesMap.put(ni, inst);
         return false;
     }
+            
+    /** Logical Effort Cell Info class */
+    public class LECellInfo extends HierarchyEnumerator.CellInfo {
+
+        /** M-factor to be applied to size */       private float mFactor;
+
+        /** initialize LECellInfo: assumes CellInfo.init() has been called */
+        protected void leInit() {
+            HierarchyEnumerator.CellInfo parent = getParentInfo();
+            if (parent == null) mFactor = 1f;
+            else mFactor = ((LECellInfo)parent).getMFactor();
+            // get mfactor from instance we pushed into
+            NodeInst ni = getContext().getNodeInst();
+            if (ni == null) return;
+            Variable mvar = ni.getVar("ATTR_M");
+            if (mvar == null) return;
+            Object mval = getContext().evalVar(mvar, null);
+            if (mval == null) return;
+            mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
+        }
         
+        /** get mFactor */
+        protected float getMFactor() { return mFactor; }
+    }
+    
+    
     // ---- TEST STUFF -----  REMOVE LATER ----
     public static void test1() {
         LESizer.test1();

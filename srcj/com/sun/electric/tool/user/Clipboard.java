@@ -693,7 +693,7 @@ public class Clipboard
 				Variable.Key key = destvar.getKey();
 				Variable srcVar = srcNode.getVar(key.getName());
 				if (srcVar != null) continue;
-				srcNode.delVal(key.getName());
+				srcNode.delVar(key.getName());
 				checkAgain = true;
 				break;
 			}
@@ -762,7 +762,7 @@ public class Clipboard
 					if (newNi.getProto() == PossibleVariables.list[i].pn) continue;
 					Variable var = newNi.getVar(PossibleVariables.list[i].varName);
 					if (var != null)
-						newNi.delVal(PossibleVariables.list[i].varName);
+						newNi.delVar(PossibleVariables.list[i].varName);
 				}
 			} else
 			{
@@ -785,7 +785,7 @@ public class Clipboard
 						if (var.getKey() != cVar.getKey()) continue;
 						if (cVar.getTextDescriptor().isParam())
 						{
-							newNi.delVal(var.getKey().getName());
+							newNi.delVar(var.getKey().getName());
 							break;
 						}
 					}
@@ -798,7 +798,7 @@ public class Clipboard
 			// remove node name if it is not visible
 			Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
 			if (var != null && !var.isDisplay())
-				newNi.delVal(NodeInst.NODE_NAME);
+				newNi.delVar(NodeInst.NODE_NAME);
 
 			// end changes to node and all arcs touching this node
 			newNi.endChange();
@@ -885,7 +885,7 @@ public class Clipboard
 				{
 					if (first) ni.startChange();
 					first = false;
-					ni.delVal(var.getKey().getName());
+					ni.delVar(var.getKey().getName());
 					found = true;
 					break;
 				}
@@ -913,7 +913,7 @@ public class Clipboard
 
 			// set the attribute
 			ni.startChange();
-			newVar = ni.setVal(attrName, inheritAddress(pp, var));
+			newVar = ni.setVar(attrName, inheritAddress(pp, var));
 			if (newVar != null)
 			{
 				double lambda = 1;
@@ -1034,7 +1034,7 @@ public class Clipboard
 
 		// set the attribute
 		ni.startChange();
-		newVar = ni.setVal(var.getKey().getName(), inheritAddress(np, posVar));
+		newVar = ni.setVar(var.getKey().getName(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
@@ -1087,7 +1087,7 @@ public class Clipboard
 		int curVal = EMath.atoi(str.substring(i));
 		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;
 		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint+2);
-		addr.setVal(var.getKey().getName(), newIncrString);
+		addr.setVar(var.getKey().getName(), newIncrString);
 
 		return retVal;
 	}
@@ -1124,7 +1124,7 @@ public class Clipboard
 				Variable.Key key = destvar.getKey();
 				Variable srcVar = srcArc.getVar(key.getName());
 				if (srcVar != null) continue;
-				destArc.delVal(key.getName());
+				destArc.delVar(key.getName());
 				checkAgain = true;
 				break;
 			}
@@ -1135,7 +1135,7 @@ public class Clipboard
 		{
 			Variable srcvar = (Variable)it.next();
 			Variable.Key key = srcvar.getKey();
-			Variable destVar = destArc.setVal(key.getName(), srcvar.getObject());
+			Variable destVar = destArc.setVar(key.getName(), srcvar.getObject());
 			if (destVar != null)
 				destVar.setDescriptor(srcvar.getTextDescriptor());
 		}

@@ -8,6 +8,7 @@
 package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.tool.logicaleffort.*;
+import com.sun.electric.database.variable.VarContext;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,6 +34,8 @@ public class Instance {
     /** used for levelizing the design */           private int leLevel;
     /** all other pins of Instance */               private ArrayList pins;
     /** if an LEGate */                             private boolean leGate;
+    
+    /** Context */                                  private VarContext context;
     
     /** Type is a typesafe enum class that describes the type of Instance this is */
     protected static class Type {
@@ -93,6 +96,11 @@ public class Instance {
     /** Set the size of the gate */
     protected void setLeX(float LeX) { this.leX = LeX; }
 
+    /** Get VarContext */
+    protected VarContext getContext() { return context; }
+    /** Set VarContext */
+    protected void setContext(VarContext context) { this.context = context; }
+    
     /** Set the pin list */
     protected void setPins(ArrayList pins) { 
         this.pins = pins;

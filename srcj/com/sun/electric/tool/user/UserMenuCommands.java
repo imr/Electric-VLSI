@@ -569,7 +569,7 @@ public final class UserMenuCommands
             System.out.println("Logical Effort tool not found");
             return;
         }
-        letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext());
+        letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
     }
     
     // ---------------------- THE STEVE MENU -----------------

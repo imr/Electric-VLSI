@@ -1536,7 +1536,7 @@ public class NodeInst extends Geometric
 	 */
 	public Variable setName(String name)
 	{
-		Variable var = setVal(NODE_NAME, name);
+		Variable var = setVar(NODE_NAME, name);
 		if (var != null) var.setDisplay();
 		return var;
 	}

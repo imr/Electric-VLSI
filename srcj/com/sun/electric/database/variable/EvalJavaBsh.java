@@ -61,10 +61,8 @@ public class EvalJavaBsh {
     protected static Interpreter init() {
         env = new Interpreter();
         try {
-            
             env.eval("Object P(String par) { return context.lookupVarEval(par); }");
             env.eval("Object PAR(String par) { return context.lookupVarFarEval(par); }");
-            
         } catch (bsh.EvalError e) {
             handleBshError(e);
         }

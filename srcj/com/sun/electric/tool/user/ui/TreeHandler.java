@@ -47,8 +47,9 @@ public class TreeHandler implements TreeSelectionListener, MouseListener, MouseM
 {
 	private TreeView tree;
 	private EditWindow wnd;
-	private TreePath lastMousedOverPath = null;
     
+    /** current does not do anything because not registered as tree
+     * selection listener, using MouseListener instead */
 	public void valueChanged(TreeSelectionEvent arg0) 
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
@@ -88,22 +89,39 @@ public class TreeHandler implements TreeSelectionListener, MouseListener, MouseM
     }
     
     public void mousePressed(MouseEvent e) {
-        // popup menu event
-        if (e.isPopupTrigger()) {
-            TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-            if (path == null) return;
-            Object obj = path.getLastPathComponent();
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
-    		Object nodeInfo = node.getUserObject();
+        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+        if (path == null) return;
+        tree.setSelectionPath(path);
+        Object obj = path.getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
+        Object nodeInfo = node.getUserObject();
 
+        // popup menu event (right click)
+        if (e.isPopupTrigger()) {
+            Object source = e.getSource();
+            if (!(source instanceof Component)) return;
             // show Job menu if user clicked on a Job
             if (nodeInfo instanceof Job) {
-                Object source = e.getSource();
-                if (!(source instanceof Component)) return;
                 Job job = (Job)nodeInfo;
                 JPopupMenu popup = job.getPopupStatus();
                 popup.show((Component)source, e.getX(), e.getY());
+                return;
             }
+            if (nodeInfo instanceof Cell) {
+                Cell cell = (Cell)nodeInfo;
+                // TODO: get popup menu for Cell
+                return;
+            }
+        }
+        // regular click
+        if (nodeInfo instanceof Cell) {
+            Cell cell = (Cell)nodeInfo;
+            wnd.setCell(cell, VarContext.globalContext);
+            return;
+        }
+        if (nodeInfo instanceof Job) {
+            Job job = (Job)nodeInfo;
+            return;
         }
     }
     
@@ -114,24 +132,6 @@ public class TreeHandler implements TreeSelectionListener, MouseListener, MouseM
     }
     
     public void mouseMoved(MouseEvent e) {
-        //System.out.println("mouse click at "+e.getPoint());
-        /*
-        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-
-        if (path == null) return;
-        if (path == lastMousedOverPath) return;
-        lastMousedOverPath = path;
-        Object obj = path.getLastPathComponent();
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
-		Object nodeInfo = node.getUserObject();
-        if (nodeInfo instanceof Job) {
-            Object source = e.getSource();
-            if (!(source instanceof Component)) return;
-            Job job = (Job)nodeInfo;
-            JPopupMenu popup = job.getPopupStatus();
-            popup.show((Component)source, e.getX(), e.getY());
-        }
-         */
     }
     
 }

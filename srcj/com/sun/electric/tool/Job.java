@@ -61,17 +61,15 @@ public abstract class Job extends Thread implements ActionListener {
     /** my tree node */                         private DefaultMutableTreeNode myNode;
     
     // Job Status
-    /** job start time */                       private long startTime;
-    /** job end time */                         private long endTime;
+    /** job start time */                       protected long startTime;
+    /** job end time */                         protected long endTime;
     /** is job finished? */                     private boolean finished;
     /** thread aborted? */                      private boolean aborted;
     /** schedule thread to abort */             private boolean scheduledToAbort;
     /** status */                               private String status = null;
     /** progress */                             private String progress = null;
     
-    /** Output */                               private File ofile;
-    /** Output stream */                        protected OutputStream ostream;
-        
+    
     /** Creates a new instance of Job */
     public Job(String name) {
         super(name);
@@ -81,16 +79,6 @@ public abstract class Job extends Thread implements ActionListener {
         myNode = new DefaultMutableTreeNode(this);
         
         Job.addJob(this);
-        try {
-            ofile = File.createTempFile("ElectricLE", "");
-            ostream = new FileOutputStream(ofile);
-            System.out.println("temp file created at "+ofile.getAbsolutePath());
-        } catch (IOException e) {
-            System.out.println("Error creating temp file: "+e.getMessage());
-            System.out.println("Writing to message window instead");
-            System.out.println("---------------------------------");
-            ostream = System.out;
-        }
     }
     
     //--------------------------ABSTRACT METHODS--------------------------
@@ -137,13 +125,13 @@ public abstract class Job extends Thread implements ActionListener {
         finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
         // TODO : should 'ding' or make some noise so the user knows the job is done
-        WindowFrame.explorerTreeChanged();        
+        WindowFrame.explorerTreeMinorlyChanged();        
         System.out.println(this.getInfo());
     }
 
     protected void setProgress(String progress) {
         this.progress = progress;
-        WindowFrame.explorerTreeChanged();        
+        WindowFrame.explorerTreeMinorlyChanged();        
     }        
     
     private String getProgress() { return progress; }
@@ -160,10 +148,10 @@ public abstract class Job extends Thread implements ActionListener {
             return;
         }
         scheduledToAbort = true;
-        WindowFrame.explorerTreeChanged();
+        WindowFrame.explorerTreeMinorlyChanged();
     }
     /** Confirmation that thread is aborted */
-    protected void setAborted() { aborted = true; WindowFrame.explorerTreeChanged(); }
+    protected void setAborted() { aborted = true; WindowFrame.explorerTreeMinorlyChanged(); }
     /** get scheduled to abort status */
     protected boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */
@@ -204,8 +192,6 @@ public abstract class Job extends Thread implements ActionListener {
         m = new JMenuItem("Get Info"); m.addActionListener(this); popup.add(m);
         m = new JMenuItem("Abort"); m.addActionListener(this); popup.add(m);
         m = new JMenuItem("Delete"); m.addActionListener(this); popup.add(m);
-        menu = new JMenu("Output"); popup.add(menu);
-        m = new JMenuItem("to Message Window"); m.addActionListener(this); menu.add(m);
         return popup;
     }
     
@@ -224,21 +210,6 @@ public abstract class Job extends Thread implements ActionListener {
             }
             Job.removeJob(this);
         }
-        if (source.getText().equals("to Message Window")) {
-            try {
-                byte b[] = new byte[512];
-                FileReader in = new FileReader(ofile);
-                BufferedReader inbuf = new BufferedReader(in);
-                String line;
-                while ((line = inbuf.readLine()) != null) {
-                    System.out.println(line);
-                }
-                inbuf.close();
-                in.close();
-            } catch (IOException ex) {
-                System.out.println("Error reading file "+ofile+": "+ex.getMessage());
-            }
-        }
     }
                 
     /** Get info on Job */
@@ -250,9 +221,29 @@ public abstract class Job extends Thread implements ActionListener {
         if (finished) {
             Date end = new Date(endTime);
             buf.append("  end time: "+end+"\n");
-            Time time = new Time(endTime - startTime);
-            buf.append("  time taken: "+time+"\n");
+            long time = endTime - startTime;
+            buf.append("  time taken: "+Job.getElapsedTime(time)+"\n");
         }
         return buf.toString();
     }
+    
+    /** Get a string representing elapsed time.
+     * format: days : hours : minutes : seconds */
+    public static String getElapsedTime(long milliseconds) {
+        StringBuffer buf = new StringBuffer();
+        int seconds = (int)milliseconds/1000;
+        if (seconds < 0) seconds = 0;
+        int days = seconds/86400;
+        buf.append(days+" days : ");
+        seconds = seconds - (days*86400);
+        int hours = seconds/3600;
+        buf.append(hours+" hrs : ");
+        seconds = seconds - (hours*3600);
+        int minutes = seconds/60;
+        buf.append(minutes+" mins : ");
+        seconds = seconds - (minutes*60);
+        buf.append(seconds+" secs");
+        return buf.toString();
+    }
+        
 }

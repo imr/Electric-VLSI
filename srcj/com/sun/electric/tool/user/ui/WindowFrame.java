@@ -151,14 +151,29 @@ public class WindowFrame // extends JInternalFrame
 	/**
 	 * Routine called when the explorer information changes.
 	 * It updates the display.
-	 */
+     */
 	public static synchronized void explorerTreeChanged()
 	{
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.tree.updateUI();
+            //wf.tree.treeDidChange();
 		}
 	}
 
+    /**
+	 * Routine called when the explorer information changes.
+	 * It updates the display for minor changes.  See JTree.treeDidChange().
+     */
+	public static synchronized void explorerTreeMinorlyChanged()
+	{
+		for(Iterator it = getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			//wf.tree.updateUI();
+            wf.tree.treeDidChange();
+		}
+	}
+  
 }

@@ -754,7 +754,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public Variable setName(String name)
 	{
-		Variable var = setVal(VAR_ARC_NAME, name);
+		Variable var = setVar(VAR_ARC_NAME, name);
 		if (var != null) var.setDisplay();
 		return var;
 	}

@@ -28,6 +28,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 
+import java.text.*;
+
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
  */
@@ -197,15 +199,33 @@ public class Variable
 		return name;
 	}
 
+    /** number format */ private static final DecimalFormat df = new DecimalFormat("#######.###");
+    /** field position */ private static final FieldPosition fp = new FieldPosition(NumberFormat.INTEGER_FIELD);
+    /** Format a float to something sensible that can be printed */
+    public static String format(float num) {
+        StringBuffer buf = new StringBuffer();
+        df.format(num, buf, fp);
+        return buf.toString();
+    }
+    
 	/**
 	 * Routine to return a description of this Variable.
 	 * @return a description of this Variable.
 	 */
-	public String describe()
+	public String describe(VarContext context, ElectricObject eobj)
 	{
-		return describe(-1, -1);
+		return describe(-1, -1, context, eobj);
 	}
 
+    /** 
+     * Return a description of this Variable without any context
+     * or helper object info
+     */
+    public String describe(int aindex, int purpose)
+    {
+        return describe(aindex, purpose, VarContext.globalContext, null);
+    }
+    
 	/**
 	 * routine to make a printable string from variable "val", array index
 	 * "aindex".  If "aindex" is negative, print the entire array.  If "purpose" is
@@ -215,18 +235,23 @@ public class Variable
 	 * parameter substitution and should be easy to understand but not hard to
 	 * parse (a combination of the two).
 	 */
-	public String describe(int aindex, int purpose)
+	public String describe(int aindex, int purpose, VarContext context, ElectricObject eobj)
 	{
 		TextDescriptor.Units units = descriptor.getUnits();
 		StringBuffer returnVal = new StringBuffer();
 		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
 		String whichIndex = "";
 
-//		if ((flags & (VCODE1|VCODE2)) != 0)
-//		{
-//			/* special case for code: it is a string, the type applies to the result */
-//			makeStringVar(VSTRING, var->addr, purpose, units, infstr);
-//		} else
+		if ((flags & (VCODE1|VCODE2)) != 0)
+		{
+			/* special case for code: it is a string, the type applies to the result */
+			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
+            Object val = context.evalVar(this, eobj);
+            if (val == null) 
+                returnVal.append("?");
+            else
+                returnVal.append(makeStringVar(val, purpose, units));
+        } else
 		{
 			if (addr instanceof Object[])
 			{
@@ -258,10 +283,13 @@ public class Variable
 				returnVal.append(makeStringVar(addr, purpose, units));
 			}
 		}
-		if (dispPos == TextDescriptor.DispPos.NAMEVALUE)
+		if (dispPos == TextDescriptor.DispPos.NAMEVALUE ||
+            dispPos == TextDescriptor.DispPos.NAMEVALINH ||
+            dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
 		{
 			return this.getTrueName() + whichIndex + "=" + returnVal.toString();
 		}
+        /*
 		if (dispPos == TextDescriptor.DispPos.NAMEVALINH)
 		{
 			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
@@ -269,7 +297,7 @@ public class Variable
 		if (dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
 		{
 			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
-		}
+		}*/
 		return returnVal.toString();
 	}
 
@@ -282,7 +310,7 @@ public class Variable
 		if (addr instanceof Integer)
 			return ((Integer)addr).toString();
 		if (addr instanceof Float)
-			return ((Float)addr).toString();
+			return (format(((Float)addr).floatValue())); // only display up to 3 significant figures
 		if (addr instanceof Double)
 			return ((Double)addr).toString();
 		if (addr instanceof Short)

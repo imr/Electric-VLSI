@@ -1633,7 +1633,7 @@ public class InputText extends Input
 			}
 			if (!invalid)
 			{
-				Variable var = naddr.setVal(varName, value);
+				Variable var = naddr.setVar(varName, value);
 				if (var == null)
 				{
 					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);

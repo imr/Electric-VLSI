@@ -283,8 +283,8 @@ public class Input
 			float oldValue = outline[j].intValue();
 			newOutline[j] = new Float(oldValue/lambda);
 		}
-		ni.delVal("trace");
-		Variable newVar = ni.setVal("trace", newOutline);
+		ni.delVar("trace");
+		Variable newVar = ni.setVar("trace", newOutline);
 		if (newVar == null)
 			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}

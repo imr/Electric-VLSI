@@ -154,7 +154,7 @@ public class ElectricObject
 			if (varLength > 1)
 			{
 				// compute text height
-				GlyphVector gv = wnd.getGlyphs(var.describe(0, -1), td);
+				GlyphVector gv = wnd.getGlyphs(var.describe(0, -1, wnd.getVarContext(), this), td);
 				Rectangle2D glyphBounds = gv.getVisualBounds();
 				height = glyphBounds.getHeight() / wnd.getScale();
 				if (multipleStrings)
@@ -180,7 +180,7 @@ public class ElectricObject
 				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 				polys[index] = new Poly(pointList);
 				polys[index].setStyle(style);
-				polys[index].setString(var.describe(i, -1));
+				polys[index].setString(var.describe(i, -1, wnd.getVarContext(), this));
 				polys[index].setTextDescriptor(td);
 				polys[index].setLayer(null);
 				polys[index].setVariable(var);
@@ -196,7 +196,7 @@ public class ElectricObject
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable setVal(String name, Object value)
+	public Variable setVar(String name, Object value)
 	{
 		checkChanging();
 		Variable.Key key = findKey(name);
@@ -221,7 +221,7 @@ public class ElectricObject
 	 * @param value the object to store in an entry of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to store the value.
 	 */
-	public void setVal(String name, Object value, int index)
+	public void setVar(String name, Object value, int index)
 	{
 		checkChanging();
 		Variable v = getVar(name);
@@ -237,7 +237,7 @@ public class ElectricObject
 	 * Routine to delete a Variable from this ElectricObject.
 	 * @param name the name of the Variable to delete.
 	 */
-	public void delVal(String name)
+	public void delVar(String name)
 	{
 		checkChanging();
 		if (vars == null) return;
@@ -284,7 +284,7 @@ public class ElectricObject
 				}
 			}
 
-			Variable newVar = this.setVal(key.getName(), obj);
+			Variable newVar = this.setVar(key.getName(), obj);
 			if (newVar != null)
 			{
 				newVar.lowLevelSetFlags(flags);
