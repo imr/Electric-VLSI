@@ -121,7 +121,21 @@ public class Input
 
 			StringBuffer errmsg = new StringBuffer();
 			boolean exists = TextUtils.URLExists(fileURL, errmsg);
-			if (!exists) System.out.print(errmsg.toString()); else
+			if (!exists)
+			{
+				System.out.print(errmsg.toString());
+				// if doesn't have extension, assume DEFAULTLIB as extension
+				String fileName = fileURL.toString();
+				if (fileName.indexOf(".") == -1)
+				{
+					fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
+					System.out.print("Attempting to open " + fileURL+"\n");
+					errmsg.setLength(0);
+					exists = TextUtils.URLExists(fileURL, errmsg);
+					if (!exists) System.out.print(errmsg.toString());
+				}
+			}
+			if (exists)
 				lib = readALibrary(fileURL, null, type);
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ax: *********************************
 
+IMP: (12/20/04, GVG) Ability to open libraries without providing extension. Extension will be added based on
+DEFAULTELIB variable. (Bug #95)
+
 IMP: (12/20/04, GVG) Adding error logger to ELIB/ELIB1 if readNodeInst/readArcInst returns true
 otherwise users might skip the error.
 
