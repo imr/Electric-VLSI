@@ -836,99 +836,99 @@ public class GDS extends Geometry
 			outputByte((byte)0);
 	}
 
-	/**
-	 * Method to write a GDSII representation of a double.
-	 * New conversion code contributed by Tom Valine <tomv@transmeta.com>.
-	 * @param data the double to process.
-	 */
-	public void outputDouble(double data)
-	{
-		if (data == 0.0)
-		{
-			for(int i=0; i<8; i++) outputByte((byte)0);
-			return;
-		}
-		BigDecimal reg = new BigDecimal((double)data);
-
-		boolean negSign = false;
-		if (reg.doubleValue() < 0)
-		{
-			negSign = true;
-			reg = reg.negate();
-		}
-
-		int exponent = 64;
-		for(; (reg.doubleValue() < 0.0625) && (exponent > 0); exponent--)
-			reg = reg.multiply(new BigDecimal(16));
-		if (exponent == 0) System.out.println("Exponent underflow");
-		for(; (reg.doubleValue() >= 1) && (exponent < 128); exponent++)
-			reg = reg.divide(new BigDecimal(16));
-		if (exponent > 127) System.out.println("Exponent overflow");
-		if (negSign) exponent |= 0x00000080;
-		BigDecimal f_mantissa = reg.remainder(new BigDecimal(1));
-		for(int i = 0; i < 56; i++)
-			f_mantissa = f_mantissa.multiply(new BigDecimal(2));
-		long mantissa = f_mantissa.longValue();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		baos.write(exponent);
-		for(int i = 6; i >= 0; i--)
-			baos.write((int)((mantissa >> (i * 8)) & 0xFF));
-		byte [] result = baos.toByteArray();
-		for(int i=0; i<8; i++) outputByte(result[i]);
-	}
-
 //	/**
 //	 * Method to write a GDSII representation of a double.
-//	 * Original C-Electric code (no longer used).
+//	 * New conversion code contributed by Tom Valine <tomv@transmeta.com>.
 //	 * @param data the double to process.
 //	 */
-//	private void outputDouble(double a)
+//	public void outputDouble(double data)
 //	{
-//		int [] ret = new int[2];
-//
-//		// handle default
-//		if (a == 0)
+//		if (data == 0.0)
 //		{
-//			ret[0] = 0x40000000;
-//			ret[1] = 0;
-//			outputIntArray(ret, 2);
+//			for(int i=0; i<8; i++) outputByte((byte)0);
 //			return;
 //		}
+//		BigDecimal reg = new BigDecimal((double)data);
 //
-//		// identify sign
-//		double temp = a;
-//		boolean negsign = false;
-//		if (temp < 0)
+//		boolean negSign = false;
+//		if (reg.doubleValue() < 0)
 //		{
-//			negsign = true;
-//			temp = -temp;
+//			negSign = true;
+//			reg = reg.negate();
 //		}
 //
-//		// establish the excess-64 exponent value
 //		int exponent = 64;
-//
-//		// scale the exponent and mantissa
-//		for (; temp < 0.0625 && exponent > 0; exponent--) temp *= 16.0;
-//
+//		for(; (reg.doubleValue() < 0.0625) && (exponent > 0); exponent--)
+//			reg = reg.multiply(new BigDecimal(16.0));
 //		if (exponent == 0) System.out.println("Exponent underflow");
-//
-//		for (; temp >= 1 && exponent < 128; exponent++) temp /= 16.0;
-//
+//		for(; (reg.doubleValue() >= 1) && (exponent < 128); exponent++)
+//			reg = reg.divide(new BigDecimal(16.0), BigDecimal.ROUND_HALF_UP);		// is the rounding mode right?
 //		if (exponent > 127) System.out.println("Exponent overflow");
-//
-//		// set the sign
-//		if (negsign) exponent |= 0x80;
-//
-//		// convert temp to 7-byte binary integer
-//		double top = temp;
-//		for (int i = 0; i < 24; i++) top *= 2;
-//		int highmantissa = (int)top;
-//		double frac = top - highmantissa;
-//		for (int i = 0; i < 32; i++) frac *= 2;
-//		ret[0] = highmantissa | (exponent<<24);
-//		ret[1] = (int)frac;
-//		outputIntArray(ret, 2);
+//		if (negSign) exponent |= 0x00000080;
+//		BigDecimal f_mantissa = reg.remainder(new BigDecimal(1.0));		// doesn't exist in 1.4
+//		for(int i = 0; i < 56; i++)
+//			f_mantissa = f_mantissa.multiply(new BigDecimal(2.0));
+//		long mantissa = f_mantissa.longValue();
+//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//		baos.write(exponent);
+//		for(int i = 6; i >= 0; i--)
+//			baos.write((int)((mantissa >> (i * 8)) & 0xFF));
+//		byte [] result = baos.toByteArray();
+//		for(int i=0; i<8; i++) outputByte(result[i]);
 //	}
+
+	/**
+	 * Method to write a GDSII representation of a double.
+	 * Original C-Electric code (no longer used).
+	 * @param data the double to process.
+	 */
+	private void outputDouble(double a)
+	{
+		int [] ret = new int[2];
+
+		// handle default
+		if (a == 0)
+		{
+			ret[0] = 0x40000000;
+			ret[1] = 0;
+			outputIntArray(ret, 2);
+			return;
+		}
+
+		// identify sign
+		double temp = a;
+		boolean negsign = false;
+		if (temp < 0)
+		{
+			negsign = true;
+			temp = -temp;
+		}
+
+		// establish the excess-64 exponent value
+		int exponent = 64;
+
+		// scale the exponent and mantissa
+		for (; temp < 0.0625 && exponent > 0; exponent--) temp *= 16.0;
+
+		if (exponent == 0) System.out.println("Exponent underflow");
+
+		for (; temp >= 1 && exponent < 128; exponent++) temp /= 16.0;
+
+		if (exponent > 127) System.out.println("Exponent overflow");
+
+		// set the sign
+		if (negsign) exponent |= 0x80;
+
+		// convert temp to 7-byte binary integer
+		double top = temp;
+		for (int i = 0; i < 24; i++) top *= 2;
+		int highmantissa = (int)top;
+		double frac = top - highmantissa;
+		for (int i = 0; i < 32; i++) frac *= 2;
+		ret[0] = highmantissa | (exponent<<24);
+		ret[1] = (int)frac;
+		outputIntArray(ret, 2);
+	}
 
 	/**
 	 * Method to parse the GDS layer string and get the 3 layer numbers (plain, text, and pin).
