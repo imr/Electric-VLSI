@@ -201,7 +201,8 @@ public class StatusBar extends JPanel implements HighlightListener
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				StatusBar sb = wf.getFrame().getStatusBar();
-				sb.redoStatusBar();
+                if (sb != null)
+				    sb.redoStatusBar();
 			}
 		}
 	}
