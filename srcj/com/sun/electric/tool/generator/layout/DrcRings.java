@@ -38,16 +38,17 @@ public class DrcRings {
 		public boolean skip(NodeInst ni) {return false;}
 	}
 
+/*
     public static void addDrcRings(Cell gallery, Filter filter) {
-        addDrcRings(gallery, filter, 3);
+        Library lib = gallery.getLibrary();
+        addDrcRings(gallery, filter, new StdCellParams(lib, Tech.MOCMOS));
     }
+*/
 
-	public static void addDrcRings(Cell gallery, Filter filter, double spacing) {
+	public static void addDrcRings(Cell gallery, Filter filter, StdCellParams stdCell) {
 		if (filter==null) filter = new Filter();
 		
-		Library lib = gallery.getLibrary();
-		StdCellParams stdCell = new StdCellParams(lib, Tech.MOCMOS);
-		
+        double spacing = stdCell.getDRCRingSpacing();
 		// record original gates to avoid putting DrcRings around DrcRings
 		ArrayList gates = new ArrayList();
 		for (Iterator it=gallery.getNodes(); it.hasNext();) {

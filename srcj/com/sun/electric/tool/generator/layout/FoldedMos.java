@@ -28,7 +28,9 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.generator.layout.Tech.MosInst;
 
 import java.awt.geom.Rectangle2D;
@@ -139,7 +141,20 @@ public abstract class FoldedMos {
 		double x1 = Tech.roundToGrid(LayoutLib.roundCenterX(p1));
 		double x2 = Tech.roundToGrid(LayoutLib.roundCenterX(p2));
 
-		LayoutLib.newArcInst(diff, LayoutLib.DEF_SIZE, p1, x1, y, p2, x2, y);
+        NodeInst ni1 = p1.getNodeInst();
+        NodeInst ni2 = p2.getNodeInst();
+        Poly poly1 = ni1.getShapeOfPort(p1.getPortProto());
+        Poly poly2 = ni2.getShapeOfPort(p2.getPortProto());
+        // For TSMC90, Diff node's ports are always zero in size, so when
+        // diff node and diffCon node are at different y positions, you
+        // cannot always create a single arc.  In TSMC90, as long as the arc is a multiple
+        // of 0.2 wide and the end points are at a grid multiple of 0.1, there
+        // are no grid problems, so we can just use a track router
+        if (!poly1.contains(x1, y) || !poly2.contains(x2, y)) {
+            LayoutLib.newArcInst(diff, LayoutLib.DEF_SIZE, p1, p2);
+        } else {
+		    LayoutLib.newArcInst(diff, LayoutLib.DEF_SIZE, p1, x1, y, p2, x2, y);
+        }
 	}
 
 	/** Construct a MOS transistor that has been folded to fit within a

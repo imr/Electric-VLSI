@@ -214,7 +214,7 @@ public class GateRegressionMocmos extends Job {
 		stdCell.setPmosWellHeight(70);
 
 		Cell gallery = Gallery.makeGallery(scratchLib);
-		DrcRings.addDrcRings(gallery, FILTER);
+		DrcRings.addDrcRings(gallery, FILTER, stdCell);
 		
 		LayoutLib.writeLibrary(scratchLib);
 

@@ -151,7 +151,9 @@ public class Tech {
 		pdNode,
 		ndNode,
 		pselNode,
-		nselNode;
+		nselNode,
+        pwellNode,
+        nwellNode;
 	/** Essential-Bounds */
 	public static PrimitiveNode essentialBounds;
 	/** Facet-Center */
@@ -240,6 +242,12 @@ public class Tech {
 		// intialize well
 		nwell = tech.findNodeProto("N-Well-Node");
 		pwell = tech.findNodeProto("P-Well-Node");
+        nwellNode = tech.findNodeProto("Metal-1-N-Well-Con");
+        pwellNode = tech.findNodeProto("Metal-1-P-Well-Con");
+        if (isTsmc90) {
+            nwellNode = tech.findNodeProto("Y-Metal-1-N-Well-Con");
+            pwellNode = tech.findNodeProto("Y-Metal-1-P-Well-Con");
+        }
 
 		// Layer Nodes
 		m1Node = tech.findNodeProto("Metal-1-Node");

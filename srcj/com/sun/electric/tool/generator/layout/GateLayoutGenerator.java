@@ -78,7 +78,10 @@ public class GateLayoutGenerator extends Job {
 		GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell);
 		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
-			
+
+        Cell gallery = Gallery.makeGallery(outLib);
+        DrcRings.addDrcRings(gallery, FILTER, stdCell);
+
 		return outLib;
 	}
 	
@@ -130,9 +133,7 @@ public class GateLayoutGenerator extends Job {
 		//Library outLib = cell.getLibrary();
 
 		generateLayout(outLib, cell, technology);
-		Cell gallery = Gallery.makeGallery(outLib);
-		DrcRings.addDrcRings(gallery, FILTER);
-		
+
 		System.out.println("done.");
 		return true;
 	}

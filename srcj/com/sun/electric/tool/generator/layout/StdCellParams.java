@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
@@ -53,7 +54,7 @@ import com.sun.electric.tool.ncc.NccResult;
  * -1 to -nbNmosTracks().  These numbers correspond to the highest and
  * lowest, respectively, unblocked tracks in the NMOS region. */
 public class StdCellParams {
-	// ---------------------- private classes --------------------------------
+    // ---------------------- private classes --------------------------------
 	private static class TrackBlockages {
 		private static class Blockage {
 			double bot, top;
@@ -136,6 +137,10 @@ public class StdCellParams {
     private double difConIncr;
     private double drcRingSpace;
 
+    // for well contacts
+    private double wellConSelectHeight;         // height of select layer around well tap
+    private double wellConSelectOffset;         // offset of select from anchor point
+
     // ======================================================
 
 	// Critera for reducing the number of distict sizes.
@@ -207,6 +212,8 @@ public class StdCellParams {
         gridResolution = 0.5;
         difConIncr = 5;
         drcRingSpace = 3;
+        wellConSelectHeight = 9;
+        wellConSelectOffset = 0;
     }
 
     private void initTSMC90() {
@@ -237,7 +244,7 @@ public class StdCellParams {
         nmosWellTieY = 0;
         pmosWellTieY = 0;
 
-        minGateWid = 3;
+        minGateWid = 5.2;
         diffContWid = 5;
         maxMosWidth = 45;
         difWidHint = 3.4;
@@ -246,7 +253,9 @@ public class StdCellParams {
         viaToViaPitch = 5.2;
         gridResolution = 0.1;
         difConIncr = 5.2;
-        drcRingSpace = 7;
+        drcRingSpace = 0;
+        wellConSelectHeight = 8.4;
+        wellConSelectOffset = 0;
     }
 
     /** Initialize Tracks after setting up parameters */
@@ -514,6 +523,31 @@ public class StdCellParams {
 
     public double getDRCRingSpacing() { return drcRingSpace; }
 
+    public double getM1TrackAboveVDD() {
+        double trackX;
+        if (Tech.isTSMC90()) {
+            // vddTop + m1_m1_sp + m1_wid/2 + m1_xcon_extension
+            trackX = getVddY() + getVddWidth()/2 + 2.4 + getM1TrackWidth()/2 + 2.8;
+        } else {
+            // vddTop + m1_m1_sp + m1_wid/2
+            trackX = getVddY() + getVddWidth()/2 + 3 + 2;
+        }
+        return trackX;
+    }
+
+    public double getM1TrackBelowGnd() {
+        double trackX;
+        double gndBot = getGndY() - getGndWidth()/2;
+        if (Tech.isTSMC90()) {
+            // gndBot - m1_m1_sp - m1_wid/2 - m1_xcon_extension
+            trackX = gndBot - 2.4 - getM1TrackWidth()/2 - 2.8;
+        } else {
+            // gndBot - m1_m1_sp - m1_wid/2
+            trackX = gndBot - getM1TrackWidth() - 2;
+        }
+        return trackX;
+    }
+
     /** Get the minimum diffusion contact width. This is the size reported by
      * the GUI, not the pre-offset size.
      */
@@ -738,7 +772,12 @@ public class StdCellParams {
      * nearest multiple of 0.2 for TSMC90 */
 	public double roundGateWidth(double w) {
         if (Tech.isTSMC90()) {
-		    return Math.rint(w * 5) / 5;
+		    double size = Math.rint(w * 5) / 5;
+            if (size < minGateWid) {
+                System.out.println("Warning: gate width of "+size+" too small, using "+minGateWid);
+                return minGateWid;
+            }
+            return size;
         } else {
             return Math.rint(w * 2) / 2;
         }
@@ -756,6 +795,10 @@ public class StdCellParams {
 		return q;
 		//return ((int) (s*10+.5)) / 10.0;
 	}
+
+    public double roundToGrid(double s) {
+        return ( ((int)(s/gridResolution)) * gridResolution );
+    }
 
 	public void setSizeQuantizationError(double err) {
 		error(err >= 1, "quantization error must be less than 1.0");
@@ -1169,5 +1212,86 @@ public class StdCellParams {
 		Cell f = diffNode.getParent();
 		LayoutLib.newNodeInst(sel, r.getCenterX(), r.getCenterY(), w, h, 0, f);
 	}
+
+    public static class SelectFill {
+        public final NodeInst nselNode;
+        public final NodeInst pselNode;
+        public SelectFill(NodeInst nselNode, NodeInst pselNode) {
+            this.nselNode = nselNode;
+            this.pselNode = pselNode;
+        }
+    }
+    /**
+     * This fills the cell with N/P select over current N/P select areas, and over
+     * poly.  This assumes that all Pmos devices and PWell is at y > 0, and all
+     * Nmos devices and NWell is at y < 0.
+     * @param cell the cell to fill
+     */
+    public static SelectFill fillSelect(Cell cell) {
+        double selSurroundPoly = 4.4;       // PP.R.1 & NP.R.1: select surround poly
+        Rectangle2D polyBounds = LayoutLib.getBounds(cell, Layer.Function.POLY1);
+        Rectangle2D pselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTP);
+        Rectangle2D nselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTN);
+        polyBounds.setRect(polyBounds.getX()-selSurroundPoly,
+                polyBounds.getY()-selSurroundPoly, polyBounds.getWidth() + 2*selSurroundPoly,
+                polyBounds.getHeight() + 2*selSurroundPoly);
+        // merge select and poly bounds
+        pselectBounds = pselectBounds.createUnion(polyBounds);
+        nselectBounds = nselectBounds.createUnion(polyBounds);
+        // pselect above y=0, nselect below
+        pselectBounds.setRect(pselectBounds.getMinX(), 0,
+                pselectBounds.getMaxX()-pselectBounds.getMinX(), pselectBounds.getMaxY());
+        nselectBounds.setRect(nselectBounds.getMinX(), nselectBounds.getMinY(),
+                nselectBounds.getMaxX()-nselectBounds.getMinX(), -nselectBounds.getMinY());
+        // fill it in
+        pselectBounds = LayoutLib.roundBounds(pselectBounds);
+        nselectBounds = LayoutLib.roundBounds(nselectBounds);
+        NodeInst pni = LayoutLib.newNodeInst(Tech.pselNode, pselectBounds.getCenterX(), pselectBounds.getCenterY(),
+                pselectBounds.getWidth(), pselectBounds.getHeight(), 0, cell);
+        pni.setHardSelect();
+        NodeInst nni = LayoutLib.newNodeInst(Tech.nselNode, nselectBounds.getCenterX(), nselectBounds.getCenterY(),
+                nselectBounds.getWidth(), nselectBounds.getHeight(), 0, cell);
+        nni.setHardSelect();
+        return new SelectFill(nni, pni);
+    }
+
+    /**
+     * Note that nwellX denotes the X coord of the nwell contact cut, which
+     * goes in the Nwell (well that holds PMOS devices).
+     * @param selFill
+     * @param cell
+     * @return
+     */
+    public boolean addWellCon(SelectFill selFill, PortInst gndPort, PortInst vddPort, Cell cell) {
+        // see if there is space
+        double nselMaxY = Math.abs(selFill.nselNode.getYSize());
+        double pselMaxY = Math.abs(selFill.pselNode.getYSize());
+
+        boolean added = false;
+        double pspace = getNmosWellHeight() - nselMaxY;
+        if (pspace > wellConSelectHeight + 2*gridResolution) {
+            // there is space, create it
+            double pwellX = roundToGrid(gndPort.getBounds().getCenterX());
+            double pwellY = -roundToGrid(nselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) - gridResolution;
+            SizeOffset so = Tech.pwellNode.getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(Tech.pwellNode, pwellX, pwellY,
+                    Tech.pwellNode.getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    Tech.pwellNode.getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            LayoutLib.newArcInst(Tech.m1, getM1TrackWidth(), ni.getOnlyPortInst(), gndPort);
+            added = true;
+        }
+        double nspace = getPmosWellHeight() - pselMaxY;
+        if (nspace > wellConSelectHeight + 2*gridResolution) {
+            double nwellX = roundToGrid(vddPort.getBounds().getCenterX());
+            double nwellY = roundToGrid(pselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) + gridResolution;
+            SizeOffset so = Tech.nwellNode.getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(Tech.nwellNode, nwellX, nwellY,
+                    Tech.nwellNode.getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    Tech.nwellNode.getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            LayoutLib.newArcInst(Tech.m1, getM1TrackWidth(), ni.getOnlyPortInst(), vddPort);
+            added = true;
+        }
+        return added;
+    }
 
 }

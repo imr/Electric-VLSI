@@ -27,10 +27,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+
+import java.awt.geom.Rectangle2D;
 
 /** Create a ring in layers p1 and m1 - m5.  This ring is useful for
  * testing DRC correctness of my gate libraries.  I will draw a ring
@@ -47,7 +50,7 @@ public class DrcRing {
   private static void drawRing(ArcProto arc, double w, double h, Cell f) {
     // metal-5 minimum width is 6 lambda
     double arcW = 6;
-    
+
     NodeProto pin = ((PrimitiveArc)arc).findOverridablePinProto();
     double pinLoX = - arcW/2;
     double pinHiX = w + arcW/2;
@@ -62,9 +65,9 @@ public class DrcRing {
 	double defSz = LayoutLib.DEF_SIZE;
     PortInst blPort = LayoutLib.newNodeInst(pin, pinLoX, pinLoY, defSz, defSz,
                                             0, f).getOnlyPortInst();
-    PortInst brPort = LayoutLib.newNodeInst(pin, pinHiX, pinLoY, defSz, defSz, 
+    PortInst brPort = LayoutLib.newNodeInst(pin, pinHiX, pinLoY, defSz, defSz,
                                             0, f).getOnlyPortInst();
-    PortInst tlPort = LayoutLib.newNodeInst(pin, pinLoX, pinHiY, defSz, defSz, 
+    PortInst tlPort = LayoutLib.newNodeInst(pin, pinLoX, pinHiY, defSz, defSz,
                                             0, f).getOnlyPortInst();
     PortInst trPort = LayoutLib.newNodeInst(pin, pinHiX, pinHiY, defSz, defSz,
                                             0, f).getOnlyPortInst();
@@ -72,6 +75,39 @@ public class DrcRing {
     LayoutLib.newArcInst(arc, arcW, tlPort, trPort);
     LayoutLib.newArcInst(arc, arcW, blPort, tlPort);
     LayoutLib.newArcInst(arc, arcW, brPort, trPort);
+  }
+
+  private static void drawRing(NodeProto np, double w, double h, double thickness, Cell f, char half, double pwellRatio) {
+      double arcW = thickness;
+
+      double pinLoX = -arcW;
+      double pinHiX = w;
+      double pinLoY = 0;
+      double pinHiY = h;
+      double lrHeight = h;
+      if (half == 'T') {
+          pinLoY = DBMath.round(h*pwellRatio);
+          lrHeight = DBMath.round(h*pwellRatio);
+      }
+      if (half == 'B') {
+          pinHiY = DBMath.round(h*(1-pwellRatio));
+          lrHeight = DBMath.round(h*(1-pwellRatio));
+      }
+      Rectangle2D left = new Rectangle2D.Double(pinLoX, pinLoY, arcW, lrHeight);
+      Rectangle2D right = new Rectangle2D.Double(pinHiX, pinLoY, arcW, lrHeight);
+      Rectangle2D top = new Rectangle2D.Double(pinLoX, pinHiY, w + 2*arcW, arcW);
+      Rectangle2D bottom = new Rectangle2D.Double(pinLoX, pinLoY - arcW, w + 2*arcW, arcW);
+      LayoutLib.roundBounds(left);
+      LayoutLib.roundBounds(right);
+      LayoutLib.roundBounds(top);
+      LayoutLib.roundBounds(bottom);
+
+      LayoutLib.newNodeInst(np, left.getCenterX(), left.getCenterY(), left.getWidth(), left.getHeight(), 0, f);
+      LayoutLib.newNodeInst(np, right.getCenterX(), right.getCenterY(), right.getWidth(), right.getHeight(), 0, f);
+      if (half != 'B')
+          LayoutLib.newNodeInst(np, top.getCenterX(), top.getCenterY(), top.getWidth(), top.getHeight(), 0, f);
+      if (half != 'T')
+          LayoutLib.newNodeInst(np, bottom.getCenterX(), bottom.getCenterY(), bottom.getWidth(), bottom.getHeight(), 0, f);
   }
 
   /** Draw rings with inside width w and inside height h. The ring
@@ -83,7 +119,14 @@ public class DrcRing {
     if (ring!=null) return ring;
     ring = stdCell.newPart(nm);
 
-    if (!Tech.isTSMC90()) drawRing(Tech.p1, w, h, ring);
+    if (Tech.isTSMC90()) {
+        // ignore poly, but put in select rings
+        double pwellRatio = stdCell.getPmosWellHeight()/(stdCell.getNmosWellHeight()+stdCell.getPmosWellHeight());
+        drawRing(Tech.pselNode, w, h, 4.8, ring, 'B', pwellRatio);
+        drawRing(Tech.nselNode, w, h, 4.8, ring, 'T', pwellRatio);
+    } else {
+        drawRing(Tech.p1, w, h, ring);
+    }
     drawRing(Tech.m1, w, h, ring);
     drawRing(Tech.m2, w, h, ring);
     drawRing(Tech.m3, w, h, ring);
