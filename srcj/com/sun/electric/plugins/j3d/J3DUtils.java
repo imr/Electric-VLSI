@@ -198,6 +198,16 @@ public final class J3DUtils
 		return qx;
 	}
 
+    public static double covertToDegrees(double radiant)
+    {
+        return ((180*radiant)/Math.PI);
+    }
+
+    public static double convertToRadiant(double degrees)
+    {
+        return ((Math.PI*degrees)/180);
+    }
+
     /**
      * Utility class to modify live/compiled scene graph
      */

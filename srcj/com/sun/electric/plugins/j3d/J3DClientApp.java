@@ -1,6 +1,5 @@
 package com.sun.electric.plugins.j3d;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 
 import java.io.IOException;
@@ -8,8 +7,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.DatagramPacket;
 import java.util.StringTokenizer;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,37 +17,50 @@ import java.util.ArrayList;
  */
 public class J3DClientApp extends Job
 {
-    public static double covertToDegrees(double radiant)
+    private static final int VALUES_PER_LINE = 11;
+    private static double[] lastValidValues = new double[VALUES_PER_LINE];
+
+    public static double[] convertValues(String[] stringValues)
     {
-        return ((180*radiant)/Math.PI);
+        double[] values = new double[stringValues.length];
+        for (int i = 0; i < stringValues.length; i++)
+        {
+            try
+            {
+                values[i] = Double.parseDouble(stringValues[i]);
+            }
+            catch (Exception e) // invalid number in line
+            {
+                values[i] = lastValidValues[i];
+            }
+            lastValidValues[i] = values[i];
+            if (2 < i && i < 6 )
+                values[i] = J3DUtils.convertToRadiant(values[i]);   // original value is in degrees
+        }
+        return values;
     }
 
-    public static double convertToRadiant(double degrees)
-    {
-        return ((Math.PI*degrees)/180);
-    }
-
-    public static void parseValues(String line, int lineNumner, double[] values)
+    /**
+     * To parse capacitance data from line
+     * Format: posX posY posZ rotX rotY rotZ rotPosX rotPosY rotPosZ capacitance radius error
+     * @param line
+     * @param lineNumner
+     */
+    public static String[] parseValues(String line, int lineNumner)
     {
         int count = 0;
+        String[] strings = new String[VALUES_PER_LINE]; // 12 is the max value including errors
         StringTokenizer parse = new StringTokenizer(line, " ", false);
+
         while (parse.hasMoreTokens())
         {
-            String value = parse.nextToken();
-            if (count > 8)
-            {
-                System.out.println("Error reading capacitance file in line " + lineNumner);
-                break;
-            }
-            values[count] = TextUtils.atof(value);
-            if (2 < count && count < 6 )
-                values[count] = convertToRadiant(values[count]);   // original value is in degrees
-            count++;
+            strings[count++] = parse.nextToken();
         }
-        if (count != 9)
+        if (count < 9 || count > 13)
         {
             System.out.println("Error reading capacitance file in line " + lineNumner);
         }
+        return strings;
     }
 
     /** dialog box which owns this job */   private J3DViewDialog dialog;

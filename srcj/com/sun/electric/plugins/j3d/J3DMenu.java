@@ -103,7 +103,6 @@ public class J3DMenu {
         try {
             LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
             List knotList = new ArrayList();
-            double[] values = new double[9];
 
             for(;;)
             {
@@ -116,7 +115,8 @@ public class J3DMenu {
                 if (response == 1) continue; // skip
                 else if (response == 2) break; // cancel option
 
-                J3DClientApp.parseValues(line, 0, values);
+                String[] stringValues = J3DClientApp.parseValues(line, 0);
+                double[] values = J3DClientApp.convertValues(stringValues);
                 knotList.add(view3D.moveAndRotate(values));
             }
             view3D.addInterpolator(knotList);

@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
@@ -43,6 +44,7 @@ public class J3DViewDialog extends EDialog
     private Job socketJob = null;
     private String hostname;
     private List knots = new ArrayList();
+    private Map interMap;
 
     public static void createThreeViewDialog(java.awt.Frame parent, String hostname)
     {
@@ -55,7 +57,7 @@ public class J3DViewDialog extends EDialog
             System.out.println("Current Window Frame is not a 3D View");
             return;
         }
-        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, true, hostname);
+        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, false, hostname);
 		dialog.setVisible(true);
     }
 
@@ -66,7 +68,7 @@ public class J3DViewDialog extends EDialog
 		initComponents();
         this.view3D = view3d;
         this.hostname = hostname;
-        getRootPane().setDefaultButton(start);
+        getRootPane().setDefaultButton(connect);
 //        spline.addItem("KB Spline");
 //        spline.addItem("TCB Spline");
         if (view3d.jAlpha != null)
@@ -75,59 +77,38 @@ public class J3DViewDialog extends EDialog
             auto.setSelected(view3d.jAlpha.getAutoMode());
         }
 
-        // Motion button
-        javax.swing.JButton motion = new javax.swing.JButton();
-        motion.setText("Demo");
-        motion.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createDemoActionPerformed(evt);
-            }
-        });
+        // setting initial other values
+        setOtherValues("?", "?");
 
-        java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
-        getContentPane().add(motion, gridBagConstraints);
-
-        // Motion button
-        javax.swing.JButton enter = new javax.swing.JButton();
-        enter.setText("Enter");
-        enter.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                enterDataActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
-        getContentPane().add(enter, gridBagConstraints);
-
+        // to calculate window position
 		finishInitialization();
 	}
 
     public void socketAction(String inData)
     {
-        double[] values = new double[9];
-        J3DClientApp.parseValues(inData, 0, values);
+        String[] stringValues = J3DClientApp.parseValues(inData, 0);
 
-        xField.setText(Double.toString(values[0]));
-        yField.setText(Double.toString(values[1]));
-        zField.setText(Double.toString(values[2]));
-        xRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[3])));
-        yRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[4])));
-        zRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[5])));
-        xRotPosField.setText(Double.toString(values[6]));
-        yRotPosField.setText(Double.toString(values[7]));
-        zRotPosField.setText(Double.toString(values[8]));
+        xField.setText(stringValues[0]);
+        yField.setText(stringValues[1]);
+        zField.setText(stringValues[2]);
+        xRotField.setText(stringValues[3]);
+        yRotField.setText(stringValues[4]);
+        zRotField.setText(stringValues[5]);
+        xRotPosField.setText(stringValues[6]);
+        yRotPosField.setText(stringValues[7]);
+        zRotPosField.setText(stringValues[8]);
+        setOtherValues(stringValues[9], stringValues[10]);
+        double[] values = J3DClientApp.convertValues(stringValues);
         knots.add(view3D.moveAndRotate(values));
     }
 
-	protected void escapePressed() { cancelActionPerformed(null); }
+    private void setOtherValues(String capacitance, String radius)
+    {
+        capacitanceLabel.setText("Capacitance: " + capacitance + " [fF]");
+        radiusLabel.setText("Radius: " + radius + " [mm]");
+    }
+
+	protected void escapePressed() { closeActionPerformed(null); }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -137,29 +118,52 @@ public class J3DViewDialog extends EDialog
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        cancel = new javax.swing.JButton();
-        start = new javax.swing.JButton();
+        rotationPanel = new javax.swing.JPanel();
+        zRotPosLabelUnit = new javax.swing.JLabel();
+        yRotLabelUnit = new javax.swing.JLabel();
+        yRotPosLabelUnit = new javax.swing.JLabel();
+        xRotPosLabelUnit = new javax.swing.JLabel();
+        zRotLabelUnit = new javax.swing.JLabel();
+        xRotLabelUnit = new javax.swing.JLabel();
+        zRotPosField = new javax.swing.JTextField();
+        zRotPosLabel = new javax.swing.JLabel();
+        yRotPosField = new javax.swing.JTextField();
+        yRotPosLabel = new javax.swing.JLabel();
+        xRotPosField = new javax.swing.JTextField();
+        xRotPosLabel = new javax.swing.JLabel();
+        zRotField = new javax.swing.JTextField();
+        zRotLabel = new javax.swing.JLabel();
+        yRotField = new javax.swing.JTextField();
+        yRotLabel = new javax.swing.JLabel();
+        xRotField = new javax.swing.JTextField();
+        xRotLabel = new javax.swing.JLabel();
+        zBox1 = new javax.swing.JCheckBox();
+        yBox1 = new javax.swing.JCheckBox();
+        xBox1 = new javax.swing.JCheckBox();
+        positionPanel = new javax.swing.JPanel();
+        zLabelUnit = new javax.swing.JLabel();
+        yLabelUnit = new javax.swing.JLabel();
+        xLabelUnit = new javax.swing.JLabel();
+        zField = new javax.swing.JTextField();
+        zLabel = new javax.swing.JLabel();
+        yField = new javax.swing.JTextField();
+        yLabel = new javax.swing.JLabel();
+        xField = new javax.swing.JTextField();
+        xLabel = new javax.swing.JLabel();
+        xBox = new javax.swing.JCheckBox();
+        yBox = new javax.swing.JCheckBox();
+        zBox = new javax.swing.JCheckBox();
+        otherPanel = new javax.swing.JPanel();
+        capacitanceLabel = new javax.swing.JLabel();
+        radiusLabel = new javax.swing.JLabel();
+        separator = new javax.swing.JSeparator();
         slider = new javax.swing.JSlider();
         auto = new javax.swing.JCheckBox();
-        separator = new javax.swing.JSeparator();
-        xLabel = new javax.swing.JLabel();
-        xField = new javax.swing.JTextField();
-        yLabel = new javax.swing.JLabel();
-        yField = new javax.swing.JTextField();
-        zLabel = new javax.swing.JLabel();
-        zField = new javax.swing.JTextField();
-        xRotLabel = new javax.swing.JLabel();
-        xRotField = new javax.swing.JTextField();
-        yRotLabel = new javax.swing.JLabel();
-        yRotField = new javax.swing.JTextField();
-        zRotLabel = new javax.swing.JLabel();
-        zRotField = new javax.swing.JTextField();
-        xRotPosLabel = new javax.swing.JLabel();
-        xRotPosField = new javax.swing.JTextField();
-        yRotPosLabel = new javax.swing.JLabel();
-        yRotPosField = new javax.swing.JTextField();
-        zRotPosLabel = new javax.swing.JLabel();
-        zRotPosField = new javax.swing.JTextField();
+        demo = new javax.swing.JButton();
+        separator1 = new javax.swing.JSeparator();
+        close = new javax.swing.JButton();
+        connect = new javax.swing.JButton();
+        enter = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -172,218 +176,430 @@ public class J3DViewDialog extends EDialog
             }
         });
 
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelActionPerformed(evt);
-            }
-        });
+        rotationPanel.setLayout(new java.awt.GridBagLayout());
 
+        rotationPanel.setBorder(new javax.swing.border.TitledBorder("Rotation Values"));
+        zRotPosLabelUnit.setText("[um]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(zRotPosLabelUnit, gridBagConstraints);
+
+        yRotLabelUnit.setText("[degrees]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(yRotLabelUnit, gridBagConstraints);
+
+        yRotPosLabelUnit.setText("[um]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(yRotPosLabelUnit, gridBagConstraints);
+
+        xRotPosLabelUnit.setText("[um]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(xRotPosLabelUnit, gridBagConstraints);
+
+        zRotLabelUnit.setText("[degrees]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
-        getContentPane().add(cancel, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(zRotLabelUnit, gridBagConstraints);
 
-        start.setText("Connect");
-        start.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                startActionPerformed(evt);
-            }
-        });
+        xRotLabelUnit.setText("[degrees]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(xRotLabelUnit, gridBagConstraints);
 
+        zRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        rotationPanel.add(zRotPosField, gridBagConstraints);
+
+        zRotPosLabel.setText("Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(zRotPosLabel, gridBagConstraints);
+
+        yRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        rotationPanel.add(yRotPosField, gridBagConstraints);
+
+        yRotPosLabel.setText("Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(yRotPosLabel, gridBagConstraints);
+
+        xRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        rotationPanel.add(xRotPosField, gridBagConstraints);
+
+        xRotPosLabel.setText("X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(xRotPosLabel, gridBagConstraints);
+
+        zRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        rotationPanel.add(zRotField, gridBagConstraints);
+
+        zRotLabel.setText("Angle Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(zRotLabel, gridBagConstraints);
+
+        yRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        rotationPanel.add(yRotField, gridBagConstraints);
+
+        yRotLabel.setText("Angle Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(yRotLabel, gridBagConstraints);
+
+        xRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        rotationPanel.add(xRotField, gridBagConstraints);
+
+        xRotLabel.setText("Angle X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        rotationPanel.add(xRotLabel, gridBagConstraints);
+
+        zBox1.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        rotationPanel.add(zBox1, gridBagConstraints);
+
+        yBox1.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        rotationPanel.add(yBox1, gridBagConstraints);
+
+        xBox1.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        rotationPanel.add(xBox1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridheight = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        getContentPane().add(rotationPanel, gridBagConstraints);
+
+        positionPanel.setLayout(new java.awt.GridBagLayout());
+
+        positionPanel.setBorder(new javax.swing.border.TitledBorder("Position Values"));
+        zLabelUnit.setText("[um]");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
-        getContentPane().add(start, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(zLabelUnit, gridBagConstraints);
 
-        slider.setVerifyInputWhenFocusTarget(false);
+        yLabelUnit.setText("[um]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(yLabelUnit, gridBagConstraints);
+
+        xLabelUnit.setText("[um]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(xLabelUnit, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(slider, gridBagConstraints);
-
-        auto.setSelected(true);
-        auto.setText("Auto");
-        auto.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                autoStateChanged(evt);
-            }
-        });
-
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        getContentPane().add(auto, new java.awt.GridBagConstraints());
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(separator, gridBagConstraints);
-
-        xLabel.setText("X:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        getContentPane().add(xLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(xField, gridBagConstraints);
-
-        yLabel.setText("Y:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        getContentPane().add(yLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(yField, gridBagConstraints);
+        positionPanel.add(zField, gridBagConstraints);
 
         zLabel.setText("Z:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        getContentPane().add(zLabel, gridBagConstraints);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(zLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(zField, gridBagConstraints);
+        positionPanel.add(yField, gridBagConstraints);
 
-        xRotLabel.setText("Rot X:");
+        yLabel.setText("Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(yLabel, gridBagConstraints);
+
+        xField.setMinimumSize(new java.awt.Dimension(20, 21));
+        xField.setPreferredSize(new java.awt.Dimension(40, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        positionPanel.add(xField, gridBagConstraints);
+
+        xLabel.setText("X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        positionPanel.add(xLabel, gridBagConstraints);
+
+        xBox.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        positionPanel.add(xBox, gridBagConstraints);
+
+        yBox.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        positionPanel.add(yBox, gridBagConstraints);
+
+        zBox.setSelected(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        positionPanel.add(zBox, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(positionPanel, gridBagConstraints);
+
+        otherPanel.setLayout(new java.awt.GridBagLayout());
+
+        otherPanel.setBorder(new javax.swing.border.TitledBorder(""));
+        capacitanceLabel.setText("Capacitance: ? [fF]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        otherPanel.add(capacitanceLabel, gridBagConstraints);
+
+        radiusLabel.setText("Radius: ? [mm]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        otherPanel.add(radiusLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(otherPanel, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        getContentPane().add(xRotLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(xRotField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(separator, gridBagConstraints);
 
-        yRotLabel.setText("Rot Y:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        getContentPane().add(yRotLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(yRotField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(slider, gridBagConstraints);
 
-        zRotLabel.setText("Rot Z:");
+        auto.setText("Auto");
+        auto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                autoActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        getContentPane().add(zRotLabel, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(auto, gridBagConstraints);
+
+        demo.setText("Start Demo");
+        demo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                demoActionPerformed(evt);
+            }
+        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(zRotField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(demo, gridBagConstraints);
 
-        xRotPosLabel.setText("Rot Pos X:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        getContentPane().add(xRotPosLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(xRotPosField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(separator1, gridBagConstraints);
 
-        yRotPosLabel.setText("Rot Pos Y:");
+        close.setText("Close");
+        close.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        getContentPane().add(yRotPosLabel, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(close, gridBagConstraints);
+
+        connect.setText("Connect");
+        connect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connectActionPerformed(evt);
+            }
+        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(yRotPosField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(connect, gridBagConstraints);
 
-        zRotPosLabel.setText("Rot Pos Z:");
+        enter.setText("Enter");
+        enter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                enterActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        getContentPane().add(zRotPosLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        getContentPane().add(zRotPosField, gridBagConstraints);
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(enter, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
 
-    private void autoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_autoStateChanged
+    private void autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoActionPerformed
         view3D.jAlpha.setAutoMode(auto.isSelected());
-    }//GEN-LAST:event_autoStateChanged
+    }//GEN-LAST:event_autoActionPerformed
 
-    private void createDemoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
-        view3D.addInterpolator(knots);
-        //view3D.set3DCamera(spline.getSelectedIndex());
-    }//GEN-LAST:event_startActionPerformed
-
-    //enterDataActionPerformed
-    private void enterDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
+    private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed
         double[] values = new double[9];
 
         values[0] = TextUtils.atof(xField.getText());
         values[1] = TextUtils.atof(yField.getText());
         values[2] = TextUtils.atof(zField.getText());
-        values[3] = TextUtils.atof(xRotField.getText());
-        values[4] = TextUtils.atof(yRotField.getText());
-        values[5] = TextUtils.atof(zRotField.getText());
+        values[3] = J3DUtils.convertToRadiant(TextUtils.atof(xRotField.getText()));
+        values[4] = J3DUtils.convertToRadiant(TextUtils.atof(yRotField.getText()));
+        values[5] = J3DUtils.convertToRadiant(TextUtils.atof(zRotField.getText()));
         values[6] = TextUtils.atof(xRotPosField.getText());
         values[7] = TextUtils.atof(yRotPosField.getText());
         values[8] = TextUtils.atof(zRotPosField.getText());
         knots.add(view3D.moveAndRotate(values));
-    }//GEN-LAST:event_startActionPerformed
+    }//GEN-LAST:event_enterActionPerformed
 
-    private void startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
-        if (start.getText().equals("Connect"))
+    private void demoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_demoActionPerformed
+        if (demo.getText().equals("Start Demo"))
         {
-            start.setText("Stop");
-            socketJob = new J3DClientApp(this, hostname);
-            socketJob.startJob();
+            interMap = view3D.addInterpolator(knots);
+            if (interMap != null) // no error
+                demo.setText("Stop Demo");
         }
         else
         {
-            start.setText("Connect");
+           demo.setText("Start Demo");
+            view3D.removeInterpolator(interMap);
+        }
+        //view3D.set3DCamera(spline.getSelectedIndex());
+    }//GEN-LAST:event_demoActionPerformed
+
+    private void connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectActionPerformed
+        if (connect.getText().equals("Connect"))
+        {
+            connect.setText("Disconnect");
+            socketJob = new J3DClientApp(this, hostname);
+            socketJob.startJob();
+            enter.setEnabled(false);// don't want to add data if stream is connected
+        }
+        else
+        {
+            connect.setText("Connect");
+            enter.setEnabled(true);
             if (socketJob != null)
             {
                 socketJob.abort();
@@ -391,19 +607,12 @@ public class J3DViewDialog extends EDialog
                 socketJob.remove();
             }
         }
-        //view3D.set3DCamera(spline.getSelectedIndex());
-    }//GEN-LAST:event_startActionPerformed
+    }//GEN-LAST:event_connectActionPerformed
 
-	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
-	{//GEN-HEADEREND:event_cancelActionPerformed
-        if (socketJob != null)
-        {
-            socketJob.abort();
-            socketJob.checkAbort();
-            socketJob.remove();
-        }
-		closeDialog(null);
-	}//GEN-LAST:event_cancelActionPerformed
+    private void closeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeActionPerformed
+        setVisible(false);
+		dispose();
+    }//GEN-LAST:event_closeActionPerformed
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -414,28 +623,51 @@ public class J3DViewDialog extends EDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox auto;
-    private javax.swing.JButton cancel;
+    private javax.swing.JLabel capacitanceLabel;
+    private javax.swing.JButton close;
+    private javax.swing.JButton connect;
+    private javax.swing.JButton demo;
+    private javax.swing.JButton enter;
+    private javax.swing.JPanel otherPanel;
+    private javax.swing.JPanel positionPanel;
+    private javax.swing.JLabel radiusLabel;
+    private javax.swing.JPanel rotationPanel;
     private javax.swing.JSeparator separator;
+    private javax.swing.JSeparator separator1;
     private javax.swing.JSlider slider;
-    private javax.swing.JButton start;
+    private javax.swing.JCheckBox xBox;
+    private javax.swing.JCheckBox xBox1;
     private javax.swing.JTextField xField;
     private javax.swing.JLabel xLabel;
+    private javax.swing.JLabel xLabelUnit;
     private javax.swing.JTextField xRotField;
     private javax.swing.JLabel xRotLabel;
+    private javax.swing.JLabel xRotLabelUnit;
     private javax.swing.JTextField xRotPosField;
     private javax.swing.JLabel xRotPosLabel;
+    private javax.swing.JLabel xRotPosLabelUnit;
+    private javax.swing.JCheckBox yBox;
+    private javax.swing.JCheckBox yBox1;
     private javax.swing.JTextField yField;
     private javax.swing.JLabel yLabel;
+    private javax.swing.JLabel yLabelUnit;
     private javax.swing.JTextField yRotField;
     private javax.swing.JLabel yRotLabel;
+    private javax.swing.JLabel yRotLabelUnit;
     private javax.swing.JTextField yRotPosField;
     private javax.swing.JLabel yRotPosLabel;
+    private javax.swing.JLabel yRotPosLabelUnit;
+    private javax.swing.JCheckBox zBox;
+    private javax.swing.JCheckBox zBox1;
     private javax.swing.JTextField zField;
     private javax.swing.JLabel zLabel;
+    private javax.swing.JLabel zLabelUnit;
     private javax.swing.JTextField zRotField;
     private javax.swing.JLabel zRotLabel;
+    private javax.swing.JLabel zRotLabelUnit;
     private javax.swing.JTextField zRotPosField;
     private javax.swing.JLabel zRotPosLabel;
+    private javax.swing.JLabel zRotPosLabelUnit;
     // End of variables declaration//GEN-END:variables
 
 }

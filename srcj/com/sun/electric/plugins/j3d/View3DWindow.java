@@ -108,8 +108,9 @@ public class View3DWindow extends JPanel
 	private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
 
     // For demo cases
-    KBRotPosScaleSplinePathInterpolator kbSplineInter;
-    RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
+    //KBRotPosScaleSplinePathInterpolator kbSplineInter;
+    //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
+    private Map interpolatorMap = new HashMap();
 
     JAlpha jAlpha = new JAlpha(new Alpha (-1,
         Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
@@ -1195,16 +1196,16 @@ public class View3DWindow extends JPanel
      */
     public void set3DCamera(int mode)
     {
-        if (mode == 0)
-        {
-            boolean state = kbSplineInter.getEnable();
-            kbSplineInter.setEnable(!state);
-        }
-        else
-        {
-            boolean state = tcbSplineInter.getEnable();
-            tcbSplineInter.setEnable(!state);
-        }
+//        if (mode == 0)
+//        {
+//            boolean state = kbSplineInter.getEnable();
+//            kbSplineInter.setEnable(!state);
+//        }
+//        else
+//        {
+//            boolean state = tcbSplineInter.getEnable();
+//            tcbSplineInter.setEnable(!state);
+//        }
     }
 
     /**
@@ -1263,25 +1264,38 @@ public class View3DWindow extends JPanel
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
 
-        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(jAlpha, objTrans,
-                                                  yAxis, splineKeyFrames);
-        kbSplineInter.setSchedulingBounds(infiniteBounds);
-        //behaviorBranch.addChild(kbSplineInter);
-        kbSplineInter.setEnable(false);
+//        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(jAlpha, objTrans,
+//                                                  yAxis, splineKeyFrames);
+//        kbSplineInter.setSchedulingBounds(infiniteBounds);
+//        //behaviorBranch.addChild(kbSplineInter);
+//        kbSplineInter.setEnable(false);
 
-        tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, objTrans,
+        Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, objTrans,
                                                   yAxis, keyFrames);
         tcbSplineInter.setSchedulingBounds(infiniteBounds);
         //behaviorBranch.addChild(tcbSplineInter);
         tcbSplineInter.setEnable(false);
+        interpolatorMap.put(objTrans, tcbSplineInter);
 
         //objTrans.addChild(behaviorBranch);
-        objTrans.addChild(kbSplineInter);
+        //objTrans.addChild(kbSplineInter);
         objTrans.addChild(tcbSplineInter);
     }
 
-    public void addInterpolator(List knotList)
+    /**
+     * Method to create a path interpolator using knots
+     * defined in input list
+     * @param knotList
+     */
+    public Map addInterpolator(List knotList)
     {
+        if (knotList.size() < 2)
+        {
+            System.out.println("Needs at least 2 frams for the interpolator");
+            return null;
+        }
+
+        Map interMap = new HashMap(1);
         for (Iterator it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
@@ -1293,6 +1307,7 @@ public class View3DWindow extends JPanel
                 Shape3D obj = (Shape3D)list.get(j);
                 TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
                 BranchGroup behaviorBranch = new BranchGroup();
+                behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
                 TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
                 for (int i = 0; i < knotList.size(); i++)
                 {
@@ -1300,12 +1315,29 @@ public class View3DWindow extends JPanel
                     keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
                 }
                 Transform3D yAxis = new Transform3D();
-                tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+                Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
                                                           yAxis, keyFrames);
                 tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
                 behaviorBranch.addChild(tcbSplineInter);
+                interMap.put(grp, behaviorBranch);
                 grp.addChild(behaviorBranch);
+                interpolatorMap.put(grp, tcbSplineInter);
             }
+        }
+        return interMap;
+    }
+
+    /**
+     * Method to remove certain interpolators from scene graph
+     * @param interMap
+     */
+    public void removeInterpolator(Map interMap)
+    {
+        for (Iterator it = interMap.keySet().iterator(); it.hasNext();)
+        {
+            TransformGroup grp = (TransformGroup)it.next();
+            Node node = (Node)interMap.get(grp);
+            grp.removeChild(node);
         }
     }
 }
