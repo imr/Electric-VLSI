@@ -2,6 +2,10 @@
 
 
 ************************* Version 8.01h: *********************************
+
+FIX/IMP/MAN: (8/18/04, JKG) copy/paste fixes: default paste by center point, 
+    can move anchor point, shows delta from copy to paste. Right click menu added when pasting.
+
 IMP (8/18/04, GVG): Extra sizing rules for metals (another level) and area
 
 ************************* Version 8.01g: *********************************

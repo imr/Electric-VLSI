@@ -25,6 +25,8 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -47,16 +49,12 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
+import javax.swing.*;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.awt.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -72,9 +70,6 @@ public class Clipboard
 	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
 	/** The Clipboard Library. */						private static Library clipLib = null;
 	/** The Clipboard Cell. */							private static Cell clipCell;
-
-	private static boolean dupDistSet = false;
-	private static double dupX, dupY;
 
 	/**
 	 * The constructor gets called only once.
@@ -286,7 +281,7 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
             // copy objects to clipboard
-            copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(mouseDB.getX(), mouseDB.getY()));
+            copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(0, 0));
 
             Highlighter highlighter = wnd.getHighlighter();
             if (highlighter != null) highlighter.clear();
@@ -365,22 +360,27 @@ public class Clipboard
 			pasteList.add(ai);
 		}
 
-		if (!dupDistSet)
-		{
-			dupDistSet = true;
-            dupX = dupY = 2;
-		}
         if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener, PasteListener.ANCHORCENTER));
+			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener));
 		} else
 		{
             // get offset of highlighted objects from mouse
             Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
             Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
             EditWindow.gridAlign(mouseDB);
-		    PasteObjects job = new PasteObjects(pasteList, mouseDB.getX(), mouseDB.getY());
+            Rectangle2D pasteBounds = getPasteBounds(pasteList);
+            // this is the point on the clipboard cell that will be pasted at the mouse location
+            Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX(), pasteBounds.getCenterY());
+
+            double deltaX = mouseDB.getX() - refPastePoint.getX();
+            double deltaY = mouseDB.getY() - refPastePoint.getY();
+            // this is now a delta, not a point
+            refPastePoint.setLocation(deltaX, deltaY);
+            EditWindow.gridAlign(refPastePoint);
+
+		    PasteObjects job = new PasteObjects(pasteList, refPastePoint.getX(), refPastePoint.getY());
 		}
 	}
 
@@ -540,10 +540,10 @@ public class Clipboard
 	/**
 	 * Method to copy the list of Geometrics in "list" (NOGEOM terminated) from "fromCell"
 	 * to "toCell".  If "highlight" is true, highlight the objects in the new cell.
-     * The center of the collection of objects pasted will be placed at 'centerPoint'.
+     * The center of the collection of objects paste will be moved by 'delta'.
 	 */
 	private static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell, boolean highlight,
-		Point2D centerPoint)
+		Point2D delta)
 	{
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
@@ -590,6 +590,7 @@ public class Clipboard
 		}
 
         // get center from bounds of all objects to be pasted
+/*
         List pasteList = new ArrayList(theNodes);
         pasteList.addAll(theArcs);
         Rectangle2D pasteBounds = getPasteBounds(pasteList);
@@ -597,9 +598,13 @@ public class Clipboard
                 pasteBounds.getY() + 0.5*pasteBounds.getHeight());
         EditWindow.gridAlign(objectsCenter);
         EditWindow.gridAlign(centerPoint);
+*/
+        EditWindow.gridAlign(delta);
         // get translation to paste center point of objects at centerPoint.
-        double dX = centerPoint.getX() - objectsCenter.getX();
-        double dY = centerPoint.getY() - objectsCenter.getY();
+        //double dX = centerPoint.getX() - objectsCenter.getX();
+        //double dY = centerPoint.getY() - objectsCenter.getY();
+        double dX = delta.getX();
+        double dY = delta.getY();
 
 		// sort the nodes by name
 		Collections.sort(theNodes, new NodeNameCaseInsensitive());
@@ -913,50 +918,77 @@ public class Clipboard
 		private EditWindow wnd;
 		private List pasteList;
 		private EventListener currentListener;
-		private int origX, origY;                   // database units
-		private double oX, oY;                      // database units
-        private int pasteAnchor;
+		//private int origX, origY;                   // database units
+		//private double oX, oY;                      // database units
         private Rectangle2D pasteBounds;
+        private double translateX;
+        private double translateY;
+        private Point2D lastMouseDB;                // last point where mouse was (in db units)
+        private JPopupMenu popup;
 
         /** paste anchor types */
-        public static final int ANCHORCENTER = 0;
-        public static final int ANCHORLOWERLEFT = 1;
-        public static final int ANCHORLOWERRIGHT = 2;
-        public static final int ANCHORUPPERLEFT = 3;
-        public static final int ANCHORUPPERRIGHT = 4;
 
         /**
          * Create a new paste listener
          * @param wnd Controlling window
          * @param pasteList list of objects to paste
          * @param currentListener listener to restore when done
-         * @param pasteAnchor the paste anchor point: ANCHORCENTER, ANCHORLOWERLEFT, ANCHORLOWERRIGHT,
-         * ANCHORUPPERLEFT, or ANCHORUPPERRIGHT.
          */
-		private PasteListener(EditWindow wnd, List pasteList, EventListener currentListener, int pasteAnchor)
+		private PasteListener(EditWindow wnd, List pasteList, EventListener currentListener)
 		{
 			this.wnd = wnd;
 			this.pasteList = pasteList;
 			this.currentListener = currentListener;
-            this.pasteAnchor = pasteAnchor;
             this.pasteBounds = getPasteBounds(pasteList);
+            translateX = translateY = 0;
 
-			// determine the initial offset of the objects if not given
+            initPopup();
+
             // get starting point from current mouse location
             Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
             Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            EditWindow.gridAlign(mouseDB);
+            Point2D delta = getDelta(mouseDB, false);
 
             wnd.getHighlighter().pushHighlight();
-			showList(mouseDB);
+            showList(delta);
 		}
 
         /**
-         * Show the objects to paste with the anchor point at 'mouseDB'
-         * @param mouseDB
+         * Gets grid-aligned delta translation for nodes based on mouse location
+         * @param mouseDB the location of the mouse
+         * @param orthogonal if the translation is orthogonal only
+         * @return a grid-aligned delta
          */
-		private void showList(Point2D mouseDB)
+        private Point2D getDelta(Point2D mouseDB, boolean orthogonal) {
+            EditWindow.gridAlign(mouseDB);
+            // this is the point on the clipboard cell that will be pasted at the mouse location
+            Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
+                                                       pasteBounds.getCenterY() + translateY);
+
+            double deltaX = mouseDB.getX() - refPastePoint.getX();
+            double deltaY = mouseDB.getY() - refPastePoint.getY();
+            // if orthogonal is true, convert to orthogonal
+            if (orthogonal) {
+                // only use delta in direction that has larger delta
+                if (Math.abs(deltaX) > Math.abs(deltaY)) deltaY = 0;
+                else deltaX = 0;
+            }
+            // this is now a delta, not a point
+            refPastePoint.setLocation(deltaX, deltaY);
+            EditWindow.gridAlign(refPastePoint);
+            return refPastePoint;
+        }
+
+        /**
+         * Show the objects to paste with the anchor point at 'mouseDB'
+         * @param delta the translation for the highlights
+         */
+		private void showList(Point2D delta)
 		{
+            // find offset of highlights
+            double oX = delta.getX();
+            double oY = delta.getY();
+
 			Cell cell = wnd.getCell();
             Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
@@ -1023,11 +1055,40 @@ public class Clipboard
 					}
 				}
 			}
+            // show delta from original
+            Rectangle2D bounds = wnd.getDisplayedBounds();
+            highlighter.addMessage(cell, "("+(int)oX+","+(int)oY+")",
+                    new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
+            // also draw arrow if user has moved highlights off the screen
+            double halfWidth = 0.5*pasteBounds.getWidth();
+            double halfHeight = 0.5*pasteBounds.getHeight();
+            if (Math.abs(translateX) > halfWidth ||
+                Math.abs(translateY) > halfHeight) {
+                Rectangle2D transBounds = new Rectangle2D.Double(pasteBounds.getX()+oX, pasteBounds.getY()+oY,
+                        pasteBounds.getWidth(), pasteBounds.getHeight());
+                Poly p = new Poly(transBounds);
+                Point2D endPoint = p.closestPoint(lastMouseDB);
+                // draw arrow
+                highlighter.addLine(lastMouseDB, endPoint, cell);
+                int angle = GenMath.figureAngle(lastMouseDB, endPoint);
+                angle += 1800;
+                int angleOfArrow = 300;		// 30 degrees
+                int backAngle1 = angle - angleOfArrow;
+                int backAngle2 = angle + angleOfArrow;
+                Point2D p1 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle1), endPoint.getY() + DBMath.sin(backAngle1));
+                Point2D p2 = new Point2D.Double(endPoint.getX() + DBMath.cos(backAngle2), endPoint.getY() + DBMath.sin(backAngle2));
+                highlighter.addLine(endPoint, p1, cell);
+                highlighter.addLine(endPoint, p2, cell);
+            }
 			highlighter.finished();
 		}
 
-		public void mousePressed(MouseEvent evt)
+		public void mousePressed(MouseEvent e)
 		{
+            if (e.isMetaDown()) {
+                // right click
+                popup.show(e.getComponent(), e.getX(), e.getY());
+            }
 		}
 
 		public void mouseDragged(MouseEvent evt)
@@ -1037,36 +1098,28 @@ public class Clipboard
 
 		public void mouseReleased(MouseEvent evt)
 		{
+            if (evt.isMetaDown()) {
+                // right click
+                return;
+            }
             boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
-
-            // if user holds control, only move orthogonally
-            if (ctrl) {
-                mouseDB = ClickZoomWireListener.convertToOrthogonal(new Point2D.Double(origX, origY), mouseDB);
-            }
-            EditWindow.gridAlign(mouseDB);
-            oX = mouseDB.getX();
-            oY = mouseDB.getY();
-            showList(null);
+            Point2D delta = getDelta(mouseDB, ctrl);
+            showList(delta);
 
             WindowFrame.setListener(currentListener);
             wnd.getHighlighter().popHighlight();
-            PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
+            PasteObjects job = new PasteObjects(pasteList, delta.getX(), delta.getY());
 		}
 
 		public void mouseMoved(MouseEvent evt)
         {
             boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+            Point2D delta = getDelta(mouseDB, ctrl);
+            lastMouseDB = mouseDB;
+            showList(delta);
 
-            // if user holds control, only move orthogonally
-            if (ctrl) {
-                mouseDB = ClickZoomWireListener.convertToOrthogonal(new Point2D.Double(origX, origY), mouseDB);
-            }
-            EditWindow.gridAlign(mouseDB);
-            oX = mouseDB.getX();
-            oY = mouseDB.getY();
-            showList(null);
             wnd.repaint();
         }
 
@@ -1075,17 +1128,94 @@ public class Clipboard
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseWheelMoved(MouseWheelEvent e) {}
 		public void keyPressed(KeyEvent evt) {
+            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
             int chr = evt.getKeyCode();
             if (chr == KeyEvent.VK_ESCAPE) {
                 // abort on ESC
-                wnd.getHighlighter().clear();
-                wnd.getHighlighter().finished();
-                WindowFrame.setListener(currentListener);
-                wnd.repaint();
+                abort();
+            }
+            else if (chr == KeyEvent.VK_UP) {
+                moveObjectsUp();
+            }
+            else if (chr == KeyEvent.VK_DOWN) {
+                moveObjectsDown();
+            }
+            else if (chr == KeyEvent.VK_LEFT) {
+                moveObjectsLeft();
+            }
+            else if (chr == KeyEvent.VK_RIGHT) {
+                moveObjectsRight();
             }
         }
 		public void keyReleased(KeyEvent e) {}
 		public void keyTyped(KeyEvent e) {}
+
+        private void abort() {
+            wnd.getHighlighter().clear();
+            wnd.getHighlighter().finished();
+            WindowFrame.setListener(currentListener);
+            wnd.repaint();
+        }
+
+        private void initPopup() {
+            popup = new JPopupMenu();
+            JMenuItem m;
+            m = new JMenuItem("Move objects left");
+            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
+            m.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) { moveObjectsLeft(); }
+            });
+            popup.add(m);
+
+            m = new JMenuItem("Move objects right");
+            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
+            m.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) { moveObjectsRight(); }
+            });
+            popup.add(m);
+
+            m = new JMenuItem("Move objects up");
+            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0));
+            m.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) { moveObjectsUp(); }
+            });
+            popup.add(m);
+
+            m = new JMenuItem("Move objects down");
+            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
+            m.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) { moveObjectsDown(); }
+            });
+            popup.add(m);
+
+            m = new JMenuItem("Abort");
+            m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
+            m.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) { abort(); }
+            });
+            popup.add(m);
+        }
+
+        private void moveObjectsLeft() {
+            translateX += 0.5*pasteBounds.getWidth();
+            Point2D delta = getDelta(lastMouseDB, false);
+            showList(delta);
+        }
+        private void moveObjectsRight() {
+            translateX -= 0.5*pasteBounds.getWidth();
+            Point2D delta = getDelta(lastMouseDB, false);
+            showList(delta);
+        }
+        private void moveObjectsUp() {
+            translateY -= 0.5*pasteBounds.getHeight();
+            Point2D delta = getDelta(lastMouseDB, false);
+            showList(delta);
+        }
+        private void moveObjectsDown() {
+            translateY += 0.5*pasteBounds.getHeight();
+            Point2D delta = getDelta(lastMouseDB, false);
+            showList(delta);
+        }
 	}
 
 }
