@@ -550,7 +550,7 @@ public class CellBrowser extends EDialog {
 
             CircuitChanges.renameCellInJob(cell, newName);
             lastSelectedCell = newName;
-            updateCellList();
+            setCell(cell);
 
         } else if (action == DoAction.duplicateCell) {
             Cell cell = getSelectedCell();
@@ -693,12 +693,16 @@ public class CellBrowser extends EDialog {
             }
         }
         if (lastSelectedCell == null) {
-            // didn't find anything, use current cell
+            // didn't find anything, try to find current cell in the list
             Cell cell = WindowFrame.getCurrentCell();
-            if (cell != null && !cell.noLibDescribe().equals(lastSelectedCell)) {
-                // checking to see if current cell equals lastSelectedCell prevents
-                // recursion, because setCell will probably trigger an updateList call.
-                setCell(cell);
+            String findname = cell.noLibDescribe();
+            for (int i=0; i<cellListNames.size(); i++) {
+                String name = (String)cellListNames.get(i);
+                if (name.equals(findname)) {
+                    jList1.setSelectedIndex(i);
+                    lastSelectedCell = findname;
+                    break;
+                }
             }
         }
     }
