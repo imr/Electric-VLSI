@@ -26,9 +26,12 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -181,7 +184,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		/** Open and Save buttons */
         ToolBarButton open = ToolBarButton.newInstance(OpenLibraryName, new ImageIcon(toolbar.getClass().getResource("ButtonOpenLibrary.gif")));
         open.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.openLibraryCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.openLibraryCommand(); } });
         open.setToolTipText(OpenLibraryName);
         open.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         toolbar.add(open);
@@ -189,7 +192,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
 		        new ImageIcon(toolbar.getClass().getResource("ButtonSaveLibrary.gif")));
         toolbar.saveLibraryButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
         toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
         toolbar.saveLibraryButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         // setModel before setEnable... not sure why yet
@@ -361,7 +364,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         // the Undo button
         toolbar.undoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonUndo.gif")));
         toolbar.undoButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.undoCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.undoCommand(); } });
         toolbar.undoButton.setToolTipText("Undo");
         toolbar.undoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         toolbar.undoButton.setEnabled(Undo.getUndoEnabled());
@@ -370,7 +373,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         // the Redo button
         toolbar.redoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonRedo.gif")));
         toolbar.redoButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.redoCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.redoCommand(); } });
         toolbar.redoButton.setToolTipText("Redo");
         toolbar.redoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         toolbar.redoButton.setEnabled(Undo.getRedoEnabled());

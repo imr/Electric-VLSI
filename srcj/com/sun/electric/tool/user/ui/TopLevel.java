@@ -26,7 +26,10 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -380,7 +383,7 @@ public class TopLevel extends JFrame
 		WindowsEvents() { super(); }
 
 		public void windowClosing(WindowEvent evt) {
-            MenuCommands.quitCommand();
+            FileMenu.quitCommand();
         }
 	}
 }

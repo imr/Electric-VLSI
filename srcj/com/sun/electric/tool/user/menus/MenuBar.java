@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.menus;
 
 /*
  * Created on Sep 30, 2003
@@ -31,6 +31,9 @@ package com.sun.electric.tool.user.ui;
  */
 
 import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.ui.ToolBarButton;
+import com.sun.electric.tool.user.ui.KeyBindings;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
 
 
 import java.awt.event.ActionListener;
@@ -172,6 +175,7 @@ public class MenuBar extends JMenuBar
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }
         public String getDescription() { return MenuBar.getDescription(this); }
+
     }
 
     public static class RadioButtonMenuItem extends JRadioButtonMenuItem implements MenuItemInterface

@@ -39,7 +39,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.MenuBar;
+import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
 import java.awt.event.FocusListener;

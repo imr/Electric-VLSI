@@ -24,13 +24,14 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.MenuBar;
-import com.sun.electric.tool.user.ui.MenuBar.Menu;
+import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.menus.MenuBar.Menu;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;

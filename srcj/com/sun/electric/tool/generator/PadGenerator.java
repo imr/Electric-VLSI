@@ -48,7 +48,8 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -971,7 +972,7 @@ public class PadGenerator {
             WindowFrame frame = WindowFrame.createEditWindow(framecell);
 
             // select all
-            MenuCommands.selectAllCommand();
+            EditMenu.selectAllCommand();
             // auto stitch everything
             AutoStitch.autoStitch(true, true);
 

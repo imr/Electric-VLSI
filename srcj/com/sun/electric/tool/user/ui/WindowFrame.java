@@ -57,7 +57,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.FileMenu;
 //import com.sun.electric.tool.user.ui.j3d.View3DWindow;
 import com.sun.electric.database.variable.VarContext;
 
@@ -602,7 +604,7 @@ public class WindowFrame
             if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&
 				TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
             {
-                MenuCommands.quitCommand();
+                FileMenu.quitCommand();
                 //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
                 //    "Cannot close the last window");
                 return;

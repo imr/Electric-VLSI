@@ -37,8 +37,10 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
@@ -192,7 +194,7 @@ public class Input extends IOTool
 			if (lib != null)
 			{
 				// library already exists, prompt for save
-				if (MenuCommands.preventLoss(lib, 2)) return null;
+				if (FileMenu.preventLoss(lib, 2)) return null;
 				WindowFrame.removeLibraryReferences(lib);
 				lib.erase();
 			} else

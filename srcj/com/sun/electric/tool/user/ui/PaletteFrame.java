@@ -47,7 +47,9 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -523,7 +525,7 @@ public class PaletteFrame
 				{
 					JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
 					JMenuItem menuItem = new JMenuItem("Cell Instance...");
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
 					specialMenu.add(menuItem);
 
 					specialMenu.addSeparator();

@@ -27,7 +27,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.EditMenu;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;
@@ -66,7 +67,7 @@ class ClickAndDragListener
 		{
 			if (Highlight.getNumHighlights() >= 1)
 			{
-				MenuCommands.getInfoCommand();
+				EditMenu.getInfoCommand();
 				return;
 			}
 		}

@@ -35,7 +35,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -208,7 +211,7 @@ public final class Main
             fileURLs.add(url);
         }
         // open any libraries
-        MenuCommands.ReadInitialELIBs job = new MenuCommands.ReadInitialELIBs(fileURLs);
+        FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
     }
 
 	/**
@@ -318,7 +321,7 @@ public final class Main
 		public void handleAbout(ApplicationEvent ae)
 		{
 			ae.setHandled(true);
-			MenuCommands.aboutCommand();
+			HelpMenu.aboutCommand();
 		}
 
 		/**
@@ -336,7 +339,7 @@ public final class Main
 		public void handleQuit(ApplicationEvent ae)
 		{
 			ae.setHandled(false);
-			MenuCommands.quitCommand();
+			FileMenu.quitCommand();
 		}
 
 		/**

@@ -29,7 +29,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.Point;
@@ -123,7 +124,7 @@ class OutlineListener
 		{
 			if (Highlight.getNumHighlights() >= 1)
 			{
-				MenuCommands.getInfoCommand();
+				EditMenu.getInfoCommand();
 				return;
 			}
 		}

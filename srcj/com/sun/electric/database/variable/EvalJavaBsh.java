@@ -104,7 +104,7 @@ public class EvalJavaBsh
         doEval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
 
         // the following is for running scripts
-        doEval("import com.sun.electric.tool.user.MenuCommands;");
+        doEval("import com.sun.electric.tool.user.menus.MenuCommands;");
         doEval("import com.sun.electric.database.hierarchy.*;");
         doEval("import com.sun.electric.database.prototype.*;");
         doEval("import com.sun.electric.database.topology.*;");

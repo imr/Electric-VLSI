@@ -29,7 +29,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
@@ -359,7 +360,7 @@ public class ClickZoomWireListener
 	                /* if no modifiers, do "get info" */
 	                if (!another && !invertSelection) {
 	                    if (Highlight.getNumHighlights() >= 1) {
-	                        MenuCommands.getInfoCommand();
+	                        EditMenu.getInfoCommand();
 	                        return;
 	                    }
 	                }

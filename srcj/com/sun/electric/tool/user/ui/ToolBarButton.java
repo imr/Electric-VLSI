@@ -29,6 +29,8 @@
 
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.tool.user.menus.MenuBar;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;

@@ -35,7 +35,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.dialogs.NewCell;
 
 import java.awt.Component;
@@ -895,7 +897,7 @@ public class ExplorerTree extends JTree
 		private void deleteLibraryAction()
 		{
 			Library lib = (Library)currentSelectedObject;
-			MenuCommands.closeLibraryCommand(lib);
+			FileMenu.closeLibraryCommand(lib);
 		}
 
 		private void editCellAction(boolean newWindow)
