@@ -888,69 +888,30 @@ public class ELIB extends LibraryFiles
 			if (otherCell != null && cell.getLibrary() == lib)
 				transitive.theseAreRelated(cell, otherCell);
 		}
-		// create the cell groups
-		HashMap/*<Cell,CellGroup>*/ cellGroups = new HashMap();
-		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
-		{
-			Set group = (Set)git.next();
-			Cell.CellGroup cg = new Cell.CellGroup();
-			for (Iterator it = group.iterator(); it.hasNext();)
-			{
-				Object o = it.next();
-				if (o instanceof Cell)
-					cellGroups.put(o, cg);
-			}
-		}
-		// put cells into the cell groups
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null || cell.getLibrary() != lib) continue;
-			cell.setCellGroup((Cell.CellGroup)cellGroups.get(cell));
-		}
 
-// 		// initialize for processing cell groups
-// 		FlagSet cellFlag = Cell.getFlagSet(1);
-// 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-// 		{
-// 			Cell cell = nodeProtoList[cellIndex];
-// 			if (cell == null) continue;
-// 			cell.clearBit(cellFlag);
-// 		}
-
-// 		// process the cell groups
-// 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-// 		{
-// 			if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11) continue;
-// 			Cell cell = nodeProtoList[cellIndex];
-// 			if (cell == null) continue;
-// 			if (cell.isBit(cellFlag)) continue;
-
-// 			// follow cell group links, give them a cell group
-// 			Cell.CellGroup cg = new Cell.CellGroup();
-// 			for(;;)
-// 			{
-// 				cell.setBit(cellFlag);
-// 				cell.setCellGroup(cg);
-
-// 				// move to the next in the group
-// 				Object other = nextInCellGroup.get(cell);
-// 				if (other == null) break;
-// 				if (!(other instanceof Cell)) break;
-// 				Cell otherCell = (Cell)other;
-// 				if (otherCell == null) break;
-// 				if (otherCell.isBit(cellFlag)) break;
-// 				cell = otherCell;
-// 			}
-// 		}
-// 		cellFlag.freeFlagSet();
-
-		// cleanup cellgroup processing, link the cells
+		// link the cells
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell == null) continue;
 			cell.lowLevelLink();
+		}
+
+		// join the cell groups
+		for (Iterator/*<Set<Object>>*/ git = transitive.getSetsOfRelatives(); git.hasNext();)
+		{
+			Set/*<Object>*/ group = (Set)git.next();
+			Cell firstCell = null;
+			for (Iterator it = group.iterator(); it.hasNext();)
+			{
+				Object o = it.next();
+				if (!(o instanceof Cell)) continue;
+				Cell cell = (Cell)o;
+				if (firstCell == null)
+					firstCell = cell;
+				else
+					cell.joinGroup(firstCell);
+			}
 		}
 
 		// now read external cells

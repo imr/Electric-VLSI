@@ -1151,15 +1151,16 @@ public class TextUtils
 
 	/****************************** FOR SORTING OBJECTS ******************************/
 
-	public static class StringsCaseInsensitive implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			String s1 = (String)o1;
-			String s2 = (String)o2;
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
+	// use String.CASE_INSENSITIVE_ORDER
+// 	public static class StringsCaseInsensitive implements Comparator
+// 	{
+// 		public int compare(Object o1, Object o2)
+// 		{
+// 			String s1 = (String)o1;
+// 			String s2 = (String)o2;
+// 			return s1.compareToIgnoreCase(s2);
+// 		}
+// 	}
 
 	public static final Comparator STRING_NUMBER_ORDER = new StringsWithNumbers();
 	private static class StringsWithNumbers implements Comparator
@@ -1204,6 +1205,7 @@ public class TextUtils
 		}
 	}
 
+	// use Cell.compareTo()
 // 	public static class CellsByName implements Comparator
 // 	{
 // 		public int compare(Object o1, Object o2)

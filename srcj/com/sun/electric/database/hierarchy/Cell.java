@@ -84,9 +84,7 @@ import javax.swing.JOptionPane;
  * of this Cell.
  * A Cell also has a specific view and version number.
  * <P>
- * Cells belong to VersionGroup objects, which list all of the versions of
- * the cell.  Only the most recent version of any cell is referenced in
- * lists of cells.
+ * It is possible to get all of the versions of the cell.
  * A Cell knows about the most recent version of itself, which may be itself.
  * <P>
  * Cells also belong to CellGroup objects, which gather related cells together.
@@ -107,13 +105,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * A CellGroup contains a list of cells that are related.
 	 * This includes different Views of a cell (e.g. the schematic, layout, and icon Views),
 	 * alternative icons, all the parts of a multi-part icon.
-	 * Only the most recent version of a cell is in the CellGroup.  You must
-	 * explore the Cell's VersionGroup to find old versions.
 	 */
 	public static class CellGroup
 	{
 		// private data
-		private ArrayList cells;
+		private TreeSet cells = new TreeSet();
 		private Cell mainSchematic;
 		private String groupName = null;
 
@@ -122,9 +118,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		/**
 		 * Constructs a CellGroup.
 		 */
-		public CellGroup()
+		private CellGroup()
 		{
-			cells = new ArrayList();
 		}
 
 		/**
@@ -138,8 +133,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
                 if (!cells.contains(cell))
 				    cells.add(cell);
 			}
-			groupName = null;
 			cell.cellGroup = this;
+			if (mainSchematic != null)
+				mainSchematic = mainSchematic.getNewestVersion();
+			groupName = null;
 		}
 
 		/**
@@ -151,7 +148,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			synchronized (cells)
 			{
 				cells.remove(f);
-				if (f == mainSchematic) mainSchematic = null;
+				if (f == mainSchematic)
+					mainSchematic = null;
 			}
 			groupName = null;
 		}
@@ -174,14 +172,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 */
 		public List getCellsSortedByView()
 		{
-			List sortedList = new ArrayList();
 			synchronized(cells)
 			{
-				for(Iterator it = cells.iterator(); it.hasNext(); )
-					sortedList.add(it.next());
+				List sortedList = new ArrayList(cells);
+				Collections.sort(sortedList, new TextUtils.CellsByView());
+				return sortedList;
 			}
-			Collections.sort(sortedList, new TextUtils.CellsByView());
-			return sortedList;
 		}
 
 		/**
@@ -192,7 +188,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 */
 		public Cell getMainSchematics()
 		{
-			if (mainSchematic != null) return mainSchematic.getNewestVersion();
+			if (mainSchematic != null) return mainSchematic;
 
 			// not set: see if it is obvious
 			for (Iterator it = getCells(); it.hasNext();)
@@ -200,8 +196,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				Cell c = (Cell) it.next();
 				if (c.isSchematic())
 				{
-                    // get latest version
-					mainSchematic = c.getNewestVersion();
+                    // it is the latest version
+					mainSchematic = c;
                     return mainSchematic;
                 }
 			}
@@ -303,63 +299,40 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 			return groupName;
 		}
-	}
-
-	private static class VersionGroup
-	{
-		// private data
-		private List versions;
 
 		/**
-		 * Constructs a VersionGroup that contains the history of a Cell.
+		 * Returns true if this CellGroup is completely linked into database.
+		 * This means there is path to Cells of this CellGroup through lists:
+		 * Library&#46;libraries->Library&#46;cells-> Cell
 		 */
-		public VersionGroup()
+		public boolean isActuallyLinked()
 		{
-			versions = new ArrayList();
+			if (cells.isEmpty()) return false;
+			Cell firstCell = (Cell)cells.iterator().next();
+			return firstCell.isActuallyLinked();
 		}
 
 		/**
-		 * Method to add a Cell to this VersionGroup.
-		 * @param cell the cell to add to this VersionGroup.
-		 * @return the cell that used to be the newest (null if adding the Cell did not displace another newer one).
+		 * Method to check invariants in this CellGroup.
+		 * @exception AssertionError if invariants are not valid
 		 */
-		public Cell add(Cell cell)
+		void check()
 		{
-			// remember the cell that used to be the newest in the group
-			Cell formerNewestCell = null;
-			if (versions.size() > 0) formerNewestCell = (Cell)versions.iterator().next();
-
-			// add this cell to the group
-			versions.add(cell);
-			cell.setVersionGroup(this);
-
-			// resort the group and find the newest
-			Collections.sort(versions, new TextUtils.CellsByVersion());
-			Cell newestCell = (Cell)versions.iterator().next();
-
-			// if the former newest is still newest, report no displacement
-			if (newestCell == formerNewestCell) formerNewestCell = null;
-
-			return formerNewestCell;
+			Library lib = null;
+			for (Iterator it = cells.iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				if (lib == null) lib = cell.lib;
+				assert lib.contains(cell);
+				assert cell.cellGroup == this;
+			}
+			assert lib != null;
+			if (mainSchematic != null)
+			{
+				assert containsCell(mainSchematic);
+				assert mainSchematic.getNewestVersion() == mainSchematic;
+			}
 		}
-
-		/**
-		 * Method to remove a Cell from this VersionGroup.
-		 * @param cell the cell to remove from this VersionGroup.
-		 */
-		public void remove(Cell cell) { versions.remove(cell); }
-
-		/**
-		 * Method to return the number of Cells in this VersionGroup.
-		 * @return the number of Cells in this VersionGroup.
-		 */
-		public int size() { return versions.size(); }
-
-		/**
-		 * Method to return an Iterator over all the Cells that are in this VersionGroup.
-		 * @return an Iterator over all the Cells that are in this VersionGroup.
-		 */
-		public Iterator iterator() { return versions.iterator(); }
 	}
 
 	private class MaxSuffix { int v = 0; }
@@ -384,14 +357,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/** The object used to request flag bits. */					private static final FlagSet.Generator flagGenerator = new FlagSet.Generator("Cell");
 
-	/** The name of the Cell. */									private String protoName;
+	/** The CellName of the Cell. */								private CellName cellName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
-	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
 	/** The library this Cell belongs to. */						private Library lib;
-	/** This Cell's View. */										private View view;
 	/** The date this Cell was created. */							private Date creationDate;
 	/** The date this Cell was last modified. */					private Date revisionDate;
-	/** The version of this Cell. */								private int version;
 	/** Internal flag bits. */										private int userBits;
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
 	/** A list of Exports on the Cell. */							private List exports;
@@ -740,77 +710,33 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void rename(String newName)
 	{
+		rename(CellName.parseName(newName + ";" + getVersion() + "{" + getView().getAbbreviation() + "}"));
+	}
+
+	/**
+	 * Method to rename this Cell.
+	 * @param newName the new name of this cell.
+	 */
+	private void rename(CellName cellName)
+	{
+		if (cellName.equals(this.cellName)) return;
 		checkChanging();
-
-		CellName n = CellName.parseName(newName + ";" + version + "{" + view.getAbbreviation() + "}");
-		if (n == null) return;
-
-        // check for same name already in library
-        for (Iterator it = getLibrary().getCells(); it.hasNext(); )
-        {
-            Cell c = (Cell)it.next();
-            if (newName.equalsIgnoreCase(c.getName()) && (getView() == c.getView()))
-            {
-                System.out.println("Already a Cell named " + noLibDescribe() + " in Library " + getLibrary().getName() +
-                	"...making this a new version");
-                break;
-            }
-        }
+		if (!isLinked())
+		{
+			System.out.println("attempt to rename unlinked Cell " + noLibDescribe());
+			return;
+		}
+		if (cellName == null) return;
 
 		// do the rename
-		Name oldName = basename;
-		int oldVersion = version;
-		lowLevelRename(n.getName(), version);
+		CellName oldCellName = this.cellName;
+		lowLevelRename(cellName);
 
 		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldName, oldVersion);
+		Undo.renameObject(this, oldCellName);
 	}
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
-
-	/**
-	 * Low-level access method to rename a Cell.
-	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
-	 * @param newName the new name of this cell.
-	 * @param newVersion the new version number of this cell (if reassignment is necessary).
-	 */
-	public void lowLevelRename(String newName, int newVersion)
-	{
-		// if the current cell has other versions, separate it from them
-		if (versionGroup.size() > 1)
-		{
-			versionGroup.remove(this);
-			versionGroup = new VersionGroup();
-			versionGroup.add(this);
-		}
-
-		// if the new name exists, make this a new version
-		if (isLinked()) lib.removeCell(this);
-		for(Iterator it = this.getLibrary().getCells(); it.hasNext(); )
-		{
-			Cell oCell = (Cell)it.next();
-			if (oCell.getView() == this.getView() && oCell.getName().equalsIgnoreCase(newName))
-			{
-				int greatestVersion = 0;
-				for(Iterator vIt = oCell.versionGroup.iterator(); vIt.hasNext(); )
-				{
-					Cell vCell = (Cell)vIt.next();
-					if (vCell.getVersion() == newVersion) newVersion = -1;
-					if (vCell.getVersion() > greatestVersion)
-						greatestVersion = vCell.getVersion();
-				}
-				if (newVersion < 0) newVersion = greatestVersion + 1;
-				this.version = newVersion;
-				versionGroup.remove(this);
-				oCell.versionGroup.add(this);
-				this.versionGroup = oCell.versionGroup;
-				break;
-			}
-		}
-		setProtoName(newName);
-		if (isLinked()) lib.addCell(this);
-		cellGroup.groupName = null;
-	}
 
 	/**
 	 * Low-level access method to create a cell in library "lib".
@@ -836,75 +762,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public boolean lowLevelPopulate(String name)
 	{
 		checkChanging();
-
-		// see if this cell already exists
-		Library lib = getLibrary();
-		Cell existingCell = lib.findNodeProto(name);
-//		if (existingCell != null)
-//		{
-//			System.out.println("Cannot create cell " + name + " in library " + lib.getName() + " ...already exists");
-//			return true;
-//		}
-
+		assert !isLinked();
 		CellName n = CellName.parseName(name);
 		if (n == null) return true;
-        //if (existingCell != null) n.setVersion(n.getVersion()+1);
-		int version = n.getVersion();
-
-		// make sure this version isn't in use
-		if ((version > 0))
-		{
-			for (Iterator it = lib.getCells(); it.hasNext();)
-			{
-				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
-					version == c.getVersion())
-				{
-					System.out.println("Already have cell " + c.getName() + " with version " + version + ", generating a new version");
-					version = 1;
-					for (Iterator vIt = lib.getCells(); vIt.hasNext();)
-					{
-						c = (Cell) vIt.next();
-						if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
-							c.getVersion() >= version)
-								version = c.getVersion() + 1;
-					}
-				}
-			}
-		} else
-		{
-			// find a new version
-			version = 1;
-			for (Iterator it = lib.getCells(); it.hasNext();)
-			{
-				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
-					c.getVersion() >= version)
-						version = c.getVersion() + 1;
-			}
-		}
-		
-		// fill-in the fields
-		setProtoName(n.getName());
-		this.view = n.getView();
-		this.version = version;
-
+		setCellName(n);
 		return false;
-	}
-
-	/**
-	 * Method to change name of this Cell.
-	 * @param name new name.
-	 * @param newVersion new version
-	 */
-	private void setProtoName(String name)
-	{
-		this.protoName = name;
-
-		// prepare basename for autonaming
-		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
-		if (basename == null)
-			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
 	}
 
 	/**
@@ -919,62 +781,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			System.out.println(this+" already linked");
 			return true;
 		}
-
-		if (CellName.parseName(protoName + ";" + version + "{" + view.getAbbreviation() + "}") == null)
+		if (cellName == null)
 		{
 			System.out.println(this+" has bad name");
 			return true;
 		}
 
-		// see if this is a version of another
-		versionGroup = null;
-		for (Iterator it = lib.getCells(); it.hasNext();)
-		{
-			Cell c = (Cell) it.next();
-			if (c.getView() != getView()) continue;
-			if (getName().equalsIgnoreCase(c.getName()))
-			{
-				versionGroup = c.versionGroup;
-				break;
-			}
-		}
-		if (versionGroup == null)
-			versionGroup = new VersionGroup();
-		Cell displacedCell = versionGroup.add(this);
-		if (displacedCell != null)
-		{
-			// remove this from the cellgroup since there is now a newer version
-			//displacedCell.getCellGroup().remove(displacedCell);
-		}
-
-		if (getNewestVersion() != this) cellGroup = null; else
-		{
-			// determine the cell group
-			if (cellGroup == null)
-			{
-				// look for similar-named cell and use its group
-				for (Iterator it = lib.getCells(); it.hasNext();)
-				{
-					Cell c = (Cell) it.next();
-					if (c.getCellGroup() == null) continue;
-					if (getName().equalsIgnoreCase(c.getName()))
-					{
-						cellGroup = c.getCellGroup();
-						break;
-					}
-				}
-
-				// still none: make a new one
-				if (cellGroup == null) cellGroup = new CellGroup();
-			}
-
-			// add to cell group
-			cellGroup.add(this);
-		}
-
 		// add ourselves to the library
-		Library lib = getLibrary();
-		lib.addCell(this);
+		lowLevelLinkCellName();
 
 		// link NodeUsages
 		for (Iterator it = getUsagesIn(); it.hasNext(); )
@@ -1002,23 +816,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			return;
 		}
 
-		// see if this was the newest version
-		Iterator vIt = getVersions();
-		Cell newest = (Cell)vIt.next();
-		Cell nextNewest = null;
-		if (vIt.hasNext()) nextNewest = (Cell)vIt.next();
-
-		versionGroup.remove(this);
-		setVersionGroup(null);
-		if (this == newest && nextNewest != null)
-		{
-			cellGroup.add(nextNewest);
-		}
-
-		if (cellGroup != null) cellGroup.remove(this);
-
-		Library lib = getLibrary();
+		// remove from the library and from cell group
 		lib.removeCell(this);
+		cellGroup.remove(this);
 
 		// unlink NodeUsages
 		for (Iterator it = getUsagesIn(); it.hasNext(); )
@@ -1030,6 +830,83 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		setLinked(false);
+	}
+
+	/**
+	 * Low-level access method to rename a Cell.
+	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
+	 * @param newCellName the new cell name of this cell.
+	 */
+	public void lowLevelRename(CellName newCellName)
+	{
+		assert isLinked();
+		if (newCellName.equals(cellName)) return;
+
+		// remove temporarily from the library and from cell group
+		lib.removeCell(this);
+		cellGroup.remove(this);
+
+		setCellName(newCellName);
+
+		lowLevelLinkCellName();
+	}
+
+	private void lowLevelLinkCellName()
+	{
+		// ensure unique cell name
+		String protoName = getName();
+		View view = getView();
+		int version = getVersion();
+		int greatestVersion = 0;
+		boolean conflict = version <= 0;
+		for (Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell c = (Cell)it.next();
+			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
+			{
+				if (c.getVersion() == getVersion()) conflict = true;
+				if (c.getVersion() > greatestVersion)
+					greatestVersion = c.getVersion();
+			}
+		}
+		if (conflict)
+		{
+			if (getVersion() > 0)
+				System.out.println("Already have cell " + getCellName() + " with version " + getVersion() + ", generating a new version");
+			CellName cn = CellName.newName(getName(), getView(), greatestVersion + 1);
+			setCellName(cn);
+		}
+
+		// determine the cell group
+		for (Iterator it = getViewsTail(); it.hasNext(); )
+		{
+			Cell c = (Cell)it.next();
+			if (c.getName().equals(getName()))
+				cellGroup = c.cellGroup;
+		}
+		// still none: make a new one
+		if (cellGroup == null) cellGroup = new CellGroup();
+
+		// add ourselves to the library and to cell group
+		lib.addCell(this);
+		cellGroup.add(this);
+
+	}
+
+	/**
+	 * Method to change CellName of this Cell.
+	 * @param cellName new cell name.
+	 * @param newVersion new version
+	 */
+	private void setCellName(CellName cellName)
+	{
+		this.cellName = cellName;
+
+		// prepare basename for autonaming
+		String protoName = cellName.getName();
+		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
+		if (basename == null)
+			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
 	}
 
 	/**
@@ -2158,7 +2035,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * any view or version information.
 	 * @return the pure name of this Cell.
 	 */
-	public String getName() { return protoName; }
+	public String getName() { return cellName.getName(); }
 
 	/**
 	 * Method to return the CellName object describing this Cell.
@@ -2166,7 +2043,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public CellName getCellName()
 	{
-		return CellName.parseName(protoName + ";" + version + "{" + view.getAbbreviation() + "}");
+		return cellName;
 	}
 
 	/**
@@ -2202,11 +2079,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public String noLibDescribe()
 	{
-		String name = protoName;
+		String name = getName();
 		if (getNewestVersion() != this)
-			name += ";" + version;
-		if (view != null)
-			name += "{" +  view.getAbbreviation() + "}";
+			name += ";" + getVersion();
+		name += "{" +  getView().getAbbreviation() + "}";
 		return name;
 	}
 
@@ -2844,7 +2720,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to return the version number of this Cell.
 	 * @return the version number of this Cell.
 	 */
-	public int getVersion() { return version; }
+	public int getVersion() { return cellName.getVersion(); }
 
 	/**
 	 * Method to return the number of different versions of this Cell.
@@ -2852,8 +2728,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public int getNumVersions()
 	{
-		if (versionGroup == null) return 1;
-		return versionGroup.size();
+		int count = 0;
+		String protoName = getName();
+		View view = getView();
+		for (Iterator it = getVersionsTail(); it.hasNext(); )
+		{
+			Cell c = (Cell)it.next();
+			if (!c.getName().equals(protoName) || c.getView() != view) break;
+			count++;
+		}
+		return count;
 	}
 
 	/**
@@ -2862,13 +2746,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public Iterator getVersions()
 	{
-		// don't know why, but keep getting null pointer exceptions on version group
-		if (versionGroup == null) {
-			VersionGroup vg = new VersionGroup();
-			vg.add(this);
-			return vg.iterator();
+		ArrayList/*<Cell>*/ versions = new ArrayList/*<Cell>*/();
+		String protoName = getName();
+		View view = getView();
+		for (Iterator it = getVersionsTail(); it.hasNext(); )
+		{
+			Cell c = (Cell)it.next();
+			if (!c.getName().equals(protoName) || c.getView() != view) break;
+			versions.add(c);
 		}
-		return versionGroup.iterator();
+		return versions.iterator();
 	}
 
 	/**
@@ -2877,25 +2764,38 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public Cell getNewestVersion()
 	{
-		return (Cell) getVersions().next();
+		Iterator it = getVersionsTail();
+		if (it.hasNext())
+		{
+			Cell c = (Cell)it.next();
+			if (c.getName().equals(getName()) && c.getView() == getView()) return c;
+		}
+		return null;
 	}
 
-	/**
-	 * Method to put this Cell into the given VersionGroup.
-	 * @param versionGroup the VersionGroup that this cell belongs to.
+	/*
+	 * Return tail submap of library cells which starts from
+	 * cells with same protoName and view as this Cell.
+	 * @return tail submap with versions of this Cell.
 	 */
-	public void setVersionGroup(VersionGroup versionGroup) { this.versionGroup = versionGroup; }
+	private Iterator getVersionsTail()
+	{
+		CellName cn = CellName.parseName(getName() + "{" + getView().getAbbreviation() + "}");
+		return lib.getCellsTail(cn);
+	}
+
+	/*
+	 * Return tail submap of library cells which starts from
+	 * cells with same protoName as this Cell.
+	 * @return tail submap with views of this Cell.
+	 */
+	private Iterator getViewsTail()
+	{
+		CellName cn = CellName.parseName(getName());
+		return lib.getCellsTail(cn);
+	}
 
 	/****************************** GROUPS ******************************/
-
-	/**
-	 * Method to move this Cell to the group of another Cell.
-	 * @param otherCell the other cell whose group this Cell should join.
-	 */
-	public void joinGroup(Cell otherCell)
-	{
-		setCellGroup(otherCell.getCellGroup());
-	}
 
 	/**
 	 * Method to get the CellGroup that this Cell is part of.
@@ -2904,30 +2804,35 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public CellGroup getCellGroup() { return cellGroup; }
 
 	/**
-	 * Method to put this Cell into its own CellGroup.
-	 * If it is already the only Cell in its CellGroup, nothing is done.
+	 * Method to move this Cell together with all its versions and views
+	 * to the group of another Cell.
+	 * @param otherCell the other cell whose group this Cell should join.
 	 */
-	public void putInOwnCellGroup()
+	public void joinGroup(Cell otherCell)
 	{
-		if (cellGroup != null && cellGroup.getNumCells() == 1) return;
-
-		CellGroup newGroup = new CellGroup();
-		setCellGroup(newGroup);
+		setCellGroup(otherCell.getCellGroup());
 	}
 
 	/**
-	 * Method to put this Cell into the given CellGroup.
-	 * @param cellGroup the CellGroup that this cell belongs to.
+	 * Method to Cell together with all its versions and views into its own CellGroup.
+	 * If there is no already Cells withs other names in its CellGroup, nothing is done.
+	 */
+	public void putInOwnCellGroup()
+	{
+		setCellGroup(null);
+	}
+
+	/**
+	 * Method to put this Cell together with all its versions and views into the given CellGroup.
+	 * @param cellGroup the CellGroup that this cell belongs to or null to put int own cell group
 	 */
 	public void setCellGroup(CellGroup cellGroup)
 	{
-        CellGroup oldGroup = this.cellGroup;
-        for(Iterator it = this.getVersions(); it.hasNext(); )
-        {
-        	Cell cell = (Cell)it.next();
-        	cell.lowLevelSetCellGroup(cellGroup);
-            Undo.modifyCellGroup(cell, oldGroup);
-        }
+		if (!isLinked()) return;
+		CellGroup oldCellGroup = this.cellGroup;
+		if (cellGroup == null) cellGroup = new CellGroup();
+		lowLevelSetCellGroup(cellGroup);
+		Undo.modifyCellGroup(this, oldCellGroup);
 	}
 
     /**
@@ -2935,21 +2840,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      * unless you know what you are doing. This method bypasses Undo.
      * @param cellGroup the new cell group
      */
-    public void lowLevelSetCellGroup(CellGroup cellGroup) {
-
+    public void lowLevelSetCellGroup(CellGroup cellGroup)
+	{
         checkChanging();
-
-        if (cellGroup == null)
-        {
-            Exception e = new Exception("Cannot set CellGroup to NULL!");
-            ActivityLogger.logException(e);
-        }
-        // stop if already that way
-        if (this.cellGroup == cellGroup) return;
-
-        if (this.cellGroup != null) this.cellGroup.remove(this);
-        this.cellGroup = cellGroup;
-        if (cellGroup != null) cellGroup.add(this);
+		if (cellGroup == this.cellGroup) return;
+		String protoName = getName();
+		for (Iterator it = getViewsTail(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (!cell.getName().equals(protoName)) break;
+			cell.cellGroup.remove(cell);
+			cellGroup.add(cell);
+		}
     }
 
 	/****************************** VIEWS ******************************/
@@ -2959,7 +2861,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Views include "layout", "schematics", "icon", "netlist", etc.
 	 * @return to get this Cell's View.
 	 */
-	public View getView() { return view; }
+	public View getView() { return cellName.getView(); }
 
 	/**
 	 * Method to change the view of this Cell.
@@ -2967,35 +2869,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void setView(View newView)
 	{
-		// stop now if already this view
-		if (newView == view) return;
-
-		// unlink this Cell
-		lowLevelUnlink();
-
-		// if there is already another with the same view, name, and version, make this a newer version
-		int newVersion = version;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
-		{
-			Cell other = (Cell)it.next();
-			if (other.view != newView) continue;
-			if (!other.protoName.equalsIgnoreCase(protoName)) continue;
-			if (other.version >= newVersion) newVersion = other.version + 1;
-		}
-
-		// set the new view and version
-		view = newView;
-		version = newVersion;
-
-		// link the Cell back
-		lowLevelLink();
+		rename(CellName.newName(getName(), newView, getVersion()));
 	}
 
 	/**
 	 * Method to determine whether this Cell is an icon Cell.
 	 * @return true if this Cell is an icon  Cell.
 	 */
-	public boolean isIcon() { return view == View.ICON; }
+	public boolean isIcon() { return getView() == View.ICON; }
 
 	/**
 	 * Method to determine whether this Cell is an icon of another Cell.
@@ -3004,7 +2885,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean isIconOf(Cell cell)
 	{
-		return view == View.ICON && cellGroup == cell.cellGroup && cell.isSchematic();
+		return getView() == View.ICON && cellGroup == cell.cellGroup && cell.isSchematic();
 	}
 
 	/**
@@ -3380,136 +3261,68 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		int errorCount = 0;
 
-		for (int i = 0; i < exports.size(); i++)
-		{
-			Export pp = (Export)exports.get(i);
-			if (pp.getPortIndex() != i)
-			{
-				String msg = this + ", " + pp + " has wrong index";
-				System.out.println(msg);
-				if (errorLogger != null)
-				{
-					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
-					error.addExport(pp, true, this, null);
-				}
-				errorCount++;
-			}
-		}
-
-		// make sure that every connection is on an arc and a node
-		HashMap connections = new HashMap();
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 			errorCount += ai.checkAndRepair(repair, errorLogger);
-			ArcInst otherAi = (ArcInst)connections.get(ai.getHead());
-			if (otherAi != null)
-			{
-				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
-					": head connection already on other arc " + otherAi.describe();
-				System.out.println(msg);
-				if (errorLogger != null)
-				{
-					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
-					error.addGeom(ai, true, this, null);
-					error.addGeom(otherAi, true, this, null);
-				}
-				errorCount++;
-			} else
-			{
-				connections.put(ai.getHead(), ai);
-			}
-
-			otherAi = (ArcInst)connections.get(ai.getTail());
-			if (otherAi != null)
-			{
-				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
-					": tail connection already on other arc " + otherAi.describe();
-				System.out.println(msg);
-				if (errorLogger != null)
-				{
-					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
-					error.addGeom(ai, true, this, null);
-					error.addGeom(otherAi, true, this, null);
-				}
-				errorCount++;
-			} else
-			{
-				connections.put(ai.getTail(), ai);
-			}
 		}
-
-		// now make sure that all nodes reference them
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			errorCount += ni.checkAndRepair(repair, errorLogger);
+		}
+
+		return errorCount;
+	}
+
+	/**
+	 * Method to check invariants in this Cell.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	void check()
+	{
+		assert getVersion() > 0;
+
+		for (int i = 0; i < exports.size(); i++)
+		{
+			Export pp = (Export)exports.get(i);
+			assert pp.getPortIndex() == i : pp;
+		}
+
+		// make sure that every connection is on an arc and a node
+		HashSet connections = new HashSet();
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			assert !connections.contains(ai.getHead()) : ai;
+			connections.add(ai.getHead());
+			assert !connections.contains(ai.getTail()) : ai;
+			connections.add(ai.getTail());
+		}
+		// now make sure that all nodes reference them
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
 				Connection con = (Connection)pIt.next();
-				ArcInst ai = (ArcInst)connections.get(con);
-				if (ai == null)
-				{
-					String msg = "Cell " + describe() + ", Node " + ni.describe() +
-						": has connection to unknown arc: " + con.getArc().describe() +
-						" (node has " + ni.getNumConnections() + " connections)";
-					System.out.println(msg);
-					if (errorLogger != null)
-					{
-						ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
-						error.addGeom(ni, true, this, null);
-					}
-					errorCount++;
-				} else
-				{
-					connections.put(con, null);
-				}
+				assert connections.contains(con) : ni;
+				connections.remove(con);
 			}
 		}
-
 		// finally check to see if there are any left in the hash table
-		for(Iterator it = connections.values().iterator(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			if (ai != null)
-			{
-				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
-					": connection is not on any node";
-				System.out.println(msg);
-				if (errorLogger != null)
-				{
-					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
-					error.addGeom(ai, true, this, null);
-				}
-				errorCount++;
-			}
-		}
+		assert connections.isEmpty();
 
 		// check node usages
 		for(Iterator it = getUsagesIn(); it.hasNext(); )
 		{
 			NodeUsage nu = (NodeUsage)it.next();
-			errorCount += nu.checkAndRepair(errorLogger);
+			nu.check();
 		}
 
 		// check group pointers
-		if (versionGroup == null)
-		{
-			String msg = "Cell " + describe() + ", Version group is null";
-			System.out.println(msg);
-			if (errorLogger != null)
-				errorLogger.logError(msg, this, 1);
-			errorCount++;
-		}
-		if (cellGroup == null)
-		{
-			String msg = "Cell " + describe() + ", Cell group is null";
-			System.out.println(msg);
-			if (errorLogger != null)
-				errorLogger.logError(msg, this, 1);
-			errorCount++;
-		}
-		return errorCount;
+		assert cellGroup != null;
+		assert cellGroup.containsCell(this);
 	}
 
 	/**

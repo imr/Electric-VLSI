@@ -146,7 +146,10 @@ public class CellName implements Comparable/*<CellName>*/
 	 */
 	public String toString()
 	{
-		return name + ";" + version + "{" + view.getAbbreviation() + "}";
+		if (version > 0)
+			return name + ";" + version + "{" + view.getAbbreviation() + "}";
+		else
+			return name + "{" + view.getAbbreviation() + "}";
 	}
 
 	/**

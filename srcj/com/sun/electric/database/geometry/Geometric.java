@@ -974,7 +974,7 @@ public abstract class Geometric extends ElectricObject
 		{
 			Name oldName = this.name;
 			lowLevelSetNameKey(name);
-			Undo.renameObject(this, oldName, 0);
+			Undo.renameObject(this, oldName);
 		} else
 		{
 			this.name = name;

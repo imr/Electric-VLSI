@@ -244,7 +244,7 @@ public class ChangeCellGroup extends EDialog {
     }//GEN-LAST:event_moveToCellGroupItemStateChanged
 
     private void applyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyActionPerformed
-        Cell.CellGroup newGroup = new Cell.CellGroup();
+        Cell.CellGroup newGroup = null/*new Cell.CellGroup()*/;
         boolean doIt = true;
 
         if (moveOwnCellGroup.isSelected()) {

@@ -538,8 +538,6 @@ public class JELIB extends LibraryFiles
 		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
 		{
 			Set group = (Set)git.next();
-			Cell.CellGroup cg = new Cell.CellGroup();
-			
 			Cell firstCell = null;
 			for (Iterator it = group.iterator(); it.hasNext();)
 			{
@@ -547,13 +545,9 @@ public class JELIB extends LibraryFiles
 				if (!(o instanceof Cell)) continue;
 				Cell cell = (Cell)o;
 				if (firstCell == null)
-				{
-					cell.putInOwnCellGroup();
 					firstCell = cell;
-				} else
-				{
+				else
 					cell.joinGroup(firstCell);
-				}
 			}
 		}
 

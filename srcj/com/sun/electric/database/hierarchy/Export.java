@@ -215,10 +215,10 @@ public class Export extends ElectricObject implements PortProto
 
 		// do the rename
 		Name oldName = getNameKey();
-		lowLevelRename(newName);
+		lowLevelRename(Name.findName(newName));
 
 		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldName, 0);
+		Undo.renameObject(this, oldName);
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();
@@ -284,7 +284,7 @@ public class Export extends ElectricObject implements PortProto
 	{
 		// initialize the parent object
 		this.parent = parent;
-		lowLevelRename(protoName);
+		lowLevelRename(Name.findName(protoName));
 		return false;
 	}
 
@@ -293,9 +293,9 @@ public class Export extends ElectricObject implements PortProto
 	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
 	 * @param newName the new name of this Export.
 	 */
-	public void lowLevelRename(String newName)
+	public void lowLevelRename(Name newName)
 	{
-		this.name = Name.findName(newName);
+		this.name = newName;
 	}
 
 	/**

@@ -33,14 +33,17 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -79,7 +82,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** list of Cells in this library */					private TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
-	/** The temporary flag bits. */							private int flagBits;
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
@@ -115,9 +117,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
             System.out.println("Error: '"+libName+"' is not a valid name");
             return null;
         }
-		String legalName = libName.replace(' ', '-');
-		if (!legalName.equalsIgnoreCase(libName))
-			System.out.println("Warning: library renamed to '" + legalName + "'");
+		String legalName = libName.replace(' ', '-').replace(':', '-');
+		if (!legalName.equals(libName))
+			System.out.println("Warning: library '" + libName + "' renamed to '" + legalName + "'");
 		
 		// see if the library name already exists
 		Library existingLibrary = Library.findLibrary(legalName);
@@ -478,6 +480,76 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	}
 
 	/**
+	 * Method to check invariants in this Library.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	private void check()
+	{
+		assert libName != null;
+		assert libName.length() > 0;
+		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
+		HashSet cellGroups = new HashSet();
+		String protoName = null;
+		Cell.CellGroup cellGroup = null;
+		for(Iterator it = cells.entrySet().iterator(); it.hasNext(); )
+		{
+			Map.Entry e = (Map.Entry)it.next();
+			CellName cn = (CellName)e.getKey();
+			Cell cell = (Cell)e.getValue();
+			assert cell.getCellName().equals(cn);
+			assert cell.getLibrary() == this;
+			if (protoName == null || !cell.getName().equals(protoName))
+			{
+				protoName = cell.getName();
+				cellGroup = cell.getCellGroup();
+				assert cellGroup != null : cell;
+				cellGroups.add(cellGroup);
+			}
+			assert cell.getCellGroup() == cellGroup : cell;
+			cell.check();
+		}
+		for (Iterator it = cellGroups.iterator(); it.hasNext(); )
+		{
+			cellGroup = (Cell.CellGroup)it.next();
+			cellGroup.check();
+		}
+	}
+
+	/**
+	 * Method to check invariants in all Libraries.
+	 * @return true if invariants are valid
+	 */
+	public static boolean checkInvariants()
+	{
+		try
+		{
+			long startTime = System.currentTimeMillis();
+			TreeSet libNames = new TreeSet(String.CASE_INSENSITIVE_ORDER);
+			for (Iterator it = libraries.entrySet().iterator(); it.hasNext(); )
+			{
+				Map.Entry e = (Map.Entry)it.next();
+				String libName = (String)e.getKey();
+				Library lib = (Library)e.getValue();
+				assert libName.equals(lib.libName) : libName + " " + lib;
+				assert !libNames.contains(libName) : "case insensitive " + libName;
+				libNames.add(libName);
+				lib.check();
+			}
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("**** Check Invariants took " + finalTime + " seconds");
+			return true;
+		} catch (Throwable e)
+		{
+			System.out.println("Exception checking database invariants");
+			e.printStackTrace();
+			ActivityLogger.logException(e);
+		}
+		return false;
+	}
+
+
+	/**
 	 * Method to indicate that this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */
@@ -695,7 +767,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		if (this.libName.equals(libName)) return true;
 
 		// make sure the name is legal
-        if (libName == null || libName.equals("") || libName.indexOf(' ') >= 0) {
+        if (libName == null || libName.equals("") || libName.indexOf(' ') >= 0 || libName.indexOf(':') >= 0) {
             System.out.println("Error: '"+libName+"' is not a valid name");
             return true;
         }
@@ -706,9 +778,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 			return true;
 		}
 
-		Name oldName = Name.findName(this.libName);
+		String oldName = this.libName;
 		lowLevelRename(libName);
-		Undo.renameObject(this, oldName, 0);
+		Undo.renameObject(this, oldName);
 		return false;
 	}
 
@@ -847,30 +919,14 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	}
 
 	/**
-	 * Method to return an iterator over all libraries.
-	 * @return an iterator over all libraries.
+	 * Method to return an Iterator over all Cells in this Library after given CellName.
+	 * @param cn starting CellName
+	 * @return an Iterator over all Cells in this Library after given CellName.
 	 */
-// 	public List getCellsSortedByName()
-// 	{
-// 		synchronized (cells)
-// 		{
-// 			return new ArrayList(cells.values());
-// 		}
-// 	}
-
-    /**
-     * Combines two lists of cells and sorts them by name
-     * (case sensitive sort by Cell.noLibDescribe()).
-     * @param cellList
-     * @return a sorted list of cells by name
-     */
-//     public static List getCellsSortedByName(List cellList)
-//     {
-//         List sortedList = new ArrayList();
-//         sortedList.addAll(cellList);
-//         Collections.sort(sortedList/*, new TextUtils.CellsByName()*/);
-//         return sortedList;
-//     }
+	Iterator getCellsTail(CellName cn)
+	{
+		return cells.tailMap(cn).values().iterator();
+	}
 
 	/**
 	 * Returns verison of Electric which wrote this library.

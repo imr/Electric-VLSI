@@ -2249,25 +2249,29 @@ public class LibraryContents
 			}
 		}
 
-		// create the cell groups
-		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
+		for (int i = 0; i < cellContentses.size(); i++)
 		{
-			Set group = (Set)git.next();
-			Cell.CellGroup cg = new Cell.CellGroup();
+			CellContents cc = (CellContents)cellContentses.get(i);
+			cc.allocateCell();
+		}
+
+		// join the cell groups
+		for (Iterator/*<Set<Object>>*/ git = transitive.getSetsOfRelatives(); git.hasNext();)
+		{
+			Set/*<Object>*/ group = (Set)git.next();
+			Cell firstCell = null;
 			for (Iterator it = group.iterator(); it.hasNext();)
 			{
 				Object o = it.next();
 				if (!(o instanceof CellRef)) continue;
 				CellRef cellRef = (CellRef)o;
-				if (cellRef.cc != null)
-					cellGroups.put(cellRef.cc, cg);
+				Cell cell = (Cell)lib.findNodeProto(cellRef.getName());
+				if (cell == null) continue;
+				if (firstCell == null)
+					firstCell = cell;
+				else
+					cell.joinGroup(firstCell);
 			}
-		}
-
-		for (int i = 0; i < cellContentses.size(); i++)
-		{
-			CellContents cc = (CellContents)cellContentses.get(i);
-			cc.allocateCell();
 		}
 
 		lib.clearChangedMajor();

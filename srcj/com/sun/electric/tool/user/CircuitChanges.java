@@ -5453,16 +5453,19 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
-			ErrorLogger errorLogger = ErrorLogger.newInstance(repair ? "Repair Libraries" : "Check Libraries");
-			int errorCount = 0;
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			if (Library.checkInvariants())
 			{
-				Library lib = (Library)it.next();
-				errorCount += lib.checkAndRepair(repair, errorLogger);
+				ErrorLogger errorLogger = ErrorLogger.newInstance(repair ? "Repair Libraries" : "Check Libraries");
+				int errorCount = 0;
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					errorCount += lib.checkAndRepair(repair, errorLogger);
+				}
+				if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
+					System.out.println("No errors found");
+				errorLogger.termLogging(true);
 			}
-			if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
-				System.out.println("No errors found");
-			errorLogger.termLogging(true);
 			return true;
 		}
 	}

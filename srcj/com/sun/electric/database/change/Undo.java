@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -238,7 +239,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.renameObject(obj, (Name)o1, i1);
+					listener.renameObject(obj, o1);
 				}
 			} else if (type == Type.OBJECTREDRAW)
 			{
@@ -451,6 +452,7 @@ public class Undo
 			{
 				Cell cell = (Cell)obj;
 				Cell.CellGroup oldGroup = (Cell.CellGroup)o1;
+				o1 = cell.getCellGroup();
 				cell.lowLevelSetCellGroup(oldGroup);
 				return;
 			}
@@ -512,23 +514,21 @@ public class Undo
 				} else if (obj instanceof Cell)
 				{
 					Cell cell = (Cell)obj;
-					Name oldName = (Name)o1;
-					o1 = Name.findName(cell.getName());
-					int oldVersion = i1;
-					i1 = cell.getVersion();
-					cell.lowLevelRename(oldName.toString(), i1);
+					CellName oldName = (CellName)o1;
+					o1 = cell.getCellName();
+					cell.lowLevelRename(oldName);
 				} else if (obj instanceof Export)
 				{
 					Export pp = (Export)obj;
 					Name oldName = (Name)o1;
 					o1 = pp.getNameKey();
-					pp.lowLevelRename(oldName.toString());
+					pp.lowLevelRename(oldName);
 				} else if (obj instanceof Library)
 				{
 					Library lib = (Library)obj;
-					Name oldName = (Name)o1;
-					o1 = Name.findName(lib.getName());
-					lib.lowLevelRename(oldName.toString());
+					String oldName = (String)o1;
+					o1 = lib.getName();
+					lib.lowLevelRename(oldName);
 				}
 				return;
 			}
@@ -773,7 +773,7 @@ public class Undo
 			}
 			if (type == Type.OBJECTRENAME)
 			{
-				return "Renamed object " + obj + " (was " + (Name)o1 + ")";
+				return "Renamed object " + obj + " (was " + o1 + ")";
 			}
 			if (type == Type.OBJECTREDRAW)
 			{
@@ -1486,19 +1486,17 @@ public class Undo
 	 * Method to store the renaming of an ElectricObject in the change-control system.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of the ElectricObject.
-	 * @param oldVersion the former version of the ElectricObject (if it is a Cell).
 	 */
-	public static void renameObject(ElectricObject obj, Name oldName, int oldVersion)
+	public static void renameObject(ElectricObject obj, Object oldName)
 	{
 		if (!recordChange()) return;
 		Type type = Type.OBJECTRENAME;
 		Change ch = newChange(obj, type, oldName);
 		if (ch == null) return;
-		ch.i1 = oldVersion;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		fireChangeEvent(ch);
-		Constraints.getCurrent().renameObject(obj, oldName, oldVersion);
+		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
 	/**

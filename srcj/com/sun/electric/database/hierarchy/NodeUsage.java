@@ -76,32 +76,20 @@ public class NodeUsage
 	}
 
 	/**
-	 * Method to self-check
+	 * Method to check invariants in this Cell.
+	 * @exception AssertionError if invariants are not valid
 	 */
-	public int checkAndRepair(ErrorLogger errorLogger)
+	void check()
 	{
-		int error = 0;
 		for (int i = 0; i < insts.size(); i++)
 		{
 			NodeInst ni = (NodeInst)insts.get(i);
-			if (ni.getNodeUsage() != this || ni.getProto() != protoType || ni.getParent() != parent)
-			{
-				String msg = "Error in " + this;
-				System.out.println(msg);
-				if (errorLogger != null)
-					errorLogger.logError(msg, parent, 1);
-				error++;
-			}
+			assert ni.getNodeUsage() == this;
+			assert ni.getProto() == protoType;
+			assert ni.getParent() == parent;
 		}
-		if (protoType instanceof Cell && !(((Cell)protoType).usagesOf.contains(this)))
-		{
-			String msg = protoType + " doesn't contain " + this;
-			System.out.println(msg);
-			if (errorLogger != null)
-				errorLogger.logError(msg, parent, 1);
-			error++;
-		}
-		return error;
+		if (protoType instanceof Cell)
+			assert ((Cell)protoType).usagesOf.contains(this);
 	}
 
 	// ------------------------ public methods -------------------------------

@@ -119,7 +119,7 @@ public class FastHenryArc extends EDialog
 		{
 			groupsList.add(it.next());
 		}
-		Collections.sort(groupsList, new TextUtils.StringsCaseInsensitive());
+		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
 		for(Iterator it = groupsList.iterator(); it.hasNext(); )
 		{
 			fhaGroups.addItem((String)it.next());
@@ -192,7 +192,7 @@ public class FastHenryArc extends EDialog
 			return;
 		}
 		groupsList.add(groupName);
-		Collections.sort(groupsList, new TextUtils.StringsCaseInsensitive());
+		Collections.sort(groupsList, String.CASE_INSENSITIVE_ORDER);
 		fhaGroups.removeAllItems();
 		for(Iterator it = groupsList.iterator(); it.hasNext(); )
 			fhaGroups.addItem((String)it.next());

@@ -64,13 +64,6 @@ class NetSchem extends NetCell {
 				NetSchem icon = (NetSchem)NetworkTool.getNetCell(cell);
 				if (icon == null) continue;
 				icon.setImplementation(mainSchem != null ? mainSchem : icon);
-				for (Iterator vit = cell.getVersions(); vit.hasNext();) {
-					Cell verCell = (Cell)vit.next();
-					if (verCell == cell) continue;
-					icon = (NetSchem)NetworkTool.getNetCell(verCell);
-					if (icon == null) continue;
-					icon.setImplementation(mainSchem != null ? mainSchem : icon);
-				}
 			}
 		}
 	}
@@ -603,12 +596,6 @@ class NetSchem extends NetCell {
 			if (!c.isIcon()) continue;
 			NetSchem icon = (NetSchem)NetworkTool.getNetCell(c);
 			icon.setInvalid(strong, strong);
-			for (Iterator vit = c.getVersions(); vit.hasNext();) {
-				Cell verCell = (Cell)vit.next();
-				if (verCell == c) continue;
-				NetSchem verIcon = (NetSchem)NetworkTool.getNetCell(verCell);
-				verIcon.setInvalid(strong, strong);
-			}
 		}
 	}
 
