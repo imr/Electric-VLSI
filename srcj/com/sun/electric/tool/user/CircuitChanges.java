@@ -143,8 +143,16 @@ public class CircuitChanges
 	{
 		private Cell cell;
 		private int amount;
-		private boolean mirror, mirrorH;
+		private boolean mirror;
+        private boolean mirrorH;
 
+        /**
+         * @param cell
+         * @param amount angle in tenth degrees to rotate
+         * @param mirror whether or not to mirror. if true, amount is ignored, and mirrorH is used.
+         * @param mirrorH if true, mirror horizontally (flip over X-axis), otherwise mirror
+         * vertically (flip over Y-axis). Ignored if mirror is false.
+         */
 		protected RotateSelected(Cell cell, int amount, boolean mirror, boolean mirrorH)
 		{
 			super("Rotate selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
