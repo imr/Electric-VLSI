@@ -609,7 +609,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer.getGraphics()), objTrans));
 
                 // Second polyhedron
                 topList.clear();
@@ -625,7 +625,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer.getGraphics()), objTrans));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -661,7 +661,7 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-            JAppearance ap = JAppearance.getAppearance(layer);
+            JAppearance ap = JAppearance.getAppearance(layer.getGraphics());
 
 			if (poly.getBox() == null) // non-manhattan shape
 			{

@@ -32,6 +32,8 @@ import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -43,6 +45,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.media.j3d.TransparencyAttributes;
 
 /**
  * Class to handle the "3D" tab of the Preferences dialog.
@@ -62,8 +65,45 @@ public class JThreeDTab extends ThreeDTab
 	protected JList threeDLayerList;
     private JTextField scaleField, rotXField, rotYField;
 	private DefaultListModel threeDLayerModel;
-	public HashMap threeDThicknessMap, threeDDistanceMap;
+	public HashMap threeDThicknessMap, threeDDistanceMap, transparencyMap;
 	private JThreeDSideView threeDSideView;
+    private static final HashMap modeMap = new HashMap(5);
+
+    // Filling the data
+    static {
+        J3DTransparencyOption option = new J3DTransparencyOption(TransparencyAttributes.FASTEST, "FASTEST");
+        modeMap.put(option, option);
+        option = new J3DTransparencyOption(TransparencyAttributes.NICEST, "NICEST");
+        modeMap.put(option, option);
+        option = new J3DTransparencyOption(TransparencyAttributes.BLENDED, "BLENDED");
+        modeMap.put(option, option);
+        option = new J3DTransparencyOption(TransparencyAttributes.SCREEN_DOOR, "SCREEN_DOOR");
+        modeMap.put(option, option);
+        option = new J3DTransparencyOption(TransparencyAttributes.NONE, "NONE");
+        modeMap.put(option, option);
+    }
+
+    /**
+     * Inner class to control options based on attribute integers
+     */
+    private static class J3DTransparencyOption
+    {
+        int mode;
+        String name;
+        J3DTransparencyOption(int mode, String name)
+        {
+            this.mode = mode;
+            this.name = name;
+        }
+        public String toString() {return name;}
+        // Careful with toString
+        /**
+         * Overwriting original function to use mode integer values
+         * for hash numbers
+         * @return
+         */
+        public int hashCode() {return mode;}
+    }
 
 	/**
 	 * Method called at the start of the dialog.
@@ -83,6 +123,7 @@ public class JThreeDTab extends ThreeDTab
 		});
 		threeDThicknessMap = new HashMap();
 		threeDDistanceMap = new HashMap();
+        transparencyMap = new HashMap();
         // Sorted by Height to be consistent with LayersTab
 		for(Iterator it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
@@ -91,17 +132,24 @@ public class JThreeDTab extends ThreeDTab
 			threeDLayerModel.addElement(layer.getName());
 			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
+            // Get a copy of JAppearance to set values temporarily
+            // this function will generate JAppearance if doesn't exist yet
+            JAppearance app = JAppearance.getAppearance(layer.getGraphics());
+            transparencyMap.put(layer, new JAppearance(app));
+
 		}
 		threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
+        // Transparency data
+        transparancyField.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 
 		threeDSideView = new JThreeDSideView(this);
 		threeDSideView.setMinimumSize(new java.awt.Dimension(200, 450));
 		threeDSideView.setPreferredSize(new java.awt.Dimension(200, 450));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 1;
-		gbc.gridwidth = 10;   gbc.gridheight = 4;
+		gbc.gridwidth = 2;   gbc.gridheight = 1;
 		//gbc.weightx = 0.5;   gbc.weighty = 1.0;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -111,7 +159,7 @@ public class JThreeDTab extends ThreeDTab
         JLabel scaleLabel = new javax.swing.JLabel("Z Scale:");
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         gbc.insets = new java.awt.Insets(4, 4, 4, 4);
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(scaleLabel, gbc);
@@ -120,7 +168,7 @@ public class JThreeDTab extends ThreeDTab
         scaleField.setColumns(6);
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 3;
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(scaleField, gbc);
         scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
@@ -129,7 +177,7 @@ public class JThreeDTab extends ThreeDTab
         JLabel rotXLabel = new javax.swing.JLabel("Rotation X:");
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 6;
+        gbc.gridy = 7;
         gbc.insets = new java.awt.Insets(4, 4, 4, 4);
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(rotXLabel, gbc);
@@ -138,7 +186,7 @@ public class JThreeDTab extends ThreeDTab
         rotXField.setColumns(6);
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 3;
-        gbc.gridy = 6;
+        gbc.gridy = 7;
         gbc.gridwidth = 2;
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(rotXField, gbc);
@@ -148,7 +196,7 @@ public class JThreeDTab extends ThreeDTab
         JLabel rotYLabel = new javax.swing.JLabel("Rotation Y:");
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 7;
+        gbc.gridy = 8;
         gbc.insets = new java.awt.Insets(4, 4, 4, 4);
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(rotYLabel, gbc);
@@ -157,7 +205,7 @@ public class JThreeDTab extends ThreeDTab
         rotYField.setColumns(6);
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 3;
-        gbc.gridy = 7;
+        gbc.gridy = 8;
         gbc.anchor = java.awt.GridBagConstraints.WEST;
         threeD.add(rotYField, gbc);
         rotYField.setText(TextUtils.formatDouble(User.get3DRotY()));
@@ -169,6 +217,17 @@ public class JThreeDTab extends ThreeDTab
         threeDAntialiasing.setSelected(User.is3DAntialiasing());
 
         threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
+
+        for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
+        {
+            J3DTransparencyOption op = (J3DTransparencyOption)it.next();
+            transparencyMode.addItem(op);
+        }
+        // Add listener after creating the list
+        transparencyMode.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent evt) { threeDValuesChanged(true); }
+        });
 	}
 
     /**
@@ -194,16 +253,31 @@ public class JThreeDTab extends ThreeDTab
 		if (layer == null) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
+        JAppearance app = (JAppearance)transparencyMap.get(layer);
+        TransparencyAttributes ta = app.getTransparencyAttributes();
         if (set)
         {
             thickness.setValue(TextUtils.atof(threeDThickness.getText()));
             height.setValue(TextUtils.atof(threeDHeight.getText()));
+            ta.setTransparency((float)TextUtils.atof(transparancyField.getText()));
+            J3DTransparencyOption op = (J3DTransparencyOption)transparencyMode.getSelectedItem();
+            ta.setTransparencyMode(op.mode);
             threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
         }
         else
         {
             threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+            transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
+            for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
+            {
+                J3DTransparencyOption op = (J3DTransparencyOption)it.next();
+                if (op.mode == ta.getTransparencyMode())
+                {
+                    transparencyMode.setSelectedItem(op);
+                    break;  // found
+                }
+            }
         }
 		threeDSideView.showLayer(layer);
         if (!set) initial3DTextChanging = false;
@@ -221,6 +295,9 @@ public class JThreeDTab extends ThreeDTab
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
+            JAppearance newApp = (JAppearance)transparencyMap.get(layer);
+            JAppearance oldApp = (JAppearance)layer.getGraphics().get3DAppearance();
+            oldApp.setTransparencyAttributes(newApp.getTransparencyAttributes());
 			if (thickness.doubleValue() != layer.getThickness())
 				layer.setThickness(thickness.doubleValue());
 			if (height.doubleValue() != layer.getDistance())
@@ -278,6 +355,12 @@ public class JThreeDTab extends ThreeDTab
         threeDAntialiasing = new javax.swing.JCheckBox();
         jLabel48 = new javax.swing.JLabel();
         threeDZoom = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        transparencyMode = new javax.swing.JComboBox();
+        transparancyField = new javax.swing.JTextField();
+        transparencyLabel = new javax.swing.JLabel();
+        transparencyModeLabel = new javax.swing.JLabel();
+        separator = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -345,7 +428,7 @@ public class JThreeDTab extends ThreeDTab
         threeDPerspective.setText("Use Perspective");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDPerspective, gridBagConstraints);
@@ -353,15 +436,15 @@ public class JThreeDTab extends ThreeDTab
         threeDAntialiasing.setText("Use Antialiasing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAntialiasing, gridBagConstraints);
 
-        jLabel48.setText("Orig. Zoom::");
+        jLabel48.setText("Orig. Zoom:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(jLabel48, gridBagConstraints);
@@ -369,10 +452,63 @@ public class JThreeDTab extends ThreeDTab
         threeDZoom.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDZoom, gridBagConstraints);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Transparency Options"));
+        transparencyMode.setToolTipText("");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(transparencyMode, gridBagConstraints);
+
+        transparancyField.setMinimumSize(new java.awt.Dimension(20, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(transparancyField, gridBagConstraints);
+
+        transparencyLabel.setText("Factor:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(transparencyLabel, gridBagConstraints);
+
+        transparencyModeLabel.setText("Mode:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        jPanel1.add(transparencyModeLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        threeD.add(jPanel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        threeD.add(separator, gridBagConstraints);
 
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
@@ -390,6 +526,8 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JSeparator separator;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JTextField threeDHeight;
@@ -398,6 +536,10 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JLabel threeDTechnology;
     private javax.swing.JTextField threeDThickness;
     private javax.swing.JTextField threeDZoom;
+    private javax.swing.JTextField transparancyField;
+    private javax.swing.JLabel transparencyLabel;
+    private javax.swing.JComboBox transparencyMode;
+    private javax.swing.JLabel transparencyModeLabel;
     // End of variables declaration//GEN-END:variables
 
 }

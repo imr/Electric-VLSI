@@ -25,17 +25,8 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.technology.Layer;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -43,9 +34,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.Iterator;
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
 import javax.swing.JPanel;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
@@ -59,69 +47,6 @@ import javax.swing.event.DocumentListener;
  */
 public class ColorPatternPanel extends JPanel
 {
-	// 3D view. Static values to avoid unnecessary calls
-	private static final Class app3DClass = Resources.get3DClass("JAppearance");
-    private static final Class option3DClass = Resources.get3DClass("J3DColorOptions");
-	private static Method setJAppMethod = null;
-    private static Method setColor3DMethod = null;
-    private static Method getJAppMethod = null;
-
-    /**
-     * Method to add 3D options if j3d plugin is available
-     * @param li if li is null, it will create panel
-     */
-    private void set3DComponents(Info li, boolean copyDataInInfo)
-    {
-        if (option3DClass == null) return; // plugin is not available
-
-        // Setup JPanel
-        if (li == null)
-        {
-            options3D = null;
-
-            try
-            {
-                Constructor constructor = option3DClass.getDeclaredConstructor(new Class[] {ColorPatternPanel.class});
-                Object option = constructor.newInstance(new Object[] {this});
-                if (option != null)
-                    options3D = (JPanel)option;
-            } catch (Exception e) {
-                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
-            }
-            if (options3D != null)
-            {
-                GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-                gridBagConstraints.gridx = 0;
-                gridBagConstraints.gridy = 2;
-                gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-                gridBagConstraints.gridwidth = 10;
-                forDisplay.add(options3D, gridBagConstraints);
-            }
-        }
-        else // set transparency values after graphics is selected
-        {
-           try
-           {
-               if (copyDataInInfo)
-               {
-                   if (getJAppMethod == null)
-                        getJAppMethod = app3DClass.getDeclaredMethod("copyAppearanceIntoInfo",
-                           new Class[] {Info.class});
-                   getJAppMethod.invoke(app3DClass, new Object[] {li});
-               }
-               else
-               {
-                   if (setColor3DMethod == null)
-                        setColor3DMethod = option3DClass.getDeclaredMethod("set3DGraphicsData",
-                           new Class[] {JPanel.class, Info.class});
-                   setColor3DMethod.invoke(option3DClass, new Object[] {options3D, li});
-               }
-            } catch (Exception e) {
-                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
-            }
-        }
-    }
-
 	public static class Info
 	{
 		public EGraphics graphics;
@@ -133,9 +58,6 @@ public class ColorPatternPanel extends JPanel
 		public int transparentLayer;
 		public int red, green, blue;
 		public double opacity;
-        // 3D data
-        public float transFactor; // transparency factor
-        public int transMode; // transparency mode
 
 		/**
 		 * Constructor for class to edit an EGraphics object manage in a dialog panel.
@@ -158,16 +80,6 @@ public class ColorPatternPanel extends JPanel
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
 			opacity = graphics.getOpacity();
-
-           try
-           {
-               if (getJAppMethod == null)
-                    getJAppMethod = app3DClass.getDeclaredMethod("getAppearanceInfo",
-                       new Class[] {ColorPatternPanel.Info.class});
-               getJAppMethod.invoke(app3DClass, new Object[] {this});
-            } catch (Exception e) {
-                System.out.println("Cannot get 3D plugin getAppearanceInfo method: " + e.getMessage());
-            }
 		}
 
 		/**
@@ -239,18 +151,6 @@ public class ColorPatternPanel extends JPanel
 				graphics.setTransparentLayer(transparentLayer);
 				changed = true;
 			}
-
-            // Checking 3D values if available
-            // color and transparency values
-            //@ No returning if something was changed
-            try
-            {
-                if (setJAppMethod == null) setJAppMethod = app3DClass.getDeclaredMethod("setJAppearance",
-                        new Class[] {Info.class, java.awt.Color.class});
-                setJAppMethod.invoke(app3DClass, new Object[]{this, colorObj});
-            } catch (Exception e) {
-                System.out.println("Cannot call 3D plugin method setJAppearance: " + e.getMessage());
-            }
 			return changed;
 		}
 
@@ -267,7 +167,6 @@ public class ColorPatternPanel extends JPanel
     public ColorPatternPanel(boolean showPrinter)
 	{
         initComponents();
-        set3DComponents(null, false);
 
         this.showPrinter = showPrinter;
 
@@ -346,7 +245,6 @@ public class ColorPatternPanel extends JPanel
 	public void setColorPattern(Info li)
 	{
 		currentLI = li;
-        set3DComponents(li, false); // setting 3D if available
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		useOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
