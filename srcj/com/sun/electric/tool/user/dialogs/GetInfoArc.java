@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -806,7 +807,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 				changed = true;
 			}
 
-			double currentWidth = Double.parseDouble(dialog.width.getText()) + ai.getProto().getWidthOffset();
+			double currentWidth = TextUtils.atof(dialog.width.getText()) + ai.getProto().getWidthOffset();
 			if (!DBMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
 			{
 				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);

@@ -50,7 +50,21 @@ public class TextUtils
 	 * @param text the string with a number in it.
 	 * @return the numeric value.
 	 */
-	public static double atof(String text)
+    public static double atof(String text)
+    {
+        return atof(text, null);
+    }
+
+    /**
+     * This is the same as TextUtils.atof, except upon failure to convert
+     * the passed text to a number, it returns the value in 'defaultVal'.
+     * If 'defaultVal' is null and the text cannot be converted to a number,
+     * the method returns 0.
+     * @param text the string to convert to a double
+     * @param defaultVal the value to return if the string cannot be converted to a double
+     * @return the numeric value
+     */
+	public static double atof(String text, Double defaultVal)
 	{
 		double v = 0;
 		try
@@ -83,7 +97,10 @@ public class TextUtils
 				while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
 			}
 
-			if (end <= start) return 0;
+			if (end <= start) {
+                if (defaultVal != null) return defaultVal.doubleValue();
+                return 0;
+            }
 			v = Double.parseDouble(text.substring(start, end-start));
 		}
 		return v;

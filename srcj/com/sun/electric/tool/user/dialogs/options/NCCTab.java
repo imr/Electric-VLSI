@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import javax.swing.JPanel;
 import com.sun.electric.tool.ncc.NCC;
+import com.sun.electric.database.text.TextUtils;
 
 /**
  * Class to handle the "NCC" tab of the Preferences dialog.
@@ -81,12 +82,12 @@ public class NCCTab extends PreferencePanel
 			NCC.setCheckSizes(currentEnableSizeChecking);
 		}
 		double currentRelativeSizeTolerance = 
-			Double.parseDouble(relativeSizeTolerance.getText());
+			TextUtils.atof(relativeSizeTolerance.getText(), new Double(initialRelativeSizeTolerance));
 		if (currentRelativeSizeTolerance!=initialRelativeSizeTolerance) {
 			NCC.setRelativeSizeTolerance(currentRelativeSizeTolerance);
 		}
 		double currentAbsoluteSizeTolerance = 
-			Double.parseDouble(absoluteSizeTolerance.getText());
+			TextUtils.atof(absoluteSizeTolerance.getText(), new Double(initialAbsoluteSizeTolerance));
 		if (currentAbsoluteSizeTolerance!=initialAbsoluteSizeTolerance) {
 			NCC.setAbsoluteSizeTolerance(currentAbsoluteSizeTolerance);
 		}

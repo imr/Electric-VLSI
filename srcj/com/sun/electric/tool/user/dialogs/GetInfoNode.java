@@ -986,21 +986,21 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			}
 
 			SizeOffset so = ni.getSizeOffset();
-			double currentXPos = Double.parseDouble(dialog.xPos.getText());
-			double currentYPos = Double.parseDouble(dialog.yPos.getText());
+			double currentXPos = TextUtils.atof(dialog.xPos.getText(), new Double(dialog.initialXPos));
+			double currentYPos = TextUtils.atof(dialog.yPos.getText(), new Double(dialog.initialYPos));
 			double currentXSize = 0, currentYSize = 0;
 			if (dialog.swapXY)
 			{
-				currentXSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowXOffset() + so.getHighXOffset();
-				currentYSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowYOffset() + so.getHighYOffset();
+				currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(dialog.initialYSize)) + so.getLowXOffset() + so.getHighXOffset();
+				currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(dialog.initialXSize)) + so.getLowYOffset() + so.getHighYOffset();
 			} else
 			{
-				currentXSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowXOffset() + so.getHighXOffset();
-				currentYSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowYOffset() + so.getHighYOffset();
+				currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(dialog.initialXSize)) + so.getLowXOffset() + so.getHighXOffset();
+				currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(dialog.initialYSize)) + so.getLowYOffset() + so.getHighYOffset();
 			}
 			if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
 			if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-			int currentRotation = (int)(Double.parseDouble(dialog.rotation.getText()) * 10);
+			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
 				!DBMath.doublesEqual(currentYPos, dialog.initialYPos) ||
 				!DBMath.doublesEqual(currentXSize, dialog.initialXSize) ||
