@@ -96,7 +96,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public boolean isValid() {
             if (type == ERRORTYPEEXPORT) return pp.isLinked();
             if (type == ERRORTYPEGEOM) return geom.isLinked();
-            return true;
+            return pp != null || geom != null;
+	        //return true;
         }
     };
 
@@ -577,7 +578,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * @param cell the cell for which errors will be removed
      */
     public synchronized void clearLogs(Cell cell) {
-        ArrayList trimmedLogs = new ArrayList();
+       ArrayList trimmedLogs = new ArrayList();
         // Errors
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
@@ -833,7 +834,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     }
 
     private synchronized void deleteLog(MessageLog error) {
-        boolean found = allErrors.remove(error);
+       boolean found = allErrors.remove(error);
 
         found = (!found) ? allWarnings.remove(error) : found;
         if (!found) {

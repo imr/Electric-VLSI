@@ -568,144 +568,7 @@ public class DebugMenus {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
 
-        Job job = null;
-
-	    if (newIdea)
-	    {
-			job = new CoverImplant(curCell, test, wnd.getHighlighter());
-	    }
-	    else
-	    {
-		    job = new CoverImplantOld(curCell, wnd.getHighlighter());
-	    }
-	}
-
-	private static class CoverImplant extends Job
-	{
-		private Cell curCell;
-        private boolean testMerge = false;
-        private Highlighter highlighter;
-
-		protected CoverImplant(Cell cell, boolean test, Highlighter highlighter)
-		{
-			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.curCell = cell;
-            this.testMerge = test;
-            this.highlighter = highlighter;
-			setReportExecutionFlag(true);
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			java.util.List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
-            PolyQTree tree = new PolyQTree(curCell.getBounds());
-
-			// Traversing arcs
-			for (Iterator it = curCell.getArcs(); it.hasNext(); )
-			{
-				ArcInst arc = (ArcInst)it.next();
-				ArcProto arcType = arc.getProto();
-				Technology tech = arcType.getTechnology();
-				Poly[] polyList = tech.getShapeOfArc(arc);
-
-				// Treating the arcs associated to each node
-				// Arcs don't need to be rotated
-				for (int i = 0; i < polyList.length; i++)
-				{
-					Poly poly = polyList[i];
-					Layer layer = poly.getLayer();
-					Layer.Function func = layer.getFunction();
-
-					if (Main.getDebug() || func.isSubstrate())
-					{
-						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-					}
-				}
-			}
-			// Traversing nodes
-			for (Iterator it = curCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst node = (NodeInst)it .next();
-
-				// New coverage implants are pure primitive nodes
-				// and previous get deleted and ignored.
-				if (!Main.getDebug() && node.getFunction() == PrimitiveNode.Function.NODE)
-				{
-					deleteList.add(node);
-					continue;
-				}
-
-				NodeProto protoType = node.getProto();
-				if (protoType instanceof Cell) continue;
-
-				Technology tech = protoType.getTechnology();
-				Poly[] polyList = tech.getShapeOfNode(node);
-				AffineTransform transform = node.rotateOut();
-
-				for (int i = 0; i < polyList.length; i++)
-				{
-					Poly poly = polyList[i];
-					Layer layer = poly.getLayer();
-					Layer.Function func = layer.getFunction();
-
-                    // Only substrate layers, skipping center information
-					if (Main.getDebug() || func.isSubstrate())
-					{
-						poly.transform(transform);
-						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-					}
-				}
-			}
-
-			// tree.print();
-
-			// With polygons collected, new geometries are calculated
-			highlighter.clear();
-			boolean noNewNodes = true;
-
-			// Need to detect if geometry was really modified
-			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
-			{
-				Layer layer = (Layer)it.next();
-				Collection set = tree.getObjects(layer, true, true);
-
-				// Ready to create new implants.
-				for (Iterator i = set.iterator(); i.hasNext(); )
-				{
-					PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
-					Rectangle2D rect = qNode.getBounds2D();
-					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
-					PrimitiveNode priNode = layer.getPureLayerNode();
-					// Adding the new implant. New implant not assigned to any local variable                                .
-					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
-					highlighter.addElectricObject(node, curCell);
-
-					if ( testMerge )
-					{
-					        Point2D [] points = qNode.getPoints();
-					        node.newVar(NodeInst.TRACE, points);
-					}
-					else
-					{
-					        // New implant can't be selected again
-					        node.setHardSelect();
-					}
-					noNewNodes = false;
-				}
-			}
-			highlighter.finished();
-			for (Iterator it = deleteList.iterator(); it.hasNext(); )
-			{
-				NodeInst node = (NodeInst)it .next();
-				node.kill();
-			}
-			if (noNewNodes)
-				System.out.println("No implant areas added");
-			return true;
-		}
+        Job job = new CoverImplantOld(curCell, wnd.getHighlighter());
 	}
 
 	private static class CoverImplantOld extends Job
@@ -765,7 +628,8 @@ public class DebugMenus {
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
-				if ( node.getFunction() == PrimitiveNode.Function.NODE )
+				//if (function == PrimitiveNode.Function.NODE)
+				if (node.isPrimtiveSubstrateNode())
 				{
 					deleteList.add(node);
 					continue;

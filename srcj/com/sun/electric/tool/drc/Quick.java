@@ -99,7 +99,6 @@ public class Quick
 	private static final int ENCLOSEDAREAERROR  = 8;
 	// Different types of warnings
 	private static final int ZEROLENGTHARCWARN  = 9;
-	private static final int MIXINGTECHWARN     = 10;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -1426,16 +1425,14 @@ public class Quick
 			return false;
 		}
 		int errorType = SPACINGERROR;
-//if (debug) System.out.println("   POSSIBLE ERROR, distance="+pd+" but limit="+dist);
 
 		/*
 		 * special case: ignore errors between two active layers connected
 		 * to either side of a field-effect transistor that is inside of
 		 * the error area.
 		 */
-		if (activeOnTransistor(poly1, layer1, net1,
-			poly2, layer2, net2, tech, cell, globalIndex)) return false;
-//if (debug) System.out.println("   Active-on-transistor rule doesn't help");
+		if (activeOnTransistor(poly1, layer1, net1, poly2, layer2, net2, cell, globalIndex))
+			return false;
 
 		// special cases if the layers are the same
 		if (tech.sameLayer(layer1, layer2))
@@ -2113,6 +2110,49 @@ public class Quick
 		return false;
 	}
 
+	private boolean checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer)
+	{
+		boolean errorFound = false;
+		DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
+		DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
+
+		// Layer doesn't have min area
+		if (minAreaRule == null && encloseAreaRule == null) return (false);
+
+		Collection set = merge.getObjects(layer, false, true);
+
+		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+		{
+			PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+			if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
+			List list = pn.getSortedLoops();
+			// Order depends on area comparison done. First element is the smallest.
+			// and depending on # polygons it could be minArea or encloseArea
+			DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+			DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+			// Looping over simple polygons. Possible problems with disconnected elements
+			// polyArray.length = Maximum number of distintic loops
+			for (int i = 0; i < list.size(); i++)
+			{
+				PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+				double area = simplePn.getArea();
+				DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
+
+				if (minRule == null) continue;
+
+				// isGreaterThan doesn't consider equals condition therefore negate condition is used
+				if (!DBMath.isGreaterThan(minRule.value, area)) continue;
+
+				errorFound = true;
+				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+				reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+						new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
+			}
+		}
+		return errorFound;
+
+	}
+
 	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum area rules. Returns true
@@ -2129,58 +2169,66 @@ public class Quick
 		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
 			return false;
 
-		// Get merged areas
+		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
+
+		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
 			Network net = (Network)netIt.next();
-			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net);
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
-			for(Iterator it = quickArea.netMerge.getKeyIterator(); it.hasNext(); )
+			for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
-				DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
+				boolean localError = checkMinAreaLayer(quickArea.metalMerge, cell, layer);
+				if (!errorFound) errorFound = localError;
 
-				// Layer doesn't have min area
-				if (minAreaRule == null && encloseAreaRule == null) continue;
-
-				Collection set = quickArea.netMerge.getObjects(layer, false, true);
-
-				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
-				{
-					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
-					List list = pn.getSortedLoops();
-					// Order depends on area comparison done. First element is the smallest.
-					// and depending on # polygons it could be minArea or encloseArea
-					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
-					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
-					// Looping over simple polygons. Possible problems with disconnected elements
-					// polyArray.length = Maximum number of distintic loops
-					for (int i = 0; i < list.size(); i++)
-					{
-						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
-						double area = simplePn.getArea();
-						DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
-
-						if (minRule == null) continue;
-
-						/*
-						double actual = DBMath.round(area - minRule.value);
-
-						if (actual >= 0) continue;
-                        */
-						// isGreaterThan doesn't consider equals condition therefore negate condition is used
-						if (!DBMath.isGreaterThan(minRule.value, area)) continue;
-
-						errorFound = true;
-						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-								new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
-					}
-				}
+//				DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
+//				DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
+//
+//				// Layer doesn't have min area
+//				if (minAreaRule == null && encloseAreaRule == null) continue;
+//
+//				Collection set = quickArea.metalMerge.getObjects(layer, false, true);
+//
+//				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+//				{
+//					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+//					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
+//					List list = pn.getSortedLoops();
+//					// Order depends on area comparison done. First element is the smallest.
+//					// and depending on # polygons it could be minArea or encloseArea
+//					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+//					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+//					// Looping over simple polygons. Possible problems with disconnected elements
+//					// polyArray.length = Maximum number of distintic loops
+//					for (int i = 0; i < list.size(); i++)
+//					{
+//						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+//						double area = simplePn.getArea();
+//						DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
+//
+//						if (minRule == null) continue;
+//
+//						// isGreaterThan doesn't consider equals condition therefore negate condition is used
+//						if (!DBMath.isGreaterThan(minRule.value, area)) continue;
+//
+//						errorFound = true;
+//						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+//						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+//								new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
+//					}
+//				}
 			}
+		}
+
+		// Special cases for select areas
+		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			boolean localError = checkMinAreaLayer(selectMerge, cell, layer);
+			if (!errorFound) errorFound = localError;
 		}
 
 		return errorFound;
@@ -2609,13 +2657,21 @@ public class Quick
 		return false;
 	}
 
+
+	private boolean selectOnTransistor(Poly poly1, Layer layer1, int net1,
+	                                   Poly poly2, Layer layer2, int net2, Cell cell, int globalIndex)
+	{
+		// One layer must be select and other polysilicon. They are not connected
+		return (false);
+	}
+
 	/**
 	 * Method to see if the two boxes are active elements, connected to opposite
 	 * sides of a field-effect transistor that resides inside of the box area.
 	 * Returns true if so.
 	 */
 	private boolean activeOnTransistor(Poly poly1, Layer layer1, int net1,
-		Poly poly2, Layer layer2, int net2, Technology tech, Cell cell, int globalIndex)
+	                                   Poly poly2, Layer layer2, int net2, Cell cell, int globalIndex)
 	{
 		// networks must be different
 		if (net1 == net2) return false;
@@ -3448,17 +3504,24 @@ public class Quick
 	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
 		private Network jNet;
-		private GeometryHandler netMerge;
+		private GeometryHandler metalMerge;
+		private GeometryHandler selectMerge;
 		private Layer polyLayer;
 
-		public QuickAreaEnumerator(Network jNet)
+		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge)
 		{
 			this.jNet = jNet;
+			this.selectMerge = selectMerge;
 		}
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
-			if (netMerge == null)
-				netMerge = new PolyQTree(info.getCell().getBounds());
+			if (metalMerge == null)
+				metalMerge = new PolyQTree(info.getCell().getBounds());
+
+			/*
+			if (selectMerge == null)
+				selectMerge = new PolyQTree(info.getCell().getBounds());
+				*/
 
 			// Check Arcs too
 			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
@@ -3487,7 +3550,10 @@ public class Quick
 							polyLayer = layer;
 						layer = polyLayer;
 					}
-					netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					else
+						selectMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				}
 			}
 			return true;
@@ -3544,7 +3610,10 @@ public class Quick
 					layer = polyLayer;
 				}
 				poly.transform(trans);
-				netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+				if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+					metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+				else
+					selectMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;

@@ -2314,6 +2314,19 @@ public class NodeInst extends Geometric implements Nodable
         return false;
     }
 
+	/**
+	 * Method to return true if a PrimitiveNode is acting as implant.
+	 * This is used for coverage implant function.
+	 * @return
+	 */
+	public boolean isPrimtiveSubstrateNode()
+	{
+		if (getFunction() != PrimitiveNode.Function.NODE) return false;
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		if (np.getLayers().length != 1) return false;
+		return (np.getLayers()[0].getLayer().getFunction().isSubstrate());
+	}
+
     /**
      * Method to see if this NodeInst is a Serpentine Transistor.
      * @return true if NodeInst is a serpentine transistor.

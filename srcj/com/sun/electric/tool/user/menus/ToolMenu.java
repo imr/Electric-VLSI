@@ -1030,13 +1030,6 @@ public class ToolMenu {
 							cinfo = cinfo.getParentInfo();
 						}
 		                found = netFound;
-						/*
-						if (netSet.contains(oNet))
-						{
-							found = true;
-							break;
-						}
-						*/
 					}
 					if (!found) continue; // skipping this arc
                     ArcProto arcType = arc.getProto();
@@ -1100,7 +1093,7 @@ public class ToolMenu {
 
                     // Coverage implants are pure primitive nodes
                     // and they are ignored.
-                    if (!testCase && node.getFunction() == PrimitiveNode.Function.NODE)
+                    if (!testCase && node.isPrimtiveSubstrateNode()) //node.getFunction() == PrimitiveNode.Function.NODE)
                     {
                         deleteList.add(node);
                         continue;
@@ -1138,7 +1131,6 @@ public class ToolMenu {
                             poly.transform(transform);
                             // Not sure if I need this for general merge polygons function
                             poly.transform(info.getTransformToRoot());
-
 
 	                        PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
 	                        if (function == IMPLANT)

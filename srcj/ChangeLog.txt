@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ae: *********************************
 
+IMP: (10/26/04, GVG) TSMC90nm and detecting overlap between select regions. Better detection of min area for select
+regions. In case of Area errors, ErrorHighlight is valid if pp != null || geom != null otherwise area errors are not
+removed by databaseEndChangeBatch.
+
+BUG: (10/26/04, GVG) Again patching Cell.getName() to avoid StringIndexOutOfBoundsException.
+
+BUG: (10/26/04, GVG) Coverage implant: wrong detection of substrate primitive nodes
+FIX: NodeInst.isPrimtiveSubstrateNode added
+
 ************************* Version 8.01ad: *********************************
 
 BUG: (10/25/04, GVG) JELIB$GroupsByName.compare, Cell$CellGroup.getName crashed if cell names don't have same length
