@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
 public class Poly implements Shape
 {
 	/**
-	 * Function is a typesafe enum class that describes the function of an arcproto.
+	 * Type is a typesafe enum class that describes the function of an Poly.
 	 */
 	public static class Type
 	{
@@ -130,6 +130,8 @@ public class Poly implements Shape
 
 	public Poly.Type getStyle() { return style; }
 	public void setStyle(Poly.Type style) { this.style = style; }
+
+	public Point2D [] getPoints() { return points; }
 
 	/** Get a transformed copy of this polygon, including scale, offset,
 	 * and rotation.

@@ -5,6 +5,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Point;
@@ -330,6 +331,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** Get the Hard-to-Select bit */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
 	/** Get the width of this ArcInst.
 	 *
 	 * <p> Note that this call excludes material surrounding this
@@ -338,7 +341,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * select. */
 	public double getWidth()
 	{
-		return arcWidth - protoType.getWidthOffset();
+		return arcWidth - ((PrimitiveArc)protoType).getWidthOffset();
 	}
 
 	/** Change the width of this ArcInst.
@@ -362,12 +365,14 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * Cell.rebuildNetworks(). */
 	public void setName(String name)
 	{
-		setVar(VAR_ARC_NAME, name);
+		setVal(VAR_ARC_NAME, name);
 	}
 
 	public String getName()
 	{
-		return (String) getVar(VAR_ARC_NAME);
+		Variable var = getVal(VAR_ARC_NAME);
+		if (var == null) return null;
+		return (String) var.getObject();
 	}
 
 	public Poly makearcpoly(double len, double wid, Poly.Type style)

@@ -5,6 +5,7 @@ import com.sun.electric.database.network.Networkable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitivePort;
 
 /**
@@ -51,6 +52,8 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/** port name */								protected String protoName;
 	/** flag bits */								protected int userBits;
 	/** parent NodeProto */							protected NodeProto parent;
+	/** Text descriptor */							protected TextDescriptor descriptor;
+	
 
 	/** Network that this port belongs to (in case two ports are permanently
 	 * connected, like the two ends of the gate in a MOS transistor.
@@ -77,6 +80,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		this.parent = null;
 		this.network = null;
 		this.userBits = 0;
+		this.descriptor = new TextDescriptor();
 		//if (network!=null)  network.addPart(this);
 	}
 
@@ -125,6 +129,12 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/** Get the network associated with this port. */
 	public JNetwork getNetwork() { return network; }
 
+	/** Get the Text Descriptor associated with this port. */
+	public TextDescriptor getTextDescriptor() { return descriptor; }
+
+	/** Get the Text Descriptor associated with this port. */
+	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+
 	/** Get the first "real" (non-zero width) ArcProto style that can
 	 * connect to this port. */
 	public ArcProto getWire()
@@ -143,6 +153,8 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	public abstract PortProto getEquivalent();
+
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	public String toString()
 	{

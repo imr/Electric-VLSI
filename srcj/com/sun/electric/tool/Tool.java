@@ -18,9 +18,11 @@ public class Tool extends ElectricObject
 	// The name of this tool
 	private String toolName;
 	private int toolState;
+	private int toolIndex;
 
 	// the static list of all tools
 	private static List tools = new ArrayList();
+	private static int toolNumber = 0;
 
 	/** set if tool is on */								public static final int TOOLON=             01;
 	/** set if tool is running in background */				public static final int TOOLBG=             02;
@@ -33,6 +35,7 @@ public class Tool extends ElectricObject
 	private Tool(String toolName)
 	{
 		this.toolName = toolName;
+		this.toolIndex = toolNumber++;
 	}
 
 	/** Initialize this tool with a name */
@@ -58,7 +61,6 @@ public class Tool extends ElectricObject
 			if (t.getName().equals(name))
 				return t;
 		}
-		System.out.println("Couldn't find tool named '" + name + "'.");
 		return null;
 	}
 
@@ -70,6 +72,21 @@ public class Tool extends ElectricObject
 
 	/** Get the name of this tool */
 	public String getName() { return toolName; }
+	public int getIndex() { return toolIndex; }
+
+	public boolean isdeprecatedvariable(String name)
+	{
+		if (name == "NET_auto_name" ||
+			name == "NET_use_port_names" ||
+			name == "NET_compare_hierarchy" ||
+			name == "D" ||
+			name == "<" ||
+			name == "USER_alignment_obj" ||
+			name == "USER_alignment_edge" ||
+			name == "s" ||
+			name == "DRC_pointout") return true;
+		return false;
+	}
 
 	public String toString()
 	{

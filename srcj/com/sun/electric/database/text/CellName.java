@@ -34,10 +34,13 @@ public class CellName
 
 		// figure out the version
 		n.version = 0;
-		int semicolon = name.indexOf(';');
-		if (semicolon != -1)
+		int semiColon = name.indexOf(';');
+		if (semiColon != -1)
 		{
-			n.version = Integer.parseInt(name.substring(semicolon));
+			String versionString;
+			if (openCurly > semiColon) versionString = name.substring(semiColon+1, openCurly); else
+				versionString = name.substring(semiColon+1);
+			n.version = Integer.parseInt(versionString);
 			if (n.version <= 0)
 			{
 				System.out.println("Cell versions must be positive, this is " + n.version);
@@ -46,9 +49,9 @@ public class CellName
 		}
 
 		// get the pure cell name
-		if (semicolon == -1) semicolon = name.length();
+		if (semiColon == -1) semiColon = name.length();
 		if (openCurly == -1) openCurly = name.length();
-		int nameEnd = Math.min(semicolon, openCurly);
+		int nameEnd = Math.min(semiColon, openCurly);
 		n.name = name.substring(0, nameEnd);
 		return n;
 	}

@@ -29,37 +29,37 @@ public class View extends ElectricObject
 	// -------------------------- public data -----------------------------
 
 	/** the unknown view */
-		public static final View unknown = newInstance("unknown", "");
+		public static final View UNKNOWN = newInstance("unknown", "");
 	/** the simulation snapshot view */
-		public static final View simsnap = newInstance("simulation-snapshot", "sim");
+		public static final View SIMSNAP = newInstance("simulation-snapshot", "sim");
 	/** the NetLisp (netlist) view */
-		public static final View netlistNetlisp = newTextInstance("netlist-netlisp-format", "net-netlisp");
+		public static final View NETLISTNETLISP = newTextInstance("netlist-netlisp-format", "net-netlisp");
 	/** the RSIM (netlist) view */
-		public static final View netlistRsim = newTextInstance("netlist-rsim-format", "net-rsim");
+		public static final View NETLISTRSIM = newTextInstance("netlist-rsim-format", "net-rsim");
 	/** the SILOS (netlist) view */
-		public static final View netlistSilos = newTextInstance("netlist-silos-format", "net-silos");
+		public static final View NETLISTSILOS = newTextInstance("netlist-silos-format", "net-silos");
 	/** the QUISC (netlist) view */
-		public static final View netlistQuisc = newTextInstance("netlist-quisc-format", "net-quisc");
+		public static final View NETLISTQUISC = newTextInstance("netlist-quisc-format", "net-quisc");
 	/** the ALS (netlist) view */
-		public static final View netlistAls = newTextInstance("netlist-als-format", "net-als");
+		public static final View NETLISTALS = newTextInstance("netlist-als-format", "net-als");
 	/** the general Netlist view */
-		public static final View netlist = newTextInstance("netlist", "net");
+		public static final View NETLIST = newTextInstance("netlist", "net");
 	/** the VHDL view */
-		public static final View vhdl = newTextInstance("VHDL", "vhdl");
+		public static final View VHDL = newTextInstance("VHDL", "vhdl");
 	/** the Verilog view */
-		public static final View verilog = newTextInstance("Verilog", "ver");
+		public static final View VERILOG = newTextInstance("Verilog", "ver");
 	/** the Skeleton view */
-		public static final View skeleton = newInstance("skeleton", "sk");
+		public static final View SKELETON = newInstance("skeleton", "sk");
 	/** the Compensated view */
-		public static final View comp = newInstance("compensated", "comp");
+		public static final View COMP = newInstance("compensated", "comp");
 	/** the Documentation view */
-		public static final View doc = newTextInstance("documentation", "doc");
+		public static final View DOC = newTextInstance("documentation", "doc");
 	/** the Icon view */
-		public static final View icon = newInstance("icon", "ic");
+		public static final View ICON = newInstance("icon", "ic");
 	/** the Schematic view */
-		public static final View schematic = newInstance("schematic", "sch");
+		public static final View SCHEMATIC = newInstance("schematic", "sch");
 	/** the Layout view */
-		public static final View layout = newInstance("layout", "lay");
+		public static final View LAYOUT = newInstance("layout", "lay");
 
 	// -------------------------- private methods -----------------------------
 

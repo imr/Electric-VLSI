@@ -3,6 +3,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -38,32 +39,32 @@ public class TecGeneric extends Technology
 
 		//**************************************** LAYERS ****************************************
 
-		// Universal layer
+		/** Universal layer */
 		Layer universal_lay = Layer.newInstance("Universal",
 			new EGraphics(EGraphics.LAYERO, EGraphics.MENTXT, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// Invisible layer
+		/** Invisible layer */
 		Layer invisible_lay = Layer.newInstance("Invisible",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// Unrouted layer
+		/** Unrouted layer */
 		Layer unrouted_lay = Layer.newInstance("Unrouted",
 			new EGraphics(EGraphics.LAYERO, EGraphics.DGRAY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// Glyph layer
+		/** Glyph layer */
 		Layer glyph_lay = Layer.newInstance("Glyph",
 			new EGraphics(EGraphics.LAYERO, EGraphics.MENGLY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// DRC layer
+		/** DRC layer */
 		Layer drc_lay = Layer.newInstance("DRC",
 			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// Simulation Probe layer
+		/** Simulation Probe layer */
 		Layer simprobe_lay = Layer.newInstance("Sim-Probe",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GREEN, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -78,36 +79,36 @@ public class TecGeneric extends Technology
 
 		//**************************************** ARCS ****************************************
 
-		/* Universal arc */
-		ArcProto universal_arc = ArcProto.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
+		/** Universal arc */
+		PrimitiveArc universal_arc = PrimitiveArc.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(universal_lay, 0, Poly.Type.FILLED)
 		});
-		universal_arc.setFunction(ArcProto.Function.UNKNOWN);
+		universal_arc.setFunction(PrimitiveArc.Function.UNKNOWN);
 		universal_arc.setFixedAngle();
 		universal_arc.setAngleIncrement(45);
 
-		/* Invisible arc */
-		ArcProto invisible_arc = ArcProto.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
+		/** Invisible arc */
+		PrimitiveArc invisible_arc = PrimitiveArc.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(invisible_lay, 0, Poly.Type.FILLED)
 		});
-		invisible_arc.setFunction(ArcProto.Function.NONELEC);
+		invisible_arc.setFunction(PrimitiveArc.Function.NONELEC);
 		invisible_arc.setFixedAngle();
 		invisible_arc.setAngleIncrement(45);
 
-		/* Unrouted arc */
-		ArcProto unrouted_arc = ArcProto.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
+		/** Unrouted arc */
+		PrimitiveArc unrouted_arc = PrimitiveArc.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
 		});
-		unrouted_arc.setFunction(ArcProto.Function.UNROUTED);
+		unrouted_arc.setFunction(PrimitiveArc.Function.UNROUTED);
 		unrouted_arc.setFixedAngle();
 		unrouted_arc.setAngleIncrement(0);
 
 		//**************************************** NODES ****************************************
 
-		/* Universal pin */
+		/** Universal pin */
 		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -124,7 +125,7 @@ public class TecGeneric extends Technology
 		universalPin_node.setWipeOn1or2();
 		universalPin_node.setHoldsOutline();
 
-		/* Invisible pin */
+		/** Invisible pin */
 		invisiblePin_node = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -138,7 +139,7 @@ public class TecGeneric extends Technology
 		invisiblePin_node.setFunction(NodeProto.Function.PIN);
 		invisiblePin_node.setWipeOn1or2();
 
-		/* Unrouted pin */
+		/** Unrouted pin */
 		unroutedPin_node = PrimitiveNode.newInstance("Unrouted-Pin", this, 1.0, 1.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -154,7 +155,7 @@ public class TecGeneric extends Technology
 		unroutedPin_node.setFunction(NodeProto.Function.PIN);
 		unroutedPin_node.setWipeOn1or2();
 
-		/* Cell Center */
+		/** Cell Center */
 		cellCenter_node = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -168,7 +169,7 @@ public class TecGeneric extends Technology
 			});
 		cellCenter_node.setFunction(NodeProto.Function.ART);
 
-		/* Port */
+		/** Port */
 		port_node = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, 4.0, 4.0,
 			new Technology.NodeLayer []
 			{
@@ -182,7 +183,7 @@ public class TecGeneric extends Technology
 			});
 		port_node.setFunction(NodeProto.Function.ART);
 
-		/* DRC Node */
+		/** DRC Node */
 		drc_node = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -196,7 +197,7 @@ public class TecGeneric extends Technology
 		drc_node.setFunction(NodeProto.Function.NODE);
 		drc_node.setHoldsOutline();
 
-		/* Essential Bounds Node */
+		/** Essential Bounds Node */
 		essentialBounds_node = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -212,7 +213,7 @@ public class TecGeneric extends Technology
 			});
 		essentialBounds_node.setFunction(NodeProto.Function.ART);
 
-		/* Simulation Probe Node */
+		/** Simulation Probe Node */
 		simProbe_node = PrimitiveNode.newInstance("Simulation-Probe", this, 10.0, 10.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
@@ -224,5 +225,14 @@ public class TecGeneric extends Technology
 					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
 			});
 		simProbe_node.setFunction(NodeProto.Function.ART);
+	}
+
+	/*
+	 * Routine to convert old primitive names to their proper nodeprotos.
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+		if (name == "Cell-Center") return(cellCenter_node);
+		return null;
 	}
 }

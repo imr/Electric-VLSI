@@ -6,77 +6,136 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.Tool;
 
 import java.io.*;
 import java.util.Iterator;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Date;
+import java.awt.geom.Point2D;
 
 public class BinaryIn extends Input
 {
 	// ------------------------- private data ----------------------------
+	/** the magic number in the library file */								private int magic;
+
+	// characteristics of the file
 	/** true if bytes are swapped on disk */								private boolean bytesSwapped;
 	/** the size of a "big" integer on disk (4 or more bytes) */			private int sizeOfBig;
 	/** the size of a "small" integer on disk (2 or more bytes) */			private int sizeOfSmall;
 	/** the size of a character on disk (1 or 2 bytes) */					private int sizeOfChar;
+
+	// statistics about the file
 	/** the number of integers on disk that got clipped during input */		private int clippedIntegers;
 	/** the number of bytes of data read so far */							private int byteCount;
+
+	// the tool information
 	/** the number of tools in the file */									private int toolCount;
 	/** the number of tools in older files */								private int toolBCount;
+	/** list of all tools in the library */									private Tool [] toolList;
+	/** list of all tool-related errors in the library */					private String [] toolError;
+	/** true if tools are out of order in the library */					private boolean toolBitsMessed;
+
+	// the technology information
 	/** the number of technologies in the file */							private int techCount;
-	/** the number of primitive NodeProtos in the file */					private int primNodeProtoCount;
-	/** the number of primitive PortProtos in the file */					private int primPortProtoCount;
-	/** the number of ArcProtos in the file */								private int arcProtoCount;
-	/** the number of NodeProtos in the file */								private int nodeProtoCount;
-	/** the number of Cells in the file */									private int cellCount;
-	/** the number of NodeInsts in the file */								private int nodeCount;
-	/** the number of Exports in the file */								private int portProtoCount;
-	/** the number of ArcInsts in the file */								private int arcCount;
-	/** the number of Geometrics in the file */								private int geomCount;
-	/** the index of the current cell */									private int curCell;
-	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
-	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
-	/** list of all NodeInsts in the library */								private NodeInst [] nodeList;
-	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
-	/** list of all Cells in the library */									private Cell [] nodeProtoList;
-	/** list of all PortProtos in the library */							private PortProto [] portProtoList;
-	/** list of all Ports in each Cell of the library */					private int [] portCounts;
-	/** list of all Primitive PortProtos in the library */					private PortProto [] portpProtoList;
-	/** list of all Primitive-PortProto-related errors in the library */	private String [] portpProtoError;
-	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
-	/** list of number of ArcInsts in each Cell of the library */			private int [] arcCounts;
-	/** list of all Primitive NodeProtos in the library */					private NodeProto [] nodePrimProtoList;
-	/** list of all NodeProto technologies in the library */				private int [] nodePrimProtoTech;
-	/** list of the primitive-NodeProto-related errors in the library */	private boolean [] nodePrimProtoError;
-	/** list of the original primitive NodeProtos in the library */			private String [] nodePrimProtoOrig;
-	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
-	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
 	/** list of all Technologies in the library */							private Technology [] techList;
 	/** list of all technology-related errors in the library */				private String [] techError;
-	/** list of all tools in the library */									private int [] toolList;
-	/** list of all tool-related errors in the library */					private String [] toolError;
+	/** scale factors for each technology in the library */					private double [] techScale;
+	/** the number of ArcProtos in the file */								private int arcProtoCount;
+	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
+	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
+	/** the number of primitive NodeProtos in the file */					private int primNodeProtoCount;
+	/** list of all Primitive NodeProtos in the library */					private PrimitiveNode [] primNodeProtoList;
+	/** list of the primitive-NodeProto-related errors in the library */	private boolean [] primNodeProtoError;
+	/** list of the original primitive NodeProtos in the library */			private String [] primNodeProtoOrig;
+	/** list of all NodeProto technologies in the library */				private int [] primNodeProtoTech;
+	/** the number of primitive PortProtos in the file */					private int primPortProtoCount;
+	/** list of all Primitive PortProtos in the library */					private PrimitivePort [] primPortProtoList;
+	/** list of all Primitive-PortProto-related errors in the library */	private String [] primPortProtoError;
+	/** true if old MOSIS CMOS technologies appear in the library */		private boolean convertMosisCmosTechnologies;
+
+	// the cell information
+	/** the number of NodeProtos in the file */								private int nodeProtoCount;
+	/** the number of Cells in the file */									private int cellCount;
+	/** the index of the current Cell */									private int curCell;
+	/** list of all Cells in the library */									private Cell [] nodeProtoList;
+	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
+	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
+	/** index of first NodeInst in each cell of the library */				private int [] firstNodeIndex;
+	/** list of number of ArcInsts in each Cell of the library */			private int [] arcCounts;
+	/** index of first ArcInst in each cell of the library */				private int [] firstArcIndex;
+	/** list of all Exports in each Cell of the library */					private int [] portCounts;
+	/** index of first Export in each cell of the library */				private int [] firstPortIndex;
+
+	// the NodeInsts in the library
+	/** the number of NodeInsts in the library */							private int nodeCount;
+	/** list of all NodeInsts in the library */								private NodeInst [] nodeList;
+	/** list of Prototypes of NodeInsts in the library */					private NodeProto [] nodeTypeList;
+	/** list of Low X values for NodeInsts in the library */				private int [] nodeLowXList;
+	/** list of High X values for NodeInsts in the library */				private int [] nodeHighXList;
+	/** list of Low Y values for NodeInsts in the library */				private int [] nodeLowYList;
+	/** list of High Y values for NodeInsts in the library */				private int [] nodeHighYList;
+	/** list of rotation values for NodeInsts in the library */				private short [] nodeRotationList;
+	/** list of transpose values for NodeInsts in the library */			private boolean [] nodeTransposeList;
+
+	// the ArcInsts in the library
+	/** the number of ArcInsts in the library */							private int arcCount;
+	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
+	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
+	/** list of the width of the ArcInsts in the library */					private double [] arcWidthList;
+	/** list of the head X of the ArcInsts in the library */				private double [] arcHeadXPosList;
+	/** list of the head Y of the ArcInsts in the library */				private double [] arcHeadYPosList;
+	/** list of the head node of the ArcInsts in the library */				private NodeInst [] arcHeadNodeList;
+	/** list of the head port of the ArcInsts in the library */				private PortProto [] arcHeadPortList;
+	/** list of the tail X of the ArcInsts in the library */				private double [] arcTailXPosList;
+	/** list of the tail Y of the ArcInsts in the library */				private double [] arcTailYPosList;
+	/** list of the tail node of the ArcInsts in the library */				private NodeInst [] arcTailNodeList;
+	/** list of the tail port of the ArcInsts in the library */				private PortProto [] arcTailPortList;
+
+	// the Exports in the library
+	/** the number of Exports in the library */								private int portProtoCount;
+	/** list of all Exports in the library */								private Export [] portProtoList;
+	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
+	/** list of PortProtos that are origins of Exports in the library */	private PortProto [] portProtoSubPortList;
+	/** list of Export names in the library */								private String [] portProtoNameList;
+
+	// the geometric information (only used for old format files)
+	/** the number of Geometrics in the file */								private int geomCount;
 	/** list of all XXXXX in the library */									private boolean [] geomType;
 	/** list of all XXXXX in the library */									private int [] geomMoreUp;
-	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
 
+	// the variable information
+	/** number of variable names in the library */							private int nameCount;
+	/** list of variable names in the library */							private String [] realName;
+	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
+	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
-	// ---------------------- private and protected methods -----------------
-	/** current magic number: version 12 */		private static final int MAGIC12=              -1595;
-	/** older magic number: version 11 */		private static final int MAGIC11=              -1593;
-	/** older magic number: version 10 */		private static final int MAGIC10=              -1591;
-	/** older magic number: version 9 */		private static final int MAGIC9=               -1589;
-	/** older magic number: version 8 */		private static final int MAGIC8=               -1587;
-	/** older magic number: version 7 */		private static final int MAGIC7=               -1585;
-	/** older magic number: version 6 */		private static final int MAGIC6=               -1583;
-	/** older magic number: version 5 */		private static final int MAGIC5=               -1581;
-	/** older magic number: version 4 */		private static final int MAGIC4=               -1579;
-	/** older magic number: version 3 */		private static final int MAGIC3=               -1577;
-	/** older magic number: version 2 */		private static final int MAGIC2=               -1575;
-	/** oldest magic number: version 1 */		private static final int MAGIC1=               -1573;
+	// ".elib" file version numbers
+	/** current magic number: version 12 */		private static final int MAGIC12 = -1595;
+	/** older magic number: version 11 */		private static final int MAGIC11 = -1593;
+	/** older magic number: version 10 */		private static final int MAGIC10 = -1591;
+	/** older magic number: version 9 */		private static final int MAGIC9 =  -1589;
+	/** older magic number: version 8 */		private static final int MAGIC8 =  -1587;
+	/** older magic number: version 7 */		private static final int MAGIC7 =  -1585;
+	/** older magic number: version 6 */		private static final int MAGIC6 =  -1583;
+	/** older magic number: version 5 */		private static final int MAGIC5 =  -1581;
+	/** older magic number: version 4 */		private static final int MAGIC4 =  -1579;
+	/** older magic number: version 3 */		private static final int MAGIC3 =  -1577;
+	/** older magic number: version 2 */		private static final int MAGIC2 =  -1575;
+	/** oldest magic number: version 1 */		private static final int MAGIC1 =  -1573;
 
 	BinaryIn()
 	{
@@ -95,7 +154,11 @@ public class BinaryIn extends Input
 			return true;
 		}
 	}
-	
+
+	/**
+	 * Routine to read the .elib file.
+	 * Returns true on error.
+	 */
 	private boolean readTheLibrary()
 		throws IOException
 	{
@@ -104,44 +167,7 @@ public class BinaryIn extends Input
 		byteCount = 0;
 
 		// read the magic number and determine whether bytes are swapped
-		bytesSwapped = false;
-		byte byte1 = readByte();
-		byte byte2 = readByte();
-		byte byte3 = readByte();
-		byte byte4 = readByte();
-		int magic = ((byte4&0xFF) << 24) | ((byte3&0xFF) << 16) | ((byte2&0xFF) << 8) | (byte1&0xFF);
-		if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
-			magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
-			magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
-		{
-			magic = ((byte1&0xFF) << 24) | ((byte2&0xFF) << 16) | ((byte3&0xFF) << 8) | (byte4&0xFF);
-			if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
-				magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
-				magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
-			{
-				System.out.println("Bad file format: does not start with proper magic number");
-				return true;
-			}
-			bytesSwapped = true;
-		}
-		
-		// determine the size of "big" and "small" integers as well as characters on disk
-		if (magic <= MAGIC10)
-		{
-			sizeOfSmall = readByte();
-			sizeOfBig = readByte();
-		} else
-		{
-			sizeOfSmall = 2;
-			sizeOfBig = 4;
-		}
-		if (magic <= MAGIC11)
-		{
-			sizeOfChar = readByte();
-		} else
-		{
-			sizeOfChar = 1;
-		}
+		if (readHeader()) return true;
 		
 		// get count of objects in the file
 		toolCount = readBigInteger();
@@ -156,7 +182,7 @@ public class BinaryIn extends Input
 		geomCount = readBigInteger();
 		if (magic <= MAGIC9 && magic >= MAGIC11)
 		{
-			/* versions 9 through 11 stored a "cell count" */
+			// versions 9 through 11 stored a "cell count"
 			cellCount = readBigInteger();
 		} else
 		{
@@ -171,14 +197,14 @@ public class BinaryIn extends Input
 		Version version = Version.parseVersion(versionString);
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
-//		boolean convertMosisCmosTechnologies = false;
-//		if (version.getMajor() < 6 ||
-//			(version.getMajor() == 6 && version.getMinor() < 3) ||
-//			(version.getMajor() == 6 && version.getMinor() == 3 && version.getDetail() < 17))
-//		{
+		convertMosisCmosTechnologies = false;
+		if (version.getMajor() < 6 ||
+			(version.getMajor() == 6 && version.getMinor() < 3) ||
+			(version.getMajor() == 6 && version.getMinor() == 3 && version.getDetail() < 17))
+		{
 //			if ((asktech(mocmossub_tech, x_("get-state"))&MOCMOSSUBNOCONV) == 0)
-//				convertMosisCmosTechnologies = true;
-//		}
+				convertMosisCmosTechnologies = true;
+		}
 
 		// for versions before 6.04c, convert text descriptor values
 		convertTextDescriptors = false;
@@ -201,25 +227,25 @@ public class BinaryIn extends Input
 		// get the newly created views (version 9 and later)
 		for (Iterator it = View.getViews(); it.hasNext();)
 		{
-			View v = (View) it.next();
-			v.setTemp1(0);
+			View view = (View) it.next();
+			view.setTemp1(0);
 		}
-		View.unknown.setTemp1(-1);
-		View.layout.setTemp1(-2);
-		View.schematic.setTemp1(-3);
-		View.icon.setTemp1(-4);
-		View.simsnap.setTemp1(-5);
-		View.skeleton.setTemp1(-6);
-		View.vhdl.setTemp1(-7);
-		View.netlist.setTemp1(-8);
-		View.doc.setTemp1(-9);
-		View.netlistNetlisp.setTemp1(-10);
-		View.netlistAls.setTemp1(-11);
-		View.netlistQuisc.setTemp1(-12);
-		View.netlistRsim.setTemp1(-13);
-		View.netlistSilos.setTemp1(-14);
-		View.verilog.setTemp1(-15);
-		View.comp.setTemp1(-16);
+		View.UNKNOWN.setTemp1(-1);
+		View.LAYOUT.setTemp1(-2);
+		View.SCHEMATIC.setTemp1(-3);
+		View.ICON.setTemp1(-4);
+		View.SIMSNAP.setTemp1(-5);
+		View.SKELETON.setTemp1(-6);
+		View.VHDL.setTemp1(-7);
+		View.NETLIST.setTemp1(-8);
+		View.DOC.setTemp1(-9);
+		View.NETLISTNETLISP.setTemp1(-10);
+		View.NETLISTALS.setTemp1(-11);
+		View.NETLISTQUISC.setTemp1(-12);
+		View.NETLISTRSIM.setTemp1(-13);
+		View.NETLISTSILOS.setTemp1(-14);
+		View.VERILOG.setTemp1(-15);
+		View.COMP.setTemp1(-16);
 		if (magic <= MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
@@ -227,13 +253,13 @@ public class BinaryIn extends Input
 			{
 				String viewName = readString();
 				String viewShortName = readString();
-				View v = View.getView(viewName);
-				if (v == null)
+				View view = View.getView(viewName);
+				if (view == null)
 				{
-					v = View.makeInstance(viewName, viewShortName, 0);
-					if (v == null) return true;
+					view = View.makeInstance(viewName, viewShortName, 0);
+					if (view == null) return true;
 				}
-				v.setTemp1(i + 1);
+				view.setTemp1(i + 1);
 			}
 		}
 
@@ -245,39 +271,80 @@ public class BinaryIn extends Input
 		} else
 		{
 			// versions 1 and 2 compute this (versions 7 and later ignore it)
-			 toolBCount = toolCount;
+			toolBCount = toolCount;
 		}
 
 		// erase the current database
-//		eraselibrary(lib);
+//		lib.erase();
 
-		// allocate pointers
-		nodeList = new NodeInst[nodeCount];
-		nodeCounts = new int[nodeProtoCount];
-		nodeProtoList = new Cell [nodeProtoCount];
-		portProtoList = new PortProto [portProtoCount];
-		portCounts = new int[nodeProtoCount];
-		portpProtoList = new PortProto[primPortProtoCount];
-		portpProtoError = new String[primPortProtoCount];
-		Export [] portExpInstList = new Export[portProtoCount];
-		Connection [] portArcInstList = new Connection[arcCount * 2];
-		arcList = new ArcInst[arcCount];
-		arcCounts = new int[nodeProtoCount];
-		nodePrimProtoList = new NodeProto[primNodeProtoCount];
-		nodePrimProtoTech = new int[primNodeProtoCount];
-		nodePrimProtoError = new boolean[primNodeProtoCount];
-		nodePrimProtoOrig = new String[primNodeProtoCount];
-		arcProtoList = new ArcProto[arcProtoCount];
-		arcProtoError = new String[arcProtoCount];
+		// allocate pointers for the Technologies
 		techList = new Technology[techCount];
 		techError = new String[techCount];
-		toolList = new int[toolCount];
+		techScale = new double[techCount];
+		arcProtoList = new ArcProto[arcProtoCount];
+		arcProtoError = new String[arcProtoCount];
+		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
+		primNodeProtoError = new boolean[primNodeProtoCount];
+		primNodeProtoOrig = new String[primNodeProtoCount];
+		primNodeProtoTech = new int[primNodeProtoCount];
+		primPortProtoList = new PrimitivePort[primPortProtoCount];
+		primPortProtoError = new String[primPortProtoCount];
+
+		// allocate pointers for the Tools
+		toolList = new Tool[toolCount];
 		toolError = new String[toolCount];
+
+		// allocate pointers for the Cells
+		nodeProtoList = new Cell[nodeProtoCount];
+		nodeCounts = new int[nodeProtoCount];
+		firstNodeIndex = new int[nodeProtoCount+1];
+		arcCounts = new int[nodeProtoCount];
+		firstArcIndex = new int[nodeProtoCount+1];
+		portCounts = new int[nodeProtoCount];
+		firstPortIndex = new int[nodeProtoCount+1];
+
+		// allocate pointers for the NodeInsts
+		nodeList = new NodeInst[nodeCount];
+		nodeTypeList = new NodeProto[nodeCount];
+		nodeLowXList = new int[nodeCount];
+		nodeHighXList = new int[nodeCount];
+		nodeLowYList = new int[nodeCount];
+		nodeHighYList = new int[nodeCount];
+		nodeRotationList = new short[nodeCount];
+		nodeTransposeList = new boolean[nodeCount];
+
+		// allocate pointers for the ArcInsts
+		arcList = new ArcInst[arcCount];
+		arcTypeList = new ArcProto[arcCount];
+		arcWidthList = new double[arcCount];
+		arcHeadXPosList = new double[arcCount];
+		arcHeadYPosList = new double[arcCount];
+		arcHeadNodeList = new NodeInst[arcCount];
+		arcHeadPortList = new PortProto[arcCount];
+		arcTailXPosList = new double[arcCount];
+		arcTailYPosList = new double[arcCount];
+		arcTailNodeList = new NodeInst[arcCount];
+		arcTailPortList = new PortProto[arcCount];
+		for(int i = 0; i < arcCount; i++)
+		{
+			arcHeadNodeList[i] = null;
+			arcHeadPortList[i] = null;
+			arcTailNodeList[i] = null;
+			arcTailPortList[i] = null;
+		}
+
+		// allocate pointers for the Exports
+		portProtoList = new Export[portProtoCount];
+		portProtoSubNodeList = new NodeInst[portProtoCount];
+		portProtoSubPortList = new PortProto[portProtoCount];
+		portProtoNameList = new String[portProtoCount];
 
 		// versions 9 to 11 allocate fake-cell pointers
 		if (magic <= MAGIC9 && magic >= MAGIC11)
 		{
 			fakeCellList = new FakeCell[cellCount];
+			for(int i=0; i<cellCount; i++)
+				fakeCellList[i] = new FakeCell();
 		}
 
 		// versions 4 and earlier allocate geometric pointers
@@ -297,7 +364,9 @@ public class BinaryIn extends Input
 				arcCounts[i] = readBigInteger();
 				nodeCounts[i] = readBigInteger();
 				portCounts[i] = readBigInteger();
-				if (arcCounts[i] >= 0 || nodeCounts[i] >= 0)
+
+				// the arc and node counts are negative for external cell references
+				if (arcCounts[i] > 0 || nodeCounts[i] > 0)
 				{
 					arcInstPos += arcCounts[i];
 					nodeInstPos += nodeCounts[i];
@@ -332,14 +401,6 @@ public class BinaryIn extends Input
 		}
 
 		// allocate all cells in the library
-		// versions 9 to 11 allocate fakecells now
-		if (magic <= MAGIC9 && magic >= MAGIC11)
-		{
-			for(int i=0; i<cellCount; i++)
-				fakeCellList[i] = new FakeCell();
-		}
-
-		// allocate all cells in the library
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			if (arcCounts[i] < 0 && nodeCounts[i] < 0)
@@ -353,56 +414,1513 @@ public class BinaryIn extends Input
 			}
 		}
 
-		
-
-		
-		// allocate the nodes, arcs, and ports in each cell
+		// allocate the nodes, arcs, and exports in each cell
 		int nodeinstpos = 0, arcinstpos = 0, portprotopos = 0;
-		for(int i=0; i<nodeProtoCount; i++)
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
-			Cell np = nodeProtoList[i];
-			if (np == null)
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null)
 			{
-				// for external references, clear the port proto list */
-				for(int j=0; j<portCounts[i]; j++)
-					portProtoList[portprotopos+j] = null;
-				portprotopos += portCounts[i];
+				// for external references, clear the port proto list
+				for(int i=0; i<portCounts[cellIndex]; i++)
+					portProtoList[portprotopos+i] = null;
+				portprotopos += portCounts[cellIndex];
 				continue;
 			}
 
 			// allocate node instances in this cell
-			for(int j=0; j<nodeCounts[i]; j++)
+			for(int i=0; i<nodeCounts[cellIndex]; i++)
 			{
-				nodeList[nodeinstpos+j] = NodeInst.lowLevelAllocate();
-				if (nodeList[nodeinstpos+j] == null) return true;
+				int thisone = i + nodeinstpos;
+				nodeList[thisone] = NodeInst.lowLevelAllocate();
+				if (nodeList[thisone] == null) return true;
 			}
-			nodeinstpos += nodeCounts[i];
+			nodeinstpos += nodeCounts[cellIndex];
 
 			// allocate port prototypes in this cell
-			for(int j=0; j<portCounts[i]; j++)
+			for(int i=0; i<portCounts[cellIndex]; i++)
 			{
-				int thisone = j + portprotopos;
-//				portProtoList[thisone] = allocportproto(lib->cluster);
-//				portExpInstList[thisone] = allocportexpinst(lib->cluster);
-//				portProtoList[thisone]->subportexpinst = portExpInstList[thisone];
+				int thisone = i + portprotopos;
+				portProtoList[thisone] = Export.lowLevelAllocate();
+				if (portProtoList[thisone] == null) return true;
 			}
-			portprotopos += portCounts[i];
+			portprotopos += portCounts[cellIndex];
 
-			// allocate arc instances and port arc instances in this cell
-			for(int j=0; j<arcCounts[i]; j++)
+			// allocate arc instances in this cell
+			for(int i=0; i<arcCounts[cellIndex]; i++)
 			{
-				arcList[arcinstpos+j] = ArcInst.lowLevelAllocate();
+				int thisone = i + arcinstpos;
+				arcList[thisone] = ArcInst.lowLevelAllocate();
+				if (arcList[thisone] == null) return true;
 			}
-			for(int j=0; j<arcCounts[i]*2; j++)
-			{
-//				portArcInstList[arcinstpos*2+j] = allocportarcinst(lib->cluster);
-			}
-			arcinstpos += arcCounts[i];
+			arcinstpos += arcCounts[cellIndex];
 		}
 
-		return true;
+		// setup pointers for technologies and primitives
+		primNodeProtoCount = 0;
+		primPortProtoCount = 0;
+		arcProtoCount = 0;
+		for(int techIndex=0; techIndex<techCount; techIndex++)
+		{
+			// get the technology
+			String name = readString();
+			Technology tech = null;
+			if (convertMosisCmosTechnologies)
+			{
+				if (name == "mocmossub") tech = Technology.findTechnology("mocmos"); else
+					if (name == "mocmos") tech = Technology.findTechnology("mocmosold");
+			}
+			if (tech == null) tech = Technology.findTechnology(name);
+			boolean imosconv = false;
+			if (tech == null && name == "imos")
+			{
+				tech = Technology.findTechnology("mocmos");
+				if (tech != null) imosconv = true;
+			}
+			if (tech == null && name == "logic")
+				tech = Technology.findTechnology("schematic");
+			if (tech == null && (name == "epic8c" || name == "epic7c"))
+				tech = Technology.findTechnology("epic7s");
+			if (tech == null)
+			{
+				// cannot figure it out: just pick the first technology
+				Iterator it = Technology.getTechnologyIterator();
+				tech = (Technology) it.next();
+				techError[techIndex] = name;
+			} else techError[techIndex] = null;
+			techList[techIndex] = tech;
+
+			// get the number of primitive node prototypes
+			int numPrimNodes = readBigInteger();
+			for(int j=0; j<numPrimNodes; j++)
+			{
+				primNodeProtoOrig[primNodeProtoCount] = null;
+				primNodeProtoError[primNodeProtoCount] = false;
+				name = readString();
+				if (imosconv) name = name.substring(6);
+				PrimitiveNode pnp = tech.findNodeProto(name);
+				if (pnp == null)
+				{
+					// automatic conversion of "Active-Node" in to "P-Active-Node" (MOSIS CMOS)
+					if (name == "Active-Node")
+						pnp = tech.findNodeProto("P-Active-Node");
+				}
+				if (pnp == null)
+				{
+					boolean advise = true;
+
+					// look for substring name match at start of name
+					for(Iterator it = tech.getNodeIterator(); it.hasNext();)
+					{
+						PrimitiveNode opnp = (PrimitiveNode) it.next();
+						String primName = opnp.getProtoName();
+						if (primName.startsWith(name) || name.startsWith(primName))
+						{
+							pnp = opnp;
+							break;
+						}
+					}
+
+					// look for substring match at end of name
+					if (pnp == null)
+					{
+						for(Iterator it = tech.getNodeIterator(); it.hasNext();)
+						{
+							PrimitiveNode opnp = (PrimitiveNode) it.next();
+							String primName = opnp.getProtoName();
+							if (primName.endsWith(name) || name.endsWith(primName))
+							{
+								pnp = opnp;
+								break;
+							}
+						}
+					}
+
+					// special cases: convert special primitives that are known to the technologies
+					if (pnp == null)
+					{
+						pnp = tech.convertOldNodeName(name);
+						if (pnp != null) advise = false;
+					}
+
+					// give up and use first primitive in this technology
+					if (pnp == null)
+					{
+						Iterator it = tech.getNodeIterator();
+						pnp = (PrimitiveNode) it.next();
+					}
+
+					// construct the error message
+					if (advise)
+					{
+						String errorMessage;
+						if (techError[techIndex] != null) errorMessage = techError[techIndex]; else
+							errorMessage = tech.getTechName();
+						errorMessage += ":" + name;
+						primNodeProtoOrig[primNodeProtoCount] = errorMessage;
+						primNodeProtoError[primNodeProtoCount] = true;
+					}
+				}
+				primNodeProtoTech[primNodeProtoCount] = techIndex;
+				primNodeProtoList[primNodeProtoCount] = pnp;
+
+				// get the number of primitive port prototypes
+				int numPrimPorts = readBigInteger();
+				for(int i=0; i<numPrimPorts; i++)
+				{
+					primPortProtoError[primPortProtoCount] = null;
+					name = readString();
+					PrimitivePort pp = (PrimitivePort)pnp.findPortProto(name);
+
+					// convert special port names
+					if (pp == null)
+						pp = tech.convertOldPortName(name, pnp);
+
+					if (pp == null)
+					{
+						Iterator it = pnp.getPorts();
+						pp = (PrimitivePort) it.next();
+						if (!primNodeProtoError[primNodeProtoCount])
+						{
+							String errorMessage = name + " on ";
+							if (primNodeProtoOrig[primNodeProtoCount] != null)
+								errorMessage += primNodeProtoOrig[primNodeProtoCount]; else
+							{
+								if (techError[techIndex] != null)
+									errorMessage += techError[techIndex]; else
+										errorMessage += tech.getTechName();
+								errorMessage += ":" + pnp.getProtoName();
+							}
+							primPortProtoError[primPortProtoCount] = errorMessage;
+						}
+					}
+					primPortProtoList[primPortProtoCount++] = pp;
+				}
+				primNodeProtoCount++;
+			}
+
+			// get the number of arc prototypes
+			int numArcProtos = readBigInteger();
+			for(int j=0; j<numArcProtos; j++)
+			{
+				arcProtoError[arcProtoCount] = null;
+				name = readString();
+				if (imosconv) name = name.substring(6);
+				ArcProto ap = tech.findArcProto(name);
+				if (ap == null)
+				{
+					ap = tech.convertOldArcName(name);
+				}
+				if (ap == null)
+				{
+					Iterator it = tech.getArcIterator();
+					ap = (ArcProto) it.next();
+					String errorMessage;
+					if (techError[techIndex] != null)
+						errorMessage = techError[techIndex]; else
+							errorMessage = tech.getTechName();
+					errorMessage += ":" + name;
+					arcProtoError[arcProtoCount] = errorMessage;
+				}
+				arcProtoList[arcProtoCount++] = ap;
+			}
+		}
+
+		// setup pointers for tools
+		toolBitsMessed = false;
+		for(int i=0; i<toolCount; i++)
+		{
+			String name = readString();
+			toolError[i] = null;
+			Tool t = Tool.findTool(name);
+			int toolIndex = -1;
+			if (t == null)
+			{
+				toolError[i] = name;
+			} else
+			{
+				toolIndex = t.getIndex();
+			}
+			if (i != toolIndex) toolBitsMessed = true;
+			toolList[i] = t;
+		}
+		if (magic <= MAGIC3 && magic >= MAGIC6)
+		{
+			// versions 3, 4, 5, and 6 must ignore toolbits associations
+			for(int i=0; i<toolBCount; i++) readString();
+		}
+
+		// get the library userbits
+		int userBits = 0;
+		if (magic <= MAGIC7)
+		{
+			// version 7 and later simply read the relevant data
+			userBits = readBigInteger();
+		} else
+		{
+			// version 6 and earlier must sift through the information
+			if (toolBCount >= 1) userBits = readBigInteger();
+			for(int i=1; i<toolBCount; i++) readBigInteger();
+		}
+		lib.lowLevelSetUserBits(userBits);
+		lib.clearChangedMajor();
+		lib.clearChangedMinor();
+		lib.setFromDisk();
+		NodeProto currentCell = convertNodeProto(curCell);
+		lib.setCurCell((Cell)currentCell);
+
+		// get the lambda values in the library
+		for(int i=0; i<techCount; i++)
+		{
+			int lambda = readBigInteger();
+			if (techError[i] != null) continue;
+			Technology tech = techList[i];
+
+			// for Electric version 4 or earlier, scale lambda by 20
+			if (version.getMajor() <= 4) lambda *= 20;
+
+			// account for any differences of internal unit in this library
+//			int oldunit = lib.getUnits();
+//			if (oldunit != (el_units&INTERNALUNITS))
+//			{
+//				db_getinternalunitscale(&num, &den, el_units, oldunit);
+//				lambda = muldiv(j, den, num);
+//			}
+
+			// if this is to be the current library, adjust technologies
+//			if (lib == el_curlib)
+//				changetechnologylambda(tech, lambda);
+			int index = tech.getIndex();
+			techScale[index] = lambda;
+		}
+
+		// read the global namespace
+		if (readNameSpace()) return true;
+
+		// read the library variables
+		if (readVariables(lib) < 0) return true;
+
+		// read the tool variables
+		for(int i=0; i<toolCount; i++)
+		{
+			Tool tool = toolList[i];
+			if (tool == null) ignoreVariables(); else
+				if (readVariables(tool) < 0) return true;
+		}
+
+		// read the technology variables
+		for(int i=0; i<techCount; i++)
+		{
+			Technology tech = techList[i];
+			if (tech == null) ignoreVariables(); else
+			{
+				int j = readVariables(tech);
+				if (j < 0) return true;
+				if (j > 0) getTechList(i);
+			}
+		}
+
+		// read the arcproto variables
+		for(int i=0; i<arcProtoCount; i++)
+		{
+			ArcProto ap = arcProtoList[i];
+			int j = readVariables(ap);
+			if (j < 0) return true;
+			if (j > 0) getArcProtoList(i);
+		}
+
+		// read the primitive nodeproto variables
+		for(int i=0; i<primNodeProtoCount; i++)
+		{
+			NodeProto np = primNodeProtoList[i];
+			int j = readVariables(np);
+			if (j < 0) return true;
+			if (j > 0) getPrimNodeProtoList(i);
+		}
+
+		// read the primitive portproto variables
+		for(int i=0; i<primPortProtoCount; i++)
+		{
+			PortProto pp = primPortProtoList[i];
+			int j = readVariables(pp);
+			if (j < 0) return true;
+			if (j > 0) getPrimPortProtoList(i);
+		}
+
+		// read the view variables (version 9 and later)
+		if (magic <= MAGIC9)
+		{
+			int count = readBigInteger();
+			for(int i=0; i<count; i++)
+			{
+				int j = readBigInteger();
+				View v = getView(j);
+				if (v != null)
+				{
+					if (readVariables(v) < 0) return true;
+				} else
+				{
+					System.out.println("View index " + j + " not found");
+					ignoreVariables();
+				}
+			}
+		}
+
+		// read the cells (version 9 to 11)
+		if (magic <= MAGIC9 && magic >= MAGIC11)
+		{
+			for(int i=0; i<cellCount; i++)
+			{
+				String thecellname = readString();
+				ignoreVariables();
+
+				fakeCellList[i].cellName = thecellname;
+			}
+		}
+
+		// read the cells
+		portProtoCount = 0;
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell cell = nodeProtoList[i];
+			if (cell == null) continue;
+			if (readNodeProto(cell, i)) return true;
+		}
+		firstPortIndex[nodeProtoCount] = portProtoCount;
+
+		// add in external cells
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell cell = nodeProtoList[i];
+			if (cell != null) continue;
+//			readExternalNodeProto(lib, i);
+		}
+
+		// now that external cells are resolved, fix all variables that may have used them
+		fixExternalVariables(lib);
+		for(int i=0; i<toolCount; i++)
+		{
+			Tool tool = toolList[i];
+			fixExternalVariables(tool);
+		}
+		for(int i=0; i<techCount; i++)
+		{
+			Technology tech = techList[i];
+			fixExternalVariables(tech);
+		}
+		for(int i=0; i<arcProtoCount; i++)
+		{
+			ArcProto ap = arcProtoList[i];
+			fixExternalVariables(ap);
+		}
+		for(int i=0; i<primNodeProtoCount; i++)
+		{
+			PrimitiveNode np = primNodeProtoList[i];
+			fixExternalVariables(np);
+		}
+		for(int i=0; i<primPortProtoCount; i++)
+		{
+			PrimitivePort pp = primPortProtoList[i];
+			fixExternalVariables(pp);
+		}
+		for(Iterator it = View.getViews(); it.hasNext(); )
+		{
+			View view = (View) it.next();
+			fixExternalVariables(view);
+		}
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell cell = nodeProtoList[i];
+			fixExternalVariables(cell);
+		}
+
+		// convert port references in external cells
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell cell = nodeProtoList[i];
+
+//			// ignore this cell if it is in a library being read
+//			boolean showError = true;
+//			Library olib = cell.getLibrary();
+//			if (olib != lib && olib->temp1 != 0) showError = false;
+//
+//			// convert its ports
+//			for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//			{
+//				if (pp->temp2 == 0) continue;
+//				if (io_convertportproto(&pp->subportproto, showError))
+//				{
+//					if (showError)
+//						ttyputmsg(_("  While reading library %s, on cell %s, port %s (lib %s temp1 is %ld)"),
+//							lib->libname, describenodeproto(np), pp->protoname, np->lib->libname,
+//								np->lib->temp1);
+//				}
+//				pp->temp2 = 0;
+//			}
+		}
+
+		// read the cell contents: arcs and nodes
+		int nodeIndex = 0, arcIndex = 0, geomIndex = 0;
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			firstNodeIndex[cellIndex] = nodeIndex;
+			firstArcIndex[cellIndex] = arcIndex;
+			if (magic > MAGIC5)
+			{
+				// versions 4 and earlier must read some geometric information
+				int j = geomIndex;
+				readGeom(geomType, geomMoreUp, j);   j++;
+				readGeom(geomType, geomMoreUp, j);   j++;
+				int top = j;   readGeom(geomType, geomMoreUp, j);   j++;
+				int bot = j;   readGeom(geomType, geomMoreUp, j);   j++;
+				for(;;)
+				{
+					readGeom(geomType, geomMoreUp, j);   j++;
+					if (geomMoreUp[j-1] == top) break;
+				}
+				geomIndex = j;
+				for(int look = bot; look != top; look = geomMoreUp[look])
+					if (!geomType[look])
+				{
+					if (readArcInst(arcIndex)) return true;
+					arcIndex++;
+				} else
+				{
+					if (readNodeInst(nodeIndex, cell)) return true;
+					nodeIndex++;
+				}
+			} else
+			{
+				// version 5 and later find the arcs and nodes in linear order
+				for(int j=0; j<arcCounts[cellIndex]; j++)
+				{
+					if (readArcInst(arcIndex)) return true;
+					arcIndex++;
+				}
+				for(int j=0; j<nodeCounts[cellIndex]; j++)
+				{
+					if (readNodeInst(nodeIndex, cell)) return true;
+					nodeIndex++;
+				}
+			}
+		}
+		firstNodeIndex[nodeProtoCount] = nodeIndex;
+		firstArcIndex[nodeProtoCount] = arcIndex;
+
+		// clear flag bits for scanning the library hierarchically
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			cell.setTemp1(0);
+			cell.setTemp2(cellIndex);
+		}
+
+		// scan library hierarchically and complete the setup
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell.getTemp1() != 0) continue;
+			completeCellSetupRecursively(cell, cellIndex);
+		}
+
+		// library read successfully
+		return false;
 	}
 
+	/**
+	 * Routine to recursively create the contents of each cell in the library.
+	 */
+	public void completeCellSetupRecursively(Cell cell, int cellIndex)
+	{
+		// scan the nodes in this cell and recurse
+		int startNode = firstNodeIndex[cellIndex];
+		int endNode = firstNodeIndex[cellIndex+1];
+		for(int i=startNode; i<endNode; i++)
+		{
+			// convert to new style
+			NodeInst ni = nodeList[i];
+			NodeProto np = nodeTypeList[i];
+			if (np instanceof PrimitiveNode) continue;
+
+			// subcell: make sure that cell is setup
+			if (np.getTemp1() != 0) continue;
+			
+			// setup the subcell recursively
+			completeCellSetupRecursively((Cell)np,  np.getTemp2());
+		}
+		cell.setTemp1(1);
+
+		// finish initializing the NodeInsts in the cell
+		for(int i=startNode; i<endNode; i++)
+		{
+			// convert to new style
+			NodeInst ni = nodeList[i];
+			NodeProto np = nodeTypeList[i];
+
+			// determine the lambda value for this cell
+			double lambdaForCell = 1.0;
+			Technology cellTech = Technology.whatTechnology(cell, null, null);
+			if (cellTech != null) lambdaForCell = techScale[cellTech.getIndex()];
+
+			// determine the value of lambda for this node
+			double lambda = lambdaForCell;
+			if (np instanceof PrimitiveNode)
+			{
+				Technology tech = ((PrimitiveNode)np).getTechnology();
+				lambda = techScale[tech.getIndex()];
+			}
+			int lowX = nodeLowXList[i];
+			int lowY = nodeLowYList[i];
+			int highX = nodeHighXList[i];
+			int highY = nodeHighYList[i];
+			boolean transpose = nodeTransposeList[i];
+			int rotation = nodeRotationList[i];
+			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
+			double width = (highX - lowX) / lambda;
+			double height = (highY - lowY) / lambda;
+			double angle = rotation * 1800 / Math.PI;
+			if (transpose) width = -width;
+			ni.lowLevelPopulate(np, center, width, height, angle, cell);
+			ni.lowLevelLink();
+		}
+
+		// finish initializing the Exports in the cell
+		int startPort = firstPortIndex[cellIndex];
+		int endPort = firstPortIndex[cellIndex+1];
+		for(int i=startPort; i<endPort; i++)
+		{
+			Export pp = portProtoList[i];
+			NodeInst subNodeInst = portProtoSubNodeList[i];
+			PortProto subPortProto = portProtoSubPortList[i];
+			String exportName = portProtoNameList[i];
+			
+			// convert portproto to portinst
+			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
+			if (!pp.lowLevelPopulate(cell, subNodeInst, pi, exportName))
+			{
+				pp.lowLevelLink();
+			}
+		}
+
+		// finish initializing the ArcInsts in the cell
+		boolean arcInfoError = false;
+		int startArc = firstArcIndex[cellIndex];
+		int endArc = firstArcIndex[cellIndex+1];
+		for(int i=startArc; i<endArc; i++)
+		{
+			ArcInst ai = arcList[i];
+			ArcProto ap = arcTypeList[i];
+			double width = arcWidthList[i];
+			double headX = arcHeadXPosList[i];
+			double headY = arcHeadYPosList[i];
+			double tailX = arcTailXPosList[i];
+			double tailY = arcTailYPosList[i];
+			NodeInst headNode = arcHeadNodeList[i];
+			PortProto headPort = arcHeadPortList[i];
+			NodeInst tailNode = arcTailNodeList[i];
+			PortProto tailPort = arcTailPortList[i];
+			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
+			{
+				if (!arcInfoError)
+				{
+					System.out.println("Missing arc information.  Database may be corrupt");
+					arcInfoError = true;
+				}
+				continue;
+			}
+			PortInst headPortInst = headNode.findPortInst(headPort.getProtoName());
+			PortInst tailPortInst = tailNode.findPortInst(tailPort.getProtoName());
+			if (headPortInst == null || tailPortInst == null)
+			{
+				System.out.println("Cannot create arc of type " + ap.getProtoName() +
+					" because ends are unknown");
+				continue;
+			}
+			ai.lowLevelPopulate(ap, width, headPortInst, headX, headY, tailPortInst, tailX, tailY);
+			ai.lowLevelLink();
+		}
+	}
+
+	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
+
+	/**
+	 * Routine to read the header information of an "elib" file.
+	 * The header consists of the "magic" number and the size of various pieces of data.
+	 * Returns true on error.
+	 */
+	boolean readHeader()
+		throws IOException
+	{
+		bytesSwapped = false;
+		byte byte1 = readByte();
+		byte byte2 = readByte();
+		byte byte3 = readByte();
+		byte byte4 = readByte();
+		magic = ((byte4&0xFF) << 24) | ((byte3&0xFF) << 16) | ((byte2&0xFF) << 8) | (byte1&0xFF);
+		if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
+			magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
+			magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
+		{
+			magic = ((byte1&0xFF) << 24) | ((byte2&0xFF) << 16) | ((byte3&0xFF) << 8) | (byte4&0xFF);
+			if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
+				magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
+				magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
+			{
+				System.out.println("Bad file format: does not start with proper magic number");
+				return true;
+			}
+			bytesSwapped = true;
+		}
+		
+		// determine the size of "big" and "small" integers as well as characters on disk
+		if (magic <= MAGIC10)
+		{
+			sizeOfSmall = readByte();
+			sizeOfBig = readByte();
+		} else
+		{
+			sizeOfSmall = 2;
+			sizeOfBig = 4;
+		}
+		if (magic <= MAGIC11)
+		{
+			sizeOfChar = readByte();
+		} else
+		{
+			sizeOfChar = 1;
+		}
+		return false;
+	}
+
+	/**
+	 * routine to read a cell.  returns true upon error
+	 */
+	boolean readNodeProto(Cell cell, int cellIndex)
+		throws IOException
+	{
+		// read the cell name
+		String theProtoName;
+		if (magic <= MAGIC9)
+		{
+			// read the cell information (version 9 and later)
+			if (magic >= MAGIC11)
+			{
+				// only versions 9 to 11
+				int k = readBigInteger();
+				theProtoName = fakeCellList[k].cellName;
+			} else
+			{
+				// version 12 or later
+				theProtoName = readString();
+				int k = readBigInteger();
+//				cell->nextcellgrp = nodeProtoList[k];
+				k = readBigInteger();
+//				cell->nextcont = nodeProtoList[k];
+			}
+			View v = getView(readBigInteger());
+			if (v == null) v = View.UNKNOWN;
+			int version = readBigInteger();
+			theProtoName += ";" + version + "{" + v.getShortName() + "}";
+			int creationDate = readBigInteger();
+			int revisionDate = readBigInteger();
+			cell.lowLevelSetCreationDate(fromElectricDate(creationDate));
+			cell.lowLevelSetRevisionDate(fromElectricDate(revisionDate));
+		} else
+		{
+			// versions 8 and earlier read a cell name
+			theProtoName = readString();
+		}
+		cell.lowLevelPopulate(theProtoName);
+		cell.lowLevelLink();
+
+		// ignore the cell bounding box
+		int lowX = readBigInteger();
+		int highX = readBigInteger();
+		int lowY = readBigInteger();
+		int highY = readBigInteger();
+
+		// ignore the linked list pointers (versions 5 or older)
+		if (magic >= MAGIC5)
+		{
+			int prevIndex = readBigInteger();
+			int nextIndex = readBigInteger();
+		}
+
+		// read the portprotos on this nodeproto
+		firstPortIndex[cellIndex] = portProtoCount;
+		int portCount = readBigInteger();
+		for(int j=0; j<portCount; j++)
+		{
+			// set pointers to portproto
+			Export pp = portProtoList[portProtoCount];
+
+			// read the sub-NodeInst for this Export
+			portProtoSubNodeList[portProtoCount] = null;
+			int whichNode = readBigInteger();
+			if (whichNode >= 0 && whichNode < nodeCount)
+				portProtoSubNodeList[portProtoCount] = nodeList[whichNode];
+
+			// read the sub-PortProto on the sub-NodeInst
+			portProtoSubPortList[portProtoCount] = null;
+			int whichPort = readBigInteger();
+			if (whichPort < 0 || portProtoList[whichPort] != null)
+				portProtoSubPortList[portProtoCount] = convertPortProto(whichPort);
+
+			// read the Export name
+			String exportName = readString();
+			portProtoNameList[portProtoCount] = exportName;
+
+			// check for problems
+			if (portProtoSubNodeList[portProtoCount] == null || portProtoSubPortList[portProtoCount] == null)
+			{
+				System.out.println("Error: Export '" + exportName + " of cell " + theProtoName +
+					" cannot be read properly");
+			}
+
+			// read the portproto text descriptor
+			int descript0 = 0, descript1 = 0;
+			if (magic <= MAGIC9)
+			{
+				if (convertTextDescriptors)
+				{
+					// conversion is done later
+					descript0 = readBigInteger();
+					descript1 = 0;
+				} else
+				{
+					descript0 = readBigInteger();
+					descript1 = readBigInteger();
+				}
+			}
+			TextDescriptor descript = pp.getTextDescriptor();
+			descript.lowLevelSet(descript0, descript1);
+
+			// ignore the "seen" bits (versions 8 and older)
+			if (magic > MAGIC9) readBigInteger();
+
+			// read the portproto's "user bits"
+			int userBits = 0;
+			if (magic <= MAGIC7)
+			{
+				// version 7 and later simply read the relevant data
+				userBits = readBigInteger();
+
+				// versions 7 and 8 ignore net number
+				if (magic >= MAGIC8) readBigInteger();
+			} else
+			{
+				// version 6 and earlier must sift through the information
+				if (toolBCount >= 1) userBits = readBigInteger();
+				for(int i=1; i<toolBCount; i++) readBigInteger();
+			}
+			pp.lowLevelSetUserbits(userBits);
+
+			// read the export variables
+			if (readVariables(pp) < 0) return true;
+
+			portProtoCount++;
+		}
+
+		// ignore the cell's geometry information
+		if (magic > MAGIC5)
+		{
+			// versions 4 and older have geometry module pointers (ignore it)
+			readBigInteger();
+			readBigInteger();
+			readBigInteger();
+			readBigInteger();
+			readBigInteger();
+		}
+
+		// read tool information
+		int dirty = readBigInteger();
+//		np->adirty = io_arrangetoolbits((INTBIG)np->adirty);
+		
+		// read the "user bits"
+		int userBits = 0;
+		if (magic <= MAGIC7)
+		{
+			// version 7 and later simply read the relevant data
+			userBits = readBigInteger();
+
+			// versions 7 and 8 ignore net number
+			if (magic >= MAGIC8) readBigInteger();
+		} else
+		{
+			// version 6 and earlier must sift through the information
+			if (toolBCount >= 1) userBits = readBigInteger();
+			for(int i=1; i<toolBCount; i++) readBigInteger();
+		}
+		cell.lowLevelSetUserbits(userBits);
+
+		// read variable information
+		if (readVariables(cell) < 0) return true;
+
+		// cell read successfully
+		return false;
+	}
+
+	/**
+	 * routine to read a node instance.  returns true upon error
+	 */
+	boolean readNodeInst(int nodeIndex, Cell parent)
+		throws IOException
+	{
+		// read the nodeproto index
+		NodeInst ni = nodeList[nodeIndex];
+		int protoIndex = readBigInteger();
+		NodeProto np = convertNodeProto(protoIndex);
+		if (np == null) return true;
+//		if (inst != 0)
+//		{
+//			if (orignodenamekey == 0) orignodenamekey = makekey(x_("NODE_original_name"));
+//			nextchangequiet();
+//			(void)setvalkey((INTBIG)ni, VNODEINST, orignodenamekey, (INTBIG)inst, VSTRING|VDONTSAVE);
+//		}
+
+		// read the descriptive information
+		nodeTypeList[nodeIndex] = np;
+		nodeLowXList[nodeIndex] = readBigInteger();
+		nodeLowYList[nodeIndex] = readBigInteger();
+		nodeHighXList[nodeIndex] = readBigInteger();
+		nodeHighYList[nodeIndex] = readBigInteger();
+		nodeTransposeList[nodeIndex] = readBigInteger() != 0;
+		nodeRotationList[nodeIndex] = (short)readBigInteger();
+
+		// versions 9 and later get text descriptor for cell name
+		int descript0 = 0, descript1 = 0;
+		if (magic <= MAGIC9)
+		{
+			if (convertTextDescriptors)
+			{
+				// conversion is done later
+				descript0 = readBigInteger();
+			} else
+			{
+				descript0 = readBigInteger();
+				descript1 = readBigInteger();
+			}
+		}
+		TextDescriptor descript = ni.getTextDescriptor();
+		descript.lowLevelSet(descript0, descript1);
+
+		// read the nodeinst name (versions 1, 2, or 3 only)
+		if (magic >= MAGIC3)
+		{
+			String instName = readString();
+			if (instName.length() > 0)
+			{
+//				nextChangeQuiet();
+				ni.setName(instName);
+			}
+		}
+
+		// ignore the geometry index (versions 4 or older)
+		if (magic > MAGIC5) readBigInteger();
+
+		// read the arc ports
+		int numPorts = readBigInteger();
+		for(int j=0; j<numPorts; j++)
+		{
+			// read the arcinst information (and the particular end on the arc)
+			int k = readBigInteger();
+			int arcIndex = k >> 1;
+			if (k < 0 || arcIndex >= arcCount) return true;
+
+			// read the port information
+			int portIndex = readBigInteger();
+			PortProto pp = convertPortProto(portIndex);
+			if ((k&1) == 0) arcHeadPortList[arcIndex] = pp; else
+				arcTailPortList[arcIndex] = pp;
+
+			// ignore variables on port instance
+			ignoreVariables();
+		}
+
+		// ignore the exports
+		int numExports = readBigInteger();
+		for(int j=0; j<numExports; j++)
+		{
+			readBigInteger();
+			readBigInteger();
+			ignoreVariables();
+		}
+
+		// ignore the "seen" bits (versions 8 and older)
+		if (magic > MAGIC9) readBigInteger();
+
+		// read the tool information
+		int userBits = 0;
+		if (magic <= MAGIC7)
+		{
+			// version 7 and later simply read the relevant data
+			userBits = readBigInteger();
+		} else
+		{
+			// version 6 and earlier must sift through the information
+			if (toolBCount >= 1) userBits = readBigInteger();
+			for(int i=1; i<toolBCount; i++) readBigInteger();
+		}
+		ni.lowLevelSetUserbits(userBits);
+
+		// read variable information
+		if (readVariables(ni) < 0) return true;
+
+		// node read successfully
+		return false;
+	}
+
+	/**
+	 * routine to read an arc instance.  returns true upon error
+	 */
+	boolean readArcInst(int arcIndex)
+		throws IOException
+	{
+		ArcInst ai = arcList[arcIndex];
+
+		// read the arcproto pointer
+		int protoIndex = readBigInteger();
+		ArcProto ap = convertArcProto(protoIndex);
+		arcTypeList[arcIndex] = ap;
+
+		// read the arc length (versions 5 or older)
+		if (magic >= MAGIC5) readBigInteger();
+
+		// read the arc width
+		arcWidthList[arcIndex] = readBigInteger();
+		Technology tech = ap.getTechnology();
+		double lambda = techScale[tech.getIndex()];
+		arcWidthList[arcIndex] /= lambda;
+
+		// ignore the signals value (versions 6, 7, or 8)
+		if (magic <= MAGIC6 && magic >= MAGIC8)
+			readBigInteger();
+
+		// read the arcinst name (versions 3 or older)
+		if (magic >= MAGIC3)
+		{
+			String instName = readString();
+			if (instName.length() > 0)
+			{
+//				nextChangeQuiet();
+				ai.setName(instName);
+			}
+		}
+
+		// read the head information
+		arcHeadXPosList[arcIndex] = readBigInteger() / lambda;
+		arcHeadYPosList[arcIndex] = readBigInteger() / lambda;
+		int nodeIndex = readBigInteger();
+		if (nodeIndex >= 0 && nodeIndex < nodeCount)
+			arcHeadNodeList[arcIndex] = nodeList[nodeIndex];
+
+		// read the tail information
+		arcTailXPosList[arcIndex] = readBigInteger() / lambda;
+		arcTailYPosList[arcIndex] = readBigInteger() / lambda;
+		nodeIndex = readBigInteger();
+		if (nodeIndex >= 0 && nodeIndex < nodeCount)
+			arcTailNodeList[arcIndex] = nodeList[nodeIndex];
+
+		// ignore the geometry index (versions 4 or older)
+		if (magic > MAGIC5) readBigInteger();
+
+		// ignore the "seen" bits (versions 8 and older)
+		if (magic > MAGIC9) readBigInteger();
+
+		// read the arcinst's tool information
+		int userBits = 0;
+		if (magic <= MAGIC7)
+		{
+			// version 7 and later simply read the relevant data
+			userBits = readBigInteger();
+
+			// versions 7 and 8 ignore net number
+			if (magic >= MAGIC8) readBigInteger();
+		} else
+		{
+			// version 6 and earlier must sift through the information
+			if (toolBCount >= 1) userBits = readBigInteger();
+			for(int i=1; i<toolBCount; i++) readBigInteger();
+		}
+		ai.lowLevelSetUserbits(userBits);
+
+		// read variable information
+		if (readVariables(ai) < 0) return true;
+
+		// arc read successfully
+		return false;
+	}
+
+	/**
+	 * routine to read (and mostly ignore) a geometry module
+	 */
+	void readGeom(boolean [] isNode, int [] moreup, int index)
+		throws IOException
+	{
+		int type = readBigInteger();		// read entrytype
+		if (type != 0) isNode[index] = true; else
+			isNode[index] = false;
+		if (isNode[index]) readBigInteger();// skip entryaddr
+		readBigInteger();					// skip lowx
+		readBigInteger();					// skip highx
+		readBigInteger();					// skip lowy
+		readBigInteger();					// skip highy
+		readBigInteger();					// skip moreleft
+		readBigInteger();					// skip ll
+		readBigInteger();					// skip moreright
+		readBigInteger();					// skip lr
+		moreup[index] = readBigInteger();	// read moreup
+		readBigInteger();					// skip lu
+		readBigInteger();					// skip moredown
+		readBigInteger();					// skip ld
+		ignoreVariables();					// skip variables
+	}
+
+	// --------------------------------- VARIABLES ---------------------------------
+
+	private static final int VUNKNOWN=                   0;		/** undefined variable */
+	private static final int VINTEGER=                  01;		/** 32-bit integer variable */
+	private static final int VADDRESS=                  02;		/** unsigned address */
+	private static final int VCHAR=                     03;		/** character variable */
+	private static final int VSTRING=                   04;		/** string variable */
+	private static final int VFLOAT=                    05;		/** floating point variable */
+	private static final int VDOUBLE=                   06;		/** double-precision floating point */
+	private static final int VNODEINST=                 07;		/** nodeinst pointer */
+	private static final int VNODEPROTO=               010;		/** nodeproto pointer */
+	private static final int VPORTARCINST=             011;		/** portarcinst pointer */
+	private static final int VPORTEXPINST=             012;		/** portexpinst pointer */
+	private static final int VPORTPROTO=               013;		/** portproto pointer */
+	private static final int VARCINST=                 014;		/** arcinst pointer */
+	private static final int VARCPROTO=                015;		/** arcproto pointer */
+	private static final int VGEOM=                    016;		/** geometry pointer */
+	private static final int VLIBRARY=                 017;		/** library pointer */
+	private static final int VTECHNOLOGY=              020;		/** technology pointer */
+	private static final int VTOOL=                    021;		/** tool pointer */
+	private static final int VRTNODE=                  022;		/** R-tree pointer */
+	private static final int VFRACT=                   023;		/** fractional integer (scaled by WHOLE) */
+	private static final int VNETWORK=                 024;		/** network pointer */
+	private static final int VVIEW=                    026;		/** view pointer */
+	private static final int VWINDOWPART=              027;		/** window partition pointer */
+	private static final int VGRAPHICS=                030;		/** graphics object pointer */
+	private static final int VSHORT=                   031;		/** 16-bit integer */
+	private static final int VCONSTRAINT=              032;		/** constraint solver */
+	private static final int VGENERAL=                 033;		/** general address/type pairs (used only in fixed-length arrays) */
+	private static final int VWINDOWFRAME=             034;		/** window frame pointer */
+	private static final int VPOLYGON=                 035;		/** polygon pointer */
+	private static final int VBOOLEAN=                 036;		/** boolean variable */
+
+	private static final int VTYPE=                    037;		/** all above type fields */
+	private static final int VCODE1=                   040;		/** variable is interpreted code (with VCODE2) */
+	private static final int VDISPLAY=                0100;		/** display variable (uses textdescript field) */
+	private static final int VISARRAY=                0200;		/** set if variable is array of above objects */
+	private static final int VCREF=                   0400;		/** variable points into C structure */
+	private static final int VLENGTH=          03777777000;		/** array length (0: array is -1 terminated) */
+	private static final int VLENGTHSH=                  9;		/** right shift for VLENGTH */
+	private static final int VCODE2=           04000000000;		/** variable is interpreted code (with VCODE1) */
+	private static final int VLISP=                 VCODE1;		/** variable is LISP */
+	private static final int VTCL=                  VCODE2;		/** variable is TCL */
+	private static final int VJAVA=         (VCODE1|VCODE2);	/** variable is Java */
+	private static final int VDONTSAVE=       010000000000;		/** set to prevent saving on disk */
+	private static final int VCANTSET=        020000000000;		/** set to prevent changing value */
+
+	/**
+	 * routine to read the global namespace.  returns true upon error
+	 */
+	boolean readNameSpace()
+		throws IOException
+	{
+		nameCount = readBigInteger();
+		if (nameCount == 0) return false;
+
+		// read in the namespace
+		realName = new String[nameCount];
+		for(int i=0; i<nameCount; i++)
+			realName[i] =  readString();
+		return false;
+	}
+
+	/**
+	 * routine to read a set of object variables.  returns negative upon error and
+	 * otherwise returns the number of variables read
+	 */
+	int readVariables(ElectricObject obj)
+		throws IOException
+	{
+		int count = readBigInteger();
+		for(int i=0; i<count; i++)
+		{
+			short key = readSmallInteger();
+			int newtype = readBigInteger();
+			int ty = newtype;
+
+			// version 9 and later reads text description on displayable variables
+			boolean definedDescript = false;
+			TextDescriptor td;
+			int descript0 = 0;
+			int descript1 = 0;
+			if (magic <= MAGIC9)
+			{
+				if (alwaysTextDescriptors)
+				{
+					descript0 = readBigInteger();
+					descript1 = readBigInteger();
+					definedDescript = true;
+				} else
+				{
+					if ((ty&VDISPLAY) != 0)
+					{
+						if (convertTextDescriptors)
+						{
+							// conversion is done later
+							descript0 = readBigInteger();
+						} else
+						{
+							descript0 = readBigInteger();
+							descript1 = readBigInteger();
+						}
+						definedDescript = true;
+					}
+				}
+			}
+			if (!definedDescript)
+			{
+//				defaulttextdescript(newDescript, NOGEOM);
+			}
+			Object newAddr;
+			if ((ty&VISARRAY) != 0)
+			{
+				int len = readBigInteger();
+				int cou = len;
+				if ((ty&VLENGTH) == 0) cou++;
+				Object [] newAddrArray = new Object[cou];
+				newAddr = newAddrArray;
+				if ((ty&VTYPE) == VGENERAL)
+				{
+					for(int j=0; j<len; j += 2)
+					{
+						int type = readBigInteger();
+						int addr = readBigInteger();
+						newAddrArray[j] = null;
+					}
+				} else
+				{
+					for(int j=0; j<len; j++)
+					{
+						Object ret = getInVar(ty);
+						if (ret == null) return(-1);
+						newAddrArray[j] = ret;
+					}
+				}
+			} else
+			{
+				newAddr = getInVar(ty);
+				if (newAddr == null) return(-1);
+			}
+
+			// copy this variable into database
+			if (key < 0 || key >= nameCount)
+			{
+				System.out.println("Bad variable index (" + key + ", limit is " + nameCount + ") on " + obj + " object");
+				return -1;
+			}
+
+			// see if the variable is deprecated
+			boolean invalid = obj.isdeprecatedvariable(realName[key]);
+			if (!invalid)
+			{
+//				nextChangeQuiet();
+				ElectricObject.Variable var = obj.setVal(realName[key], newAddr);
+				if (var == null) return(-1);
+				var.getTextDescriptor().lowLevelSet(descript0, descript1);
+
+				// handle updating of technology caches
+//				if (type == VTECHNOLOGY)
+//					changedtechnologyvariable(keyval);
+			}
+		}
+		return(count);
+	}
+
+	/**
+	 * routine to ignore one set of object variables on readin
+	 */
+	void ignoreVariables()
+		throws IOException
+	{
+		NodeInst ni = NodeInst.lowLevelAllocate();
+		readVariables(ni);
+	}
+
+	/**
+	 * routine to fix variables that make reference to external cells.
+	 */
+	void fixExternalVariables(ElectricObject obj)
+	{
+//		REGISTER INTBIG i;
+//		REGISTER INTBIG j, k, type, len;
+//		REGISTER VARIABLE *var;
+//		REGISTER NODEPROTO *np, **nparray;
+//
+//		for(i=0; i<numvar; i++)
+//		{
+//			var = &firstvar[i];
+//			type = var->type;
+//			if ((type&VDONTSAVE) != 0) continue;
+//			if ((type&VTYPE) != VNODEPROTO) continue;
+//			if ((type&VISARRAY) != 0)
+//			{
+//				len = (type&VLENGTH) >> VLENGTHSH;
+//				nparray = (NODEPROTO **)var->addr;
+//				if (len == 0) for(len=0; nparray[len] != NONODEPROTO; len++) ;
+//				for(j=0; j<len; j++)
+//				{
+//					np = nparray[j];
+//					if ((INTBIG)np >= 0 && (INTBIG)np < io_binindata.nodeprotoindex)
+//					{
+//						k = (INTBIG)np;
+//						nparray[j] = io_binindata.nodeprotolist[k];
+//					}
+//				}
+//			} else
+//			{
+//				np = (NODEPROTO *)var->addr;
+//				if ((INTBIG)np >= 0 && (INTBIG)np < io_binindata.nodeprotoindex)
+//				{
+//					k = (INTBIG)np;
+//					var->addr = (INTBIG)io_binindata.nodeprotolist[k];
+//				}
+//			}
+//		}
+	}
+
+	/**
+	 * Helper routine to read a variable at address "addr" of type "ty".
+	 * Returns zero if OK, negative on memory error, positive if there were
+	 * correctable problems in the read.
+	 */
+	Object getInVar(int ty)
+		throws IOException
+	{
+		int i;
+
+		if ((ty&(VCODE1|VCODE2)) != 0) ty = VSTRING;
+		switch (ty&VTYPE)
+		{
+			case VADDRESS:
+			case VINTEGER:
+			case VFRACT:
+				return new Integer(readBigInteger());
+			case VFLOAT:
+				return new Float(readFloat());
+			case VDOUBLE:
+				return new Double(readDouble());
+			case VSHORT:
+				return new Short(readSmallInteger());
+			case VBOOLEAN:
+			case VCHAR:
+				return new Byte(readByte());
+			case VSTRING:
+				return readString();
+			case VNODEINST:
+				i = readBigInteger();
+				if (i < 0 || i >= nodeCount) return null;
+				return nodeList[i];
+			case VNODEPROTO:
+				i = readBigInteger();
+				return convertNodeProto(i);
+			case VARCPROTO:
+				i = readBigInteger();
+				return convertArcProto(i);
+			case VPORTPROTO:
+				i = readBigInteger();
+				return convertPortProto(i);
+			case VARCINST:
+				i = readBigInteger();
+				if (i < 0 || i >= arcCount) return null;
+				return arcList[i];
+			case VGEOM:
+				readBigInteger();
+				return null;
+			case VTECHNOLOGY:
+				i = readBigInteger();
+				if (i == -1) return null;
+				return getTechList(i);
+			case VPORTARCINST:
+				readBigInteger();
+				return null;
+			case VPORTEXPINST:
+				readBigInteger();
+				return null;
+			case VLIBRARY:
+				String libName = readString();
+				return Library.findLibrary(libName);
+			case VTOOL:
+				i = readBigInteger();
+				if (i < 0 || i >= toolCount) return null;
+				Tool tool = toolList[i];
+				if (tool == null)
+				{
+					i = 0;
+					if (toolError[i] != null)
+					{
+						System.out.println("WARNING: no tool called '" + toolError[i] + "', using 'user'");
+						toolError[i] = null;
+					}
+				}
+				return tool;
+			case VRTNODE:
+				readBigInteger();
+				return null;
+		}
+		return null;
+	}
+
+	// --------------------------------- OBJECT CONVERSION ---------------------------------
+
+	/**
+	 * routine to convert the nodeproto index "i" to a true nodeproto pointer.
+	 */
+	NodeProto convertNodeProto(int i)
+	{
+		int error = 0;
+		if (i < 0)
+		{
+			// negative values are primitives
+			int nindex = -i - 2;
+			if (nindex >= primNodeProtoCount)
+			{
+				System.out.println("Error: want primitive node index " + nindex + " when limit is " + primNodeProtoCount);
+				nindex = 0;
+				error = 1;
+			}
+			return getPrimNodeProtoList(nindex);
+		}
+
+		// see if the cell value is valid
+		if (i >= nodeProtoCount)
+		{
+			System.out.println("Error: want cell index " + i + " when limit is " + nodeProtoCount);
+			return getPrimNodeProtoList(0);
+		}
+		return nodeProtoList[i];
+	}
+
+	/**
+	 * routine to convert the arcproto index "i" to a true arcproto pointer.
+	 */
+	ArcProto convertArcProto(int i)
+	{
+		int aindex = -i - 2;
+		if (aindex >= arcProtoCount || aindex < 0)
+		{
+			System.out.println("Want primitive arc index " + aindex + " when range is 0 to " + arcProtoCount);
+			aindex = 0;
+		}
+		return getArcProtoList(aindex);
+	}
+
+	/**
+	 * routine to convert the PortProto index "i" to a true PortProto pointer.
+	 */
+	PortProto convertPortProto(int i)
+	{
+		if (i < 0)
+		{
+			int pindex = -i - 2;
+			if (pindex >= primPortProtoCount)
+			{
+				System.out.println("Error: want primitive port index " + pindex + " when limit is " + primPortProtoCount);
+				pindex = 0;
+			}
+			return getPrimPortProtoList(pindex);
+		}
+
+		if (i >= portProtoCount)
+		{
+			System.out.println("Error: want port index " + i + " when limit is " + portProtoCount);
+			i = 0;
+		}
+		return portProtoList[i];
+	}
+
+	NodeProto getPrimNodeProtoList(int i)
+	{
+		getTechList(primNodeProtoTech[i]);
+		if (primNodeProtoError[i])
+		{
+			System.out.println("Cannot find primitive '" + primNodeProtoOrig[i] + "', using " +
+				primNodeProtoList[i].getProtoName());
+			primNodeProtoError[i] = false;
+		}
+		return(primNodeProtoList[i]);
+	}
+
+	ArcProto getArcProtoList(int i)
+	{
+		if (arcProtoError[i] != null)
+		{
+			System.out.println("Cannot find arc '" + arcProtoError[i] + "', using " + arcProtoList[i].getProtoName());
+			arcProtoError[i] = null;
+		}
+		return(arcProtoList[i]);
+	}
+
+	PortProto getPrimPortProtoList(int i)
+	{
+		if (primPortProtoError[i] != null)
+		{
+			System.out.println("WARNING: port " + primPortProtoError[i] + " not found, using " +
+				primPortProtoList[i].getProtoName());
+			primPortProtoError[i] = null;
+		}
+		return(primPortProtoList[i]);
+	}
+
+	/**
+	 * routine to return the Technology associated with index "i".
+	 */
+	Technology getTechList(int i)
+	{
+		if (techError[i] != null)
+		{
+			System.out.println("WARNING: technology '" + techError[i] + "' does not exist, using '" + techList[i].getTechName() + "'");
+			techError[i] = null;
+		}
+		return(techList[i]);
+	}
+	
+	/**
+	 * routine to return the View associated with index "i".
+	 */
+	View getView(int i)
+	{
+		View v = null;
+		for(Iterator it = View.getViews(); it.hasNext(); )
+		{
+			v = (View) it.next();
+			if (v.getTemp1() == i) return v;
+		}
+		return null;
+	}
+	
+	/**
+	 * routine to convert the Electric-format date "secondsSinceEpoch" to a Java Data object.
+	 */
+	Date fromElectricDate(int secondsSinceEpoch)
+	{
+		GregorianCalendar creation = new GregorianCalendar();
+		creation.setTimeInMillis(0);
+		creation.setLenient(true);
+		creation.add(Calendar.SECOND, secondsSinceEpoch);
+		return creation.getTime();
+	}
+
+	// --------------------------------- LOW-LEVEL INPUT ---------------------------------
+
+	/**
+	 * routine to read a single byte from the input stream and return it.
+	 */
 	byte readByte()
 		throws IOException
 	{
@@ -411,6 +1929,9 @@ public class BinaryIn extends Input
 		return (byte)value;
 	}
 
+	/**
+	 * routine to read an integer (4 bytes) from the input stream and return it.
+	 */
 	int readBigInteger()
 		throws IOException
 	{
@@ -421,19 +1942,56 @@ public class BinaryIn extends Input
 		return intValue;
 	}
 
+	/**
+	 * routine to read a float (4 bytes) from the input stream and return it.
+	 */
+	int readFloat()
+		throws IOException
+	{
+		byte [] data = new byte[4];
+		readBytes(data, sizeOfBig, 4, true);
+		return 0;
+	}
+
+	/**
+	 * routine to read a double (8 bytes) from the input stream and return it.
+	 */
+	int readDouble()
+		throws IOException
+	{
+		byte [] data = new byte[8];
+		readBytes(data, sizeOfBig*2, 8, true);
+		return 0;
+	}
+
+	/**
+	 * routine to read an short (2 bytes) from the input stream and return it.
+	 */
+	short readSmallInteger()
+		throws IOException
+	{
+		byte [] data = new byte[2];
+		readBytes(data, sizeOfSmall, 2, true);
+		short intValue = (short)(((data[1]&0xFF) << 8) | (data[0]&0xFF));
+		return intValue;
+	}
+
+	/**
+	 * routine to read a string from the input stream and return it.
+	 */
 	String readString()
 		throws IOException
 	{
 		if (sizeOfChar != 1)
 		{
-			/* disk and memory don't match: read into temporary string */
+			// disk and memory don't match: read into temporary string
 			System.out.println("Cannot handle library files with unicode strings");
 //			tempstr = io_gettempstring();
 //			if (allocstring(&name, tempstr, cluster)) return(0);
 			return null;
 		} else
 		{
-			/* disk and memory match: read the data */
+			// disk and memory match: read the data
 			int len = readBigInteger();
 			byte [] stringBytes = new byte[len];
 			int ret = fileInputStream.read(stringBytes, 0, len);
@@ -446,18 +2004,21 @@ public class BinaryIn extends Input
 	/** used to swap bytes and adjust when disk size differs from memory size */
 	private static byte [] swapBuf = new byte[128];
 
+	/**
+	 * routine to read a number of bytes from the input stream and return it.
+	 */
 	void readBytes(byte [] data, int diskSize, int memorySize, boolean signExtend)
 		throws IOException
 	{
-		/* check for direct transfer */
+		// check for direct transfer
 		if (diskSize == memorySize && !bytesSwapped)
 		{
-			/* just peel it off the disk */
+			// just peel it off the disk
 			int ret = fileInputStream.read(data, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
 		} else
 		{
-			/* not a simple read, use a buffer */
+			// not a simple read, use a buffer
 			int ret = fileInputStream.read(swapBuf, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
 			if (bytesSwapped)
@@ -487,14 +2048,14 @@ public class BinaryIn extends Input
 			{
 				if (diskSize > memorySize)
 				{
-					/* trouble! disk has more bits than memory.  check for clipping */
+					// trouble! disk has more bits than memory.  check for clipping
 					for(int i=0; i<memorySize; i++) data[i] = swapBuf[i];
 					for(int i=memorySize; i<diskSize; i++)
 						if (swapBuf[i] != 0 && swapBuf[i] != 0xFF)
 							clippedIntegers++;
 				} else
 				{
-					/* disk has smaller integer */
+					// disk has smaller integer
 					if (!signExtend || (swapBuf[diskSize-1] & 0x80) == 0)
 					{
 						for(int i=diskSize; i<memorySize; i++) swapBuf[i] = 0;
@@ -507,12 +2068,12 @@ public class BinaryIn extends Input
 			}
 		}
 		byteCount += diskSize;
-//		if (io_verbose < 0 && io_binindata.filelength > 0 && io_inputprogressdialog != 0)
+//		if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
 //		{
-//			if (byteCount > io_binindata.reported + REPORTINC)
+//			if (byteCount > reported + REPORTINC)
 //			{
-//				DiaSetProgress(io_inputprogressdialog, byteCount, io_binindata.filelength);
-//				io_binindata.reported = byteCount;
+//				DiaSetProgress(io_inputprogressdialog, byteCount, filelength);
+//				reported = byteCount;
 //			}
 //		}
 	}

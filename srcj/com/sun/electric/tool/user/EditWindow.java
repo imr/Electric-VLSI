@@ -163,10 +163,13 @@ public class EditWindow extends JPanel
 		} else
 		{
 			// primitive
-			PrimitiveNode prim = (PrimitiveNode)np;
-			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShape(ni);
-			drawPolys(g2, polys, localTrans);
+			if (topLevel || !ni.isVisInside())
+			{
+				PrimitiveNode prim = (PrimitiveNode)np;
+				Technology tech = prim.getTechnology();
+				Poly [] polys = tech.getShape(ni);
+				drawPolys(g2, polys, localTrans);
+			}
 		}
 
 		// draw any exports from the node
@@ -213,38 +216,116 @@ public class EditWindow extends JPanel
 				g2.fill(poly);
 			} else if (style == Poly.Type.CLOSED)
 			{
+				AffineTransform saveAT = g2.getTransform();
+				g2.scale(1/scale, 1/scale);
+				GeneralPath gp = new GeneralPath();
+				Point2D [] points = poly.getPoints();
+				gp.moveTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
+				for(int j=1; j<points.length; j++)
+					gp.lineTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
+				gp.lineTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.CLOSEDRECT)
 			{
+				System.out.println("Cannot render CLOSEDRECT polygon");
 			} else if (style == Poly.Type.CROSSED)
 			{
+				AffineTransform saveAT = g2.getTransform();
+				g2.scale(1/scale, 1/scale);
+				GeneralPath gp = new GeneralPath();
+				Point2D [] points = poly.getPoints();
+				gp.moveTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
+				for(int j=1; j<points.length; j++)
+					gp.lineTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
+				gp.lineTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
+				gp.lineTo((float)(points[2].getX()*scale), (float)(points[2].getY()*scale));
+				gp.moveTo((float)(points[1].getX()*scale), (float)(points[1].getY()*scale));
+				gp.lineTo((float)(points[3].getX()*scale), (float)(points[3].getY()*scale));
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.OPENED)
 			{
+				AffineTransform saveAT = g2.getTransform();
+				g2.scale(1/scale, 1/scale);
+				GeneralPath gp = new GeneralPath();
+				Point2D [] points = poly.getPoints();
+				gp.moveTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
+				for(int j=1; j<points.length; j++)
+					gp.lineTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.OPENEDT1)
 			{
+				System.out.println("Cannot render OPENEDT1 polygon");
 			} else if (style == Poly.Type.OPENEDT2)
 			{
+				System.out.println("Cannot render OPENEDT2 polygon");
 			} else if (style == Poly.Type.OPENEDT3)
 			{
+				System.out.println("Cannot render OPENEDT3 polygon");
 			} else if (style == Poly.Type.OPENEDO1)
 			{
+				System.out.println("Cannot render OPENEDO1 polygon");
 			} else if (style == Poly.Type.VECTORS)
 			{
+				AffineTransform saveAT = g2.getTransform();
+				g2.scale(1/scale, 1/scale);
+				GeneralPath gp = new GeneralPath();
+				Point2D [] points = poly.getPoints();
+				for(int j=0; j<points.length; j+=2)
+				{
+					gp.moveTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
+					gp.lineTo((float)(points[j+1].getX()*scale), (float)(points[j+1].getY()*scale));
+				}
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.CIRCLE)
 			{
+				System.out.println("Cannot render CIRCLE polygon");
 			} else if (style == Poly.Type.THICKCIRCLE)
 			{
+				System.out.println("Cannot render THICKCIRCLE polygon");
 			} else if (style == Poly.Type.DISC)
 			{
+				System.out.println("Cannot render DISC polygon");
 			} else if (style == Poly.Type.CIRCLEARC)
 			{
+				System.out.println("Cannot render CIRCLEARC polygon");
 			} else if (style == Poly.Type.THICKCIRCLEARC)
 			{
+				System.out.println("Cannot render THICKCIRCLEARC polygon");
 			} else if (style == Poly.Type.GRIDDOTS)
 			{
+				System.out.println("Cannot render GRIDDOTS polygon");
 			} else if (style == Poly.Type.CROSS)
 			{
+				// draw the big cross
+				AffineTransform saveAT = g2.getTransform();
+				float x = (float)(poly.getCenterX()*scale);
+				float y = (float)(poly.getCenterY()*scale);
+				g2.scale(1/scale, 1/scale);
+				g2.setColor(Color.black);
+				GeneralPath gp = new GeneralPath();
+				float size = 3;
+				gp.moveTo(x+size, y);  gp.lineTo(x-size, y);
+				gp.moveTo(x, y+size);  gp.lineTo(x, y-size);
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.BIGCROSS)
 			{
+				// draw the big cross
+				AffineTransform saveAT = g2.getTransform();
+				float x = (float)(poly.getCenterX()*scale);
+				float y = (float)(poly.getCenterY()*scale);
+				g2.scale(1/scale, 1/scale);
+				g2.setColor(Color.black);
+				GeneralPath gp = new GeneralPath();
+				float size = 5;
+				gp.moveTo(x+size, y);  gp.lineTo(x-size, y);
+				gp.moveTo(x, y+size);  gp.lineTo(x, y-size);
+				g2.draw(gp);
+				g2.setTransform(saveAT);
 			}
 		}
 	}
@@ -323,7 +404,7 @@ public class EditWindow extends JPanel
 		{
 			// control key held: zoom
 			scale = scale * Math.exp((oldy-evt.getY()) / 100.0f);
-		} else if ((evt.getModifiers()&evt.SHIFT_MASK) != 0) 
+		} else
 		{
 			// shift key held: pan
 			offx -= (evt.getX() - oldx) / scale;

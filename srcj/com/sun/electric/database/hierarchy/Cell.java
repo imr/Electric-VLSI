@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.text.DateFormat;
 
 /**
  * A Cell is a non-primitive NodeProto.  It consists of an internal
@@ -80,7 +81,6 @@ public class Cell extends NodeProto
 	/** essential-bounds */							private List essenBounds = new ArrayList();
 	/** NodeInsts that comprise this cell */		private List nodes;
 	/** ArcInsts that comprise this cell */			private List arcs;
-	/** Flag bits for the cell */					private int userbits;
 	/** time stamp for marking */					private int timeStamp;
 	/** the bounds of the Cell */					private Rectangle2D.Double elecBounds;
 	/** whether the bounds need to be recomputed */	private boolean boundsDirty;
@@ -102,7 +102,7 @@ public class Cell extends NodeProto
 		referencePointCoord = new Point2D.Double(0, 0);
 		creationDate = new Date();
 		revisionDate = new Date();
-		userbits = 0;
+		userBits = 0;
 		elecBounds = new Rectangle2D.Double();
 		boundsEmpty = true;
 		boundsDirty = false;
@@ -692,16 +692,15 @@ public class Cell extends NodeProto
 	public void getInfo()
 	{
 		System.out.println("--------- CELL: ---------");
-//		System.out.println(" ArcProto: " + protoType.describe());
-
 		System.out.println("  name= " + protoName);
 		System.out.println("  tech= " + tech);
 		System.out.println("  view= " + view);
 		System.out.println("  version= " + version);
-		System.out.println("  creationDate= " + creationDate);
-		System.out.println("  revisionDate= " + revisionDate);
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+		System.out.println("  creationDate= " + df.format(creationDate));
+		System.out.println("  revisionDate= " + df.format(revisionDate));
 		System.out.println("  newestVersion= " + getNewestVersion());
-//		System.out.println("  userbits= " + Integer.toHexString(userbits));
+//		System.out.println("  userBits= " + Integer.toHexString(userBits));
 		Rectangle2D rect = getBounds();
 		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), at: " + rect.getWidth() + "x" + rect.getHeight());
 		System.out.println("  nodes (" + nodes.size() + "):");
@@ -780,6 +779,11 @@ public class Cell extends NodeProto
 	public Library getLibrary() { return lib; }
 	public View getView() { return view; }
 
+	public Date getCreationDate() { return creationDate; }
+	public void lowLevelSetCreationDate(Date creationDate) { this.creationDate = creationDate; }
+	public Date getRevisionDate() { return revisionDate; }
+	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
+
 	/** Create an export for this Cell.
 	 * @param name the name of the new Export
 	 * @param role the Export's type 
@@ -802,7 +806,7 @@ public class Cell extends NodeProto
 	/** Get Export with specified name. @return null if not found */
 	public Export findExport(String nm)
 	{
-		return (Export) findPort(nm);
+		return (Export) findPortProto(nm);
 	}
 
 	/** Get the Cell's technology (best guess) */

@@ -3,6 +3,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -21,6 +22,60 @@ import java.awt.geom.Point2D;
 public class TecMoCMOS extends Technology
 {
 	public static final TecMoCMOS tech = new TecMoCMOS();
+	/** metal-1-pin */						private PrimitiveNode metal1Pin_node;
+	/** metal-2-pin */						private PrimitiveNode metal2Pin_node;
+	/** metal-3-pin */						private PrimitiveNode metal3Pin_node;
+	/** metal-4-pin */						private PrimitiveNode metal4Pin_node;
+	/** metal-5-pin */						private PrimitiveNode metal5Pin_node;
+	/** metal-6-pin */						private PrimitiveNode metal6Pin_node;
+	/** polysilicon-1-pin */				private PrimitiveNode poly1Pin_node;
+	/** polysilicon-2-pin */				private PrimitiveNode poly2Pin_node;
+	/** P-active-pin */						private PrimitiveNode pActivePin_node;
+	/** N-active-pin */						private PrimitiveNode nActivePin_node;
+	/** General active-pin */				private PrimitiveNode activePin_node;
+	/** metal-1-P-active-contact */			private PrimitiveNode metal1PActiveContact_node;
+	/** metal-1-N-active-contact */			private PrimitiveNode metal1NActiveContact_node;
+	/** metal-1-polysilicon-1-contact */	private PrimitiveNode metal1Poly1Contact_node;
+	/** metal-1-polysilicon-2-contact */	private PrimitiveNode metal1Poly2Contact_node;
+	/** metal-1-polysilicon-1-2-contact */	private PrimitiveNode metal1Poly12Contact_node;
+	/** P-Transistor */						private PrimitiveNode pTransistor_node;
+	/** N-Transistor */						private PrimitiveNode nTransistor_node;
+	/** Scalable-P-Transistor */			private PrimitiveNode scalablePTransistor_node;
+	/** Scalable-N-Transistor */			private PrimitiveNode scalableNTransistor_node;
+	/** metal-1-metal-2-contact */			private PrimitiveNode metal1Metal2Contact_node;
+	/** metal-2-metal-3-contact */			private PrimitiveNode metal2Metal3Contact_node;
+	/** metal-3-metal-4-contact */			private PrimitiveNode metal3Metal4Contact_node;
+	/** metal-4-metal-5-contact */			private PrimitiveNode metal4Metal5Contact_node;
+	/** metal-5-metal-6-contact */			private PrimitiveNode metal5Metal6Contact_node;
+	/** Metal-1-P-Well Contact */			private PrimitiveNode metal1PWellContact_node;
+	/** Metal-1-N-Well Contact */			private PrimitiveNode metal1NWellContact_node;
+	/** Metal-1-Node */						private PrimitiveNode metal1Node_node;
+	/** Metal-2-Node */						private PrimitiveNode metal2Node_node;
+	/** Metal-3-Node */						private PrimitiveNode metal3Node_node;
+	/** Metal-4-Node */						private PrimitiveNode metal4Node_node;
+	/** Metal-5-Node */						private PrimitiveNode metal5Node_node;
+	/** Metal-6-Node */						private PrimitiveNode metal6Node_node;
+	/** Polysilicon-1-Node */				private PrimitiveNode poly1Node_node;
+	/** Polysilicon-2-Node */				private PrimitiveNode poly2Node_node;
+	/** P-Active-Node */					private PrimitiveNode pActiveNode_node;
+	/** N-Active-Node */					private PrimitiveNode nActiveNode_node;
+	/** P-Select-Node */					private PrimitiveNode pSelectNode_node;
+	/** N-Select-Node */					private PrimitiveNode nSelectNode_node;
+	/** PolyCut-Node */						private PrimitiveNode polyCutNode_node;
+	/** ActiveCut-Node */					private PrimitiveNode activeCutNode_node;
+	/** Via-1-Node */						private PrimitiveNode via1Node_node;
+	/** Via-2-Node */						private PrimitiveNode via2Node_node;
+	/** Via-3-Node */						private PrimitiveNode via3Node_node;
+	/** Via-4-Node */						private PrimitiveNode via4Node_node;
+	/** Via-5-Node */						private PrimitiveNode via5Node_node;
+	/** P-Well-Node */						private PrimitiveNode pWellNode_node;
+	/** N-Well-Node */						private PrimitiveNode nWellNode_node;
+	/** Passivation-Node */					private PrimitiveNode passivationNode_node;
+	/** Pad-Frame-Node */					private PrimitiveNode padFrameNode_node;
+	/** Poly-Cap-Node */					private PrimitiveNode polyCapNode_node;
+	/** P-Active-Well-Node */				private PrimitiveNode pActiveWellNode_node;
+	/** Polysilicon-1-Transistor-Node */	private PrimitiveNode polyTransistorNode_node;
+	/** Silicide-Block-Node */				private PrimitiveNode silicideBlockNode_node;
 
 	// -------------------- private and protected methods ------------------------
 	private TecMoCMOS()
@@ -30,686 +85,686 @@ public class TecMoCMOS extends Technology
 
 		//**************************************** LAYERS ****************************************
 
-		// metal-1 layer
+		/** metal-1 layer */
 		Layer metal1_lay = Layer.newInstance("Metal-1",
 			new EGraphics(EGraphics.LAYERT1, EGraphics.COLORT1, EGraphics.SOLIDC, EGraphics.PATTERNED, 96,209,255,0.8,1,
-			new int[] { 0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000}));/*                  */
+			new int[] { 0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000}));//                 
 
-		// metal-2 layer
+		/** metal-2 layer */
 		Layer metal2_lay = Layer.newInstance("Metal-2",
 			new EGraphics(EGraphics.LAYERT4, EGraphics.COLORT4, EGraphics.SOLIDC, EGraphics.PATTERNED, 224,95,255,0.7,1,
-			new int[] { 0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808,   /*     X       X    */
-						0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808}));/*     X       X    */
+			new int[] { 0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808,   //     X       X   
+						0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808}));//     X       X   
 
-		// metal-3 layer
+		/** metal-3 layer */
 		Layer metal3_lay = Layer.newInstance("Metal-3",
 			new EGraphics(EGraphics.LAYERT5, EGraphics.COLORT5, EGraphics.SOLIDC, EGraphics.PATTERNED, 247,251,20,0.6,1,
-			new int[] { 0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000}));/*                  */
+			new int[] { 0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000}));//                 
 
-		// metal-4 layer
+		/** metal-4 layer */
 		Layer metal4_lay = Layer.newInstance("Metal-4",
 			new EGraphics(EGraphics.LAYERO, EGraphics.LBLUE, EGraphics.PATTERNED, EGraphics.PATTERNED, 150,150,255,0.5,1,
-			new int[] { 0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000}));/*                  */
+			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000}));//                 
 
-		// metal-5 layer
+		/** metal-5 layer */
 		Layer metal5_lay = Layer.newInstance("Metal-5",
 			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, 255,190,6,0.4,1,
-			new int[] { 0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444}));/*  X   X   X   X   */
+			new int[] { 0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444}));//  X   X   X   X  
 
-		// metal-6 layer
+		/** metal-6 layer */
 		Layer metal6_lay = Layer.newInstance("Metal-6",
 			new EGraphics(EGraphics.LAYERO, EGraphics.CYAN, EGraphics.PATTERNED, EGraphics.PATTERNED, 0,255,255,0.3,1,
-			new int[] { 0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111}));/*    X   X   X   X */
+			new int[] { 0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111}));//    X   X   X   X
 
-		// poly layer
+		/** poly layer */
 		Layer poly1_lay = Layer.newInstance("Polysilicon-1",
 			new EGraphics(EGraphics.LAYERT2, EGraphics.COLORT2, EGraphics.SOLIDC, EGraphics.PATTERNED, 255,155,192,0.5,1,
-			new int[] { 0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555}));/*  X X X X X X X X */
+			new int[] { 0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555}));//  X X X X X X X X
 
-		// poly2 layer
+		/** poly2 layer */
 		Layer poly2_lay = Layer.newInstance("Polysilicon-2",
 			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.PATTERNED, EGraphics.PATTERNED, 255,190,6,1.0,1,
-			new int[] { 0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888}));/* X   X   X   X    */
+			new int[] { 0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888}));// X   X   X   X   
 
-		// P active layer
+		/** P active layer */
 		Layer pActive_lay = Layer.newInstance("P-Active",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.5,1,
-			new int[] { 0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030,   /*   XX      XX     */
-						0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030}));/*   XX      XX     */
+			new int[] { 0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030,   //   XX      XX    
+						0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030}));//   XX      XX    
 
-		// N active layer
+		/** N active layer */
 		Layer nActive_lay = Layer.newInstance("N-Active",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.5,1,
-			new int[] { 0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030,   /*   XX      XX     */
-						0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030}));/*   XX      XX     */
+			new int[] { 0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030,   //   XX      XX    
+						0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030}));//   XX      XX    
 
-		// P Select layer
+		/** P Select layer */
 		Layer pSelect_lay = Layer.newInstance("P-Select",
 			new EGraphics(EGraphics.LAYERO, EGraphics.YELLOW, EGraphics.PATTERNED, EGraphics.PATTERNED, 139,99,46,0.2,0,
-			new int[] { 0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808,   /*     X       X    */
-						0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808}));/*     X       X    */
+			new int[] { 0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808,   //     X       X   
+						0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808}));//     X       X   
 
-		// N Select layer
+		/** N Select layer */
 		Layer nSelect_lay = Layer.newInstance("N-Select",
 			new EGraphics(EGraphics.LAYERO, EGraphics.YELLOW, EGraphics.PATTERNED, EGraphics.PATTERNED, 255,255,0,0.2,0,
-			new int[] { 0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000}));/*                  */
+			new int[] { 0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000}));//                 
 
-		// P Well layer
+		/** P Well layer */
 		Layer pWell_lay = Layer.newInstance("P-Well",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BROWN, EGraphics.PATTERNED, EGraphics.PATTERNED, 139,99,46,0.2,0,
-			new int[] { 0x0202,   /*       X       X  */
-						0x0101,   /*        X       X */
-						0x8080,   /* X       X        */
-						0x4040,   /*  X       X       */
-						0x2020,   /*   X       X      */
-						0x1010,   /*    X       X     */
-						0x0808,   /*     X       X    */
-						0x0404,   /*      X       X   */
-						0x0202,   /*       X       X  */
-						0x0101,   /*        X       X */
-						0x8080,   /* X       X        */
-						0x4040,   /*  X       X       */
-						0x2020,   /*   X       X      */
-						0x1010,   /*    X       X     */
-						0x0808,   /*     X       X    */
-						0x0404}));/*      X       X   */
+			new int[] { 0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020,   //   X       X     
+						0x1010,   //    X       X    
+						0x0808,   //     X       X   
+						0x0404,   //      X       X  
+						0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020,   //   X       X     
+						0x1010,   //    X       X    
+						0x0808,   //     X       X   
+						0x0404}));//      X       X  
 
-		// N Well implant
+		/** N Well implant */
 		Layer nWell_lay = Layer.newInstance("N-Well",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BROWN, EGraphics.PATTERNED, EGraphics.PATTERNED, 255,255,0,0.2,0,
-			new int[] { 0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000}));/*                  */
+			new int[] { 0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000}));//                 
 
-		// poly cut layer
+		/** poly cut layer */
 		Layer polyCut_lay = Layer.newInstance("Poly-Cut",
 			new EGraphics(EGraphics.LAYERO, EGraphics.DGRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 100,100,100,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// active cut layer
+		/** active cut layer */
 		Layer activeCut_lay = Layer.newInstance("Active-Cut",
 			new EGraphics(EGraphics.LAYERO, EGraphics.DGRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 100,100,100,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// via1 layer
+		/** via1 layer */
 		Layer via1_lay = Layer.newInstance("Via1", 
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// via2 layer
+		/** via2 layer */
 		Layer via2_lay = Layer.newInstance("Via2",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// via3 layer
+		/** via3 layer */
 		Layer via3_lay = Layer.newInstance("Via3",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// via4 layer
+		/** via4 layer */
 		Layer via4_lay = Layer.newInstance("Via4",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// via5 layer
+		/** via5 layer */
 		Layer via5_lay = Layer.newInstance("Via5",
 			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// passivation layer
+		/** passivation layer */
 		Layer passivation_lay = Layer.newInstance("Passivation",
 			new EGraphics(EGraphics.LAYERO, EGraphics.DGRAY, EGraphics.PATTERNED, EGraphics.PATTERNED, 100,100,100,1.0,1,
-			new int[] { 0x1C1C,   /*    XXX     XXX   */
-						0x3E3E,   /*   XXXXX   XXXXX  */
-						0x3636,   /*   XX XX   XX XX  */
-						0x3E3E,   /*   XXXXX   XXXXX  */
-						0x1C1C,   /*    XXX     XXX   */
-						0x0000,   /*                  */
-						0x0000,   /*                  */
-						0x0000,   /*                  */
-						0x1C1C,   /*    XXX     XXX   */
-						0x3E3E,   /*   XXXXX   XXXXX  */
-						0x3636,   /*   XX XX   XX XX  */
-						0x3E3E,   /*   XXXXX   XXXXX  */
-						0x1C1C,   /*    XXX     XXX   */
-						0x0000,   /*                  */
-						0x0000,   /*                  */
-						0x0000}));/*                  */
+			new int[] { 0x1C1C,   //    XXX     XXX  
+						0x3E3E,   //   XXXXX   XXXXX 
+						0x3636,   //   XX XX   XX XX 
+						0x3E3E,   //   XXXXX   XXXXX 
+						0x1C1C,   //    XXX     XXX  
+						0x0000,   //                 
+						0x0000,   //                 
+						0x0000,   //                 
+						0x1C1C,   //    XXX     XXX  
+						0x3E3E,   //   XXXXX   XXXXX 
+						0x3636,   //   XX XX   XX XX 
+						0x3E3E,   //   XXXXX   XXXXX 
+						0x1C1C,   //    XXX     XXX  
+						0x0000,   //                 
+						0x0000,   //                 
+						0x0000}));//                 
 
-		// poly/trans layer
+		/** poly/trans layer */
 		Layer transistorPoly_lay = Layer.newInstance("Transistor-Poly",
 			new EGraphics(EGraphics.LAYERT2, EGraphics.COLORT2, EGraphics.SOLIDC, EGraphics.PATTERNED, 255,155,192,0.5,1,
-			new int[] { 0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555}));/*  X X X X X X X X */
+			new int[] { 0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555}));//  X X X X X X X X
 
-		// poly cap layer
+		/** poly cap layer */
 		Layer polyCap_lay = Layer.newInstance("Poly-Cap",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BLACK, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		// P act well layer
+		/** P act well layer */
 		Layer pActiveWell_lay = Layer.newInstance("P-Active-Well",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,1.0,0,
-			new int[] { 0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030,   /*   XX      XX     */
-						0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030}));/*   XX      XX     */
+			new int[] { 0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030,   //   XX      XX    
+						0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030}));//   XX      XX    
 
-		// Silicide block
+		/** Silicide block */
 		Layer silicideBlock_lay = Layer.newInstance("Silicide-Block",
 			new EGraphics(EGraphics.LAYERO, EGraphics.LGRAY, EGraphics.PATTERNED, EGraphics.PATTERNED, 230,230,230,1.0,0,
-			new int[] { 0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000}));/*                  */
+			new int[] { 0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000}));//                 
 
-		// pseudo metal 1
+		/** pseudo metal 1 */
 		Layer pseudoMetal1_lay = Layer.newInstance("Pseudo-Metal-1",
 			new EGraphics(EGraphics.LAYERT1, EGraphics.COLORT1, EGraphics.SOLIDC, EGraphics.PATTERNED, 96,209,255,0.8,1,
-			new int[] { 0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000,   /*                  */
-						0x2222,   /*   X   X   X   X  */
-						0x0000,   /*                  */
-						0x8888,   /* X   X   X   X    */
-						0x0000}));/*                  */
+			new int[] { 0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000,   //                 
+						0x2222,   //   X   X   X   X 
+						0x0000,   //                 
+						0x8888,   // X   X   X   X   
+						0x0000}));//                 
 
-		// pseudo metal-2
+		/** pseudo metal-2 */
 		Layer pseudoMetal2_lay = Layer.newInstance("Pseudo-Metal-2",
 			new EGraphics(EGraphics.LAYERT4, EGraphics.COLORT4, EGraphics.SOLIDC, EGraphics.PATTERNED, 224,95,255,0.7,1,
-			new int[] { 0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808,   /*     X       X    */
-						0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808}));/*     X       X    */
+			new int[] { 0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808,   //     X       X   
+						0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808}));//     X       X   
 
-		// pseudo metal-3
+		/** pseudo metal-3 */
 		Layer pseudoMetal3_lay = Layer.newInstance("Pseudo-Metal-3",
 			new EGraphics(EGraphics.LAYERT5, EGraphics.COLORT5, EGraphics.SOLIDC, EGraphics.PATTERNED, 247,251,20,0.6,1,
-			new int[] { 0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808,   /*     X       X    */
-						0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808}));/*     X       X    */
+			new int[] { 0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808,   //     X       X   
+						0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808}));//     X       X   
 
-		// pseudo metal-4
+		/** pseudo metal-4 */
 		Layer pseudoMetal4_lay = Layer.newInstance("Pseudo-Metal-4",
 			new EGraphics(EGraphics.LAYERO, EGraphics.LBLUE, EGraphics.PATTERNED, EGraphics.PATTERNED, 150,150,255,0.5,1,
-			new int[] { 0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000,   /*                  */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x0000}));/*                  */
+			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000,   //                 
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x0000}));//                 
 
-		// pseudo metal-5
+		/** pseudo metal-5 */
 		Layer pseudoMetal5_lay = Layer.newInstance("Pseudo-Metal-5",
 			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, 255,190,6,0.4,1,
-			new int[] { 0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444,   /*  X   X   X   X   */
-						0x8888,   /* X   X   X   X    */
-						0x1111,   /*    X   X   X   X */
-						0x2222,   /*   X   X   X   X  */
-						0x4444}));/*  X   X   X   X   */
+			new int[] { 0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444,   //  X   X   X   X  
+						0x8888,   // X   X   X   X   
+						0x1111,   //    X   X   X   X
+						0x2222,   //   X   X   X   X 
+						0x4444}));//  X   X   X   X  
 
-		// pseudo metal-6
+		/** pseudo metal-6 */
 		Layer pseudoMetal6_lay = Layer.newInstance("Pseudo-Metal-6",
 			new EGraphics(EGraphics.LAYERO, EGraphics.CYAN, EGraphics.PATTERNED, EGraphics.PATTERNED, 0,255,255,0.3,1,
-			new int[] { 0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111,   /*    X   X   X   X */
-						0x8888,   /* X   X   X   X    */
-						0x4444,   /*  X   X   X   X   */
-						0x2222,   /*   X   X   X   X  */
-						0x1111}));/*    X   X   X   X */
+			new int[] { 0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111}));//    X   X   X   X
 
-		// pseudo poly layer
+		/** pseudo poly layer */
 		Layer pseudoPoly1_lay = Layer.newInstance("Pseudo-Polysilicon",
 			new EGraphics(EGraphics.LAYERT2, EGraphics.COLORT2, EGraphics.SOLIDC, EGraphics.PATTERNED, 255,155,192,1.0,1,
-			new int[] { 0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555,   /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */ 
-						0x1111,  /*  X X X X X X X X */
-						0x1111,   /*    X   X   X   X */
-						0xFFFF,   /* XXXXXXXXXXXXXXXX */
-						0x1111,   /*    X   X   X   X */
-						0x5555}));/*  X X X X X X X X */
+			new int[] { 0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX 
+						0x1111,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0xFFFF,   // XXXXXXXXXXXXXXXX
+						0x1111,   //    X   X   X   X
+						0x5555}));//  X X X X X X X X
 
-		// pseudo poly2 layer
+		/** pseudo poly2 layer */
 		Layer pseudoPoly2_lay = Layer.newInstance("Pseudo-Electrode",
 			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.PATTERNED, EGraphics.PATTERNED, 255,190,6,1.0,1,
-			new int[] { 0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888,   /* X   X   X   X    */
-						0xAFAF,   /* X X XXXXX X XXXX */
-						0x8888,   /* X   X   X   X    */
-						0xFAFA,   /* XXXXX X XXXXX X  */
-						0x8888}));/* X   X   X   X    */
+			new int[] { 0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888,   // X   X   X   X   
+						0xAFAF,   // X X XXXXX X XXXX
+						0x8888,   // X   X   X   X   
+						0xFAFA,   // XXXXX X XXXXX X 
+						0x8888}));// X   X   X   X   
 
-		// pseudo P active
+		/** pseudo P active */
 		Layer pseudoPActive_lay = Layer.newInstance("Pseudo-P-Active",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,1.0,1,
-			new int[] { 0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030,   /*   XX      XX     */
-						0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030}));/*   XX      XX     */
+			new int[] { 0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030,   //   XX      XX    
+						0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030}));//   XX      XX    
 
-		// pseudo N active
+		/** pseudo N active */
 		Layer pseudoNActive_lay = Layer.newInstance("Pseudo-N-Active",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,1.0,1,
-			new int[] { 0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030,   /*   XX      XX     */
-						0x0000,   /*                  */
-						0x0303,   /*       XX      XX */
-						0x4848,   /*  X  X    X  X    */
-						0x0303,   /*       XX      XX */
-						0x0000,   /*                  */
-						0x3030,   /*   XX      XX     */
-						0x8484,   /* X    X  X    X   */
-						0x3030}));/*   XX      XX     */
+			new int[] { 0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030,   //   XX      XX    
+						0x0000,   //                 
+						0x0303,   //       XX      XX
+						0x4848,   //  X  X    X  X   
+						0x0303,   //       XX      XX
+						0x0000,   //                 
+						0x3030,   //   XX      XX    
+						0x8484,   // X    X  X    X  
+						0x3030}));//   XX      XX    
 
-		// pseudo P Select
+		/** pseudo P Select */
 		Layer pseudoPSelect_lay = Layer.newInstance("Pseudo-P-Select",
 			new EGraphics(EGraphics.LAYERO, EGraphics.YELLOW,EGraphics.PATTERNED, EGraphics.PATTERNED, 255,255,0,1.0,0,
-			new int[] { 0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808,   /*     X       X    */
-						0x1010,   /*    X       X     */
-						0x2020,   /*   X       X      */
-						0x4040,   /*  X       X       */
-						0x8080,   /* X       X        */
-						0x0101,   /*        X       X */
-						0x0202,   /*       X       X  */
-						0x0404,   /*      X       X   */
-						0x0808}));/*     X       X    */
+			new int[] { 0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808,   //     X       X   
+						0x1010,   //    X       X    
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0404,   //      X       X  
+						0x0808}));//     X       X   
 
-		// pseudo N Select
+		/** pseudo N Select */
 		Layer pseudoNSelect_lay = Layer.newInstance("Pseudo-N-Select",
 			new EGraphics(EGraphics.LAYERO, EGraphics.YELLOW,EGraphics.PATTERNED, EGraphics.PATTERNED, 255,255,0,1.0,0,
-			new int[] { 0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000,   /*                  */
-						0x0101,   /*        X       X */
-						0x0000,   /*                  */
-						0x1010,   /*    X       X     */
-						0x0000}));/*                  */
+			new int[] { 0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000,   //                 
+						0x0101,   //        X       X
+						0x0000,   //                 
+						0x1010,   //    X       X    
+						0x0000}));//                 
 
-		// pseudo P Well
+		/** pseudo P Well */
 		Layer pseudoPWell_lay = Layer.newInstance("Pseudo-P-Well",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BROWN, EGraphics.PATTERNED, EGraphics.PATTERNED, 139,99,46,1.0,0,
-			new int[] { 0x0202,   /*       X       X  */
-						0x0101,   /*        X       X */
-						0x8080,   /* X       X        */
-						0x4040,   /*  X       X       */
-						0x2020,   /*   X       X      */
-						0x1010,   /*    X       X     */
-						0x0808,   /*     X       X    */
-						0x0404,   /*      X       X   */
-						0x0202,   /*       X       X  */
-						0x0101,   /*        X       X */
-						0x8080,   /* X       X        */
-						0x4040,   /*  X       X       */
-						0x2020,   /*   X       X      */
-						0x1010,   /*    X       X     */
-						0x0808,   /*     X       X    */
-						0x0404}));/*      X       X   */
+			new int[] { 0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020,   //   X       X     
+						0x1010,   //    X       X    
+						0x0808,   //     X       X   
+						0x0404,   //      X       X  
+						0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020,   //   X       X     
+						0x1010,   //    X       X    
+						0x0808,   //     X       X   
+						0x0404}));//      X       X  
 
-		// pseudo N Well
+		/** pseudo N Well */
 		Layer pseudoNWell_lay = Layer.newInstance("Pseudo-N-Well",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BROWN, EGraphics.PATTERNED, EGraphics.PATTERNED, 139,99,46,1.0,0,
-			new int[] { 0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000,   /*                  */
-						0x0202,   /*       X       X  */
-						0x0000,   /*                  */
-						0x2020,   /*   X       X      */
-						0x0000}));/*                  */
+			new int[] { 0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000,   //                 
+						0x0202,   //       X       X 
+						0x0000,   //                 
+						0x2020,   //   X       X     
+						0x0000}));//                 
 
-		// pad frame
+		/** pad frame */
 		Layer padFrame_lay = Layer.newInstance("Pad-Frame",
 			new EGraphics(EGraphics.LAYERO, EGraphics.RED, EGraphics.SOLIDC, EGraphics.PATTERNED, 255,0,0,1.0,0,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -1360,123 +1415,123 @@ public class TecMoCMOS extends Technology
 
 		//**************************************** ARCS ****************************************
 
-		/* metal 1 arc */
-		ArcProto metal1_arc = ArcProto.newInstance(this, "Metal-1", 3.0, new Technology.ArcLayer []
+		/** metal 1 arc */
+		PrimitiveArc metal1_arc = PrimitiveArc.newInstance(this, "Metal-1", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal1_lay, 0, Poly.Type.FILLED)
 		});
-		metal1_arc.setFunction(ArcProto.Function.METAL1);
+		metal1_arc.setFunction(PrimitiveArc.Function.METAL1);
 		metal1_arc.setFixedAngle();
 		metal1_arc.setWipable();
 		metal1_arc.setAngleIncrement(90);
 
-		/* metal 2 arc */
-		ArcProto metal2_arc = ArcProto.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
+		/** metal 2 arc */
+		PrimitiveArc metal2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal2_lay, 0, Poly.Type.FILLED)
 		});
-		metal2_arc.setFunction(ArcProto.Function.METAL2);
+		metal2_arc.setFunction(PrimitiveArc.Function.METAL2);
 		metal2_arc.setFixedAngle();
 		metal2_arc.setWipable();
 		metal2_arc.setAngleIncrement(90);
 
-		/* metal 3 arc */
-		ArcProto metal3_arc = ArcProto.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
+		/** metal 3 arc */
+		PrimitiveArc metal3_arc = PrimitiveArc.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal3_lay, 0, Poly.Type.FILLED)
 		});
-		metal3_arc.setFunction(ArcProto.Function.METAL3);
+		metal3_arc.setFunction(PrimitiveArc.Function.METAL3);
 		metal3_arc.setFixedAngle();
 		metal3_arc.setWipable();
 		metal3_arc.setAngleIncrement(90);
 
-		/* metal 4 arc */
-		ArcProto metal4_arc = ArcProto.newInstance(this, "Metal-4", 3.0, new Technology.ArcLayer []
+		/** metal 4 arc */
+		PrimitiveArc metal4_arc = PrimitiveArc.newInstance(this, "Metal-4", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal4_lay, 0, Poly.Type.FILLED)
 		});
-		metal4_arc.setFunction(ArcProto.Function.METAL4);
+		metal4_arc.setFunction(PrimitiveArc.Function.METAL4);
 		metal4_arc.setFixedAngle();
 		metal4_arc.setWipable();
 		metal4_arc.setAngleIncrement(90);
 
-		/* metal 5 arc */
-		ArcProto metal5_arc = ArcProto.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
+		/** metal 5 arc */
+		PrimitiveArc metal5_arc = PrimitiveArc.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal5_lay, 0, Poly.Type.FILLED)
 		});
-		metal5_arc.setFunction(ArcProto.Function.METAL5);
+		metal5_arc.setFunction(PrimitiveArc.Function.METAL5);
 		metal5_arc.setFixedAngle();
 		metal5_arc.setWipable();
 		metal5_arc.setAngleIncrement(90);
 
-		/* metal 6 arc */
-		ArcProto metal6_arc = ArcProto.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
+		/** metal 6 arc */
+		PrimitiveArc metal6_arc = PrimitiveArc.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal6_lay, 0, Poly.Type.FILLED)
 		});
-		metal6_arc.setFunction(ArcProto.Function.METAL6);
+		metal6_arc.setFunction(PrimitiveArc.Function.METAL6);
 		metal6_arc.setFixedAngle();
 		metal6_arc.setWipable();
 		metal6_arc.setAngleIncrement(90);
 
-		/* polysilicon 1 arc */
-		ArcProto poly1_arc = ArcProto.newInstance(this, "Polysilicon-1", 2.0, new Technology.ArcLayer []
+		/** polysilicon 1 arc */
+		PrimitiveArc poly1_arc = PrimitiveArc.newInstance(this, "Polysilicon-1", 2.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(poly1_lay, 0, Poly.Type.FILLED)
 		});
-		poly1_arc.setFunction(ArcProto.Function.POLY1);
+		poly1_arc.setFunction(PrimitiveArc.Function.POLY1);
 		poly1_arc.setFixedAngle();
 		poly1_arc.setWipable();
 		poly1_arc.setAngleIncrement(90);
 
-		/* polysilicon 2 arc */
-		ArcProto poly2_arc = ArcProto.newInstance(this, "Polysilicon-2", 7.0, new Technology.ArcLayer []
+		/** polysilicon 2 arc */
+		PrimitiveArc poly2_arc = PrimitiveArc.newInstance(this, "Polysilicon-2", 7.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(poly2_lay, 0, Poly.Type.FILLED)
 		});
-		poly2_arc.setFunction(ArcProto.Function.POLY2);
+		poly2_arc.setFunction(PrimitiveArc.Function.POLY2);
 		poly2_arc.setFixedAngle();
 		poly2_arc.setWipable();
 		poly2_arc.setAngleIncrement(90);
 
-		/* P-active arc */
-		ArcProto pActive_arc = ArcProto.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
+		/** P-active arc */
+		PrimitiveArc pActive_arc = PrimitiveArc.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(pActive_lay, 0, Poly.Type.FILLED)
 		});
-		pActive_arc.setFunction(ArcProto.Function.DIFFP);
+		pActive_arc.setFunction(PrimitiveArc.Function.DIFFP);
 		pActive_arc.setFixedAngle();
 		pActive_arc.setWipable();
 		pActive_arc.setAngleIncrement(90);
 		pActive_arc.setWidthOffset(12.0);
 
-		/* N-active arc */
-		ArcProto nActive_arc = ArcProto.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
+		/** N-active arc */
+		PrimitiveArc nActive_arc = PrimitiveArc.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(nActive_lay, 0, Poly.Type.FILLED)
 		});
-		nActive_arc.setFunction(ArcProto.Function.DIFFN);
+		nActive_arc.setFunction(PrimitiveArc.Function.DIFFN);
 		nActive_arc.setFixedAngle();
 		nActive_arc.setWipable();
 		nActive_arc.setAngleIncrement(90);
 		nActive_arc.setWidthOffset(12.0);
 
-		/* General active arc */
-		ArcProto active_arc = ArcProto.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
+		/** General active arc */
+		PrimitiveArc active_arc = PrimitiveArc.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(pActive_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(nActive_lay, 0, Poly.Type.FILLED)
 		});
-		active_arc.setFunction(ArcProto.Function.DIFF);
+		active_arc.setFunction(PrimitiveArc.Function.DIFF);
 		active_arc.setFixedAngle();
 		active_arc.setWipable();
 		active_arc.setAngleIncrement(90);
 
 		//**************************************** NODES ****************************************
 
-		/* metal-1-pin */
-		PrimitiveNode metal1Pin_node = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-1-pin */
+		metal1Pin_node = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1490,8 +1545,8 @@ public class TecMoCMOS extends Technology
 		metal1Pin_node.setArcsWipe();
 		metal1Pin_node.setArcsShrink();
 
-		// metal-2-pin
-		PrimitiveNode metal2Pin_node = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-2-pin */
+		metal2Pin_node = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1505,8 +1560,8 @@ public class TecMoCMOS extends Technology
 		metal2Pin_node.setArcsWipe();
 		metal2Pin_node.setArcsShrink();
 
-		// metal-3-pin
-		PrimitiveNode metal3Pin_node = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-3-pin */
+		metal3Pin_node = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal3_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1520,8 +1575,8 @@ public class TecMoCMOS extends Technology
 		metal3Pin_node.setArcsWipe();
 		metal3Pin_node.setArcsShrink();
 
-		// metal-4-pin
-		PrimitiveNode metal4Pin_node = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-4-pin */
+		metal4Pin_node = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal4_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1535,8 +1590,8 @@ public class TecMoCMOS extends Technology
 		metal4Pin_node.setArcsWipe();
 		metal4Pin_node.setArcsShrink();
 
-		// metal-5-pin
-		PrimitiveNode metal5Pin_node = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-5-pin */
+		metal5Pin_node = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal5_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1551,8 +1606,8 @@ public class TecMoCMOS extends Technology
 		metal5Pin_node.setArcsShrink();
 		metal5Pin_node.setNotUsed();
 
-		// metal-6-pin
-		PrimitiveNode metal6Pin_node = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** metal-6-pin */
+		metal6Pin_node = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal6_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1567,8 +1622,8 @@ public class TecMoCMOS extends Technology
 		metal6Pin_node.setArcsShrink();
 		metal6Pin_node.setNotUsed();
 
-		// polysilicon-1-pin
-		PrimitiveNode poly1Pin_node = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, 0.0, 0.0,
+		/** polysilicon-1-pin */
+		poly1Pin_node = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoPoly1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1582,8 +1637,8 @@ public class TecMoCMOS extends Technology
 		poly1Pin_node.setArcsWipe();
 		poly1Pin_node.setArcsShrink();
 
-		// polysilicon-2-pin
-		PrimitiveNode poly2Pin_node = PrimitiveNode.newInstance("Polysilicon-2-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** polysilicon-2-pin */
+		poly2Pin_node = PrimitiveNode.newInstance("Polysilicon-2-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoPoly2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -1597,8 +1652,8 @@ public class TecMoCMOS extends Technology
 		poly2Pin_node.setArcsWipe();
 		poly2Pin_node.setArcsShrink();
 
-		// P-active-pin
-		PrimitiveNode pActivePin_node = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, 12.0, 12.0,
+		/** P-active-pin */
+		pActivePin_node = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoPActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX),
@@ -1614,8 +1669,8 @@ public class TecMoCMOS extends Technology
 		pActivePin_node.setArcsWipe();
 		pActivePin_node.setArcsShrink();
 
-		// N-active-pin
-		PrimitiveNode nActivePin_node = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, 12.0, 12.0,
+		/** N-active-pin */
+		nActivePin_node = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoNActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX),
@@ -1631,8 +1686,8 @@ public class TecMoCMOS extends Technology
 		nActivePin_node.setArcsWipe();
 		nActivePin_node.setArcsShrink();
 
-		// General active-pin
-		PrimitiveNode activePin_node = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, 0.0, 0.0,
+		/** General active-pin */
+		activePin_node = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoPActive_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
@@ -1647,8 +1702,8 @@ public class TecMoCMOS extends Technology
 		activePin_node.setArcsWipe();
 		activePin_node.setArcsShrink();
 
-		// metal-1-P-active-contact
-		PrimitiveNode metal1PActiveContact_node = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, 12.0, 12.0,
+		/** metal-1-P-active-contact */
+		metal1PActiveContact_node = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1669,8 +1724,8 @@ public class TecMoCMOS extends Technology
 		metal1PActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1PActiveContact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)1.5, 3, 0, 0, 0, 0});
 
-		// metal-1-N-active-contact
-		PrimitiveNode metal1NActiveContact_node = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17.0, 17.0, 12.0, 12.0,
+		/** metal-1-N-active-contact */
+		metal1NActiveContact_node = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17.0, 17.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1691,8 +1746,8 @@ public class TecMoCMOS extends Technology
 		metal1NActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1NActiveContact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)1.5, 3, 0, 0, 0, 0});
 
-		// metal-1-polysilicon-1-contact
-		PrimitiveNode metal1Poly1Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-Con", this, 5.0, 5.0, 0.0, 0.0,
+		/** metal-1-polysilicon-1-contact */
+		metal1Poly1Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-Con", this, 5.0, 5.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1711,8 +1766,8 @@ public class TecMoCMOS extends Technology
 		metal1Poly1Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly1Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)1.5, 3, 0, 0, 0, 0});
 
-		// metal-1-polysilicon-2-contact
-		PrimitiveNode metal1Poly2Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-2-Con", this, 10.0, 10.0, 0.0, 0.0,
+		/** metal-1-polysilicon-2-contact */
+		metal1Poly2Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-2-Con", this, 10.0, 10.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX),
@@ -1727,8 +1782,8 @@ public class TecMoCMOS extends Technology
 		metal1Poly2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly2Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 4, 3, 0, 0, 0, 0});
 
-		// metal-1-polysilicon-1-2-contact
-		PrimitiveNode metal1Poly12Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-2-Con", this, 15.0, 15.0, 0.0, 0.0,
+		/** metal-1-polysilicon-1-2-contact */
+		metal1Poly12Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-2-Con", this, 15.0, 15.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1748,8 +1803,8 @@ public class TecMoCMOS extends Technology
 		metal1Poly12Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly12Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)6.5, 3, 0, 0, 0, 0});
 
-		// P-Transistor
-		PrimitiveNode pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, 12.0, 20.0,
+		/** P-Transistor */
+		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, 12.0, 20.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1781,8 +1836,8 @@ public class TecMoCMOS extends Technology
 		pTransistor_node.setShrunk();
 		pTransistor_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 7, (int)1.5, (int)2.5, 2, 1, 2, 0, 0});
 
-		// N-Transistor
-		PrimitiveNode nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, 12.0, 20.0,
+		/** N-Transistor */
+		nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, 12.0, 20.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1814,8 +1869,8 @@ public class TecMoCMOS extends Technology
 		nTransistor_node.setShrunk();
 		nTransistor_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 7, (int)1.5, (int)2.5, 2, 1, 2, 0, 0});
 
-		// Scalable-P-Transistor
-		PrimitiveNode scalablePTransistor_node = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, 14.0, 24.0,
+		/** Scalable-P-Transistor */
+		scalablePTransistor_node = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, 14.0, 24.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1859,8 +1914,8 @@ public class TecMoCMOS extends Technology
 		scalablePTransistor_node.setFunction(NodeProto.Function.TRAPMOS);
 		scalablePTransistor_node.setShrunk();
 
-		// Scalable-N-Transistor
-		PrimitiveNode scalableNTransistor_node = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, 14.0, 24.0,
+		/** Scalable-N-Transistor */
+		scalableNTransistor_node = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, 14.0, 24.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1904,8 +1959,8 @@ public class TecMoCMOS extends Technology
 		scalableNTransistor_node.setFunction(NodeProto.Function.TRANMOS);
 		scalableNTransistor_node.setShrunk();
 
-		// metal-1-metal-2-contact
-		PrimitiveNode metal1Metal2Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, 1.0, 1.0,
+		/** metal-1-metal-2-contact */
+		metal1Metal2Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, 1.0, 1.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX),
@@ -1920,8 +1975,8 @@ public class TecMoCMOS extends Technology
 		metal1Metal2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Metal2Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 1, 3, 0, 0, 0, 0});
 
-		// metal-2-metal-3-contact
-		PrimitiveNode metal2Metal3Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 6.0, 6.0, 2, 2,
+		/** metal-2-metal-3-contact */
+		metal2Metal3Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 6.0, 6.0, 2, 2,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal2_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
@@ -1936,8 +1991,8 @@ public class TecMoCMOS extends Technology
 		metal2Metal3Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal2Metal3Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 1, 3, 0, 0, 0, 0});
 
-		// metal-3-metal-4-contact
-		PrimitiveNode metal3Metal4Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 6.0, 6.0, 0.0, 0.0,
+		/** metal-3-metal-4-contact */
+		metal3Metal4Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 6.0, 6.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal3_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
@@ -1952,8 +2007,8 @@ public class TecMoCMOS extends Technology
 		metal3Metal4Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal3Metal4Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 2, 3, 0, 0, 0, 0});
 
-		// metal-4-metal-5-contact
-		PrimitiveNode metal4Metal5Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 7.0, 7.0, 3.0, 3.0,
+		/** metal-4-metal-5-contact */
+		metal4Metal5Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 7.0, 7.0, 3.0, 3.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal4_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN1HBOX),
@@ -1969,8 +2024,8 @@ public class TecMoCMOS extends Technology
 		metal4Metal5Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 1, 3, 0, 0, 0, 0});
 		metal4Metal5Contact_node.setNotUsed();
 
-		// metal-5-metal-6-contact
-		PrimitiveNode metal5Metal6Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 8.0, 8.0, 2.0, 2.0,
+		/** metal-5-metal-6-contact */
+		metal5Metal6Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 8.0, 8.0, 2.0, 2.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal5_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
@@ -1986,8 +2041,8 @@ public class TecMoCMOS extends Technology
 		metal5Metal6Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 3, 3, 2, 4, 0, 0, 0, 0});
 		metal5Metal6Contact_node.setNotUsed();
 
-		// Metal-1-P-Well Contact
-		PrimitiveNode metal1PWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, 12.0, 12.0,
+		/** Metal-1-P-Well Contact */
+		metal1PWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN6HBOX),
@@ -2004,8 +2059,8 @@ public class TecMoCMOS extends Technology
 		metal1PWellContact_node.setFunction(NodeProto.Function.WELL);
 		metal1PWellContact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)1.5, 3, 0, 0, 0, 0});
 
-		// Metal-1-N-Well Contact
-		PrimitiveNode metal1NWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, 12.0, 12.0,
+		/** Metal-1-N-Well Contact */
+		metal1NWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, 12.0, 12.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.IN6HBOX),
@@ -2022,8 +2077,8 @@ public class TecMoCMOS extends Technology
 		metal1NWellContact_node.setFunction(NodeProto.Function.SUBSTRATE);
 		metal1NWellContact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)1.5, 3, 0, 0, 0, 0});
 
-		// Metal-1-Node
-		PrimitiveNode metal1Node_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-1-Node */
+		metal1Node_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2037,8 +2092,8 @@ public class TecMoCMOS extends Technology
 		metal1Node_node.setHoldsOutline();
 		metal1Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Metal-2-Node
-		PrimitiveNode metal2Node_node = PrimitiveNode.newInstance("Metal-2-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-2-Node */
+		metal2Node_node = PrimitiveNode.newInstance("Metal-2-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal2_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2052,8 +2107,8 @@ public class TecMoCMOS extends Technology
 		metal2Node_node.setHoldsOutline();
 		metal2Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Metal-3-Node
-		PrimitiveNode metal3Node_node = PrimitiveNode.newInstance("Metal-3-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-3-Node */
+		metal3Node_node = PrimitiveNode.newInstance("Metal-3-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal3_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2067,8 +2122,8 @@ public class TecMoCMOS extends Technology
 		metal3Node_node.setHoldsOutline();
 		metal3Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Metal-4-Node
-		PrimitiveNode metal4Node_node = PrimitiveNode.newInstance("Metal-4-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-4-Node */
+		metal4Node_node = PrimitiveNode.newInstance("Metal-4-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal4_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2082,8 +2137,8 @@ public class TecMoCMOS extends Technology
 		metal4Node_node.setHoldsOutline();
 		metal4Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Metal-5-Node
-		PrimitiveNode metal5Node_node = PrimitiveNode.newInstance("Metal-5-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-5-Node */
+		metal5Node_node = PrimitiveNode.newInstance("Metal-5-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal5_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2098,8 +2153,8 @@ public class TecMoCMOS extends Technology
 		metal5Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 		metal5Node_node.setNotUsed();
 
-		// Metal-6-Node
-		PrimitiveNode metal6Node_node = PrimitiveNode.newInstance("Metal-6-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Metal-6-Node */
+		metal6Node_node = PrimitiveNode.newInstance("Metal-6-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal6_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2114,8 +2169,8 @@ public class TecMoCMOS extends Technology
 		metal6Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 		metal6Node_node.setNotUsed();
 
-		// Polysilicon-1-Node
-		PrimitiveNode poly1Node_node = PrimitiveNode.newInstance("Polysilicon-1-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Polysilicon-1-Node */
+		poly1Node_node = PrimitiveNode.newInstance("Polysilicon-1-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2129,8 +2184,8 @@ public class TecMoCMOS extends Technology
 		poly1Node_node.setHoldsOutline();
 		poly1Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Polysilicon-2-Node
-		PrimitiveNode poly2Node_node = PrimitiveNode.newInstance("Polysilicon-2-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** Polysilicon-2-Node */
+		poly2Node_node = PrimitiveNode.newInstance("Polysilicon-2-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(poly2_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2144,8 +2199,8 @@ public class TecMoCMOS extends Technology
 		poly2Node_node.setHoldsOutline();
 		poly2Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// P-Active-Node
-		PrimitiveNode pActiveNode_node = PrimitiveNode.newInstance("P-Active-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** P-Active-Node */
+		pActiveNode_node = PrimitiveNode.newInstance("P-Active-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pActive_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2159,8 +2214,8 @@ public class TecMoCMOS extends Technology
 		pActiveNode_node.setHoldsOutline();
 		pActiveNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// N-Active-Node
-		PrimitiveNode nActiveNode_node = PrimitiveNode.newInstance("N-Active-Node", this, 3.0, 3.0, 0.0, 0.0,
+		/** N-Active-Node */
+		nActiveNode_node = PrimitiveNode.newInstance("N-Active-Node", this, 3.0, 3.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nActive_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2174,8 +2229,8 @@ public class TecMoCMOS extends Technology
 		nActiveNode_node.setHoldsOutline();
 		nActiveNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// P-Select-Node
-		PrimitiveNode pSelectNode_node = PrimitiveNode.newInstance("P-Select-Node", this, 4.0, 4.0, 0.0, 0.0,
+		/** P-Select-Node */
+		pSelectNode_node = PrimitiveNode.newInstance("P-Select-Node", this, 4.0, 4.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pSelect_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2189,8 +2244,8 @@ public class TecMoCMOS extends Technology
 		pSelectNode_node.setHoldsOutline();
 		pSelectNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// N-Select-Node
-		PrimitiveNode nSelectNode_node = PrimitiveNode.newInstance("N-Select-Node", this, 4.0, 4.0, 0.0, 0.0,
+		/** N-Select-Node */
+		nSelectNode_node = PrimitiveNode.newInstance("N-Select-Node", this, 4.0, 4.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nSelect_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2204,8 +2259,8 @@ public class TecMoCMOS extends Technology
 		nSelectNode_node.setHoldsOutline();
 		nSelectNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// PolyCut-Node
-		PrimitiveNode polyCutNode_node = PrimitiveNode.newInstance("Poly-Cut-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** PolyCut-Node */
+		polyCutNode_node = PrimitiveNode.newInstance("Poly-Cut-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(polyCut_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2219,8 +2274,8 @@ public class TecMoCMOS extends Technology
 		polyCutNode_node.setHoldsOutline();
 		polyCutNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// ActiveCut-Node
-		PrimitiveNode activeCutNode_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** ActiveCut-Node */
+		activeCutNode_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2234,8 +2289,8 @@ public class TecMoCMOS extends Technology
 		activeCutNode_node.setHoldsOutline();
 		activeCutNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Via-1-Node
-		PrimitiveNode via1Node_node = PrimitiveNode.newInstance("Via-1-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Via-1-Node */
+		via1Node_node = PrimitiveNode.newInstance("Via-1-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(via1_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2249,8 +2304,8 @@ public class TecMoCMOS extends Technology
 		via1Node_node.setHoldsOutline();
 		via1Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Via-2-Node
-		PrimitiveNode via2Node_node = PrimitiveNode.newInstance("Via-2-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Via-2-Node */
+		via2Node_node = PrimitiveNode.newInstance("Via-2-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(via2_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2264,8 +2319,8 @@ public class TecMoCMOS extends Technology
 		via2Node_node.setHoldsOutline();
 		via2Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Via-3-Node
-		PrimitiveNode via3Node_node = PrimitiveNode.newInstance("Via-3-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Via-3-Node */
+		via3Node_node = PrimitiveNode.newInstance("Via-3-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(via3_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2279,8 +2334,8 @@ public class TecMoCMOS extends Technology
 		via3Node_node.setHoldsOutline();
 		via3Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Via-4-Node
-		PrimitiveNode via4Node_node = PrimitiveNode.newInstance("Via-4-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Via-4-Node */
+		via4Node_node = PrimitiveNode.newInstance("Via-4-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(via4_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2295,8 +2350,8 @@ public class TecMoCMOS extends Technology
 		via4Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 		via4Node_node.setNotUsed();
 
-		// Via-5-Node
-		PrimitiveNode via5Node_node = PrimitiveNode.newInstance("Via-5-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Via-5-Node */
+		via5Node_node = PrimitiveNode.newInstance("Via-5-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(via5_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2311,8 +2366,8 @@ public class TecMoCMOS extends Technology
 		via5Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 		via5Node_node.setNotUsed();
 
-		// P-Well-Node
-		PrimitiveNode pWellNode_node = PrimitiveNode.newInstance("P-Well-Node", this, 12.0, 12.0, 0.0, 0.0,
+		/** P-Well-Node */
+		pWellNode_node = PrimitiveNode.newInstance("P-Well-Node", this, 12.0, 12.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pWell_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2326,8 +2381,8 @@ public class TecMoCMOS extends Technology
 		pWellNode_node.setHoldsOutline();
 		pWellNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// N-Well-Node
-		PrimitiveNode nWellNode_node = PrimitiveNode.newInstance("N-Well-Node", this, 12.0, 12.0, 0.0, 0.0,
+		/** N-Well-Node */
+		nWellNode_node = PrimitiveNode.newInstance("N-Well-Node", this, 12.0, 12.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nWell_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2341,8 +2396,8 @@ public class TecMoCMOS extends Technology
 		nWellNode_node.setHoldsOutline();
 		nWellNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Passivation-Node
-		PrimitiveNode passivationNode_node = PrimitiveNode.newInstance("Passivation-Node", this, 8.0, 8.0, 0.0, 0.0,
+		/** Passivation-Node */
+		passivationNode_node = PrimitiveNode.newInstance("Passivation-Node", this, 8.0, 8.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nWell_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2356,8 +2411,8 @@ public class TecMoCMOS extends Technology
 		passivationNode_node.setHoldsOutline();
 		passivationNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Pad-Frame-Node
-		PrimitiveNode padFrameNode_node = PrimitiveNode.newInstance("Passivation-Node", this, 8.0, 8.0, 0.0, 0.0,
+		/** Pad-Frame-Node */
+		padFrameNode_node = PrimitiveNode.newInstance("Passivation-Node", this, 8.0, 8.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(padFrame_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2371,8 +2426,8 @@ public class TecMoCMOS extends Technology
 		padFrameNode_node.setHoldsOutline();
 		padFrameNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Poly-Cap-Node
-		PrimitiveNode polyCapNode_node = PrimitiveNode.newInstance("Poly-Cap-Node", this, 8.0, 8.0, 0.0, 0.0,
+		/** Poly-Cap-Node */
+		polyCapNode_node = PrimitiveNode.newInstance("Poly-Cap-Node", this, 8.0, 8.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(polyCap_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2386,8 +2441,8 @@ public class TecMoCMOS extends Technology
 		polyCapNode_node.setHoldsOutline();
 		polyCapNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// P-Active-Well-Node
-		PrimitiveNode pActiveWellNode_node = PrimitiveNode.newInstance("P-Active-Well-Node", this, 8.0, 8.0, 0.0, 0.0,
+		/** P-Active-Well-Node */
+		pActiveWellNode_node = PrimitiveNode.newInstance("P-Active-Well-Node", this, 8.0, 8.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pActiveWell_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2401,8 +2456,8 @@ public class TecMoCMOS extends Technology
 		pActiveWellNode_node.setHoldsOutline();
 		pActiveWellNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Polysilicon-1-Transistor-Node
-		PrimitiveNode polyTransistorNode_node = PrimitiveNode.newInstance("P-Active-Well-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Polysilicon-1-Transistor-Node */
+		polyTransistorNode_node = PrimitiveNode.newInstance("P-Active-Well-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2416,8 +2471,8 @@ public class TecMoCMOS extends Technology
 		polyTransistorNode_node.setHoldsOutline();
 		polyTransistorNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
 
-		// Silicide-Block-Node
-		PrimitiveNode silicideBlockNode_node = PrimitiveNode.newInstance("Silicide-Block-Node", this, 2.0, 2.0, 0.0, 0.0,
+		/** Silicide-Block-Node */
+		silicideBlockNode_node = PrimitiveNode.newInstance("Silicide-Block-Node", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -2430,6 +2485,16 @@ public class TecMoCMOS extends Technology
 		silicideBlockNode_node.setFunction(NodeProto.Function.NODE);
 		silicideBlockNode_node.setHoldsOutline();
 		silicideBlockNode_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
+	}
+
+	/*
+	 * Routine to convert old primitive names to their proper nodeprotos.
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+		if (name == "Metal-1-Substrate-Con") return(metal1NWellContact_node);
+		if (name == "Metal-1-Well-Con") return(metal1PWellContact_node);
+		return null;
 	}
 
 /* this tables must correspond with the above table (nodeprotos) */

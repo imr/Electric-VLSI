@@ -149,7 +149,7 @@ public class Library extends ElectricObject
 		}
 
 		// remove all cells in the library
-		removeAll(cells);
+//		removeAll(cells);
 
 		// remove it from the list of libraries
 		libraries.remove(this);
@@ -164,6 +164,11 @@ public class Library extends ElectricObject
 	 * Set the current Library
 	 */
 	public static void setCurrent(Library lib) { curLib = lib; }
+	
+	/**
+	 * Set the user bits for this Library
+	 */
+	public void lowLevelSetUserBits(int bits) { this.userBits = bits; }
 
 	/**
 	 * Check all currently loaded Libraries for one named <code>libName</code>.
@@ -211,10 +216,12 @@ public class Library extends ElectricObject
 	 * Get the cell that is currently being edited in this library,
 	 * or NULL if there is no such cell.
 	 */
-	public Cell getCurCell()
-	{
-		return curCell;
-	}
+	public Cell getCurCell() { return curCell; }
+
+	/**
+	 * Set the cell that is currently being edited in this library.
+	 */
+	public void setCurCell(Cell curCell) { this.curCell = curCell; }
 
 	/**
 	 * Get the cell from this library that has a particular name.  The

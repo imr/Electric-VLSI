@@ -3,6 +3,7 @@ package com.sun.electric.database.prototype;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Rectangle;
@@ -13,7 +14,7 @@ import java.util.Iterator;
  * The ArcProto class contains basic information about an arc type.
  * There is only one ArcProto object for each type of wire or arc.
  */
-public class ArcProto extends ElectricObject
+public abstract class ArcProto extends ElectricObject
 {
 	/**
 	 * ArcProto.Function is a typesafe enum class that describes the function of an arcproto.
@@ -54,13 +55,12 @@ public class ArcProto extends ElectricObject
 
 	// ----------------------- private data -------------------------------
 
-	/** Name of this prototype */						private String protoName;
-	/** Default width of this wire */					private double defaultWidth;
-	/** Width of other the material */					private double widthOffset;
-	/** Technology of this type of arc */				private Technology tech;
+	/** Name of this prototype */						protected String protoName;
+	/** Technology of this type of arc */				protected Technology tech;
+	/** Default width of this wire */					protected double defaultWidth;
+	/** Width of other the material */					protected double widthOffset;
 	/** Flags for this arc */							private int userBits;
 	/** function of this arc */							private Function function;
-	/** Layers in this arc */							private Technology.ArcLayer [] layers;
 
 	// the meaning of the "userBits" field:
 	/** these arcs are fixed-length */					private static final int WANTFIX=            01;
@@ -79,64 +79,19 @@ public class ArcProto extends ElectricObject
 
 	// ----------------- protected and private methods -------------------------
 
-	private ArcProto(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
+	protected ArcProto()
 	{
-		this.protoName = protoName;
-		this.defaultWidth = defaultWidth;
-		this.widthOffset = 0;
-		this.tech = tech;
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
-		this.layers = layers;
 	}
 
 	// ------------------------ public methods -------------------------------
-
-	public static ArcProto newInstance(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
-	{
-		// check the arguments
-		if (tech.findArcProto(protoName) != null)
-		{
-			System.out.println("Technology " + tech.getTechName() + " has multiple arcs named " + protoName);
-			return null;
-		}
-		if (defaultWidth < 0.0)
-		{
-			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width");
-			return null;
-		}
-
-		ArcProto ap = new ArcProto(tech, protoName, defaultWidth, layers);
-		tech.addArcProto(ap);
-		return ap;
-	}
 
 	public String getProtoName() { return protoName; }
 
 	public Technology getTechnology() { return tech; }
 
-	public Technology.ArcLayer [] getLayers() { return layers; }
-
 	public double getDefaultWidth() { return defaultWidth; }
-
-	/**
-	 * Set the default width of this type of arc.
-	 */
-	public void setWidthOffset(double widthOffset)
-	{
-		if (widthOffset < 0.0)
-		{
-			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width offset");
-			return;
-		}
-		this.widthOffset = widthOffset;
-	}
-	/** Get the default width of this type of arc.
-	 *
-	 * <p> Exclude the surrounding material. For example, diffusion arcs
-	 * are always accompanied by a surrounding well and select. However,
-	 * this call returns only the width of the diffusion. */
-	public double getWidthOffset() { return widthOffset; }
 
 	/** Get the default width of this type of arc.
 	 *
@@ -221,28 +176,21 @@ public class ArcProto extends ElectricObject
 	/** Get the arc angle increment */
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
 
-	/**
-	 * Find the PrimitiveNode pin corresponding to this ArcProto type.
-	 * For example, if this ArcProto is metal-1 then return the metal-1 pin.
-	 * @return the PrimitiveNode pin that matches, or null if there is no match
-	 */
-	public PrimitiveNode findPinProto()
+	public static ArcProto findArcProto(String line)
 	{
-		Iterator it = tech.getNodeIterator();
-		while (it.hasNext())
+		Technology tech = Technology.getCurrent();
+		int colon = line.indexOf(':');
+		String withoutPrefix;
+		if (colon == -1) withoutPrefix = line; else
 		{
-			PrimitiveNode pn = (PrimitiveNode) it.next();
-			if (pn.isPin())
-			{
-				PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
-				Iterator types = pp.getConnectionTypes();
-				while (types.hasNext())
-				{
-					if (types.next() == this)
-						return pn;
-				}
-			}
+			String prefix = line.substring(0, colon);
+			Technology t = Technology.findTechnology(prefix);
+			if (t != null) tech = t;
+			withoutPrefix = line.substring(colon+1);
 		}
+
+		PrimitiveArc ap = tech.findArcProto(withoutPrefix);
+		if (ap != null) return ap;
 		return null;
 	}
 
@@ -250,8 +198,12 @@ public class ArcProto extends ElectricObject
 	public String describe()
 	{
 		String description = "";
-		if (Technology.getCurrent() != tech)
-			description += tech.getTechName() + ":";
+		if (this instanceof PrimitiveArc)
+		{
+			Technology tech = ((PrimitiveArc)this).getTechnology();
+			if (Technology.getCurrent() != tech)
+				description += tech.getTechName() + ":";
+		}
 		description += protoName;
 		return description;
 	}

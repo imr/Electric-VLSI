@@ -7,6 +7,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -57,6 +58,7 @@ public class NodeInst extends Geometric
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
 	/** List of connections belonging to this instance */	private List connections;
 	/** List of Exports belonging to this node instance */	private List exports;
+	/** Text descriptor */									private TextDescriptor descriptor;
 
 	// --------------------- private and protected methods ---------------------
 	private NodeInst()
@@ -64,9 +66,10 @@ public class NodeInst extends Geometric
 		// initialize this object
 		this.userBits = 0;
 		this.textbits = 0;
-		portMap = new HashMap();
-		connections = new ArrayList();
-		exports = new ArrayList();
+		this.portMap = new HashMap();
+		this.connections = new ArrayList();
+		this.exports = new ArrayList();
+		this.descriptor = new TextDescriptor();
 	}
 
 	/** recalculate the transform on this arc to get the endpoints
@@ -82,6 +85,7 @@ public class NodeInst extends Geometric
 	public static NodeInst lowLevelAllocate()
 	{
 		NodeInst ni = new NodeInst();
+		ni.parent = null;
 		return ni;
 	}
 
@@ -89,9 +93,12 @@ public class NodeInst extends Geometric
 	 * Low-level routine to fill-in the NodeInst information.
 	 * Returns true on error.
 	 */
-	public boolean lowLevelPopulate(NodeProto prototype, Point2D.Double center, double width, double height,
-		double angle, Cell parent)
+	public boolean lowLevelPopulate(NodeProto prototype, Point2D.Double center, double width, double height, double angle,
+		Cell parent)
 	{
+		setParent(parent);
+		this.prototype = prototype;
+
 		// create all of the portInsts on this node inst
 		for (Iterator it = prototype.getPorts(); it.hasNext();)
 		{
@@ -99,7 +106,7 @@ public class NodeInst extends Geometric
 			PortInst pi = PortInst.newInstance(pp, this);
 			portMap.put(pp.getProtoName(), pi);
 		}
-		
+
 		// enumerate the port instances
 		int i = 0;
 		for(Iterator it = getPortInsts(); it.hasNext();)
@@ -108,8 +115,6 @@ public class NodeInst extends Geometric
 			pi.setIndex(i++);
 		}
 
-		setParent(parent);
-		this.prototype = prototype;
 		Point2D refPoint = parent.getReferencePoint();
 		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
 		this.sX = width;   this.sY = height;
@@ -335,6 +340,8 @@ public class NodeInst extends Geometric
 	/** Get the Locked bit */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
 	public AffineTransform transformOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
@@ -472,6 +479,12 @@ public class NodeInst extends Geometric
 		return prototype;
 	}
 
+	/** Get the Text Descriptor associated with this port. */
+	public TextDescriptor getTextDescriptor() { return descriptor; }
+
+	/** Get the Text Descriptor associated with this port. */
+	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+
 	/** Is there a label attached to this node inst? <br>
 	 * RKao I need to figure out what a "label" is. */
 	public boolean hasLabel()
@@ -482,17 +495,15 @@ public class NodeInst extends Geometric
 	/** Return the instance name. <p> If there is no name return null. */
 	public String getName()
 	{
-		Object val = getVar(VAR_INST_NAME);
-		error(
-			val != null && !(val instanceof String),
-			"NodeInst NODE_name variable isn't a string.");
-		return (String) val;
+		Variable var = getVal(VAR_INST_NAME);
+		if (var == null) return null;
+		return (String) var.getObject();
 	}
 
 	/** Set the instance name. */
 	public void setName(String val)
 	{
-		setVar(VAR_INST_NAME, val);
+		setVal(VAR_INST_NAME, val);
 	}
 
 	public String describe()

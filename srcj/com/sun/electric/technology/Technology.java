@@ -1,13 +1,16 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.TecGeneric;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -139,18 +142,21 @@ public class Technology extends ElectricObject
 
 	/** name of the technology */						private String techName;
 	/** full description of the technology */			private String techDesc;
+	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** list of primitive nodes in the technology */	private List nodes;
 	/** list of arcs in the technology */				private List arcs;
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
 	/* the current technology in Electric */			private static Technology curTech = null;
+	/* counter for enumerating technologies */			private static int techNumber = 0;
 
 	protected Technology()
 	{
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
-		scale = 1.0;
+		this.scale = 1.0;
+		this.techIndex = techNumber++;
 
 		// add the technology to the global list
 		technologies.add(this);
@@ -171,7 +177,7 @@ public class Technology extends ElectricObject
 		nodes.add(pn);
 	}
 
-	public void addArcProto(ArcProto ap)
+	public void addArcProto(PrimitiveArc ap)
 	{
 		arcs.add(ap);
 	}
@@ -220,6 +226,16 @@ public class Technology extends ElectricObject
 		if (scale != 0) this.scale = scale;
 	}
 
+	/**
+	 * get the 0-based index of this technology.
+	 */
+	public int getIndex() { return techIndex; }
+
+	public static int numTechnologies()
+	{
+		return technologies.size();
+	}
+
 	/** Find the Technology with a particular name.
 	 * @param name the name of the desired Technology
 	 * @return the Technology with the same name, or null if no 
@@ -234,6 +250,14 @@ public class Technology extends ElectricObject
 				return t;
 		}
 		return null;
+	}
+
+	/**
+	 * get an iterator over all of the PrimitiveNodes in this technology
+	 */
+	public static Iterator getTechnologyIterator()
+	{
+		return technologies.iterator();
 	}
 
 	/**
@@ -305,7 +329,7 @@ public class Technology extends ElectricObject
 	 */
 	public Poly [] getShape(ArcInst ai)
 	{
-		ArcProto ap = ai.getProto();
+		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
 		Technology.ArcLayer [] primLayers = ap.getLayers();
 
 		// get information about the arc
@@ -387,21 +411,240 @@ public class Technology extends ElectricObject
 		super.getInfo();
 	}
 
+	/*
+	 * Routine to convert old primitive node names to their proper nodeprotos.
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+//		if (tech == art_tech)
+//		{
+//			if (name == "Message" || name == "Centered-Message" ||
+//				name == "Left-Message" || name == "Right-Message") return gen_invispinprim;
+//			if (name == "Opened-FarDotted-Polygon") return art_openedthickerpolygonprim;
+//		}
+		return null;
+	}
+
+	/*
+	 * Routine to convert old primitive node names to their proper nodeprotos.
+	 */
+	public ArcProto convertOldArcName(String name)
+	{
+//		if (tech == art_tech)
+//		{
+//			if (name == "Dash-1") return art_dottedarc;
+//			if (name == "Dash-2") return art_dashedarc;
+//			if (name == "Dash-3") return art_thickerarc;
+//		}
+		return null;
+	}
+
+	/*
+	 * Routine to convert old primitive port names to their proper portprotos.
+	 */
+	public PrimitivePort convertOldPortName(String portName, PrimitiveNode np)
+	{
+//		if (np == sch_sourceprim || np == sch_meterprim)
+//		{
+//			if (portname == "top") return np->firstportproto;
+//			if (portname == "bottom") return np->firstportproto->nextportproto;
+//		}
+//		if (np == sch_twoportprim)
+//		{
+//			if (portname == "upperleft") return(np->firstportproto);
+//			if (portname == "lowerleft") return(np->firstportproto->nextportproto);
+//			if (portname == "upperright") return(np->firstportproto->nextportproto->nextportproto);
+//			if (portname == "lowerright") return(np->firstportproto->nextportproto->nextportproto->nextportproto);
+//		}
+
+		// some technologies switched from ports ending in "-bot" to the ending "-bottom"
+		int len = portName.length() - 4;
+		if (len > 0 && portName.substring(len) == "-bot")
+		{
+			PrimitivePort pp = (PrimitivePort)np.findPortProto(portName + "tom");
+			if (pp != null) return pp;
+		}
+		return null;
+	}
+
 	public String toString()
 	{
 		return "Technology " + techName;
 	}
 
+	public static Technology whatTechnology(NodeProto cell, Iterator nodeIterator, Iterator arcIterator)
+	{
+		// primitives know their technology
+		if (cell instanceof PrimitiveNode) return(((PrimitiveNode)cell).getTechnology());
+
+		// count the number of technologies
+		int maxTech = 0;
+		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (tech.getIndex() > maxTech) maxTech = tech.getIndex();
+		}
+		maxTech++;
+
+		// create an array of counts for each technology
+		int [] useCount = new int[maxTech];
+		for(int i=0; i<maxTech; i++) useCount[i] = 0;
+
+		// count technologies of all primitive nodes in the cell
+		if (nodeIterator != null)
+		{
+			// use the node iterator
+			for(; nodeIterator.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nodeIterator.next();
+				NodeProto np = ni.getProto();
+				if (np instanceof PrimitiveNode) useCount[np.getTechnology().getIndex()]++;
+			}
+		} else
+		{
+			for(Iterator it = ((Cell)cell).getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				NodeProto np = ni.getProto();
+				if (np instanceof PrimitiveNode) useCount[np.getTechnology().getIndex()]++;
+			}
+		}
+
+		// count technologies of all arcs in the cell
+		if (arcIterator != null)
+		{
+			// use the node iterator
+			for(; arcIterator.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)arcIterator.next();
+				ArcProto ap = ai.getProto();
+				useCount[ap.getTechnology().getIndex()]++;
+			}
+		} else
+		{
+			for(Iterator it = ((Cell)cell).getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ArcProto ap = ai.getProto();
+				useCount[ap.getTechnology().getIndex()]++;
+			}
+		}
+
+		// find a concensus
+		int best = 0;         Technology besttech = null;
+		int bestlayout = 0;   Technology bestlayouttech = null;
+		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+
+			// always ignore the generic technology
+			if (tech == TecGeneric.tech) continue;
+
+			// find the most popular of ALL technologies
+			if (useCount[tech.getIndex()] > best)
+			{
+				best = useCount[tech.getIndex()];
+				besttech = tech;
+			}
+
+			// find the most popular of the layout technologies
+//			if (tech == sch_tech || tech == art_tech) continue;
+			if (useCount[tech.getIndex()] > bestlayout)
+			{
+				bestlayout = useCount[tech.getIndex()];
+				bestlayouttech = tech;
+			}
+		}
+
+		Technology retTech = null;
+//		// presume generic
+//		if (cell.getCellView() == View.ICON)
+//		{
+//			// in icons, if there is any artwork, use it
+//			if (useCount[art_tech.getIndex()] > 0) return(art_tech);
+//
+//			// in icons, if there is nothing, presume artwork
+//			if (besttech == NOTECHNOLOGY) return(art_tech);
+//
+//			// use artwork as a default
+//			rettech = art_tech;
+//		} else if (cell.getCellView() == View.SCHEMATIC)
+//		{
+//			// in schematic, if there are any schematic components, use it
+//			if (useCount[sch_tech.getIndex()] > 0) return(sch_tech);
+//
+//			// in schematic, if there is nothing, presume schematic
+//			if (besttech == NOTECHNOLOGY) return(sch_tech);
+//
+//			// use schematic as a default
+//			retTech = sch_tech;
+//		} else
+//		{
+//			// use the current layout technology as the default
+//			retTech = el_curlayouttech;
+//		}
+
+		// if a layout technology was voted the most, return it
+		if (bestlayouttech != null) retTech = bestlayouttech; else
+		{
+			// if any technology was voted the most, return it
+			if (besttech != null) retTech = besttech; else
+			{
+//				// if this is an icon, presume the technology of its contents
+//				cv = contentsview(cell);
+//				if (cv != NONODEPROTO)
+//				{
+//					if (cv->tech == NOTECHNOLOGY)
+//						cv->tech = whattech(cv);
+//					retTech = cv->tech;
+//				} else
+//				{
+//					// look at the contents of the sub-cells
+//					foundicons = FALSE;
+//					for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//					{
+//						np = ni->proto;
+//						if (np == NONODEPROTO) continue;
+//						if (np->primindex != 0) continue;
+//
+//						// ignore recursive references (showing icon in contents)
+//						if (isiconof(np, cell)) continue;
+//
+//						// see if the cell has an icon
+//						if (np->cellview == el_iconview) foundicons = TRUE;
+//
+//						// do not follow into another library
+//						if (np->lib != cell->lib) continue;
+//						onp = contentsview(np);
+//						if (onp != NONODEPROTO) np = onp;
+//						tech = whattech(np);
+//						if (tech == gen_tech) continue;
+//						retTech = tech;
+//						break;
+//					}
+//					if (ni == NONODEINST)
+//					{
+//						// could not find instances that give information: were there icons?
+//						if (foundicons) retTech = sch_tech;
+//					}
+//				}
+			}
+		}
+
+		// give up and report the generic technology
+		return retTech;
+	}
+
 	// *************************** ArcProtos ***************************
 
 	/**
-	 * get the ArcProto with a particular name from this technology
+	 * get the PrimitiveArc with a particular name from this technology
 	 */
-	public ArcProto findArcProto(String name)
+	public PrimitiveArc findArcProto(String name)
 	{
 		for (int i = 0; i < arcs.size(); i++)
 		{
-			ArcProto ap = (ArcProto) arcs.get(i);
+			PrimitiveArc ap = (PrimitiveArc) arcs.get(i);
 			if (ap.getProtoName().equalsIgnoreCase(name))
 				return ap;
 		}
@@ -409,7 +652,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get an iterator over all of the ArcProtos in this technology
+	 * get an iterator over all of the PrimitiveArcs in this technology
 	 */
 	public Iterator getArcIterator()
 	{

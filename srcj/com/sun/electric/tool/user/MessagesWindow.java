@@ -1,7 +1,9 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.io.Input;
+import com.sun.electric.tool.user.EditWindow;
 
 import bsh.*;
 
@@ -235,6 +237,14 @@ public class MessagesWindow
 		{
 			System.out.println("reading test.elib ...");
 			Library lib = Input.ReadLibrary("C:\\DevelE\\Electric\\srcj\\test.elib", Input.ImportType.BINARY);
+			if (lib != null)
+			{
+				Cell cell = lib.getCurCell();
+				if (cell != null)
+				{
+					EditWindow window = EditWindow.newInstance(cell);
+				}
+			}
 		} else
 		{
 			// try to execute it

@@ -10,6 +10,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.TecGeneric;
+import com.sun.electric.technology.technologies.TecSchematics;
 import com.sun.electric.technology.technologies.TecMoCMOS;
 
 import java.awt.Point;
@@ -24,8 +25,9 @@ public final class Electric
 
 	public static void main(String[] args)
 	{
-		// Make MOSIS CMOS the current technology
+		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Technology.setCurrent(TecGeneric.tech);
+		Technology.setCurrent(TecSchematics.tech);
 		Technology.setCurrent(TecMoCMOS.tech);
 
 		// get information about the nodes
@@ -36,28 +38,31 @@ public final class Electric
 		NodeProto pTransProto = NodeProto.findNodeProto("mocmos:P-Transistor");
 		NodeProto nTransProto = NodeProto.findNodeProto("mocmos:N-Transistor");
 		NodeProto cellCenterProto = NodeProto.findNodeProto("generic:Facet-Center");
+		NodeProto wirePinProto = NodeProto.findNodeProto("schematic:Wire_Pin");
+		NodeProto busPinProto = NodeProto.findNodeProto("schematic:Bus_Pin");
+		NodeProto wireConProto = NodeProto.findNodeProto("schematic:Wire_Con");
 
 		// get information about the arcs
-		ArcProto m1Proto = TecMoCMOS.tech.findArcProto("Metal-1");
-		ArcProto m2Proto = TecMoCMOS.tech.findArcProto("Metal-2");
-		ArcProto p1Proto = TecMoCMOS.tech.findArcProto("Polysilicon-1");
+		ArcProto m1Proto = ArcProto.findArcProto("mocmos:Metal-1");
+		ArcProto m2Proto = ArcProto.findArcProto("mocmos:Metal-2");
+		ArcProto p1Proto = ArcProto.findArcProto("mocmos:Polysilicon-1");
+		ArcProto wireProto = ArcProto.findArcProto("schematic:wire");
 
 
 		// create the first library
 		Library mainLib = Library.newInstance("noname", null);
 		Library.setCurrent(mainLib);
-		System.out.println("Created library " + Library.getCurrent().getLibName());
 
-		// create a cell in the library
+		// create a layout cell in the library
 		Cell myCell = Cell.newInstance(mainLib, "test{lay}");
-		myCell.setReferencePoint(30, 30);
-		NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0.0, 0.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, myCell);
-		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(10.0, 50.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0.0, myCell);
-		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(50.0, 50.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0.0, myCell);
-		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(10.0, 30.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0.0, myCell);
-		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(50.0, 10.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0.0, myCell);
-		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(30.0, 10.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0.0, myCell);
-		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(30.0, 30.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), Math.PI/4, myCell);
+		NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(30.0, 30.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, myCell);
+		cellCenter.setVisInside();
+		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0.0, myCell);
+		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0.0, myCell);
+		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0.0, myCell);
+		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0.0, myCell);
+		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0.0, myCell);
+		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), Math.PI/4, myCell);
 
 		// make arcs to connect them
 		PortInst m1m2Port = metal12Via.getOnlyPortInst();
@@ -74,6 +79,22 @@ public final class Electric
 		Export m1Export = Export.newInstance(myCell, metal12Via, m1m2Port, "in");
 		Export p1Export = Export.newInstance(myCell, poly1Pin, p1Port, "out");
 		System.out.println("Created cell " + myCell.describe());
+
+
+
+		// create a schematics cell in the library
+		Cell schemCell = Cell.newInstance(mainLib, "test{sch}");
+		NodeInst pinLeft = NodeInst.newInstance(wirePinProto, new Point2D.Double(-10.0, 10.0), wirePinProto.getDefWidth(), wirePinProto.getDefHeight(), 0, schemCell);
+		NodeInst pinRight = NodeInst.newInstance(wirePinProto, new Point2D.Double(10.0, 10.0), wirePinProto.getDefWidth(), wirePinProto.getDefHeight(), 0, schemCell);
+		NodeInst pinCenter = NodeInst.newInstance(wirePinProto, new Point2D.Double(0.0, 10.0), wirePinProto.getDefWidth(), wirePinProto.getDefHeight(), 0, schemCell);
+		NodeInst conDown = NodeInst.newInstance(wireConProto, new Point2D.Double(0.0, 0.0), wireConProto.getDefWidth(), wireConProto.getDefHeight(), 0, schemCell);
+		PortInst pinLeftPort = pinLeft.getOnlyPortInst();
+		PortInst pinRightPort = pinRight.getOnlyPortInst();
+		PortInst pinCenterPort = pinCenter.getOnlyPortInst();
+		PortInst conPort = conDown.getOnlyPortInst();
+		ArcInst wire1Arc = ArcInst.newInstance(wireProto, wireProto.getWidth(), pinLeftPort, pinCenterPort);
+		ArcInst wire2Arc = ArcInst.newInstance(wireProto, wireProto.getWidth(), pinRightPort, pinCenterPort);
+		ArcInst wire3Arc = ArcInst.newInstance(wireProto, wireProto.getWidth(), conPort, pinCenterPort);
 
 
 		// now up the hierarchy
@@ -130,11 +151,13 @@ public final class Electric
 		instance2Node.getInfo();
 		instanceArc.getInfo();
 
+		// display some cells
 		EditWindow window1 = EditWindow.newInstance(myCell);
-		EditWindow window2 = EditWindow.newInstance(higherCell);
-		EditWindow window3 = EditWindow.newInstance(bigCell);
+		EditWindow window2 = EditWindow.newInstance(schemCell);
+		EditWindow window3 = EditWindow.newInstance(higherCell);
+		EditWindow window4 = EditWindow.newInstance(bigCell);
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
-		System.out.println("************* Use SHIFT-CLICK to Pan");
+		System.out.println("************* Click and drag to Pan");
 		System.out.println("************* Use CONTROL-CLICK to Zoom");
 	}
 

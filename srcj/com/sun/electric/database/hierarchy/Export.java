@@ -23,16 +23,45 @@ public class Export extends PortProto
 	/** the NodeInst that the exported port belongs to */	private NodeInst originalNode;
 
 	// -------------------- protected and private methods --------------
-	protected Export(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
+	protected Export()
+	{
+		this.userBits = 0;
+	}
+
+	/**
+	 * Low-level access routine to create a cell in library "lib".
+	 */
+	public static Export lowLevelAllocate()
+	{
+		Export pp = new Export();
+		return pp;
+	}
+
+	/**
+	 * Low-level access routine to fill-in the cell name.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelPopulate(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
 	{
 		// initialize the parent object
 		this.parent = parent;
 		this.protoName = protoName;
-		this.userBits = 0;
 
 		// initialize this object
 		this.originalPort = originalPort;
 		this.originalNode = originalNode;
+		return false;
+	}
+
+	/**
+	 * Low-level access routine to link a cell into its library.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelLink()
+	{
+		originalNode.addExport(this);
+		setParent(parent);
+		return false;
 	}
 
 	/** Initialize this Export with a parent (the Cell we're a port of),
@@ -40,9 +69,9 @@ public class Export extends PortProto
 	 * original port belongs to, and an appropriate Network. */
 	public static Export newInstance(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
 	{
-		Export pp = new Export(parent, originalNode, originalPort, protoName);
-		originalNode.addExport(pp);
-		pp.setParent(parent);
+		Export pp = lowLevelAllocate();
+		if (pp.lowLevelPopulate(parent, originalNode, originalPort, protoName)) return null;
+		if (pp.lowLevelLink()) return null;
 		return pp;
 	}	
 
@@ -123,7 +152,7 @@ public class Export extends PortProto
 			return this;
 		if (equiv == null)
 			return null;
-		return equiv.findPort(protoName);
+		return equiv.findPortProto(protoName);
 	}
 
 	public String toString()

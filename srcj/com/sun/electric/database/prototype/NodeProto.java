@@ -29,7 +29,7 @@ import java.util.Iterator;
 public abstract class NodeProto extends ElectricObject
 {
 	/**
-	 * Function is a typesafe enum class that describes the function of an arcproto.
+	 * Function is a typesafe enum class that describes the function of a NodeProto.
 	 */
 	public static class Function
 	{
@@ -183,7 +183,8 @@ public abstract class NodeProto extends ElectricObject
 	/** the exports in the NodeProto */						private List ports;
 	/** JNetworks that comprise this NodeProto */			private List networks;
 	/** All instances of this NodeProto */					private List instances;
-	/** flag bits */										private int userBits;
+	/** flag bits */										protected int userBits;
+	/** temporary values */									private int temp1, temp2;
 	/** the function of this NodeProto */					private Function function;
 
 	// ----------------- protected and private methods -----------------
@@ -378,6 +379,16 @@ public abstract class NodeProto extends ElectricObject
 	/** Get the In-Technology-Library bit */
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
+	/** Set the temporary value */
+	public void setTemp1(int temp1) { this.temp1 = temp1; }
+	/** Get the temporary value */
+	public int getTemp1() { return temp1; }
+
+	/** Set the temporary value */
+	public void setTemp2(int temp2) { this.temp2 = temp2; }
+	/** Get the temporary value */
+	public int getTemp2() { return temp2; }
+
 	public abstract double getDefWidth();
 	public abstract double getDefHeight();
 	public abstract double getWidthOffset();
@@ -421,7 +432,7 @@ public abstract class NodeProto extends ElectricObject
 	/** Get the PortProto that has a particular name.
 	 * @return the PortProto, or null if there is no PortProto with that
 	 * name. */
-	public PortProto findPort(String name)
+	public PortProto findPortProto(String name)
 	{
 		for (int i = 0; i < ports.size(); i++)
 		{
@@ -547,6 +558,16 @@ public abstract class NodeProto extends ElectricObject
 	{
 		return networks.iterator();
 	}
+
+	public boolean isdeprecatedvariable(String name)
+	{
+		if (name == "NET_last_good_ncc" ||
+			name == "NET_last_good_ncc_facet" ||
+			name == "SIM_window_signal_order") return true;
+		return false;
+	}
+
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/** printable version of this object */
 	public String toString()

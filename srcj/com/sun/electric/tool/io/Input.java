@@ -60,7 +60,7 @@ public class Input
 			return null;
 		}
 		in.filePath = fileName;
-		Library lib = Library. newInstance(fileName, fileName);
+		in.lib = Library.newInstance(fileName, fileName);
 		try
 		{
 			in.fileInputStream = new FileInputStream(fileName);
@@ -74,6 +74,6 @@ public class Input
 			System.out.println("Error reading library");
 			return null;
 		}
-		return lib;
+		return in.lib;
 	}
 }
