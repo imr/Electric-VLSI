@@ -150,13 +150,17 @@ public final class MenuCommands
     /** Used to enable/disable menus based on a property change */
     public static class MenuEnabler implements PropertyChangeListener {
         private MenuItem item;
-        private MenuEnabler(MenuItem item) {
+        private String property;
+        private MenuEnabler(MenuItem item, String prop) {
             this.item = item;
+            this.property = prop;
         }
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getNewValue() instanceof Boolean) {
-                boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
-                item.setEnabled(enabled);
+                if (evt.getPropertyName().equals(property)) {
+                    boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
+                    item.setEnabled(enabled);
+                }
             }
         }
     }
@@ -258,11 +262,13 @@ public final class MenuCommands
 
 		MenuItem undo = editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
-        Undo.addPropertyChangeListener(new MenuEnabler(undo));
+        Undo.addPropertyChangeListener(new MenuEnabler(undo, Undo.propUndoEnabled));
+        undo.setEnabled(false);
         // TODO: figure out how to remove this property change listener for correct garbage collection
 		MenuItem redo = editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
-        Undo.addPropertyChangeListener(new MenuEnabler(redo));
+        Undo.addPropertyChangeListener(new MenuEnabler(redo, Undo.propRedoEnabled));
+        redo.setEnabled(false);
         // TODO: figure out how to remove this property change listener for correct garbage collection
 
 		editMenu.addSeparator();

@@ -1002,6 +1002,7 @@ public class Undo
 
 		// put at head of list
 		doneList.add(currentBatch);
+        setUndoEnabled(true);
 
 		// kill last batch if list is full
 		if (doneList.size() > maximumBatches)
@@ -1508,6 +1509,8 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
 		doneList.remove(listSize-1);
 		undoneList.add(batch);
+        if (doneList.size() == 0) setUndoEnabled(false);
+        setRedoEnabled(true);
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1552,6 +1555,8 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)undoneList.get(listSize-1);
 		undoneList.remove(listSize-1);
 		doneList.add(batch);
+        if (undoneList.size() == 0) setRedoEnabled(false);
+        setUndoEnabled(true);
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1614,6 +1619,8 @@ public class Undo
  		// kill them all
  		doneList.clear();
  		undoneList.clear();
+        setUndoEnabled(false);
+        setRedoEnabled(false);
 	}
 
 	/**
@@ -1625,6 +1632,7 @@ public class Undo
 		endChanges();
 
 		undoneList.clear();
+        setRedoEnabled(false);
 	}
 
 	/**
@@ -1643,6 +1651,7 @@ public class Undo
 		{
 			doneList.remove(0);
 		}
+        if (doneList.size() == 0) setUndoEnabled(false);
 		return oldSize;
 	}
 

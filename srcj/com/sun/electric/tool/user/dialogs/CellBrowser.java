@@ -713,13 +713,15 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         if (lastSelectedCell == null) {
             // didn't find anything, try to find current cell in the list
             Cell cell = WindowFrame.getCurrentCell();
-            String findname = cell.noLibDescribe();
-            for (int i=0; i<cellListNames.size(); i++) {
-                String name = (String)cellListNames.get(i);
-                if (name.equals(findname)) {
-                    jList1.setSelectedIndex(i);
-                    lastSelectedCell = findname;
-                    break;
+            if (cell != null) {
+                String findname = cell.noLibDescribe();
+                for (int i=0; i<cellListNames.size(); i++) {
+                    String name = (String)cellListNames.get(i);
+                    if (name.equals(findname)) {
+                        jList1.setSelectedIndex(i);
+                        lastSelectedCell = findname;
+                        break;
+                    }
                 }
             }
         }
