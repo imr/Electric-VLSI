@@ -2,6 +2,9 @@
 
 ************************* Version 8.01k: *********************************
 
+BUG: (8/26/04, DN) Network tool keeps global nets after deleting global and power symbols.
+FIX: Don't traverse self icon when gathering globals.
+
 BUG: (8/25/04, JKG) Automatic reinheritance of default parameters inside getVar() was a
     bad idea. Call ElectricObject.getParameter() or ElectricObject.getParameters() if you
     want the returned variables to include default parameter variables.

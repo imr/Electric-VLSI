@@ -628,7 +628,7 @@ class NetSchem extends NetCell {
 			}
 			if (netCell != null) {
 				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
-				if (sch != null) {
+				if (sch != null && sch != this) {
 					String errorMsg = Global.addToBuf(sch.globals);
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;

@@ -111,8 +111,7 @@ class NetCell
 
 	final void setNetworksDirty()
 	{
-		if ((flags & LOCALVALID) != 0)
-			setInvalid(true);
+		setInvalid(true);
 	}
 
 	Netlist getUserNetlist() {
