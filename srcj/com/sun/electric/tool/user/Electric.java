@@ -31,27 +31,33 @@ public final class Electric
 
 	public static void main(String[] args)
 	{
-		try{UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-		}catch(Exception e){}
+		try{
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch(Exception e) {}
 
-		ElectricFrame test = ElectricFrame.CreateFrame("Electric");
-		test.AddWindowExit();
+		ElectricFrame electricFrame = ElectricFrame.CreateFrame("Electric");
+		electricFrame.AddWindowExit();
 		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
-		scrnSize.height-=30;
+		scrnSize.height -= 30;
 
-		ElectricMenu eMenu = ElectricMenu.CreateElectricMenu("File");
+		// setup the menus
+		ElectricMenu fileMenu = ElectricMenu.CreateElectricMenu("File");
 		OpenElectricFile fileOpen = new OpenElectricFile();
-		eMenu.addMenuItem("Open", fileOpen);
-		eMenu.addMenuItem("Close", new ActionListener(){public void actionPerformed(ActionEvent e){System.exit(0);}});
+		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK), fileOpen);
+		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
+			new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e) { System.exit(0); }
+			});
 		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(eMenu);
-		test.setJMenuBar(menuBar);
+		menuBar.add(fileMenu);
+		electricFrame.setJMenuBar(menuBar);
 
 		JDesktopPane desktop = new JDesktopPane();
-		test.getContentPane().add(desktop);
+		electricFrame.getContentPane().add(desktop);
 		fileOpen.setDesktop(desktop);	
-		test.setSize(scrnSize);
-		test.setVisible(true);
+		electricFrame.setSize(scrnSize);
+		electricFrame.setVisible(true);
 
 		
 		
@@ -166,9 +172,9 @@ public final class Electric
 		instanceArc.getInfo();
 
 		// display some cells
-		ElectricDocWnd window1 = ElectricDocWnd.CreateElectricDoc(myCell);
+		ElectricDocWndFrame window1 = ElectricDocWndFrame.CreateElectricDocFrame(myCell);
 		desktop.add(window1); 
-		ElectricDocWnd window2 = ElectricDocWnd.CreateElectricDoc(higherCell);
+		ElectricDocWndFrame window2 = ElectricDocWndFrame.CreateElectricDocFrame(higherCell);
 		desktop.add(window2); 
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
 		System.out.println("************* Click and drag to Pan");

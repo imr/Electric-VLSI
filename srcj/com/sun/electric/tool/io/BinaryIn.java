@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.ByteOrder;
+import java.awt.geom.Rectangle2D;
 
 
 public class BinaryIn extends Input
@@ -1304,8 +1305,8 @@ public class BinaryIn extends Input
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + "{" + v.getShortName() + "}";
-		int creationDate = readBigInteger();
-		int revisionDate = readBigInteger();
+		Date creationDate = fromElectricDate(readBigInteger());
+		Date revisionDate = fromElectricDate(readBigInteger());
 
 		// read the nodeproto bounding box
 		int lowX = readBigInteger();
@@ -1420,11 +1421,13 @@ public class BinaryIn extends Input
 		// if cell found, check that size is unchanged
 		if (c != null)
 		{
-//			if (np->lowx != lowx || np->highx != highx ||
-//				np->lowy != lowy || np->highy != highy)
+//			Rectangle2D bounds = c.getBounds();
+//			if (bounds.getWidth() != highX-lowX || bounds.getHeight() != highY-lowY)
 //			{
-//				ttyputerr(_("Error: cell %s in library %s has changed size since its use in library %s"),
-//					nldescribenodeproto(np), elib->libname, lib->libname);
+//				System.out.println("Error: cell " + c.describe() + " in library " + elib.getLibName() +
+//					" has changed size since its use in library " + lib.getLibName());
+//				System.out.println("  The version in library " + elib.getLibName() + " is " + (highX-lowX) + "x" + (highY-lowY) +
+//					" but the version in library " + lib.getLibName() + " is " + bounds.getWidth() + "x" +  bounds.getHeight());
 //				c = null;
 //			}
 		}
@@ -1453,11 +1456,11 @@ public class BinaryIn extends Input
 		// if cell found, warn if minor modification was made
 		if (c != null)
 		{
-//			if (np->revisiondate != revision)
-//			{
-//				ttyputerr(_("Warning: cell %s in library %s has changed since its use in library %s"),
-//					describenodeproto(np), elib->libname, lib->libname);
-//			}
+			if (revisionDate.compareTo(c.getRevisionDate()) != 0)
+			{
+				System.out.println("Error: cell " + c.describe() + " in library " + elib.getLibName() +
+					" has changed since its use in library " + lib.getLibName());
+			}
 		}
 
 		// make new cell if needed
@@ -1532,13 +1535,8 @@ public class BinaryIn extends Input
 			Export pp = c.findExport(protoName);
 			if (pp == null)
 			{
-//				if (newcell == 0)
-//					ttyputerr(_("Cannot find port %s on cell %s in library %s"), 
-//						protoname, describenodeproto(np), elib->libname);
-//				pp = allocportproto(lib->cluster);
-//				(void)allocstring(&pp->protoname, protoname, lib->cluster);
-//				pp->parent = np;
-//				pp->temp2 = 0;
+				if (!newCell)
+					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
 			}
 			portProtoList[portProtoCount] = pp;
 			portProtoCount++;
