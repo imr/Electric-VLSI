@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
 import com.sun.electric.technology.Technology;
@@ -241,6 +242,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+            Highlighter highlighter = wnd.getHighlighter();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        clickX = evt.getX();
@@ -269,9 +271,9 @@ public class ClickZoomWireListener
 
 	            // draw possible wire connection
 	            if (!invertSelection) {
-	                Iterator hIt = Highlight.getHighlights();
+	                Iterator hIt = highlighter.getHighlights().iterator();
 	                // if already 2 objects, wire them up
-	                if (Highlight.getNumHighlights() == 2) {
+	                if (highlighter.getNumHighlights() == 2) {
 	                    Highlight h1 = (Highlight)hIt.next();
 	                    Highlight h2 = (Highlight)hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
@@ -282,13 +284,13 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
 	                        endObj = h2.getElectricObject();
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(cell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
+	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
 	                        return;
 	                    }
 	                }
 	                // if one object, put into wire find mode
 	                // which will draw possible wire route.
-	                if (Highlight.getNumHighlights() == 1) {
+	                if (highlighter.getNumHighlights() == 1) {
 	                    Highlight h1 = (Highlight)hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
 	                    if (eobj1 != null) {
@@ -296,19 +298,19 @@ public class ClickZoomWireListener
                             endObj = null;
 	                        wiringTarget = null;
 	                        startObj = h1.getElectricObject();
-                            router.startInteractiveRoute();
+                            router.startInteractiveRoute(wnd);
                             // look for stuff under the mouse
-                            int numFound = Highlight.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
+                            int numFound = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
                             if (numFound == 0) {
                                 // not over anything, nothing to connect to
                                 endObj = null;
                                 wiringTarget = null;
                             } else {
-                                Highlight h2 = (Highlight)Highlight.getHighlights().next();
+                                Highlight h2 = (Highlight)highlighter.getHighlights().iterator().next();
                                 endObj = h2.getElectricObject();
                             }
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(cell, h1.getElectricObject(), endObj, dbClick);
+	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), endObj, dbClick);
 	                        return;
 	                    }
 	                }
@@ -329,7 +331,7 @@ public class ClickZoomWireListener
 	            // draw box
 	            if (another && invertSelection) {
 	                // the box we are going to draw is a highlight
-	                Highlight.clear();
+	                highlighter.clear();
 	                modeRight = Mode.drawBox;
 	            }
 	            return;
@@ -347,7 +349,7 @@ public class ClickZoomWireListener
 	                Point2D dbDelta = new Point((int)dbClick.getX() - dbMoveStartX, (int)dbClick.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);
 	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
-	                    Highlight.setHighlightOffset(0, 0);
+	                    highlighter.setHighlightOffset(0, 0);
 	                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
 	                    wnd.repaintContents(null);
 	                }
@@ -373,7 +375,7 @@ public class ClickZoomWireListener
 	                } */
 	                /* if no modifiers, do "get info" */
 	                if (!another && !invertSelection) {
-	                    if (Highlight.getNumHighlights() >= 1) {
+	                    if (highlighter.getNumHighlights() >= 1) {
 	                        EditMenu.getInfoCommand();
 	                        return;
 	                    }
@@ -389,13 +391,13 @@ public class ClickZoomWireListener
 	                wnd.setStartDrag(clickX, clickY);
 	                wnd.setEndDrag(clickX, clickY);
 	                wnd.setDoingAreaDrag();
-	                Highlight.clear();
+	                highlighter.clear();
 	                modeLeft = Mode.drawBox;
 	                return;
 	            }
 	
 	            // if already over highlighted object, move it
-	            if (!another && !invertSelection && Highlight.overHighlighted(wnd, clickX, clickY)) {
+	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY)) {
 	                // over something, user may want to move objects
 	                dbMoveStartX = (int)dbClick.getX();
 	                dbMoveStartY = (int)dbClick.getY();
@@ -405,7 +407,7 @@ public class ClickZoomWireListener
 	                // findObject handles cycling through objects (another)
 	                // and inverting selection (invertSelection)
 	                // and selection special objects (specialSelection)
-	                int numFound = Highlight.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
+	                int numFound = highlighter.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
 	                if (numFound == 0) {
 	                    // not over anything: drag out a selection rectangle
 	                    wnd.setStartDrag(clickX, clickY);
@@ -441,6 +443,7 @@ public class ClickZoomWireListener
  		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+            Highlighter highlighter = wnd.getHighlighter();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	
@@ -478,7 +481,7 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
 	                // see if anything under the pointer
-	                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
+	                int numFound = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
 	                if (numFound == 0) {
 	                    // not over anything, nothing to connect to
 	                    EditWindow.gridAlign(dbMouse);
@@ -491,7 +494,7 @@ public class ClickZoomWireListener
 	                    if (wiringTarget != null) {
 	                        // check if still valid target
 	                        EditWindow.gridAlign(dbMouse);
-	                        List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
+	                        List underCursor = highlighter.findAllInArea(cell, false, true, true, false, specialSelect, false,
 	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
 	                        for (Iterator hs = underCursor.iterator(); hs.hasNext(); ) {
 	                            Highlight h = (Highlight)hs.next();
@@ -506,13 +509,13 @@ public class ClickZoomWireListener
 	                    }
 	                    // if target is null, find new target
 	                    if (endObj == null) {
-	                        Iterator hIt = Highlight.getHighlights();
+	                        Iterator hIt = highlighter.getHighlights().iterator();
 	                        Highlight h2 = (Highlight)hIt.next();
 	                        endObj = h2.getElectricObject();
 	                    }
 	                    EditWindow.gridAlign(dbMouse);
 	                }
-	                router.highlightRoute(cell, startObj, endObj, dbMouse);
+	                router.highlightRoute(wnd, cell, startObj, endObj, dbMouse);
 	                // clear any previous popup cloud
 	                /*
 	                wnd.clearShowPopupCloud();
@@ -551,12 +554,12 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-	                router.highlightRoute(cell, startObj, endObj, dbMouse);
+	                router.highlightRoute(wnd, cell, startObj, endObj, dbMouse);
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     // wire only to point in space
                     EditWindow.gridAlign(dbMouse);
-                    router.highlightRoute(cell, startObj, null, dbMouse);
+                    router.highlightRoute(wnd, cell, startObj, null, dbMouse);
                 }
 	        }
 	
@@ -578,13 +581,13 @@ public class ClickZoomWireListener
 	                Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);              // align to grid
 	                Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
-	                Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
+	                highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
                     // display amount to be moved in center of screen
                     Point2D center = new Point((int)(-screenDelta.getX() + wnd.getOffset().getX()),
                                                (int)(-screenDelta.getY() + wnd.getOffset().getY()));
-                    if (moveDelta != null) Highlight.remove(moveDelta);
+                    if (moveDelta != null) highlighter.remove(moveDelta);
                     Rectangle2D bounds = wnd.getDisplayedBounds();
-                    moveDelta = Highlight.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")",
+                    moveDelta = highlighter.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")",
                             new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
 	                wnd.repaint();
 	            }
@@ -605,6 +608,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+            Highlighter highlighter = wnd.getHighlighter();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        // add back in offset
@@ -644,7 +648,7 @@ public class ClickZoomWireListener
 	
 	                if (modeRight == Mode.drawBox) {
 	                    // just draw a highlight box
-	                    Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+	                    highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 	                }
                     if (modeRight == Mode.zoomBoxSingleShot) {
                         // zoom to box: focus on box
@@ -672,7 +676,7 @@ public class ClickZoomWireListener
 	                    }
 	
 	                }
-	                Highlight.finished();
+	                highlighter.finished();
 	                wnd.clearDoingAreaDrag();
 	                wnd.repaint();
 	            }
@@ -686,13 +690,13 @@ public class ClickZoomWireListener
 	                    endObj = null;
 	                } else {
 	                    // connect objects
-	                    Iterator hIt = Highlight.getHighlights();
+	                    Iterator hIt = Highlight.getHighlights().iterator();
 	                    Highlight h2 = (Highlight)hIt.next();
 	                    EditWindow.gridAlign(dbMouse);
 	                    endObj = h2.getElectricObject();
 	                }*/
 	                EditWindow.gridAlign(dbMouse);
-	                router.makeRoute(cell, startObj, endObj, dbMouse);
+	                router.makeRoute(wnd, cell, startObj, endObj, dbMouse);
 	                // clear any popup cloud we had
 	                //wnd.clearShowPopupCloud();
 	                // clear last switched to highlight
@@ -700,12 +704,12 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-	                router.makeRoute(cell, startObj, endObj, dbMouse);
+	                router.makeRoute(wnd, cell, startObj, endObj, dbMouse);
                     wiringTarget = null;
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     EditWindow.gridAlign(dbMouse);
-                    router.makeRoute(cell, startObj, null, dbMouse);
+                    router.makeRoute(wnd, cell, startObj, null, dbMouse);
                     wiringTarget = null;
                 }
 	            modeRight = Mode.none;
@@ -720,9 +724,9 @@ public class ClickZoomWireListener
 	            if (debug) System.out.println("Time diff between click->release is: "+(curTime - leftMousePressedTimeStamp));
 	            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
 	                if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
-	                    Highlight.setHighlightOffset(0, 0);
+	                    highlighter.setHighlightOffset(0, 0);
 	                    modeLeft = Mode.none;
-                        if (moveDelta != null) Highlight.remove(moveDelta);                        
+                        if (moveDelta != null) highlighter.remove(moveDelta);
 	                    wnd.repaint();
 	                    return;
 	                }
@@ -749,14 +753,14 @@ public class ClickZoomWireListener
 	                    double maxSelY = Math.max(start.getY(), end.getY());
 	                    if (modeLeft == Mode.selectBox) {
 	                        if (!invertSelection)
-	                            Highlight.clear();
-	                        Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection, specialSelect);
+	                            highlighter.clear();
+	                        highlighter.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection, specialSelect);
 	                    }
 	                    if (modeLeft == Mode.drawBox) {
 	                        // just draw a highlight box
-	                        Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+	                        highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 	                    }
-	                    Highlight.finished();
+	                    highlighter.finished();
 	                    wnd.clearDoingAreaDrag();
 	                    wnd.repaint();
 	                }
@@ -766,9 +770,9 @@ public class ClickZoomWireListener
 	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 	                    Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
 	                    EditWindow.gridAlign(dbDelta);
-                        if (moveDelta != null) Highlight.remove(moveDelta);
+                        if (moveDelta != null) highlighter.remove(moveDelta);
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
-	                        Highlight.setHighlightOffset(0, 0);
+	                        highlighter.setHighlightOffset(0, 0);
 	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
 	                        wnd.repaintContents(null);
 	                    }
@@ -792,7 +796,8 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
-			Cell cell = wnd.getCell();
+            Highlighter highlighter = wnd.getHighlighter();
+            Cell cell = wnd.getCell();
 			if (cell == null) return;
 
 			boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
@@ -805,7 +810,7 @@ public class ClickZoomWireListener
 				Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
 				EditWindow.gridAlign(dbDelta);
 				Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
-				Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
+				highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
 				wnd.repaint();
 			}
         }
@@ -870,6 +875,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+            Highlighter highlighter = wnd.getHighlighter();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -890,7 +896,7 @@ public class ClickZoomWireListener
 					router.cancelInteractiveRoute();
 				modeLeft = Mode.none;
 				modeRight = Mode.none;
-				Highlight.setHighlightOffset(0, 0);
+				highlighter.setHighlightOffset(0, 0);
 				wnd.repaint();
 			}
             else if (chr == KeyEvent.VK_CONTROL) {
@@ -946,6 +952,7 @@ public class ClickZoomWireListener
         // scale distance according to arrow motion
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
@@ -953,7 +960,7 @@ public class ClickZoomWireListener
         int scaleY = User.getDefGridYBoldFrequency();
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
 		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
-		Highlight.setHighlightOffset(0, 0);
+		highlighter.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents(null);
 	}
@@ -981,6 +988,7 @@ public class ClickZoomWireListener
     public void switchWiringTarget() {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
         Cell cell = wnd.getCell();
 
         // if in mode wiringToSpace, switch out of it, and drop to next
@@ -995,7 +1003,7 @@ public class ClickZoomWireListener
             //if (endObj != null) {
                 Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
-                List targets = Highlight.findAllInArea(wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
+                List targets = highlighter.findAllInArea(wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
                 Iterator it = targets.iterator();
                 // find wiringTarget in list, if it exists
                 boolean found = false;
@@ -1024,7 +1032,7 @@ public class ClickZoomWireListener
                 if (modeRight == Mode.wiringToSpace) {
                     endObj = null;
                     System.out.println("Switching to 'ignore all wiring targets'");
-                    router.highlightRoute(cell, startObj, null, dbMouse);
+                    router.highlightRoute(wnd, cell, startObj, null, dbMouse);
                     return;
                 }
                 // if same target, do nothing
@@ -1037,7 +1045,7 @@ public class ClickZoomWireListener
                 } else {
                     System.out.println("Switching to wiring target '"+wiringTarget+"'");
                 }
-                router.highlightRoute(cell, startObj, wiringTarget, dbMouse);
+                router.highlightRoute(wnd, cell, startObj, wiringTarget, dbMouse);
             //}
             // nothing under mouse to route to/switch between, return
         }
@@ -1049,7 +1057,10 @@ public class ClickZoomWireListener
      */
     public void wireTo(int layerNumber) {
         EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
         Cell cell = wnd.getCell();
+        if (cell == null) return;
 
         ArcProto ap = null;
         Technology tech = Technology.getCurrent();
@@ -1080,11 +1091,11 @@ public class ClickZoomWireListener
         if (ap == User.tool.getCurrentArcProto()) return;
 
         // if a single portinst highlighted, route from that to node that can connect to arc
-        if (Highlight.getNumHighlights() == 1 && cell != null) {
-            ElectricObject obj = Highlight.getOneHighlight().getElectricObject();
+        if (highlighter.getNumHighlights() == 1 && cell != null) {
+            ElectricObject obj = highlighter.getOneHighlight().getElectricObject();
             if (obj instanceof PortInst) {
                 PortInst pi = (PortInst)obj;
-                router.makeVerticalRoute(pi, ap);
+                router.makeVerticalRoute(wnd, pi, ap);
             }
         }
         // switch palette to arc

@@ -34,8 +34,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
@@ -258,7 +260,9 @@ public class NewExport extends EDialog
 		}
 
 		// get the current node and selected port
-		Highlight h = Highlight.getOneHighlight();
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h == null) return;
 
 		if (h.getType() != Highlight.Type.EOBJ)

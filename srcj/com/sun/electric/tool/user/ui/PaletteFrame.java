@@ -45,10 +45,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.LayoutText;
@@ -771,6 +768,7 @@ public class PaletteFrame
 
 			// create an EditWindow for rendering nodes and arcs
 			EditWindow w = EditWindow.CreateElectricDoc(null, null);
+            Undo.removeDatabaseChangeListener(w.getHighlighter());
 			w.setScreenSize(new Dimension(frame.entrySize, frame.entrySize));
 
 			// draw the menu entries
@@ -1081,10 +1079,11 @@ public class PaletteFrame
 		{
 			if (!(source instanceof EditWindow)) return;
 			EditWindow wnd = (EditWindow)source;
+            Highlighter highlighter = wnd.getHighlighter();
 			if (isDrawn)
 			{
 				// undraw it
-				Highlight.clear();
+				highlighter.clear();
 			}
 
 			// draw it
@@ -1130,12 +1129,12 @@ public class PaletteFrame
 				{
 					int last = i-1;
 					if (i == 0) last = points.length - 1;
-					Highlight.addLine(points[last], points[i], wnd.getCell());
+					highlighter.addLine(points[last], points[i], wnd.getCell());
 				}
 				isDrawn = true;
 				wnd.repaint();
 			}
-			Highlight.finished();
+			highlighter.finished();
 		}
 
 		public void mouseReleased(MouseEvent evt)
@@ -1168,18 +1167,19 @@ public class PaletteFrame
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getName() + " Primitive";
-            Highlight.clear();
-            Highlight.finished();
 			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode, makePort);
 
 			// restore the former listener to the edit windows
-            finished();
+            finished(wnd);
 		}
 
-        public void finished()
+        public void finished(EditWindow wnd)
         {
-            Highlight.clear();
-            Highlight.finished();
+            if (wnd != null) {
+                Highlighter highlighter = wnd.getHighlighter();
+                highlighter.clear();
+                highlighter.finished();
+            }
             WindowFrame.setListener(oldListener);
             TopLevel.setCurrentCursor(oldCursor);
             if (window != null)
@@ -1212,7 +1212,7 @@ public class PaletteFrame
 			if (chr == KeyEvent.VK_A || chr == KeyEvent.VK_ESCAPE)
 			{
                 // abort
-				finished();
+				finished(EditWindow.getCurrent());
 			}
 		}
 
@@ -1242,6 +1242,9 @@ public class PaletteFrame
 
 		public boolean doIt()
 		{
+            EditWindow wnd = EditWindow.getCurrent();
+            Highlighter highlighter = wnd.getHighlighter();
+
 			NodeProto np = null;
 			NodeInst ni = null;
 			if (toDraw instanceof NodeProto)
@@ -1283,7 +1286,7 @@ public class PaletteFrame
 					TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor(null);
 					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					var.setTextDescriptor(td);
-					Highlight h = Highlight.addText(newNi, cell, var, null);
+					Highlight h = highlighter.addText(newNi, cell, var, null);
 				}
 			} else
 			{
@@ -1340,9 +1343,9 @@ public class PaletteFrame
 				}
 				ElectricObject eObj = newNi;
 				if (newNi.getNumPortInsts() > 0) eObj = (ElectricObject)newNi.getPortInsts().next();
-				Highlight.addElectricObject(eObj, cell);
+				highlighter.addElectricObject(eObj, cell);
 			}
-			Highlight.finished();
+			highlighter.finished();
 			if (export)
 			{
 				ExportChanges.newExportCommand();

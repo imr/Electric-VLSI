@@ -46,7 +46,7 @@ public class PortInst extends ElectricObject
 
 	// -------------------protected or private methods ---------------
 
-	private PortInst() {}
+	private PortInst() { setLinked(false); }
 
 	// ------------------------ public methods -------------------------
 
@@ -194,5 +194,16 @@ public class PortInst extends ElectricObject
 		if (!check && buffer != null)
 			buffer.append("No same ports detected in " + portProto.getName() + " and " + no.getPortProto().getName() + "\n");
         return (check);
+    }
+
+    /**
+     * Overrides ElectricObject.isLinked().  This is because a PortInst is a derived
+     * database object, and is never explicitly linked or unlinked.  It represents a NodeInst
+     * and PortProto pair. So, this method really returns it's nodeinst's isLinked()
+     * value.
+     * @return true if the object is linked into the database, false if not.
+     */
+    public boolean isLinked() {
+        return nodeInst.isLinked();
     }
 }

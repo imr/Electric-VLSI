@@ -27,6 +27,8 @@ import com.sun.electric.Main;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -34,6 +36,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.KeyStroke;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -112,4 +116,34 @@ public final class MenuCommands
         menuBar.deleteEmptyBindings();
 		return menuBar;
 	}
+
+    /**
+     * Get list of ElectricObjects of what's currently selected by the user,
+     * in the window that has focus.
+     * @param wantNodes true if the list should include nodes
+     * @param wantArcs true if the list should include arcs
+     * @return a list of selected objects
+     */
+    public static List getSelectedObjects(boolean wantNodes, boolean wantArcs) {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return new ArrayList();
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return new ArrayList();
+
+        return highlighter.getHighlightedEObjs(wantNodes, wantArcs);
+    }
+
+    /**
+     * Get list of Highlights in current highlighter
+     * @return list of Highlights
+     */
+    public static List getHighlighted() {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return new ArrayList();
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return new ArrayList();
+
+        return highlighter.getHighlights();
+    }
+
 }

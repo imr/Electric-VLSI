@@ -36,7 +36,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.GridBagConstraints;
 
@@ -48,7 +51,8 @@ public class ArtworkLook extends EDialog
 	public static void showArtworkLookDialog()
 	{
 		// see if there is a piece of artwork selected]
-		Highlight h = Highlight.getOneHighlight();
+        EditWindow wnd = EditWindow.getCurrent();
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h == null) return;
 		if (h.getType() != Highlight.Type.EOBJ)
 		{

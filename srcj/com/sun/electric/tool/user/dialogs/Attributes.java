@@ -39,6 +39,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -79,6 +80,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private TextInfoPanel textPanel;
 
     private VariableCellRenderer cellRenderer;
+    private EditWindow wnd;
 
     /**
      * Method to show the Attributes dialog.
@@ -141,8 +143,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         initComponents();
         setLocation(100, 50);
 
-        // add myself as a listener for highlight changes
-        Highlight.addHighlightListener(this);
+        wnd = null;
         Undo.addDatabaseChangeListener(this);
 
         // make the list
@@ -252,12 +253,23 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         Variable selectedVar = null;
 
         currentButton = currentCell;
+
+        // update current window
+        EditWindow curWnd = EditWindow.getCurrent();
+        if ((wnd != curWnd) && (curWnd != null)) {
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
+
         selectedCell = WindowFrame.needCurCell();   selectedObject = selectedCell;
+        if (curWnd == null) selectedCell = null;
+
         if (selectedCell != null)
         {
-            if (Highlight.getNumHighlights() == 1)
+            if (wnd.getHighlighter().getNumHighlights() == 1)
             {
-                Highlight high = (Highlight)Highlight.getHighlights().next();
+                Highlight high = (Highlight)wnd.getHighlighter().getHighlights().iterator().next();
                 ElectricObject eobj = high.getElectricObject();
                 selectedVar = high.getVar();
                 if (high.getType() == Highlight.Type.EOBJ)
@@ -1085,6 +1097,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // Name will be correct, or update button will be disabled
         Variable selectedVar = getSelectedVariable();
+        if (selectedVar == null) return;
+
         String varName = selectedVar.getKey().getName();
 
         // see if value changed

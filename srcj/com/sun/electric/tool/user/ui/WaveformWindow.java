@@ -38,11 +38,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -161,6 +157,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** true if click in waveform changes highlights */		private boolean highlightChangedByWaveform = false;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
+    /** the highlighter */                                  private Highlighter highlighter;
 
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
@@ -1985,7 +1982,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
 
-		Highlight.addHighlightListener(this);
+        highlighter = new Highlighter();
+		highlighter.addHighlightListener(this);
 
 		// the total panel in the waveform window
 		overall = new OnePanel(null, this);
@@ -2351,7 +2349,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		Netlist netlist = cell.getUserNetlist();
 
 		highlightChangedByWaveform = true;
-		Highlight.clear();
+		highlighter.clear();
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
@@ -2364,11 +2362,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				JNetwork net = findNetwork(netlist, want);
 				if (net != null)
 				{
-					Highlight.addNetwork(net, cell);
+					highlighter.addNetwork(net, cell);
 				}
 			}
 		}
-		Highlight.finished();
+		highlighter.finished();
 		highlightChangedByWaveform = false;
 	}
 
@@ -2609,6 +2607,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 */
 	public Cell getCell() { return sd.getCell(); }
 
+    /**
+     * Get the highlighter for this window content.
+     * @return the highlighter
+     */
+    public Highlighter getHighlighter() { return highlighter; }
+
 	private void rebuildPanelList()
 	{
 		rebuildingSignalNameList = true;
@@ -2808,7 +2812,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			wp.clearHighlightedSignals();
 		}
 
-		Set highSet = Highlight.getHighlightedNetworks();
+		Set highSet = highlighter.getHighlightedNetworks();
 		if (highSet.size() == 1)
 		{
 			JNetwork net = (JNetwork)highSet.iterator().next();

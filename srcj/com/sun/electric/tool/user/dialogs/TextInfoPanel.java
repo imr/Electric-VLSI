@@ -35,6 +35,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -809,12 +810,15 @@ public class TextInfoPanel extends javax.swing.JPanel
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
         Cell cell = wf.getContent().getCell();
         // if owner is an export, highlight the port inst
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
         if (owner instanceof Export) {
-            Highlight.addElectricObject(((Export)owner).getOriginalPort(), cell);
+            wnd.getHighlighter().addElectricObject(((Export)owner).getOriginalPort(), cell);
         } else {
-            Highlight.addElectricObject(owner, cell);
+            wnd.getHighlighter().addElectricObject(owner, cell);
         }
-        Highlight.finished();
+        wnd.getHighlighter().finished();
 /*        ElectricObject eobj = shownText.getElectricObject();
         if (eobj instanceof NodeInst || eobj instanceof PortInst)
         {

@@ -46,7 +46,9 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -90,13 +92,17 @@ public class ERCWellCheck
 	 */
 	public static void analyzeCurCell(boolean newAlgorithm)
 	{
-		Cell curCell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+		Cell curCell = wnd.getCell();
 		if (curCell == null) return;
-        Job job = new WellCheck(curCell, newAlgorithm);;
+        Job job = new WellCheck(curCell, newAlgorithm, highlighter);
 
 		/*
 		if (newAlgorithm)
-			job = new WellCheckNew(curCell);
+			job = new WellCheckNew(curCell, highlighter);
 		else
 		*/
 
@@ -106,11 +112,13 @@ public class ERCWellCheck
 	{
 		Cell cell;
         ErrorLogger errorLogger;
+        Highlighter highlighter;
 
-		protected WellCheckNew(Cell cell)
+		protected WellCheckNew(Cell cell, Highlighter highlighter)
 		{
 			super("ERC Well Check New", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
+            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -404,18 +412,18 @@ public class ERCWellCheck
 				// show the farthest distance from a well contact
 				if (worstPWellDist > 0 || worstNWellDist > 0)
 				{
-					Highlight.clear();
+					highlighter.clear();
 					if (worstPWellDist > 0)
 					{
-						Highlight.addLine(worstPWellCon, worstPWellEdge, cell);
+						highlighter.addLine(worstPWellCon, worstPWellEdge, cell);
 						System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
 					}
 					if (worstNWellDist > 0)
 					{
-						Highlight.addLine(worstNWellCon, worstNWellEdge, cell);
+						highlighter.addLine(worstNWellCon, worstNWellEdge, cell);
 						System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
 					}
-					Highlight.finished();
+					highlighter.finished();
 				}
 			}
 
@@ -439,12 +447,14 @@ public class ERCWellCheck
 		Cell cell;
 		boolean newAlgorithm;
         ErrorLogger errorLogger;
+        Highlighter highlighter;
 
-		protected WellCheck(Cell cell, boolean newAlg)
+		protected WellCheck(Cell cell, boolean newAlg, Highlighter highlighter)
 		{
 			super("ERC Well Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlg;
+            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -774,18 +784,18 @@ public class ERCWellCheck
 				// show the farthest distance from a well contact
 				if (worstPWellDist > 0 || worstNWellDist > 0)
 				{
-					Highlight.clear();
+					highlighter.clear();
 					if (worstPWellDist > 0)
 					{
-						Highlight.addLine(worstPWellCon, worstPWellEdge, cell);
+						highlighter.addLine(worstPWellCon, worstPWellEdge, cell);
 						System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
 					}
 					if (worstNWellDist > 0)
 					{
-						Highlight.addLine(worstNWellCon, worstNWellEdge, cell);
+						highlighter.addLine(worstNWellCon, worstNWellEdge, cell);
 						System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
 					}
-					Highlight.finished();
+					highlighter.finished();
 				}
 			}
 

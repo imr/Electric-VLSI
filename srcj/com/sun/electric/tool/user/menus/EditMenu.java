@@ -326,9 +326,13 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Highlight.pushHighlight(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {
+                EditWindow wnd = EditWindow.getCurrent(); if (wnd == null) return;
+                wnd.getHighlighter().pushHighlight(); }});
 		selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Highlight.popHighlight(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {
+                EditWindow wnd = EditWindow.getCurrent(); if (wnd ==null) return;
+                wnd.getHighlighter().popHighlight(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Enclosed Objects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
@@ -405,7 +409,9 @@ public class EditMenu {
 	 */
 	public static void getInfoCommand()
 	{
-		if (Highlight.getNumHighlights() == 0)
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		if (wnd.getHighlighter().getNumHighlights() == 0)
 		{
 			// information about the cell
 			Cell c = WindowFrame.getCurrentCell();
@@ -418,7 +424,7 @@ public class EditMenu {
 			int exportCount = 0;
 			int textCount = 0;
 			int graphicsCount = 0;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				ElectricObject eobj = h.getElectricObject();
@@ -461,7 +467,7 @@ public class EditMenu {
 	 */
 	public static void seeAllParametersCommand()
 	{
-		ParameterVisibility job = new ParameterVisibility(0);
+		ParameterVisibility job = new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
 	}
 
 	/**
@@ -469,7 +475,7 @@ public class EditMenu {
 	 */
 	public static void hideAllParametersCommand()
 	{
-		ParameterVisibility job = new ParameterVisibility(1);
+		ParameterVisibility job = new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
 	}
 
 	/**
@@ -477,7 +483,7 @@ public class EditMenu {
 	 */
 	public static void defaultParamVisibilityCommand()
 	{
-		ParameterVisibility job = new ParameterVisibility(2);
+		ParameterVisibility job = new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
 	}
 
 	/**
@@ -486,11 +492,13 @@ public class EditMenu {
 	private static class ParameterVisibility extends Job
 	{
 		private int how;
+        private List selected;
 
-		protected ParameterVisibility(int how)
+		protected ParameterVisibility(int how, List selected)
 		{
 			super("Change Parameter Visibility", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
+            this.selected = selected;
 			startJob();
 		}
 
@@ -498,7 +506,7 @@ public class EditMenu {
 		{
 			// change visibility of parameters on the current node(s)
 			int changeCount = 0;
-			java.util.List list = Highlight.getHighlighted(true, false);
+			java.util.List list = selected;
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -571,7 +579,7 @@ public class EditMenu {
     public static void updateInheritance(boolean allLibraries)
     {
         // get currently selected node(s)
-        List highlighted = Highlight.getHighlighted(true, false);
+        List highlighted = MenuCommands.getSelectedObjects(true, false);
         UpdateAttributes job = new UpdateAttributes(highlighted, allLibraries, 0);
     }
 
@@ -681,9 +689,12 @@ public class EditMenu {
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
-		Highlight.clear();
+		highlighter.clear();
 		for(Iterator it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -698,13 +709,13 @@ public class EditMenu {
 					Variable var = (Variable)vIt.next();
 					if (var.isDisplay())
 					{
-						Highlight.addText(ni, curCell, var, null);
+						highlighter.addText(ni, curCell, var, null);
 						break;
 					}
 				}
 			} else
 			{
-				Highlight.addElectricObject(ni, curCell);
+				highlighter.addElectricObject(ni, curCell);
 			}
 		}
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -713,9 +724,9 @@ public class EditMenu {
 			boolean hard = ai.isHardSelect();
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
-			Highlight.addElectricObject(ai, curCell);
+			highlighter.addElectricObject(ai, curCell);
 		}
-		Highlight.finished();
+		highlighter.finished();
 	}
 
 	/**
@@ -726,9 +737,12 @@ public class EditMenu {
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 
 		HashMap likeThis = new HashMap();
-		java.util.List highlighted = Highlight.getHighlighted(true, true);
+		java.util.List highlighted = highlighter.getHighlightedEObjs(true, true);
 		for(Iterator it = highlighted.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
@@ -743,7 +757,7 @@ public class EditMenu {
 			}
 		}
 
-		Highlight.clear();
+		highlighter.clear();
 		for(Iterator it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -756,13 +770,13 @@ public class EditMenu {
 					Variable var = (Variable)vIt.next();
 					if (var.isDisplay())
 					{
-						Highlight.addText(ni, curCell, var, null);
+						highlighter.addText(ni, curCell, var, null);
 						break;
 					}
 				}
 			} else
 			{
-				Highlight.addElectricObject(ni, curCell);
+				highlighter.addElectricObject(ni, curCell);
 			}
 		}
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -770,9 +784,9 @@ public class EditMenu {
 			ArcInst ai = (ArcInst)it.next();
 			Object isLikeThis = likeThis.get(ai.getProto());
 			if (isLikeThis == null) continue;
-			Highlight.addElectricObject(ai, curCell);
+			highlighter.addElectricObject(ai, curCell);
 		}
-		Highlight.finished();
+		highlighter.finished();
 	}
 
 	/**
@@ -780,8 +794,10 @@ public class EditMenu {
 	 */
 	public static void selectNothingCommand()
 	{
-		Highlight.clear();
-		Highlight.finished();
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		wnd.getHighlighter().clear();
+		wnd.getHighlighter().finished();
 	}
 
 	/**
@@ -789,8 +805,12 @@ public class EditMenu {
 	 */
 	public static void deselectAllArcsCommand()
 	{
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
 		java.util.List newHighList = new ArrayList();
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
@@ -799,9 +819,9 @@ public class EditMenu {
 			}
 			newHighList.add(h);
 		}
-		Highlight.clear();
-		Highlight.setHighlightList(newHighList);
-		Highlight.finished();
+		highlighter.clear();
+		highlighter.setHighlightList(newHighList);
+		highlighter.finished();
 	}
 
 	/**
@@ -809,7 +829,9 @@ public class EditMenu {
 	 */
 	public static void selectMakeEasyCommand()
 	{
-		java.util.List highlighted = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		java.util.List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		for(Iterator it = highlighted.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
@@ -830,7 +852,9 @@ public class EditMenu {
 	 */
 	public static void selectMakeHardCommand()
 	{
-		java.util.List highlighted = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		java.util.List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		for(Iterator it = highlighted.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
@@ -854,11 +878,12 @@ public class EditMenu {
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
-		Rectangle2D selection = Highlight.getHighlightedArea(wnd);
-		Highlight.clear();
-		Highlight.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
+        Highlighter highlighter = wnd.getHighlighter();
+		Rectangle2D selection = highlighter.getHighlightedArea(wnd);
+		highlighter.clear();
+		highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
 			ToolBar.getSelectSpecial());
-		Highlight.finished();
+		highlighter.finished();
 	}
 
 	/**
@@ -889,13 +914,14 @@ public class EditMenu {
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (!(wf.getContent() instanceof EditWindow)) return;
+        EditWindow wnd = (EditWindow)wf.getContent();
 		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
 		if (ww == null)
 		{
 			System.out.println("Cannot add selected signals to the waveform window: this cell has no waveform window");
 			return;
 		}
-		Set nets = Highlight.getHighlightedNetworks();
+		Set nets = wnd.getHighlighter().getHighlightedNetworks();
 		ww.showSignals(nets, true);
 	}
 
@@ -907,13 +933,14 @@ public class EditMenu {
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (!(wf.getContent() instanceof EditWindow)) return;
+        EditWindow wnd = (EditWindow)wf.getContent();
 		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
 		if (ww == null)
 		{
 			System.out.println("Cannot overlay selected signals to the waveform window: this cell has no waveform window");
 			return;
 		}
-		Set nets = Highlight.getHighlightedNetworks();
+		Set nets = wnd.getHighlighter().getHighlightedNetworks();
 		ww.showSignals(nets, false);
 	}
 
@@ -924,7 +951,7 @@ public class EditMenu {
     {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
-        ArcInst ai = (ArcInst)Highlight.getOneElectricObject(ArcInst.class);
+        ArcInst ai = (ArcInst)wnd.getHighlighter().getOneElectricObject(ArcInst.class);
         if (ai == null) return;
         if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
 
@@ -969,7 +996,7 @@ public class EditMenu {
         public void mouseReleased(MouseEvent evt)
         {
             Point2D insert = getInsertPoint(evt);
-            InsertJogPoint job = new InsertJogPoint(ai, insert);
+            InsertJogPoint job = new InsertJogPoint(ai, insert, wnd.getHighlighter());
             WindowFrame.setListener(currentListener);
         }
 
@@ -980,12 +1007,13 @@ public class EditMenu {
             double y = insert.getY();
 
             double width = (ai.getWidth() - ai.getProto().getWidthOffset()) / 2;
-            Highlight.clear();
-            Highlight.addLine(new Point2D.Double(x-width, y-width), new Point2D.Double(x-width, y+width), ai.getParent());
-            Highlight.addLine(new Point2D.Double(x-width, y+width), new Point2D.Double(x+width, y+width), ai.getParent());
-            Highlight.addLine(new Point2D.Double(x+width, y+width), new Point2D.Double(x+width, y-width), ai.getParent());
-            Highlight.addLine(new Point2D.Double(x+width, y-width), new Point2D.Double(x-width, y-width), ai.getParent());
-            Highlight.finished();
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.addLine(new Point2D.Double(x-width, y-width), new Point2D.Double(x-width, y+width), ai.getParent());
+            highlighter.addLine(new Point2D.Double(x-width, y+width), new Point2D.Double(x+width, y+width), ai.getParent());
+            highlighter.addLine(new Point2D.Double(x+width, y+width), new Point2D.Double(x+width, y-width), ai.getParent());
+            highlighter.addLine(new Point2D.Double(x+width, y-width), new Point2D.Double(x-width, y-width), ai.getParent());
+            highlighter.finished();
             wnd.repaint();
         }
 
@@ -1017,12 +1045,14 @@ public class EditMenu {
         {
             ArcInst ai;
             Point2D insert;
+            Highlighter highlighter;
 
-            protected InsertJogPoint(ArcInst ai, Point2D insert)
+            protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
             {
                 super("Insert Jog in Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
                 this.ai = ai;
                 this.insert = insert;
+                this.highlighter = highlighter;
                 startJob();
             }
 
@@ -1107,9 +1137,9 @@ public class EditMenu {
                 newAi2.setAngle(angle);
 
                 // highlight one of the jog nodes
-                Highlight.clear();
-                Highlight.addElectricObject(ni, ai.getParent());
-                Highlight.finished();
+                highlighter.clear();
+                highlighter.addElectricObject(ni, ai.getParent());
+                highlighter.finished();
                 return true;
             }
         }

@@ -31,8 +31,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -61,6 +63,7 @@ public class SelectObject extends EDialog
 	private Cell cell;
 	private JList list;
 	private DefaultListModel model;
+    private Highlighter highlighter;
 
 	public static void selectObjectDialog()
 	{
@@ -129,9 +132,9 @@ public class SelectObject extends EDialog
 				NodeInst ni = (NodeInst)it.next();
 				if (s.equals(ni.getName()))
 				{
-					Highlight.clear();
-					Highlight.addElectricObject(ni, cell);
-					Highlight.finished();
+					highlighter.clear();
+					highlighter.addElectricObject(ni, cell);
+					highlighter.finished();
 					return;
 				}
 			}
@@ -143,9 +146,9 @@ public class SelectObject extends EDialog
 				ArcInst ai = (ArcInst)it.next();
 				if (s.equals(ai.getName()))
 				{
-					Highlight.clear();
-					Highlight.addElectricObject(ai, cell);
-					Highlight.finished();
+					highlighter.clear();
+					highlighter.addElectricObject(ai, cell);
+					highlighter.finished();
 					return;
 				}
 			}
@@ -157,9 +160,9 @@ public class SelectObject extends EDialog
 				Export pp = (Export)it.next();
 				if (s.equals(pp.getName()))
 				{
-					Highlight.clear();
-					Highlight.addText(pp, cell, null, null);
-					Highlight.finished();
+					highlighter.clear();
+					highlighter.addText(pp, cell, null, null);
+					highlighter.finished();
 					return;
 				}
 			}
@@ -174,9 +177,9 @@ public class SelectObject extends EDialog
 				if (netName.length() == 0) continue;
 				if (s.equals(netName))
 				{
-					Highlight.clear();
-					Highlight.addNetwork(net, cell);
-					Highlight.finished();
+					highlighter.clear();
+					highlighter.addNetwork(net, cell);
+					highlighter.finished();
 					return;
 				}
 			}
@@ -188,6 +191,14 @@ public class SelectObject extends EDialog
 		model.clear();
 		cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        WindowContent wc = wf.getContent();
+        if (wc == null) return;
+        highlighter = wc.getHighlighter();
+        if (highlighter == null) return;
+
+
 		List allNames = new ArrayList();
 		if (nodes.isSelected())
 		{

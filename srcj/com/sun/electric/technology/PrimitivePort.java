@@ -72,6 +72,9 @@ public class PrimitivePort extends PortProto
 		this.top = top;
 		this.negatable = false;
         tech.addPortProto(this);
+
+        // Prototypes are always assumed to be linked into the database
+        setLinked(true);
 	}
 
 	/**

@@ -43,6 +43,7 @@ import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -414,7 +415,8 @@ public final class ExportChanges
 		// disallow port action if lock is on
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
-		Rectangle2D bounds = Highlight.getHighlightedArea(null);
+        EditWindow wnd = EditWindow.getCurrent();
+		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
 		if (bounds == null)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -432,7 +434,7 @@ public final class ExportChanges
         if (cell == null) return;
 
         List portsToExport = new ArrayList();
-        List highs = Highlight.getHighlighted(true, false);
+        List highs = MenuCommands.getSelectedObjects(true, false);
         for(Iterator it = highs.iterator(); it.hasNext(); )
         {
             NodeInst ni = (NodeInst)it.next();
@@ -627,7 +629,8 @@ public final class ExportChanges
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
 		List exportsToDelete = new ArrayList();
-		List highs = Highlight.getHighlightedText(true);
+        EditWindow wnd = EditWindow.getCurrent();
+		List highs = wnd.getHighlighter().getHighlightedText(true);
 		for(Iterator it = highs.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
@@ -660,7 +663,8 @@ public final class ExportChanges
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
 		List exportsToDelete = new ArrayList();
-		List highs = Highlight.getHighlighted(true, false);
+        EditWindow wnd = EditWindow.getCurrent();
+		List highs = wnd.getHighlighter().getHighlightedEObjs(true, false);
 		for(Iterator it = highs.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -692,7 +696,8 @@ public final class ExportChanges
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
 		List exportsToDelete = new ArrayList();
-		Rectangle2D bounds = Highlight.getHighlightedArea(null);
+        EditWindow wnd = EditWindow.getCurrent();
+		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
 		if (bounds == null)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -729,7 +734,8 @@ public final class ExportChanges
 	{
 		Export source = null;
 		PortInst dest = null;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+        EditWindow wnd = EditWindow.getCurrent();
+		for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			boolean used = false;
@@ -773,7 +779,8 @@ public final class ExportChanges
 	 */
 	public static void renameExport()
 	{
-		Highlight h = Highlight.getOneHighlight();
+        EditWindow wnd = EditWindow.getCurrent();
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h.getVar() != null || h.getName() != null || !(h.getElectricObject() instanceof Export))
 		{
 			System.out.println("Must select an export name before renaming it");
@@ -800,14 +807,6 @@ public final class ExportChanges
 
 		public boolean doIt()
 		{
-            // retain objects selected
-            List objects = new ArrayList();
-            for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
-                objects.add(it.next());
-            }
-			// clear the highlighting
-			Highlight.clear();
-
 			int total = 0;
 			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
 			{
@@ -818,13 +817,6 @@ public final class ExportChanges
 			if (total == 0) System.out.println("No exports deleted"); else
 				System.out.println(total + " exports deleted");
 
-            for (Iterator it = objects.iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
-                ElectricObject eobj = h.getElectricObject();
-                if ((eobj == null) || (eobj instanceof Export)) continue;
-                Highlight.addElectricObject(eobj, cell);
-            }
-            Highlight.finished();
 			return true;
 		}
 	}
@@ -892,7 +884,8 @@ public final class ExportChanges
 	 */
 	public static void showPorts()
 	{
-		List nodes = Highlight.getHighlighted(true, false);
+        EditWindow wnd = EditWindow.getCurrent();
+		List nodes = wnd.getHighlighter().getHighlightedEObjs(true, false);
 		if (nodes == null || nodes.size() == 0)
 		{
 			System.out.println("No nodes are highlighted");
@@ -1058,22 +1051,23 @@ public final class ExportChanges
 		}
 
 		// show the ports
-		Highlight.clear();
+        Highlighter highlighter = wnd.getHighlighter();
+		highlighter.clear();
 		if (nodes != null)
 		{
 			for(Iterator it = nodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				Highlight.addElectricObject(ni, cell);
+				highlighter.addElectricObject(ni, cell);
 			}
 		}
 		for(int i=0; i<total; i++)
 		{
 			int index = (bestOff + i) % total;
-			Highlight.addMessage(cell, portList[index].pp.getName(), labelLocs[i]);
-			Highlight.addLine(labelLocs[i], portList[index].loc, cell);
+			highlighter.addMessage(cell, portList[index].pp.getName(), labelLocs[i]);
+			highlighter.addLine(labelLocs[i], portList[index].loc, cell);
 		}
-		Highlight.finished();
+		highlighter.finished();
 		if (total == 0)
 			System.out.println("No exported ports to show");
 		if (ignored > 0)

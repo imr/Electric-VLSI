@@ -25,11 +25,13 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -550,8 +552,13 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             return;
         }
 
+        Cell cell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
         CursorMode oldMode = curMode;
-		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 		if (ni == null)
 		{
 			System.out.println("Must first select a node with outline capabilities");

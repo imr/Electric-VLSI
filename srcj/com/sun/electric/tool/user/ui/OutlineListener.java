@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;
@@ -58,9 +59,10 @@ class OutlineListener
 
 	public void setNode(NodeInst ni)
 	{
-		high = Highlight.getOneHighlight();
-		point = 0;
 		EditWindow wnd = EditWindow.getCurrent();
+        Highlighter highlighter = wnd.getHighlighter();
+        high = highlighter.getOneHighlight();
+        point = 0;
 
 		outlineNode = ni;
 		Point2D [] origPoints = outlineNode.getTrace();
@@ -116,13 +118,14 @@ class OutlineListener
 		int x = evt.getX();
 		int y = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
 		// show "get info" on double-click
 		if (evt.getClickCount() == 2)
 		{
-			if (Highlight.getNumHighlights() >= 1)
+			if (highlighter.getNumHighlights() >= 1)
 			{
 				EditMenu.getInfoCommand();
 				return;
@@ -212,12 +215,12 @@ class OutlineListener
 
 		// standard click-and-drag: see if cursor is over anything
 		Point2D pt = wnd.screenToDatabase(x, y);
-		int numFound = Highlight.findObject(pt, wnd, true, false, false, false, true, false, false);
+		int numFound = highlighter.findObject(pt, wnd, true, false, false, false, true, false, false);
 		doingMotionDrag = false;
 		if (numFound != 0)
 		{
-			high = Highlight.getOneHighlight();
-			outlineNode = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+			high = highlighter.getOneHighlight();
+			outlineNode = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 			if (high != null && outlineNode != null)
 			{
 				point = high.getPoint();
@@ -236,6 +239,8 @@ class OutlineListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		EditWindow wnd = (EditWindow)evt.getSource();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -251,7 +256,7 @@ class OutlineListener
 			int newY = evt.getY();
 			Point2D curPt = wnd.screenToDatabase(newX, newY);
 			EditWindow.gridAlign(curPt);
-			Highlight.setHighlightOffset(0, 0);
+			highlighter.setHighlightOffset(0, 0);
 
 			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY);
 			wnd.repaintContents(null);
@@ -266,6 +271,8 @@ class OutlineListener
 	public void mouseDragged(MouseEvent evt)
 	{
 		EditWindow wnd = (EditWindow)evt.getSource();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 
 		int newX = evt.getX();
 		int newY = evt.getY();
@@ -278,7 +285,7 @@ class OutlineListener
 		// show moving of the selected point
 		if (doingMotionDrag)
 		{
-			Highlight.setHighlightOffset(pt.x - gridPt.x, pt.y - gridPt.y);
+			highlighter.setHighlightOffset(pt.x - gridPt.x, pt.y - gridPt.y);
 			wnd.repaint();
 			return;
 		}

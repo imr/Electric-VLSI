@@ -51,6 +51,7 @@ public class ElectricObject
 	// ------------------------ private data ------------------------------------
 
 	/** extra variables (null if no variables yet) */		private HashMap vars;
+    /** if object is linked into database */                private boolean linked;
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
 	/** all variable keys addressed by lower case name */	private static HashMap varLowCaseKeys = new HashMap();
@@ -60,9 +61,22 @@ public class ElectricObject
 	/**
 	 * The constructor is not used.
 	 */
-	protected ElectricObject() {}
+	protected ElectricObject() { linked = false; }
 
 	// ------------------------ public methods -------------------
+
+    /**
+     * Returns true if object is linked into database
+     */
+    public boolean isLinked() { return linked; }
+
+    /**
+     * Sets the flag that says the object is linked into the database.
+     * This should only be called by extending objects in their
+     * lowLevelLink and lowLevelUnlink methods.
+     * @param linked true if object is now linked, false if not.
+     */
+    protected void setLinked(boolean linked) { this.linked = linked; }
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given name.
@@ -387,7 +401,7 @@ public class ElectricObject
 		if (oldVar != null)
 		{
 			lowLevelUnlinkVar(oldVar);
-			if (inDatabase())
+			if (!isDummyObject())
 				Undo.killVariable(this, oldVar);
 		}
 		TextDescriptor td = null;
@@ -398,7 +412,7 @@ public class ElectricObject
 						td = TextDescriptor.getAnnotationTextDescriptor(this);
 		Variable v = new Variable(this, value, td, key);
 		lowLevelLinkVar(v);
-		if (inDatabase())
+		if (!isDummyObject())
 			Undo.newVariable(this, v);
 		return v;
 	}
@@ -497,7 +511,7 @@ public class ElectricObject
 		Variable v = getVar(key);
 		if (v == null) return;
 		lowLevelUnlinkVar(v);
-		if (inDatabase())
+		if (!isDummyObject())
 			Undo.killVariable(this, v);
 	}
 
@@ -508,6 +522,7 @@ public class ElectricObject
 	public void lowLevelLinkVar(Variable var)
 	{
 		vars.put(var.getKey(), var);
+        var.setLinked(true);
 	}
 
 	/**
@@ -517,6 +532,7 @@ public class ElectricObject
 	public void lowLevelUnlinkVar(Variable var)
 	{
 		vars.remove(var.getKey());
+        var.setLinked(false);
 	}
 
 	/**
@@ -536,7 +552,7 @@ public class ElectricObject
 			Object[] arr = (Object[])addr;
 			Object oldVal = arr[index];
 			arr[index] = value;
-			if (inDatabase())
+			if (!isDummyObject())
 				Undo.modifyVariable(this, v, index, oldVal);
 		}
 	}
@@ -556,7 +572,7 @@ public class ElectricObject
 		if (addr instanceof Object[])
 		{
 			v.lowLevelInsert(index, value);
-			if (inDatabase())
+			if (!isDummyObject())
 				Undo.insertVariable(this, v, index);
 		}
 	}
@@ -576,7 +592,7 @@ public class ElectricObject
 		{
 			Object oldVal = ((Object[])addr)[index];
 			v.lowLevelDelete(index);
-			if (inDatabase())
+			if (!isDummyObject())
 				Undo.deleteVariable(this, v, index, oldVal);
 		}
 	}
@@ -864,7 +880,7 @@ public class ElectricObject
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
-	protected boolean inDatabase() { return true; }
+	protected boolean isDummyObject() { return false; }
 
 	/**
 	 * Method to return the Key object for a given Variable name.

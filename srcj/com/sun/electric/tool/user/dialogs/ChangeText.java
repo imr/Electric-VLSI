@@ -40,6 +40,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -89,6 +90,7 @@ public class ChangeText extends EDialog
 	private double lowUnitSize, highUnitSize;
 	private int numNodesChanged, numArcsChanged, numExportsChanged;
 	private int numAnnotationsChanged, numInstancesChanged, numCellsChanged;
+    private EditWindow wnd;
 
 	public static void changeTextDialog()
 	{
@@ -112,6 +114,7 @@ public class ChangeText extends EDialog
 		changeCellText.setSelected(cellsSelected);
 
 		cell = WindowFrame.getCurrentCell();
+        wnd = EditWindow.getCurrent();
 		for(Iterator it = View.getOrderedViews().iterator(); it.hasNext(); )
 		{
 			View view = (View)it.next();
@@ -123,7 +126,7 @@ public class ChangeText extends EDialog
 		for(int i=0; i<fonts.length; i++)
 			font.addItem(fonts[i].getFontName());
 
-		if (Highlight.getNumHighlights() == 0)
+		if ((wnd == null) || (wnd.getHighlighter().getNumHighlights() == 0))
 		{
 			changeSelectedObjects.setEnabled(false);
 			changeAllInCell.setSelected(true);
@@ -209,12 +212,15 @@ public class ChangeText extends EDialog
 				if (CircuitChanges.cantEdit(cell, null, true)) return;
 			}
 
-			for(Iterator it = Highlight.getHighlightedText(false).iterator(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.TEXT) continue;
-				accumulateTextFound(h.getElectricObject(), h.getVar(), h.getName(), change);
-			}
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null) {
+                for(Iterator it = wnd.getHighlighter().getHighlightedText(false).iterator(); it.hasNext(); )
+                {
+                    Highlight h = (Highlight)it.next();
+                    if (h.getType() != Highlight.Type.TEXT) continue;
+                    accumulateTextFound(h.getElectricObject(), h.getVar(), h.getName(), change);
+                }
+            }
 		} else if (changeAllInCell.isSelected())
 		{
 			findAllInCell(cell, change);

@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -161,5 +162,5 @@ public abstract class RouteElement {
     /**
      * Adds RouteElement to highlights
      */
-    public abstract void addHighlightArea();
+    public abstract void addHighlightArea(Highlighter highlighter);
 }

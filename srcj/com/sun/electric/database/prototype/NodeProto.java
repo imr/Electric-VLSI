@@ -475,6 +475,8 @@ public abstract class NodeProto extends ElectricObject
 		usagesOf = new ArrayList();
 		function = Function.UNKNOWN;
 		tempObj = null;
+        // nodeprotos are always assumed to be in the database
+        setLinked(true);
 	}
 
 	/**

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -96,20 +97,22 @@ public class ZoomAndPanListener
  		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+             if (wnd == null) return;
+             Highlighter highlighter = wnd.getHighlighter();
 
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
 			{
 				// zooming the window scale
-				Highlight.clear();
+				highlighter.clear();
 				Point2D start = wnd.screenToDatabase(startX, startY);
 				Point2D end = wnd.screenToDatabase(newX, newY);
 				double minSelX = Math.min(start.getX(), end.getX());
 				double maxSelX = Math.max(start.getX(), end.getX());
 				double minSelY = Math.min(start.getY(), end.getY());
 				double maxSelY = Math.max(start.getY(), end.getY());
-				Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), wnd.getCell());
-				Highlight.finished();
+				highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), wnd.getCell());
+				highlighter.finished();
 				wnd.clearDoingAreaDrag();
 				wnd.repaint();
 			} else if (mode == ToolBar.CursorMode.PAN)
@@ -135,10 +138,12 @@ public class ZoomAndPanListener
  		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
+             if (wnd == null) return;
+             Highlighter highlighter = wnd.getHighlighter();
 
 			// zooming the window scale
-			Highlight.clear();
-			Highlight.finished();
+			highlighter.clear();
+			highlighter.finished();
 			Point2D start = wnd.screenToDatabase(startX, startY);
 			Point2D end = wnd.screenToDatabase(newX, newY);
 			double minSelX = Math.min(start.getX(), end.getX());
@@ -247,7 +252,8 @@ public class ZoomAndPanListener
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
-		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+        Highlighter highlighter = wnd.getHighlighter();
+		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
 		if (bounds == null) return;
 		wnd.setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
 		wnd.repaintContents(null);

@@ -72,6 +72,7 @@ public class Export extends PortProto
 	protected Export()
 	{
 		super();
+        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -272,6 +273,7 @@ public class Export extends PortProto
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
 		getParent().addPort(this, oldPortInsts);
+        setLinked(true);
 		return false;
 	}
 
@@ -283,6 +285,7 @@ public class Export extends PortProto
 	{
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
+        setLinked(false);
 		return getParent().removePort(this);
 	}
 

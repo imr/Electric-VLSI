@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
 
@@ -221,17 +222,17 @@ public class Quick
 	 * If "count" is zero, check the entire cell.
 	 * If "count" is nonzero, only check that many instances (in "nodesToCheck") and set the
 	 * entry in "validity" TRUE if it is DRC clean.
-	 * If "justArea" is TRUE, only check in the selected area.
+	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
      * @return the number of errors found
 	 */
-	public static int checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
+	public static int checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		Quick q = new Quick();
-		return q.doCheck(cell, count, geomsToCheck, validity, justArea);
+		return q.doCheck(cell, count, geomsToCheck, validity, bounds);
 	}
 
     // returns the number of errors found
-	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
+	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -351,14 +352,6 @@ public class Quick
 		// now search for DRC exclusion areas
 		exclusionList.clear();
 		accumulateExclusion(cell, DBMath.MATID);
-
- 		Rectangle2D bounds = null;
-		if (justArea)
-		{
-			EditWindow wnd = EditWindow.getCurrent();
-			if (wnd != null)
-				bounds = Highlight.getHighlightedArea(wnd);
-		}
 
 		// now do the DRC
 		haveGoodDRCDate = false;

@@ -203,6 +203,8 @@ public abstract class ArcProto extends ElectricObject
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
 		this.tempObj = null;
+        // arcprotos are always considered in the database
+        setLinked(true);
 	}
 
 	// ------------------------ public methods -------------------------------

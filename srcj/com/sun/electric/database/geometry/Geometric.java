@@ -823,6 +823,7 @@ public abstract class Geometric extends ElectricObject
 		if (this instanceof NodeInst) nameDescriptor = TextDescriptor.getNodeTextDescriptor(this); else
 			nameDescriptor = TextDescriptor.getArcTextDescriptor(this);
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+        setLinked(false);
 	}
 
 	/**
@@ -855,7 +856,7 @@ public abstract class Geometric extends ElectricObject
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
-	protected boolean inDatabase() { return parent != null; }
+	protected boolean isDummyObject() { return parent == null; }
 
 	/**
 	 * Method to write a description of this Geometric.

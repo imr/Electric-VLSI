@@ -25,6 +25,8 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.user.Highlighter;
+
 import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -77,6 +79,9 @@ public interface WindowContent
 	public abstract void setCell(Cell cell, VarContext context);
 	public abstract Cell getCell();
 
+    /** Get the Highlighter for this window */
+    public abstract Highlighter getHighlighter();
+    
 	/**
 	 * Method to return the top-level JPanel for this WindowContent.
 	 * Although the classes that implement this interface may also extend JPanel,

@@ -53,7 +53,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -91,6 +93,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private boolean scalableTrans;
 	private boolean swapXY;
     private AttributesTable attributesTable;
+    private EditWindow wnd;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
@@ -151,6 +154,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     /** This is a GUI listener */
     public boolean isGUIListener() { return true; }
 
+    protected void dialogFocusChanged() { loadInfo(); }
+
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(java.awt.Frame parent, boolean modal)
 	{
@@ -159,8 +164,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getRootPane().setDefaultButton(ok);
         setLocation(100, 50);
 
-        // add myself as a listener for highlight changes
-        Highlight.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);
@@ -217,28 +220,37 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	protected void loadInfo()
 	{
+        // update current window
+        EditWindow curWnd = EditWindow.getCurrent();
+        if ((wnd != curWnd) && (curWnd != null)) {
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
 		// must have a single node selected
 		NodeInst ni = null;
 		PortProto pp = null;
 		int nodeCount = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.EOBJ)
-			{
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst)
-				{
-					pp = ((PortInst)eobj).getPortProto();
-					eobj = ((PortInst)eobj).getNodeInst();
-				}
-				if (eobj instanceof NodeInst)
-				{
-					ni = (NodeInst)eobj;
-					nodeCount++;
-				}
-			}
-		}
+        if (wnd != null) {
+            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            {
+                Highlight h = (Highlight)it.next();
+                if (h.getType() == Highlight.Type.EOBJ)
+                {
+                    ElectricObject eobj = h.getElectricObject();
+                    if (eobj instanceof PortInst)
+                    {
+                        pp = ((PortInst)eobj).getPortProto();
+                        eobj = ((PortInst)eobj).getNodeInst();
+                    }
+                    if (eobj instanceof NodeInst)
+                    {
+                        ni = (NodeInst)eobj;
+                        nodeCount++;
+                    }
+                }
+            }
+        }
 		if (nodeCount > 1) ni = null;
 		if (ni == null)
 		{
@@ -303,7 +315,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		shownNode = ni;
 		shownPort = pp;
 
-        //System.out.println("Node technology is "+ni.getProto().getTechnology().getTechDesc());
+        focusClearOnTextField(name);
 
 		// in small version
 		NodeProto np = ni.getProto();
@@ -1629,10 +1641,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		ArcInst ai = (ArcInst)theDialog.portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;
-		Highlight.clear();
-		Highlight.addElectricObject(ni, ni.getParent());
-		Highlight.addElectricObject(ai, ai.getParent());
-		Highlight.finished();
+        if (wnd != null) {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.addElectricObject(ni, ni.getParent());
+            highlighter.addElectricObject(ai, ai.getParent());
+            highlighter.finished();
+        }
 	}//GEN-LAST:event_seeActionPerformed
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed

@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
@@ -144,21 +145,24 @@ public class Clipboard
 
 	public static void copy()
 	{
-        CopyObjects job = new CopyObjects();
+        CopyObjects job = new CopyObjects(MenuCommands.getSelectedObjects(true, true));
 	}
 
 	private static class CopyObjects extends Job
 	{
-		protected CopyObjects()
+        private List highlightedObjs;
+
+		protected CopyObjects(List highlightedObjs)
 		{
 			super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlightedObjs = highlightedObjs;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// get objects to copy
-			List geoms = Highlight.getHighlighted(true, true);
+			List geoms = highlightedObjs;
 			if (geoms.size() == 0)
 			{
 				System.out.println("First select objects to copy");
@@ -186,21 +190,24 @@ public class Clipboard
 
 	public static void cut()
 	{
-        CutObjects job = new CutObjects();
+        CutObjects job = new CutObjects(MenuCommands.getSelectedObjects(true, true));
 	}
 
 	private static class CutObjects extends Job
 	{
-		protected CutObjects()
+        private List highlightedObjs;
+
+		protected CutObjects(List highlightedObjs)
 		{
 			super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlightedObjs = highlightedObjs;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// get objects to cut
-			List geoms = Highlight.getHighlighted(true, true);
+			List geoms = highlightedObjs;
 			if (geoms.size() == 0)
 			{
 				System.out.println("First select objects to cut");
@@ -234,21 +241,24 @@ public class Clipboard
 
     public static void duplicate()
     {
-        DuplicateObjects job = new DuplicateObjects();
+        DuplicateObjects job = new DuplicateObjects(MenuCommands.getSelectedObjects(true, true));
     }
 
 	private static class DuplicateObjects extends Job
     {
-        protected DuplicateObjects()
+        private List highlightedObjs;
+
+        protected DuplicateObjects(List highlightedObjs)
         {
             super("Duplicate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlightedObjs = highlightedObjs;
             startJob();
         }
 
         public boolean doIt()
         {
             // get objects to copy
-            List geoms = Highlight.getHighlighted(true, true);
+            List geoms = highlightedObjs;
             if (geoms.size() == 0)
             {
                 System.out.println("First select objects to copy");
@@ -271,7 +281,8 @@ public class Clipboard
             // copy objects to clipboard
             copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
 
-            Highlight.clear();
+            Highlighter highlighter = wnd.getHighlighter();
+            if (highlighter != null) highlighter.clear();
 
             paste();
 			return true;
@@ -294,9 +305,10 @@ public class Clipboard
 		// find out where the paste is going
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 
 		// special case of pasting on top of selected objects
-		List geoms = Highlight.getHighlighted(true, true);
+		List geoms = highlighter.getHighlightedEObjs(true, true);
 		if (geoms.size() > 0)
 		{
 			// can only paste a single object onto selection
@@ -323,11 +335,11 @@ public class Clipboard
 				if (geom instanceof NodeInst && nTotal == 1)
 				{
 					NodeInst ni = (NodeInst)geom;
-					PasteNodeToNode job = new PasteNodeToNode(ni, (NodeInst)clipCell.getNodes().next());
+					PasteNodeToNode job = new PasteNodeToNode(ni, (NodeInst)clipCell.getNodes().next(), highlighter);
 				} else if (geom instanceof ArcInst && aTotal == 1)
 				{
 					ArcInst ai = (ArcInst)geom;
-					PasteArcToArc job = new PasteArcToArc(ai, (ArcInst)clipCell.getArcs().next());
+					PasteArcToArc job = new PasteArcToArc(ai, (ArcInst)clipCell.getArcs().next(), highlighter);
 				}
 			}
 			return;
@@ -368,12 +380,14 @@ public class Clipboard
 	private static class PasteArcToArc extends Job
 	{
 		ArcInst src, dst;
+        Highlighter highlighter;
 
-		protected PasteArcToArc(ArcInst dst, ArcInst src)
+		protected PasteArcToArc(ArcInst dst, ArcInst src, Highlighter highlighter)
 		{
 			super("Paste Arc to Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
+            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -385,9 +399,9 @@ public class Clipboard
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
             if (ai != null) {
-                Highlight.clear();
-                Highlight.addElectricObject(ai, ai.getParent());
-                Highlight.finished();
+                highlighter.clear();
+                highlighter.addElectricObject(ai, ai.getParent());
+                highlighter.finished();
             }
 			return true;
 		}
@@ -396,12 +410,14 @@ public class Clipboard
 	private static class PasteNodeToNode extends Job
 	{
 		NodeInst src, dst;
+        Highlighter highlighter;
 
-		protected PasteNodeToNode(NodeInst dst, NodeInst src)
+		protected PasteNodeToNode(NodeInst dst, NodeInst src, Highlighter highlighter)
 		{
 			super("Paste Node to Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
+            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -413,9 +429,9 @@ public class Clipboard
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
             if (ni != null) {
-                Highlight.clear();
-                Highlight.addElectricObject(ni, ni.getParent());
-                Highlight.finished();
+                highlighter.clear();
+                highlighter.addElectricObject(ni, ni.getParent());
+                highlighter.finished();
             }
 			return true;
 		}
@@ -715,7 +731,8 @@ public class Clipboard
 		// highlight the copy
 		if (highlight)
 		{
-			Highlight.clear();
+            Highlighter highlighter = wnd.getHighlighter();
+			highlighter.clear();
 			for(Iterator it = theNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -731,11 +748,11 @@ public class Clipboard
 					{
 						Poly poly = polys[i];
                         if (poly == null) continue;
-						Highlight h = Highlight.addText(ni, toCell, poly.getVariable(), poly.getName());
+						Highlight h = highlighter.addText(ni, toCell, poly.getVariable(), poly.getName());
 					}
 					continue;
 				}
-				Highlight h = Highlight.addElectricObject(ni, toCell);
+				Highlight h = highlighter.addElectricObject(ni, toCell);
 			}
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -743,9 +760,9 @@ public class Clipboard
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
 				ai = (ArcInst)ai.getTempObj();
-				Highlight h = Highlight.addElectricObject(ai, toCell);
+				Highlight h = highlighter.addElectricObject(ai, toCell);
 			}
-			Highlight.finished();
+			highlighter.finished();
 		}
 
 		// cleanup temp object pointers that correspond from old cell to new
@@ -942,14 +959,15 @@ public class Clipboard
             oX = mouseDB.getX();
             oY = mouseDB.getY();
 
-            Highlight.pushHighlight();
+            wnd.getHighlighter().pushHighlight();
 			showList();
 		}
 
 		private void showList()
 		{
 			Cell cell = wnd.getCell();
-			Highlight.clear();
+            Highlighter highlighter = wnd.getHighlighter();
+			highlighter.clear();
 			for(Iterator it = pasteList.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
@@ -970,7 +988,7 @@ public class Clipboard
 							Variable var = (Variable)vIt.next();
 							if (var.isDisplay())
 							{
-								points = Highlight.describeHighlightText(wnd, geom, var, null);
+								points = Highlighter.describeHighlightText(wnd, geom, var, null);
 								break;
 							}
 						}
@@ -983,7 +1001,7 @@ public class Clipboard
 							double fY = points[i].getY();
 							double tX = points[i+1].getX();
 							double tY = points[i+1].getY();
-							Highlight.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
+							highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
 						}
 						continue;
 					}
@@ -1009,11 +1027,11 @@ public class Clipboard
 						double fY = points[lastI].getY();
 						double tX = points[i].getX();
 						double tY = points[i].getY();
-						Highlight.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
+						highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
 					}
 				}
 			}
-			Highlight.finished();
+			highlighter.finished();
 		}
 
 		public void mousePressed(MouseEvent evt)
@@ -1040,7 +1058,7 @@ public class Clipboard
             showList();
 
             WindowFrame.setListener(currentListener);
-            Highlight.popHighlight();
+            wnd.getHighlighter().popHighlight();
             PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
 		}
 
@@ -1068,8 +1086,8 @@ public class Clipboard
             int chr = evt.getKeyCode();
             if (chr == KeyEvent.VK_ESCAPE) {
                 // abort on ESC
-                Highlight.clear();
-                Highlight.finished();
+                wnd.getHighlighter().clear();
+                wnd.getHighlighter().finished();
                 WindowFrame.setListener(currentListener);
                 wnd.repaint();
             }

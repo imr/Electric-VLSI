@@ -65,6 +65,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -93,7 +94,7 @@ public class CircuitChanges
 
 	private static double lastRotationAmount = 90;
 
-	/**
+    /**
 	 * Method to handle the command to rotate the selected objects by an amount.
 	 * @param amount the amount to rotate.  If the amount is zero, prompt for an amount.
 	 */
@@ -120,7 +121,7 @@ public class CircuitChanges
 			amount = (int)(fAmount * 10);
 		}
 
-		RotateSelected job = new RotateSelected(cell, amount, false, false);
+		RotateSelected job = new RotateSelected(cell, MenuCommands.getSelectedObjects(true, true), amount, false, false);
 	}
 
 	/**
@@ -130,13 +131,16 @@ public class CircuitChanges
 	 */
 	public static void mirrorObjects(boolean horizontally)
 	{
-		Cell cell = WindowFrame.needCurCell();
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Cell cell = wf.getContent().getCell();
+
 		if (cell == null) return;
 
 		// disallow rotating if lock is on
 		if (cantEdit(cell, null, true)) return;
 
-		RotateSelected job = new RotateSelected(cell, 0, true, horizontally);
+		RotateSelected job = new RotateSelected(cell, MenuCommands.getSelectedObjects(true, true), 0, true, horizontally);
 	}
 	
 	private static class RotateSelected extends Job
@@ -145,21 +149,24 @@ public class CircuitChanges
 		private int amount;
 		private boolean mirror;
         private boolean mirrorH;
+        private List highs;
 
         /**
          * @param cell
+         * @param highs the highlighted objects (list of highlights)
          * @param amount angle in tenth degrees to rotate
          * @param mirror whether or not to mirror. if true, amount is ignored, and mirrorH is used.
          * @param mirrorH if true, mirror horizontally (flip over X-axis), otherwise mirror
          * vertically (flip over Y-axis). Ignored if mirror is false.
          */
-		protected RotateSelected(Cell cell, int amount, boolean mirror, boolean mirrorH)
+		protected RotateSelected(Cell cell, List highs, int amount, boolean mirror, boolean mirrorH)
 		{
 			super("Rotate selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.amount = amount;
 			this.mirror = mirror;
 			this.mirrorH = mirrorH;
+            this.highs = highs;
 			startJob();
 		}
 
@@ -175,7 +182,6 @@ public class CircuitChanges
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
-			List highs = Highlight.getHighlighted(true, true);
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
@@ -357,7 +363,7 @@ public class CircuitChanges
 	 */
 	public static void alignToGrid()
 	{
-		AlignObjects job = new AlignObjects();
+		AlignObjects job = new AlignObjects(MenuCommands.getSelectedObjects(true, true));
 	}
 
 	/**
@@ -365,15 +371,17 @@ public class CircuitChanges
 	 */
 	private static class AlignObjects extends Job
 	{
-		protected AlignObjects()
+        private List list;          // list of highlighted objects to align
+
+		protected AlignObjects(List highs)
 		{
 			super("Align Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.list = highs;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			List list = Highlight.getHighlighted(true, true);
 			if (list.size() == 0)
 			{
 				System.out.println("Must select something before aligning it to the grid");
@@ -564,7 +572,7 @@ public class CircuitChanges
 		if (np == null) return;
 
 		// get the objects to be moved (mark nodes with nonzero "temp1")
-		List list = Highlight.getHighlighted(true, true);
+		List list = MenuCommands.getSelectedObjects(true, true);
 		if (list.size() == 0)
 		{
 			System.out.println("First select objects to move");
@@ -706,7 +714,7 @@ public class CircuitChanges
 	 */
 	public static void arcRigidCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(1);
+		ChangeArcProperties job = new ChangeArcProperties(1, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -714,7 +722,7 @@ public class CircuitChanges
 	 */
 	public static void arcNotRigidCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(2);
+		ChangeArcProperties job = new ChangeArcProperties(2, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -722,7 +730,7 @@ public class CircuitChanges
 	 */
 	public static void arcFixedAngleCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(3);
+		ChangeArcProperties job = new ChangeArcProperties(3, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -730,7 +738,7 @@ public class CircuitChanges
 	 */
 	public static void arcNotFixedAngleCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(4);
+		ChangeArcProperties job = new ChangeArcProperties(4, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -738,7 +746,7 @@ public class CircuitChanges
 	 */
 	public static void arcDirectionalCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(5);
+		ChangeArcProperties job = new ChangeArcProperties(5, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -746,7 +754,7 @@ public class CircuitChanges
 	 */
 	public static void arcEndsExtendCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(6);
+		ChangeArcProperties job = new ChangeArcProperties(6, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -754,7 +762,7 @@ public class CircuitChanges
 	 */
 	public static void arcReverseCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(7);
+		ChangeArcProperties job = new ChangeArcProperties(7, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -762,7 +770,7 @@ public class CircuitChanges
 	 */
 	public static void arcSkipHeadCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(8);
+		ChangeArcProperties job = new ChangeArcProperties(8, MenuCommands.getHighlighted());
 	}
 
 	/**
@@ -770,17 +778,19 @@ public class CircuitChanges
 	 */
 	public static void arcSkipTailCommand()
 	{
-		ChangeArcProperties job = new ChangeArcProperties(9);
+		ChangeArcProperties job = new ChangeArcProperties(9, MenuCommands.getHighlighted());
 	}
 
 	private static class ChangeArcProperties extends Job
 	{
 		private int how;
+        private List highlighted;
 
-		protected ChangeArcProperties(int how)
+		protected ChangeArcProperties(int how, List highlighted)
 		{
 			super("Align objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
+            this.highlighted = highlighted;
 			startJob();
 		}
 
@@ -792,7 +802,7 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
 			int numSet = 0, numUnset = 0;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -920,14 +930,17 @@ public class CircuitChanges
 	 */
 	public static void toggleNegatedCommand()
 	{
-		ToggleNegationJob job = new ToggleNegationJob();
+		ToggleNegationJob job = new ToggleNegationJob(MenuCommands.getHighlighted());
 	}
 
 	private static class ToggleNegationJob extends Job
 	{
-		protected ToggleNegationJob()
+        private List highlighted;
+
+		protected ToggleNegationJob(List highlighted)
 		{
 			super("Toggle negation", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlighted = highlighted;
 			startJob();
 		}
 
@@ -939,7 +952,7 @@ public class CircuitChanges
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
 			int numSet = 0;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -998,7 +1011,7 @@ public class CircuitChanges
 	 */
 	public static void ripBus()
 	{
-		List list = Highlight.getHighlighted(false, true);
+		List list = MenuCommands.getSelectedObjects(false, true);
 		if (list.size() == 0)
 		{
 			System.out.println("Must select bus arcs to rip into individual signals");
@@ -1106,8 +1119,8 @@ public class CircuitChanges
 				}
 
 				// turn off highlighting
-				Highlight.clear();
-				Highlight.finished();
+				//Highlighter.global.clear();
+				//Highlighter.global.finished();
 
 				double sxw = Schematics.tech.wirePinNode.getDefWidth();
 				double syw = Schematics.tech.wirePinNode.getDefHeight();
@@ -1175,6 +1188,8 @@ public class CircuitChanges
 		// see what type of window is selected
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
 
 		// for waveform windows, delete selected signals
 		if (wf.getContent() instanceof WaveformWindow)
@@ -1186,25 +1201,33 @@ public class CircuitChanges
 
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
 		{
-			DeleteSelectedGeometry job = new DeleteSelectedGeometry();
+            EditWindow wnd = EditWindow.getCurrent();
+            Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+			DeleteSelectedGeometry job = new DeleteSelectedGeometry(wnd.getCell(), bounds);
 		} else
 		{
-	        DeleteSelected job = new DeleteSelected();
+            List highlightedText = highlighter.getHighlightedText(true);
+            List highlighted = highlighter.getHighlights();
+            if (highlighted.size() == 0) return;
+	        DeleteSelected job = new DeleteSelected(highlightedText, highlighted);
 		}
 	}
 
 	private static class DeleteSelected extends Job
 	{
-		protected DeleteSelected()
+        private List highlightedText;
+        private List highlighted;
+
+		protected DeleteSelected(List highlightedText, List highlighted)
 		{
 			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlightedText = highlightedText;
+            this.highlighted = highlighted;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			if (Highlight.getNumHighlights() == 0) return false;
-
 			// make sure deletion is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell != null)
@@ -1212,10 +1235,9 @@ public class CircuitChanges
 				if (cantEdit(cell, null, true)) return false;
 			}
 
-			List highlightedText = Highlight.getHighlightedText(true);
 			List deleteList = new ArrayList();
 			Geometric oneGeom = null;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -1235,8 +1257,8 @@ public class CircuitChanges
 			}
 
 			// clear the highlighting
-			Highlight.clear();
-			Highlight.finished();
+			//Highlighter.global.clear();
+			//Highlighter.global.finished();
 
 /*			// if just one node is selected, see if it can be deleted with "pass through"
 			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
@@ -1310,27 +1332,33 @@ public class CircuitChanges
 
 	private static class DeleteSelectedGeometry extends Job
 	{
-		protected DeleteSelectedGeometry()
+        private Cell cell;
+        private Rectangle2D bounds;
+
+		protected DeleteSelectedGeometry(Cell cell, Rectangle2D bounds)
 		{
 			super("Delete selected geometry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.bounds = bounds;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			EditWindow wnd = EditWindow.getCurrent();
-			Cell cell = null;
-			if (wnd != null) cell = wnd.getCell();
 			if (cell == null)
 			{
 				System.out.println("No current cell");
 				return false;
 			}
+            if (bounds == null)
+            {
+                System.out.println("Nothing selected");
+                return false;
+            }
 
 			// disallow erasing if lock is on
 			if (cantEdit(cell, null, true)) return false;
 
-			Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
 			if (bounds == null)
 			{
 				System.out.println("Outline an area first");
@@ -2213,6 +2241,11 @@ public class CircuitChanges
 	 */
 	public static void packageIntoCell()
 	{
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
 		// get the specified area
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
@@ -2222,7 +2255,7 @@ public class CircuitChanges
 			System.out.println("No cell in this window");
 			return;
 		}
-		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
 		if (bounds == null)
 		{
 			System.out.println("Must first select circuitry to package");
@@ -2321,7 +2354,8 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		ExtractCellInstances job = new ExtractCellInstances();
+
+		ExtractCellInstances job = new ExtractCellInstances(MenuCommands.getSelectedObjects(true, false));
 	}
 
 	/**
@@ -2329,17 +2363,17 @@ public class CircuitChanges
 	 */
 	private static class ExtractCellInstances extends Job
 	{
-		protected ExtractCellInstances()
+        private List nodes;
+
+		protected ExtractCellInstances(List highlighted)
 		{
 			super("Extract Cell Instances", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.nodes = highlighted;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			List nodes = Highlight.getHighlighted(true, false);
-			Highlight.clear();
-			Highlight.finished();
 			boolean foundInstance = false;
 			for(Iterator it = nodes.iterator(); it.hasNext(); )
 			{
@@ -2575,24 +2609,27 @@ public class CircuitChanges
 
 	public static void cleanupPinsCommand(boolean everywhere)
 	{
-		Highlight.clear();
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
 		if (everywhere)
 		{
 			boolean cleaned = false;
 			for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				if (cleanupCell(cell, false)) cleaned = true;
+				if (cleanupCell(cell, false, highlighter)) cleaned = true;
 			}
 			if (!cleaned) System.out.println("Nothing to clean");
 		} else
 		{
 			// just cleanup the current cell
-			Cell cell = WindowFrame.needCurCell();
+            Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return;
-			cleanupCell(cell, true);
+			cleanupCell(cell, true, highlighter);
 		}
-		Highlight.finished();
 	}
 
 	/**
@@ -2606,7 +2643,7 @@ public class CircuitChanges
 	 *   resize oversized pins that don't have oversized arcs on them
 	 * Returns true if changes are made.
 	 */
-	private static boolean cleanupCell(Cell cell, boolean justThis)
+	private static boolean cleanupCell(Cell cell, boolean justThis, Highlighter highlighter)
 	{
 		// look for unused pins that can be deleted
 		List pinsToRemove = new ArrayList();
@@ -2750,7 +2787,7 @@ public class CircuitChanges
 			{
 				if (justThis)
 				{
-					Highlight.addElectricObject(ni, cell);
+					highlighter.addElectricObject(ni, cell);
 				}
 				overSizePins++;
 			}
@@ -2805,7 +2842,7 @@ public class CircuitChanges
 			if (sX > 0 && sY > 0) continue;
 			if (justThis)
 			{
-				Highlight.addElectricObject(ni, cell);
+				highlighter.addElectricObject(ni, cell);
 			}
 			if (sX < 0 || sY < 0) negSize++; else
 				zeroSize++;
@@ -2976,6 +3013,11 @@ public class CircuitChanges
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
 		// see which cells (in any library) have nonmanhattan stuff
 		FlagSet cellMark = NodeProto.getFlagSet(1);
 		cellMark.clearOnAllCells();
@@ -3021,8 +3063,8 @@ public class CircuitChanges
 					nonMan = true;
 			if (nonMan)
 			{
-				if (i == 0) Highlight.clear();
-				Highlight.addElectricObject(ai, curCell);
+				if (i == 0) highlighter.clear();
+				highlighter.addElectricObject(ai, curCell);
 				i++;
 			}
 		}
@@ -3030,13 +3072,13 @@ public class CircuitChanges
 		{
 			NodeInst ni = (NodeInst)nIt.next();
 			if ((ni.getAngle() % 900) == 0) continue;
-			if (i == 0) Highlight.clear();
-			Highlight.addElectricObject(ni, curCell);
+			if (i == 0) highlighter.clear();
+			highlighter.addElectricObject(ni, curCell);
 			i++;
 		}
 		if (i == 0) System.out.println("No nonmanhattan objects in this cell"); else
 		{
-			Highlight.finished();
+			highlighter.finished();
 			System.out.println(i + " objects are not manhattan in this cell");
 		}
 
@@ -3087,7 +3129,7 @@ public class CircuitChanges
 	 */
 	public static void shortenArcsCommand()
 	{
-		ShortenArcs job = new ShortenArcs();
+		ShortenArcs job = new ShortenArcs(MenuCommands.getSelectedObjects(false, true));
 	}
 	
 	/**
@@ -3095,10 +3137,13 @@ public class CircuitChanges
 	 */
 	private static class ShortenArcs extends Job
 	{
-		private ShortenArcs()
+        private List selected;
+
+		private ShortenArcs(List selected)
 		{
 			super("Shorten selected arcs", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
+			this.selected = selected;
+            startJob();
 		}
 
 		public boolean doIt()
@@ -3108,7 +3153,6 @@ public class CircuitChanges
 			if (cell == null) return false;
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
-			List selected = Highlight.getHighlighted(false, true);
 			int l = 0;
 			double [] dX = new double[2];
 			double [] dY = new double[2];
@@ -3283,23 +3327,25 @@ public class CircuitChanges
 
 	public static void makeIconViewCommand()
 	{
-        MakeIconView job = new MakeIconView();
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
+        MakeIconView job = new MakeIconView(curCell);
 	}
 
 	private static class MakeIconView extends Job
 	{
 		private static boolean reverseIconExportOrder;
+        private Cell curCell;
 
-		protected MakeIconView()
+		protected MakeIconView(Cell cell)
 		{
 			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
+			this.curCell = cell;
+            startJob();
 		}
 
 		public boolean doIt()
 		{
-			Cell curCell = WindowFrame.needCurCell();
-			if (curCell == null) return false;
 			Library lib = curCell.getLibrary();
 
 			if (!curCell.isSchematicView())
@@ -3460,10 +3506,15 @@ public class CircuitChanges
 			if (ni != null)
 			{
 //				ni.setExpanded();
-
-				Highlight.clear();
-				Highlight.addElectricObject(ni, curCell);
-				Highlight.finished();
+                EditWindow wnd = EditWindow.getCurrent();
+                if (wnd != null) {
+                    if (wnd.getCell() == curCell) {
+                        Highlighter highlighter = wnd.getHighlighter();
+                        highlighter.clear();
+                        highlighter.addElectricObject(ni, curCell);
+                        highlighter.finished();
+                    }
+                }
 //				if (lx > el_curwindowpart->screenhx || hx < el_curwindowpart->screenlx ||
 //					ly > el_curwindowpart->screenhy || hy < el_curwindowpart->screenly)
 //				{
@@ -3708,28 +3759,38 @@ public class CircuitChanges
 	 */
 	public static void manyMove(double dX, double dY)
 	{
-        ManyMove job = new ManyMove(dX, dY);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+        List highlighted = highlighter.getHighlights();
+        List highlightedText = highlighter.getHighlightedText(true);
+        ManyMove job = new ManyMove(highlighted, highlightedText, dX, dY);
 	}
 
 	private static class ManyMove extends Job
 	{
 		double dX, dY;
         static final boolean verbose = false;
+        private List highlighted;
+        private List highlightedText;
 
-		protected ManyMove(double dX, double dY)
+		protected ManyMove(List highlighted, List highlightedText, double dX, double dY)
 		{
 			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dX = dX;   this.dY = dY;
+            this.highlighted = highlighted;
+            this.highlightedText = highlightedText;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// get information about what is highlighted
-			int total = Highlight.getNumHighlights();
+			int total = highlighted.size();
 			if (total <= 0) return false;
-			List highlightedText = Highlight.getHighlightedText(true);
-			Iterator oit = Highlight.getHighlights();
+			Iterator oit = highlighted.iterator();
 			Highlight firstH = (Highlight)oit.next();
 			ElectricObject firstEObj = firstH.getElectricObject();
 			Cell cell = firstH.getCell();
@@ -3758,7 +3819,7 @@ public class CircuitChanges
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
 			boolean found = false;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3798,7 +3859,7 @@ public class CircuitChanges
 			if (found)
 			{
 				// meets the test: make the special move to slide other orthogonal arcs
-				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+				for(Iterator it = highlighted.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3850,7 +3911,7 @@ public class CircuitChanges
 
 			// special case if moving only arcs and they slide
 			boolean onlySlidable = true, foundArc = false;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3873,7 +3934,7 @@ public class CircuitChanges
 			}
 			if (foundArc && onlySlidable)
 			{
-				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+				for(Iterator it = highlighted.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3909,7 +3970,7 @@ public class CircuitChanges
 			}
 
 			int numNodes = 0;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -3960,7 +4021,7 @@ public class CircuitChanges
 			flag.freeFlagSet();
 
 			// look at all arcs and move them appropriately
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
@@ -4000,7 +4061,7 @@ public class CircuitChanges
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
-						for(Iterator oIt = Highlight.getHighlights(); oIt.hasNext(); )
+						for(Iterator oIt = highlighted.iterator(); oIt.hasNext(); )
 						{
 							Highlight oH = (Highlight)oIt.next();
 							if (oH.getType() != Highlight.Type.EOBJ) continue;
@@ -4693,7 +4754,10 @@ public class CircuitChanges
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
-		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+        Highlighter highlighter = wnd.getHighlighter();
+        if (highlighter == null) return;
+
+		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
 		if (bounds == null)
 		{
 			System.out.println("Must define an area in which to display");
@@ -4704,7 +4768,7 @@ public class CircuitChanges
 
 	private static void DoExpandCommands(boolean unExpand, int amount)
 	{
-		List list = Highlight.getHighlighted(true, false);
+		List list = MenuCommands.getSelectedObjects(true, false);
 		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, unExpand, amount);
 	}
 

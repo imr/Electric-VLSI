@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
@@ -321,7 +322,7 @@ public class RouteElementArc extends RouteElement {
     /**
      * Adds RouteElement to highlights
      */
-    public void addHighlightArea() {
+    public void addHighlightArea(Highlighter highlighter) {
 
         if (!isShowHighlight()) return;
 
@@ -362,14 +363,14 @@ public class RouteElementArc extends RouteElement {
                 tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
             }
             Cell cell = getCell();
-            Highlight.addLine(head1, tail1, cell);
+            highlighter.addLine(head1, tail1, cell);
             //Highlight.addLine(headPoint, tailPoint, cell);
-            Highlight.addLine(head2, tail2, cell);
-            Highlight.addLine(head1, head2, cell);
-            Highlight.addLine(tail1, tail2, cell);
+            highlighter.addLine(head2, tail2, cell);
+            highlighter.addLine(head1, head2, cell);
+            highlighter.addLine(tail1, tail2, cell);
         }
         if (getAction() == RouteElementAction.deleteArc) {
-            Highlight.addElectricObject(arcInst, getCell());
+            highlighter.addElectricObject(arcInst, getCell());
         }
     }
 

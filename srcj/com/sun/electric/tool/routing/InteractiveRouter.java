@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -72,6 +73,7 @@ public abstract class InteractiveRouter extends Router {
 
     /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
     /** if start has been called */                 private boolean started;
+    /** EditWindow we are routing in */             private EditWindow wnd;
 
     /** last bad object routed from: prevent too many error messages */ private ElectricObject badStartObject;
     /** last bad object routing to: prevent too many error messages */  private ElectricObject badEndObject;
@@ -80,6 +82,7 @@ public abstract class InteractiveRouter extends Router {
         verbose = true;
         started = false;
         badStartObject = badEndObject = null;
+        wnd = null;
     }
 
     public String toString() { return "Interactive Router"; }
@@ -95,14 +98,15 @@ public abstract class InteractiveRouter extends Router {
      * in addition to route highlighting.  If routing it cancelled,
      * it also restores the original highlighting.
      */
-    public void startInteractiveRoute() {
+    public void startInteractiveRoute(EditWindow wnd) {
+        this.wnd = wnd;
         // copy current highlights
         startRouteHighlights.clear();
-        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+        for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             startRouteHighlights.add(h);
         }
-        Highlight.clear();
+        wnd.getHighlighter().clear();
         started = true;
     }
 
@@ -111,29 +115,32 @@ public abstract class InteractiveRouter extends Router {
      */
     public void cancelInteractiveRoute() {
         // restore original highlights
-        Highlight.clear();
-        Highlight.setHighlightList(startRouteHighlights);
-        Highlight.finished();
+        Highlighter highlighter = wnd.getHighlighter();
+        highlighter.clear();
+        highlighter.setHighlightList(startRouteHighlights);
+        highlighter.finished();
+        wnd = null;
         started = false;
     }
 
     /**
      * Make a route between startObj and endObj in the EditWindow wnd.
      * Uses the point where the user clicked as a parameter to set the route.
+     * @param wnd the EditWindow the user is editing
      * @param cell the cell in which to create the route
      * @param startObj a PortInst or ArcInst from which to start the route
      * @param endObj a PortInst or ArcInst to end the route on. May be null
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      */
-    public void makeRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
-        if (!started) startInteractiveRoute();
+    public void makeRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+        if (!started) startInteractiveRoute(wnd);
         // plan the route
         Route route = planRoute(cell, startObj, endObj, clicked);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
-        Highlight.clear();
-        Highlight.setHighlightList(startRouteHighlights);
+        wnd.getHighlighter().clear();
+        wnd.getHighlighter().setHighlightList(startRouteHighlights);
         // create route
         createRoute(route, cell);
         started = false;
@@ -143,15 +150,17 @@ public abstract class InteractiveRouter extends Router {
      * Make a vertical route.  Will add in contacts in startPort's technology
      * to be able to connect to endPort.  The added contacts will be placed on
      * top of startPort.  The final contact will be able to connect to <i>arc</i>.
+     * @param wnd the EditWindow the user is editing
      * @param startPort the start of the route
      * @param arc the arc type that the last contact will be able to connect to
      * @return true on sucess
      */
-    public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
+    public boolean makeVerticalRoute(EditWindow wnd, PortInst startPort, ArcProto arc) {
         // do nothing if startPort can already connect to arc
         if (startPort.getPortProto().connectsTo(arc)) return true;
 
-        if (!started) startInteractiveRoute();
+        Cell cell = startPort.getNodeInst().getParent();
+        if (!started) startInteractiveRoute(wnd);
 
         Point2D startLoc = new Point2D.Double(startPort.getPoly().getCenterX(), startPort.getPoly().getCenterY());
         Poly poly = getConnectingSite(startPort, startLoc, -1);
@@ -170,8 +179,8 @@ public abstract class InteractiveRouter extends Router {
         vroute.buildRoute(route, startRE.getCell(), startRE, null, startLoc, startLoc, startLoc);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
-        Highlight.clear();
-        Highlight.setHighlightList(startRouteHighlights);
+        wnd.getHighlighter().clear();
+        wnd.getHighlighter().setHighlightList(startRouteHighlights);
         MakeVerticalRouteJob job = new MakeVerticalRouteJob(this, route, startPort.getNodeInst().getParent(), true);
         started = false;
         return true;
@@ -211,27 +220,25 @@ public abstract class InteractiveRouter extends Router {
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      */
-    public void highlightRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
-        if (!started) startInteractiveRoute();
+    public void highlightRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+        if (!started) startInteractiveRoute(wnd);
         // highlight route
         Route route = planRoute(cell, startObj, endObj, clicked);
-        highlightRoute(route);
+        highlightRoute(wnd, route, cell);
     }
 
     /**
      * Highlight a route in the window
      * @param route the route to be highlighted
      */
-    public void highlightRoute(Route route) {
-        if (!started) startInteractiveRoute();
-        // highlight all objects in route
-        Highlight.clear();
+    public void highlightRoute(EditWindow wnd, Route route, Cell cell) {
+        if (!started) startInteractiveRoute(wnd);
         //Highlight.setHighlightList(startRouteHighlights);
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
-            e.addHighlightArea();
+            e.addHighlightArea(wnd.getHighlighter());
         }
-        Highlight.finished();
+        wnd.getHighlighter().finished();
     }
 
 

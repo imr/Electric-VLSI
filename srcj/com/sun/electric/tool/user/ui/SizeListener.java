@@ -38,6 +38,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Cursor;
@@ -78,7 +79,11 @@ public class SizeListener
 	 */
 	public static void sizeObjects()
 	{
-		List geomList = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+		List geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
 		if (geomList.size() != 1)
 		{
@@ -140,6 +145,10 @@ public class SizeListener
 		public SizeObjects(java.awt.Frame parent, boolean modal, boolean nodes)
 		{
 			super(parent, modal);
+
+            EditWindow wnd = EditWindow.needCurrent();
+            if (wnd == null) return;
+            Highlighter highlighter = wnd.getHighlighter();
 
 			getContentPane().setLayout(new GridBagLayout());
 			String label = "Width:";
@@ -220,7 +229,7 @@ public class SizeListener
 
 			// determine default size
 			double xS = 0, yS = 0;
-			for(Iterator it = Highlight.getHighlighted(true, true).iterator(); it.hasNext(); )
+			for(Iterator it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && nodes)
@@ -280,12 +289,17 @@ public class SizeListener
 			if (cell == null) return false;
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
+            EditWindow wnd = EditWindow.needCurrent();
+            if (wnd == null) return false;
+            Highlighter highlighter = wnd.getHighlighter();
+
+
 			double xS = TextUtils.atof(dialog.xSize.getText());
 			double yS = 0;
 			if (dialog.nodes)
 				yS = TextUtils.atof(dialog.ySize.getText());
 			boolean didSomething = false;
-			for(Iterator it = Highlight.getHighlighted(true, true).iterator(); it.hasNext(); )
+			for(Iterator it = highlighter.getHighlightedEObjs(true, true).iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst && dialog.nodes)
@@ -315,17 +329,17 @@ public class SizeListener
 
 	public void mousePressed(MouseEvent evt)
 	{
-		showHighlight(evt);
+		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
 	public void mouseMoved(MouseEvent evt)
 	{
-		showHighlight(evt);
+		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
 	public void mouseDragged(MouseEvent evt)
 	{
-		showHighlight(evt);
+		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
 	public void mouseReleased(MouseEvent evt)
@@ -333,10 +347,10 @@ public class SizeListener
 		// restore the listener to the former state
 		WindowFrame.setListener(oldListener);
 		TopLevel.setCurrentCursor(oldCursor);
-		showHighlight(null);
+        EditWindow wnd = (EditWindow)evt.getSource();
+		showHighlight(null, wnd);
 
 		// handle scaling the selected objects
-		EditWindow wnd = (EditWindow)evt.getSource();
 		Point2D newSize = getNewSize(evt);
 		ScaleObject job = new ScaleObject(stretchGeom, newSize);
 		wnd.repaint();
@@ -355,7 +369,7 @@ public class SizeListener
 			// restore the listener to the former state
 			WindowFrame.setListener(oldListener);
 			TopLevel.setCurrentCursor(oldCursor);
-			showHighlight(null);
+			showHighlight(null, wnd);
 			System.out.println("Aborted");
 		}
 	}
@@ -367,14 +381,15 @@ public class SizeListener
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-	private void showHighlight(MouseEvent evt)
+	private void showHighlight(MouseEvent evt, EditWindow wnd)
 	{
-		Highlight.clear();
-		Highlight.addElectricObject(stretchGeom, stretchGeom.getParent());
-		Highlight.finished();
+        Highlighter highlighter = wnd.getHighlighter();
+
+		highlighter.clear();
+		highlighter.addElectricObject(stretchGeom, stretchGeom.getParent());
+		highlighter.finished();
 		if (evt != null)
 		{
-			EditWindow wnd = (EditWindow)evt.getSource();
 			Point2D newSize = getNewSize(evt);
 			if (stretchGeom instanceof NodeInst)
 			{
@@ -394,7 +409,7 @@ public class SizeListener
 				{
 					int lastI = i - 1;
 					if (lastI < 0) lastI = stretchedPoints.length - 1;
-					Highlight.addLine(stretchedPoints[lastI], stretchedPoints[i], ni.getParent());
+					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], ni.getParent());
 				}
 			} else
 			{
@@ -407,7 +422,7 @@ public class SizeListener
 				{
 					int lastI = i - 1;
 					if (lastI < 0) lastI = stretchedPoints.length - 1;
-					Highlight.addLine(stretchedPoints[lastI], stretchedPoints[i], ai.getParent());
+					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], ai.getParent());
 				}
 			}
 			wnd.repaint();

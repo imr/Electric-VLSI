@@ -36,6 +36,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -351,7 +352,12 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceModel()
 	{
-		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 		SetSpiceModel job = new SetSpiceModel(ni);
 	}
@@ -384,7 +390,12 @@ public class Simulation extends Tool
 	 */
 	public static void setVerilogWireCommand(int type)
 	{
-		List list = Highlight.getHighlighted(false, true);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		List list = highlighter.getHighlightedEObjs(false, true);
 		if (list.size() == 0)
 		{
 			System.out.println("Must select arcs before setting their type");
@@ -441,7 +452,12 @@ public class Simulation extends Tool
 	 */
 	public static void setTransistorStrengthCommand(boolean weak)
 	{
-		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 		SetTransistorStrength job = new SetTransistorStrength(ni, weak);
 	}

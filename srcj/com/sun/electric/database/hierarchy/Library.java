@@ -81,6 +81,7 @@ public class Library extends ElectricObject
 	 */
 	private Library()
 	{
+        setLinked(false);
 	}
 
 	/**
@@ -116,6 +117,7 @@ public class Library extends ElectricObject
 		lib.libName = legalName;
 		lib.libFile = libFile;
         lib.referencedLibs = new ArrayList();
+        lib.setLinked(true);
 
 		// add the library to the global list
 		synchronized (libraries)
@@ -170,6 +172,7 @@ public class Library extends ElectricObject
 
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
+        setLinked(false);
 		return true;
 	}
 

@@ -38,6 +38,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -59,6 +60,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	private String initialRefName;
 	private PortProto.Characteristic initialCharacteristic;
 	private boolean initialBodyOnly, initialAlwaysDrawn;
+    private EditWindow wnd;
 
     private TextInfoPanel textPanel;
 
@@ -113,29 +115,46 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         }
     }
     public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }    
+    public boolean isGUIListener() { return true; }
+    protected void dialogFocusChanged() { loadExportInfo(); }
 
 	private void loadExportInfo()
 	{
+        // update current window
+        EditWindow curWnd = EditWindow.getCurrent();
+        if ((wnd != curWnd) && (curWnd != null)) {
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
+        if (wnd == null) {
+            disableDialog();
+            return;
+        }
+
 		// must have a single export selected
 		Export pp = null;
 		int exportCount = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.TEXT) continue;
-			if (h.getVar() != null) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof Export)
-			{
-				pp = (Export)eobj;
-				exportCount++;
-			}
-		}
+        if (wnd != null) {
+            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            {
+                Highlight h = (Highlight)it.next();
+                if (h.getType() != Highlight.Type.TEXT) continue;
+                if (h.getVar() != null) continue;
+                ElectricObject eobj = h.getElectricObject();
+                if (eobj instanceof Export)
+                {
+                    pp = (Export)eobj;
+                    exportCount++;
+                }
+            }
+        }
 		if (exportCount > 1) pp = null;
 
         boolean enabled = true;
         if (pp == null) enabled = false;
+
+        focusClearOnTextField(theText);
 
         // set enabled state of dialog
         theText.setEditable(enabled);
@@ -145,10 +164,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         refName.setEditable(enabled);
 
         if (!enabled) {
-		    shownExport = null;
-            theText.setText("");
-            refName.setText("");
-            textPanel.setTextDescriptor(null, null, null);
+            disableDialog();
 			return;
 		}
 
@@ -188,6 +204,13 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         focusOnTextField(theText);
 	}
 
+    private void disableDialog() {
+        shownExport = null;
+        theText.setText("");
+        refName.setText("");
+        textPanel.setTextDescriptor(null, null, null);
+    }
+
 	/** Creates new form Export Get-Info */
 	private GetInfoExport(java.awt.Frame parent, boolean modal)
 	{
@@ -197,7 +220,6 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         setLocation(100, 50);
 
         // add myself as a listener for highlight changes
-        Highlight.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 
         // set characteristic combo box

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -72,19 +73,20 @@ public class MeasureListener
             //Highlight.clear();
             Point2D start = dbStart;
             Point2D end = dbPoint;
+            Highlighter highlighter = wnd.getHighlighter();
 
             for (Iterator it = lastHighlights.iterator(); it.hasNext(); ) {
                 Highlight h = (Highlight)it.next();
-                Highlight.remove(h);
+                highlighter.remove(h);
             }
 
             // show coords at start and end point
-            lastHighlights.add(Highlight.addMessage(wnd.getCell(), "("+start.getX()+
+            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+start.getX()+
                     ","+start.getY()+")", start));
-            lastHighlights.add(Highlight.addMessage(wnd.getCell(), "("+end.getX()+
+            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+end.getX()+
                     ","+end.getY()+")", end));
             // add in line
-            lastHighlights.add(Highlight.addLine(start, end, wnd.getCell()));
+            lastHighlights.add(highlighter.addLine(start, end, wnd.getCell()));
 
             lastMeasuredDistanceX = Math.abs(start.getX() - end.getX());
             lastMeasuredDistanceY = Math.abs(start.getY() - end.getY());
@@ -92,8 +94,8 @@ public class MeasureListener
             double dist = start.distance(end);
             String show = TextUtils.formatDouble(dist) + " (dX="+TextUtils.formatDouble(lastMeasuredDistanceX)
                 + " dY=" + TextUtils.formatDouble(lastMeasuredDistanceY)+")";
-            lastHighlights.add(Highlight.addMessage(wnd.getCell(), show, center));
-            Highlight.finished();
+            lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center));
+            highlighter.finished();
             wnd.clearDoingAreaDrag();
             wnd.repaint();
         }
@@ -104,8 +106,9 @@ public class MeasureListener
             measuring = false;
         else {
             // clear measures from the screen if user cancels twice in a row
-            Highlight.clear();
-            Highlight.finished();
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.finished();
             wnd.repaint();
         }
     }

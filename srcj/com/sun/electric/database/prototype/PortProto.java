@@ -258,6 +258,8 @@ public abstract class PortProto extends ElectricObject
 		this.userBits = 0;
 		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
 		this.tempObj = null;
+        // Prototypes are always assumed to be linked into the database
+        setLinked(true);
 	}
 
 	/**

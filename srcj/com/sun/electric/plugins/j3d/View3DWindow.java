@@ -32,10 +32,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.technology.Technology;
@@ -307,7 +304,6 @@ public class View3DWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
-        Highlight.removeHighlightListener(this);
 		System.out.println("View3DWindow::finished");
 	}
 
@@ -332,6 +328,7 @@ public class View3DWindow extends JPanel
 	public boolean cellHistoryCanGoForward() { return false; }
 	public void fireCellHistoryStatus() {}
 	public void replaceAllText(String replace) {}
+    public Highlighter getHighlighter() { return null; }
 
 	/**
 	 *

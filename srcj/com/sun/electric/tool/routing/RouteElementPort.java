@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
@@ -309,7 +310,7 @@ public class RouteElementPort extends RouteElement {
     /**
      * Adds RouteElement to highlights
      */
-    public void addHighlightArea() {
+    public void addHighlightArea(Highlighter highlighter) {
 
         if (!isShowHighlight()) return;
 
@@ -317,10 +318,10 @@ public class RouteElementPort extends RouteElement {
             // create box around new Node
             Rectangle2D bounds = new Rectangle2D.Double(location.getX()-0.5*width,
                     location.getY()-0.5*height, width, height);
-            Highlight.addArea(bounds, getCell());
+            highlighter.addArea(bounds, getCell());
         }
         if (getAction() == RouteElementAction.existingPortInst) {
-            Highlight.addElectricObject(portInst, getCell());
+            highlighter.addElectricObject(portInst, getCell());
         }
     }
 

@@ -39,6 +39,8 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import javax.swing.*;
 import java.awt.geom.Point2D;
@@ -1552,11 +1554,19 @@ public class Undo
 	{
         // save highlights for redo
         List savedHighlights = new ArrayList();
-        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
-            savedHighlights.add(it.next());
+        Point2D offset = new Point2D.Double(0, 0);
+        // for now, just save from the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        Highlighter highlighter = null;
+        if (wnd != null) {
+            highlighter = wnd.getHighlighter();
+            for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+                savedHighlights.add(it.next());
+            }
+            offset = highlighter.getHighlightOffset();
+            highlighter.clear();
+            highlighter.finished();
         }
-        Highlight.clear();
-        Highlight.finished();
 
 		// close out the current batch
 		endChanges();
@@ -1572,7 +1582,7 @@ public class Undo
 
         // save pre undo highlights
         batch.preUndoHighlights = savedHighlights;
-        batch.preUndoHighlightsOffset = Highlight.getHighlightOffset();
+        batch.preUndoHighlightsOffset = offset;
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1603,10 +1613,12 @@ public class Undo
         for (Iterator it = batch.startingHighlights.iterator(); it.hasNext(); ) {
             highlights.add(it.next());
         }
-        Highlight.setHighlightList(highlights);
-        Highlight.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
-                (int)batch.startHighlightsOffset.getY());
-        Highlight.finished();
+        if (highlighter != null) {
+            highlighter.setHighlightList(highlights);
+            highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+                    (int)batch.startHighlightsOffset.getY());
+            highlighter.finished();
+        }
 
 		// mark that this batch is undone
 		batch.done = false;
@@ -1619,8 +1631,13 @@ public class Undo
 	 */
 	public static boolean redoABatch()
 	{
-        Highlight.clear();
-        Highlight.finished();
+        EditWindow wnd = EditWindow.getCurrent();
+        Highlighter highlighter = null;
+        if (wnd != null) highlighter = wnd.getHighlighter();
+        if (highlighter != null) {
+            highlighter.clear();
+            highlighter.finished();
+        }
 
 		// close out the current batch
 		endChanges();
@@ -1663,10 +1680,12 @@ public class Undo
         for (Iterator it = batch.preUndoHighlights.iterator(); it.hasNext(); ) {
             highlights.add(it.next());
         }
-        Highlight.setHighlightList(highlights);
-        Highlight.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
-                (int)batch.preUndoHighlightsOffset.getY());
-        Highlight.finished();
+        if (highlighter != null) {
+            highlighter.setHighlightList(highlights);
+            highlighter.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
+                    (int)batch.preUndoHighlightsOffset.getY());
+            highlighter.finished();
+        }
 
 		// mark that this batch is redone
 		batch.done = true;

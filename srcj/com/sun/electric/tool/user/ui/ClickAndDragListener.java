@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
 
@@ -55,6 +56,7 @@ class ClickAndDragListener
 		oldx = evt.getX();
 		oldy = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -65,7 +67,7 @@ class ClickAndDragListener
 		// show "get info" on double-click
 		if (evt.getClickCount() == 2 && !another && !invertSelection)
 		{
-			if (Highlight.getNumHighlights() >= 1)
+			if (highlighter.getNumHighlights() >= 1)
 			{
 				EditMenu.getInfoCommand();
 				return;
@@ -77,7 +79,7 @@ class ClickAndDragListener
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 		{
 			// object selection: start by seeing if cursor is over a highlighted object
-			if (!another && !invertSelection && Highlight.overHighlighted(wnd, oldx, oldy))
+			if (!another && !invertSelection && highlighter.overHighlighted(wnd, oldx, oldy))
 			{
 				// over a highlighted object: move it
 				doingMotionDrag = true;
@@ -86,7 +88,7 @@ class ClickAndDragListener
 
 			// standard selection: see if cursor is over anything
 			Point2D pt = wnd.screenToDatabase(oldx, oldy);
-			int numFound = Highlight.findObject(pt, wnd, false, another, invertSelection, true, false, special, true);
+			int numFound = highlighter.findObject(pt, wnd, false, another, invertSelection, true, false, special, true);
 			if (numFound == 0)
 			{
 				// not over anything: drag out a selection rectangle
@@ -107,6 +109,7 @@ class ClickAndDragListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -120,16 +123,16 @@ class ClickAndDragListener
 			double minSelY = Math.min(start.getY(), end.getY());
 			double maxSelY = Math.max(start.getY(), end.getY());
 			if (!invertSelection)
-				Highlight.clear();
+				highlighter.clear();
 			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
-				Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection,
+				highlighter.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection,
 					ToolBar.getSelectSpecial());
 			} else
 			{
-				Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+				highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 			}
-			Highlight.finished();
+			highlighter.finished();
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
 		}
@@ -143,7 +146,7 @@ class ClickAndDragListener
 			Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
 			EditWindow.gridAlign(delta);
 			if (delta.getX() == 0 && delta.getY() == 0) return;
-			Highlight.setHighlightOffset(0, 0);
+			highlighter.setHighlightOffset(0, 0);
 			CircuitChanges.manyMove(delta.getX(), delta.getY());
 			wnd.repaint();
 		}
@@ -159,6 +162,7 @@ class ClickAndDragListener
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
 		EditWindow.gridAlign(delta);
@@ -171,7 +175,7 @@ class ClickAndDragListener
 		// handle moving the selected objects
 		if (doingMotionDrag)
 		{
-			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
+			highlighter.setHighlightOffset(newX - oldx, newY - oldy);
 			wnd.repaint();
 			return;
 		}
@@ -198,6 +202,7 @@ class ClickAndDragListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -223,7 +228,7 @@ class ClickAndDragListener
 		{
 			// restore the listener to the former state
 			doingMotionDrag = false;
-			Highlight.setHighlightOffset(0, 0);
+			highlighter.setHighlightOffset(0, 0);
 			wnd.repaint();
 			System.out.println("Aborted");
 		}
@@ -236,13 +241,14 @@ class ClickAndDragListener
 	{
         // scale distance according to arrow motion
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		int scale = User.getDefGridXBoldFrequency();
 		if (evt.isShiftDown()) { dX *= scale;   dY *= scale; }
 		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
-		Highlight.setHighlightOffset(0, 0);
+		highlighter.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents(null);
 	}

@@ -42,7 +42,9 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.Iterator;
 import java.util.HashMap;
@@ -51,6 +53,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Date;
 import java.util.prefs.Preferences;
+import java.awt.geom.Rectangle2D;
 
 /**
  * This is the Design Rule Checker tool.
@@ -350,7 +353,7 @@ public class DRC extends Listener
 		{
 			incrementalRunning = true;
 			long startTime = System.currentTimeMillis();
-			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, false);
+			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null);
 			long endTime = System.currentTimeMillis();
 			if (errorsFound > 0)
 			{
@@ -445,15 +448,16 @@ public class DRC extends Listener
 	public static void checkHierarchically()
 	{
 		Cell curCell = WindowFrame.needCurCell();
+
 		if (curCell == null) return;
 		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
 		{
 			// hierarchical check of schematics
-			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, false);
+			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, null);
 		} else
 		{
 			// hierarchical check of layout
-			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, false);
+			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, null);
 		}
 	}
 
@@ -462,36 +466,46 @@ public class DRC extends Listener
 	 */
 	public static void checkAreaHierarchically()
 	{
-		Cell curCell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter h = wnd.getHighlighter();
+        Rectangle2D bounds = h.getHighlightedArea(wnd);
+
+        Cell curCell = wnd.getCell();
 		if (curCell == null) return;
 		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
 		{
 			// hierarchical check of schematics
-			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, true);
+			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, bounds);
 		} else
 		{
 			// hierarchical check of layout
-			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, true);
+			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, bounds);
 		}
 	}
 
 	private static class CheckLayoutHierarchically extends Job
 	{
 		Cell cell;
-		boolean justArea;
+		Rectangle2D bounds;
 
-		protected CheckLayoutHierarchically(Cell cell, boolean justArea)
+        /**
+         * Check bounds within cell. If bounds is null, check entire cell.
+         * @param cell
+         * @param bounds
+         */
+		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds)
 		{
 			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.justArea = justArea;
+			this.bounds = bounds;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			int errorsFound = Quick.checkDesignRules(cell, 0, null, null, justArea);
+			int errorsFound = Quick.checkDesignRules(cell, 0, null, null, bounds);
 			long endTime = System.currentTimeMillis();
 			System.out.println(errorsFound + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
@@ -501,13 +515,18 @@ public class DRC extends Listener
 	private static class CheckSchematicHierarchically extends Job
 	{
 		Cell cell;
-		boolean justArea;
+		Rectangle2D bounds;
 
-		protected CheckSchematicHierarchically(Cell cell, boolean justArea)
+        /**
+         * Check bounds within Cell.  If bounds is null, check entire cell.
+         * @param cell
+         * @param bounds
+         */
+		protected CheckSchematicHierarchically(Cell cell, Rectangle2D bounds)
 		{
 			super("Design-Rule Check", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.justArea = justArea;
+			this.bounds = bounds;
 			startJob();
 		}
 

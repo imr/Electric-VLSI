@@ -258,15 +258,15 @@ public class ErrorLogger implements ActionListener {
             // show the error
             if (showhigh)
             {
-                Highlight.clear();
+                Highlighter highlighter = null;
 
                 // first show the geometry associated with this error
                 for(Iterator it = highlights.iterator(); it.hasNext(); )
                 {
                     ErrorHighlight eh = (ErrorHighlight)it.next();
 
-                    // validate the cell (it may have been deleted)
                     Cell cell = eh.cell;
+                    // validate the cell (it may have been deleted)
                     if (cell != null)
                     {
                         if (!cell.isLinked())
@@ -276,12 +276,13 @@ public class ErrorLogger implements ActionListener {
 
                         // make sure it is shown
                         boolean found = false;
+                        EditWindow wnd = null;
                         for(Iterator it2 = WindowFrame.getWindows(); it2.hasNext(); )
                         {
                             WindowFrame wf = (WindowFrame)it2.next();
                             WindowContent content = wf.getContent();
                             if (!(content instanceof EditWindow)) continue;
-                            EditWindow wnd = (EditWindow)content;
+                            wnd = (EditWindow)content;
                             if (wnd.getCell() == cell)
                             {
                                 if (((eh.context != null) && eh.context.equals(wnd.getVarContext())) ||
@@ -297,19 +298,20 @@ public class ErrorLogger implements ActionListener {
                         {
                             // make a new window for the cell
                             WindowFrame wf = WindowFrame.createEditWindow(cell);
-                            EditWindow wnd = (EditWindow)wf.getContent();
+                            wnd = (EditWindow)wf.getContent();
                             wnd.setCell(eh.cell, eh.context);
                         }
+                        highlighter = wnd.getHighlighter();
                     }
 
                     switch (eh.type)
                     {
                         case ERRORTYPEGEOM:
                             if (!eh.showgeom) break;
-                            Highlight.addElectricObject(eh.geom, cell);
+                            highlighter.addElectricObject(eh.geom, cell);
                             break;
                         case ERRORTYPEEXPORT:
-    						Highlight.addText(eh.pp, cell, null, null);
+    						highlighter.addText(eh.pp, cell, null, null);
 //						if (havegeoms == 0) infstr = initinfstr(); else
 //							addtoinfstr(infstr, '\n');
 //						havegeoms++;
@@ -318,20 +320,20 @@ public class ErrorLogger implements ActionListener {
 //								(INTBIG)eh->pp);
                             break;
                         case ERRORTYPELINE:
-                            Highlight.addLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), cell);
+                            highlighter.addLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), cell);
                             break;
                         case ERRORTYPETHICKLINE:
-                            Highlight.addThickLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), new Point2D.Double(eh.cX, eh.cY), cell);
+                            highlighter.addThickLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), new Point2D.Double(eh.cX, eh.cY), cell);
                             break;
                         case ERRORTYPEPOINT:
                             double consize = 5;
-                            Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x1+consize, eh.y1+consize), cell);
-                            Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x1+consize, eh.y1-consize), cell);
+                            highlighter.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x1+consize, eh.y1+consize), cell);
+                            highlighter.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x1+consize, eh.y1-consize), cell);
                             break;
                     }
                 }
 
-                Highlight.finished();
+                highlighter.finished();
             }
 
             // return the error message

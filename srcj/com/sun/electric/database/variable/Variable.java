@@ -113,6 +113,9 @@ public class Variable
 	private Key key;
 	private int flags;
 	private TextDescriptor descriptor;
+    private ElectricObject owner;
+
+    /** true if var is attached to valid electric object */ private boolean linked;
 
 	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
 	/** display variable (uses textdescript field) */	private static final int VDISPLAY =             0100;
@@ -152,6 +155,7 @@ public class Variable
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
+        this.owner = owner;
 	}
 
 	/**
@@ -160,7 +164,7 @@ public class Variable
 	public final void checkChanging()
 	{
 		ElectricObject owner = descriptor.owner;
-		if (!owner.inDatabase()) return;
+		if (owner.isDummyObject()) return;
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast
@@ -233,6 +237,17 @@ public class Variable
 	 * @return the Variable Key associated with this variable.
 	 */
 	public Key getKey() { return key; }
+
+    /**
+     * Set if this variable is linked to an ElectricObject
+     */
+    public void setLinked(boolean linked) { this.linked = linked; }
+
+    /**
+     * Returns true if variable is linked to a linked database object, false otherwise.
+     * @return true if variable is linked to a linked database object, false otherwise.
+     */
+    public boolean isLinked() { return (linked && owner.isLinked()); }
 
 	/**
 	 * Method to return a more readable name for this Variable.

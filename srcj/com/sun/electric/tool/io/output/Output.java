@@ -46,6 +46,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -490,7 +491,7 @@ public class Output//extends IOTool
 					bounds = wnd.getDisplayedBounds();
 				} else
 				{
-					Rectangle2D hBounds = Highlight.getHighlightedArea(wnd);
+					Rectangle2D hBounds = wnd.getHighlighter().getHighlightedArea(wnd);
 					if (hBounds == null || hBounds.getWidth() == 0 || hBounds.getHeight() == 0)
 					{
 						System.out.println("Warning: no highlighted area; printing entire cell");

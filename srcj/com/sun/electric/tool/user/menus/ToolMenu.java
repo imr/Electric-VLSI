@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
@@ -312,11 +313,15 @@ public class ToolMenu {
 
     /** Print Logical Effort info for highlighted nodes */
     public static void printLEInfoCommand() {
-        if (Highlight.getNumHighlights() == 0) {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        if (highlighter.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
             return;
         }
-        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
             if (h.getType() != Highlight.Type.EOBJ) continue;
 
@@ -339,15 +344,19 @@ public class ToolMenu {
      */
     public static void showNetworkCommand()
     {
-        Set nets = Highlight.getHighlightedNetworks();
-        Highlight.clear();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        Set nets = highlighter.getHighlightedNetworks();
+        highlighter.clear();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             JNetwork net = (JNetwork)it.next();
             Cell cell = net.getParent();
-            Highlight.addNetwork(net, cell);
+            highlighter.addNetwork(net, cell);
         }
-        Highlight.finished();
+        highlighter.finished();
     }
 
     /**
@@ -406,7 +415,11 @@ public class ToolMenu {
     {
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-        Set nets = Highlight.getHighlightedNetworks();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        Set nets = highlighter.getHighlightedNetworks();
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
@@ -474,7 +487,11 @@ public class ToolMenu {
     {
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-        Set nets = Highlight.getHighlightedNetworks();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        Set nets = highlighter.getHighlightedNetworks();
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
@@ -511,7 +528,11 @@ public class ToolMenu {
     {
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-        Set nets = Highlight.getHighlightedNetworks();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        Set nets = highlighter.getHighlightedNetworks();
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
@@ -624,7 +645,11 @@ public class ToolMenu {
     {
 	    Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-        Set nets = Highlight.getHighlightedNetworks();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        Set nets = highlighter.getHighlightedNetworks();
 	    Netlist netlist = cell.getUserNetlist();
 
 	    if (nets.isEmpty())
@@ -684,6 +709,10 @@ public class ToolMenu {
     {
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
         Netlist netlist = cell.getUserNetlist();
         HashSet pAndG = new HashSet();
         for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -718,13 +747,13 @@ public class ToolMenu {
             }
         }
 
-        Highlight.clear();
+        highlighter.clear();
         for(Iterator it = pAndG.iterator(); it.hasNext(); )
         {
             JNetwork net = (JNetwork)it.next();
-            Highlight.addNetwork(net, cell);
+            highlighter.addNetwork(net, cell);
         }
-        Highlight.finished();
+        highlighter.finished();
         if (pAndG.size() == 0)
             System.out.println("This cell has no Power or Ground networks");
     }
@@ -785,7 +814,12 @@ public class ToolMenu {
      */
     public static void addMultiplierCommand()
     {
-        NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+        Cell cell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
         if (ni == null) return;
         AddMultiplier job = new AddMultiplier(ni);
     }
@@ -1100,8 +1134,13 @@ public class ToolMenu {
                 case MERGE:
                 case IMPLANT:
                     {
+                        EditWindow wnd = EditWindow.needCurrent();
+                        Highlighter highlighter = null;
+                        if ((wnd != null) && (wnd.getCell() == curCell))
+                            highlighter = wnd.getHighlighter();
+
                         // With polygons collected, new geometries are calculated
-                        Highlight.clear();
+                        if (highlighter != null) highlighter.clear();
                         boolean noNewNodes = true;
                         boolean isMerge = (function == MERGE);
 
@@ -1128,7 +1167,8 @@ public class ToolMenu {
                                 PrimitiveNode priNode = layer.getPureLayerNode();
                                 // Adding the new implant. New implant not assigned to any local variable                                .
                                 NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
-                                Highlight.addElectricObject(node, curCell);
+                                if (highlighter != null)
+                                    highlighter.addElectricObject(node, curCell);
 
                                 if (isMerge)
                                 {
@@ -1143,7 +1183,7 @@ public class ToolMenu {
                                 noNewNodes = false;
                             }
                         }
-                        Highlight.finished();
+                        if (highlighter != null) highlighter.finished();
                         for (Iterator it = deleteList.iterator(); it.hasNext(); )
                         {
                             NodeInst node = (NodeInst)it .next();

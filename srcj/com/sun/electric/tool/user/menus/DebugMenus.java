@@ -53,6 +53,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -505,15 +506,18 @@ public class DebugMenus {
 	public static void implantGeneratorCommand(boolean newIdea, boolean test) {
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
         Job job = null;
 
 	    if (newIdea)
 	    {
-			job = new CoverImplant(curCell, test);
+			job = new CoverImplant(curCell, test, wnd.getHighlighter());
 	    }
 	    else
 	    {
-		    job = new CoverImplantOld(curCell);
+		    job = new CoverImplantOld(curCell, wnd.getHighlighter());
 	    }
 	}
 
@@ -521,12 +525,14 @@ public class DebugMenus {
 	{
 		private Cell curCell;
         private boolean testMerge = false;
+        private Highlighter highlighter;
 
-		protected CoverImplant(Cell cell, boolean test)
+		protected CoverImplant(Cell cell, boolean test, Highlighter highlighter)
 		{
 			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
             this.testMerge = test;
+            this.highlighter = highlighter;
 			setReportExecutionFlag(true);
 			startJob();
 		}
@@ -598,7 +604,7 @@ public class DebugMenus {
 			// tree.print();
 
 			// With polygons collected, new geometries are calculated
-			Highlight.clear();
+			highlighter.clear();
 			boolean noNewNodes = true;
 
 			// Need to detect if geometry was really modified
@@ -616,7 +622,7 @@ public class DebugMenus {
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .
 					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
-					Highlight.addElectricObject(node, curCell);
+					highlighter.addElectricObject(node, curCell);
 
 					if ( testMerge )
 					{
@@ -631,7 +637,7 @@ public class DebugMenus {
 					noNewNodes = false;
 				}
 			}
-			Highlight.finished();
+			highlighter.finished();
 			for (Iterator it = deleteList.iterator(); it.hasNext(); )
 			{
 				NodeInst node = (NodeInst)it .next();
@@ -646,11 +652,13 @@ public class DebugMenus {
 	private static class CoverImplantOld extends Job
 	{
 		private Cell curCell;
+        private Highlighter highlighter;
 
-		protected CoverImplantOld(Cell cell)
+		protected CoverImplantOld(Cell cell, Highlighter highlighter)
 		{
 			super("Coverage Implant Old", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+            this.highlighter = highlighter;
 			setReportExecutionFlag(true);
 			startJob();
 		}
@@ -735,7 +743,7 @@ public class DebugMenus {
 			}
 
 			// With polygons collected, new geometries are calculated
-			Highlight.clear();
+			highlighter.clear();
 			java.util.List nodesList = new ArrayList();
 
 			// Need to detect if geometry was really modified
@@ -780,13 +788,13 @@ public class DebugMenus {
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .
 					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
-					Highlight.addElectricObject(node, curCell);
+					highlighter.addElectricObject(node, curCell);
 					// New implant can't be selected again
 					node.setHardSelect();
 					nodesList.add(node);
 				}
 			}
-			Highlight.finished();
+			highlighter.finished();
 			for (Iterator it = deleteList.iterator(); it.hasNext(); )
 			{
 				NodeInst node = (NodeInst)it .next();
@@ -800,7 +808,9 @@ public class DebugMenus {
 	// ---------------------- THE JON GAINSLEY MENU -----------------
 
 	public static void listVarsOnObject(boolean useproto) {
-		if (Highlight.getNumHighlights() == 0) {
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+		if (wnd.getHighlighter().getNumHighlights() == 0) {
 			// list vars on cell
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 			if (wf == null) return;
@@ -808,7 +818,7 @@ public class DebugMenus {
             cell.getInfo();
 			return;
 		}
-		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+		for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 			ElectricObject eobj = h.getElectricObject();
@@ -831,8 +841,10 @@ public class DebugMenus {
 
 	public static void evalVarsOnObject() {
 		EditWindow curEdit = EditWindow.needCurrent();
-		if (Highlight.getNumHighlights() == 0) return;
-		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+        if (curEdit == null) return;
+
+		if (curEdit.getHighlighter().getNumHighlights() == 0) return;
+		for (Iterator it = curEdit.getHighlighter().getHighlights().iterator(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 			ElectricObject eobj = h.getElectricObject();
@@ -858,9 +870,11 @@ public class DebugMenus {
 	}
 
     public static void addStringVar() {
-        EditWindow curEdit = EditWindow.needCurrent();
-        if (Highlight.getNumHighlights() == 0) return;
-        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+
+        if (wnd.getHighlighter().getNumHighlights() == 0) return;
+        for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
             if (h.getType() == Highlight.Type.EOBJ) {
                 ElectricObject eobj = h.getElectricObject();

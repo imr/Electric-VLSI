@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WiringListener;
@@ -62,6 +63,10 @@ public class MimicStitch
 	 */
 	public static void mimicStitch(boolean forced)
 	{
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
 		Routing.Activity lastActivity = Routing.tool.getLastActivity();
 		if (lastActivity == null)
 		{
@@ -82,7 +87,7 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs == 1)
 		{
 			ArcInst ai = lastActivity.createdArcs[0];
-			MimicStitchJob job = new MimicStitchJob(ai.getHead(), ai.getTail(), ai.getWidth(), ai.getProto(), 0, 0, forced);
+			MimicStitchJob job = new MimicStitchJob(ai.getHead(), ai.getTail(), ai.getWidth(), ai.getProto(), 0, 0, forced, highlighter);
 			lastActivity.numCreatedArcs = 0;
 			return;
 		}
@@ -168,7 +173,7 @@ public class MimicStitch
 						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 -
 							(y0+y1) / 2;
 				}
-				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefx, prefy, forced);
+				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefx, prefy, forced, highlighter);
 			}
 			lastActivity.numCreatedArcs = 0;
 			return;
@@ -269,6 +274,7 @@ public class MimicStitch
 		private boolean forced;
 		FlagSet portMark;
         private List allRoutes;                         // all routes to be created
+        private Highlighter highlighter;
 
 		static class PossibleArc
 		{
@@ -323,7 +329,8 @@ public class MimicStitch
 			LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE
 		};
 
-		protected MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto, double prefX, double prefY, boolean forced)
+		protected MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
+                                 double prefX, double prefY, boolean forced, Highlighter highlighter)
 		{
 			super("Mimic-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.conn1 = conn1;
@@ -334,6 +341,7 @@ public class MimicStitch
 			this.prefY = prefY;
 			this.forced = forced;
             allRoutes = new ArrayList();
+            this.highlighter = highlighter;
 			startJob();
 		}
 
@@ -702,11 +710,11 @@ public class MimicStitch
 				{
 					// save what is highlighted
 					List saveHighlights = new ArrayList();
-					for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-						saveHighlights.add(it.next());
+                    for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+                        saveHighlights.add(it.next());
 
-					// show the wires to be created
-					Highlight.clear();
+                    // show the wires to be created
+                    highlighter.clear();
 					for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 					{
 						PossibleArc pa = (PossibleArc)it.next();
@@ -714,13 +722,13 @@ public class MimicStitch
 						if (pa.pt1.getX() == pa.pt2.getX() && pa.pt1.getY() == pa.pt2.getY())
 						{
 							Rectangle2D pointRect = new Rectangle2D.Double(pa.pt1.getX()-1, pa.pt1.getY()-1, 2, 2);
-							Highlight.addArea(pointRect, cell);
+							highlighter.addArea(pointRect, cell);
 						} else
 						{
-							Highlight.addLine(pa.pt1, pa.pt2, cell);
+							highlighter.addLine(pa.pt1, pa.pt2, cell);
 						}
 					}
-					Highlight.finished();
+					highlighter.finished();
 					if (flushStructureChanges)
 					{
 						EditWindow.repaintAllContents();
@@ -732,9 +740,9 @@ public class MimicStitch
 						null, options, options[1]);
 
 					// restore highlighting
-					Highlight.clear();
-					Highlight.setHighlightList(saveHighlights);
-					Highlight.finished();
+					highlighter.clear();
+					highlighter.setHighlightList(saveHighlights);
+					highlighter.finished();
 					if (ret == 1) continue;
 					if (ret == 2) break;
 					if (ret == 3) stopWhenDone = true;
@@ -771,7 +779,7 @@ public class MimicStitch
                     Route route = (Route)it.next();
                     RouteElement re = (RouteElement)route.get(0);
                     Cell c = re.getCell();
-                    Router.createRouteNoJob(route, c, false, false);
+                    Router.createRouteNoJob(route, c, false, false, highlighter);
                 }
 
 				// stop now if requested

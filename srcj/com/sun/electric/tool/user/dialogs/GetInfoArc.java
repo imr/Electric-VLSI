@@ -35,7 +35,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -55,6 +57,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
 	private boolean initialDirectional, initialEndsExtend;
 	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
+    private EditWindow wnd;
 
 	/**
 	 * Method to show the Arc Get-Info dialog.
@@ -113,6 +116,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     /** This is a GUI listener */
     public boolean isGUIListener() { return true; }
 
+    protected void dialogFocusChanged() { loadInfo(); }
 
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(java.awt.Frame parent, boolean modal)
@@ -120,18 +124,29 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        Highlight.addHighlightListener(this);
-        Undo.addDatabaseChangeListener(this);        
+        Undo.addDatabaseChangeListener(this);
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
 	protected void loadInfo()
 	{
+        // update current window
+        EditWindow curWnd = EditWindow.getCurrent();
+        if ((wnd != curWnd) && (curWnd != null)) {
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
+        if (wnd == null) {
+            disableDialog();
+            return;
+        }
+
 		// must have a single node selected
 		ArcInst ai = null;
 		int arcCount = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() == Highlight.Type.EOBJ)
@@ -149,44 +164,12 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		{
 			if (shownArc != null)
 			{
-				// no arc selected, disable the dialog
-				type.setText("");
-				network.setText("");
-				name.setEditable(false);
-				name.setText("");
-				width.setEditable(false);
-				width.setText("");
-				busSize.setText("");
-				angle.setText("");
-				easyToSelect.setEnabled(false);
-				headNode.setText("");
-				headLoc.setText("");
-				headSee.setEnabled(false);
-				tailNode.setText("");
-				tailLoc.setText("");
-				tailSee.setEnabled(false);
-				rigid.setEnabled(false);
-				rigid.setSelected(false);
-				fixedAngle.setEnabled(false);
-				fixedAngle.setSelected(false);
-				slidable.setEnabled(false);
-				slidable.setSelected(false);
-				directional.setEnabled(false);
-				directional.setSelected(false);
-				endsExtend.setEnabled(false);
-				endsExtend.setSelected(false);
-				skipHead.setEnabled(false);
-				skipHead.setSelected(false);
-				skipTail.setEnabled(false);
-				skipTail.setSelected(false);
-				reverseEnds.setEnabled(false);
-				reverseEnds.setSelected(false);
-				apply.setEnabled(false);
-
-				shownArc = null;
+                disableDialog();
 			}
 			return;
 		}
+
+        focusClearOnTextField(name);
 
 		// enable it
 		name.setEditable(true);
@@ -246,6 +229,44 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		shownArc = ai;
         focusOnTextField(name);
 	}
+
+    private void disableDialog() {
+        // no arc selected, disable the dialog
+        type.setText("");
+        network.setText("");
+        name.setEditable(false);
+        name.setText("");
+        width.setEditable(false);
+        width.setText("");
+        busSize.setText("");
+        angle.setText("");
+        easyToSelect.setEnabled(false);
+        headNode.setText("");
+        headLoc.setText("");
+        headSee.setEnabled(false);
+        tailNode.setText("");
+        tailLoc.setText("");
+        tailSee.setEnabled(false);
+        rigid.setEnabled(false);
+        rigid.setSelected(false);
+        fixedAngle.setEnabled(false);
+        fixedAngle.setSelected(false);
+        slidable.setEnabled(false);
+        slidable.setSelected(false);
+        directional.setEnabled(false);
+        directional.setSelected(false);
+        endsExtend.setEnabled(false);
+        endsExtend.setSelected(false);
+        skipHead.setEnabled(false);
+        skipHead.setSelected(false);
+        skipTail.setEnabled(false);
+        skipTail.setSelected(false);
+        reverseEnds.setEnabled(false);
+        reverseEnds.setSelected(false);
+        apply.setEnabled(false);
+
+        shownArc = null;
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -672,10 +693,13 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		if (shownArc == null) return;
 		ArcInst ai = shownArc;
 		NodeInst ni = shownArc.getTail().getPortInst().getNodeInst();
-		Highlight.clear();
-		Highlight.addElectricObject(ni, ni.getParent());
-		Highlight.addElectricObject(ai, ai.getParent());
-		Highlight.finished();
+        if (wnd != null) {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.addElectricObject(ni, ni.getParent());
+            highlighter.addElectricObject(ai, ai.getParent());
+            highlighter.finished();
+        }
 	}//GEN-LAST:event_tailSeeActionPerformed
 
 	private void headSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_headSeeActionPerformed
@@ -683,10 +707,13 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		if (shownArc == null) return;
 		ArcInst ai = shownArc;
 		NodeInst ni = shownArc.getHead().getPortInst().getNodeInst();
-		Highlight.clear();
-		Highlight.addElectricObject(ni, ni.getParent());
-		Highlight.addElectricObject(ai, ai.getParent());
-		Highlight.finished();
+        if (wnd != null) {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.addElectricObject(ni, ni.getParent());
+            highlighter.addElectricObject(ai, ai.getParent());
+            highlighter.finished();
+        }
 	}//GEN-LAST:event_headSeeActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed

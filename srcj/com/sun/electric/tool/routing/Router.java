@@ -26,6 +26,8 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -109,9 +111,11 @@ public abstract class Router {
      * @param verbose if true, prints objects created
      * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
      * highlights alone.
+     * @param highlighter the highlighter to use
      * @return
      */
-    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose, boolean highlightRouteEnd) {
+    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
+                                           boolean highlightRouteEnd, Highlighter highlighter) {
 
         Job.checkChanging();
 
@@ -156,11 +160,11 @@ public abstract class Router {
         if (highlightRouteEnd) {
             RouteElementPort finalRE = route.getEnd();
             if (finalRE != null) {
-                Highlight.clear();
+                highlighter.clear();
                 PortInst pi = finalRE.getPortInst();
                 if (pi != null) {
-                    Highlight.addElectricObject(pi, cell);
-                    Highlight.finished();
+                    highlighter.addElectricObject(pi, cell);
+                    highlighter.finished();
                 }
             }
         }
@@ -192,7 +196,9 @@ public abstract class Router {
         public boolean doIt() {
             if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
-            return createRouteNoJob(route, cell, verbose, true);
+            EditWindow wnd = EditWindow.getCurrent();
+            Highlighter highlighter = (wnd == null) ? null : wnd.getHighlighter();
+            return createRouteNoJob(route, cell, verbose, true, highlighter);
        }
     }
 

@@ -42,6 +42,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -64,6 +65,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
     private static GetInfoText theDialog = null;
     private Highlight shownText;
     private String initialText;
+    private EditWindow wnd;
 
     private Variable var;
     private TextDescriptor td;
@@ -114,21 +116,35 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
     }
     public void databaseChanged(Undo.Change change) {}
     public boolean isGUIListener() { return true; }
+    protected void dialogFocusChanged() { loadTextInfo(); }
 
     private void loadTextInfo() {
+        // update current window
+         EditWindow curWnd = EditWindow.getCurrent();
+         if ((wnd != curWnd) && (curWnd != null)) {
+             if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+             curWnd.getHighlighter().addHighlightListener(this);
+             wnd = curWnd;
+         }
+
         // must have a single text selected
         Highlight textHighlight = null;
         int textCount = 0;
-        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
-            Highlight h = (Highlight) it.next();
-            if (h.getType() != Highlight.Type.TEXT) continue;
-            // ignore export text
-            if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
-            textHighlight = h;
-            textCount++;
+        if (wnd != null) {
+            for (Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext();) {
+                Highlight h = (Highlight) it.next();
+                if (h.getType() != Highlight.Type.TEXT) continue;
+                // ignore export text
+                if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
+                textHighlight = h;
+                textCount++;
+            }
         }
         if (textCount > 1) textHighlight = null;
         boolean enabled = (textHighlight == null) ? false : true;
+
+        focusClearOnTextField(theText);
+
         // enable or disable everything
         for (int i = 0; i < getComponentCount(); i++) {
             Component c = getComponent(i);
@@ -240,8 +256,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         getRootPane().setDefaultButton(ok);
         setLocation(100, 50);
 
-        // add myself as a listener for Highlight changes
-        Highlight.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 
         loadTextInfo();

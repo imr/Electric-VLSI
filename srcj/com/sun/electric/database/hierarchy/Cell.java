@@ -328,7 +328,6 @@ public class Cell extends NodeProto implements Comparable
 	 *  lock=-1 "locked for changes".
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
-	/** true if this Cell is linked to library */					private boolean linked;
 	/** 0-based index of this Cell. */								private int cellIndex;
 
 
@@ -356,7 +355,7 @@ public class Cell extends NodeProto implements Comparable
 		boundsEmpty = true;
 		boundsDirty = false;
 		rTree = Geometric.RTNode.makeTopLevel();
-		linked = false;
+        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -781,7 +780,7 @@ public class Cell extends NodeProto implements Comparable
 	public boolean lowLevelLink()
 	{
 		checkChanging();
-		if (linked)
+		if (isLinked())
 		{
 			System.out.println(this+" already linked");
 			return true;
@@ -845,7 +844,7 @@ public class Cell extends NodeProto implements Comparable
 		}
 
 		// success
-		linked = true;
+		setLinked(true);
 		return false;
 	}
 
@@ -855,7 +854,7 @@ public class Cell extends NodeProto implements Comparable
 	public void lowLevelUnlink()
 	{
 		checkChanging();
-		if (!linked)
+		if (!isLinked())
 		{
 			System.out.println(this+" already unlinked");
 			return;
@@ -886,7 +885,7 @@ public class Cell extends NodeProto implements Comparable
 			nu.getProto().removeUsageOf(nu);
 		}
 
-		linked = false;
+		setLinked(false);
 	}
 
 	/****************************** GRAPHICS ******************************/
@@ -1365,7 +1364,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	private NodeUsage addUsage(NodeProto protoType)
 	{
-		if (!linked) System.out.println("addUsage of "+protoType+" to unliked "+this);
+		if (!isLinked()) System.out.println("addUsage of "+protoType+" to unlinked "+this);
 		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
 		if (nu == null)
 		{
@@ -1382,7 +1381,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	private void removeUsage(NodeUsage nu)
 	{
-		if (!linked) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
+		if (!isLinked()) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
 		NodeProto protoType = nu.getProto();
 		protoType.removeUsageOf(nu);
 		usagesIn.remove(protoType);
@@ -1857,12 +1856,6 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/****************************** HIERARCHY ******************************/
-
-	/**
-	 * Method to tell whether this Cell is linked into the database or deleted.
-	 * @return true if this Cell is linked into the database.
-	 */
-	public boolean isLinked() { return linked; }
 
     /**
      * Determines whether an instantiation of cell <code>toInstantiate</code>

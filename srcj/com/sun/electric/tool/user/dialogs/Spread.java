@@ -39,8 +39,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
@@ -57,19 +59,24 @@ import java.util.Iterator;
  */
 public class Spread extends EDialog
 {
+    NodeInst ni;
+
 	public static void showSpreadDialog()
 	{
-		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+        Cell cell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.getCurrent();
+		NodeInst ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 
-		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), true);
+		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), true, ni);
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Spread */
-	public Spread(java.awt.Frame parent, boolean modal)
+	public Spread(java.awt.Frame parent, boolean modal, NodeInst ni)
 	{
 		super(parent, modal);
+        this.ni = ni;
 		initComponents();
         getRootPane().setDefaultButton(ok);
 		spreadUp.setSelected(true);
@@ -250,11 +257,12 @@ public class Spread extends EDialog
 			if (dialog.spreadRight.isSelected()) direction = 'r';
 			double amount = TextUtils.atof(dialog.spreadAmount.getText());
 
-			NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+            Cell cell = WindowFrame.needCurCell();
+            NodeInst ni = dialog.ni;
 			if (ni == null) return false;
 
 			// disallow spreading if lock is on
-			Cell cell = ni.getParent();
+			cell = ni.getParent();
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
 			SizeOffset so = ni.getSizeOffset();

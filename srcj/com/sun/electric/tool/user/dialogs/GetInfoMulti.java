@@ -37,7 +37,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.technology.SizeOffset;
 
 import java.awt.geom.Rectangle2D;
@@ -61,6 +63,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	private List highlightList;
 	private String initialXPosition, initialYPosition, initialXSize, initialYSize, initialWidth;
 	private int numNodes, numArcs, numExports;
+    private EditWindow wnd;
 
 	/**
 	 * Method to show the Multi-object Get-Info dialog.
@@ -116,6 +119,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
     }
     public void databaseChanged(Undo.Change change) {}
     public boolean isGUIListener() { return true; }
+    protected void dialogFocusChanged() { loadMultiInfo(); }
 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)
@@ -126,8 +130,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         getRootPane().setDefaultButton(ok);
         setLocation(100, 50);
 
-        // add myself as a listener to Highlights
-        Highlight.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 
 		// make the list
@@ -153,13 +155,23 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 	private void loadMultiInfo()
 	{
+        // update current window
+        EditWindow curWnd = EditWindow.getCurrent();
+        if ((wnd != curWnd) && (curWnd != null)) {
+            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+            curWnd.getHighlighter().addHighlightListener(this);
+            wnd = curWnd;
+        }
+
 		// copy the selected objects to a private list and sort it
 		highlightList.clear();
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			highlightList.add(it.next());
-		}
-		Collections.sort(highlightList, new SortMultipleHighlights());
+        if (wnd != null) {
+            for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
+            {
+                highlightList.add(it.next());
+            }
+            Collections.sort(highlightList, new SortMultipleHighlights());
+        }
 
 		// show the list
 		numNodes = numArcs = numExports = 0;
@@ -244,8 +256,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				listModel.addElement(description);
 			} else if (h.getType() == Highlight.Type.LINE)
 			{
-				Point2D pt1 = h.getFromPoint();
-				Point2D pt2 = h.getToPoint();
+				Point2D pt1 = h.getLineStart();
+				Point2D pt2 = h.getLineEnd();
 				String description = "Line from (" + pt1.getX() + "," + pt1.getY() + ") to (" +
 					pt2.getX() + "," + pt2.getY() + ")";
 				listModel.addElement(description);
@@ -908,9 +920,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			if (j < items.length) continue;
 			newList.add(highlightList.get(i));
 		}
-		Highlight.clear();
-		Highlight.setHighlightList(newList);
-		Highlight.finished();
+        if (wnd != null) {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.setHighlightList(newList);
+            highlighter.finished();
+        }
 	}//GEN-LAST:event_removeActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
@@ -931,9 +946,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			newList.add(highlightList.get(i));
 		}
 		highlightList = newList;
-		Highlight.clear();
-		Highlight.setHighlightList(newList);
-		Highlight.finished();
+        if (wnd != null) {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.setHighlightList(newList);
+            highlighter.finished();
+        }
 	}//GEN-LAST:event_removeOthersActionPerformed
 
 	/** Closes the dialog */

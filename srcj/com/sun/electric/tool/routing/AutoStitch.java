@@ -47,8 +47,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WiringListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -76,7 +79,9 @@ public class AutoStitch
 		List nodesToStitch = new ArrayList();
 		if (highlighted)
 		{
-			List highs = Highlight.getHighlighted(true, false);
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd == null) return;
+			List highs = wnd.getHighlighter().getHighlightedEObjs(true, false);
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 				nodesToStitch.add(it.next());
 		} else
@@ -265,7 +270,7 @@ public class AutoStitch
                 Route route = (Route)it.next();
                 RouteElement re = (RouteElement)route.get(0);
                 Cell c = re.getCell();
-                Router.createRouteNoJob(route, c, false, false);            
+                Router.createRouteNoJob(route, c, false, false, null);
             }
 
             // check for any inline pins due to created wires
@@ -287,10 +292,6 @@ public class AutoStitch
                         pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
                 job.doIt();
             }
-
-            // until we de-staticize highlighting, just clear highlights
-            Highlight.clear();
-            Highlight.finished();
 
 			return true;
 		}

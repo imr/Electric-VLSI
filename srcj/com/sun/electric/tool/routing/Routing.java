@@ -29,9 +29,12 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
@@ -200,7 +203,12 @@ public class Routing extends Listener
 	 */
 	public void mimicSelected()
 	{
-		ArcInst ai = (ArcInst)Highlight.getOneElectricObject(ArcInst.class);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		ArcInst ai = (ArcInst)highlighter.getOneElectricObject(ArcInst.class);
 		if (ai == null) return;
 		past = new Activity();
 		past.createdArcs[past.numCreatedArcs++] = ai;
@@ -214,7 +222,12 @@ public class Routing extends Listener
 	public static void unrouteCurrent()
 	{
 		// see what is highlighted
-		Set nets = Highlight.getHighlightedNetworks();
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		Set nets = highlighter.getHighlightedNetworks();
 		if (nets.size() == 0)
 		{
 			System.out.println("Must select networks to unroute");
@@ -222,8 +235,8 @@ public class Routing extends Listener
 		}
 
 		// convert requested nets
-		Highlight.clear();
-		Highlight.finished();
+		highlighter.clear();
+		highlighter.finished();
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();

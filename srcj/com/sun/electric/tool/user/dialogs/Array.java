@@ -36,12 +36,10 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -85,7 +83,8 @@ public class Array extends EDialog
 	public static void showArrayDialog()
 	{
 		// first make sure something is selected
-		List highs = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.getCurrent();
+		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -115,7 +114,8 @@ public class Array extends EDialog
 
 		// see if a single cell instance is selected (in which case DRC validity can be done)
 		onlyDRCCorrect.setEnabled(false);
-		List highs = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.getCurrent();
+		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 1)
 		{
 			ElectricObject eObj = (ElectricObject)highs.get(0);
@@ -576,7 +576,7 @@ public class Array extends EDialog
 			// if only arraying where DRC valid, check them now and delete what is not valid
 			if (lastDRCGood)
 			{
-				Quick.checkDesignRules(cell, checkNodeCount, geomsToCheck, validity, false);
+				Quick.checkDesignRules(cell, checkNodeCount, geomsToCheck, validity, null);
 				for(int i=1; i<checkNodeCount; i++)
 				{
 					if (!validity[i])

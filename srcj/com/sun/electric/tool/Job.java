@@ -30,8 +30,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
 
 import java.awt.Toolkit;
@@ -429,10 +431,17 @@ public abstract class Job implements ActionListener, Runnable {
     /** Save current Highlights */
     private void saveHighlights() {
         savedHighlights.clear();
-        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+
+        // for now, just save highlights in current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+        if (highlighter == null) return;
+
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
             savedHighlights.add(it.next());
         }
-        savedHighlightsOffset = Highlight.getHighlightOffset();
+        savedHighlightsOffset = highlighter.getHighlightOffset();
     }
 
 	/** Confirmation that thread is aborted */

@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -87,6 +88,9 @@ public class WiringListener
 		int startx = evt.getX();
 		int starty = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
 		startPoint = wnd.screenToDatabase(startx, starty);
 
 		boolean another = false;
@@ -95,7 +99,7 @@ public class WiringListener
 		// show "get info" on double-click
 		if (evt.getClickCount() == 2 && !another)
 		{
-			if (Highlight.getNumHighlights() >= 1)
+			if (highlighter.getNumHighlights() >= 1)
 			{
 				EditMenu.getInfoCommand();
 				return;
@@ -106,10 +110,10 @@ public class WiringListener
 		doingWiringDrag = false;
 
 		// object wiring: start by seeing if cursor is over a highlighted object
-		if (!another && Highlight.overHighlighted(wnd, startx, starty))
+		if (!another && highlighter.overHighlighted(wnd, startx, starty))
 		{
 			// over a highlighted object: draw from it
-			Highlight high = (Highlight)Highlight.getHighlights().next();
+			Highlight high = (Highlight)highlighter.getHighlights().iterator().next();
 			if (high == null) return;
 			if (high.getType() != Highlight.Type.EOBJ) return;
 			ElectricObject eobj = high.getElectricObject();
@@ -126,11 +130,11 @@ public class WiringListener
 		} else
 		{
 			// new selection: see if cursor is over anything
-			Highlight.findObject(startPoint, wnd, false, another, false, true, false, false, false);
-			if (Highlight.getNumHighlights() == 1)
+			highlighter.findObject(startPoint, wnd, false, another, false, true, false, false, false);
+			if (highlighter.getNumHighlights() == 1)
 			{
 				// not over anything: bail
-				Highlight high = (Highlight)Highlight.getHighlights().next();
+				Highlight high = (Highlight)highlighter.getHighlights().iterator().next();
 				if (high.getType() == Highlight.Type.EOBJ)
 				{
 					ElectricObject eobj = high.getElectricObject();
@@ -167,14 +171,15 @@ public class WiringListener
 
         if (!(evt.getSource() instanceof EditWindow)) return;
 		EditWindow wnd = (EditWindow)evt.getSource();
+        Highlighter highlighter = wnd.getHighlighter();
 		getEndObject(evt.getX(), evt.getY(), wnd);
 		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endGeom, endPort, endPoint, startPoint);
 
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 
-		Highlight.clear();
-		Highlight h = Highlight.addElectricObject(startObj, startGeom.getParent());
+		highlighter.clear();
+		Highlight h = highlighter.addElectricObject(startObj, startGeom.getParent());
 		WiringPlan wpEnd = null;
 		for(int i=0; i<curPath.length; i++)
 		{
@@ -183,7 +188,7 @@ public class WiringListener
 			{
 				Point2D headLoc = wp.getArcHeadLocation();
 				Point2D tailLoc = wp.getArcTailLocation();
-				Highlight.addLine(headLoc, tailLoc, cellBeingWired);
+				highlighter.addLine(headLoc, tailLoc, cellBeingWired);
 			}
 			if (wp.getType() == Type.NODEADD)
 			{
@@ -204,9 +209,9 @@ public class WiringListener
 			double ly = cy - sy / 2 + so.getLowYOffset();
 			double hy = cy + sy / 2 - so.getLowYOffset();
 			Rectangle2D highlight = new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
-			Highlight.addArea(highlight, cellBeingWired);
+			highlighter.addArea(highlight, cellBeingWired);
 		}
-		Highlight.finished();
+		highlighter.finished();
 		wnd.repaint();
 	}
 
@@ -240,6 +245,8 @@ public class WiringListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow wnd = (EditWindow)evt.getSource();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 		if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
 		{
 			CircuitChanges.deleteSelected();
@@ -250,9 +257,9 @@ public class WiringListener
 		{
 			// restore the listener to the former state
 			doingWiringDrag = false;
-			Highlight.clear();
-			Highlight h = Highlight.addElectricObject(startObj, startGeom.getParent());
-			Highlight.finished();
+			highlighter.clear();
+			Highlight h = highlighter.addElectricObject(startObj, startGeom.getParent());
+			highlighter.finished();
 			wnd.repaint();
 			System.out.println("Aborted");
 		}
@@ -277,9 +284,10 @@ public class WiringListener
 		endGeom = null;
 		endPort = null;
 
+        Highlighter highlighter = wnd.getHighlighter();
 		// see what object it is over
 		Rectangle2D bounds = new Rectangle2D.Double(endPoint.getX(), endPoint.getY(), 0, 0);
-		List underCursor = Highlight.findAllInArea(cellBeingWired, false, false, true, false, false, false, bounds, wnd);
+		List underCursor = highlighter.findAllInArea(cellBeingWired, false, false, true, false, false, false, bounds, wnd);
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
@@ -317,6 +325,10 @@ public class WiringListener
 	private static List doWiring(WiringPlan [] wpList, Cell cell, boolean report)
 	{
 		// get information about what is highlighted
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return new ArrayList();
+        Highlighter highlighter = wnd.getHighlighter();
+
 		List added = new ArrayList();
 		WiringPlan wpEnd = null;
 		int arcsCreated = 0, nodesCreated = 0;
@@ -387,15 +399,15 @@ public class WiringListener
 		/* show the end node */
 		if (report)
 		{
-			Highlight.clear();
+			highlighter.clear();
 			if (wpEnd != null)
 			{
 				NodeInst ni = (NodeInst)wpEnd.getNodeObject();
-				Highlight.addElectricObject(ni, ni.getParent());
+				highlighter.addElectricObject(ni, ni.getParent());
 			} else
 			{
 				if (lastPlacedArc != null)
-					Highlight.addElectricObject(lastPlacedArc, lastPlacedArc.getParent());
+					highlighter.addElectricObject(lastPlacedArc, lastPlacedArc.getParent());
 			}
 			if (arcsCreated != 0 || nodesCreated != 0)
 			{
@@ -405,7 +417,7 @@ public class WiringListener
 				System.out.println(msg);
 				playSound(arcsCreated);
 			}
-			Highlight.finished();
+			highlighter.finished();
 		}
 		return added;
 	}

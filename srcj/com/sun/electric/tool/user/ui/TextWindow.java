@@ -36,6 +36,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -74,7 +75,7 @@ import javax.swing.text.BadLocationException;
 /**
  * This class defines a text window for displaying text cells.
  */
-public class TextWindow extends JTextArea
+public class TextWindow
 	implements WindowContent
 {
 	/** the cell that is in the window */					private Cell cell;
@@ -82,7 +83,7 @@ public class TextWindow extends JTextArea
 	/** the overall panel with disp area and sliders */		private JPanel overall;
 	/** true if the text in the window changed. */			private boolean dirty;
 	/** true if the text in the window is closing. */		private boolean finishing;
-//	private JTextArea textArea;
+	private JTextArea textArea;
 	private JScrollPane scrollPane;
 
 	/**
@@ -96,8 +97,8 @@ public class TextWindow extends JTextArea
 		this.wf = wf;
 		this.finishing = false;
 
-//		textArea = new JTextArea();
-		scrollPane = new JScrollPane(this);
+		textArea = new JTextArea();
+		scrollPane = new JScrollPane(textArea);
 		overall = new JPanel();
 		overall.setLayout(new BorderLayout());
 		overall.add(scrollPane, BorderLayout.CENTER);
@@ -105,8 +106,8 @@ public class TextWindow extends JTextArea
 		setCell(cell, VarContext.globalContext);
 
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
-		this.getDocument().addDocumentListener(twDocumentListener);
-		this.addFocusListener(twDocumentListener);
+		textArea.getDocument().addDocumentListener(twDocumentListener);
+		textArea.addFocusListener(twDocumentListener);
 
 //		textArea.requestFocus();
 //		textArea.setSelectionStart(0);
@@ -120,12 +121,12 @@ public class TextWindow extends JTextArea
 	{
 		// to enable keys to be received
 		if (cell != null && cell == WindowFrame.getCurrentCell())
-			requestFocus();
+			textArea.requestFocus();
 
 		// redo the explorer tree if it changed
 		wf.redoExplorerTreeIfRequested();
 //System.out.println("REPAINT");
-		super.paint(g);
+		textArea.paint(g);
 	}
 
 	/**
@@ -257,6 +258,8 @@ public class TextWindow extends JTextArea
 	 */
 	public Cell getCell() { return cell; }
 
+    public Highlighter getHighlighter() { return null; }
+
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
@@ -266,9 +269,9 @@ public class TextWindow extends JTextArea
 		String [] lines = (cell != null) ? cell.getTextViewContents() : null;
 		String oneLine = (lines != null) ? oneLine = makeOneString(lines) : "";
 //System.out.println("Setting text to "+oneLine);
-		this.setText(oneLine);
-		this.setSelectionStart(0);
-		this.setSelectionEnd(0);
+		textArea.setText(oneLine);
+		textArea.setSelectionStart(0);
+		textArea.setSelectionEnd(0);
 		dirty = false;
 //System.out.println("CLEAN");
 		setWindowTitle();
@@ -286,44 +289,49 @@ public class TextWindow extends JTextArea
 		{
 			TextWindow tw = (TextWindow)content;
 			String fileName = OpenFile.chooseInputFile(OpenFile.Type.TEXT, null);
-			if (fileName != null)
-			{
-				// start a job to do the input
-				URL fileURL = TextUtils.makeURLToFile(fileName);
-				InputStream stream = TextUtils.getURLStream(fileURL);
-				URLConnection urlCon = null;
-				try
-				{
-					urlCon = fileURL.openConnection();
-				} catch (IOException e)
-				{
-					System.out.println("Could not find file: " + fileURL.getFile());
-					return;
-				}
+            tw.readTextCell(fileName);
+        }
+    }
 
-				// clear the buffer
-				tw.setText("");
+    public void readTextCell(String fileName)
+    {
+        if (fileName == null) {
+            System.out.println("Bad file name: "+fileName);
+        }
+        // start a job to do the input
+        URL fileURL = TextUtils.makeURLToFile(fileName);
+        InputStream stream = TextUtils.getURLStream(fileURL);
+        URLConnection urlCon = null;
+        try
+        {
+            urlCon = fileURL.openConnection();
+        } catch (IOException e)
+        {
+            System.out.println("Could not find file: " + fileURL.getFile());
+            return;
+        }
 
-				final int READ_BUFFER_SIZE = 65536;
-				char [] buf = new char[READ_BUFFER_SIZE];
-				BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
-				InputStreamReader is = new InputStreamReader(stream);
-				try
-				{
-					for(;;)
-					{
-						int amtRead = is.read(buf, 0, READ_BUFFER_SIZE);
-						if (amtRead <= 0) break;
-						String addString = new String(buf, 0, amtRead);
-						tw.append(addString);
-					}
-					stream.close();
-				} catch (IOException e)
-				{
-					System.out.println("Error reading the file");
-				}
-			}
-		}
+        // clear the buffer
+        textArea.setText("");
+
+        final int READ_BUFFER_SIZE = 65536;
+        char [] buf = new char[READ_BUFFER_SIZE];
+        BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
+        InputStreamReader is = new InputStreamReader(stream);
+        try
+        {
+            for(;;)
+            {
+                int amtRead = is.read(buf, 0, READ_BUFFER_SIZE);
+                if (amtRead <= 0) break;
+                String addString = new String(buf, 0, amtRead);
+                textArea.append(addString);
+            }
+            stream.close();
+        } catch (IOException e)
+        {
+            System.out.println("Error reading the file");
+        }
 	}
 
 	/**
@@ -338,34 +346,39 @@ public class TextWindow extends JTextArea
 		{
 			TextWindow tw = (TextWindow)content;
 			String fileName = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, "Text file", content.getCell().getName() + ".txt");
-			if (fileName != null)
-			{
-				try
-				{
-					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-					Document doc = tw.getDocument();
-					Element paragraph = doc.getDefaultRootElement();
-					int lines = paragraph.getElementCount();
-					for(int i=0; i<lines; i++)
-					{
-						Element e = paragraph.getElement(i);
-						int startPos = e.getStartOffset();
-						int endPos = e.getEndOffset();
-						try
-						{
-							String line = tw.getText(startPos, endPos - startPos);
-							printWriter.print(line);
-						} catch (BadLocationException ex) {}
-					}
-					printWriter.close();
-				} catch (IOException e)
-				{
-					System.out.println("Error saving " + fileName);
-					return;
-				}
-				System.out.println("Wrote " + fileName);
-			}
-		}
+            tw.writeTextCell(fileName);
+        }
+    }
+
+    public void writeTextCell(String fileName)
+    {
+        if (fileName == null) {
+            System.out.println("Bad filename: "+fileName);
+        }
+        try
+        {
+            PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+            Document doc = textArea.getDocument();
+            Element paragraph = doc.getDefaultRootElement();
+            int lines = paragraph.getElementCount();
+            for(int i=0; i<lines; i++)
+            {
+                Element e = paragraph.getElement(i);
+                int startPos = e.getStartOffset();
+                int endPos = e.getEndOffset();
+                try
+                {
+                    String line = textArea.getText(startPos, endPos - startPos);
+                    printWriter.print(line);
+                } catch (BadLocationException ex) {}
+            }
+            printWriter.close();
+        } catch (IOException e)
+        {
+            System.out.println("Error saving " + fileName);
+            return;
+        }
+        System.out.println("Wrote " + fileName);
 	}
 
 	/**
@@ -374,7 +387,7 @@ public class TextWindow extends JTextArea
 	 */
 	public void goToLineNumber(int lineNumber)
 	{
-		Document doc = this.getDocument();
+		Document doc = textArea.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		if (lineNumber <= 0 || lineNumber > lines)
@@ -386,8 +399,8 @@ public class TextWindow extends JTextArea
 		Element e = paragraph.getElement(lineNumber-1);
 		int startPos = e.getStartOffset();
 		int endPos = e.getEndOffset();
-		this.setSelectionStart(startPos);
-		this.setSelectionEnd(endPos);
+		textArea.setSelectionStart(startPos);
+		textArea.setSelectionEnd(endPos);
 	}
 
 	/**
@@ -418,6 +431,11 @@ public class TextWindow extends JTextArea
 		return null;
 	}
 
+    private void updateText(String [] strings) {
+        textArea.setText(makeOneString(strings));
+        dirty = false;
+    }
+
 	/**
 	 * Method to update text for a cell (if it is being displayed).
 	 * This is called when the text for a cell has been changed by some other part of the system,
@@ -438,8 +456,7 @@ public class TextWindow extends JTextArea
 					TextWindow tw = (TextWindow)content;
 					if (!tw.finishing)
 					{
-						tw.setText(makeOneString(strings));
-						tw.dirty = false;
+						tw.updateText(strings);
 					}
 				}
 			}
@@ -469,7 +486,7 @@ public class TextWindow extends JTextArea
 	 */
 	private String [] convertToStrings()
 	{
-		Document doc = this.getDocument();
+		Document doc = textArea.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		String [] strings = new String[lines];
@@ -480,7 +497,7 @@ public class TextWindow extends JTextArea
 			int endPos = e.getEndOffset();
 			try
 			{
-				strings[i] = this.getText(startPos, endPos - startPos - 1);
+				strings[i] = textArea.getText(startPos, endPos - startPos - 1);
 			} catch (BadLocationException ex) {}
 		}
 		return strings;
@@ -561,15 +578,15 @@ public class TextWindow extends JTextArea
 	 */
 	public boolean findNextText(boolean reverse)
 	{
-		Document doc = this.getDocument();
+		Document doc = textArea.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		int lineNo = 0;
-		int searchPoint = this.getSelectionEnd();
-		if (reverse) searchPoint = this.getSelectionStart();
+		int searchPoint = textArea.getSelectionEnd();
+		if (reverse) searchPoint = textArea.getSelectionStart();
 		try
 		{
-			lineNo = this.getLineOfOffset(searchPoint);
+			lineNo = textArea.getLineOfOffset(searchPoint);
 		} catch (BadLocationException e)
 		{
 			return false;
@@ -591,7 +608,7 @@ public class TextWindow extends JTextArea
 			String theLine = null;
 			try
 			{
-				theLine = this.getText(startPos, endPos - startPos - 1);
+				theLine = textArea.getText(startPos, endPos - startPos - 1);
 			} catch (BadLocationException ex)
 			{
 				return false;
@@ -599,8 +616,8 @@ public class TextWindow extends JTextArea
 			int foundPos = TextUtils.findStringInString(theLine, searchString, 0, searchCaseSensitive, reverse);
 			if (foundPos >= 0)
 			{
-				this.setSelectionStart(startPos + foundPos);
-				this.setSelectionEnd(startPos + foundPos + searchString.length());
+				textArea.setSelectionStart(startPos + foundPos);
+				textArea.setSelectionEnd(startPos + foundPos + searchString.length());
 				return true;
 			}
 		}
@@ -613,9 +630,9 @@ public class TextWindow extends JTextArea
 	 */
 	public void replaceText(String replace)
 	{
-		int startSelection = this.getSelectionStart();
-		int endSelection = this.getSelectionEnd();
-		this.replaceRange(replace, startSelection, endSelection);
+		int startSelection = textArea.getSelectionStart();
+		int endSelection = textArea.getSelectionEnd();
+		textArea.replaceRange(replace, startSelection, endSelection);
 	}
 
 	/**
@@ -624,7 +641,7 @@ public class TextWindow extends JTextArea
 	 */
 	public void replaceAllText(String replace)
 	{
-		Document doc = this.getDocument();
+		Document doc = textArea.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		for(int i=0; i<lines; i++)
@@ -635,7 +652,7 @@ public class TextWindow extends JTextArea
 			String theLine = null;
 			try
 			{
-				theLine = this.getText(startPos, endPos - startPos);
+				theLine = textArea.getText(startPos, endPos - startPos);
 			} catch (BadLocationException ex)
 			{
 				return;
@@ -650,7 +667,7 @@ public class TextWindow extends JTextArea
 				scanPos = foundPos + replace.length();
 				found = true;
 			}
-			if (found) this.replaceRange(theLine, startPos, endPos);
+			if (found) textArea.replaceRange(theLine, startPos, endPos);
 		}
 	}
 }

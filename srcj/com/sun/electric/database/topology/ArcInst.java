@@ -117,6 +117,7 @@ public class ArcInst extends Geometric
 	private ArcInst()
 	{
 		arcIndex = -1;
+        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -437,6 +438,7 @@ public class ArcInst extends Geometric
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
+        setLinked(true);
 		return false;
 	}
 
@@ -456,6 +458,7 @@ public class ArcInst extends Geometric
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
+        setLinked(false);
 	}
 
 	/**

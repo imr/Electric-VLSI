@@ -36,6 +36,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -94,7 +95,7 @@ public class StatusBar extends JPanel implements HighlightListener
 
 
         // add myself as listener for highlight changes
-        Highlight.addHighlightListener(this);
+        frame.getContent().getHighlighter().addHighlightListener(this);
 	}
 
 	private void addField(JLabel field, int index)
@@ -236,7 +237,8 @@ public class StatusBar extends JPanel implements HighlightListener
             // count the number of nodes and arcs selected
             int nodeCount = 0, arcCount = 0, textCount = 0;
             Highlight lastHighlight = null;
-            for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
+            Highlighter highlighter = frame.getContent().getHighlighter();
+            for(Iterator hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
             {
                 Highlight h = (Highlight)hIt.next();
                 if (h.getType() == Highlight.Type.EOBJ)
@@ -343,7 +345,7 @@ public class StatusBar extends JPanel implements HighlightListener
      * Call when done with this Object. Cleans up references to this object.
      */
     public void finished() {
-        Highlight.removeHighlightListener(this);
+        frame.getContent().getHighlighter().removeHighlightListener(this);
     }
 
 }

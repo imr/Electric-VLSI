@@ -137,6 +137,7 @@ public class NodeInst extends Geometric implements Nodable
 		this.exports = new ArrayList();
 		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
 		center = new Point2D.Double();
+        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -668,8 +669,8 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean lowLevelLink()
 	{
-		if (!inDatabase()) {
-			System.out.println("NodeInst can't be linked because it is not in database");
+		if (isDummyObject()) {
+			System.out.println("NodeInst can't be linked because it is a dummy object");
 			return true;
 		}
 		if (!isUsernamed())
@@ -683,6 +684,7 @@ public class NodeInst extends Geometric implements Nodable
         nodeUsage = parent.addNode(this);
         if (nodeUsage == null) return true;
 		linkGeom(parent);
+        setLinked(true);
 		return false;
 	}
 
@@ -695,6 +697,7 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 		parent.removeNode(this);
 		nodeUsage = null;
+        setLinked(false);
 	}
 
 	/**

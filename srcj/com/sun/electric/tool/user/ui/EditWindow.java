@@ -43,10 +43,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 
@@ -114,6 +111,8 @@ public class EditWindow extends JPanel
 	/** Strings to write to popup cloud */                  private List popupCloudText;
 	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
+    /** Highlighter for this window */                      private Highlighter highlighter;
+
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
 
@@ -179,7 +178,8 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-        Highlight.addHighlightListener(this);
+        highlighter = new Highlighter();
+        highlighter.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
@@ -213,13 +213,13 @@ public class EditWindow extends JPanel
         Cell currentCell = getCell();
 		setCell(cell, VarContext.globalContext);
         // Highlight an instance of cell we came from in current cell
-        Highlight.clear();
+        highlighter.clear();
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() instanceof Cell) {
                 if ((ni.getProto() == currentCell) || (ni.getProto() == currentCell.iconView())) {
-                    Highlight.addElectricObject(ni, cell);
-                    Highlight.finished();
+                    highlighter.addElectricObject(ni, cell);
+                    highlighter.finished();
                     break;
                 }
             }
@@ -327,7 +327,7 @@ public class EditWindow extends JPanel
 	 */
 	public static EditWindow getCurrent()
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf == null) return null;
 		if (wf.getContent() instanceof EditWindow) return (EditWindow)wf.getContent();
 		return null;
@@ -340,7 +340,7 @@ public class EditWindow extends JPanel
 	 */
 	public static EditWindow needCurrent()
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf != null)
 		{
 			if (wf.getContent() instanceof EditWindow) return (EditWindow)wf.getContent();
@@ -354,6 +354,12 @@ public class EditWindow extends JPanel
 	 * @return the cell that is shown in this window.
 	 */
 	public Cell getCell() { return cell; }
+
+    /**
+     * Get the highlighter for this WindowContent
+     * @return the highlighter
+     */
+    public Highlighter getHighlighter() { return highlighter; }
 
 	/**
 	 * Method to return the WindowFrame in which this EditWindow resides.
@@ -383,10 +389,14 @@ public class EditWindow extends JPanel
 		// set new values
 		this.cell = cell;
 		this.cellVarContext = context;
-		Library curLib = Library.getCurrent();
-		curLib.setCurCell(cell);
-		Highlight.clear();
-		Highlight.finished();
+        if (cell != null) {
+            Library lib = cell.getLibrary();
+            lib.setCurCell(cell);
+        }
+		//Library curLib = Library.getCurrent();
+		//curLib.setCurCell(cell);
+		highlighter.clear();
+		highlighter.finished();
 
 		setWindowTitle();
 		if (wf != null)
@@ -482,7 +492,7 @@ public class EditWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
-        Highlight.removeHighlightListener(this);
+        highlighter.removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
 	}
 
@@ -572,13 +582,7 @@ public class EditWindow extends JPanel
 
 			// add in highlighting
             long start = System.currentTimeMillis();
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				Cell highCell = h.getCell();
-				if (highCell != cell) continue;
-				h.showHighlight(this, g);
-			}
+            highlighter.showHighlights(this, g);
             long end = System.currentTimeMillis();
             //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 
@@ -1451,19 +1455,19 @@ public class EditWindow extends JPanel
 		}
 		currentStringInCell = (StringsInCell)foundInCell.get(currentFindPosition);
 
-		Highlight.clear();
+		highlighter.clear();
 
 		printFind(currentStringInCell);
 		if (currentStringInCell.object == null)
 		{
-			Highlight.addText(cell, cell, (Variable)currentStringInCell.object, null);
+			highlighter.addText(cell, cell, (Variable)currentStringInCell.object, null);
 		} else
 		{
 			ElectricObject eObj = (ElectricObject)currentStringInCell.object;
 			Variable var = eObj.getVar(currentStringInCell.key);
-			Highlight.addText(eObj, cell, var, currentStringInCell.name);
+			highlighter.addText(eObj, cell, var, currentStringInCell.name);
 		}
-		Highlight.finished();
+		highlighter.finished();
 		return true;		
 	}
 
@@ -2040,7 +2044,7 @@ public class EditWindow extends JPanel
 	public void focusOnHighlighted()
 	{
 		// focus on highlighting
-		Rectangle2D bounds = Highlight.getHighlightedArea(this);
+		Rectangle2D bounds = highlighter.getHighlightedArea(this);
 		focusScreen(bounds);
 	}
 
@@ -2058,7 +2062,7 @@ public class EditWindow extends JPanel
     public void downHierarchy() {
 
         // get highlighted
-        Highlight h = Highlight.getOneHighlight();
+        Highlight h = highlighter.getOneHighlight();
         if (h == null) return;
         ElectricObject eobj = h.getElectricObject();
 
@@ -2094,9 +2098,9 @@ public class EditWindow extends JPanel
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null) {
             PortInst origPort = schCell.findExport(pi.getPortProto().getName()).getOriginalPort();
-            //Highlight.addElectricObject(origPort, schCell);
-            Highlight.addElectricObject(origPort.getNodeInst(), schCell);
-            Highlight.finished();
+            highlighter.addElectricObject(origPort, schCell);
+            //highlighter.addElectricObject(origPort.getNodeInst(), schCell);
+            highlighter.finished();
         }
     }
 
@@ -2132,9 +2136,9 @@ public class EditWindow extends JPanel
 				}
                 // highlight node we came from
                 if (pi != null)
-                    Highlight.addElectricObject(pi, parent);
+                    highlighter.addElectricObject(pi, parent);
                 else if (no instanceof NodeInst)
-					Highlight.addElectricObject((NodeInst)no, parent);
+					highlighter.addElectricObject((NodeInst)no, parent);
                 // highlight portinst selected at the time, if any
 				return;
 			}
@@ -2321,10 +2325,12 @@ public class EditWindow extends JPanel
         current.scale = scale;
         current.highlights = new ArrayList();
         current.highlights.clear();
-        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
-            current.highlights.add(it.next());
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            if (h.getCell() == cell)
+                current.highlights.add(h);
         }
-        current.highlightOffset = Highlight.getHighlightOffset();
+        current.highlightOffset = highlighter.getHighlightOffset();
     }
 
     /** Restores cell state from history record */
@@ -2368,8 +2374,8 @@ public class EditWindow extends JPanel
         setCell(history.cell, history.context, false);
         setOffset(history.offset);
         setScale(history.scale);
-        Highlight.setHighlightList(history.highlights);
-        Highlight.setHighlightOffset((int)history.highlightOffset.getX(), (int)history.highlightOffset.getY());
+        highlighter.setHighlightList(history.highlights);
+        highlighter.setHighlightOffset((int)history.highlightOffset.getX(), (int)history.highlightOffset.getY());
 
         // point to new location *after* calling setCell, since setCell updates by current location
         cellHistoryLocation = location;

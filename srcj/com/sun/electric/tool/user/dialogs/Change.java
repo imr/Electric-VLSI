@@ -43,8 +43,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -81,11 +83,13 @@ public class Change extends EDialog
 	private JList changeList;
 	private DefaultListModel changeListModel;
 	private List changeNodeProtoList;
+    private EditWindow wnd;
 
 	public static void showChangeDialog()
 	{
 		// first make sure something is selected
-		List highs = Highlight.getHighlighted(true, true);
+        EditWindow wnd = EditWindow.getCurrent();
+		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		List geomsToChange = new ArrayList();
         for (Iterator it = highs.iterator(); it.hasNext(); ) {
             geomsToChange.add(it.next());
@@ -96,12 +100,12 @@ public class Change extends EDialog
 				"Select an object before changing it.");
 			return;
 		}
-		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomsToChange);
+		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomsToChange, wnd);
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Change */
-	private Change(java.awt.Frame parent, boolean modal, List geomsToChange)
+	private Change(java.awt.Frame parent, boolean modal, List geomsToChange, EditWindow wnd)
 	{
 		super(parent, modal);
 		initComponents();
@@ -402,9 +406,8 @@ public class Change extends EDialog
 				boolean ignorePortNames = dialog.ignorePortNames.isSelected();
 				boolean allowMissingPorts = dialog.allowMissingPorts.isSelected();
 
-				// clear highlighting
-				Highlight.clear();
-				Highlight.finished();
+                // clear highlighting
+                //Highlighter.global.clear();
 
 				// replace the nodeinsts
 				NodeInst onlyNewNi = CircuitChanges.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
@@ -418,6 +421,9 @@ public class Change extends EDialog
 				int total = 1;
 				if (dialog.changeEverywhere.isSelected())
 				{
+                    // clear highlighting
+                    //Highlighter.global.clear();
+
 					// replace in all cells of library if requested
 					for(Iterator it = Library.getLibraries(); it.hasNext(); )
 					{
@@ -425,6 +431,7 @@ public class Change extends EDialog
 						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
+
 							boolean found = true;
 							while (found)
 							{
@@ -459,6 +466,9 @@ public class Change extends EDialog
 						" nodes in all libraries replaced with " + np.describe());
 				} else if (dialog.changeInLibrary.isSelected())
 				{
+                    // clear highlighting
+                    //Highlighter.global.clear();
+
 					// replace throughout this library if requested
 					Library lib = Library.getCurrent();
 					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
@@ -578,6 +588,9 @@ public class Change extends EDialog
 					return false;
 				}
 
+                // clear highlighting
+                //Highlighter.global.clear();
+
 				// sanity check
 				ArcProto oldAType = ai.getProto();
 				if (oldAType == ap)
@@ -603,10 +616,6 @@ public class Change extends EDialog
 					}
 					return true;
 				}
-
-				// remove highlighting
-				Highlight.clear();
-				Highlight.finished();
 
 				// replace the arcinst
 				ArcInst onlyNewAi = ai.replace(ap);
@@ -737,6 +746,7 @@ public class Change extends EDialog
 				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 			}
             }
+            //Highlighter.global.finished();
             WindowFrame.wantToRedoLibraryTree();
 			return true;
 		}
@@ -749,7 +759,9 @@ public class Change extends EDialog
 		 */
 		private void replaceAllArcs(Cell cell, ArcInst oldAi, ArcProto ap, boolean connected, boolean thiscell)
 		{
-			List highs = Highlight.getHighlighted(true, true);
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd == null) return;
+			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 			FlagSet marked = Geometric.getFlagSet(1);
 
 			// mark the pin nodes that must be changed
