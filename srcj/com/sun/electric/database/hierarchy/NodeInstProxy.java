@@ -156,10 +156,10 @@ public class NodeInstProxy implements Nodable
 	public String getName() { return subinsts[0].getName().toString(); }
 
 	/**
-	 * Routine to return the Name object of this NodeInstProxy.
-	 * @return the name of this NodeInstProxy.
+	 * Routine to return the name key of this NodeInstProxy.
+	 * @return the name key of this NodeInstProxy.
 	 */
-	public Name getNameLow() { return subinsts[0].getName(); }
+	public Name getNameKey() { return subinsts[0].getName(); }
 
 	/**
 	 * Routine to return the Variable on this Nodable with a given name.

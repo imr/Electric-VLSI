@@ -96,8 +96,8 @@ public class NodeInst extends Geometric implements Nodable
 	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
 	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
 
-	// Name of Variable holding instance name.
-	public static final String NODE_NAME = "NODE_name";
+	/** key of obsolete Varible holding instance name. */	public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
+	/** key of Varible holding outline information. */		public static final Variable.Key TRACE = ElectricObject.newKey("trace");
 
 	/**
 	 * the PortAssociation class is used when replacing nodes.
@@ -652,13 +652,13 @@ public class NodeInst extends Geometric implements Nodable
 			if (!parent.isUniqueName(name, getClass(), this))
 			{
 				System.out.println("NodeInst "+name+" already exists in "+parent);
-				if (setNameLow(parent.getAutoname(getBasename()))) return true;
+				if (setNameKey(parent.getAutoname(getBasename()))) return true;
 				System.out.println("\tRenamed to "+name);
 			}
 		} else
 		{
 			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
-				if (setNameLow(parent.getAutoname(getBasename()))) return true;
+				if (setNameKey(parent.getAutoname(getBasename()))) return true;
 		}
 
 		// add to linked lists
@@ -772,7 +772,7 @@ public class NodeInst extends Geometric implements Nodable
 		if (!(protoType instanceof PrimitiveNode)) return returnValues;
 		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return returnValues;
 
-		Variable var = getVar("ART_degrees");
+		Variable var = getVar(Artwork.ART_DEGREES);
 		if (var != null)
 		{
 			Object addr = var.getObject();
@@ -802,7 +802,7 @@ public class NodeInst extends Geometric implements Nodable
 		Float [] fAddr = new Float[2];
 		fAddr[0] = new Float(start);
 		fAddr[1] = new Float(curvature);
-		this.setVar("ART_degrees", fAddr);
+		this.newVar(Artwork.ART_DEGREES, fAddr);
 	}
 
 	/**
@@ -1219,7 +1219,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Float [] getTrace()
 	{
-		Variable var = getVar("trace", Float[].class);
+		Variable var = getVar(TRACE, Float[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
 		if (obj instanceof Object[]) return (Float []) obj;
@@ -1652,20 +1652,20 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
-	 * Routine to set the name of this NodeInst.
+	 * Routine to set the name key of this NodeInst.
 	 * The name is a local string that can be set by the user.
-	 * @param name the new name of this NodeInst.
+	 * @param name the new name key of this NodeInst.
 	 */
-	public boolean setNameLow(Name name)
+	public boolean setNameKey(Name name)
 	{
-		if (name == getNameLow()) return false;
+		if (name == getNameKey()) return false;
 		if (checkNodeName(name)) return true;
 
-		if (nodeUsage != null && getNameLow() != null)
+		if (nodeUsage != null && getNameKey() != null)
 		{
 			parent.removeNodables(this, subs);
 		}
-		super.setNameLow(name);
+		super.setNameKey(name);
 		if (nodeUsage != null)
 		{
 			parent.addNodables(this, subs);
@@ -1722,13 +1722,13 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to determine whether a variable name on NodeInst is deprecated.
-	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * Routine to determine whether a variable key on NodeInst is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the name of the variable.
-	 * @return true if the variable name is deprecated.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(String name) { return name.equals(NODE_NAME); }
+	public boolean isDeprecatedVariable(Variable.Key key) { return key == NODE_NAME; }
 
 	/**
 	 * Routine to determine whether this is an Invisible Pin with text.

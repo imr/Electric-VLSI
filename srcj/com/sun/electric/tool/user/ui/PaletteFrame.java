@@ -1044,7 +1044,7 @@ public class PaletteFrame
 			if (isTextNode)
 			{
 				// text object: add initial text
-				Variable var = newNi.setVar("ART_message", "text");
+				Variable var = newNi.newVar(Artwork.ART_MESSAGE, "text");
 				if (var != null)
 				{
 					var.setDisplay();

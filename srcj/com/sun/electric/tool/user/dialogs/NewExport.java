@@ -297,7 +297,7 @@ public class NewExport extends javax.swing.JDialog
 			if (drawn) e.setAlwaysDrawn();
 			if (body) e.setBodyOnly();
 			if (ch.isReference())
-				e.setVar("EXPORT_reference_name", referenceName);
+				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
 		}
 	}
 

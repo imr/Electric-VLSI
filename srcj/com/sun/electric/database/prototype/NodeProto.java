@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1370,14 +1371,15 @@ public abstract class NodeProto extends ElectricObject
 	public String getProtoName() { return protoName; }
 
 	/**
-	 * Routine to determine whether a variable name on NodeProtos is deprecated.
-	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * Routine to determine whether a variable key on NodeProtos is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the name of the variable.
-	 * @return true if the variable name is deprecated.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(String name)
+	public boolean isDeprecatedVariable(Variable.Key key)
 	{
+		String name = key.getName();
 		if (name.equals("NET_last_good_ncc") ||
 			name.equals("NET_last_good_ncc_facet") ||
 			name.equals("SIM_window_signal_order")) return true;

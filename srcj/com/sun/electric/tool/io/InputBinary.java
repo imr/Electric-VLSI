@@ -164,7 +164,7 @@ public class InputBinary extends Input
 
 	// the variable information
 	/** number of variable names in the library */							private int nameCount;
-	/** list of variable names in the library */							private String [] realName;
+	/** list of variable keys in the library */								private Variable.Key [] realKey;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
@@ -1115,7 +1115,7 @@ public class InputBinary extends Input
 				continue;
 			}
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
-			ai.setNameLow(name);
+			ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
 	}
@@ -1143,7 +1143,7 @@ public class InputBinary extends Input
 			rotation = (rotation + 900) % 3600;
 		}
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-		ni.setNameLow(name);
+		ni.setNameKey(name);
 		ni.lowLevelLink();
 
 		// convert outline information, if present
@@ -1587,7 +1587,7 @@ public class InputBinary extends Input
 
 			newCell = true;
 			System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
-			c.setVar("IO_true_library", elib.getLibName());
+			c.newVar(IO_TRUE_LIBRARY, elib.getLibName());
 		}
 		nodeProtoList[cellIndex] = c;
 
@@ -1833,9 +1833,9 @@ public class InputBinary extends Input
 		if (nameCount == 0) return false;
 
 		// read in the namespace
-		realName = new String[nameCount];
+		realKey = new Variable.Key[nameCount];
 		for(int i=0; i<nameCount; i++)
-			realName[i] =  readString();
+			realKey[i] = ElectricObject.newKey(readString());
 		return false;
 	}
 
@@ -1952,8 +1952,8 @@ public class InputBinary extends Input
 			// Geometric names are saved as variables.
 			if (newAddr instanceof String)
 			{
-				if ((obj instanceof NodeInst && realName[key].equals(NodeInst.NODE_NAME)) ||
-					(obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)))
+				if ((obj instanceof NodeInst && realKey[key] == NodeInst.NODE_NAME) ||
+					(obj instanceof ArcInst && realKey[key] == ArcInst.ARC_NAME))
 				{
 					Geometric geom = (Geometric)obj;
 					geom.setNameTextDescriptor(new TextDescriptor(null, descript0, descript1));
@@ -1967,10 +1967,10 @@ public class InputBinary extends Input
 			}
 
 			// see if the variable is deprecated
-			boolean invalid = obj.isDeprecatedVariable(realName[key]);
+			boolean invalid = obj.isDeprecatedVariable(realKey[key]);
 			if (!invalid)
 			{
-				Variable var = obj.setVar(realName[key], newAddr);
+				Variable var = obj.newVar(realKey[key], newAddr);
 				if (var == null) return(-1);
 				var.setDescriptor(new TextDescriptor(null, descript0, descript1));
 				var.lowLevelSetFlags(newtype);

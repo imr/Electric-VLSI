@@ -48,6 +48,9 @@ import java.awt.geom.Point2D;
  */
 public class Artwork extends Technology
 {
+	/** key of Varible holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
+	/** key of Varible holding message text. */					public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
+
 	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
 
 	/** number of lines in an ellipse */			private static final int ELLIPSEPOINTS =        30;
@@ -617,7 +620,7 @@ public class Artwork extends Technology
 			outline[5] = new Float(-3);
 			outline[6] = new Float(3);
 			outline[7] = new Float(3);
-			ni.setVar("trace", outline);
+			ni.newVar(NodeInst.TRACE, outline);
 		}
 		if (np == closedPolygonNode || np == filledPolygonNode)
 		{
@@ -630,7 +633,7 @@ public class Artwork extends Technology
 			outline[5] = new Float(3);
 			outline[6] = new Float(3);
 			outline[7] = new Float(-3);
-			ni.setVar("trace", outline);
+			ni.newVar(NodeInst.TRACE, outline);
 		}
 	}
 

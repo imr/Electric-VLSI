@@ -25,6 +25,7 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
@@ -51,6 +52,8 @@ import java.util.ArrayList;
 public class Input
 {
 	private static final int READ_BUFFER_SIZE = 65536;
+
+	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
@@ -278,8 +281,7 @@ public class Input
 		if (!np.isHoldsOutline()) return;
 
 		// see if there really is outline information
-		Variable.Key traceKey = ElectricObject.newKey("trace");
-		Variable var = ni.getVar(traceKey, Integer[].class);
+		Variable var = ni.getVar(NodeInst.TRACE, Integer[].class);
 		if (var == null) return;
 
 		// scale the outline information
@@ -290,8 +292,8 @@ public class Input
 			float oldValue = outline[j].intValue();
 			newOutline[j] = new Float(oldValue/lambda);
 		}
-		ni.delVar(traceKey);
-		Variable newVar = ni.setVar(traceKey, newOutline);
+		//ni.delVar(NodeInst.TRACE);
+		Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
 		if (newVar == null)
 			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}

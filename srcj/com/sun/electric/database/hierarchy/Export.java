@@ -32,7 +32,9 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.AffineTransform;
@@ -53,9 +55,10 @@ import java.util.Iterator;
  */
 public class Export extends PortProto
 {
+	/** key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
+
 	// -------------------------- private data ---------------------------
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
-	/** Equivalent port of icon PortProto. */				private PortProto equivalent;
 	/** The Change object. */								private Undo.Change change;
 
 	// -------------------- protected and private methods --------------
@@ -66,7 +69,6 @@ public class Export extends PortProto
 	protected Export()
 	{
 		super();
-		equivalent = this;
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -332,17 +334,6 @@ public class Export extends PortProto
 	public Undo.Change getChange() { return change; }
 
 	/**
-	 * Routine to set the Expirt that is equivalent to this Export in the
-	 * corresponding schematic Cell.
-	 * It finds the PortProto with the same name on the corresponding Cell.
-	 * @return the PortProto that is equivalent to this in the corresponding Cell.
-	 */
-	public void setEquivalent(Export equivalent)
-	{
-		this.equivalent =  equivalent;
-	}
-
-	/**
 	 * Routine to return the PortProto that is equivalent to this in the
 	 * corresponding schematic Cell.
 	 * It finds the PortProto with the same name on the corresponding Cell.
@@ -351,7 +342,12 @@ public class Export extends PortProto
 	 */
 	public PortProto getEquivalent()
 	{
-		return equivalent;
+		Cell equiv = ((Cell)parent).getEquivalent();
+		if (equiv == parent)
+			return this;
+		if (equiv == null)
+			return null;
+		return equiv.findPortProto(getProtoNameLow());
 	}
 
 	/**

@@ -851,10 +851,10 @@ public class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the Name object of this Geometric.
-	 * @return the name of this Geometric, null if there is no name.
+	 * Routine to return the name key of this Geometric.
+	 * @return the name key of this Geometric, null if there is no name.
 	 */
-	public Name getNameLow()
+	public Name getNameKey()
 	{
 		return name;
 	}
@@ -866,14 +866,14 @@ public class Geometric extends ElectricObject
 	 */
 	public boolean setName(String name)
 	{
-		return setNameLow(Name.findName(name));
+		return setNameKey(Name.findName(name));
 	}
 
 	/**
-	 * Routine to set the Name object of this Geometric.
-	 * @param name name of this geometric.
+	 * Routine to set the name key  of this Geometric.
+	 * @param name name key of this geometric.
 	 */
-	public boolean setNameLow(Name name)
+	public boolean setNameKey(Name name)
 	{
 		if (name != null && !name.isValid())
 		{
@@ -881,7 +881,6 @@ public class Geometric extends ElectricObject
 			return true;
 		}
 		this.name = name;
-		//System.out.println("SetNameLow "+name);
 		return false;
 	}
 

@@ -146,7 +146,7 @@ public class GetInfoNode extends javax.swing.JDialog
 
 	static class AttValPair
 	{
-		String name;
+		Variable.Key key;
 		String trueName;
 		String value;
 		String eval;
@@ -288,7 +288,8 @@ public class GetInfoNode extends javax.swing.JDialog
 			{
 				// found a parameter
 				AttValPair avp = new AttValPair();
-				avp.name = var.getTrueName();
+				avp.key = var.getKey();
+				avp.trueName = var.getTrueName();
 				avp.value = var.getObject().toString();
 				avp.code = var.isCode();
 				allParameters.add(avp);
@@ -299,7 +300,7 @@ public class GetInfoNode extends javax.swing.JDialog
 
 			// found an attribute
 			AttValPair avp = new AttValPair();
-			avp.name = var.getKey().getName();
+			avp.key = var.getKey();
 			avp.trueName = var.getTrueName();
 			avp.value = var.getObject().toString();
 			avp.code = var.isCode();
@@ -643,7 +644,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			{
 				initialListPopupEntry = 3;
 				listEvalLabel.setText("Evaluation:");
-				Variable var = shownNode.getVar(avp.name);
+				Variable var = shownNode.getVar(avp.key);
 				listEval.setText(var.describe(-1, -1, VarContext.globalContext, shownNode));
 			} else
 			{
@@ -663,7 +664,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			{
 				initialListPopupEntry = 3;
 				listEvalLabel.setText("Evaluation:");
-				Variable var = shownNode.getVar(avp.name);
+				Variable var = shownNode.getVar(avp.key);
 				listEval.setText(var.describe(-1, -1, VarContext.globalContext, shownNode));
 			} else
 			{
@@ -733,7 +734,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_diode", currentTextField);
+					ni.newVar("SCHEM_diode", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -743,7 +744,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_resistance", currentTextField);
+					ni.newVar("SCHEM_resistance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -753,7 +754,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_capacitance", currentTextField);
+					ni.newVar("SCHEM_capacitance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -763,7 +764,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_inductance", currentTextField);
+					ni.newVar("SCHEM_inductance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -773,7 +774,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_function", currentTextField);
+					ni.newVar("SCHEM_function", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -786,7 +787,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.setVar("SCHEM_global_name", currentTextField);
+					ni.newVar("SCHEM_global_name", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -808,7 +809,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				if (!currentColorName.equals(dialog.initialPopupEntry))
 				{
 					int value = EGraphics.findColorIndex(currentColorName);
-					ni.setVar("ART_color", new Integer(value));
+					ni.newVar("ART_color", new Integer(value));
 					dialog.initialPopupEntry = currentColorName;
 					changed = true;
 				}
@@ -844,7 +845,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allParameters.get(index);
-					Variable var = ni.setVar(avp.name, currentTextField);
+					Variable var = ni.newVar(avp.key, currentTextField);
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;
@@ -860,7 +861,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allAttributes.get(index);
-					Variable var = ni.setVar(avp.name, currentTextField);
+					Variable var = ni.newVar(avp.key, currentTextField);
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;

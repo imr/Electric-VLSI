@@ -247,14 +247,15 @@ public class Tool extends ElectricObject implements Change
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
 
 	/**
-	 * Routine to determine whether a variable name on Tool is deprecated.
-	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * Routine to determine whether a variable key on Tool is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the name of the variable.
-	 * @return true if the variable name is deprecated.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(String name)
+	public boolean isDeprecatedVariable(Variable.Key key)
 	{
+		String name = key.getName();
 		if (name.equals("NET_auto_name") ||
 			name.equals("NET_use_port_names") ||
 			name.equals("NET_compare_hierarchy") ||

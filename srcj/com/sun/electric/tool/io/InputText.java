@@ -453,7 +453,7 @@ public class InputText extends Input
 				double height = (highY - lowY) / lambda;
 				if (nil.nodeInstTranspose[j]) width = -width;
 				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
-				ni.setNameLow(name);
+				ni.setNameKey(name);
 				ni.lowLevelLink();
 			}
 		}
@@ -482,7 +482,7 @@ public class InputText extends Input
 				rotation = (rotation + 900) % 3600;
 			}
 			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-			ni.setNameLow(name);
+			ni.setNameKey(name);
 			ni.lowLevelLink();
 
 			// convert outline information, if present
@@ -517,7 +517,7 @@ public class InputText extends Input
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt);
-			ai.setNameLow(name);
+			ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
 
@@ -1542,11 +1542,12 @@ public class InputText extends Input
 				if (cat == '(' || cat == '[' || cat == ':') break;
 				varName += cat;
 			}
+			Variable.Key varKey = ElectricObject.newKey(varName);
 
 			// see if the variable is valid
 			boolean invalid = false;
 			if (naddr == null) invalid = true; else
-				invalid = naddr.isDeprecatedVariable(varName);
+				invalid = naddr.isDeprecatedVariable(varKey);
 
 			// get type
 			int openSquarePos = keyWord.indexOf('[');
@@ -1663,22 +1664,24 @@ public class InputText extends Input
 				}
 			}
 			// Geometric names are saved as variables.
-			if ((naddr instanceof NodeInst && varName.equals(NodeInst.NODE_NAME) ||
-					naddr instanceof ArcInst && varName.equals(ArcInst.VAR_ARC_NAME)) &&
-				value instanceof String)
+			if (value instanceof String)
 			{
-				Geometric geom = (Geometric)naddr;
-				geom.setNameTextDescriptor(td);
-				Name name = makeGeomName(geom, value, type);
-				if (naddr instanceof NodeInst)
-					nodeInstList[curCellNumber].nodeInstName[curNodeInstIndex] = name;
-				else
-					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
-				continue;
+				if ((naddr instanceof NodeInst && varKey == NodeInst.NODE_NAME) ||
+					(naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME))
+				{
+					Geometric geom = (Geometric)naddr;
+					geom.setNameTextDescriptor(td);
+					Name name = makeGeomName(geom, value, type);
+					if (naddr instanceof NodeInst)
+						nodeInstList[curCellNumber].nodeInstName[curNodeInstIndex] = name;
+					else
+						arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
+					continue;
+				}
 			}
 			if (!invalid)
 			{
-				Variable var = naddr.setVar(varName, value);
+				Variable var = naddr.newVar(varKey, value);
 				if (var == null)
 				{
 					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);

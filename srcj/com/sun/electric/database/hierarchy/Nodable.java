@@ -63,10 +63,10 @@ public interface Nodable
 	public String getName();
 
 	/**
-	 * Routine to return the Name object of this Nodable.
-	 * @return the name of this Nodable.
+	 * Routine to return the name key of this Nodable.
+	 * @return the name key of this Nodable.
 	 */
-	public Name getNameLow();
+	public Name getNameKey();
 
 	/**
 	 * Routine to return the Variable on this Nodable with a given name.

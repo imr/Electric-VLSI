@@ -936,14 +936,14 @@ public class Clipboard
 			Variable var = (Variable)it.next();
 			if (!var.getTextDescriptor().isInherit()) continue;
 
-			String attrName = "ATTRP_" + pp.getProtoName() + "_" + var.getKey().getName().substring(5);
+			Variable.Key attrKey = ElectricObject.newKey("ATTRP_" + pp.getProtoName() + "_" + var.getKey().getName().substring(5));
 
 			// see if the attribute is already there
-			Variable newVar = ni.getVar(attrName);
+			Variable newVar = ni.getVar(attrKey);
 			if (newVar != null) continue;
 
 			// set the attribute
-			newVar = ni.setVar(attrName, inheritAddress(pp, var));
+			newVar = ni.newVar(attrKey, inheritAddress(pp, var));
 			if (newVar != null)
 			{
 				double lambda = 1;
@@ -1058,7 +1058,7 @@ public class Clipboard
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
 		// set the attribute
-		newVar = ni.setVar(var.getKey().getName(), inheritAddress(np, posVar));
+		newVar = ni.newVar(var.getKey(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
@@ -1110,7 +1110,7 @@ public class Clipboard
 		int curVal = EMath.atoi(str.substring(i));
 		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;
 		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint+2);
-		addr.setVar(var.getKey().getName(), newIncrString);
+		addr.newVar(var.getKey(), newIncrString);
 
 		return retVal;
 	}
@@ -1157,7 +1157,7 @@ public class Clipboard
 		{
 			Variable srcvar = (Variable)it.next();
 			Variable.Key key = srcvar.getKey();
-			Variable destVar = destArc.setVar(key.getName(), srcvar.getObject());
+			Variable destVar = destArc.newVar(key, srcvar.getObject());
 			if (destVar != null)
 				destVar.setDescriptor(srcvar.getTextDescriptor());
 		}

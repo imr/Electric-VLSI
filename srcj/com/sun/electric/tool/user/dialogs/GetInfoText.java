@@ -455,16 +455,16 @@ public class GetInfoText extends javax.swing.JDialog
 						if (text.getPort() != null)
 						{
 							// change variable on export
-							newVar = text.getPort().setVar(var.getKey().getName(), currentText);
+							newVar = text.getPort().newVar(var.getKey(), currentText);
 						} else
 						{
 							// change variable on NodeInst or ArcInst
-							newVar = geom.setVar(var.getKey().getName(), currentText);
+							newVar = geom.newVar(var.getKey(), currentText);
 						}
 					} else
 					{
 						// change variable on cell
-						newVar = text.getCell().setVar(var.getKey().getName(), currentText);
+						newVar = text.getCell().newVar(var.getKey(), currentText);
 					}
 					if (newVar != null)
 					{

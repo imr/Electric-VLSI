@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
@@ -98,8 +99,7 @@ public class ArcInst extends Geometric
 //	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
 	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
 
-	// Name of the variable holding the ArcInst's name.
-	public static final String VAR_ARC_NAME = "ARC_name";
+	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
 
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
@@ -384,7 +384,7 @@ public class ArcInst extends Geometric
 		if (!isUsernamed())
 		{
 			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
-				if (setNameLow(parent.getAutoname(Name.findName("net@")))) return true;
+				if (setNameKey(parent.getAutoname(Name.findName("net@")))) return true;
 		}
 
 		// attach this arc to the two nodes it connects
@@ -807,13 +807,13 @@ public class ArcInst extends Geometric
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routine to determine whether a variable name on ArcInst is deprecated.
-	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * Routine to determine whether a variable key on ArcInst is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the name of the variable.
-	 * @return true if the variable name is deprecated.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(String name) { return name.equals(VAR_ARC_NAME); }
+	public boolean isDeprecatedVariable(Variable.Key key) { return key == ARC_NAME; }
 
 	/*
 	 * Routine to write a description of this ArcInst.
@@ -834,20 +834,20 @@ public class ArcInst extends Geometric
 //	}
 
 	/**
-	 * Routine to set the name of this ArcInst.
+	 * Routine to set the name key of this ArcInst.
 	 * The name is a local string that can be set by the user.
-	 * @param name the new name of this ArcInst.
+	 * @param name the new name key of this ArcInst.
 	 */
-	public boolean setNameLow(Name name)
+	public boolean setNameKey(Name name)
 	{
-		if (name == getNameLow()) return false;
+		if (name == getNameKey()) return false;
 		if (checkArcName(name)) return true;
 
-		if (linked && getNameLow() != null)
+		if (linked && getNameKey() != null)
 		{
 			parent.removeArcName(this);
 		}
-		super.setNameLow(name);
+		super.setNameKey(name);
 		if (linked)
 		{
 			parent.addArcName(this);

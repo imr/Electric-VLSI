@@ -195,7 +195,7 @@ public class GetInfoExport extends javax.swing.JDialog
 			initialCharacteristic == PortProto.Characteristic.REFIN ||
 			initialCharacteristic == PortProto.Characteristic.REFOUT)
 		{
-			Variable var = pp.getVar("EXPORT_reference_name");
+			Variable var = pp.getVar(Export.EXPORT_REFERENCE_NAME);
 			if (var != null)
 				initialRefName = var.describe(-1, -1);
 			refName.setEditable(true);
@@ -367,7 +367,7 @@ public class GetInfoExport extends javax.swing.JDialog
 				// change the reference name
 				changed = true;
 				if (currentCharacteristic.isReference())
-					pp.setVar("EXPORT_reference_name", currentRefName);
+					pp.newVar(Export.EXPORT_REFERENCE_NAME, currentRefName);
 				dialog.initialRefName = currentRefName;
 			}
 

@@ -809,8 +809,7 @@ public class OutputBinary extends Output
 		Variable.Key [] nameList = new Variable.Key[numVariableNames];
 		for(Iterator it = ElectricObject.getVariableKeys(); it.hasNext(); )
 		{
-			String name = (String)it.next();
-			Variable.Key key = ElectricObject.findKey(name);
+			Variable.Key key = (Variable.Key)it.next();
 			nameList[key.getIndex()] = key;
 		}
 		for(int i=0; i<numVariableNames; i++)
@@ -839,7 +838,7 @@ public class OutputBinary extends Output
 		throws IOException
 	{
 		int count = 0;
-		if (obj instanceof Geometric && ((Geometric)obj).getNameLow() != null)
+		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
 			count++;
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
@@ -847,10 +846,10 @@ public class OutputBinary extends Output
 			if (!var.isDontSave()) count++;
 		}
 		writeBigInteger(count);
-		if (obj instanceof Geometric && ((Geometric)obj).getNameLow() != null)
+		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
 		{
 			Geometric geom = (Geometric)obj;
-			Variable.Key key = geom instanceof NodeInst ? ElectricObject.nodeNameKey : ElectricObject.arcNameKey;
+			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
 			writeSmallInteger((short)key.getIndex());
 			int type = BinaryConstants.VSTRING;
 			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;

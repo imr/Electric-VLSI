@@ -54,12 +54,6 @@ public class ElectricObject
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
 	/** all variable keys addressed by lower case name */	private static HashMap varLowCaseKeys = new HashMap();
-	/** key for NODE_NAME */								public static final Variable.Key nodeNameKey = newKey(NodeInst.NODE_NAME);
-	/** key for VAR_ARC_NAME */								public static final Variable.Key arcNameKey = newKey(ArcInst.VAR_ARC_NAME);
-	{
-		varKeys.put(nodeNameKey.getName(), nodeNameKey);
-		varKeys.put(arcNameKey.getName(), arcNameKey);
-	}
 
 	// ------------------------ private and protected methods -------------------
 
@@ -242,7 +236,7 @@ public class ElectricObject
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable setVar(String name, Object value) { return setVar(newKey(name), value); }
+	public Variable newVar(String name, Object value) { return newVar(newKey(name), value); }
 
 	/**
 	 * Routine to create a Variable on this ElectricObject with the specified values.
@@ -250,7 +244,7 @@ public class ElectricObject
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable setVar(Variable.Key key, Object value)
+	public Variable newVar(Variable.Key key, Object value)
 	{
 		checkChanging();
 		if (vars == null)
@@ -374,7 +368,7 @@ public class ElectricObject
 			Object obj = var.getObject();
 			int flags = var.lowLevelGetFlags();
 			TextDescriptor td = var.getTextDescriptor();
-			Variable newVar = this.setVar(key, obj);
+			Variable newVar = this.newVar(key, obj);
 			if (newVar != null)
 			{
 				newVar.copyFlags(var);
@@ -545,13 +539,13 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to determine whether a Variable name on this object is deprecated.
-	 * Deprecated Variable names are those that were used in old versions of Electric,
+	 * Routine to determine whether a Variable key on this object is deprecated.
+	 * Deprecated Variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the name of the Variable.
-	 * @return true if the Variable name is deprecated.
+	 * @param name the key of the Variable.
+	 * @return true if the Variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(String name)
+	public boolean isDeprecatedVariable(Variable.Key key)
 	{
 		return false;
 	}
@@ -578,12 +572,12 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return an Iterator over all Variable names on this ElectricObject.
-	 * @return an Iterator over all Variable names on this ElectricObject.
+	 * Routine to return an Iterator over all Variable keys.
+	 * @return an Iterator over all Variable keys.
 	 */
 	public static Iterator getVariableKeys()
 	{
-		return varKeys.keySet().iterator();
+		return varKeys.values().iterator();
 	}
 
 	/**
@@ -619,7 +613,7 @@ public class ElectricObject
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @return the Key object for a given Variable name.
 	 */
-	public static Variable.Key findKey(String name)
+	private static Variable.Key findKey(String name)
 	{
 		Variable.Key key = (Variable.Key)varKeys.get(name);
 		if (key == null)

@@ -126,7 +126,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Instance inst = (Instance)entry.getKey();
             NodeInst ni = (NodeInst)entry.getValue();
             String varName = "LEDRIVE_" + inst.getName();
-            ni.setVar(varName, new Float(inst.getLeX()));
+            ni.newVar(varName, new Float(inst.getLeX()));
         }
     }
         

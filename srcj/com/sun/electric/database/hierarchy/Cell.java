@@ -40,6 +40,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
@@ -122,24 +123,6 @@ public class Cell extends NodeProto
 				}
 			}
 			if (mainSchematics == newMainSchematics) return;
-			for (Iterator itc = getCells(); itc.hasNext();)
-			{
-				Cell icon = (Cell)itc.next();
-				if (icon.getView() != View.ICON) continue;
-				for (Iterator itp = icon.getPorts(); itp.hasNext();)
-				{
-					Export pp = (Export)itp.next();
-					Export epp = null;
-					if (mainSchematics != null)
-					{
-						epp = pp.getEquivalentPort(mainSchematics);
-						if (epp == null)
-							System.out.println("Icon "+icon.describe()+" has port "+pp.getProtoName()+
-								", but main schematics "+mainSchematics.describe()+" has not");
-					}
-					pp.setEquivalent(epp);
-				}
-			}
 			if (mainSchematics == null)
 			{
 				for (Iterator itc = getCells(); itc.hasNext();)
@@ -184,25 +167,6 @@ public class Cell extends NodeProto
 			}
 			mainSchematics = newMainSchematics;
 		}
-
-		/**
-		 * Routine to update main schematics Cell in ths CellGroup.
-		 */
-		private void updateEquivalentPort(Name name, Export port)
-		{
-			for (Iterator itc = getCells(); itc.hasNext();)
-			{
-				Cell icon = (Cell)itc.next();
-				if (icon.getView() != View.ICON) continue;
-				Export pp = icon.findExport(name);
-				if (pp == null) continue;
-				if (port == null)
-					System.out.println("Icon "+icon.describe()+" has port "+name+
-						", but it was removed from main schematics "+mainSchematics.describe());
-				pp.setEquivalent(port);
-			}
-		}
-
 
 		// ------------------------- public methods -----------------------------
 
@@ -341,6 +305,8 @@ public class Cell extends NodeProto
 	 *  lock=-1 "locked for changes".
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
+	/** true if this Cell is linked to library */					private boolean linked;
+
 	/** counter for enumerating cells */							private static int cellNumber = 0;
 
 	// ------------------ protected and private methods -----------------------
@@ -351,8 +317,26 @@ public class Cell extends NodeProto
 	 */
 	private Cell()
 	{
-		this.versionGroup = new VersionGroup(this);
+		versionGroup = new VersionGroup(this);
 		setIndex(cellNumber++);
+		nodes = new ArrayList();
+		nodables = new TreeMap();
+		usagesIn = new HashMap();
+		maxSuffix = new HashMap();
+		arcs = new ArrayList();
+		tempNameToArc = new HashMap();
+		netNames = new HashMap();
+		cellGroup = null;
+		tech = null;
+		creationDate = new Date();
+		revisionDate = new Date();
+		userBits = 0;
+		networksTime = 0;
+		cellBounds = new Rectangle2D.Double();
+		boundsEmpty = true;
+		boundsDirty = false;
+		rTree = Geometric.RTNode.makeTopLevel();
+		linked = false;
 	}
 
 	/**
@@ -365,24 +349,7 @@ public class Cell extends NodeProto
 	{
 		Job.checkChanging();
 		Cell c = new Cell();
-		c.nodes = new ArrayList();
-		c.nodables = new TreeMap();
-		c.usagesIn = new HashMap();
-		c.maxSuffix = new HashMap();
-		c.arcs = new ArrayList();
-		c.tempNameToArc = new HashMap();
-		c.netNames = new HashMap();
-		c.cellGroup = null;
-		c.tech = null;
 		c.lib = lib;
-		c.creationDate = new Date();
-		c.revisionDate = new Date();
-		c.userBits = 0;
-		c.networksTime = 0;
-		c.cellBounds = new Rectangle2D.Double();
-		c.boundsEmpty = true;
-		c.boundsDirty = false;
-		c.rTree = Geometric.RTNode.makeTopLevel();
 		return c;
 	}
 
@@ -454,6 +421,11 @@ public class Cell extends NodeProto
 	public boolean lowLevelLink()
 	{
 		checkChanging();
+		if (linked)
+		{
+			System.out.println(this+" already linked");
+			return true;
+		}
 		// determine the cell group
 		if (cellGroup == null)
 		{
@@ -480,7 +452,15 @@ public class Cell extends NodeProto
 		Library lib = getLibrary();
 		lib.addCell(this);
 
+		// link NodeUsages
+		for (Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getProto().addUsageOf(nu);
+		}
+
 		// success
+		linked = true;
 		return false;
 	}
 
@@ -490,10 +470,24 @@ public class Cell extends NodeProto
 	public void lowLevelUnlink()
 	{
 		checkChanging();
+		if (!linked)
+		{
+			System.out.println(this+" already unlinked");
+			return;
+		}
 		cellGroup.remove(this);
 		versionGroup.remove(this);
 		Library lib = getLibrary();
 		lib.removeCell(this);
+
+		// unlink NodeUsages
+		for (Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getProto().removeUsageOf(nu);
+		}
+
+		linked = false;
 	}
 
 	/**
@@ -818,29 +812,6 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Add a PortProto to this NodeProto.
-	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
-	 * @param port the PortProto to add to this NodeProto.
-	 */
-	public void addPort(PortProto port)
-	{
-		super.addPort(port);
-		if (this == cellGroup.getMainSchematics())
-			cellGroup.updateEquivalentPort(port.getProtoNameLow(), (Export)port);
-	}
-
-	/**
-	 * Removes a PortProto from this NodeProto.
-	 * @param port the PortProto to remove from this NodeProto.
-	 */
-	public void removePort(PortProto port)
-	{
-		super.removePort(port);
-		if (this == cellGroup.getMainSchematics())
-			cellGroup.updateEquivalentPort(port.getProtoNameLow(), null);
-	}
-
-	/**
 	 * Routine to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
 	 */
@@ -886,7 +857,7 @@ public class Cell extends NodeProto
 	 */
 	public void addArcName(ArcInst ai)
 	{
-		Name name = ai.getNameLow();
+		Name name = ai.getNameKey();
 		if (name.isTempname())
 		{
 			tempNameToArc.put(name.lowerCase(), ai);
@@ -903,7 +874,7 @@ public class Cell extends NodeProto
 	 */
 	public void removeArcName(ArcInst ai)
 	{
-		Name name = ai.getNameLow();
+		Name name = ai.getNameKey();
 		if (!name.isTempname()) return;
 		tempNameToArc.remove(name.lowerCase());
 	}
@@ -1045,7 +1016,7 @@ public class Cell extends NodeProto
 			}
 		} else
 		{
-			nodables.put(ni.getNameLow().lowerCase(), ni);
+			nodables.put(ni.getNameKey().lowerCase(), ni);
 		}
 		updateMaxSuffix(ni);
 	}
@@ -1071,7 +1042,7 @@ public class Cell extends NodeProto
 			}
 		} else
 		{
-			nodables.remove(ni.getNameLow().lowerCase());
+			nodables.remove(ni.getNameKey().lowerCase());
 		}
 	}
 
@@ -1081,6 +1052,7 @@ public class Cell extends NodeProto
 	 */
 	private NodeUsage addUsage(NodeProto protoType)
 	{
+		if (!linked) System.out.println("addUsage of "+protoType+" to unliked "+this);
 		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
 		if (nu == null)
 		{
@@ -1107,6 +1079,7 @@ public class Cell extends NodeProto
 	 */
 	private void removeUsage(NodeUsage nu)
 	{
+		if (!linked) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
 		NodeProto protoType = nu.getProto();
 		protoType.removeUsageOf(nu);
 		usagesIn.remove(protoType);
@@ -1132,7 +1105,7 @@ public class Cell extends NodeProto
 	 */
 	private void updateMaxSuffix(Geometric geom)
 	{
-		Name name = geom.getNameLow();
+		Name name = geom.getNameKey();
 		if (name == null || !name.isTempname()) return;
 		Name basename = name.getBasename();
 		if (basename != null && basename != name)
@@ -1825,7 +1798,7 @@ public class Cell extends NodeProto
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (exclude != null && exclude == ai) continue;
-				Name arcName = ai.getNameLow();
+				Name arcName = ai.getNameKey();
 				if (arcName == null) continue;
 				if (name == arcName.lowerCase()) return false;
 			}
@@ -2277,7 +2250,7 @@ public class Cell extends NodeProto
 
 			if (ind0 >= 0 && ind1 >= 0) connectMap(netMap, ind0, ind1);
 
-			Name arcNm = ai.getNameLow();
+			Name arcNm = ai.getNameKey();
 			if (!ai.isUsernamed()) continue;
 			NetName nn = (NetName)netNames.get(arcNm);
 			if (ind0 >= 0) connectMap(netMap, nn.index, ind0);
@@ -2420,7 +2393,7 @@ public class Cell extends NodeProto
 		{
 			ArcInst ai = (ArcInst) arcs.get(i);
 			if (!ai.isUsernamed()) continue;
-			Name arcNm = ai.getNameLow();
+			Name arcNm = ai.getNameKey();
 			NetName nn = (NetName)netNames.get(arcNm);
 			if (nn == null)
 			{
