@@ -45,7 +45,8 @@ import java.util.Map;
  */
 public class Name implements Comparable
 {
-	/** the name */				private String ns;
+	/** the original name */	private String ons;
+	/** the canonical name */	private String ns;
 	/** the lowercase name */	private Name lowerCase;
 	/** list of subnames */		private Name[] subnames;
 	/** basename */				private Name basename;
@@ -82,7 +83,7 @@ public class Name implements Comparable
 	 * Returns a printable version of this Name.
 	 * @return a printable version of this Name.
 	 */
-	public final String toString() { return ns; }
+	public final String toString() { return ons; }
 
 	/**
 	 * Returns lowerCase equivalent of this Name.
@@ -242,7 +243,7 @@ public class Name implements Comparable
 		if (name == null)
 		{
 			name = new Name(ns);
-			allNames.put(name.toString(), name);
+			allNames.put(name.ons, name);
 		}
 		return name;
 	}
@@ -271,12 +272,37 @@ public class Name implements Comparable
 	}
 
 	/**
+	 * Returns the trimmed string for given string.
+	 * @param ns given string
+	 * @return trimmed string.
+	 */
+	private static String trimPlusMinus(String ns)
+	{
+		int len = ns.length();
+		int newLen = 0;
+		for (int i = 0; i < len; i++)
+		{
+			char ch = ns.charAt(i);
+			if (ch == '+' || ch == '-') newLen++;
+		}
+		if (newLen == len) return ns;
+
+		StringBuffer buf = new StringBuffer(newLen);
+		for (int i = 0; i < len; i++)
+		{
+			char ch = ns.charAt(i);
+			if (ch == '+' || ch == '-') buf.append(ns.charAt(i));
+		}
+		return buf.toString();
+	}
+
+	/**
 	 * Constructs a <CODE>Name</CODE> (cannot be called).
 	 */
 	private Name(String ns)
 	{
-		//System.out.println("Name <"+ns+"> allocated");
-		this.ns = ns;
+		this.ons = ns;
+		this.ns = trimPlusMinus(ns);
 		this.numSuffix = 0;
 		String lower = ns.toLowerCase();
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
