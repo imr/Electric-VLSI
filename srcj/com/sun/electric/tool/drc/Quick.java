@@ -48,10 +48,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
+import java.awt.geom.*;
 import java.util.*;
 
 /**
@@ -2608,12 +2605,13 @@ public class Quick
 		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.POLYSELECT);
 		if (minOverlapRule == null) return false;
 		double value = minOverlapRule.value;
+        boolean[] founds = new boolean[4];
 
 		Rectangle2D polyBnd = poly.getBounds2D();
+        Area polyArea = new Area(poly);
+        Area polyAreaBase = new Area(poly);
 		Rectangle2D searchBounds = new Rectangle2D.Double(polyBnd.getMinX()-value, polyBnd.getMinY()-value,
 			polyBnd.getWidth() + value*2, polyBnd.getHeight() + value*2);
-
-		GeometryHandler areaMerge = new PolyQTree(cell.getBounds());
 
 		for(Iterator sIt = cell.searchIterator(searchBounds); sIt.hasNext(); )
 		{
@@ -2636,45 +2634,88 @@ public class Quick
 					Poly nPoly = primPolyList[j];
                     if (!nPoly.getLayer().getFunction().isImplant()) continue;
 
-					if (g instanceof NodeInst)
-					{
-						Rectangle2D trueBox2 = new Rectangle2D.Double(polyBnd.getMinX(), polyBnd.getMinY(), polyBnd.getWidth(), polyBnd.getHeight());
-						if (cropNodeInst((NodeInst)g, globalIndex, new AffineTransform(), layer, net, geom, trueBox2))
-							return false;
-					} else
-					{
-						Rectangle2D nPolyBnd = nPoly.getBounds2D();
-						Rectangle2D trueBox1 = new Rectangle2D.Double(nPolyBnd.getMinX(), nPolyBnd.getMinY(), nPolyBnd.getWidth(), nPolyBnd.getHeight());
-						if (cropArcInst((ArcInst)geom, layer, new AffineTransform(), trueBox1))
-							return false;
-					}
-					//areaMerge.add(layer, new PolyQTree.PolyNode(nPoly.getBounds2D()), true);
+                    Area nPolyArea = new Area(nPoly);
+                    polyArea.subtract(nPolyArea);
+
+                    // Checking if are covered by select is surrounded by minOverlapRule
+                    Area distPolyArea = (Area)polyAreaBase.clone();
+                    distPolyArea.subtract(polyArea);
+                    Rectangle2D rect = nPoly.getBounds2D();
+                    Rectangle2D interRect = distPolyArea.getBounds2D();
+                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-value, interRect.getMinY()-value,
+                            interRect.getWidth() + value*2, interRect.getHeight() + value*2);
+                    PolyBase extPoly = new PolyBase(ruleBnd);
+                    Arrays.fill(founds, false);
+                    boolean foundAll = allPointsContainedInLayer(cell, ruleBnd, extPoly.getPoints(), founds);
+                    if (!foundAll)
+                    {
+                         reportError(POLYSELECTERROR, "No enough surrond", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                            new Poly(distPolyArea.getBounds2D()), geom, layer, null, null, null);
+                    }
 				}
 			}
 		}
-		Collection set = areaMerge.getObjects(layer, false, false);
-		boolean found = false;
 
-		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
-		{
-			PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-
-			if (pn.contains(searchBounds))
-			{
-				//System.out.println("Aqui ");
-				found = true;
-				break;
-			}
-		}
+		boolean found = polyArea.isEmpty();
 
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
 		{
-			reportError(POLYSELECTERROR, "PolySelect error", cell, minOverlapRule.value, -1, minOverlapRule.rule,
-						poly, geom, layer, null, null, null);
+            List polyList = PolyBase.getPointsInArea(polyArea, layer, true);
+
+            for (Iterator it = polyList.iterator(); it.hasNext(); )
+            {
+                PolyBase nPoly = (PolyBase)it.next();
+                reportError(POLYSELECTERROR, "PolySelect error", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                            nPoly, geom, layer, null, null, null);
+            }
 		}
 		return (!found);
 	}
+
+    /**
+     * Method to check if certain poly rectangle is fully covered by any select regoin
+     * @param cell
+     * @param ruleBnd
+     * @param points
+     * @param founds
+     * @return
+     */
+    private boolean allPointsContainedInLayer(Cell cell, Rectangle2D ruleBnd, Point2D[] points, boolean[] founds)
+    {
+        for(Iterator sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
+        {
+            Geometric g = (Geometric)sIt.next();
+            if (!(g instanceof NodeInst)) continue;
+            NodeInst ni = (NodeInst)g;
+            NodeProto np = ni.getProto();
+            if (np instanceof Cell)
+            {
+                return (allPointsContainedInLayer((Cell)np, ruleBnd, points, founds));
+            }
+            else
+            {
+                if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
+                Technology tech = np.getTechnology();
+                Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+                int tot = primPolyList.length;
+                for(int j=0; j<tot; j++)
+                {
+                    Poly nPoly = primPolyList[j];
+                    if (!nPoly.getLayer().getFunction().isImplant()) continue;
+                    boolean allFound = true;
+                    for (int i = 0; i < points.length; i++)
+                    {
+                        if (!founds[i])
+                            allFound = founds[i] = nPoly.contains(points[i]);
+                    }
+                    if (allFound) return true;
+                }
+            }
+        }
+
+        return (false);
+    }
 
 	/**
 	 * Method to see if the two boxes are active elements, connected to opposite
@@ -3229,8 +3270,8 @@ public class Quick
 	/* Adds details about an error to the error list */
 	private void reportError(int errorType, String msg,
 	                         Cell cell, double limit, double actual, String rule,
-	                         Poly poly1, Geometric geom1, Layer layer1,
-	                         Poly poly2, Geometric geom2, Layer layer2)
+	                         PolyBase poly1, Geometric geom1, Layer layer1,
+	                         PolyBase poly2, Geometric geom2, Layer layer2)
 	{
 		if (errorLogger == null) return;
 
@@ -3351,8 +3392,8 @@ public class Quick
 					errorMessage.append("Invalid layer (" + layer1.getName() + "):");
 					break;
 				case POLYSELECTERROR:
-					errorMessage.append("Layer surround error:");
-					errorMessagePart2 = new StringBuffer(", layer %" + layer1.getName());
+					errorMessage.append("Layer surround error: " + msg);
+					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
 					errorMessagePart2.append(" NEEDS SURROUND OF LAYER Select BY " + limit);
                     break;
 				case LAYERSURROUNDERROR:
