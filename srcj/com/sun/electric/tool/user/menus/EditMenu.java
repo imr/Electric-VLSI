@@ -66,6 +66,8 @@ import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.Spread;
+import com.sun.electric.tool.user.tecEdit.Create;
+import com.sun.electric.tool.user.tecEdit.Generate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -336,6 +338,9 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
 		specialSubMenu.addMenuItem("Artwork Appearance...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
+		specialSubMenu.addSeparator();
+		specialSubMenu.addMenuItem("Convert Technology to Library for Editing...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { com.sun.electric.tool.user.tecEdit.Generate.makeLibFromTech(); }});
 
 		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -465,6 +470,7 @@ public class EditMenu {
 			int exportCount = 0;
 			int textCount = 0;
 			int graphicsCount = 0;
+			NodeInst theNode = null;
 			for(Iterator it = wnd.getHighlighter().getHighlights().iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -474,19 +480,25 @@ public class EditMenu {
 					if (eobj instanceof NodeInst || eobj instanceof PortInst)
 					{
 						nodeCount++;
+						if (eobj instanceof NodeInst) theNode = (NodeInst)eobj; else
+							theNode = ((PortInst)eobj).getNodeInst();
 					} else if (eobj instanceof ArcInst)
 					{
 						arcCount++;
 					}
 				} else if (h.getType() == Highlight.Type.TEXT)
 				{
-					if (eobj instanceof Export) {
+					if (eobj instanceof Export)
+					{
                         if (h.getVar() != null)
                             textCount++;
                         else
                             exportCount++;
                     } else
+                    {
+                    	if (eobj instanceof NodeInst) theNode = (NodeInst)eobj;
 						textCount++;
+                    }
 				} else if (h.getType() == Highlight.Type.BBOX)
 				{
 					graphicsCount++;
@@ -495,6 +507,23 @@ public class EditMenu {
 					graphicsCount++;
 				}
 			}
+
+			// in technology editing mode, handle double-click on special node or text
+			if (doubleClick)
+			{
+				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+					nodeCount + textCount == 1 && theNode != null)
+				{
+		    		// if double-clicked on a technology editing object, modify it
+	    			Variable var = theNode.getVar(Generate.EDTEC_OPTION);
+	    			if (var != null)
+	    			{
+	    				Create.us_teceditmodobject(wnd, theNode, ((Integer)var.getObject()).intValue());
+	    				return;
+		    		}
+				}
+			}
+
 			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();

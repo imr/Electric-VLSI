@@ -65,7 +65,7 @@
 	    </antcall>
 	</target>
 
-	<target name="jarWithVersion" depends="init,compile" description="Make binary Jar file with version">
+	<target name="jarWithVersion" depends="init,compile" description="Make Jar file with version">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
@@ -73,6 +73,7 @@
         <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <copy file="packaging/LicenseGNU.txt" tofile="LicenseGNU.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
@@ -94,6 +95,7 @@
             <exclude name="classes/" unless="source"/>
         </jar>
         <delete file="electric.mf"/>
+        <delete file="LicenseGNU.txt"/>
         <delete dir="bsh"/>
         <delete dir="com/apple"/>
         <delete quiet="true">

@@ -14,6 +14,8 @@ FIX: On failure Cell.addNode returns -1 now, which prevents
 
 ************************* Version 8.02j: *********************************
 
+IMP: (04/02/05, SMR) Added "outlined patterned" drawing to PixelDrawing.java.
+
 BUG: (04/01/05, RK) regressions: I removed Compaction regression from run.sh because that regression always fails
 
 IMP: (04/01/05, RK) NCC: added regression test for multiple hierarchy scan

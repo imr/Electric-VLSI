@@ -829,8 +829,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public void lowLevelModify(double dX, double dY, double dXSize, double dYSize, int dRot)
 	{
 		// remove from the R-Tree structure
-		if (parent == null) return;
-		parent.unLinkNode(this);
+		if (parent != null)
+			parent.unLinkNode(this);
 
 		// make the change
 		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
@@ -842,9 +842,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		redoGeometric();
 
 		// link back into the R-Tree
-		parent.linkNode(this);
-
-		parent.setDirty();
+		if (parent != null)
+		{
+			parent.linkNode(this);
+			parent.setDirty();
+		}
 	}
 
 	/**
