@@ -39,7 +39,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -61,7 +60,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	private String coords = null;
 	private String hierCoords = null;
 	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords;
-    private int fieldSizeNumChars, fieldTechNumChars, fieldCoordsNumChars;
+    //private int fieldSizeNumChars, fieldTechNumChars, fieldCoordsNumChars;
 
 	private static String selectionOverride = null;
 
@@ -114,8 +113,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		gbc.gridx = x;   gbc.gridy = y;
 		gbc.gridwidth = width;
         if (x == 0) { gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; }
-        gbc.ipadx = 5;
+        //gbc.ipadx = 5;
         gbc.anchor = GridBagConstraints.WEST;
+        int rightInsert = (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH) ? 20 : 4;
+        gbc.insets = new java.awt.Insets(0, 4, 0, rightInsert);
 		add(field, gbc);
 	}
 

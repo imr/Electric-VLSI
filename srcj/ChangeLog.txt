@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/05/05, GVG) Coordinates cut off in status bar on Mac (Bug #229)
+FIX: Add insets according to platform.
+
 IMP: (04/04/05, DN) Method "TextDescriptor.setParam" removed because
    TextDescriptor is intended to become immutable.
 
