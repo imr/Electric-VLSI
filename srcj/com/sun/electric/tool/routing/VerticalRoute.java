@@ -74,6 +74,7 @@ public class VerticalRoute {
     private static final int SEARCHLIMIT = 1000;
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
+    private static final boolean DEBUGTERSE = false;
 
     private static class SpecifiedRoute extends ArrayList {
         ArcProto startArc;
@@ -103,6 +104,10 @@ public class VerticalRoute {
         this.endPort = endPort;
         // special case: if port is a universal port, limit arc lists, otherwise
         // searching entire space for best connection will take forever
+        if (DEBUGTERSE) {
+            System.out.println("Searching for way to connect "+startPort.getBasePort().getParent()+
+                    " and "+endPort.getBasePort().getParent());
+        }
         if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode &&
             endPort.getBasePort().getParent() == Generic.tech.universalPinNode) {
             startArc = endArc = User.tool.getCurrentArcProto();
@@ -346,8 +351,9 @@ public class VerticalRoute {
                 specifiedRoute.startArc = startArc;
                 specifiedRoute.endArc = endArc;
                 searchNumber = 0;
-                if (DEBUGSEARCH) System.out.println("** Start search startArc="+startArc+", endArc="+endArc);
+                if (DEBUGSEARCH || DEBUGTERSE) System.out.println("** Start search startArc="+startArc+", endArc="+endArc);
                 findConnectingPorts(startArc, endArc, new StringBuffer());
+                if (DEBUGSEARCH || DEBUGTERSE) System.out.println("   Search reached searchNumber "+searchNumber);
             }
         }
 
@@ -374,7 +380,7 @@ public class VerticalRoute {
         allSpecifiedRoutes.clear();
         startArc = specifiedRoute.startArc;
         endArc = specifiedRoute.endArc;
-        if (DEBUGSEARCH) {
+        if (DEBUGSEARCH || DEBUGTERSE) {
             System.out.println("*** Using Best Route: ");
             specifiedRoute.printRoute();
         }
@@ -403,12 +409,17 @@ public class VerticalRoute {
 
         if (startArc == endArc) {
             saveRoute(specifiedRoute);
+            if (DEBUGTERSE) System.out.println("  --Found good route of length "+specifiedRoute.size());
             return;    // don't need anything to connect between them
         }
 
         ds.append("  ");
-        if (searchNumber == SEARCHLIMIT) { System.out.println("Search limit reached in VerticalRoute"); }
-        if (searchNumber >= SEARCHLIMIT) { return; }
+        if (searchNumber > SEARCHLIMIT) { return; }
+        if (searchNumber == SEARCHLIMIT) {
+            System.out.println("Search limit reached in VerticalRoute");
+            searchNumber++;
+            return;
+        }
         searchNumber++;
         Technology tech = startArc.getTechnology();
 
