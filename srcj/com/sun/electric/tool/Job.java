@@ -41,11 +41,10 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -141,7 +140,11 @@ public abstract class Job implements ActionListener, Runnable {
 			for (;;)
 			{
 				Job job = waitChangeJob();
-				job.run();
+
+                Cursor oldCursor = TopLevel.getCurrentCursor();
+                TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                job.run();
+                TopLevel.setCurrentCursor(oldCursor);
 			}
 		}
 
@@ -161,7 +164,19 @@ public abstract class Job implements ActionListener, Runnable {
 						job.started = true;
 						numStarted++;
 						numExamine++;
+                        if (job instanceof InthreadExamineJob) {
+                            // notify thread that it can run.
+                            InthreadExamineJob ijob = (InthreadExamineJob)job;
+                            synchronized(ijob.mutex) {
+                                if (ijob.waiting) {
+                                    ijob.waiting = false;
+                                    ijob.mutex.notify();
+                                }
+                            }
+                            continue;
+                        }
 						Thread t = new Thread(job, job.jobName);
+                        job.thread = t;
 						t.start();
 						continue;
 					}
@@ -184,11 +199,55 @@ public abstract class Job implements ActionListener, Runnable {
 		private synchronized void addJob(Job j) {
 			if (numStarted == allJobs.size())
 				notify();
-			allJobs.add(j);
+            allJobs.add(j);
             if (j.getDisplay()) {
                 WindowFrame.wantToRedoJobTree();
             }
 		}
+
+        /**
+         * This method is intentionally not synchronized. We must preserve the order of locking:
+         * databaseChangesThread monitor -> InthreadExamineJob.mutex monitor.
+         * However, the databaseChangesThread monitor needs to be released before the call to
+         * j.mutex.wait(), otherwise we will have deadlock because this thread did not give up
+         * the databaseChangeThread monitor.  This is because notify() on the j.mutex is only
+         * called after both the databaseChangeThread and mutex monitor have been acquired, but in a
+         * separate thread.
+         * @param j
+         * @param wait true to wait for lock if not available now, false to not wait
+         * @return true if lock acquired, false otherwise (if wait is true, this method always returns true)
+         */
+        private boolean addInthreadExamineJob(InthreadExamineJob j, boolean wait) {
+            synchronized(this) {
+                // check if change job running:
+                if (allJobs.size() > numExamine) {
+                    if (!wait) return false;
+                    // need to queue because it may not be able to run immediately
+                    addJob(j);
+                    synchronized(j.mutex) {
+                        j.waiting = true;
+                    }
+                } else {
+                    // grant examine lock
+                    allJobs.add(j);
+                    numExamine++;
+                    numStarted++;
+                    j.incrementLockCount();
+                    return true;
+                }
+            }
+
+            // we are queued
+            synchronized(j.mutex) {
+                // note that j.waiting *could* have been set false already if Job queue was processed
+                // before this code was processed.
+                if (j.waiting) {
+                    try { j.mutex.wait(); } catch (InterruptedException e) { System.out.println("Interrupted in databaseChangesThread"); }
+                }
+            }
+            j.incrementLockCount();
+            return true;
+        }
 
 		/** Remove job from list of jobs */
 		private synchronized void removeJob(Job j) { 
@@ -230,6 +289,14 @@ public abstract class Job implements ActionListener, Runnable {
 				notify();
 		}
 
+        /** Get job running in the specified thread */
+        private synchronized Job getJob(Thread t) {
+            for (Iterator it = allJobs.iterator(); it.hasNext(); ) {
+                Job j = (Job)it.next();
+                if (j.thread == t) return j;
+            }
+            return null;
+        }
 
         /** get all jobs iterator */
         public synchronized Iterator getAllJobs() {
@@ -267,7 +334,8 @@ public abstract class Job implements ActionListener, Runnable {
     /** progress */                             private String progress = null;
     /** list of saved Highlights */             private List savedHighlights;
     /** saved Highlight offset */               private Point2D savedHighlightsOffset;
-
+    /** Thread job will run in (null for new thread) */
+                                                private Thread thread;
 
     /**
 	 * Constructor creates a new instance of Job.
@@ -288,9 +356,12 @@ public abstract class Job implements ActionListener, Runnable {
 		this.priority = priority;
 		this.upCell = upCell;
 		this.downCell = downCell;
+        this.display = true;
+        this.deleteWhenDone = true;
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
         myNode = null;
+        thread = null;
         savedHighlights = new ArrayList();
         if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
             saveHighlights();
@@ -480,6 +551,124 @@ public abstract class Job implements ActionListener, Runnable {
         databaseChangesThread.removeJob(this);
     }
 
+    /**
+     * This Job serves as a locking mechanism for acquireExamineLock()
+     */
+    private static class InthreadExamineJob extends Job {
+        private boolean waiting;
+        private int lockCount;
+        protected final Object mutex = new Object();
+
+        private InthreadExamineJob() {
+            super("Inthread Examine", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            waiting = false;
+            lockCount = 0;
+        }
+        public boolean doIt() {
+            // this should never be called
+            assert(false);
+            return true;
+        }
+        private void incrementLockCount() { lockCount++; }
+        private void decrementLockCount() { lockCount--; }
+        private int getLockCount() { return lockCount; }
+    }
+
+    /**
+     * Unless you need to code to execute quickly (such as in the GUI thread)
+     * you should be using a Job to examine the database instead of this method.
+     * The suggested format is as follows:
+     * <p>
+     * <pre><code>
+     * if (Job.acquireExamineLock(block)) {
+     *     try {
+     *         // do stuff
+     *         Job.releaseExamineLock();    // release lock
+     *     } catch (Error e) {
+     *         Job.releaseExamineLock();    // release lock if error/exception thrown
+     *         throw e;                     // rethrow error/exception
+     *     }
+     * }
+     * </code></pre>
+     * <p>
+     * This method tries to acquire a lock to allow the current thread to
+     * safely examine the database.
+     * If "block" is true, this call blocks until a lock is acquired.  If block
+     * is false, this call returns immediately, returning true if a lock was
+     * acquired, or false if not.  You must call Job.releaseExamineLock
+     * when done if you acquired a lock.
+     * <p>
+     * Subsequent nested calls to this method from the same thread must
+     * have matching calls to releaseExamineLock.
+     * @param block True to block (wait) until lock can be acquired. False to
+     * return immediately with a return value that denotes if a lock was acquired.
+     * @return true if lock acquired, false otherwise. If block is true,
+     * the return value is always true.
+     */
+    public static synchronized boolean acquireExamineLock(boolean block) {
+        Thread thread = Thread.currentThread();
+
+        // first check to see if we already have the lock
+        Job job = databaseChangesThread.getJob(thread);
+        if (job != null) {
+            assert(job instanceof InthreadExamineJob);
+            ((InthreadExamineJob)job).incrementLockCount();
+            return true;
+        }
+        // create new Job to get examine lock
+        InthreadExamineJob dummy = new InthreadExamineJob();
+        ((Job)dummy).display = false;
+        ((Job)dummy).deleteWhenDone = true;
+        ((Job)dummy).thread = thread;
+        return databaseChangesThread.addInthreadExamineJob(dummy, block);
+    }
+
+    /**
+     * Release the lock to examine the database.  The lock is the lock
+     * associated with the current thread.  This should only be called if a
+     * lock was acquired for the current thread.
+     */
+    public static synchronized void releaseExamineLock() {
+        Job dummy = databaseChangesThread.getJob(Thread.currentThread());
+        assert(dummy != null);
+        assert(dummy instanceof InthreadExamineJob);
+        InthreadExamineJob job = (InthreadExamineJob)dummy;
+        job.decrementLockCount();
+        if (job.getLockCount() == 0) {
+            databaseChangesThread.endExamine(job);
+            databaseChangesThread.removeJob(job);
+        }
+    }
+
+    /**
+     * See if the current thread already has an Examine Lock.
+     * This is useful when you want to assert that the running
+     * thread has successfully acquired an Examine lock.
+     * This methods returns true if the current thread is a Job
+     * thread, or if the current thread has successfully called
+     * acquireExamineLock.
+     * @return true if the current thread has an active examine
+     * lock on the database, false otherwise.
+     */
+    public static synchronized boolean hasExamineLock() {
+        Thread thread = Thread.currentThread();
+        Job job = databaseChangesThread.getJob(thread);
+        if (job != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void checkExamine() {
+        if (!Main.getDebug()) return;
+        if (Main.NOTHREADING) return;
+        if (!hasExamineLock()) {
+            //String msg = "Database is being examined without an Examine Job or Examine Lock";
+            //System.out.println(msg);
+            //ActivityLogger.logMessage(msg);
+        }
+    }
+
 	/**
 	 * Returns thread which activated current changes or null if no changes.
 	 * @return thread which activated current changes or null if no changes.
@@ -504,6 +693,7 @@ public abstract class Job implements ActionListener, Runnable {
 	 */
 	public static void checkChanging()
 	{
+        if (!Main.getDebug()) return;
         if (Main.NOTHREADING) return;
 
 		if (changingJob == null)

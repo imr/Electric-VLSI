@@ -155,6 +155,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { causeStackOverflow(true, false, "blah", 234, "xvsdf"); }});
         jongMenu.addMenuItem("Cause stack overflow in Job", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { causeStackOverflowJob(); }});
+        jongMenu.addMenuItem("Time method calls", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { timeMethodCalls(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 
@@ -1111,6 +1113,87 @@ public class DebugMenus {
         }
     }
 
+    private static class TestObject {
+        private int count;
+        private Object mutex;
+        private TestObject() {
+            mutex = new Object();
+            count = 0;
+        }
+        private final int getCount() { return count; }
+        private synchronized int getCountSync() { return count; }
+        private int getCountExamineCheck() {
+            Job.checkExamine();
+            return count;
+        }
+        private int getCountExamineLock() {
+            Job.acquireExamineLock(false);
+            try {
+                Job.releaseExamineLock();
+            } catch (Error e) {
+                Job.releaseExamineLock();                
+            }
+            return count;
+        }
+        private int getCountJob() {
+            CountJob job = new CountJob(mutex);
+            synchronized(mutex) {
+                job.startJob(false, true);
+                try {
+                    mutex.wait();
+                } catch (InterruptedException e) {}
+            }
+            return count;
+        }
+
+        private static class CountJob extends Job {
+            private Object mutex;
+            private CountJob(Object mutex) {
+                super("CountJob", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+                this.mutex = mutex;
+            }
+
+            public boolean doIt() {
+                synchronized(mutex) { mutex.notify(); }
+                return true;
+            }
+        }
+    }
+
+    public static void timeMethodCalls() {
+        TestObject obj = new TestObject();
+        int limit = 500000;
+
+        long start = System.currentTimeMillis();
+        for (int i=0; i<limit; i++) {
+            obj.getCount();
+        }
+        System.out.println("Baseline case: "+TextUtils.getElapsedTime(System.currentTimeMillis()-start));
+
+        start = System.currentTimeMillis();
+        for (int i=0; i<limit; i++) {
+            obj.getCountSync();
+        }
+        System.out.println("Synchronized case: "+TextUtils.getElapsedTime(System.currentTimeMillis()-start));
+
+        start = System.currentTimeMillis();
+        for (int i=0; i<limit; i++) {
+            obj.getCountExamineCheck();
+        }
+        System.out.println("Checking case (no sync): "+TextUtils.getElapsedTime(System.currentTimeMillis()-start));
+
+        start = System.currentTimeMillis();
+        for (int i=0; i<limit; i++) {
+            obj.getCountExamineLock();
+        }
+        System.out.println("Locking case (no sync): "+TextUtils.getElapsedTime(System.currentTimeMillis()-start));
+
+        start = System.currentTimeMillis();
+        for (int i=0; i<limit; i++) {
+            obj.getCountJob();
+        }
+        System.out.println("Job case: "+TextUtils.getElapsedTime(System.currentTimeMillis()-start));
+    }
 
     public static void runCommand() {
         ExecDialog d = new ExecDialog(TopLevel.getCurrentJFrame(), false);

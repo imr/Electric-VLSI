@@ -45,6 +45,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.Job;
 
 import java.awt.*;
 import java.awt.font.GlyphVector;
@@ -499,6 +500,8 @@ public class Highlight
 	{
         if (!isValid()) return;
 
+        assert(Job.hasExamineLock());
+        
 		g.setColor(mainColor);
         Graphics2D g2 = (Graphics2D)g;
         g2.setStroke(primaryStroke);
@@ -568,33 +571,40 @@ public class Highlight
 		{
 			ArcInst ai = (ArcInst)eobj;
 
-			// construct the polygons that describe the basic arc
-			Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
-			if (poly == null) return;
-			drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
+            if (!Job.acquireExamineLock(false)) return;
+            try {
+                // construct the polygons that describe the basic arc
+                Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                if (poly == null) return;
+                drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
 
-			if (showArcConstraints)
-			{
-				// this is the only thing highlighted: give more information about constraints
-				String constraints = "X";
-				if (ai.isRigid()) constraints = "R"; else
-				{
-					if (ai.isFixedAngle())
-					{
-						if (ai.isSlidable()) constraints = "FS"; else
-							constraints = "F";
-					} else if (ai.isSlidable()) constraints = "S";
-				}
-				Point p = wnd.databaseToScreen(ai.getTrueCenterX(), ai.getTrueCenterY());
-				Font font = wnd.getFont(null);
-				if (font != null)
-				{
-					GlyphVector gv = wnd.getGlyphs(constraints, font);
-					Rectangle2D glyphBounds = gv.getVisualBounds();
-					g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
-						(int)(p.y + font.getSize()/2 + highOffY));
-				}
-			}
+                if (showArcConstraints)
+                {
+                    // this is the only thing highlighted: give more information about constraints
+                    String constraints = "X";
+                    if (ai.isRigid()) constraints = "R"; else
+                    {
+                        if (ai.isFixedAngle())
+                        {
+                            if (ai.isSlidable()) constraints = "FS"; else
+                                constraints = "F";
+                        } else if (ai.isSlidable()) constraints = "S";
+                    }
+                    Point p = wnd.databaseToScreen(ai.getTrueCenterX(), ai.getTrueCenterY());
+                    Font font = wnd.getFont(null);
+                    if (font != null)
+                    {
+                        GlyphVector gv = wnd.getGlyphs(constraints, font);
+                        Rectangle2D glyphBounds = gv.getVisualBounds();
+                        g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
+                            (int)(p.y + font.getSize()/2 + highOffY));
+                    }
+                }
+                Job.releaseExamineLock();
+            } catch (Error e) {
+                Job.releaseExamineLock();
+                throw e;
+            }
 			return;
 		}
 

@@ -1084,128 +1084,131 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eObj, Variable var, Name name)
 	{
-		Poly poly = eObj.computeTextPoly(wnd, var, name);
-		if (poly == null) return null;
-		Rectangle2D bounds = poly.getBounds2D();
-		Poly.Type style = poly.getStyle();
-		style = Poly.rotateType(style, eObj);
-		if (style == Poly.Type.TEXTCENT)
-		{
-			Point2D [] points = new Point2D.Double[4];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTBOT)
-		{
-			Point2D [] points = new Point2D.Double[6];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTTOP)
-		{
-			Point2D [] points = new Point2D.Double[6];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTLEFT)
-		{
-			Point2D [] points = new Point2D.Double[6];
-			points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTRIGHT)
-		{
-			Point2D [] points = new Point2D.Double[6];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[5] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTTOPLEFT)
-		{
-			Point2D [] points = new Point2D.Double[4];
-			points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTBOTLEFT)
-		{
-			Point2D [] points = new Point2D.Double[4];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTTOPRIGHT)
-		{
-			Point2D [] points = new Point2D.Double[4];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTBOTRIGHT)
-		{
-			Point2D [] points = new Point2D.Double[4];
-			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-			return points;
-		}
-		if (style == Poly.Type.TEXTBOX)
-		{
-			Point2D [] points = new Point2D.Double[12];
-			if (eObj instanceof Geometric)
-			{
-				bounds = ((Geometric)eObj).getBounds();
-			}
-			double lX = bounds.getMinX();
-			double hX = bounds.getMaxX();
-			double lY = bounds.getMinY();
-			double hY = bounds.getMaxY();
-			points[0] = new Point2D.Double(lX, lY);
-			points[1] = new Point2D.Double(hX, hY);
-			points[2] = new Point2D.Double(lX, hY);
-			points[3] = new Point2D.Double(hX, lY);
-			double shrinkX = (hX - lX) / 5;
-			double shrinkY = (hY - lY) / 5;
-			points[4] = new Point2D.Double(lX+shrinkX, lY);
-			points[5] = new Point2D.Double(hX-shrinkX, lY);
-			points[6] = new Point2D.Double(lX+shrinkX, hY);
-			points[7] = new Point2D.Double(hX-shrinkX, hY);
-			points[8] = new Point2D.Double(lX, lY+shrinkY);
-			points[9] = new Point2D.Double(lX, hY-shrinkY);
-			points[10] = new Point2D.Double(hX, lY+shrinkY);
-			points[11] = new Point2D.Double(hX, hY-shrinkY);
-			return points;
-		}
-		return null;
+        if (!Job.acquireExamineLock(false)) return null;
+        Poly.Type style = null;
+        Point2D[] points = null;
+        Rectangle2D bounds = null;
+        try {
+            Poly poly = eObj.computeTextPoly(wnd, var, name);
+            if (poly == null) {
+                Job.releaseExamineLock();
+                return null;
+            }
+            bounds = poly.getBounds2D();
+            style = poly.getStyle();
+            style = Poly.rotateType(style, eObj);
+            if (style == Poly.Type.TEXTBOX && (eObj instanceof Geometric))
+            {
+                bounds = ((Geometric)eObj).getBounds();
+            }
+            Job.releaseExamineLock();
+        } catch (Error e) {
+            Job.releaseExamineLock();
+            throw e;
+        }
+        if (style == Poly.Type.TEXTCENT)
+        {
+            points = new Point2D.Double[4];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+        }
+        else if (style == Poly.Type.TEXTBOT)
+        {
+            points = new Point2D.Double[6];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+        }
+        else if (style == Poly.Type.TEXTTOP)
+        {
+            points = new Point2D.Double[6];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+        }
+        else if (style == Poly.Type.TEXTLEFT)
+        {
+            points = new Point2D.Double[6];
+            points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+        }
+        else if (style == Poly.Type.TEXTRIGHT)
+        {
+            points = new Point2D.Double[6];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[5] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+        }
+        else if (style == Poly.Type.TEXTTOPLEFT)
+        {
+            points = new Point2D.Double[4];
+            points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+        }
+        else if (style == Poly.Type.TEXTBOTLEFT)
+        {
+            points = new Point2D.Double[4];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+        }
+        else if (style == Poly.Type.TEXTTOPRIGHT)
+        {
+            points = new Point2D.Double[4];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+            points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+        }
+        else if (style == Poly.Type.TEXTBOTRIGHT)
+        {
+            points = new Point2D.Double[4];
+            points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+            points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+            points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+        }
+        else if (style == Poly.Type.TEXTBOX)
+        {
+            points = new Point2D.Double[12];
+            double lX = bounds.getMinX();
+            double hX = bounds.getMaxX();
+            double lY = bounds.getMinY();
+            double hY = bounds.getMaxY();
+            points[0] = new Point2D.Double(lX, lY);
+            points[1] = new Point2D.Double(hX, hY);
+            points[2] = new Point2D.Double(lX, hY);
+            points[3] = new Point2D.Double(hX, lY);
+            double shrinkX = (hX - lX) / 5;
+            double shrinkY = (hY - lY) / 5;
+            points[4] = new Point2D.Double(lX+shrinkX, lY);
+            points[5] = new Point2D.Double(hX-shrinkX, lY);
+            points[6] = new Point2D.Double(lX+shrinkX, hY);
+            points[7] = new Point2D.Double(hX-shrinkX, hY);
+            points[8] = new Point2D.Double(lX, lY+shrinkY);
+            points[9] = new Point2D.Double(lX, hY-shrinkY);
+            points[10] = new Point2D.Double(hX, lY+shrinkY);
+            points[11] = new Point2D.Double(hX, hY-shrinkY);
+        }
+        return points;
 	}
 
     /**
@@ -1367,169 +1370,178 @@ public class Highlighter implements DatabaseChangeListener {
 			directHitDist = extra.getX() + 0.4;
 		}
 
-		// look for text if a window was given
-		if (findText && wnd != null)
-		{
-			// start by examining all text on this Cell
-			if (User.isTextVisibilityOnCell())
-			{
-				Poly [] polys = cell.getAllText(findSpecial, wnd);
-				if (polys != null)
-				{
-					for(int i=0; i<polys.length; i++)
-					{
-						Poly poly = polys[i];
+        if (!Job.acquireExamineLock(false)) return list;
+
+        try {
+            // look for text if a window was given
+            if (findText && wnd != null)
+            {
+                // start by examining all text on this Cell
+                if (User.isTextVisibilityOnCell())
+                {
+                    Poly [] polys = cell.getAllText(findSpecial, wnd);
+                    if (polys != null)
+                    {
+                        for(int i=0; i<polys.length; i++)
+                        {
+                            Poly poly = polys[i];
+                            if (poly == null) continue;
+                            if (poly.setExactTextBounds(wnd, cell)) continue;
+
+                            // ignore areaMustEnclose if bounds is size 0,0
+                            if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+                            {
+                                if (!poly.isInside(bounds)) continue;
+                            } else
+                            {
+                                if (poly.polyDistance(bounds) >= directHitDist) continue;
+                            }
+                            Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
+                            h.setVar(poly.getVariable());
+                            list.add(h);
+                        }
+                    }
+                }
+
+                // next examine all text on nodes in the cell
+                for(Iterator it = cell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = (NodeInst)it.next();
+                    AffineTransform trans = ni.rotateOut();
+                    EditWindow subWnd = wnd;
+                    Poly [] polys = ni.getAllText(findSpecial, wnd);
+                    if (polys == null) continue;
+                    for(int i=0; i<polys.length; i++)
+                    {
+                        Poly poly = polys[i];
                         if (poly == null) continue;
-						if (poly.setExactTextBounds(wnd, cell)) continue;
-
-                        // ignore areaMustEnclose if bounds is size 0,0
-						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-						{
-							if (!poly.isInside(bounds)) continue;
-						} else
-						{
-							if (poly.polyDistance(bounds) >= directHitDist) continue;
-						}
-						Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
-						h.setVar(poly.getVariable());
-						list.add(h);
-					}
-				}
-			}
-
-			// next examine all text on nodes in the cell
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				AffineTransform trans = ni.rotateOut();
-				EditWindow subWnd = wnd;
-				Poly [] polys = ni.getAllText(findSpecial, wnd);
-				if (polys == null) continue;
-				for(int i=0; i<polys.length; i++)
-				{
-					Poly poly = polys[i];
-                    if (poly == null) continue;
-					poly.transform(trans);
-					if (poly.setExactTextBounds(wnd, ni)) continue;
-
-                    // ignore areaMustEnclose if bounds is size 0,0
-					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-					{
-						if (!poly.isInside(bounds)) continue;
-					} else
-					{
-						double hitdist = poly.polyDistance(bounds);
-						if (hitdist >= directHitDist) continue;
-					}
-					Highlight h = new Highlight(Highlight.Type.TEXT, null, cell);
-					if (poly.getPort() != null)
-					{
-						PortProto pp = poly.getPort();
-						h.setElectricObject(pp);
-						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
-						{
-							PortInst pi = (PortInst)pIt.next();
-							if (pi.getPortProto() == pp)
-							{
-								h.setElectricObject(pi);
-								break;
-							}
-						}
-					} else
-						h.setElectricObject(ni);
-					h.setVar(poly.getVariable());
-					h.setName(poly.getName());
-					list.add(h);
-				}
-			}
-
-			// next examine all text on arcs in the cell
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				if (User.isTextVisibilityOnArc())
-				{
-					Poly [] polys = ai.getAllText(findSpecial, wnd);
-					if (polys == null) continue;
-					for(int i=0; i<polys.length; i++)
-					{
-						Poly poly = polys[i];
-						if (poly.setExactTextBounds(wnd, ai)) continue;
+                        poly.transform(trans);
+                        if (poly.setExactTextBounds(wnd, ni)) continue;
 
                         // ignore areaMustEnclose if bounds is size 0,0
                         if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-						{
-							if (!poly.isInside(bounds)) continue;
-						} else
-						{
-							if (poly.polyDistance(bounds) >= directHitDist) continue;
-						}
-						Highlight h = new Highlight(Highlight.Type.TEXT, ai, cell);
-						h.setVar(poly.getVariable());
-						h.setName(poly.getName());
-						list.add(h);
-					}
-				}
-			}
-		}
+                        {
+                            if (!poly.isInside(bounds)) continue;
+                        } else
+                        {
+                            double hitdist = poly.polyDistance(bounds);
+                            if (hitdist >= directHitDist) continue;
+                        }
+                        Highlight h = new Highlight(Highlight.Type.TEXT, null, cell);
+                        if (poly.getPort() != null)
+                        {
+                            PortProto pp = poly.getPort();
+                            h.setElectricObject(pp);
+                            for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+                            {
+                                PortInst pi = (PortInst)pIt.next();
+                                if (pi.getPortProto() == pp)
+                                {
+                                    h.setElectricObject(pi);
+                                    break;
+                                }
+                            }
+                        } else
+                            h.setElectricObject(ni);
+                        h.setVar(poly.getVariable());
+                        h.setName(poly.getName());
+                        list.add(h);
+                    }
+                }
 
-		if (exclusively)
-		{
-			// special case: only review what is already highlighted
-			for(Iterator sIt = getHighlights().iterator(); sIt.hasNext(); )
-			{
-				Highlight h = (Highlight)sIt.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-				if (eobj instanceof NodeInst)
-				{
-					h = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
-					if (h != null) list.add(h);
-				}
-			}
-			return list;
-		}
+                // next examine all text on arcs in the cell
+                for(Iterator it = cell.getArcs(); it.hasNext(); )
+                {
+                    ArcInst ai = (ArcInst)it.next();
+                    if (User.isTextVisibilityOnArc())
+                    {
+                        Poly [] polys = ai.getAllText(findSpecial, wnd);
+                        if (polys == null) continue;
+                        for(int i=0; i<polys.length; i++)
+                        {
+                            Poly poly = polys[i];
+                            if (poly.setExactTextBounds(wnd, ai)) continue;
 
-		// determine proper area to search
-		Rectangle2D searchArea = new Rectangle2D.Double(bounds.getMinX() - directHitDist,
-			bounds.getMinY() - directHitDist, bounds.getWidth()+directHitDist*2, bounds.getHeight()+directHitDist*2);
+                            // ignore areaMustEnclose if bounds is size 0,0
+                            if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+                            {
+                                if (!poly.isInside(bounds)) continue;
+                            } else
+                            {
+                                if (poly.polyDistance(bounds) >= directHitDist) continue;
+                            }
+                            Highlight h = new Highlight(Highlight.Type.TEXT, ai, cell);
+                            h.setVar(poly.getVariable());
+                            h.setName(poly.getName());
+                            list.add(h);
+                        }
+                    }
+                }
+            }
 
-		// now do 3 phases of examination: cells, arcs, then primitive nodes
-		for(int phase=0; phase<3; phase++)
-		{
-			// ignore cells if requested
-			if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
+            if (exclusively)
+            {
+                // special case: only review what is already highlighted
+                for(Iterator sIt = getHighlights().iterator(); sIt.hasNext(); )
+                {
+                    Highlight h = (Highlight)sIt.next();
+                    if (h.getType() != Highlight.Type.EOBJ) continue;
+                    ElectricObject eobj = h.getElectricObject();
+                    if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+                    if (eobj instanceof NodeInst)
+                    {
+                        h = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
+                        if (h != null) list.add(h);
+                    }
+                }
+                Job.releaseExamineLock();
+                return list;
+            }
 
-			// examine everything in the area
-			for(Iterator it = cell.searchIterator(searchArea); it.hasNext(); )
-			{
-				Geometric geom = (Geometric)it.next();
+            // determine proper area to search
+            Rectangle2D searchArea = new Rectangle2D.Double(bounds.getMinX() - directHitDist,
+                bounds.getMinY() - directHitDist, bounds.getWidth()+directHitDist*2, bounds.getHeight()+directHitDist*2);
 
-				Highlight h;
-				switch (phase)
-				{
-					case 0:			// check primitive nodes
-						if (!(geom instanceof NodeInst)) break;
-						if (((NodeInst)geom).getProto() instanceof Cell) break;
-						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-						if (h != null) list.add(h);
-						break;
-					case 1:			// check Cell instances
-						if (!(geom instanceof NodeInst)) break;
-						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-						if (h != null) list.add(h);
-						break;
-					case 2:			// check arcs
-						if (!(geom instanceof ArcInst)) break;
-						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-						if (h != null) list.add(h);
-						break;
-				}
-			}
-		}
-		return list;
+            // now do 3 phases of examination: cells, arcs, then primitive nodes
+            for(int phase=0; phase<3; phase++)
+            {
+                // ignore cells if requested
+                if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
+
+                // examine everything in the area
+                for(Iterator it = cell.searchIterator(searchArea); it.hasNext(); )
+                {
+                    Geometric geom = (Geometric)it.next();
+
+                    Highlight h;
+                    switch (phase)
+                    {
+                        case 0:			// check primitive nodes
+                            if (!(geom instanceof NodeInst)) break;
+                            if (((NodeInst)geom).getProto() instanceof Cell) break;
+                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            if (h != null) list.add(h);
+                            break;
+                        case 1:			// check Cell instances
+                            if (!(geom instanceof NodeInst)) break;
+                            if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
+                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            if (h != null) list.add(h);
+                            break;
+                        case 2:			// check arcs
+                            if (!(geom instanceof ArcInst)) break;
+                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            if (h != null) list.add(h);
+                            break;
+                    }
+                }
+            }
+            Job.releaseExamineLock();
+        } catch (Error e) {
+            Job.releaseExamineLock();
+            throw e;
+        }
+        return list;
 	}
 
     /**

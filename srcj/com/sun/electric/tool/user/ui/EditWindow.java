@@ -93,10 +93,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -679,21 +676,29 @@ public class EditWindow extends JPanel
 			showCrossProbeLevels(g);
 
 			// add in highlighting
-            // TODO: remove try/catch when Netlist is thread safe
-            try {
-                long start = System.currentTimeMillis();
-                mouseOverHighlighter.showHighlights(this, g);
-                highlighter.showHighlights(this, g);
-	            //WindowFrame.show3DHighlight(this);
-                long end = System.currentTimeMillis();
-            } catch (Exception e) {
+            if (Job.acquireExamineLock(false)) {
+                try {
+                    //long start = System.currentTimeMillis();
+                    mouseOverHighlighter.showHighlights(this, g);
+                    highlighter.showHighlights(this, g);
+                    //WindowFrame.show3DHighlight(this);
+                    //long end = System.currentTimeMillis();
+                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+                    Job.releaseExamineLock();
+                } catch (Error e) {
+                    Job.releaseExamineLock();
+                    throw e;
+                }
+            } else {
+                // repaint
+/*
                 TimerTask redrawTask = new TimerTask() {
                     public void run() { repaint(); }
                 };
                 Timer timer = new Timer();
                 timer.schedule(redrawTask, 1000);
+*/
             }
-            //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 
 			// add in drag area
 			if (doingAreaDrag) showDragBox(g);
@@ -1796,11 +1801,25 @@ public class EditWindow extends JPanel
     // ignore programmatic scroll changes. Only respond to user scroll changes
     private boolean ignoreScrollChange = false;
     private static final int scrollRangeMult = 100; // when zoomed in, this prevents rounding from causing problems
+
     /**
      * New version of setScrollPosition.  Attempts to provides means of scrolling
      * out of cell bounds.
      */
-    public void setScrollPosition()
+    public void setScrollPosition() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { setScrollPositionUnsafe(); }
+            });
+        } else
+            setScrollPositionUnsafe();
+    }
+
+    /**
+     * New version of setScrollPosition.  Attempts to provides means of scrolling
+     * out of cell bounds.  This is the Swing unsafe version
+     */
+    private void setScrollPositionUnsafe()
     {
         bottomScrollBar.setEnabled(cell != null);
         rightScrollBar.setEnabled(cell != null);
@@ -2564,7 +2583,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
-	 * @param alighment the alignment value to use.
+	 * @param alignment the alignment value to use.
 	 */
 	public static void gridAlign(Point2D pt, double alignment)
 	{
