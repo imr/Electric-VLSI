@@ -53,7 +53,8 @@ class ClickAndDragListener
 	{
 		oldx = evt.getX();
 		oldy = evt.getY();
-		EditWindow wnd = (EditWindow)evt.getSource();
+        EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+        EditWindow wnd = ecp.wnd;
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -105,7 +106,8 @@ class ClickAndDragListener
 
 	public void mouseReleased(MouseEvent evt)
 	{
-		EditWindow wnd = (EditWindow)evt.getSource();
+        EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+        EditWindow wnd = ecp.wnd;
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -157,7 +159,8 @@ class ClickAndDragListener
 	{
 		int newX = evt.getX();
 		int newY = evt.getY();
-		EditWindow wnd = (EditWindow)evt.getSource();
+        EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+        EditWindow wnd = ecp.wnd;
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
 		EditWindow.gridAlign(delta);

@@ -63,7 +63,7 @@ public class ClickZoomWireListener
     private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
-    private static final boolean debug = false; /* for debugging */
+    private static final boolean debug = true; /* for debugging */
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
@@ -218,7 +218,8 @@ public class ClickZoomWireListener
 
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-	        EditWindow wnd = (EditWindow)evt.getSource();
+            EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+            EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        clickX = evt.getX();
@@ -397,7 +398,8 @@ public class ClickZoomWireListener
 
  		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-	        EditWindow wnd = (EditWindow)evt.getSource();
+             EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+             EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	
@@ -543,7 +545,8 @@ public class ClickZoomWireListener
 
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-	        EditWindow wnd = (EditWindow)evt.getSource();
+            EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+            EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        // add back in offset
