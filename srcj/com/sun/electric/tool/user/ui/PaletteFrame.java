@@ -211,6 +211,8 @@ public class PaletteFrame
 	public void loadForTechnology()
 	{
 		Technology tech = Technology.getCurrent();
+
+		selector.setSelectedItem(tech.getTechName());
 		inPalette = new ArrayList();
 		if (tech == Schematics.tech)
 		{
