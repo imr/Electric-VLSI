@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+FIX: (03/30/05, JKG) fix situation where attribute on instance with same name of parameter
+    on contents view would incorrectly not be marked as a parameter.
+
+FIX: (03/30/05, JKG) TextUtils.formatDouble() made thread safe
+
+IMP: (03/30/05, JKG) Added checking for conflicting logical effort parameters in designs
+
 IMP: (03/30/05, SMR) Placing a large cell instance in an empty window zooms the window to fit (Bug #214).
 
 BUG: (03/30/05, SMR) Shift-Right-click to zoom will zoom out if the area is too small (Bug #27).
