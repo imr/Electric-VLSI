@@ -159,9 +159,6 @@ public class DebugMenus {
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, true); } });
-        gildaMenu.addMenuItem("3D View", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
-
     }
 
 	// ---------------------- Help Menu additions -----------------
@@ -465,16 +462,6 @@ public class DebugMenus {
 	}
 
     // ---------------------- Gilda's Stuff MENU -----------------
-
-	/*
-    public static void create3DViewCommand()
-    {
-	    Cell curCell = WindowFrame.needCurCell();
-
-	    if (curCell == null) return;
-	    WindowFrame.create3DViewtWindow(curCell);
-    }
-    */
 
 	/**
 	 * First attempt for coverage implant

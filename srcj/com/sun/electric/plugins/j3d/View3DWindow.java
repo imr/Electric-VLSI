@@ -37,8 +37,10 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 
 // Java3D packages
@@ -308,7 +310,7 @@ public class View3DWindow extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		addPolys(tech.getShapeOfArc(ai), null, objTrans);
+		addPolys(tech.getShapeOfArc(ai), null, objTrans, null);
 	}
 
 	/**
@@ -323,13 +325,9 @@ public class View3DWindow extends JPanel
 		Technology tech = nProto.getTechnology();
 
 		// Skipping Gyph node
-		if (tech instanceof Generic)
-		{
-			Generic t = (Generic)tech;
-			if (nProto == t.cellCenterNode)
-				return;
-		}
-		addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans);
+		 if (nProto == Tech.facetCenter) return;
+
+		addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans, nProto);
 	}
 
 	/**
@@ -338,11 +336,11 @@ public class View3DWindow extends JPanel
 	 * @param transform
 	 * @param objTrans
 	 */
-	public void addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
+	public void addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans,
+	                     NodeProto nProto)
 	{
-		//drawPolys(polys, trans);
-
 		if (polys == null) return;
+		Layer[] metals = new Layer[3];
 
 		for(int i = 0; i < polys.length; i++)
 		{
@@ -352,26 +350,45 @@ public class View3DWindow extends JPanel
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
 			double thickness = layer.getThickness();
-
-			if (transform != null)
-				poly.transform(transform);
-
-			// Check if there is already a transformG
-			//TransformGroup cubeTrans  = (TransformGroup)layers.get(layer);
 			double height = layer.getHeight();
 
-			/*
-			if (cubeTrans == null)
+			// Trying to calculate distance from two layers
+			if (layer.getFunction().isContact())
 			{
-                Transform3D boxTrans = new Transform3D();
-				cubeTrans = new TransformGroup(boxTrans);
-				boxTrans.setTranslation(new Vector3d(0, 0, height));
-                cubeTrans.setTransform(boxTrans);
-                objTrans.addChild(cubeTrans);
-				layers.put(layer, cubeTrans);
-			}
-			*/
+				if (nProto instanceof PrimitiveNode)
+				{
+					PrimitiveNode np = (PrimitiveNode)nProto;
+					Iterator iter = np.layerIterator();
+					Technology.NodeLayer [] primLayers = np.getLayers();
+					int size = primLayers.length;
 
+					// Searching for this layer
+					if (size != 3) break;
+					metals[0] = metals[1] = metals[2] = null;
+					for (int j = 0; j < size; j++)
+					{
+						if (primLayers[j].getLayer() == layer)
+						{
+							metals[0] = layer;
+							metals[1] = primLayers[(j+1)%size].getLayer();
+							metals[2] = primLayers[(j+2)%size].getLayer();
+							j = size; // out of the loop
+						}
+					}
+					if (metals[0] == null)
+						System.out.println("Error");
+					if (metals[1].getHeight() > metals[2].getHeight())
+					{
+						Layer layerTmp = metals[1];
+						metals[1] = metals[2] ;
+						metals[2] = layerTmp;
+					}
+					height = metals[1].getHeight() + metals[1].getThickness();
+					thickness = metals[2].getHeight() - height;
+				}
+			}
+			if (transform != null)
+				poly.transform(transform);
 			Rectangle2D bounds = poly.getBounds2D();
 
 			// Setting appearance
@@ -381,7 +398,6 @@ public class View3DWindow extends JPanel
 			{
 				ap = new Appearance();
 				Color color = layer.getGraphics().getColor();
-				//System.out.println("Color 3D " + color);
 				Color3f objColor = new Color3f(color);
 				ColoringAttributes ca = new ColoringAttributes();
 				ca.setColor(objColor);
