@@ -90,7 +90,6 @@ Display
   Aligning to a Grid                 =chap04-07-02
   Aligning to Objects                =chap04-07-03
   Measuring                          =chap04-07-04
- The Component Menu                  =chap04-08
  Printing                            =chap04-09
  Text Windows                        =chap04-10
  3D Windows                          =chap04-11

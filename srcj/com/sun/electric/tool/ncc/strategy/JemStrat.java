@@ -150,7 +150,8 @@ public abstract class JemStrat {
 //			//JemStratPrint.doYourJob(globals.getRoot(), globals);
 //			JemStratDebug.doYourJob(globals);
 //			globals.error("mismatched!");
-//			return null;		        		//		}
+//			return null;		        		
+//		}
 		return msg;
 	}
 	

@@ -28,33 +28,42 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Graphics2D;
-import java.awt.BasicStroke;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -76,14 +85,15 @@ import java.util.Set;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.Timer;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
-import javax.swing.JComboBox;
-import javax.swing.JPopupMenu;
-import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -96,6 +106,48 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
 		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.YELLOW};
+
+	/** the window that this lives in */					private WindowFrame wf;
+	/** the cell being simulated */							private Simulate.SimData sd;
+	/** the top-level panel of the waveform window. */		private JPanel overall;
+	/** let panel: the signal names */						private JPanel left;
+	/** right panel: the signal traces */					private JPanel right;
+	/** the "lock time" button. */							private JButton timeLock;
+	/** the "refresh" button. */							private JButton refresh;
+	/** the "grow panel" button for widening. */			private JButton growPanel;
+	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
+	/** the list of panels. */								private JComboBox signalNameList;
+	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
+	/** the main scroll of all panels. */					private JScrollPane scrollAll;
+	/** the split between signal names and traces. */		private JSplitPane split;
+	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
+	/** a list of panels in this window */					private List wavePanels;
+	/** the time panel at the top of the wave window. */	private TimeTickPanel mainTimePanel;
+	/** true to repaint the main time panel. */				private boolean mainTimePanelNeedsRepaint;
+	/** the VCR timer, when running */						private Timer vcrTimer;
+	/** true to run VCR backwards */						private boolean vcrPlayingBackwards = false;
+	/** time the VCR last advanced */						private long vcrLastAdvance;
+	/** speed of the VCR (in screen pixels) */				private int vcrAdvanceSpeed = 3;
+	/** current "main" time cursor */						private double mainTime;
+	/** current "extension" time cursor */					private double extTime;
+	/** default range along horozintal axis */				private double minTime, maxTime;
+	/** true if the time axis is the same in each panel */	private boolean timeLocked;
+	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
+	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
+
+	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
+	private static final ImageIcon iconLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
+	private static final ImageIcon iconUnLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
+	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
+	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
+	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
+	private static final ImageIcon iconVCRRewind = Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif");
+	private static final ImageIcon iconVCRPlayBackward = Resources.getResource(WaveformWindow.class, "ButtonVCRPlayBackward.gif");
+	private static final ImageIcon iconVCRStop = Resources.getResource(WaveformWindow.class, "ButtonVCRStop.gif");
+	private static final ImageIcon iconVCRPlay = Resources.getResource(WaveformWindow.class, "ButtonVCRPlay.gif");
+	private static final ImageIcon iconVCRToEnd = Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif");
+	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
+	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
 
 	/**
 	 * Test method to build a waveform with fake data.
@@ -140,26 +192,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				Signal wsig = new Signal(wp, as);
 			}
 		}
-	}
-
-	/**
-	 * This class extends JPanel so that wavepanels can be identified by the Drag and Drop system.
-	 */
-	public static class OnePanel extends JPanel
-	{
-		Panel panel;
-		WaveformWindow ww;
-
-		public OnePanel(Panel panel, WaveformWindow ww)
-		{
-			super();
-			this.panel = panel;
-			this.ww = ww;
-		}
-
-		public Panel getPanel() { return panel; }
-
-		public WaveformWindow getWaveformWindow() { return ww; }
 	}
 
 	/**
@@ -252,7 +284,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.WEST;
+			gbc.anchor = GridBagConstraints.NORTHWEST;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			leftHalf.add(label, gbc);
@@ -262,12 +294,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			close.setBorderPainted(false);
 			close.setDefaultCapable(false);
 			close.setToolTipText("Close this waveform panel");
+			Dimension minWid = new Dimension(iconClosePanel.getIconWidth()+4, iconClosePanel.getIconHeight()+4);
+			close.setMinimumSize(minWid);
+			close.setPreferredSize(minWid);
 			gbc.gridx = 1;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
 			leftHalf.add(close, gbc);
 			close.addActionListener(new ActionListener()
 			{
@@ -279,12 +313,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			hide.setBorderPainted(false);
 			hide.setDefaultCapable(false);
 			hide.setToolTipText("Hide this waveform panel");
+			minWid = new Dimension(iconHidePanel.getIconWidth()+4, iconHidePanel.getIconHeight()+4);
+			hide.setMinimumSize(minWid);
+			hide.setPreferredSize(minWid);
 			gbc.gridx = 2;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
 			leftHalf.add(hide, gbc);
 			hide.addActionListener(new ActionListener()
 			{
@@ -298,12 +334,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				deleteSignal.setBorderPainted(false);
 				deleteSignal.setDefaultCapable(false);
 				deleteSignal.setToolTipText("Remove selected signals from waveform panel");
+				minWid = new Dimension(iconDeleteSignal.getIconWidth()+4, iconDeleteSignal.getIconHeight()+4);
+				deleteSignal.setMinimumSize(minWid);
+				deleteSignal.setPreferredSize(minWid);
 				gbc.gridx = 3;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
 				gbc.weightx = 0.2;  gbc.weighty = 0;
 				gbc.anchor = GridBagConstraints.NORTH;
 				gbc.fill = GridBagConstraints.NONE;
-				gbc.insets = new Insets(0, 0, 0, 0);
 				leftHalf.add(deleteSignal, gbc);
 				deleteSignal.addActionListener(new ActionListener()
 				{
@@ -315,12 +353,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				deleteAllSignals.setBorderPainted(false);
 				deleteAllSignals.setDefaultCapable(false);
 				deleteAllSignals.setToolTipText("Remove all signals from waveform panel");
+				minWid = new Dimension(iconDeleteAllSignals.getIconWidth()+4, iconDeleteAllSignals.getIconHeight()+4);
+				deleteAllSignals.setMinimumSize(minWid);
+				deleteAllSignals.setPreferredSize(minWid);
 				gbc.gridx = 4;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
 				gbc.weightx = 0.2;  gbc.weighty = 0;
 				gbc.anchor = GridBagConstraints.NORTH;
 				gbc.fill = GridBagConstraints.NONE;
-				gbc.insets = new Insets(0, 0, 0, 0);
 				leftHalf.add(deleteAllSignals, gbc);
 				deleteAllSignals.addActionListener(new ActionListener()
 				{
@@ -358,15 +398,9 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			gbc.insets = new java.awt.Insets(4, 0, 4, 0);
 			rightHalf.add(sep, gbc);
 
-			// the time tick panel
-			timePanel = new TimeTickPanel(this);
-			gbc.gridx = 0;       gbc.gridy = 1;
-			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 1;     gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.fill = GridBagConstraints.HORIZONTAL;
-			gbc.insets = new Insets(0, 0, 0, 0);
-			rightHalf.add(timePanel, gbc);
+			// the time tick panel (if separate time in each panel)
+			if (!waveWindow.timeLocked)
+				addTimePanel();
 
 			// the waveform display for this panel
 			gbc.gridx = 0;       gbc.gridy = 2;
@@ -380,11 +414,41 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			// put the left and right sides into the window
 			waveWindow.left.add(leftHalf);
 			waveWindow.right.add(rightHalf);
+
+			// add to list of wave panels
 			waveWindow.wavePanels.add(this);
+			if (waveWindow.wavePanels.size() == 1)
+			{
+				// on the first real addition, redraw any main time panel
+				if (waveWindow.mainTimePanel != null)
+				{
+					waveWindow.mainTimePanel.repaint();
+					waveWindow.mainTimePanelNeedsRepaint = true;
+				}
+			}
 
 			// rebuild list of panels
 			waveWindow.rebuildPanelList();
 			waveWindow.redrawAll();
+		}
+
+		private void addTimePanel()
+		{
+			timePanel = new TimeTickPanel(this, waveWindow);
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;       gbc.gridy = 1;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 1;     gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.insets = new Insets(0, 0, 0, 0);
+			rightHalf.add(timePanel, gbc);
+		}
+
+		private void removeTimePanel()
+		{
+			rightHalf.remove(timePanel);
+			timePanel = null;
 		}
 
 		public void hidePanel()
@@ -478,6 +542,18 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			removeMouseWheelListener(this);
 		}
 
+		/**
+		 * Method to repaint this window and its associated time-tick panel.
+		 */
+		public void repaintWithTime()
+		{
+			if (timePanel != null) timePanel.repaint(); else
+			{
+				waveWindow.mainTimePanel.repaint();								
+			}
+			repaint();
+		}
+
 		private Font waveWindowFont;
 		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
 
@@ -485,7 +561,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
 		/**
-		 * Method to repaint this WaveformWindow.
+		 * Method to repaint this Panel.
 		 */
 		public void paint(Graphics g)
 		{
@@ -493,10 +569,17 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			requestFocus();
 
 			sz = getSize();
-
-			// show the image
 			int wid = sz.width;
 			int hei = sz.height;
+
+			Point screenLoc = getLocationOnScreen();
+			if (waveWindow.screenLowX != screenLoc.x ||
+				waveWindow.screenHighX - waveWindow.screenLowX != wid)
+					waveWindow.mainTimePanelNeedsRepaint = true;
+			waveWindow.screenLowX = screenLoc.x;
+			waveWindow.screenHighX = waveWindow.screenLowX + wid;
+
+			// show the image
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, wid, hei);
 			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
@@ -1189,8 +1272,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 							(lowValue + highValue) / 2 + wp.analogRange);
 					}
 				}
-				wp.timePanel.repaint();
-				wp.repaint();
+				wp.repaintWithTime();
 			}
 		}
 		
@@ -1251,8 +1333,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				{
 					setValueRange(analogLowValue - dValue, analogHighValue - dValue);
 				}
-				wp.timePanel.repaint();
-				wp.repaint();
+				wp.repaintWithTime();
 			}
 			dragStartX = dragEndX;
 			dragStartY = dragEndY;
@@ -1262,7 +1343,27 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	}
 
 	// ****************************** DRAG AND DROP ******************************
-	
+
+	/**
+	 * This class extends JPanel so that wavepanels can be identified by the Drag and Drop system.
+	 */
+	public static class OnePanel extends JPanel
+	{
+		Panel panel;
+		WaveformWindow ww;
+
+		public OnePanel(Panel panel, WaveformWindow ww)
+		{
+			super();
+			this.panel = panel;
+			this.ww = ww;
+		}
+
+		public Panel getPanel() { return panel; }
+
+		public WaveformWindow getWaveformWindow() { return ww; }
+	}
+
 	private static class WaveFormDropTarget implements DropTargetListener
 	{
 		public void dragEnter(DropTargetDragEvent e)
@@ -1369,12 +1470,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static class TimeTickPanel extends JPanel
 	{
 		Panel wavePanel;
+		WaveformWindow waveWindow;
 
 		// constructor
-		TimeTickPanel(Panel wavePanel)
+		TimeTickPanel(Panel wavePanel, WaveformWindow waveWindow)
 		{
 			// remember state
 			this.wavePanel = wavePanel;
+			this.waveWindow = waveWindow;
 
 			// setup this panel window
 			Dimension sz = new Dimension(16, 20);
@@ -1383,23 +1486,45 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		}
 
 		/**
-		 * Method to repaint this WaveformWindow.
-		 * Composites the image (taken from the PixelDrawing object)
-		 * with the grid, highlight, and any dragging rectangle.
+		 * Method to repaint this TimeTickPanel.
 		 */
 		public void paint(Graphics g)
 		{
 			Dimension sz = getSize();
 			int wid = sz.width;
 			int hei = sz.height;
+			int offX = 0;
+			Panel drawHere = wavePanel;
+			if (drawHere == null)
+			{
+				// this is the main time panel for all panels
+				Point screenLoc = getLocationOnScreen();
+				offX = waveWindow.screenLowX - screenLoc.x;
+				wid = waveWindow.screenHighX - waveWindow.screenLowX;
+
+				// because the main time panel needs a Panel (won't work if there aren't any)
+				// have to do complex things to request a repaint after adding the first Panel
+				if (wid == 0 || waveWindow.wavePanels.size() == 0)
+				{
+					if (waveWindow.mainTimePanelNeedsRepaint)
+						repaint();
+					return;
+				}
+				drawHere = (Panel)waveWindow.wavePanels.get(0);
+				waveWindow.mainTimePanelNeedsRepaint = false;
+				g.setClip(offX, 0, wid, hei);
+			}
+
+			// draw the black background
 			g.setColor(Color.BLACK);
-			g.fillRect(0, 0, wid, hei);
+			g.fillRect(offX, 0, wid, hei);
 
 			// draw the time ticks
 			g.setColor(Color.WHITE);
-			g.drawLine(WaveformWindow.Panel.VERTLABELWIDTH, hei-1, wid, hei-1);
-			double displayedLow = wavePanel.scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
-			double displayedHigh = wavePanel.scaleXToTime(wid);
+			if (wavePanel != null)
+				g.drawLine(WaveformWindow.Panel.VERTLABELWIDTH + offX, hei-1, wid+offX, hei-1);
+			double displayedLow = drawHere.scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
+			double displayedHigh = drawHere.scaleXToTime(wid);
 			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
 			if (ss.separation == 0.0) return;
 			double time = ss.low;
@@ -1408,7 +1533,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				if (time >= displayedLow)
 				{
 					if (time > ss.high) break;
-					int x = wavePanel.scaleTimeToX(time);
+					int x = drawHere.scaleTimeToX(time) + offX;
 					g.drawLine(x, 0, x, hei);
 					String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
 					g.drawString(timeVal, x+2, hei-2);
@@ -1560,34 +1685,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		}
 	}
 
-	/** the window that this lives in */					private WindowFrame wf;
-	/** the cell being simulated */							private Simulate.SimData sd;
-	/** the top-level panel of the waveform window. */		private JPanel overall;
-	/** let panel: the signal names */						private JPanel left;
-	/** right panel: the signal traces */					private JPanel right;
-	/** the "lock time" button. */							private JButton timeLock;
-	/** the "refresh" button. */							private JButton refresh;
-	/** the "grow panel" button for widening. */			private JButton growPanel;
-	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
-	/** the list of panels. */								private JComboBox signalNameList;
-	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
-	/** the main scroll of all panels. */					private JScrollPane scrollAll;
-	/** the split between signal names and traces. */		private JSplitPane split;
-	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
-	/** a list of panels in this window */					private List wavePanels;
-	/** current "main" time cursor */						private double mainTime;
-	/** current "extension" time cursor */					private double extTime;
-	/** default range along horozintal axis */				private double minTime, maxTime;
-	/** true if the time axis is the same in each panel */	private boolean timeLocked;
-	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
-
-	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
-	private static final ImageIcon iconLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
-	private static final ImageIcon iconUnLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
-	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
-	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
-	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
-
     // ************************************* CONTROL *************************************
 
 	public WaveformWindow(Simulate.SimData sd, WindowFrame wf)
@@ -1604,7 +1701,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		overall = new OnePanel(null, this);
 		overall.setLayout(new GridBagLayout());
 
-		// the main part of the waveform window: a split-pane between names and traces
+		// the main part of the waveform window: a split-pane between names and traces, put into a scrollpane
 		left = new JPanel();
 		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
 		right = new JPanel();
@@ -1613,12 +1710,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		split.setResizeWeight(0.1);
 		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;       gbc.gridy = 1;
-		gbc.gridwidth = 9;   gbc.gridheight = 1;
+		gbc.gridx = 0;       gbc.gridy = 2;
+		gbc.gridwidth = 13;   gbc.gridheight = 1;
 		gbc.weightx = 1;     gbc.weighty = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
-		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(scrollAll, gbc);
 
 		if (isDataAnalog())
@@ -1628,12 +1724,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			addPanel.setBorderPainted(false);
 			addPanel.setDefaultCapable(false);
 			addPanel.setToolTipText("Create new waveform panel");
+			Dimension minWid = new Dimension(iconAddPanel.getIconWidth()+4, iconAddPanel.getIconHeight()+4);
+			addPanel.setMinimumSize(minWid);
+			addPanel.setPreferredSize(minWid);
 			gbc.gridx = 0;       gbc.gridy = 0;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0;     gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = java.awt.GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
 			overall.add(addPanel, gbc);
 			addPanel.addActionListener(new ActionListener()
 			{
@@ -1641,48 +1739,70 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			});
 		}
 
-		timeLock = new JButton(iconLockTime);
-		timeLock.setBorderPainted(false);
-		timeLock.setDefaultCapable(false);
-		timeLock.setToolTipText("Lock all panels in time");
-		gbc.gridx = 1;       gbc.gridy = 0;
-		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
-		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(timeLock, gbc);
-		timeLock.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
-		});
-
 		refresh = new JButton(iconRefresh);
 		refresh.setBorderPainted(false);
 		refresh.setDefaultCapable(false);
 		refresh.setToolTipText("Reread stimuli data file and update waveforms");
-		gbc.gridx = 2;       gbc.gridy = 0;
+		Dimension minWid = new Dimension(iconRefresh.getIconWidth()+4, iconRefresh.getIconHeight()+4);
+		refresh.setMinimumSize(minWid);
+		refresh.setPreferredSize(minWid);
+		gbc.gridx = 1;       gbc.gridy = 1;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
-		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(refresh, gbc);
 		refresh.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { refreshData(); }
 		});
 
-		growPanel = new JButton(iconGrowPanel);
-		growPanel.setBorderPainted(false);
-		growPanel.setDefaultCapable(false);
-		growPanel.setToolTipText("Increase minimum panel height");
-		gbc.gridx = 3;       gbc.gridy = 0;
+		timeLock = new JButton(iconLockTime);
+		timeLock.setBorderPainted(false);
+		timeLock.setDefaultCapable(false);
+		timeLock.setToolTipText("Lock all panels in time");
+		minWid = new Dimension(iconLockTime.getIconWidth()+4, iconLockTime.getIconHeight()+4);
+		timeLock.setMinimumSize(minWid);
+		timeLock.setPreferredSize(minWid);
+		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(timeLock, gbc);
+		timeLock.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
+		});
+
+		signalNameList = new JComboBox();
+		signalNameList.setToolTipText("Show or hide waveform panels");
+		signalNameList.setLightWeightPopupEnabled(false);
+		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridwidth = 5;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(signalNameList, gbc);
+		signalNameList.addItem("Panel 1");
+		signalNameList.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { togglePanelName(); }
+		});
+
+		growPanel = new JButton(iconGrowPanel);
+		growPanel.setBorderPainted(false);
+		growPanel.setDefaultCapable(false);
+		growPanel.setToolTipText("Increase minimum panel height");
+		minWid = new Dimension(iconGrowPanel.getIconWidth()+4, iconGrowPanel.getIconHeight()+4);
+		growPanel.setMinimumSize(minWid);
+		growPanel.setPreferredSize(minWid);
+		gbc.gridx = 8;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
 		overall.add(growPanel, gbc);
 		growPanel.addActionListener(new ActionListener()
 		{
@@ -1693,37 +1813,23 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		shrinkPanel.setBorderPainted(false);
 		shrinkPanel.setDefaultCapable(false);
 		shrinkPanel.setToolTipText("Decrease minimum panel height");
-		gbc.gridx = 4;       gbc.gridy = 0;
+		minWid = new Dimension(iconShrinkPanel.getIconWidth()+4, iconShrinkPanel.getIconHeight()+4);
+		shrinkPanel.setMinimumSize(minWid);
+		shrinkPanel.setPreferredSize(minWid);
+		gbc.gridx = 9;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
-		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(shrinkPanel, gbc);
 		shrinkPanel.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { growPanels(0.8); }
 		});
 
-		signalNameList = new JComboBox();
-		signalNameList.setToolTipText("Show or hide waveform panels");
-		signalNameList.setLightWeightPopupEnabled(false);
-		gbc.gridx = 5;       gbc.gridy = 0;
-		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
-		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(signalNameList, gbc);
-		signalNameList.addItem("Panel 1");
-		signalNameList.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { togglePanelName(); }
-		});
-
 		mainPos = new JLabel("Main:");
 		mainPos.setToolTipText("The main (white) time cursor");
-		gbc.gridx = 6;       gbc.gridy = 0;
+		gbc.gridx = 10;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1732,7 +1838,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		overall.add(mainPos, gbc);
 		extPos = new JLabel("Ext:");
 		extPos.setToolTipText("The extension (yellow) time cursor");
-		gbc.gridx = 7;       gbc.gridy = 0;
+		gbc.gridx = 11;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1741,7 +1847,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		overall.add(extPos, gbc);
 		delta = new JLabel("Delta:");
 		delta.setToolTipText("Time distance between cursors");
-		gbc.gridx = 8;       gbc.gridy = 0;
+		gbc.gridx = 12;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1749,8 +1855,161 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(delta, gbc);
 
+		// add VCR controls
+		JButton vcrButtonRewind = new JButton(iconVCRRewind);
+		vcrButtonRewind.setBorderPainted(false);
+		vcrButtonRewind.setDefaultCapable(false);
+		vcrButtonRewind.setToolTipText("Rewind main time cursor to start");
+		minWid = new Dimension(iconVCRRewind.getIconWidth()+4, iconVCRRewind.getIconHeight()+4);
+		vcrButtonRewind.setMinimumSize(minWid);
+		vcrButtonRewind.setPreferredSize(minWid);
+		gbc.gridx = 3;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonRewind, gbc);
+		vcrButtonRewind.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickRewind(); }
+		});
+
+		JButton vcrButtonPlayBackwards = new JButton(iconVCRPlayBackward);
+		vcrButtonPlayBackwards.setBorderPainted(false);
+		vcrButtonPlayBackwards.setDefaultCapable(false);
+		vcrButtonPlayBackwards.setToolTipText("Play main time cursor backwards");
+		minWid = new Dimension(iconVCRPlayBackward.getIconWidth()+4, iconVCRPlayBackward.getIconHeight()+4);
+		vcrButtonPlayBackwards.setMinimumSize(minWid);
+		vcrButtonPlayBackwards.setPreferredSize(minWid);
+		gbc.gridx = 4;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonPlayBackwards, gbc);
+		vcrButtonPlayBackwards.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickPlayBackwards(); }
+		});
+
+		JButton vcrButtonStop = new JButton(iconVCRStop);
+		vcrButtonStop.setBorderPainted(false);
+		vcrButtonStop.setDefaultCapable(false);
+		vcrButtonStop.setToolTipText("Stop moving main time cursor");
+		minWid = new Dimension(iconVCRStop.getIconWidth()+4, iconVCRStop.getIconHeight()+4);
+		vcrButtonStop.setMinimumSize(minWid);
+		vcrButtonStop.setPreferredSize(minWid);
+		gbc.gridx = 5;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonStop, gbc);
+		vcrButtonStop.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickStop(); }
+		});
+
+		JButton vcrButtonPlay = new JButton(iconVCRPlay);
+		vcrButtonPlay.setBorderPainted(false);
+		vcrButtonPlay.setDefaultCapable(false);
+		vcrButtonPlay.setToolTipText("Play main time cursor");
+		minWid = new Dimension(iconVCRPlay.getIconWidth()+4, iconVCRPlay.getIconHeight()+4);
+		vcrButtonPlay.setMinimumSize(minWid);
+		vcrButtonPlay.setPreferredSize(minWid);
+		gbc.gridx = 6;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonPlay, gbc);
+		vcrButtonPlay.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickPlay(); }
+		});
+
+		JButton vcrButtonToEnd = new JButton(iconVCRToEnd);
+		vcrButtonToEnd.setBorderPainted(false);
+		vcrButtonToEnd.setDefaultCapable(false);
+		vcrButtonToEnd.setToolTipText("Move main time cursor to end");
+		minWid = new Dimension(iconVCRToEnd.getIconWidth()+4, iconVCRToEnd.getIconHeight()+4);
+		vcrButtonToEnd.setMinimumSize(minWid);
+		vcrButtonToEnd.setPreferredSize(minWid);
+		gbc.gridx = 7;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonToEnd, gbc);
+		vcrButtonToEnd.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickToEnd(); }
+		});
+
+		JButton vcrButtonFaster = new JButton(iconVCRFaster);
+		vcrButtonFaster.setBorderPainted(false);
+		vcrButtonFaster.setDefaultCapable(false);
+		vcrButtonFaster.setToolTipText("Move main time cursor faster");
+		minWid = new Dimension(iconVCRFaster.getIconWidth()+4, iconVCRFaster.getIconHeight()+4);
+		vcrButtonFaster.setMinimumSize(minWid);
+		vcrButtonFaster.setPreferredSize(minWid);
+		gbc.gridx = 8;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonFaster, gbc);
+		vcrButtonFaster.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickFaster(); }
+		});
+
+		JButton vcrButtonSlower = new JButton(iconVCRSlower);
+		vcrButtonSlower.setBorderPainted(false);
+		vcrButtonSlower.setDefaultCapable(false);
+		vcrButtonSlower.setToolTipText("Move main time cursor slower");
+		minWid = new Dimension(iconVCRSlower.getIconWidth()+4, iconVCRSlower.getIconHeight()+4);
+		vcrButtonSlower.setMinimumSize(minWid);
+		vcrButtonSlower.setPreferredSize(minWid);
+		gbc.gridx = 9;       gbc.gridy = 1;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		overall.add(vcrButtonSlower, gbc);
+		vcrButtonSlower.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
+		});
+
+
+		// the single time panel (when time is locked)
+		if (timeLocked)
+		{
+			addMainTimePanel();
+		}
+
 		// a drop target for the overall waveform window
 		DropTarget dropTarget = new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+	}
+
+	private void addMainTimePanel()
+	{
+		mainTimePanel = new TimeTickPanel(null, this);
+		mainTimePanel.setToolTipText("One time scale applies to all signals when time is locked");
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 10;       gbc.gridy = 1;
+		gbc.gridwidth = 3;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		overall.add(mainTimePanel, gbc);
+	}
+
+	private void removeMainTimePanel()
+	{
+		overall.remove(mainTimePanel);
+		mainTimePanel = null;
 	}
 
 	private void togglePanelName()
@@ -1777,6 +2036,92 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				break;
 			}
 		}
+	}
+
+	private void tick()
+	{
+		/* see if it is time to advance the VCR */
+		long curtime = System.currentTimeMillis();
+		if (curtime - vcrLastAdvance < 100) return;
+		vcrLastAdvance = curtime;
+
+		if (this.wavePanels.size() == 0) return;
+		Panel wp = (Panel)wavePanels.iterator().next();
+		double dTime = wp.scaleDeltaXToTime(vcrAdvanceSpeed);
+		if (vcrPlayingBackwards) dTime = -dTime;
+		setMainTimeCursor(mainTime + dTime);
+		redrawAll();
+	}
+
+	private void vcrClickRewind()
+	{
+		vcrClickStop();
+		Rectangle2D bounds = sd.getBounds();
+		double lowTime = bounds.getMinX();
+		setMainTimeCursor(lowTime);
+		redrawAll();
+	}
+
+	private void vcrClickPlayBackwards()
+	{
+		if (vcrTimer == null)
+		{
+			ActionListener taskPerformer = new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { tick(); }
+			};
+			vcrTimer = new Timer(100, taskPerformer);
+			vcrLastAdvance = System.currentTimeMillis();
+			vcrTimer.start();
+		}
+		vcrPlayingBackwards = true;
+	}
+
+	private void vcrClickStop()
+	{
+		if (vcrTimer == null) return;
+//System.out.println("STOP");
+		vcrTimer.stop();
+		vcrTimer = null;
+	}
+
+	private void vcrClickPlay()
+	{
+		if (vcrTimer == null)
+		{
+			ActionListener taskPerformer = new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { tick(); }
+			};
+			vcrTimer = new Timer(100, taskPerformer);
+			vcrLastAdvance = System.currentTimeMillis();
+			vcrTimer.start();
+		}
+		vcrPlayingBackwards = false;
+	}
+
+	private void vcrClickToEnd()
+	{
+		vcrClickStop();
+		Rectangle2D bounds = sd.getBounds();
+		double highTime = bounds.getMaxX();
+		setMainTimeCursor(highTime);
+		redrawAll();
+	}
+
+	private void vcrClickFaster()
+	{
+		int j = vcrAdvanceSpeed / 4;
+		if (j <= 0) j = 1;
+		vcrAdvanceSpeed += j;
+	}
+
+	private void vcrClickSlower()
+	{
+		int j = vcrAdvanceSpeed / 4;
+		if (j <= 0) j = 1;
+		vcrAdvanceSpeed -= j;
+		if (vcrAdvanceSpeed <= 0) vcrAdvanceSpeed = 1;
 	}
 
 	/**
@@ -1971,7 +2316,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		{
 			JNetwork net = (JNetwork)highSet.iterator().next();
 			String netName = net.describe();
-System.out.println("Looking for waveform signal "+netName);
+//System.out.println("Looking for waveform signal "+netName);
 			// look at all signal names in the cell
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
@@ -2063,6 +2408,180 @@ System.out.println("Looking for waveform signal "+netName);
 		mainPos.setText("Main: " + amount);
 		String diff = convertToEngineeringNotation(Math.abs(mainTime - extTime), "s", 9999);
 		delta.setText("Delta: " + diff);
+		updateAssociatedLayoutWindow();
+	}
+
+	private HashMap netValues;
+
+	/**
+	 * Method to update associated layout windows when the main cursor changes.
+	 */
+	private void updateAssociatedLayoutWindow()
+	{
+		// this only works for digital simulation
+		if (isDataAnalog()) return;
+
+		// make sure there is a layout/schematic window being simulated
+		EditWindow schemWnd = null;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame oWf = (WindowFrame)it.next();
+			if (oWf == wf) continue;
+			if (oWf.getContent().getCell() != wf.getContent().getCell()) continue;
+			if (oWf.getContent() instanceof EditWindow) { schemWnd = (EditWindow)oWf.getContent();   break; }
+		}
+		if (schemWnd == null) return;
+
+		Cell cell = getCell();
+		Netlist netlist = cell.getUserNetlist();
+
+		// reset all values on networks
+		netValues = new HashMap();
+
+		// assign values from simulation window traces to networks
+		for(Iterator it = this.wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (wp.hidden) continue;
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+
+				// can only handle digital waveforms right now
+//				if ((tr->flags&TRACETYPE) == TRACEISDIGITAL)
+//				{
+					putValueOnTrace(ws, cell, netValues, netlist);
+//				} else if ((tr->flags&TRACETYPE) == TRACEISBUS || (tr->flags&TRACETYPE) == TRACEISOPENBUS)
+//				{
+//					for(otr = sim_window_firstrace; otr != NOTRACE; otr = otr->nexttrace)
+//					{
+//						if (otr->buschannel != tr) continue;
+//						putValueOnTrace(otr, cell, netValues, netlist);
+//					}
+//				}
+			}
+		}
+
+		// light up any simulation-probe objects
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() != Generic.tech.simProbeNode) continue;
+			JNetwork net = null;
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				net = netlist.getNetwork(con.getArc(), 0);
+				break;
+			}
+//System.out.println("Found sim probe node, net on it is "+net);
+			if (net == null) continue;
+			Integer state = (Integer)netValues.get(net);
+			if (state == null) continue;
+System.out.println("Sim Prob node "+ni+" set to state "+state.intValue());
+//			sim_window_gethighlightcolor(ai->network->temp1, &texture, &color);
+//			sim_window_desc.col = color;
+//			var = gettrace(ni);
+//			if (var != NOVARIABLE)
+//			{
+//				count = getlength(var) / 2;
+//				(void)needstaticpolygon(&poly, count, sim_tool->cluster);
+//				x = (ni->highx + ni->lowx) / 2;   y = (ni->highy + ni->lowy) / 2;
+//				for(i=0; i<count; i++)
+//				{
+//					poly->xv[i] = applyxscale(schemWnd, ((INTBIG *)var->addr)[i*2] + x - schemWnd->screenlx) + schemWnd->uselx;
+//					poly->yv[i] = applyyscale(schemWnd, ((INTBIG *)var->addr)[i*2+1] + y - schemWnd->screenly) + schemWnd->usely;
+//				}
+//				poly->count = count;
+//				poly->style = FILLED;
+//				makerot(ni, trans);
+//				xformpoly(poly, trans);
+//				clippoly(poly, schemWnd->uselx, schemWnd->usehx, schemWnd->usely, schemWnd->usehy);
+//				if (poly->count > 1)
+//				{
+//					if (poly->count > 2)
+//					{
+//						// always clockwise
+//						if (areapoly(poly) < 0.0) reversepoly(poly);
+//						screendrawpolygon(schemWnd, poly->xv, poly->yv, poly->count, &sim_window_desc);
+//					} else screendrawline(schemWnd, poly->xv[0], poly->yv[0], poly->xv[1], poly->yv[1],
+//						&sim_window_desc, 0);
+//				}
+//				ai->network->temp2 = 0;
+//			} else
+//			{
+//				lx = ni->geom->lowx;   hx = ni->geom->highx;
+//				ly = ni->geom->lowy;   hy = ni->geom->highy;
+//				if (!us_makescreen(&lx, &ly, &hx, &hy, schemWnd))
+//				{
+//					screendrawbox(schemWnd, lx, hx, ly, hy, &sim_window_desc);
+//					ai->network->temp2 = 0;
+//				}
+//			}
+		}
+
+		// redraw all arcs in the layout/schematic window
+//		sim_window_desc.bits = LAYERA;
+//		for(ai = simnt->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//		{
+//			net = ai->network;
+//			if (net == NONETWORK) continue;
+//			if (net->temp1 == -1 || net->temp2 != -1) continue;
+//
+//			// get extent of arc
+//			fx = ai->end[0].xpos;   fy = ai->end[0].ypos;
+//			tx = ai->end[1].xpos;   ty = ai->end[1].ypos;
+//			if (ai->proto == sch_wirearc)
+//			{
+//				// for schematic wires, ask technology about drawing so negating bubbles work
+//				(void)needstaticpolygon(&poly, 4, sim_tool->cluster);
+//				(void)arcpolys(ai, NOWINDOWPART);
+//				shapearcpoly(ai, 0, poly);
+//				fx = poly->xv[0];   fy = poly->yv[0];
+//				tx = poly->xv[1];   ty = poly->yv[1];
+//			}
+//
+//			sim_window_gethighlightcolor(net->temp1, &texture, &color);
+//
+//			// reset background arc if trace is textured
+//			if (texture != 0)
+//			{
+//				sim_window_desc.col = ALLOFF;
+//				us_wanttodraw(fx, fy, tx, ty, schemWnd, &sim_window_desc, 0);
+//				if (texture < 0) texture = 0;
+//			}
+//			sim_window_desc.col = color;
+//
+//			// draw the trace on the arc
+//			us_wanttodraw(fx, fy, tx, ty, schemWnd, &sim_window_desc, texture);
+//		}
+	}
+
+	private void putValueOnTrace(Signal ws, Cell cell, HashMap netValues, Netlist netlist)
+	{
+//		if (tr->statearray == 0) return;
+//		netlist = getcomplexnetworks(tr->name, simnt);
+//System.out.println("Looking for network "+ws.sSig.getSignalName());
+		// set simulation value on the network in the associated layout/schematic window
+		JNetwork net = findNetwork(netlist, ws.sSig.getSignalName());
+		if (net == null) return;
+System.out.println("  !!!!!!!!! Found network "+net.describe());
+		// find the proper data for the time of the main cursor
+		if (!(ws.sSig instanceof Simulate.SimDigitalSignal)) return;
+		Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
+
+		int numEvents = ds.getNumEvents();
+		int state = 0;
+		for(int i=0; i<numEvents; i++)
+		{
+			double time = ds.getTime(i);
+			if (mainTime < time)
+			{
+				state = ds.getState(i) & Simulate.SimData.LOGIC;
+				break;
+			}
+		}
+		netValues.put(net, new Integer(state));	
 	}
 
 	public void setExtensionTimeCursor(double time)
@@ -2363,12 +2882,15 @@ System.out.println("Looking for waveform signal "+netName);
 		timeLocked = ! timeLocked;
 		if (timeLocked)
 		{
+			// time now locked: add main time, remove individual time
 			timeLock.setIcon(iconLockTime);
+			addMainTimePanel();
 			double minTime = 0, maxTime = 0;
 			boolean first = true;
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
+				wp.removeTimePanel();
 				if (first)
 				{
 					first = false;
@@ -2383,6 +2905,8 @@ System.out.println("Looking for waveform signal "+netName);
 					}
 				}
 			}
+
+			// force all panels to be at the same time
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
@@ -2390,14 +2914,22 @@ System.out.println("Looking for waveform signal "+netName);
 				{
 					wp.minTime = minTime;
 					wp.maxTime = maxTime;
-					wp.timePanel.repaint();
-					wp.repaint();
+					wp.repaintWithTime();
 				}
 			}
 		} else
 		{
+			// time is unlocked: put a time bar in each panel, remove main panel
 			timeLock.setIcon(iconUnLockTime);
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				wp.addTimePanel();
+				wp.repaint();
+			}
+			removeMainTimePanel();
 		}
+		overall.validate();
 	}
 
 	/**
@@ -2535,8 +3067,7 @@ System.out.println("Looking for waveform signal "+netName);
 			}
 			if (repaint)
 			{
-				wp.timePanel.repaint();
-				wp.repaint();
+				wp.repaintWithTime();
 			}
 		}
 	}
@@ -2552,8 +3083,7 @@ System.out.println("Looking for waveform signal "+netName);
 			double range = wp.maxTime - wp.minTime;
 			wp.minTime -= range/2;
 			wp.maxTime += range/2;
-			wp.timePanel.repaint();
-			wp.repaint();
+			wp.repaintWithTime();
 		}
 	}
 
@@ -2568,8 +3098,7 @@ System.out.println("Looking for waveform signal "+netName);
 			double range = wp.maxTime - wp.minTime;
 			wp.minTime += range/4;
 			wp.maxTime -= range/4;
-			wp.timePanel.repaint();
-			wp.repaint();
+			wp.repaintWithTime();
 		}
 	}
 
@@ -2596,8 +3125,7 @@ System.out.println("Looking for waveform signal "+netName);
 			{
 				wp.minTime = minTime;
 				wp.maxTime = maxTime;
-				wp.timePanel.repaint();
-				wp.repaint();
+				wp.repaintWithTime();
 			}
 		}
 	}
@@ -2620,6 +3148,8 @@ System.out.println("Looking for waveform signal "+netName);
 			Panel wp = (Panel)it.next();
 			wp.repaint();
 		}
+		if (mainTimePanel != null)
+			mainTimePanel.repaint();
 	}
 
 	public void fireCellHistoryStatus()

@@ -1,82 +1,164 @@
 /*
+
  * bean shell script to generate fill cell library
+
  */
+
 import com.sun.electric.tool.generator.layout.FillGenerator;
+
 import com.sun.electric.tool.generator.layout.Gallery;
+
  
+
 // These constant declarations make the following code more compact.
+
 // They won't be necessary once we upgrade to JDK 1.5.
+
 FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
+
 FillGenerator.Units TRACKS = FillGenerator.TRACKS;
+
 FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
+
 FillGenerator.ExportConfig PERIMETER_AND_INTERNAL = FillGenerator.PERIMETER_AND_INTERNAL;
+
 FillGenerator.PowerType VDD = FillGenerator.VDD;
+
 FillGenerator.PowerType POWER = FillGenerator.POWER;
 
+
+
 FillGenerator fg = new FillGenerator();
+
 fg.setFillLibrary("fillLib");
+
 fg.setFillCellWidth(245);
+
 fg.setFillCellHeight(175);
 
+
+
 // Arguments to reserveSpaceOnLayer():
+
 //     layer number, 
+
 //     vdd space, 
+
 //     vdd space units (TRACKS or LAMBDA), 
+
 //     gnd space, 
+
 //     gnd space units (TRACKS or LAMBDA) 
+
 fg.reserveSpaceOnLayer(2, 3, TRACKS, 3, TRACKS);
+
 fg.reserveSpaceOnLayer(3, 3, TRACKS, 3, TRACKS);
+
 fg.reserveSpaceOnLayer(4, 3, TRACKS, 3, TRACKS);
+
 fg.reserveSpaceOnLayer(5, 3, TRACKS, 3, TRACKS);
+
 fg.reserveSpaceOnLayer(6, 2, TRACKS, 2, TRACKS);
 
+
+
 // create a procedure because I want to do this twice
+
 void makeCells() {
+
 	// Arguments to makeFillCell():
+
 	//     low layer number
+
 	//     high layer number
+
 	//     export configuration (PERIMETER or PERIMETER_AND_INTERNAL)
+
 	//     power type (VDD or POWER)
+
 	//     array of int's specifying how to tile this fill cell into 
+
 	//        larger ones. null means don't tile.
+
 	fg.makeFillCell(1, 6, PERIMETER, VDD, new int[] {2,3,4,5,10,12});
+
 	fg.makeFillCell(2, 6, PERIMETER, VDD, new int[] {2,3});
+
 	fg.makeFillCell(3, 6, PERIMETER, VDD, null);
+
 	fg.makeFillCell(4, 6, PERIMETER, VDD, null);
+
 	fg.makeFillCell(5, 6, PERIMETER, VDD, null);
+
 	fg.makeFillCell(6, 6, PERIMETER, VDD, new int[] {2,3,4,5,10,12});
+
 	
+
 	fg.makeFillCell(2, 6, PERIMETER_AND_INTERNAL, VDD, null);
+
 	fg.makeFillCell(3, 6, PERIMETER_AND_INTERNAL, VDD, null);
+
 	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, VDD, null);
+
 	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, VDD, null);
+
 	fg.makeFillCell(6, 6, PERIMETER_AND_INTERNAL, VDD, null);
+
 	
+
 	fg.makeFillCell(1, 4, PERIMETER, POWER, null);
+
 	fg.makeFillCell(1, 3, PERIMETER, POWER, null);
+
 	fg.makeFillCell(3, 4, PERIMETER, POWER, null);
+
 	fg.makeFillCell(3, 4, PERIMETER_AND_INTERNAL, POWER, null);
+
 	fg.makeFillCell(5, 6, PERIMETER, POWER, null);
+
 	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, POWER, null);
+
 	fg.makeFillCell(4, 6, PERIMETER, POWER, null);
+
 	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, POWER, null);
+
 	
+
 	Gallery.makeGallery(fg.getFillLibrary());
+
 }
 
+
+
 makeCells();
+
+
 
 // Now generate a library with no gap in the vdd strap
 
+
+
 // We must choose a different library because the Cell names
+
 // don't reflect all the different parameters.
+
 fg.setFillLibrary("noGapLib");
 
+
+
 fg.reserveSpaceOnLayer(2, 0, TRACKS, 6, TRACKS);
+
 fg.reserveSpaceOnLayer(3, 0, TRACKS, 6, TRACKS);
+
 fg.reserveSpaceOnLayer(4, 0, TRACKS, 6, TRACKS);
+
 fg.reserveSpaceOnLayer(5, 0, TRACKS, 6, TRACKS);
+
 fg.reserveSpaceOnLayer(6, 0, TRACKS, 4, TRACKS);
 
+
+
 makeCells();
+
+
 

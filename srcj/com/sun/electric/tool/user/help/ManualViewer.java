@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.help;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -33,6 +34,11 @@ import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,6 +49,7 @@ import java.util.List;
 
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -60,14 +67,26 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class ManualViewer extends EDialog
 {
+	private static final boolean ADVANCED = false;
+
+	private static class PageInfo
+	{
+		String title;
+		String fileName;
+		String chapterName;
+		int chapterNumber;
+		URL url;
+		int level;
+		boolean newAtLevel;
+	};
+
     private JScrollPane rightHalf;
     private JEditorPane editorPane;
 	private JSplitPane splitPane;
 	private JTree optionTree;
 	private DefaultMutableTreeNode rootNode;
-	private HashMap pageTitle;
 	private List pageSequence;
-	private List pageURL;
+	private static int currentIndex = 0;
 
     /**
      * Create a new user's manual dialog.
@@ -83,11 +102,12 @@ public class ManualViewer extends EDialog
 		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
 		InputStream stream = TextUtils.getURLStream(url, null);
 		InputStreamReader is = new InputStreamReader(stream);
-		pageTitle = new HashMap();
 		pageSequence = new ArrayList();
-		pageURL = new ArrayList();
 		DefaultMutableTreeNode [] stack = new DefaultMutableTreeNode[20];
 		stack[0] = rootNode;
+		boolean newAtLevel = false;
+		String chapterName = null;
+		int chapterNumber = 0;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -108,17 +128,29 @@ public class ManualViewer extends EDialog
 
 			if (fileName == null)
 			{
+				if (indent == 0)
+				{
+					chapterNumber++;
+					chapterName = chapterNumber + ": " + title;
+				}
 				stack[indent+1] = new DefaultMutableTreeNode(title);
 				stack[indent].add(stack[indent+1]);
+				newAtLevel = true;
 			} else
 			{
+				PageInfo pi = new PageInfo();
+				pi.fileName = fileName;
+				pi.title = title;
+				pi.chapterName = chapterName;
+				pi.chapterNumber = chapterNumber;
+				pi.level = indent;
+				pi.newAtLevel = newAtLevel;
+				pi.url = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
+				if (pi.url == null) System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
 				stack[indent].add(node);
-				pageTitle.put(fileName, title);
-				pageSequence.add(fileName);
-				URL theURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
-				if (theURL == null) System.out.println("NULL URL to "+fileName);
-				pageURL.add(theURL);
+				pageSequence.add(pi);
+				newAtLevel = false;
 			}
 		}
 		try
@@ -136,7 +168,7 @@ public class ManualViewer extends EDialog
 		optionTree.expandPath(topPath);
 
 		// load the title page of the manual
-        loadPage(0);
+        loadPage(currentIndex);
     }
 
 	private String getLine(InputStreamReader is)
@@ -158,21 +190,23 @@ public class ManualViewer extends EDialog
 
     private void loadPage(int index)
 	{
-		String fileName = (String)pageSequence.get(index);
-		URL url = (URL)pageURL.get(index);
-		InputStream stream = TextUtils.getURLStream(url, null);
+		currentIndex = index;
+		PageInfo pi = (PageInfo)pageSequence.get(index);
+		InputStream stream = TextUtils.getURLStream(pi.url, null);
 		InputStreamReader is = new InputStreamReader(stream);
 		StringBuffer sb = new StringBuffer();
 
 		// emit header HTML
-		sb.append("<BASE href=\"" + url.toString() + "\">");
+		sb.append("<BASE href=\"" + pi.url.toString() + "\">");
 
 		int lastIndex = index - 1;
 		if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
-		String lastFileName = (String)pageSequence.get(lastIndex); 
+		PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+		String lastFileName = lastPi.fileName;
 		int nextIndex = index + 1;
 		if (nextIndex >= pageSequence.size()) nextIndex = 0;
-		String nextFileName = (String)pageSequence.get(nextIndex); 
+		PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+		String nextFileName = nextPi.fileName;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -187,8 +221,7 @@ public class ManualViewer extends EDialog
 				}
 				String pageName = line.substring(12, endPt).trim();
 				sb.append("<HTML><HEAD><TITLE>Using Electric " + pageName + "\"</TITLE></HEAD>\n");
-				sb.append("<BODY BGCOLOR=\"#FFFFFF\">\n");
-				sb.append("<!-- PAGE BREAK --><A NAME=\"" + fileName + "\"></A>\n");
+				sb.append("<BODY>\n");
 				sb.append("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>\n");
 				sb.append("<TD><CENTER><A HREF=\"" + lastFileName + ".html#" + lastFileName +
 					".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD>\n");
@@ -201,18 +234,6 @@ public class ManualViewer extends EDialog
 			}
 			if (line.equals("<!-- TRAILER -->"))
 			{
-				sb.append("<P>\n");
-				sb.append("<HR>\n");
-				sb.append("<CENTER><TABLE BORDER=0><TR>\n");
-				sb.append("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>\n");
-				sb.append("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>\n");
-				sb.append("<TD>&nbsp;&nbsp;&nbsp;</TD>\n");
-				sb.append("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>\n");
-				sb.append("<TD><A HREF=\"index.html\">Table of Contents</A></TD>\n");
-				sb.append("<TD>&nbsp;&nbsp;&nbsp;</TD>\n");
-				sb.append("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>\n");
-				sb.append("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>\n");
-				sb.append("</TR></TABLE></CENTER>\n");
 				sb.append("</BODY>\n");
 				sb.append("</HTML>\n");
 				continue;
@@ -230,6 +251,137 @@ public class ManualViewer extends EDialog
 		editorPane.setText(sb.toString());
 		editorPane.setCaretPosition(0);
     }
+
+	/**
+	 * Method to go to the previous page in the manual.
+	 */
+	private void prev()
+	{
+		int index = currentIndex - 1;
+		if (index < 0) index = pageSequence.size() - 1;
+		loadPage(index);
+	}
+
+	/**
+	 * Method to go to the next page in the manual.
+	 */
+	private void next()
+	{
+		int index = currentIndex + 1;
+		if (index >= pageSequence.size()) index = 0;
+		loadPage(index);
+	}
+	/**
+	 * Method to generate a single HTML file with the entire manual.
+	 * This is an advanced function that is not available to users.
+	 */
+	private void manual()
+	{
+		String manualFileName = OpenFile.chooseOutputFile(OpenFile.Type.ELIB, "Manual file", "electric.html");
+		if (manualFileName == null) return;
+		PrintWriter printWriter = null;
+		try
+		{
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(manualFileName)));
+		} catch (IOException e)
+		{
+			System.out.println("Error creating " + manualFileName);
+			return;
+		}
+
+		printWriter.println("<HTML><HEAD><TITLE>Using Electric</TITLE></HEAD>");
+		printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");
+		for(int index=0; index < pageSequence.size(); index++)
+		{
+			PageInfo pi = (PageInfo)pageSequence.get(index);
+			InputStream stream = TextUtils.getURLStream(pi.url, null);
+			InputStreamReader is = new InputStreamReader(stream);
+
+			int lastIndex = index - 1;
+			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
+			PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+			String lastFileName = lastPi.fileName;
+			int nextIndex = index + 1;
+			if (nextIndex >= pageSequence.size()) nextIndex = 0;
+			PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+			String nextFileName = nextPi.fileName;
+
+			for(;;)
+			{
+				String line = getLine(is);
+				if (line == null) break;
+				if (line.length() == 0) continue;
+				if (line.startsWith("<!-- HEADER "))
+				{
+					int endPt = line.indexOf("-->");
+					if (endPt < 0)
+					{
+						System.out.println("No end comment on line: "+line);
+						continue;
+					}
+					String pageName = line.substring(12, endPt).trim();
+					if (pi.level < 2 || pi.newAtLevel)
+					{
+						if (pi.chapterNumber > 0 && lastPi.chapterNumber < pi.chapterNumber)
+						{
+							printWriter.println("<HR>");
+							printWriter.println("<CENTER><H1><A NAME=\"" + pi.fileName + "\">Chapter " + pi.chapterName + "</A></H1></CENTER>");
+						} else
+						{
+							printWriter.println("<!-- PAGE BREAK --><A NAME=\"" + pi.fileName + "\"></A>");
+							printWriter.println("<CENTER><FONT SIZE=6><B>Chapter " + pi.chapterName + "</B></FONT></CENTER>");
+						}
+						printWriter.println("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>");
+						printWriter.println("<TD><CENTER><A HREF=\"" + lastFileName + ".html#" + lastFileName +
+							".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD>");
+						printWriter.println("<TD><CENTER><H2>" + pageName + "</H2></CENTER></TD>");
+						printWriter.println("<TD><CENTER><A HREF=\"" + nextFileName + ".html#" + nextFileName +
+							".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD></TR></TABLE></CENTER>");
+						printWriter.println("<HR>");
+						printWriter.println("<BR>");
+					} else
+					{
+						printWriter.println("<H3>" + pageName + "\"</H3>");
+					}
+					continue;
+				}
+				if (line.equals("<!-- TRAILER -->"))
+				{
+					boolean nextIsNewPage = true;
+					if (pi.level == 2 && nextIndex > 0 && nextPi.level == pi.level && !nextPi.newAtLevel) nextIsNewPage = false;
+					if (nextIsNewPage)
+					{
+						printWriter.println("<P>");
+						printWriter.println("<HR>");
+						printWriter.println("<CENTER><TABLE BORDER=0><TR>");
+						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>");
+						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>");
+						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+						printWriter.println("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>");
+						printWriter.println("<TD><A HREF=\"index.html\">Table of Contents</A></TD>");
+						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>");
+						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>");
+						printWriter.println("</TR></TABLE></CENTER>");
+					}
+					continue;
+				}
+				printWriter.println(line);
+			}
+		}
+		printWriter.println("</BODY>");
+		printWriter.println("</HTML>");
+		printWriter.close();
+	}
+
+	/**
+	 * Method to edit the current page in the manual.
+	 * This is an advanced function that is not available to users.
+	 */
+	private void edit()
+	{
+		System.out.println("Cannot");
+	}
 
 	private static class Hyperactive implements HyperlinkListener
 	{
@@ -253,10 +405,10 @@ public class ManualViewer extends EDialog
 
 					// first see if it is one of the manual files, in which case it gets auto-generated
 					String desiredFile = desiredURL.getFile();
-			 		for(int i=0; i<dialog.pageURL.size(); i++)
+			 		for(int i=0; i<dialog.pageSequence.size(); i++)
 			 		{
-			 			URL url = (URL)dialog.pageURL.get(i);
-			 			if (url.getFile().equals(desiredFile))
+			 			PageInfo pi = (PageInfo)dialog.pageSequence.get(i);
+			 			if (pi.url.getFile().equals(desiredFile))
 			 			{
 			 				dialog.loadPage(i);
 			 				return;
@@ -279,12 +431,12 @@ public class ManualViewer extends EDialog
     /**
      * Initialize list of all ToolTips and initilize components
      */
-    private void init() {
-
-        // set up dialog
-        GridBagConstraints gbc;
-        getContentPane().setLayout(new GridBagLayout());
-
+    private void init()
+    {
+		// set up dialog
+		GridBagConstraints gbc;
+		getContentPane().setLayout(new GridBagLayout());
+		
 		// setup tree pane for chapter selection (on the left)
 		rootNode = new DefaultMutableTreeNode("Manual");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -292,17 +444,65 @@ public class ManualViewer extends EDialog
 		TreeHandler handler = new TreeHandler(this);
 		optionTree.addMouseListener(handler);
 		JScrollPane scrolledTree = new JScrollPane(optionTree);
-
+		
 		// the left side of the options dialog: a tree
 		JPanel leftHalf = new JPanel();
 		leftHalf.setLayout(new java.awt.GridBagLayout());
 		gbc = new java.awt.GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
-		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
+		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 		leftHalf.add(scrolledTree, gbc);
- 
+		 
+		// forward and backward buttons at the bottom of the left side
+		JButton backButton = new JButton("Prev");
+		gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 1;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		leftHalf.add(backButton, gbc);
+		backButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { prev(); }
+		});
+		JButton foreButton = new JButton("Next");
+		gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 1;      gbc.gridy = 1;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		leftHalf.add(foreButton, gbc);
+		foreButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { next(); }
+		});
+
+		if (ADVANCED)
+		{
+			// manual and edit buttons at the bottom of the left side
+			JButton manualButton = new JButton("Manual");
+			gbc = new java.awt.GridBagConstraints();
+			gbc.gridx = 0;      gbc.gridy = 2;
+			gbc.gridwidth = 1;  gbc.gridheight = 1;
+			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+			leftHalf.add(manualButton, gbc);
+			manualButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { manual(); }
+			});
+			JButton editButton = new JButton("Edit");
+			gbc = new java.awt.GridBagConstraints();
+			gbc.gridx = 1;      gbc.gridy = 2;
+			gbc.gridwidth = 1;  gbc.gridheight = 1;
+			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+			leftHalf.add(editButton, gbc);
+			editButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { edit(); }
+			});
+		}
+
 		// set up scroll pane for manual (on the right)
 		editorPane = new JEditorPane();
 		editorPane.setEditable(false);
@@ -312,7 +512,7 @@ public class ManualViewer extends EDialog
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		rightHalf.setPreferredSize(new Dimension(screenSize.width/2, screenSize.height*3/4));
 		rightHalf.setMinimumSize(new Dimension(screenSize.width/4, screenSize.height/3));
-
+		
 		// build split pane with both halves
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setLeftComponent(leftHalf);
@@ -324,14 +524,14 @@ public class ManualViewer extends EDialog
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
-
-        // close of dialog event
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt) { closeDialog(evt); }
-        });
-
-        pack();
+		
+		// close of dialog event
+		addWindowListener(new java.awt.event.WindowAdapter()
+		{
+		    public void windowClosing(java.awt.event.WindowEvent evt) { closeDialog(evt); }
+		});
+		
+		pack();
     }
 
 	private static class ManualTree extends JTree
@@ -361,9 +561,8 @@ public class ManualViewer extends EDialog
 			if (nodeInfo instanceof Integer)
 			{
 				Integer index = (Integer)nodeInfo;
-				String fileName = (String)dialog.pageSequence.get(index.intValue());
-				String title = (String)dialog.pageTitle.get(fileName);
-				return title;
+				PageInfo pi = (PageInfo)dialog.pageSequence.get(index.intValue());
+				return pi.title;
 			}
 			return nodeInfo.toString();
 		}

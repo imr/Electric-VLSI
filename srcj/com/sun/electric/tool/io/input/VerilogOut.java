@@ -69,7 +69,7 @@ public class VerilogOut extends Simulate
 		startProgressDialog("Verilog output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readVerilogFile();
+		SimData sd = readVerilogFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -79,10 +79,11 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private SimData readVerilogFile()
+	private SimData readVerilogFile(Cell cell)
 		throws IOException
 	{
 		Simulate.SimData sd = new Simulate.SimData();
+		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
 		int curLevel = 0;

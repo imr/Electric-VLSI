@@ -73,7 +73,8 @@ public class JemStratMergeSer extends JemStrat {
 
     private void summary(int numMerged){
 		globals.println("JemStratMergeSer performed " +
-					    numMerged + " series merges");		elapsedTime();
+					    numMerged + " series merges");
+		elapsedTime();
     }
 
     public Integer doFor(NetObject n){
