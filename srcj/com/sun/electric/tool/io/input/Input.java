@@ -115,6 +115,7 @@ public class Input // extends IOTool
 		LibDirs.readLibDirs();
 		LibraryFiles.initializeLibraryInput();
 		Undo.changesQuiet(true);
+		Cell.setAllowCircularLibraryDependences(true);
 		Pref.initMeaningVariableGathering();
 
 		// show progress
@@ -135,6 +136,7 @@ public class Input // extends IOTool
 		stopProgressDialog();
 
 		Undo.changesQuiet(false);
+		Cell.setAllowCircularLibraryDependences(false);
 		Network.reload();
 		if (lib != null)
 		{

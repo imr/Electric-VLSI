@@ -1574,6 +1574,19 @@ public class Cell extends NodeProto implements Comparable
 		return null;
 	}
 
+	private static boolean allowCirDep = false;
+
+	/**
+	 * Method to allow temporarily circular library dependences
+	 * (for example to read legacy libraries).
+	 * It is called only from synchronyzed method Input.readLibrary.
+	 * @param val true allows circular dependencies.
+	 */
+	public static void setAllowCircularLibraryDependences(boolean val)
+	{
+		allowCirDep = val;
+	}
+
 	/**
 	 * Method to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
@@ -1590,12 +1603,6 @@ public class Cell extends NodeProto implements Comparable
 			return null;
 		}
 
-        // grandfather code: allow circular dependencies on library read-in
-        Job changingJob = Job.getChangingJob();
-        boolean disallowCirDep = true;
-        if ((changingJob instanceof FileMenu.ReadLibrary) || (changingJob instanceof FileMenu.ReadInitialELIBs))
-            disallowCirDep = false;
-
         // check to see if this instantiation would create a circular library dependency
         NodeProto protoType = ni.getProto();
         if (protoType instanceof Cell) {
@@ -1605,7 +1612,7 @@ public class Cell extends NodeProto implements Comparable
                 Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
                 if (libDep != null) {
                     // addition would create circular dependency
-                    if (disallowCirDep) {
+                    if (!allowCirDep) {
                         System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
                              instProto.libDescribe() + " because it would create a circular library dependence: ");
                         System.out.println(libDep.toString());

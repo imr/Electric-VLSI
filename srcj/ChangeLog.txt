@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+BUG: (9/24/04, DN) Reading libraries from script and from menu is different.
+FIX: Change control of circular library dependences in Cell.addNode
+
+
 FIX: (9/23/04, GVG) Minor fixes for 3D view: Avoid exception if highlighter is null (3D view), new depth value for
 active cut, drawing physical layers
 
