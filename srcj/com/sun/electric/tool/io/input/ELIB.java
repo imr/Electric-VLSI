@@ -2970,8 +2970,11 @@ public class ELIB extends LibraryFiles
 			int len = readBigInteger();
 			if (len <= 0) return "";
 			byte [] stringBytes = new byte[len];
-			int ret = dataInputStream.read(stringBytes, 0, len);
-			if (ret != len) throw new IOException();
+            if ((len > 150) || (len < 0)) {
+                System.out.flush();
+            }
+            int ret = dataInputStream.read(stringBytes, 0, len);
+            if (ret != len) throw new IOException();
 			updateProgressDialog(len);
 			String theString = new String(stringBytes);
 			return theString;

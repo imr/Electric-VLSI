@@ -68,6 +68,9 @@ public class TextUtils
      */
 	public static double atof(String text, Double defaultVal)
 	{
+        // remove commas that denote 1000's separators
+        text = text.replaceAll(",", "");
+
 		double v = 0;
 		try
 		{
