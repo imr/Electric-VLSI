@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.generator;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -37,35 +37,38 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.lib.LibFile;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import javax.swing.JOptionPane;
 
 /**
  * @author Willy Chung
@@ -1086,7 +1089,7 @@ public class PadGenerator {
                     xPos = xBBPos - leadLength;
                     if (leftSide * 2 < rightSide) spacing = leadSpacing * 2;
                     yBBPos = yPos = ySize / 2 - ((ySize - (leftSide - 1) * spacing) / 2 + total * spacing);
-                    if (CircuitChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell))
+                    if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell))
                         total++;
                 }
 
@@ -1108,7 +1111,7 @@ public class PadGenerator {
                     xPos = xBBPos + leadLength;
                     if (rightSide * 2 < leftSide) spacing = leadSpacing * 2;
                     yBBPos = yPos = ySize / 2 - ((ySize - (rightSide - 1) * spacing) / 2 + total * spacing);
-                    if (CircuitChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell))
+                    if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell))
                         total++;
                 }
 

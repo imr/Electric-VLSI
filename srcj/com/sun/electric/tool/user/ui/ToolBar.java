@@ -149,7 +149,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
 
 	public static Cursor zoomCursor = readCursor("CursorZoom.gif", 6, 6);
-    public static Cursor zoomOutCursor = ToolBar.readCursor("CursorZoomOut.gif", 6, 6);
+    public static Cursor zoomOutCursor = readCursor("CursorZoomOut.gif", 6, 6);
 	public static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
 	public static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
 	public static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);

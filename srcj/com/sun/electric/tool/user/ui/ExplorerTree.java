@@ -35,8 +35,9 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
+import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Component;
@@ -59,8 +60,6 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -1119,7 +1118,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (newView != null)
 			{
 				Cell cell = (Cell)currentSelectedObject;
-				CircuitChanges.changeCellView(cell, newView);
+				ViewChanges.changeCellView(cell, newView);
 			}
 		}
 

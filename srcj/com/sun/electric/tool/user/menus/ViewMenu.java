@@ -24,19 +24,19 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ViewChanges;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
-import java.awt.event.ActionListener;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.*;
+import java.awt.event.ActionListener;
+
+import javax.swing.JOptionPane;
 
 /**
  * Class to handle the commands in the "View" pulldown menu.
@@ -79,13 +79,13 @@ public class ViewMenu {
         viewMenu.addSeparator();
 
         viewMenu.addMenuItem("Make Icon View", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeIconViewCommand(); } });
 		viewMenu.addMenuItem("Make Schematic View", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
 		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Make Skeleton View", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeSkeletonViewCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
 
     }
 
@@ -114,7 +114,7 @@ public class ViewMenu {
         View newView = View.findView(newViewName);
         if (newView != null && newView != cell.getView())
         {
-            CircuitChanges.changeCellView(cell, newView);
+        	ViewChanges.changeCellView(cell, newView);
         }
     }
 

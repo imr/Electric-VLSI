@@ -27,22 +27,20 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the
@@ -135,7 +133,7 @@ public class Export extends PortProto
             newlocY = point.getY();
 
             // create export in icon
-            if (!CircuitChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon))
+            if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon))
             {
                 System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
             }

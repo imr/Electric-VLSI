@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -138,6 +139,7 @@ public class WaveformWindow implements WindowContent
 	/** right panel: the signal traces */					private JPanel right;
 	/** the "lock time" button. */							private JButton timeLock;
 	/** the "refresh" button. */							private JButton refresh;
+	/** the "show points" button. */						private JButton showPoints;
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
@@ -157,6 +159,7 @@ public class WaveformWindow implements WindowContent
 	/** current "extension" time cursor */					private double extTime;
 	/** default range along horozintal axis */				private double minTime, maxTime;
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
+	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
@@ -169,6 +172,8 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
 	private static final ImageIcon iconUnLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
 	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
+	private static final ImageIcon iconPointsOn = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOn.gif");
+	private static final ImageIcon iconPointsOff = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOff.gif");
 	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
 	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
 	private static final ImageIcon iconVCRRewind = Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif");
@@ -178,6 +183,7 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconVCRToEnd = Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif");
 	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
 	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
+	public static Cursor dragTimeCursor = ToolBar.readCursor("CursorDragTime.gif", 8, 8);
 
 	/**
 	 * This class defines a single panel of Signals with an associated list of signal names.
@@ -867,6 +873,13 @@ public class WaveformWindow implements WindowContent
 							if (i != 0)
 							{
 								if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+								if (waveWindow.showVertexPoints)
+								{
+									if (i < numEvents-1)
+									{
+										if (processABox(g, x-2, y-2, x+2, y+2, bounds, result, ws)) break;
+									}
+								}
 							}
 							lastX = x;   lastY = y;
 						}
@@ -887,6 +900,13 @@ public class WaveformWindow implements WindowContent
 								if (i != 0)
 								{
 									if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+									if (waveWindow.showVertexPoints)
+									{
+										if (i < numEvents-1)
+										{
+											if (processABox(g, x-2, y-2, x+2, y+2, bounds, result, ws)) break;
+										}
+									}
 								}
 								lastX = x;   lastY = y;
 							}
@@ -1424,7 +1444,19 @@ public class WaveformWindow implements WindowContent
 			}
 		}
 
-		public void mouseMovedSelect(MouseEvent evt) {}
+		public void mouseMovedSelect(MouseEvent evt)
+		{
+			// see if over time cursors
+			int mainX = scaleTimeToX(waveWindow.mainTime);
+			int extX = scaleTimeToX(waveWindow.extTime);
+			if (Math.abs(mainX - evt.getX()) < 5 || Math.abs(extX - evt.getX()) < 5)
+			{
+				setCursor(dragTimeCursor);
+			} else
+			{
+				setCursor(Cursor.getDefaultCursor());
+			}
+		}
 
 		// ****************************** ZOOMING IN WAVEFORM WINDOW ******************************
 	
@@ -2212,6 +2244,7 @@ public class WaveformWindow implements WindowContent
 		wavePanels = new ArrayList();
 		sweepSignals = new ArrayList();
 		this.timeLocked = true;
+		this.showVertexPoints = false;
 
         highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
@@ -2257,6 +2290,24 @@ public class WaveformWindow implements WindowContent
 			addPanel.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { addNewPanel(); }
+			});
+
+			showPoints = new JButton(iconPointsOff);
+			showPoints.setBorderPainted(false);
+			showPoints.setDefaultCapable(false);
+			showPoints.setToolTipText("Toggle display of vertex points");
+			minWid = new Dimension(iconPointsOff.getIconWidth()+4, iconPointsOff.getIconHeight()+4);
+			showPoints.setMinimumSize(minWid);
+			showPoints.setPreferredSize(minWid);
+			gbc.gridx = 1;       gbc.gridy = 0;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.fill = java.awt.GridBagConstraints.NONE;
+			overall.add(showPoints, gbc);
+			showPoints.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { toggleShowPoints(); }
 			});
 		}
 
@@ -3813,6 +3864,21 @@ public class WaveformWindow implements WindowContent
 			wp.makeSelectedPanel();
 		}
 		getPanel().validate();
+	}
+
+	/**
+	 * Method called to toggle the display of vertex points.
+	 */
+	private void toggleShowPoints()
+	{
+		showVertexPoints = !showVertexPoints;
+		if (showVertexPoints) showPoints.setIcon(iconPointsOn); else
+			showPoints.setIcon(iconPointsOff);
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.repaintWithTime();
+		}
 	}
 
 	public void addSignal(Simulation.SimSignal sig)

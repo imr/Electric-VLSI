@@ -25,8 +25,8 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
@@ -66,7 +66,7 @@ public class IconTab extends PreferencePanel
 		// listen for the "Make Icon" button
 		iconMakeIcon.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { CircuitChanges.makeIconViewCommand(); }
+			public void actionPerformed(ActionEvent evt) { ViewChanges.makeIconViewCommand(); }
 		});
 
 		// show the current cell

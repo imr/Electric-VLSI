@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+IMP/MAN: (9/22/04, SMR) Waveform window has button to show vertex points.
+
 IMP/MAN: (9/22/04, SMR) Added "bipolar" and "pcb" technologies.
 
 IMP/MAN: (9/22/04, SMR) Added ability to show sweeps and intervals to waveform window.
