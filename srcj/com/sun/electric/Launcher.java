@@ -25,9 +25,6 @@ package com.sun.electric;
 
 import com.sun.electric.tool.user.User;
 
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
 import java.net.URL;
 
 /**
@@ -113,7 +110,7 @@ public final class Launcher
         }
 
 		String command = program;
-		command += " -cp \"" + System.getProperty("java.class.path",".") + "\"";
+		command += " -cp " + System.getProperty("java.class.path",".");
 //		command += " -mx" + maxMemWanted + "m -jar " + jarfile;
         command += " -ss2m";
 		if (enableAssertions)

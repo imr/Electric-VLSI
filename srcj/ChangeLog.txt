@@ -4,10 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+************************* Version 8.02b: *********************************
+
+BUG: (01/14/04, GVG) Removing extra quotes in Launcher.java otherwise double click or java -jar electric.jar
+doesn't work. (Bug #160).
+
 BUG: (01/13/05, DN) Giving same name for two nodes in a cells spoils invariants (#Bug 159).
 FIX: NodeInst.getDuplicate() returns duplicate (returned always 0).
-
-************************* Version 8.02b: *********************************
 
 BUG: (01/13/05, GVG) DRC and ordered database changes. After the changes, it was noticed that
 checkDist was not invariant because it reported only the first error found. This affects regression result.
