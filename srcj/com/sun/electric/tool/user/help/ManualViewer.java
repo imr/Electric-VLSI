@@ -342,6 +342,8 @@ public class ManualViewer extends EDialog
 				String fileName = (String)menuMap.get(commandName);
 				if (fileName == null && Main.getDebug())
 				{
+					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
+						!commandName.startsWith("Gilda/") && !commandName.startsWith("Dima/"))
 					System.out.println("No help for " + commandName);
 				} else
 				{

@@ -150,7 +150,11 @@ Technologies
   Introduction to I/O Specifications =chap07-03-01
   CIF Control                        =chap07-03-02
   GDS Control                        =chap07-03-03
-  CDL Control                        =chap07-03-04
+  EDIF Control                       =chap07-03-04
+  DEF Control                        =chap07-03-05
+  CDL Control                        =chap07-03-06
+  DXF Control                        =chap07-03-07
+  SUE Control                        =chap07-03-08
  The MOS Technologies
   Introduction to MOS Technologies   =chap07-04-01
   The MOSIS CMOS Technology          =chap07-04-02

@@ -31,6 +31,9 @@ This causes the CIF file to display the current cell.
 If the CIF file is to be used as a library, with no current cell,
 then uncheck the "Output Instantiates Top Level" checkbox, and there will be no invocation of the current cell.
 <P>
+When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
+If you check the "Input Squares Wires" item, CIF input assumes that wire ends are square and extend by half of their width.
+<P>
 You can request that resolution errors be checked during CIF output
 by checking "Find resolution errors".
 The "Output resolution" field is the minimum coordinate value that can be safely written in CIF

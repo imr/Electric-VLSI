@@ -2,21 +2,21 @@
 
 <!-- COMMAND View/Edit Layout View -->
 <!-- COMMAND View/Edit Schematic View -->
-<!-- COMMAND View/Edit Multi-Page Schematic View... -->
 <!-- COMMAND View/Edit Icon View -->
 <!-- COMMAND View/Edit VHDL View -->
 <!-- COMMAND View/Edit Documentation View -->
 <!-- COMMAND View/Edit Skeleton View -->
 <!-- COMMAND View/Edit Other View... -->
-<!-- COMMAND View/Make Multi-Page Schematic View... -->
+<!-- COMMAND View/Make Icon View -->
+<!-- COMMAND View/Make Schematic View -->
+<!-- COMMAND View/Make Alternate Layout View... -->
+<!-- COMMAND View/Make Skeleton View -->
 
 When editing one view of a cell,
 there are a set of commands in the <B>View</B> menu that will switch to an alternate view of the same cell.
 <UL>
 <LI>Use <B>Edit Layout View</B> to switch to the layout view.
 <LI>Use <B>Edit Schematic View</B> to switch to the unnumbered schematic view.
-<LI>Use <B>Edit Multi-Page Schematic View...</B> to switch to a particular page of a multipage schematic
-(this is the only command that can create new pages of a multipage schematic).
 <LI>Use <B>Edit Icon View</B> to switch to the Icon view.
 <LI>Use <B>Edit VHDL View</B> to switch to the VHDL view.
 <LI>Use <B>Edit Documentation View</B> to switch to the text-only documentation view.
@@ -34,8 +34,15 @@ See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing
 <P>
 The commands to edit another view work only when that cell exists.
 To create a new cell of a particular type, use the <B>Make...</B> commands of the <B>View</B> menu.
-Thus, <B>Make Multi-Page Schematic View...</B> creates a new page in a multi-page schematic.
-<B>Make Icon View</B> creates an icon from a schematic
+These view conversion commands are available:
+<UL>
+<LI><B>Make Icon View</B> creates an icon from a schematic
 (see <A HREF="chap03-11-04.html#chap03-11-04">Section 3-11-4</A> for more on this).
+<LI><B>Make Schematic View</B> creates a schematic from a layout;.
+<LI><B>Make Alternate Layout View...</B> converts from layout or schematic to layout.
+You must choose a specific layout technology, and the new layout will use components from that technology.
+<LI><B>Make Skeleton View</B> makes a skeletonized layout from a layout
+(the only thing in the skeleton is the exports and the frame; it is a "layout icon").
+</UL>
 
 <!-- TRAILER -->

@@ -14,6 +14,27 @@ By clicking on a layer name, its GDS layer numbers are shown in the top-right an
 In addition to GDS layer numbers to use for layout, there are also two other types of GDS layer numbers:
 a <I>pin</I> layer (for exports) and a <I>text</I> layer (for export names).
 <P>
+These dialog elements apply to reading GDS:
+<UL>
+<LI>"Input includes Text".
+Text annotations in the GDS file can often clutter the display, so they are ignored during input.
+If you check this item, annotation text will be read and displayed.</LI>
+<LI>"Input expands cells".
+This controls whether cell instances are expanded or not in the Electric circuit.
+By default, cell instances are not expanded (they appear as a simple box).
+If you check this item, cells are expanded so that their contents are displayed.
+Expansion of cells can always be changed after reading GDS by using the subcommands of the <B>Expand Cell Instances</B>
+and <B>Unexpand Cell Instances</B> commands of the <B>Cells/<B> menu.</LI>
+<LI>"Input instantiates Arrays".
+This controls whether or not arrays in the GDS file are instantiated.
+By default, arrays are instantiated fully, but this can consume excessive amounts of memory if there are large arrays.
+If you uncheck this item, only the upper-left and lower-right instance are actually placed.</LI>
+<LI>"Input ignores unknown layers".
+This controls whether unknown layers in the GDS file will be ignored, or placed in the circuit.
+By default, unknown layers appear as DRC-Nodes (special nodes used to indicate DRC errors, which appear as orange squares).
+By checking this item, the unknown layers are simply ignored.</LI>
+</UL>
+<P>
 These dialog elements apply to writing GDS:
 <UL>
 <LI>
@@ -26,19 +47,23 @@ however it is faster to generate and uses simpler constructs.
 If you check this item,
 all connecting regions on the same layer are merged into one complex polygon.
 This requires more processing, produces a smaller file, and generates more complex constructs.
+</LI>
 <LI>
 "Output Writes export Pins".
 This controls whether pins are written to the GDS file for each export.
 If checked, and there is a valid pin layer, then it is written.
+</LI>
 <LI>
 "Output all upper case".
 This controls whether the GDS file uses all upper case.
 The default is to mix upper and lower case, but some systems insist on upper-case GDS.
+</LI>
 <LI>
 "Output default text layer".
 This is the layer number to use when writing text.
 When pins are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.
+</LI>
 </UL>
 
 <!-- TRAILER -->

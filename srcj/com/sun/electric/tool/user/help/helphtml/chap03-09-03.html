@@ -1,21 +1,31 @@
 <!-- HEADER 3-9-3: Writing Libraries -->
 
 <!-- COMMAND File/Save Library -->
-<!-- COMMAND File/Save All Libraries -->
 <!-- COMMAND File/Save Library as... -->
+<!-- COMMAND File/Save All Libraries -->
+<!-- COMMAND File/Save All Libraries in Format... -->
+<!-- COMMAND File/Mark All Libraries for Saving -->
 <!-- COMMAND File/Export/CIF (Caltech Intermediate Format)... -->
 <!-- COMMAND File/Export/GDS II (Stream)... -->
+<!-- COMMAND File/Export/EDIF (Electronic Design Interchange Format)... -->
+<!-- COMMAND File/Export/LEF (Library Exchange Format)... -->
+<!-- COMMAND File/Export/L... -->
+<!-- COMMAND File/Export/Eagle... -->
+<!-- COMMAND File/Export/ECAD... -->
+<!-- COMMAND File/Export/Pads... -->
+<!-- COMMAND File/Export/Text Cell Contents... -->
 <!-- COMMAND File/Export/PostScript... -->
-<!-- COMMAND File/Export/Readable Dump... -->
-<!-- COMMAND File/Export/Version 6 ELIB... -->
-<!-- COMMAND File/Mark All Libraries for Saving -->
+<!-- COMMAND File/Export/PNG (Portable Network Graphics)... -->
+<!-- COMMAND File/Export/DXF (AutoCAD)... -->
+<!-- COMMAND File/Export/ELIB (Version 6)... -->
 
 Writing libraries to disk is done with the <B>Save Library</B> command (in menu <B>File</B>).
 <P>
 <TABLE><TR><TD>
 The <B>Save All Libraries</B> command (in menu <B>File</B>) writes all libraries that have changed.
 You can also use the save-libraries icon from the tool bar.
-To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command.
+To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command,
+or use <B>Save All Libraries in Format</B> to specify how they are to be saved.
 </TD><TD><CENTER><IMG SRC="fig03-24.png" ALT="Figure 3.24"></CENTER></TD></TR></TABLE>
 <P>
 If a library was read from disk, it is written back to the same file.
@@ -38,27 +48,55 @@ These formats can be written:
 <UL>
 <LI><B>Caltech Intermediate Format (CIF)</B> is used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use "CIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab)
-to affect how CIF is written.
+Use the "CIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab)
+ to affect how CIF is written.
 See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.
 </LI>
+
 <LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use "GDS" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab)
-to affect how GDS is written.
+Use the "GDS" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab)
+ to affect how GDS is written.
 See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
+
+<LI><B>EDIF (Electronic Design Interchange Format)</B> can write either the Netlist or the Schematic view of the circuit.
+Electric writes EDIF version 2 0 0.
+Use the "EDIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "EDIF" tab) to affect how EDIF is written.
+See <A HREF="chap07-03-04.html#chap07-03-04">Section 7-3-4</A> for more on EDIF.</LI>
+
+<LI><B>LEF (Library Exchange Format)</B> is an interchange format that describes the exports on cells in a library.</LI>
+
+<LI><B>L</B> is the GDT language, still appearing in some commercial systems.
+The output file contains only the current cell and any circuitry below that in the hierarchy.</LI>
+
+<LI><B>Eagle</B> is an interface to the Eagle schematics design system (netlist format).
+Before writing Eagle files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
+If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
+
+<LI><B>ECAD</B> is an interface to the ECAD schematics design system (netlist format).
+Before writing ECAD files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
+If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
+
+<LI><B>Pads</B> is an interface to the Pads schematics design system (netlist format).
+Before writing Pads files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
+If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
+
+<LI><B>Text Cell Contents</B> is used to write a text file from a text cell.
+The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)
+See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text windows.</LI>
+
 <LI><B>PostScript</B> is the Adobe printing language.
 The output file contains only a visual representation of the current cell
 (or part of that cell).
 PostScript options can be controlled with the
 "Printing" preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).</LI>
-<LI><B>Text Cell Contents</B> is used to write a text file from a text cell.
-The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)</LI>
-<LI><B>Readable Dump</B> is an Electric-specific format that captures the entire database,
-but in an editable text format.
-Because it is text, it takes up more space on disk.
-However, it can be transferred between machines more reliably and can be edited if necessary.
-</LI>
+
+<LI><B>PNG (Portable Network Graphics)</B> is an image format that captures the current window.</LI>
+
+<LI><B>DXF (AutoCAD)</B> is a solid-modeling interchange format.
+Use the "DXF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "DXF" tab) to affect how DXF is written.
+See <A HREF="chap07-03-07.html#chap07-03-07">Section 7-3-7</A> for more on DXF.</LI>
+
 <LI><B>Version 6 ELIB</B> writes old-format binary files.
 These files can be read by version 6 of Electric.
 </LI>
@@ -73,7 +111,8 @@ Since each export file has a different format for comments, the copyright text s
 Instead, the system will insert the proper comment characters for the particular export format.
 </TD></TR></TABLE>
 <P>
-The copyright file will be inserted into decks exported for CIF, as well as in simulation netlists for
-Verilog, SPICE, and IRSIM.
+The copyright information will be inserted into decks exported for CIF, LEF, and PostScript,
+as well as in simulation netlists for
+Verilog, SPICE, Silos, ESIM/RSIM/RNL/COSMOS, FastHenry, Maxwell, and IRSIM.
 
 <!-- TRAILER -->

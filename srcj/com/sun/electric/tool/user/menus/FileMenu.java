@@ -113,7 +113,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
-        fileMenu.addMenuItem("Save All Libraries in format...", null,
+        fileMenu.addMenuItem("Save All Libraries in Format...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesInFormatCommand(); } });
 
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
@@ -126,6 +126,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EDIF, false); } });
 		exportSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.LEF, false); } });
+		exportSubMenu.addMenuItem("L...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.L, false); } });
 		if (IOTool.hasSkill())
 			exportSubMenu.addMenuItem("Skill (Cadence Commands)...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILL, false); } });
@@ -141,21 +143,19 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.POSTSCRIPT, false); } });
-		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
-		exportSubMenu.addMenuItem("L...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.L, false); } });
 	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PNG, false); } });
+		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
 //		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, false, false); } });
 //        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(OpenFile.Type.ELIB, false, false); } });
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(FileType.ELIB, false, false); } });
 //		exportSubMenu.addMenuItem("Readable Dump...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.READABLEDUMP, false, false); } });
 
 		fileMenu.addSeparator();
 

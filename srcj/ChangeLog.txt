@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/14/04, SMR) When the background color is white, dragging a rectangle is not visible (Bug #110).
+FIX: In EditWindow.showDragBox(), use the proper highlight color.
+
 BUG: (12/14/04, DN) Non-string variables with language code bits can corrupt disk library (Bug #100).
 FIX: Clear language code bits from non-string variables in ELIB and JELIB writers.
 

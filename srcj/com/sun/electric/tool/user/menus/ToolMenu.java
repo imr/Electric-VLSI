@@ -217,17 +217,17 @@ public class ToolMenu {
 		// ------------------- NCC
 		MenuBar.Menu nccSubMenu = new MenuBar.Menu("NCC", 'N');
 		toolMenu.add(nccSubMenu);
-		nccSubMenu.addMenuItem("schematic and layout views of cell in current window", null, 38, new ActionListener() {
+		nccSubMenu.addMenuItem("Schematic and Layout Views of Cell in Current Window", null, 38, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(1);
 			}
 		});
-		nccSubMenu.addMenuItem("cells from two windows", null, 11, new ActionListener() {
+		nccSubMenu.addMenuItem("Cells from Two Windows", null, 11, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(2);
 			}
 		});
-		nccSubMenu.addMenuItem("test probing", null, 0, new ActionListener() {
+		nccSubMenu.addMenuItem("Test Probing", null, 0, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(-1);
 			}

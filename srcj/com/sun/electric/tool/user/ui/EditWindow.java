@@ -1290,7 +1290,7 @@ public class EditWindow extends JPanel
 		int hY = (int)Math.max(startDrag.getY(), endDrag.getY());
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setStroke(selectionLine);
-		g.setColor(Color.white);
+		g.setColor(new Color(User.getColorHighlight()));
 		g.drawLine(lX, lY, lX, hY);
 		g.drawLine(lX, hY, hX, hY);
 		g.drawLine(hX, hY, hX, lY);
