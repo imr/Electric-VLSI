@@ -418,9 +418,10 @@ public class PrimitiveNode implements NodeProto
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
-	/** Defines a special transistor */             public static final int SPECIALTRANS =  4;
+	/** Defines a special trans or X contact */     public static final int SPECIALNODE =  4;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
+	/** set if nodes are in same group in menu */           private static final int NODEGROUP =           10;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
 	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
 	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
@@ -1021,6 +1022,18 @@ public class PrimitiveNode implements NodeProto
 		name += protoName;
 		return name;
 	}
+
+	/**
+	 * Method to allow instances of this PrimitiveNode to be grouped with other instances
+	 * Valid for menu display
+	 */
+	public void setGroupNode() { userBits |= NODEGROUP; }
+
+	/**
+	 * Method to tell if instaces of this PrimitiveNode are grouped.
+	 * @return
+	 */
+	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
 
 	/**
 	 * Method to allow instances of this PrimitiveNode to shrink.

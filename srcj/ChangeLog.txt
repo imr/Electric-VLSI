@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ab: *********************************
 
+IMP: Cross-shaped contacts in TSMC90.
+
 IMP/MAN: (10/21/04, SMR) Added "CIF" input.
 
 IMP: (10/20/04, DN) Deprectated those variables on Technology, Tool,

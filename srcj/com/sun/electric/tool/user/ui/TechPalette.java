@@ -76,6 +76,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /** the currently selected Node object. */			private Object highlightedNode;
 	/** to collect all types of P transistors */        private List pTransistorList = new ArrayList();
     /** to collect all types of N transistors */        private List nTransistorList = new ArrayList();
+	/** to collect all contacts including X types */    private List contactList = new ArrayList();
     /** cached palette image */                         private Image paletteImage;
     /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
 
@@ -101,6 +102,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         inPalette.clear();
 	    pTransistorList.clear();
 	    nTransistorList.clear();
+	    contactList.clear();
 
         if (tech == Schematics.tech)
         {
@@ -201,8 +203,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    nTransistorList.add(np);
 	                else if (fun == PrimitiveNode.Function.TRAPMOS)
 	                    pTransistorList.add(np);
-	                // Leaving standard transistors
-	                if (np.getSpecialType() != PrimitiveNode.SPECIALTRANS)
+	                else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
+	                    contactList.add(np);
+	                // Leaving standard transistors or contact
+	                if (np.getSpecialType() != PrimitiveNode.SPECIALNODE)
 	                {
                         compTotal++;
 		                inPalette.add(np);
@@ -368,18 +372,24 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
 			if (obj instanceof PrimitiveNode)
 			{
-				// Dealing with special transistors
+				// Dealing with special transistors or normal/cross contacts
 				List list = null;
 				if (nTransistorList.contains(obj)) list = nTransistorList;
 				else if (pTransistorList.contains(obj)) list = pTransistorList;
+				else if (contactList.contains(obj)) list = contactList;
 				// Menu only if more than one transistor is found
 				if (list != null && list.size() > 1)
 				{
 					JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
+					PrimitiveNode thisNp = (PrimitiveNode)obj;
+					boolean isContact = thisNp.getFunction() == PrimitiveNode.Function.CONTACT;
 
 					for (Iterator it = list.iterator(); it.hasNext();)
 					{
 					   PrimitiveNode np = (PrimitiveNode)it.next();
+						// Filtering same type of contacts via layers
+						if (isContact && (np.getLayers()[0].getLayer() != thisNp.getLayers()[0].getLayer()))
+							continue;
 					   menu.add(menuItem = new JMenuItem(np.getName()));
 					   menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
 					}
@@ -784,19 +794,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                                 drawArrow = true;
                         }
 
-                        if (toDraw instanceof PrimitiveNode)
-                        {
-                            PrimitiveNode np = (PrimitiveNode)toDraw;
-                               // Don't draw them
-                            /*
-                            if (np.getSpecialType() == PrimitiveNode.SPECIALTRANS)
-                                continue;
-                                */
-                        }
-                        // Searching for transistor type...
+                        // Searching for transistor or contact types
                         if (!drawArrow)
-                            drawArrow = ((palette.nTransistorList.size() > 1 && palette.nTransistorList.contains(toDraw)) ||
-                                (palette.pTransistorList.size() > 1 && palette.pTransistorList.contains(toDraw)));
+                            drawArrow = (
+                                    (palette.nTransistorList.size() > 1 && palette.nTransistorList.contains(toDraw)) ||
+                                    (palette.pTransistorList.size() > 1 && palette.pTransistorList.contains(toDraw)) ||
+                                    (palette.contactList.size() > 1 && palette.contactList.contains(toDraw)));
 
                         g.setColor(Color.BLUE);
                         g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
