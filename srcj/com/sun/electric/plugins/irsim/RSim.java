@@ -1440,7 +1440,9 @@ public class RSim
 	
 		if (args.length == 2)	// just destroy the given sequence
 		{
-			list = undefseq(which != 0 ? b : n, list, lmax);
+            Object objB = b;
+            Object objN = n;
+			list = undefseq((which != 0) ? objB : objN, list, lmax);
 			return list;
 		}
 	
