@@ -258,6 +258,7 @@ public class WindowFrame
 			// want a TextWindow here
 			if (!(getContent() instanceof TextWindow))
 			{
+				getContent().finished();
 				content = new TextWindow(cell, this);
 				int i = js.getDividerLocation();
 				js.setRightComponent(content.getPanel());
@@ -270,6 +271,7 @@ public class WindowFrame
 			// want an EditWindow here
 			if (!(getContent() instanceof EditWindow))
 			{
+				getContent().finished();
 				content = EditWindow.CreateElectricDoc(cell, this);
 				int i = js.getDividerLocation();
 				js.setRightComponent(content.getPanel());
@@ -474,8 +476,6 @@ public class WindowFrame
         }
 		if (wf != null)
 		{
-			//if (!TopLevel.isMDIMode())
-			//	wf.jf.show();  // < ---- BAD BAD BAD BAD!!!!
 			Cell cell = wf.getContent().getCell();
 			if (cell != null)
 			{

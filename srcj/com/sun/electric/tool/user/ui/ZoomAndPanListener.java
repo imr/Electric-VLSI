@@ -193,20 +193,25 @@ public class ZoomAndPanListener
      * @param wnd the edit window to pan
      * @param ticks the amount and direction of pan
      */
-    public static void panX(EditWindow wnd, int ticks) {
+    public static void panX(WindowFrame wf, int ticks) {
 
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
-
-        // heuristic: factor in multiplier
-        int mult = (int)(80/wnd.getScale());
-        if (mult <= 0) mult = 2;
-        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
-
-        Point2D wndOffset = wnd.getOffset();
-        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
-        wnd.setOffset(newOffset);
-        wnd.repaintContents();
+		if (wf.getContent() instanceof EditWindow.CircuitPart)
+		{
+			Cell cell = wf.getContent().getCell();
+			if (cell == null) return;
+			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
+			EditWindow wnd = cp.getEditWindow();
+	
+	        // heuristic: factor in multiplier
+	        int mult = (int)(80/wnd.getScale());
+	        if (mult <= 0) mult = 2;
+	        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+	
+	        Point2D wndOffset = wnd.getOffset();
+	        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
+	        wnd.setOffset(newOffset);
+	        wnd.repaintContents();
+		}
     }
 
     /**
@@ -216,20 +221,25 @@ public class ZoomAndPanListener
      * @param wnd the edit window to pan
      * @param ticks the amount and direction of pan
      */
-    public static void panY(EditWindow wnd, int ticks) {
+    public static void panY(WindowFrame wf, int ticks) {
 
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
+		if (wf.getContent() instanceof EditWindow.CircuitPart)
+		{
+	        Cell cell = wf.getContent().getCell();
+	        if (cell == null) return;
+			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
+			EditWindow wnd = cp.getEditWindow();
 
-        // heuristic: factor in multiplier
-        int mult = (int)(80/wnd.getScale());
-        if (mult <= 0) mult = 2;
-        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
-
-        Point2D wndOffset = wnd.getOffset();
-        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
-        wnd.setOffset(newOffset);
-        wnd.repaintContents();
+	        // heuristic: factor in multiplier
+	        int mult = (int)(80/wnd.getScale());
+	        if (mult <= 0) mult = 2;
+	        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+	
+	        Point2D wndOffset = wnd.getOffset();
+	        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
+	        wnd.setOffset(newOffset);
+	        wnd.repaintContents();
+		}
     }
 
 

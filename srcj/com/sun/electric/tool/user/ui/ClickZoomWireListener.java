@@ -782,11 +782,11 @@ public class ClickZoomWireListener
 			if (sideways || sideways2) {
 				// scroll right if roll foward (pos)
 				// scroll left if roll back (neg)
-				ZoomAndPanListener.panX(wnd, rotation);
+				ZoomAndPanListener.panX(wnd.getWindowFrame(), rotation);
 			} else {
 				// scroll up if roll forward (pos)
 				// scroll down if roll back (neg)
-				ZoomAndPanListener.panY(wnd, rotation);
+				ZoomAndPanListener.panY(wnd.getWindowFrame(), rotation);
 			}
 		}
     }

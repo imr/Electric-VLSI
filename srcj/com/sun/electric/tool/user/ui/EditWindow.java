@@ -116,7 +116,6 @@ public class EditWindow
 
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
 
-
 	public class CircuitPart extends JPanel
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
 	{
@@ -152,17 +151,17 @@ public class EditWindow
 			Image img = offscreen.getImage();
 			synchronized(img) { g.drawImage(img, 0, 0, this); };
 
-			synchronized(redrawThese)
-			{
-				if (redrawThese.size() > 0)
-				{
-					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-					return;
-				}
-				runningNow = false;
-			}
+//			synchronized(redrawThese)
+//			{
+//				if (redrawThese.size() > 0)
+//				{
+//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+//					redrawThese.remove(0);
+//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+//					return;
+//				}
+////				runningNow = false;
+//			}
 
 			// overlay other things if there is a valid cell
 			if (cell != null)
@@ -402,6 +401,11 @@ public class EditWindow
 	 */
 	public Cell getCell() { return cell; }
 
+	/**
+	 * Method to return the WindowFrame in which this EditWindow resides.
+	 * @return the WindowFrame in which this EditWindow resides.
+	 */
+	public WindowFrame getWindowFrame() { return wf; }
 
     /**
      * Method to set the cell that is shown in the window to "cell".
@@ -459,30 +463,6 @@ public class EditWindow
 					// if auto-switching technology, do it
 					PaletteFrame.autoTechnologySwitch(cell);
 				}
-//				if (cell.getView().isTextView())
-//				{
-//					wf.setContent(WindowFrame.TEXTWINDOW);
-//
-//					// reload with text information
-//					JTextArea ta = wf.getTextEditWindow();
-//					Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
-//					if (var != null)
-//					{
-//						int len = var.getLength();
-//						String [] lines = (String [])var.getObject();
-//						String totalText = "";
-//						for(int i=0; i<len; i++)
-//						{
-//							totalText += lines[i] + "\n";
-//						}
-//						ta.setText(totalText);
-//						ta.setCaretPosition(0);
-//					}
-//					return;
-//				} else
-				{
-//					wf.setContent(this);
-				}
 			}
 		}
 		fillScreen();
@@ -529,7 +509,7 @@ public class EditWindow
         //offscreen = null;                   // need to clear this ref, because it points to this
         synchronized(redrawThese)
         {
-            if (redrawThese.contains(this)) redrawThese.remove(this);
+//            if (redrawThese.contains(this)) redrawThese.remove(this);
         }
         // remove myself from listener list
 		dispArea.removeKeyListener(dispArea);
@@ -588,8 +568,8 @@ public class EditWindow
 		{
 			if (runningNow)
 			{
-				if (!redrawThese.contains(this))
-					redrawThese.add(this);
+//				if (!redrawThese.contains(this))
+//					redrawThese.add(this);
 				return;
 			}
 			runningNow = true;
@@ -616,18 +596,11 @@ public class EditWindow
 		public void doIt()
 		{
 			offscreen.drawImage();
+			synchronized(redrawThese)
+			{
+				runningNow = false;
+			}
 			wnd.repaint();
-//			synchronized(redrawThese)
-//			{
-//				if (redrawThese.size() > 0)
-//				{
-//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-//					redrawThese.remove(0);
-//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-//					return;
-//				}
-//				runningNow = false;
-//			}
 		}
 	}
 

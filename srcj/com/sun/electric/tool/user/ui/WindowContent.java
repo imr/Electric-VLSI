@@ -54,5 +54,7 @@ public interface WindowContent
 	public abstract void loadExplorerTree(DefaultMutableTreeNode rootNode);
 	public abstract boolean cellHistoryCanGoBack();
 	public abstract boolean cellHistoryCanGoForward();
+	public abstract void cellHistoryGoBack();
+	public abstract void cellHistoryGoForward();
 	public abstract void setWindowTitle();
 }

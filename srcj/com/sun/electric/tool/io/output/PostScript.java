@@ -43,6 +43,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
@@ -80,7 +81,8 @@ public class PostScript extends Output
 	/** true to generate stippled color PostScript. */					private boolean psUseColorStip;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
-	/** the Window in which the cell resides. */						private EditWindow wnd;
+	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
+	/** the EditWindow in which the cell resides. */					private EditWindow wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
@@ -133,8 +135,14 @@ public class PostScript extends Output
 	private void start()
 	{
 		// find the edit window
-		wnd = EditWindow.getCurrent();
-		if (wnd.getCell() != cell) wnd = null;
+		wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent().getCell() != cell) wf = null;
+		wnd = null;
+		if (wf != null && wf.getContent() instanceof EditWindow.CircuitPart)
+		{
+			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
+			wnd = cp.getEditWindow();
+		}
 
 		// clear flags that tell whether headers have been included
 		putHeaderDot = false;

@@ -1089,11 +1089,22 @@ public class Highlight
 				g.setColor(Color.WHITE);
 
                 // show name of port
-                if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D)) {
-                    Font font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(1.5*EditWindow.getDefaultFontSize()));
-                    GlyphVector v = wnd.getGlyphs(pp.getProtoName(), font);
-                    Point2D point = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
-                    ((Graphics2D)g).drawGlyphVector(v, (float)point.getX()+offX, (float)point.getY()+offY);
+                if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D))
+				{
+					// only show name if port is wired (because all other situations already show the port)
+					boolean wired = false;
+					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					{
+						Connection con = (Connection)cIt.next();
+						if (con.getPortInst().getPortProto() == pp) { wired = true;   break; }
+					}
+					if (wired)
+					{
+	                    Font font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(1.5*EditWindow.getDefaultFontSize()));
+    	                GlyphVector v = wnd.getGlyphs(pp.getProtoName(), font);
+        	            Point2D point = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+            	        ((Graphics2D)g).drawGlyphVector(v, (float)point.getX()+offX, (float)point.getY()+offY);
+					}
                 }
 
 				// handle verbose highlighting of nodes

@@ -441,14 +441,15 @@ public class CellBrowser extends javax.swing.JDialog {
         } else if (action == DoAction.editCell) {
             boolean newWindow = editInNewWindow.isSelected();
 
-			EditWindow wnd = EditWindow.getCurrent();
-			if (!newWindow && wnd == null) newWindow = true;
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (!newWindow && wf == null) newWindow = true;
 			if (newWindow)
 			{
                 WindowFrame.createEditWindow(cell);
 			} else
 			{
-                wnd.setCell(cell, VarContext.globalContext);
+				wf.setCellWindow(cell);
+				WindowFrame.setCurrentWindowFrame(wf);
             }
 
         } else if (action == DoAction.deleteCell) {

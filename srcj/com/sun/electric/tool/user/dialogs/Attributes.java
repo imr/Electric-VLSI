@@ -572,6 +572,7 @@ public class Attributes extends javax.swing.JDialog
 		// set the Size field
 		pointsSize.setEditable(true);
 		unitsSize.setEditable(true);
+		EditWindow wnd = EditWindow.getCurrent();
 		if (initialSize.isAbsolute())
 		{
 			// show point size
@@ -580,7 +581,6 @@ public class Attributes extends javax.swing.JDialog
 			pointsButton.setSelected(true);
 
 			// figure out how many units the point value is
-			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) unitsSize.setEditable(false); else
 			{
 				double u = wnd.getTextUnitSize(height);
@@ -594,7 +594,6 @@ public class Attributes extends javax.swing.JDialog
 			unitsButton.setSelected(true);
 
 			// figure out how many points the unit value is
-			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) pointsSize.setEditable(false); else
 			{
 				int p = wnd.getTextPointSize(height);

@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.Dimension;
@@ -1458,6 +1459,43 @@ public class Cell extends NodeProto
 		if (view != null)
 			name += "{" +  view.getAbbreviation() + "}";
 		return name;
+	}
+
+	/**
+	 * Method to get the strings in this Cell.
+	 * It is only valid for cells with "text" views (documentation, vhdl, netlist, etc.)
+	 * @return the strings in this Cell.
+	 * Returns null if there are no strings.
+	 */
+	public String [] getTextViewContents()
+	{
+		// first see if this cell is being actively edited in a TextWindow
+		String [] strings = TextWindow.getEditedText(this);
+		if (strings != null) return strings;
+
+		// look on the cell for its text
+		Variable var = getVar(Cell.CELL_TEXT_KEY);
+		if (var == null) return null;
+		Object obj = var.getObject();
+		if (!(obj instanceof String[])) return null;
+		return (String [])obj;
+	}
+
+	/**
+	 * Method to get the strings in this Cell.
+	 * It is only valid for cells with "text" views (documentation, vhdl, netlist, etc.)
+	 * The call needs to be wrapped inside of a Job.
+	 * @return the strings in this Cell.
+	 * Returns null if there are no strings.
+	 */
+	public void setTextViewContents(String [] strings)
+	{
+		Job.checkChanging();
+
+		// see if this cell is being actively edited in a TextWindow
+		TextWindow.updateText(this, strings);
+
+		newVar(Cell.CELL_TEXT_KEY, strings);
 	}
 
 	/**

@@ -41,6 +41,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -113,6 +114,13 @@ public class Output extends IOTool
 
 		// make sure that all "meaning" options are attached to the database
 		Pref.installMeaningVariables();
+		
+		// make sure that this library save is announced
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		{
+			Listener listener = (Listener)it.next();
+			listener.writeLibrary(lib);
+		}
 
 		// handle different file types
 		URL libFile = lib.getLibFile();
@@ -433,22 +441,15 @@ public class Output extends IOTool
 
 		if (getPlotArea() != 0)
 		{
-			if (getPlotArea() == 2)
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd == null)
 			{
-				EditWindow wnd = EditWindow.getCurrent();
-				if (wnd == null)
-				{
-					System.out.println("No current window: printing entire cell");
-				} else
-				{
-					bounds = wnd.getDisplayedBounds();
-				}
+				System.out.println("No current window: printing entire cell");
 			} else
 			{
-				EditWindow wnd = EditWindow.getCurrent();
-				if (wnd == null)
+				if (getPlotArea() == 2)
 				{
-					System.out.println("No current window: printing entire cell");
+					bounds = wnd.getDisplayedBounds();
 				} else
 				{
 					Rectangle2D hBounds = Highlight.getHighlightedArea(wnd);

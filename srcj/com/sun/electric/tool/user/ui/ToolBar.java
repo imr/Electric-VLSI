@@ -566,16 +566,16 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
      * Go back in the cell history
      */
     public static void goBackButtonCommand() {
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd != null) wnd.cellHistoryGoBack();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null) wf.getContent().cellHistoryGoBack();
     }
 
     /**
      * Go forward in the cell history
      */
     public static void goForwardButtonCommand() {
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd != null) wnd.cellHistoryGoForward();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null) wf.getContent().cellHistoryGoForward();
     }
 
     // ----------------------------------------------------------------------------

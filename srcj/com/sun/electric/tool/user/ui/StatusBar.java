@@ -247,8 +247,8 @@ public class StatusBar extends JPanel
 		Cell cell = null;
 		if (frame == null)
 		{
-			EditWindow wnd = EditWindow.getCurrent();
-			if (wnd != null) cell = wnd.getCell();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf != null) cell = wf.getContent().getCell();
 		} else
 		{
 			Cell cellInPanel = frame.getContent().getCell();
@@ -260,8 +260,8 @@ public class StatusBar extends JPanel
 			if (cell.getView().isTextView())
 			{
 				int len = 0;
-				Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
-				if (var != null) len = var.getLength();
+				String [] textLines = cell.getTextViewContents();
+				if (textLines != null) len = textLines.length;
 				sizeMsg = "LINES: " + len;
 			} else
 			{

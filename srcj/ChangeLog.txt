@@ -2,6 +2,14 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/19/04, SMR) Text-edit windows now work.
+
+BUG: (5/18/04, SMR) Should show ports on expanded cells that aren't wired or further exported.
+FIX: Fixed in "PixelDrawing.java"
+
+BUG: (5/18/04, SMR) Redisplay sometimes misses parts of the image.
+FIX: In "EditWindow.CircuitPart.paint()" must always draw something.
+
 IMP: (5/17/04, SMR) Added Flip-flop creation and support.
 
 BUG: (5/17/04, SMR) When a cell is displayed, its bounds are set to include text.

@@ -1408,6 +1408,10 @@ public class WaveformWindow implements WindowContent
 
 	public boolean cellHistoryCanGoForward() { return false; }
 
+	public void cellHistoryGoBack() {}
+
+	public void cellHistoryGoForward() {}
+
 	private DefaultMutableTreeNode getSignalsForExplorer()
 	{
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
@@ -41,6 +42,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.TextWindow;
 
 import java.util.Iterator;
 
@@ -140,6 +142,16 @@ public class User extends Listener
 				content.setWindowTitle();
 			}
 		}
+	}
+
+	/**
+	 * Method to announce that a Library is about to be saved to disk.
+	 * @param lib the Library that will be written.
+	 * The User tool makes sure that any text cells are properly stored in the database.
+	 */
+	public void writeLibrary(Library lib)
+	{
+		TextWindow.saveAllTextWindows();
 	}
 
 	/**

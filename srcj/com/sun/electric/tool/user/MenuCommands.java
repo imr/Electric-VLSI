@@ -533,16 +533,16 @@ public final class MenuCommands
         windowMenu.addSeparator();
 
         m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), 4); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), -4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), -4); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), -4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), -4); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), 4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 4); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
         windowMenu.addSeparator();
@@ -836,13 +836,11 @@ public final class MenuCommands
 				{
 					WindowFrame wf = (WindowFrame)it.next();
 					WindowContent content = wf.getContent();
-					if (content instanceof EditWindow)
+					if (content.getCell() == null)
 					{
-						if (content.getCell() == null)
-						{
-							content.setCell(cell, VarContext.globalContext);
-							return;
-						}
+						wf.setCellWindow(cell);
+						WindowFrame.setCurrentWindowFrame(wf);
+						return;
 					}
 				}
 				WindowFrame.createEditWindow(cell);
@@ -1176,7 +1174,24 @@ public final class MenuCommands
 	public static void quitCommand()
 	{
 		if (preventLoss(null, 0)) return;
-		System.exit(0);
+		QuitJob job = new QuitJob();
+	}
+
+	/**
+	 * Class to quit Electric in a new thread.
+	 */
+	protected static class QuitJob extends Job
+	{
+		public QuitJob()
+		{
+			super("Quitting", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public void doIt() 
+		{
+			System.exit(0);
+		}
 	}
 
 	/**
@@ -2039,7 +2054,6 @@ public final class MenuCommands
         if (TopLevel.isMDIMode()) return;
         
         // find current screen
-		EditWindow curEdit = EditWindow.getCurrent();
         WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
 		WindowContent content = curWF.getContent();
         GraphicsConfiguration curConfig = content.getPanel().getGraphicsConfiguration();
@@ -2504,8 +2518,9 @@ public final class MenuCommands
 	public static void listVarsOnObject(boolean useproto) {
 		if (Highlight.getNumHighlights() == 0) {
 			// list vars on cell
-            EditWindow wnd = EditWindow.getCurrent();
-            Cell cell = wnd.getCell();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf == null) return;
+            Cell cell = wf.getContent().getCell();
             cell.getInfo();
 			return;
 		}

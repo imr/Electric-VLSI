@@ -561,10 +561,12 @@ public class PixelDrawing
 
 				// just draw it directly
 				drawCell(subCell, subTrans, false);
+				showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance
 				drawUnexpandedCell(ni, trans);
+				showCellPorts(ni, trans, null);
 			}
 
 			// draw any displayable variables on the instance
@@ -675,6 +677,65 @@ public class PixelDrawing
 		drawPolys(polys, trans);
 	}
 
+	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
+	{
+		// show the ports that are not further exported or connected
+		FlagSet fs = PortProto.getFlagSet(1);
+		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			pp.clearBit(fs);
+		}
+		for(Iterator it = ni.getConnections(); it.hasNext();)
+		{
+			Connection con = (Connection) it.next();
+			PortInst pi = con.getPortInst();
+			pi.getPortProto().setBit(fs);
+		}
+		for(Iterator it = ni.getExports(); it.hasNext();)
+		{
+			Export exp = (Export) it.next();
+			PortInst pi = exp.getOriginalPort();
+			pi.getPortProto().setBit(fs);
+		}
+		int portDisplayLevel = User.getPortDisplayLevel();
+		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			if (pp.isBit(fs)) continue;
+	
+			Poly portPoly = ni.getShapeOfPort(pp);
+			if (portPoly == null) continue;
+			portPoly.transform(trans);
+			Color portColor = col;
+			if (portColor == null) portColor = pp.colorOfPort();
+			portGraphics.setColor(portColor);
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				drawCross(portPoly, portGraphics);
+			} else
+			{
+				// draw port as text
+				if (User.isTextVisibilityOnPort())
+				{
+					TextDescriptor descript = portPoly.getTextDescriptor();
+					Poly.Type type = descript.getPos().getPolyType();
+					String portName = pp.getProtoName();
+					if (portDisplayLevel == 1)
+					{
+						// use shorter port name
+						portName = pp.getShortProtoName();
+					}
+					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
+					Rectangle rect = new Rectangle(pt);
+					drawText(rect, type, descript, portName, null, portGraphics);
+				}
+			}
+		}
+		fs.freeFlagSet();
+	}
+
 	private void drawUnexpandedCell(NodeInst ni, AffineTransform trans)
 	{
 		NodeProto np = ni.getProto();
@@ -701,61 +762,6 @@ public class PixelDrawing
 			TextDescriptor descript = ni.getProtoTextDescriptor();
 			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
 		}
-
-		// show the ports that are not further exported or connected
-		FlagSet fs = PortProto.getFlagSet(1);
-		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-		{
-			PortProto pp = (PortProto)it.next();
-			pp.clearBit(fs);
-		}
-		for(Iterator it = ni.getConnections(); it.hasNext();)
-		{
-			Connection con = (Connection) it.next();
-			PortInst pi = con.getPortInst();
-			pi.getPortProto().setBit(fs);
-		}
-		for(Iterator it = ni.getExports(); it.hasNext();)
-		{
-			Export exp = (Export) it.next();
-			PortInst pi = exp.getOriginalPort();
-			pi.getPortProto().setBit(fs);
-		}
-		int portDisplayLevel = User.getPortDisplayLevel();
-		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-		{
-			PortProto pp = (PortProto)it.next();
-			if (pp.isBit(fs)) continue;
-
-			Poly portPoly = ni.getShapeOfPort(pp);
-			if (portPoly == null) continue;
-			portPoly.transform(trans);
-			Color col = pp.colorOfPort();
-			portGraphics.setColor(col);
-			if (portDisplayLevel == 2)
-			{
-				// draw port as a cross
-				drawCross(portPoly, portGraphics);
-			} else
-			{
-				// draw port as text
-				if (User.isTextVisibilityOnPort())
-				{
-					TextDescriptor descript = portPoly.getTextDescriptor();
-					Poly.Type type = descript.getPos().getPolyType();
-					String portName = pp.getProtoName();
-					if (portDisplayLevel == 1)
-					{
-						// use shorter port name
-						portName = pp.getShortProtoName();
-					}
-					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
-					Rectangle rect = new Rectangle(pt);
-					drawText(rect, type, descript, portName, null, portGraphics);
-				}
-			}
-		}
-		fs.freeFlagSet();
 	}
 
 	private void drawTinyLayers(Iterator layerIterator, int x, int y)
@@ -2280,13 +2286,6 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 			}
 		}
 	}
-//		if (layerBitMap == null)
-//		{
-//			opaqueData[y * sz.width + x] = col.getRGB() & 0xFFFFFF;
-//		} else
-//		{
-//			layerBitMap[y][x>>3] |= (1 << (x&7));
-//		}
 
 	/*
 	 * Method to draw a thick circle on the off-screen buffer

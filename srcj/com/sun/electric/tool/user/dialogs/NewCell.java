@@ -282,14 +282,12 @@ public class NewCell extends javax.swing.JDialog
 
 			if (!newWindow)
 			{
-				EditWindow wnd = EditWindow.getCurrent();
-				if (wnd != null)
-				{
-					wnd.setCell(cell, VarContext.globalContext);
-					return;
-				}
+				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+				wf.setCellWindow(cell);
+				WindowFrame.setCurrentWindowFrame(wf);
+				return;
 			}
-			WindowFrame wf = WindowFrame.createEditWindow(cell);
+			WindowFrame.createEditWindow(cell);
 		}
 	}
 

@@ -152,10 +152,9 @@ public class Verilog extends Topology
 		Cell verViewCell = cell.otherView(View.VERILOG);
 		if (verViewCell != null)
 		{
-			Variable var = verViewCell.getVar(Cell.CELL_TEXT_KEY);
-			if (var != null)
+			String [] stringArray = verViewCell.getTextViewContents();
+			if (stringArray != null)
 			{
-				String [] stringArray = (String [])var.getObject();
 				for(int i=0; i<stringArray.length; i++)
 					printWriter.print(stringArray[i] + "%s\n");
 			}

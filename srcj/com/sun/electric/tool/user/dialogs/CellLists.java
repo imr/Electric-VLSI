@@ -168,8 +168,8 @@ public class CellLists extends javax.swing.JDialog
 		if (cell.getView().isTextView())
 		{
 			int len = 0;
-			Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
-			if (var != null) len = var.getLength();
+			String [] textLines = cell.getTextViewContents();
+			if (textLines != null) len = textLines.length;
 			if (maxlen < 0) line += len + " lines"; else
 			{
 				line += TextUtils.toBlankPaddedString(len, 8) + " lines   ";
