@@ -192,10 +192,10 @@ public class CellParameters extends EDialog
 			Variable var = dialog.curCell.updateVar("ATTR_" + name, value);
 			if (var != null)
 			{
-				var.setDisplay();
+				var.setDisplay(true);
 				TextDescriptor td = var.getTextDescriptor();
-				td.setParam();
-				td.setInherit();
+				td.setParam(true);
+				td.setInherit(true);
 				td.setDispPart(TextDescriptor.DispPos.NAMEVALINH);
 
 				Variable.Code currentCode = (Variable.Code)dialog.language.getSelectedItem();
@@ -299,8 +299,7 @@ public class CellParameters extends EDialog
 							}
 
 							// make sure visibility is OK
-							if (cTd.isInterior()) var.clearDisplay(); else
-								var.setDisplay();
+                            var.setDisplay(!cTd.isInterior());
 						}
 					}
 
@@ -315,14 +314,14 @@ public class CellParameters extends EDialog
 						{
 							// this cell parameter is not on the node: add to instance
 							instVar = ni.newVar(cVar.getKey(), cVar.getObject());
-							instVar.setDisplay();
+							instVar.setDisplay(true);
 						}
 						if (instVar != null)
 						{
                             instVar.setCode(cVar.getCode());
 							TextDescriptor td = instVar.getTextDescriptor();
-							td.setParam();
-							td.clearInterior();
+							td.setParam(true);
+							td.setInterior(false);
 							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 							td.setUnit(cTd.getUnit());
 						}

@@ -487,7 +487,7 @@ public class ELIB extends Output
 						String newVarName = "ATTRP_" + sb.toString() + "_" + var.getKey().getName();
 						Undo.setNextChangeQuiet();
 						Variable newVar = ni.newVar(newVarName, var.getObject());
-						if (var.isDisplay()) newVar.setDisplay();
+						if (var.isDisplay()) newVar.setDisplay(true);
 						newVar.setCode(var.getCode());
 						newVar.setTextDescriptor(var.getTextDescriptor());
 					}

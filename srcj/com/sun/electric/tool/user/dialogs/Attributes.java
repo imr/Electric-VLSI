@@ -580,8 +580,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
                 Variable var = owner.getVar(newName);
                 if (var == null) return false;
                 TextDescriptor td = var.getTextDescriptor();
-                td.setParam();
-                td.setInherit();
+                td.setParam(true);
+                td.setInherit(true);
             }
             return true;
         }

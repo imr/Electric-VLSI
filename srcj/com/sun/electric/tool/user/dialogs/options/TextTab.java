@@ -234,17 +234,13 @@ public class TextTab extends PreferencePanel
 			currentTextDescriptor.setRelSize(size);
 		}
 
-		if (textItalic.isSelected()) currentTextDescriptor.setItalic(); else
-			currentTextDescriptor.clearItalic();
-		if (textBold.isSelected()) currentTextDescriptor.setBold(); else
-			currentTextDescriptor.clearBold();
-		if (textUnderline.isSelected()) currentTextDescriptor.setUnderline(); else
-			currentTextDescriptor.clearUnderline();
+        currentTextDescriptor.setItalic(textItalic.isSelected());
+        currentTextDescriptor.setBold(textBold.isSelected());
+        currentTextDescriptor.setUnderline(textUnderline.isSelected());
 
 		currentTextDescriptor.setPos((TextDescriptor.Position)textAnchor.getSelectedItem());
 
-		if (textNewVisibleInsideCell.isSelected()) currentTextDescriptor.setInterior(); else
-			currentTextDescriptor.clearInterior();
+        currentTextDescriptor.setInterior(textNewVisibleInsideCell.isSelected());
 
 		int index = textFace.getSelectedIndex();
 		int len = currentTextFont.length();

@@ -484,8 +484,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             }
 
             // handle changes to "invisible outside cell"
-            if (invis) td.setInterior(); else
-                td.clearInterior();
+            td.setInterior(invis);
 
             // handle changes to the font
             if (font.equals("DEFAULT FONT")) td.setFace(0);
@@ -496,12 +495,9 @@ public class TextInfoPanel extends javax.swing.JPanel
             }
 
             // handle changes to italic / bold / underline
-            if (italic) td.setItalic(); else
-                td.clearItalic();
-            if (bold) td.setBold(); else
-                td.clearBold();
-            if (underline) td.setUnderline(); else
-                td.clearUnderline();
+            td.setItalic(italic);
+            td.setBold(bold);
+            td.setUnderline(underline);
 			return true;
         }
     }

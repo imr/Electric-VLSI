@@ -306,7 +306,7 @@ public class PixelDrawing
 			{
 				noCellTextDescriptor = new TextDescriptor(null);
 				noCellTextDescriptor.setAbsSize(18);
-				noCellTextDescriptor.setBold();
+				noCellTextDescriptor.setBold(true);
 			}
 			Rectangle rect = new Rectangle(sz);
 			blackGraphics.setColor(new Color(User.getColorText()));

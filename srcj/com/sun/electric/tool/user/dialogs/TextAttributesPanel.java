@@ -262,9 +262,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             // change the show style
             if (dispPos == displaynone) {
                 // var should not be null
-                var.clearDisplay();
+                var.setDisplay(false);
             } else {
-                var.setDisplay();
+                var.setDisplay(true);
                 td.setDispPart((TextDescriptor.DispPos)dispPos);
             }
 			return true;

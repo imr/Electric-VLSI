@@ -1275,7 +1275,7 @@ public class PaletteFrame
 				Variable var = newNi.newVar(varName, "text");
 				if (var != null)
 				{
-					var.setDisplay();
+					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor(null);
 					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					var.setTextDescriptor(td);
@@ -1287,25 +1287,25 @@ public class PaletteFrame
 				if (np == Schematics.tech.resistorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_RESISTANCE, "100");
-					var.setDisplay();
+					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.capacitorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_CAPACITANCE, "100M");
-					var.setDisplay();
+					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.inductorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_INDUCTANCE, "100");
-					var.setDisplay();
+					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.diodeNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_DIODE, "10");
-					var.setDisplay();
+					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
@@ -1313,13 +1313,13 @@ public class PaletteFrame
 					if (newNi.isFET())
 					{
 						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2");
-						var.setDisplay();
+						var.setDisplay(true);
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 						td.setOff(0.5, -1);
 						var.setTextDescriptor(td);
 
 						var = newNi.newVar(Schematics.ATTR_LENGTH, "2");
-						var.setDisplay();
+						var.setDisplay(true);
 						td = TextDescriptor.getNodeTextDescriptor(null);
 						td.setOff(-0.5, -1);
 						if (td.getSize().isAbsolute())
@@ -1329,7 +1329,7 @@ public class PaletteFrame
 					} else
 					{
 						Variable var = newNi.newVar(Schematics.ATTR_AREA, "10");
-						var.setDisplay();
+						var.setDisplay(true);
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 						var.setTextDescriptor(td);
 					}

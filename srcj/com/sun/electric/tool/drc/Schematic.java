@@ -272,7 +272,7 @@ public class Schematic
 								ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 									" should not be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
-								var.clearDisplay();
+								var.setDisplay(false);
 							}
 						} else
 						{
@@ -282,7 +282,7 @@ public class Schematic
 								ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 									" should be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
-								var.setDisplay();
+								var.setDisplay(true);
 							}
 						}
 					}

@@ -1248,19 +1248,13 @@ public class TextDescriptor
 	/**
 	 * Method to set the text in the TextDescriptor to be italic.
 	 */
-	public void setItalic()
+	public void setItalic(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTITALIC;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not italic.
-	 */
-	public void clearItalic()
-	{
-		checkChanging();
-		descriptor0 &= ~VTITALIC;
+        if (state)
+		    descriptor0 |= VTITALIC;
+        else
+            descriptor0 &= ~VTITALIC;
 	}
 
 	/**
@@ -1272,19 +1266,13 @@ public class TextDescriptor
 	/**
 	 * Method to set the text in the TextDescriptor to be bold.
 	 */
-	public void setBold()
+	public void setBold(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTBOLD;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not bold.
-	 */
-	public void clearBold()
-	{
-		checkChanging();
-		descriptor0 &= ~VTBOLD;
+        if (state)
+		    descriptor0 |= VTBOLD;
+        else
+            descriptor0 &= ~VTBOLD;
 	}
 
 	/**
@@ -1296,19 +1284,13 @@ public class TextDescriptor
 	/**
 	 * Method to set the text in the TextDescriptor to be underlined.
 	 */
-	public void setUnderline()
+	public void setUnderline(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTUNDERLINE;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not underlined.
-	 */
-	public void clearUnderline()
-	{
-		checkChanging();
-		descriptor0 &= ~VTUNDERLINE;
+		if (state)
+            descriptor0 |= VTUNDERLINE;
+        else
+            descriptor0 &= ~VTUNDERLINE;
 	}
 
 	/**
@@ -1322,20 +1304,13 @@ public class TextDescriptor
 	 * Method to set the text in the TextDescriptor to be interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
-	public void setInterior()
+	public void setInterior(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTINTERIOR;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not interior.
-	 * Interior text is not seen at higher levels of the hierarchy.
-	 */
-	public void clearInterior()
-	{
-		checkChanging();
-		descriptor0 &= ~VTINTERIOR;
+		if (state)
+            descriptor0 |= VTINTERIOR;
+        else
+            descriptor0 &= ~VTINTERIOR;
 	}
 
 	/**
@@ -1355,23 +1330,13 @@ public class TextDescriptor
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
 	 * created on that NodeInst.
 	 */
-	public void setInherit()
+	public void setInherit(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTINHERIT;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not inheritable.
-	 * Inheritable variables copy their contents from prototype to instance.
-	 * Only Variables on NodeProto and PortProto objects can be inheritable.
-	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
-	 * created on that NodeInst.
-	 */
-	public void clearInherit()
-	{
-		checkChanging();
-		descriptor0 &= ~VTINHERIT;
+		if (state)
+            descriptor0 |= VTINHERIT;
+        else
+            descriptor0 &= ~VTINHERIT;
 	}
 
 	/**
@@ -1389,22 +1354,13 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public void setParam()
+	public void setParam(boolean state)
 	{
 		checkChanging();
-		descriptor0 |= VTISPARAMETER;
-	}
-
-	/**
-	 * Method to set the text in the TextDescriptor to be not a parameter.
-	 * Parameters are those Variables that have values on instances which are
-	 * passed down the hierarchy into the contents.
-	 * Parameters can only exist on NodeInst objects.
-	 */
-	public void clearParam()
-	{
-		checkChanging();
-		descriptor0 &= ~VTISPARAMETER;
+		if (state)
+            descriptor0 |= VTISPARAMETER;
+        else
+            descriptor0 &= ~VTISPARAMETER;
 	}
 
 	/**

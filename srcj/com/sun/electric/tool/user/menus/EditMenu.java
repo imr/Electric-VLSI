@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.topology.NodeInst;
@@ -50,6 +51,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * Class to handle the commands in the "Edit" pulldown menu.
@@ -174,12 +176,17 @@ public class EditMenu {
 		editPropertiesSubMenu.addMenuItem("Attribute Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
 		editPropertiesSubMenu.addSeparator();
-		editPropertiesSubMenu.addMenuItem("See All Parameters on Node", null,
+		editPropertiesSubMenu.addMenuItem("See All Attributes on Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
-		editPropertiesSubMenu.addMenuItem("Hide All Parameters on Node", null,
+		editPropertiesSubMenu.addMenuItem("Hide All Attributes on Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
-		editPropertiesSubMenu.addMenuItem("Default Parameter Visibility", null,
+		editPropertiesSubMenu.addMenuItem("Default Attributes Visibility", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
+        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance on Node", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(false); } });
+        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance all Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(true); } });
+
 
 		MenuBar.Menu arcSubMenu = new MenuBar.Menu("Arc", 'A');
 		editMenu.add(arcSubMenu);
@@ -506,12 +513,12 @@ public class EditMenu {
 					{
 						case 0:			// make all parameters visible
 							if (var.isDisplay()) continue;
-							var.setDisplay();
+							var.setDisplay(true);
 							changed = true;
 							break;
 						case 1:			// make all parameters invisible
 							if (!var.isDisplay()) continue;
-							var.clearDisplay();
+							var.setDisplay(false);
 							changed = true;
 							break;
 						case 2:			// make all parameters have default visiblity
@@ -519,13 +526,13 @@ public class EditMenu {
 							{
 								// prototype wants parameter to be invisible
 								if (!var.isDisplay()) continue;
-								var.clearDisplay();
+								var.setDisplay(false);
 								changed = true;
 							} else
 							{
 								// prototype wants parameter to be visible
 								if (var.isDisplay()) continue;
-								var.setDisplay();
+								var.setDisplay(true);
 								changed = true;
 							}
 							break;
@@ -560,6 +567,89 @@ public class EditMenu {
 		}
 		return null;
 	}
+
+    public static void updateInheritance(boolean allLibraries)
+    {
+        // get currently selected node(s)
+        List highlighted = Highlight.getHighlighted(true, false);
+        UpdateAttributes job = new UpdateAttributes(highlighted, allLibraries, 0);
+    }
+
+    private static class UpdateAttributes extends Job {
+        private List highlighted;
+        private boolean allLibraries;
+        private int whatToUpdate;
+
+        /**
+         * Update Attributes.
+         * @param highlighted currently highlighted objects
+         * @param allLibraries if true, update all nodeinsts in all libraries, otherwise update
+         * highlighted
+         * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
+         */
+        UpdateAttributes(List highlighted, boolean allLibraries, int whatToUpdate) {
+            super("Update Inheritance", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.highlighted = highlighted;
+            this.allLibraries = allLibraries;
+            this.whatToUpdate = whatToUpdate;
+            startJob();
+        }
+
+        public boolean doIt() {
+            int count = 0;
+            if (allLibraries) {
+                for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+                    Library lib = (Library)it.next();
+                    for (Iterator it2 = lib.getCells(); it2.hasNext(); ) {
+                        Cell c = (Cell)it2.next();
+                        for (Iterator it3 = c.getNodes(); it3.hasNext(); ) {
+                            NodeInst ni = (NodeInst)it3.next();
+                            if (ni.getProto() instanceof Cell) {
+                                if (whatToUpdate == 0) {
+                                    updateInheritance(ni, (Cell)ni.getProto());
+                                    count++;
+                                }
+                                if (whatToUpdate == 1) {
+                                    updateLocations(ni, (Cell)ni.getProto());
+                                    count++;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (Iterator it = highlighted.iterator(); it.hasNext(); ) {
+                    ElectricObject eobj = (ElectricObject)it.next();
+                    if (eobj instanceof NodeInst) {
+                        NodeInst ni = (NodeInst)eobj;
+                        if (ni.getProto() instanceof Cell) {
+                            if (whatToUpdate == 0) {
+                                updateInheritance(ni, (Cell)ni.getProto());
+                                count++;
+                            }
+                            if (whatToUpdate == 1) {
+                                updateLocations(ni, (Cell)ni.getProto());
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+            if (whatToUpdate == 0)
+                System.out.println("Updated Attribute Inheritance on "+count+" nodes");
+            if (whatToUpdate == 1)
+                System.out.println("Updated Attribute Locations on "+count+" nodes");
+            return true;
+        }
+
+        private void updateInheritance(NodeInst ni, Cell proto) {
+            CircuitChanges.inheritAttributes(ni, true);
+        }
+
+        private void updateLocations(NodeInst ni, Cell proto) {
+
+        }
+    }
 
 	/**
 	 * This method implements the command to highlight all objects in the current Cell.

@@ -835,15 +835,15 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 						if (slashPos >= 0)
 							length = TextUtils.atof(currentTextField.substring(slashPos+1).trim());
 						Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
-						if (var != null) var.setDisplay();
+						if (var != null) var.setDisplay(true);
 						var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
-						if (var != null) var.setDisplay();
+						if (var != null) var.setDisplay(true);
 						dialog.initialTextField = currentTextField;
 						changed = true;
 					} else
 					{
 						Variable var = ni.updateVar(Schematics.ATTR_AREA, new Double(TextUtils.atof(currentTextField)));
-						if (var != null) var.setDisplay();
+						if (var != null) var.setDisplay(true);
 						dialog.initialTextField = currentTextField;
 						changed = true;
 					}
@@ -869,7 +869,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
 					if (var != null && oldVar == null)
 					{
-						var.setDisplay();
+						var.setDisplay(true);
 						var.getTextDescriptor().setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					}
 					dialog.initialTextField = currentTextField;
@@ -882,7 +882,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_DIODE, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -893,7 +893,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_RESISTANCE, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -904,7 +904,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_CAPACITANCE, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -915,7 +915,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_INDUCTANCE, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -926,7 +926,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_FUNCTION, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -937,7 +937,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					Variable var = ni.updateVar(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
-					if (var != null) var.setDisplay();
+					if (var != null) var.setDisplay(true);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}

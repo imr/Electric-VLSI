@@ -471,20 +471,17 @@ public class ChangeText extends EDialog
 			}
 			if (bold.isSelected() != td.isBold())
 			{
-				if (td.isBold()) td.clearBold(); else
-					td.setBold();
+                td.setBold(!td.isBold());
 				changed = true;
 			}
 			if (italic.isSelected() != td.isItalic())
 			{
-				if (td.isItalic()) td.clearItalic(); else
-					td.setItalic();
+                td.setItalic(!td.isItalic());
 				changed = true;
 			}
 			if (underline.isSelected() != td.isUnderline())
 			{
-				if (td.isUnderline()) td.clearUnderline(); else
-					td.setUnderline();
+                td.setUnderline(!td.isUnderline());
 				changed = true;
 			}
 			return changed;

@@ -1338,7 +1338,7 @@ public class ELIB extends LibraryFiles
 								Variable var = pi.newVar(varName, origVar.getObject());
 								if (var != null)
 								{
-									if (origVar.isDisplay()) var.setDisplay();
+									if (origVar.isDisplay()) var.setDisplay(true);
 									var.setCode(origVar.getCode());
 									var.setTextDescriptor(origVar.getTextDescriptor());									
 								}

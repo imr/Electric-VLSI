@@ -440,7 +440,7 @@ public class ElectricObject
 		newVar.setTextDescriptor(td);
 		if (oldCantSet) newVar.setCantSet();
 		newVar.setCode(oldCode);
-		if (oldDisplay) newVar.setDisplay();
+		if (oldDisplay) newVar.setDisplay(oldDisplay);
 		if (oldTemporary) newVar.setDontSave();
 		return newVar;
 	}

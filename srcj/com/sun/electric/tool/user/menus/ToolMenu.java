@@ -811,7 +811,7 @@ public class ToolMenu {
             Variable var = ni.newVar("ATTR_M", new Double(1.0));
             if (var != null)
             {
-                var.setDisplay();
+                var.setDisplay(true);
                 TextDescriptor td = var.getTextDescriptor();
                 td.setOff(-1.5, -1);
                 td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
@@ -853,9 +853,9 @@ public class ToolMenu {
             templateVar = cell.newVar(templateKey, "*Undefined");
             if (templateVar != null)
             {
-                templateVar.setDisplay();
+                templateVar.setDisplay(true);
                 TextDescriptor td = templateVar.getTextDescriptor();
-                td.setInterior();
+                td.setInterior(true);
                 td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
             }
             return true;

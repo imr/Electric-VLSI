@@ -527,13 +527,14 @@ public class Variable
 	 * Method to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void setDisplay() { checkChanging(); flags |= VDISPLAY; }
-
-	/**
-	 * Method to set this Variable to be not displayable.
-	 * Displayable Variables are shown with the object.
-	 */
-	public void clearDisplay() { checkChanging(); flags &= ~VDISPLAY; }
+	public void setDisplay(boolean state)
+    {
+        checkChanging();
+        if (state)
+            flags |= VDISPLAY;
+        else
+            flags &= ~VDISPLAY;
+    }
 
 	/**
 	 * Method to return true if this Variable is displayable.

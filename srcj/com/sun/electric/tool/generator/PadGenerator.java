@@ -1066,7 +1066,7 @@ public class PadGenerator {
                     // put the original cell name on it
                     Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getName());
                     if (var != null) {
-                        var.setDisplay();
+                        var.setDisplay(true);
                     }
                 }
 
