@@ -1054,15 +1054,7 @@ public class User extends Listener
 	 * The default is the Java "user directory".
 	 * @return the path of the current working directory.
 	 */
-    //public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
-    public static String getWorkingDirectory() {
-        if (TopLevel.getOperatingSystem() == TopLevel.OS.WINDOWS)
-            return cacheWorkingDirectory.getString();
-        if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
-            return cacheWorkingDirectory.getString();
-        // default for linux:
-        return java.lang.System.getProperty("user.dir");
-    }
+    public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
 
 	/**
 	 * Method to set the path of the current working directory.

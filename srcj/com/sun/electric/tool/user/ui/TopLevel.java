@@ -171,6 +171,8 @@ public class TopLevel extends JFrame
 				os = OS.UNIX;
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                // set working dir to current dir
+                User.setWorkingDirectory(System.getProperty("user.dir"));
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
