@@ -120,7 +120,7 @@ public class PortInst
 	 */
 	public Rectangle2D getBounds()
 	{
-		Rectangle2D r = portProto.getPoly(nodeInst).getBounds2D();
+		Rectangle2D r = nodeInst.getShapeOfPort(portProto).getBounds2D();
 		return r;
 	}
 
@@ -130,6 +130,6 @@ public class PortInst
 	 */
 	public Poly getPoly()
 	{
-		return portProto.getPoly(nodeInst);
+		return nodeInst.getShapeOfPort(portProto);
 	}
 }

@@ -147,7 +147,7 @@ public class Input
 		boolean topLevel = false;
 		if (lib == null)
 		{
-			mainLibDirectory = n.getPath();
+			mainLibDirectory = n.getPath() + File.separator;
 			topLevel = true;
 		}
 

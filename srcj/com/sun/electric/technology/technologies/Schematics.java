@@ -1318,7 +1318,7 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeofNode(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1574,6 +1574,42 @@ public class Schematics extends Technology
 
 		// construct the polygons
 		return polys;
+	}
+
+	/**
+	 * Routine to convert old primitive port names to their proper PortProtos.
+	 * This method overrides the general Technology version and attempts Schematic-specific tests first.
+	 * @param portName the unknown port name, read from an old Library.
+	 * @param np the PrimitiveNode on which this port resides.
+	 * @return the proper PrimitivePort to use for this name.
+	 */
+	public PrimitivePort convertOldPortName(String portName, PrimitiveNode np)
+	{
+		if (np == source_node || np == meter_node)
+		{
+			if (portName.equals("top")) return getIndexedPort(0, np);
+			if (portName.equals("bottom")) return getIndexedPort(1, np);
+		}
+		if (np == twoport_node)
+		{
+			if (portName.equals("upperleft"))getIndexedPort(0, np);
+			if (portName.equals("lowerleft")) getIndexedPort(1, np);
+			if (portName.equals("upperright")) getIndexedPort(2, np);
+			if (portName.equals("lowerright")) getIndexedPort(3, np);
+		}
+
+		return super.convertOldPortName(portName,np);
+	}
+
+	private PrimitivePort getIndexedPort(int index, PrimitiveNode np)
+	{
+		for(Iterator it = np.getPorts(); it.hasNext(); )
+		{
+			PrimitivePort pp = (PrimitivePort)it.next();
+			if (index == 0) return pp;
+			index--;
+		}
+		return null;
 	}
 
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {

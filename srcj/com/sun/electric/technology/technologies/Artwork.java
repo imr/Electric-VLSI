@@ -415,7 +415,7 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeofNode(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -479,6 +479,24 @@ public class Artwork extends Technology
 	}
 
 	/**
+	 * Returns a polygon that describes a particular port on a NodeInst.
+	 * @param ni the NodeInst that has the port of interest.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param pp the PrimitivePort on that NodeInst that is being described.
+	 * @return a Poly object that describes this PrimitivePort graphically.
+	 */
+	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		if (np == pinNode || np == arrowNode)
+		{
+			return super.getShapeOfPort(ni, pp);
+		}
+		Poly [] polys = getShapeOfNode(ni, null);
+		return polys[0];
+	}
+
+	/**
 	 * Routine to return a list of Polys that describe a given ArcInst.
 	 * This routine overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
@@ -486,7 +504,7 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeofArc(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
 	{
 		getGraphics(ai);
 		return super.getShapeOfArc(ai, wnd);

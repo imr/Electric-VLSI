@@ -33,10 +33,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
+import javax.swing.AbstractAction;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Insets;
+import java.awt.event.KeyEvent;
 
 /**
  * This class manages the Electric toolbar.
@@ -76,6 +78,8 @@ public class ToolBar extends JToolBar
 	{
 		// create the toolbar
 		ToolBar toolbar = new ToolBar();
+		toolbar.setFloatable(true);
+		toolbar.setRollover(true);
 
 		// the "Open file" button
 		JButton openButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOpen.gif")));
@@ -93,7 +97,7 @@ public class ToolBar extends JToolBar
 		selectButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 		selectButton.setToolTipText("Select");
-		selectButton.setBorderPainted(false);
+//		selectButton.setBorderPainted(false);
 		selectButton.setSelected(true);
 		toolbar.add(selectButton);
 		modeGroup.add(selectButton);
@@ -103,7 +107,7 @@ public class ToolBar extends JToolBar
 		selectSpecialButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectSpecialCommand(); } });
 		selectSpecialButton.setToolTipText("Special Select");
-		selectSpecialButton.setBorderPainted(false);
+//		selectSpecialButton.setBorderPainted(false);
 		toolbar.add(selectSpecialButton);
 		modeGroup.add(selectSpecialButton);
 
@@ -112,7 +116,7 @@ public class ToolBar extends JToolBar
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
 		panButton.setToolTipText("Pan");
-		panButton.setBorderPainted(false);
+//		panButton.setBorderPainted(false);
 		toolbar.add(panButton);
 		modeGroup.add(panButton);
 
@@ -121,7 +125,7 @@ public class ToolBar extends JToolBar
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
 		zoomButton.setToolTipText("Zoom");
-		zoomButton.setBorderPainted(false);
+//		zoomButton.setBorderPainted(false);
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
 
@@ -149,34 +153,22 @@ public class ToolBar extends JToolBar
 	/**
 	 * Routine called when the "select" button is pressed.
 	 */
-	public static void selectCommand()
-	{
-		curMode = Mode.SELECT;
-	}
+	public static void selectCommand() { curMode = Mode.SELECT; }
 
 	/**
 	 * Routine called when the "select special" button is pressed.
 	 */
-	public static void selectSpecialCommand()
-	{
-		curMode = Mode.SELECTSPECIAL;
-	}
+	public static void selectSpecialCommand() { curMode = Mode.SELECTSPECIAL; }
 
 	/**
 	 * Routine called when the "pan" button is pressed.
 	 */
-	public static void panCommand()
-	{
-		curMode = Mode.PAN;
-	}
+	public static void panCommand() { curMode = Mode.PAN; }
 
 	/**
 	 * Routine called when the "zoom" button is pressed.
 	 */
-	public static void zoomCommand()
-	{
-		curMode = Mode.ZOOM;
-	}
+	public static void zoomCommand() { curMode = Mode.ZOOM; }
 
 	/**
 	 * Routine to tell which cursor mode is in effect.

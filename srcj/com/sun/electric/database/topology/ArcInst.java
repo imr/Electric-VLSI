@@ -69,7 +69,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/** fixed-length arc */								private static final int FIXED =                     01;
 	/** fixed-angle arc */								private static final int FIXANG =                    02;
-	/** arc has text that is far away */				private static final int AHASFARTEXT =               04;
+//	/** arc has text that is far away */				private static final int AHASFARTEXT =               04;
 //	/** arc is not in use */							private static final int DEADA =                    020;
 	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
 	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
@@ -383,25 +383,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return true if this ArcInst is slidable.
 	 */
 	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
-
-	/**
-	 * Routine to set this ArcInst to have far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 */
-	public void setFarText() { userBits |= AHASFARTEXT; }
-
-	/**
-	 * Routine to set this ArcInst to not have far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 */
-	public void clearFarText() { userBits &= ~AHASFARTEXT; }
-
-	/**
-	 * Routine to tell whether this ArcInst has far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 * @return true if this ArcInst has far-text.
-	 */
-	public boolean isFarText() { return (userBits & AHASFARTEXT) != 0; }
 
 	/**
 	 * Low-level routine to set the ArcInst angle in the "user bits".

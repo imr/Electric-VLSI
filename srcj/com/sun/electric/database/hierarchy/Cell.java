@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -37,6 +38,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.util.List;
@@ -183,7 +185,6 @@ public class Cell extends NodeProto
 	/** The date this Cell was created. */							private Date creationDate;
 	/** The date this Cell was last modified. */					private Date revisionDate;
 	/** The version of this Cell. */								private int version;
-	/** The NodeInst in this cell that defines the cell center. */	private NodeInst referencePointNode;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
@@ -228,7 +229,6 @@ public class Cell extends NodeProto
 		c.elecBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
-		c.referencePointNode = null;
 		c.rTree = Geometric.RTNode.makeTopLevel();
 		return c;
 	}
@@ -423,16 +423,17 @@ public class Cell extends NodeProto
 	/**
 	 * Routine adjust this cell when the reference point moves.
 	 * This requires renumbering all coordinate values in the Cell.
-	 * @param dx the X distance that the reference point has moved.
-	 * @param dy the Y distance that the reference point has moved.
+	 * @param referencePointNode the Node that is the cell-center.
 	 */
-	public void setReferencePoint(double dx, double dy)
+	public void adjustReferencePoint(NodeInst referencePointNode)
 	{
 		// if there is no change, stop now
-		if (dx == 0 && dy == 0) return;
+		double cX = referencePointNode.getCenterX();
+		double cY = referencePointNode.getCenterY();
+		if (cX == 0 && cY == 0) return;
 
 		// move reference point by (dx,dy)
-		referencePointNode.modifyInstance(-dx, -dy, 0, 0, 0);
+		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
 
 		// must adjust all nodes by (dx,dy)
 		for(int i = 0; i < nodes.size(); i++)
@@ -441,7 +442,14 @@ public class Cell extends NodeProto
 			if (ni == referencePointNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
-			ni.modifyInstance(-dx, -dy, 0, 0, 0);
+			ni.modifyInstance(-cX, -cY, 0, 0, 0);
+		}
+
+		// adjust all instances of this cell
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.modifyInstance(0, 0, 0, 0, 0);
 		}
 	}
 
@@ -472,8 +480,7 @@ public class Cell extends NodeProto
 		NodeProto np = ni.getProto();
 		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenter_node)
 		{
-			referencePointNode = ni;
-			setReferencePoint(ni.getCenterX(), ni.getCenterY());
+			adjustReferencePoint(ni);
 		}
 		if (np instanceof PrimitiveNode
 			&& np.getProtoName().equals("Essential-Bounds"))
@@ -508,8 +515,6 @@ public class Cell extends NodeProto
 		boundsDirty = true;
 		setNetworksDirty();
 
-		if (ni == referencePointNode)
-			referencePointNode = null;
 		essenBounds.remove(ni);
 	}
 
@@ -810,6 +815,23 @@ public class Cell extends NodeProto
 		}
 
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
+	}
+
+	/**
+	 * Routine to return a list of Polys that describes all text on this Cell.
+	 * @param hardToSelect is true if considering hard-to-select text.
+	 * @param wnd the window in which the text will be drawn.
+	 * @return an array of Polys that describes the text.
+	 */
+	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
+	{
+		int dispVars = numDisplayableVariables(false);
+		if (dispVars == 0) return null;
+		Poly [] polys = new Poly[dispVars];
+
+		// add in the displayable variables
+		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
+		return polys;
 	}
 
 //	private HashMap copyNodes(Cell f)

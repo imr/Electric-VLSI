@@ -34,6 +34,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
@@ -438,12 +439,90 @@ public final class UserMenuCommands
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				geom.getInfo();
+				if (h.getType() == Highlight.Type.GEOM)
+				{
+					Geometric geom = h.getGeom();
+					geom.getInfo();
+				} else if (h.getType() == Highlight.Type.TEXT)
+				{
+					if (h.getVar() != null)
+					{
+						String trueName = h.getVar().getReadableName();
+						if (h.getGeom() != null)
+						{
+							if (h.getPort() != null)
+							{
+								System.out.println("TEXT: " + trueName + " on export '" + h.getPort().getProtoName() + "'");
+							} else
+							{
+								if (h.getGeom() instanceof NodeInst)
+								{
+									NodeInst ni = (NodeInst)h.getGeom();
+									if (ni.getProto() == Generic.tech.invisiblePin_node)
+									{
+										String varName = h.getVar().getName().getName();
+										if (varName.equals("ART_message"))
+										{
+											System.out.println("TEXT: Nonlayout text");
+											continue;
+										}
+										if (varName.equals("VERILOG_code"))
+										{
+											System.out.println("TEXT: Verilog Code");
+											continue;
+										}
+										if (varName.equals("VERILOG_declaration"))
+										{
+											System.out.println("TEXT: Verilog declaration");
+											continue;
+										}
+										if (varName.equals("SIM_spice_card"))
+										{
+											System.out.println("TEXT: SPICE card");
+											continue;
+										}
+									}
+								}
+								System.out.println("TEXT: " + trueName + " on geometry " + h.getGeom().describe());
+							}
+						} else
+						{
+							System.out.println("TEXT: " + trueName + " on cell " + h.getCell().describe());
+						}
+					} else
+					{
+						if (h.getPort() != null)
+						{
+							System.out.println("TEXT: Export '" + h.getPort().getProtoName() + "'");
+						} else
+						{
+							if (h.getGeom() != null)
+							{
+								System.out.println("TEXT: Cell instance name " + h.getGeom().describe());
+							} else
+							{
+								System.out.println("TEXT: UNKNOWN");
+							}
+						}
+					}
+				} else if (h.getType() == Highlight.Type.BBOX)
+				{
+					System.out.println("*** Area selected");
+				} else if (h.getType() == Highlight.Type.LINE)
+				{
+					System.out.println("*** Line selected");
+				}
 			}
 		}
 	}
+// * <LI>TEXT: text is selected.  Fills in "cell", "bounds", and "textStyle".  Also:
+// *   <UL>
+// *   <LI>For variable on NodeInst or ArcInst, fills in "var" and "geom".
+// *   <LI>For variable on a Port, fills in "var", "geom", and "port".
+// *   <LI>For Export name, fills in "geom" and "port".
+// *   <LI>For variable on Cell, fills in "var".
+// *   <LI>For a Cell instance name, fills in "geom".
+// *   </UL>
 
 	public static void showRTreeCommand()
 	{

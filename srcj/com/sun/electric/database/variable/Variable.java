@@ -124,11 +124,79 @@ public class Variable
     }
         
 	/**
-	 * Routine to return the Variable Name associated with this variable.
+	 * Routine to return the Variable Name associated with this Variable.
 	 * @return the Variable Name associated with this variable.
 	 */
 	public Name getName() { return vn; }
-    
+
+	/**
+	 * Routine to return a more readable name for this Variable.
+	 * The routine adds "Parameter" or "Attribute" as appropriate
+	 * and uses sensible names such as "Diode Size" instead of "SCHEM_diode".
+	 * @return a more readable name for this Variable.
+	 */
+	public String getReadableName()
+	{
+		String trueName = "";
+		String name = vn.getName();
+		if (name.startsWith("ATTR_"))
+		{
+			if (getTextDescriptor().getIsParam())
+				trueName +=  "Parameter '" + name.substring(5) + "'"; else
+					trueName +=  "Attribute '" + name.substring(5) + "'";
+		} else
+		{
+			String betterName = betterVariableName(name);
+			if (betterName != null) trueName += betterName; else
+				trueName +=  "Variable '" + name + "'";
+		}
+//		unitname = us_variableunits(var);
+//		if (unitname != 0) formatinfstr(infstr, x_(" (%s)"), unitname);
+		return trueName;
+	}
+
+	private String betterVariableName(String name)
+	{
+		/* handle standard variable names */
+		if (name.equals("ARC_name")) return "Arc Name";
+		if (name.equals("ARC_radius")) return "Arc Radius";
+		if (name.equals("ART_color")) return "Color";
+		if (name.equals("ART_degrees")) return "Number of Degrees";
+		if (name.equals("ART_message")) return "Text";
+		if (name.equals("NET_ncc_match")) return "NCC equivalence";
+		if (name.equals("NET_ncc_forcedassociation")) return "NCC association";
+		if (name.equals("NODE_name")) return "Node Name";
+		if (name.equals("SCHEM_capacitance")) return "Capacitance";
+		if (name.equals("SCHEM_diode")) return "Diode Size";
+		if (name.equals("SCHEM_inductance")) return "Inductance";
+		if (name.equals("SCHEM_resistance")) return "Resistance";
+		if (name.equals("SIM_fall_delay")) return "Fall Delay";
+		if (name.equals("SIM_fasthenry_group_name")) return "FastHenry Group";
+		if (name.equals("SIM_rise_delay")) return "Rise Delay";
+		if (name.equals("SIM_spice_model")) return "SPICE model";
+		if (name.equals("transistor_width")) return "Transistor Width";
+		if (name.equals("SCHEM_global_name")) return "Global Signal Name";
+		return null;
+	}
+
+	/**
+	 * Routine to return the "true" name for this Variable.
+	 * The routine removes the "ATTR_" and "ATTRP_" prefixes.
+	 * @return the "true" name for this Variable.
+	 */
+	public String getTrueName()
+	{
+		String name = vn.getName();
+		if (name.startsWith("ATTR_"))
+			return name.substring(5);
+		if (name.startsWith("ATTRP_"))
+		{
+			int i = name.lastIndexOf('_');
+			return name.substring(i);
+		}
+		return name;
+	}
+
 	/**
 	 * Routine to return a description of this Variable.
 	 * @return a description of this Variable.
@@ -151,6 +219,8 @@ public class Variable
 	{
 		TextDescriptor.Units units = descriptor.getUnits();
 		StringBuffer returnVal = new StringBuffer();
+		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
+		String whichIndex = "";
 
 //		if ((flags & (VCODE1|VCODE2)) != 0)
 //		{
@@ -168,6 +238,7 @@ public class Variable
 				if (aindex >= 0)
 				{
 					/* normal array indexing */
+					whichIndex = "[" + aindex + "]";
 					if (aindex < len)
 						returnVal.append(makeStringVar(addrArray[aindex], purpose, units));
 				} else
@@ -182,7 +253,22 @@ public class Variable
 					}
 					if (len > 1) returnVal.append("]");
 				}
-			} else returnVal.append(makeStringVar(addr, purpose, units));
+			} else
+			{
+				returnVal.append(makeStringVar(addr, purpose, units));
+			}
+		}
+		if (dispPos == TextDescriptor.DispPos.NAMEVALUE)
+		{
+			return this.getTrueName() + whichIndex + "=" + returnVal.toString();
+		}
+		if (dispPos == TextDescriptor.DispPos.NAMEVALINH)
+		{
+			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
+		}
+		if (dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
+		{
+			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
 		}
 		return returnVal.toString();
 	}

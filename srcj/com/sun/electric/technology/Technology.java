@@ -1508,32 +1508,45 @@ public class Technology extends ElectricObject
 //		} else
 		{
 			// standard port determination, see if there is outline information
-//			if (np.isHoldsOutline())
-//			{
-//				// outline may determinesthe port
-//				Poly portpoly = new Poly(1, 2, 3, 4);
-//				return portpoly;
-//			} else
+			if (np.isHoldsOutline())
 			{
-				// standard port computation
-				double halfWidth = ni.getXSize() / 2;
-				double lowX = ni.getCenterX() - halfWidth;
-				double highX = ni.getCenterX() + halfWidth;
-				double halfHeight = ni.getYSize() / 2;
-				double lowY = ni.getCenterY() - halfHeight;
-				double highY = ni.getCenterY() + halfHeight;
-				
-				double portLowX = ni.getCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-				double portHighX = ni.getCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-				double portLowY = ni.getCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-				double portHighY = ni.getCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
-				double portX = (portLowX + portHighX) / 2;
-				double portY = (portLowY + portHighY) / 2;
-				Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-				portPoly.setStyle(Poly.Type.FILLED);
-				portPoly.setTextDescriptor(pp.getTextDescriptor());
-				return portPoly;
+				// outline may determine the port
+				Float [] outline = ni.getTrace();
+				if (outline != null)
+				{
+					double cX = ni.getCenterX();
+					double cY = ni.getCenterY();
+					int numPoints = outline.length / 2;
+					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+					for(int i=0; i<numPoints; i++)
+					{
+						pointList[i] = new Point2D.Double(cX + outline[i*2].floatValue(), cY + outline[i*2+1].floatValue());
+					}
+					Poly portPoly = new Poly(pointList);
+					portPoly.setStyle(Poly.Type.FILLED);
+					portPoly.setTextDescriptor(pp.getTextDescriptor());
+					return portPoly;
+				}
 			}
+
+			// standard port computation
+			double halfWidth = ni.getXSize() / 2;
+			double lowX = ni.getCenterX() - halfWidth;
+			double highX = ni.getCenterX() + halfWidth;
+			double halfHeight = ni.getYSize() / 2;
+			double lowY = ni.getCenterY() - halfHeight;
+			double highY = ni.getCenterY() + halfHeight;
+
+			double portLowX = ni.getCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+			double portHighX = ni.getCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+			double portLowY = ni.getCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+			double portHighY = ni.getCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+			double portX = (portLowX + portHighX) / 2;
+			double portY = (portLowY + portHighY) / 2;
+			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+			portPoly.setStyle(Poly.Type.FILLED);
+			portPoly.setTextDescriptor(pp.getTextDescriptor());
+			return portPoly;
 		}
 	}
 
@@ -1547,7 +1560,7 @@ public class Technology extends ElectricObject
 	 * Routine to write a description of this Technology.
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println(" Name: " + techName);
 		System.out.println(" Description: " + techDesc);
@@ -1587,7 +1600,7 @@ public class Technology extends ElectricObject
 	/**
 	 * Routine to convert old primitive port names to their proper PortProtos.
 	 * This method is overridden by those technologies that have any special port name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
+	 * By default, there is little to be done, because by the time this
 	 * routine is called, normal searches have failed.
 	 * @param portName the unknown port name, read from an old Library.
 	 * @param np the PrimitiveNode on which this port resides.
@@ -1595,19 +1608,6 @@ public class Technology extends ElectricObject
 	 */
 	public PrimitivePort convertOldPortName(String portName, PrimitiveNode np)
 	{
-//		if (np == sch_sourceprim || np == sch_meterprim)
-//		{
-//			if (portname.equals("top")) return np->firstportproto;
-//			if (portname.equals("bottom")) return np->firstportproto->nextportproto;
-//		}
-//		if (np == sch_twoportprim)
-//		{
-//			if (portname.equals("upperleft")) return(np->firstportproto);
-//			if (portname.equals("lowerleft")) return(np->firstportproto->nextportproto);
-//			if (portname.equals("upperright")) return(np->firstportproto->nextportproto->nextportproto);
-//			if (portname.equals("lowerright")) return(np->firstportproto->nextportproto->nextportproto->nextportproto);
-//		}
-
 		// some technologies switched from ports ending in "-bot" to the ending "-bottom"
 		int len = portName.length() - 4;
 		if (len > 0 && portName.substring(len).equals("-bot"))

@@ -173,16 +173,6 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/**
-	 * Abstract routine to get the bounds for this port with respect to some NodeInst.
-	 * A port can scale with its owner, so it doesn't make sense to ask
-	 * for the bounds of a port without a NodeInst.  The NodeInst should
-	 * be an instance of the NodeProto that this port belongs to.
-	 * @param ni the NodeInst that this port resides on.
-	 * @return a Poly that describes this port.
-	 */
-	abstract public Poly getPoly(NodeInst ni);
-
-	/**
 	 * Set the network associated with this PortProto.
 	 * @param net the network to associate with this PortProto.
 	 */
@@ -209,7 +199,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * Routine to write a description of this PortProto.
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println(" Parent: " + parent);
 		System.out.println(" Name: " + protoName);

@@ -24,14 +24,16 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the
@@ -182,39 +184,11 @@ public class Export extends PortProto
 	 */
 	public PortInst getOriginalPort() { return originalPort; }
 
-	/**
-	 * Routine to return the NodeInst inside of the cell that is the origin of this Export.
-	 * @return the NodeInst inside of the cell that is the origin of this Export.
-	 */
-//	public NodeInst getOriginalNode() { return originalNode; }
-
-	/**
-	 * Routine to return a Poly that describes the shape of this Export on a particular NodeInst.
-	 * @param ni the instance of the Export's parent.
-	 * @return the shape of the port.
-	 */
-	public Poly getPoly(NodeInst ni)
-	{
-		// We just figure out where our basis thinks it is, and ask ni to
-		// transform it for us.
-if (originalPort == null)
-{
-	System.out.println("Null originalPort on Export " + protoName + " in cell " + parent.describe());
-	return null;
-}
-		NodeInst originalNode = originalPort.getNodeInst();
-		Poly poly = originalPort.getPortProto().getPoly(originalNode);
-		if (poly == null) return null;
-		AffineTransform af = ni.transformOut();
-		poly.transform(af);
-		return poly;
-	}
-
 	/*
 	 * Routine to write a description of this Export.
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println(" Original: " + originalPort);
 		System.out.println(" Base: " + getBasePort());
@@ -223,6 +197,31 @@ if (originalPort == null)
 	}
 
 	// ----------------------- public methods ----------------------------
+
+	/**
+	 * Routine to return a Poly that describes this Export name.
+	 * @return a Poly that describes this Export's name.
+	 */
+	public Poly getNamePoly()
+	{
+		PortInst pi = getOriginalPort();
+		Poly poly = pi.getNodeInst().getShapeOfPort(pi.getPortProto());
+		double cX = poly.getCenterX();
+		double cY = poly.getCenterY();
+		TextDescriptor td = getTextDescriptor();
+		double offX = (double)td.getXOff() / 4;
+		double offY = (double)td.getYOff() / 4;
+		TextDescriptor.Position pos = td.getPos();
+		Poly.Type style = pos.getPolyType();
+		Point2D.Double [] pointList = new Point2D.Double[1];
+		pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+		poly = new Poly(pointList);
+		poly.setStyle(style);
+		poly.setPort(this);
+		poly.setString(getProtoName());
+		poly.setTextDescriptor(td);
+		return poly;
+	}
 
 	/**
 	 * Routine to return the base-level port that this PortProto is created from.

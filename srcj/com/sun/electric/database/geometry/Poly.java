@@ -25,6 +25,7 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -214,7 +215,8 @@ public class Poly implements Shape
 	/** the string (if of type TEXT) */						private String string;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
 	/** the variable (if of type TEXT) */					private Variable var;
-	
+	/** the PortProto (if from a node or TEXT) */			private PortProto pp;
+
 
 	/**
 	 * The constructor creates a new Poly given an array of points.
@@ -315,9 +317,23 @@ public class Poly implements Shape
 	/**
 	 * Routine to set the Variable associated with this Poly.
 	 * This only applies to text Polys which display a message.
-	 * @param descript the Variable associated with this Poly.
+	 * @param var the Variable associated with this Poly.
 	 */
 	public void setVariable(Variable var) { this.var = var; }
+
+	/**
+	 * Routine to return the PortProto associated with this Poly.
+	 * This applies to ports on Nodes and Exports on Cells.
+	 * @return the PortProto associated with this Poly.
+	 */
+	public PortProto getPort() { return pp; }
+
+	/**
+	 * Routine to set the PortProto associated with this Poly.
+	 * This applies to ports on Nodes and Exports on Cells.
+	 * @param pp the PortProto associated with this Poly.
+	 */
+	public void setPort(PortProto pp) { this.pp = pp; }
 
 	/**
 	 * Routine to return the points associated with this Poly.
@@ -377,21 +393,8 @@ public class Poly implements Shape
 		{
 			double lX = Math.min(points[2].getX(), points[0].getX());
 			double lY = Math.min(points[1].getY(), points[0].getY());
-			double sX, sY;
-			if (points[0].getX() < points[2].getX())
-			{
-				sX = points[2].getX() - points[0].getX();
-			} else
-			{
-				sX = points[0].getX() - points[1].getX();
-			}
-			if (points[0].getY() < points[1].getY())
-			{
-				sY = points[1].getY() - points[0].getY();
-			} else
-			{
-				sY = points[0].getY() - points[1].getY();
-			}
+			double sX = Math.abs(points[2].getX() - points[0].getX());
+			double sY = Math.abs(points[1].getY() - points[0].getY());
 			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
@@ -399,21 +402,8 @@ public class Poly implements Shape
 		{
 			double lX = Math.min(points[1].getX(), points[0].getX());
 			double lY = Math.min(points[2].getY(), points[0].getY());
-			double sX, sY;
-			if (points[0].getX() < points[1].getX())
-			{
-				sX = points[1].getX() - points[0].getX();
-			} else
-			{
-				sX = points[0].getX() - points[1].getX();
-			}
-			if (points[0].getY() < points[2].getY())
-			{
-				sY = points[2].getY() - points[0].getY();
-			} else
-			{
-				sY = points[0].getY() - points[2].getY();
-			}
+			double sX = Math.abs(points[1].getX() - points[0].getX());
+			double sY = Math.abs(points[2].getY() - points[0].getY());
 			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		return null;
@@ -585,6 +575,7 @@ public class Poly implements Shape
 		double polyCY = polyBounds.getCenterY();
 		Point2D.Double polyCenter = new Point2D.Double(polyCX, polyCY);
 		Type localStyle = style;
+		boolean thisIsPoint = (polyBounds.width == 0 && polyBounds.height == 0);
 
 		// get information about the other area being tested
 		boolean otherIsPoint = (otherBounds.width == 0 && otherBounds.height == 0);
@@ -593,7 +584,7 @@ public class Poly implements Shape
 		Point2D.Double otherPt = new Point2D.Double(otherCX, otherCY);
 
 		// handle single point polygons
-		if (localStyle == Type.CROSS || localStyle == Type.BIGCROSS || points.length == 1)
+		if (thisIsPoint)
 		{
 			if (otherIsPoint)
 			{

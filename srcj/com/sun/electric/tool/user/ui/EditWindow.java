@@ -391,6 +391,17 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		{
 			drawNode(g2, (NodeInst)nodes.next(), prevTrans, topLevel);
 		}
+
+		// show cell variables if at the top level
+		if (topLevel)
+		{
+			// show displayable variables on the instance
+			int numPolys = cell.numDisplayableVariables(true);
+			Poly [] polys = new Poly[numPolys];
+			Rectangle2D rect = cell.getBounds();
+			cell.addDisplayableVariables(rect, polys, 0, this, true);
+			drawPolys(g2, polys, new AffineTransform());
+		}
 	}
 
 	/**
@@ -492,11 +503,22 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			while (it.hasNext())
 			{
 				Export e = (Export) it.next();
-				Poly poly = e.getOriginalPort().getPoly();
+				Poly poly = e.getNamePoly();
+				Rectangle2D.Double rect = (Rectangle2D.Double)poly.getBounds2DDouble().clone();
 				poly.transform(localTrans);
 				TextDescriptor descript = poly.getTextDescriptor();
 				drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), Poly.Type.TEXTCENT, descript, e.getProtoName(),
 					Color.black);
+
+				// draw variables on the export
+				int numPolys = e.numDisplayableVariables(true);
+				if (numPolys > 0)
+				{
+					Poly [] polys = new Poly[numPolys];
+					e.addDisplayableVariables(rect, polys, 0, this, true);
+					if (drawPolys(g2, polys, localTrans))
+						System.out.println("... while displaying export in cell " + ni.getParent().describe());
+				}
 			}
 		}
 	}
@@ -1022,7 +1044,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 
 			// standard selection: drag out a selection box
 			Point2D.Double pt = screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, this, false, another, true, false, special);
+			Highlight.findObject(pt, this, false, another, true, special);
 			if (Highlight.getNumHighlights() == 0)
 			{
 				startDrag.setLocation(oldx, oldy);
@@ -1042,7 +1064,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			double maxSelX = Math.max(startDrag.getX(), endDrag.getX());
 			double minSelY = Math.min(startDrag.getY(), endDrag.getY());
 			double maxSelY = Math.max(startDrag.getY(), endDrag.getY());
-			Highlight.selectArea(this, minSelX, maxSelX, minSelY, maxSelY);
+			Highlight.selectArea(this, minSelX, maxSelX, minSelY, maxSelY, mode == ToolBar.Mode.SELECTSPECIAL);
 			doingAreaDrag = false;
 			repaint();
 		}

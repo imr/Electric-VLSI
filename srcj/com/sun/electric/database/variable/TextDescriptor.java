@@ -45,6 +45,7 @@ public class TextDescriptor
 	private static final int VTPOSDOWNRIGHT =             8;		/* 0:   text centered to lower-right of point */
 	private static final int VTPOSBOXED =                 9;		/* 0:   text centered and limited to object size */
 	private static final int VTDISPLAYPART =            060;		/* 0: bits telling what to display */
+	private static final int VTDISPLAYPARTSH =            4;		/* 0: right shift of VTDISPLAYPART */
 	private static final int VTDISPLAYVALUE =             0;		/* 0:   display value */
 	private static final int VTDISPLAYNAMEVALUE =       040;		/* 0:   display name and value */
 	private static final int VTDISPLAYNAMEVALINH =      020;		/* 0:   display name, value, 1-level inherit */
@@ -520,7 +521,12 @@ public class TextDescriptor
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the TextDescriptor.
 	 */
-	public Position getPos() { return thePositions[descriptor0 & VTPOSITION]; }
+	public Position getPos()
+	{
+		int pos = descriptor0 & VTPOSITION;
+		if (pos >= thePositions.length) pos = 0;
+		return thePositions[pos];
+	}
 
 	/**
 	 * Routine to set the text position of the TextDescriptor.
@@ -615,7 +621,7 @@ public class TextDescriptor
 	 * Routine to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public DispPos getDispPart() { return theDispPos[descriptor0 & VTDISPLAYPART]; }
+	public DispPos getDispPart() { return theDispPos[(descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH]; }
 
 	/**
 	 * Routine to set the text display part of the TextDescriptor.

@@ -133,10 +133,12 @@ public class ElectricObject
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+	 * @return the number of Variables that were added.
 	 */
-	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
 	{
-		if (vars == null) return;
+		int numAddedVariables = 0;
+		if (vars == null) return numAddedVariables;
 
 		double cX = rect.getCenterX();
 		double cY = rect.getCenterY();
@@ -174,18 +176,20 @@ public class ElectricObject
 			}
 			for(int i=0; i<varLength; i++)
 			{
+				int index = start + numAddedVariables;
+				numAddedVariables++;
 				Point2D.Double [] pointList = new Point2D.Double[1];
 				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-				polys[start] = new Poly(pointList);
-				polys[start].setStyle(style);
-				polys[start].setString(var.describe(i, -1));
-				polys[start].setTextDescriptor(td);
-				polys[start].setLayer(null);
-				polys[start].setVariable(var);
+				polys[index] = new Poly(pointList);
+				polys[index].setStyle(style);
+				polys[index].setString(var.describe(i, -1));
+				polys[index].setTextDescriptor(td);
+				polys[index].setLayer(null);
+				polys[index].setVariable(var);
 				cY -= height;
-				start++;
 			}
 		}
+		return numAddedVariables;
 	}
 
 	/**
@@ -347,15 +351,16 @@ public class ElectricObject
 	 * Routine to write a description of this ElectricObject (lists all Variables).
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		if (vars == null) return;
-		System.out.println("Variables:");
+		boolean firstvar = true;
 		for(Iterator it = vars.keySet().iterator(); it.hasNext() ;)
 		{
 			String key = (String) it.next();
 			Variable val = (Variable)vars.get(key);
 			if (val == null) continue;
+			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
 			if (addr instanceof Object[])
 			{

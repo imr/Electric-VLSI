@@ -32,10 +32,14 @@ import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -61,7 +65,7 @@ public class NodeInst extends Geometric
 {
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
-	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
+//	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
 	/** if on, draw node expanded */						private static final int NEXPAND =                   04;
 	/** set if node not drawn due to wiping arcs */			private static final int WIPED =                    010;
 	/** set if node is to be drawn shortened */				private static final int NSHORT =                   020;
@@ -363,6 +367,12 @@ public class NodeInst extends Geometric
 			}
 		}
 		parent.setDirty();
+
+		// if the cell-center changed, notify the cell and fix lots of stuff
+		if (protoType instanceof PrimitiveNode && protoType == Generic.tech.cellCenter_node)
+		{
+			parent.adjustReferencePoint(this);
+		}
 	}
 
 	public static void modifyInstances(NodeInst [] nis, double [] dxs, double [] dys, double [] dxsizes, double [] dysizes, int [] drots)
@@ -521,25 +531,6 @@ public class NodeInst extends Geometric
 	}
 
 	// ------------------------ public methods -------------------------------
-
-	/**
-	 * Routine to set this NodeInst to have far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 */
-	public void setFarText() { userBits |= NHASFARTEXT; }
-
-	/**
-	 * Routine to set this NodeInst to not have far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 */
-	public void clearFarText() { userBits &= ~NHASFARTEXT; }
-
-	/**
-	 * Routine to tell whether this NodeInst has far-text.
-	 * Far text is text that is so far offset from the object that normal searches do not find it.
-	 * @return true if this NodeInst has far-text.
-	 */
-	public boolean isFarText() { return (userBits & NHASFARTEXT) != 0; }
 
 	/**
 	 * Routine to set this NodeInst to be expanded.
@@ -736,13 +727,57 @@ public class NodeInst extends Geometric
 	 */
 	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
+		int nodeNameText = 0;
+		if (hardToSelect && protoType instanceof Cell && !isExpanded()) nodeNameText = 1;
 		int dispVars = numDisplayableVariables(false);
 		int numExports = getNumExports();
-numExports = 0;
-		int totalText = dispVars + numExports;
+		int numExportVariables = 0;
+		for(Iterator it = getExports(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			numExportVariables += pp.numDisplayableVariables(false);
+		}
+		int totalText = nodeNameText + dispVars + numExports + numExportVariables;
 		if (totalText == 0) return null;
 		Poly [] polys = new Poly[totalText];
-		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
+		int start = 0;
+
+		// add in the cell name if appropriate
+		if (nodeNameText != 0)
+		{
+			double cX = getCenterX();
+			double cY = getCenterY();
+			TextDescriptor td = getTextDescriptor();
+			double offX = (double)td.getXOff() / 4;
+			double offY = (double)td.getYOff() / 4;
+			TextDescriptor.Position pos = td.getPos();
+			Poly.Type style = pos.getPolyType();
+			Point2D.Double [] pointList = new Point2D.Double[1];
+			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			polys[start] = new Poly(pointList);
+			polys[start].setStyle(style);
+			polys[start].setString(getProto().describe());
+			polys[start].setTextDescriptor(td);
+			start++;
+		}
+
+		// add in the exports
+		for(Iterator it = getExports(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			polys[start] = pp.getNamePoly();
+			start++;
+
+			// add in variables on the exports
+			Poly poly = getShapeOfPort(pp.getOriginalPort().getPortProto());
+			int numadded = pp.addDisplayableVariables(poly.getBounds2DDouble(), polys, start, wnd, false);
+			for(int i=0; i<numadded; i++)
+				polys[start+i].setPort(pp);
+			start += numadded;
+		}
+
+		// add in the displayable variables
+		addDisplayableVariables(getBounds(), polys, start, wnd, false);
 		return polys;
 	}
 
@@ -936,6 +971,34 @@ numExports = 0;
 	public PortInst findPortInst(String name)
 	{
 		return (PortInst) portMap.get(name);
+	}
+
+	/**
+	 * Routine to return a Poly that describes the location of a port on this NodeInst.
+	 * @param thePort the port on this NodeInst.
+	 * @return a Poly that describes the location of the Export.
+	 * The Poly is not transformed for any rotation on this NodeInst.
+	 */
+	public Poly getShapeOfPort(PortProto thePort)
+	{
+		NodeInst ni = this;
+		PortProto pp = thePort;
+
+		/* look down to the bottom level node/port */
+		AffineTransform trans = new AffineTransform();
+		while (ni.getProto() instanceof Cell)
+		{
+			trans = ni.translateOut(trans);
+			ni = ((Export)pp).getOriginalPort().getNodeInst();
+			pp = ((Export)pp).getOriginalPort().getPortProto();
+			trans = ni.rotateOut(trans);
+		}
+
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		Technology tech = np.getTechnology();
+		Poly poly = tech.getShapeOfPort(ni, (PrimitivePort)pp);
+		poly.transform(trans);
+		return poly;
 	}
 
 	/**

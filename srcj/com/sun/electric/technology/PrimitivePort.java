@@ -116,7 +116,7 @@ public class PrimitivePort extends PortProto
 	 * Routine to write a description of this PrimitivePort.
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println(" Connection types: " + portArcs.length);
 		for (int i = 0; i < portArcs.length; i++)
@@ -139,16 +139,6 @@ public class PrimitivePort extends PortProto
 	 * @return an array of ArcProtos which can connect to this PrimitivePort.
 	 */
 	public ArcProto [] getConnections() { return portArcs; }
-
-	/**
-	 * Routine to return a Poly that describes the shape of this PrimitivePort on a particular NodeInst.
-	 * @param ni the instance of the PrimitivePort's parent.
-	 * @return the shape of the port.
-	 */
-	public Poly getPoly(NodeInst ni)
-	{
-		return tech.getShapeOfPort(ni, this);
-	}
 
 	/**
 	 * Routine to return the base-level port that this PortProto is created from.

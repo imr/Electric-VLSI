@@ -1980,8 +1980,9 @@ public class InputBinary extends Input
 		{
 			case BinaryConstants.VADDRESS:
 			case BinaryConstants.VINTEGER:
-			case BinaryConstants.VFRACT:
 				return new Integer(readBigInteger());
+			case BinaryConstants.VFRACT:
+				return new Float(readBigInteger() / 120.0f);
 			case BinaryConstants.VFLOAT:
 				return new Float(readFloat());
 			case BinaryConstants.VDOUBLE:
