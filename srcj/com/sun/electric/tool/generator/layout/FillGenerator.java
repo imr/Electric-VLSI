@@ -319,7 +319,7 @@ class CapFloorplan extends Floorplan {
  *  possible 90 degree rotation by creating a NodeInst of this Cell rotated  
  *  by -90 degrees. */
 class CapCell {
-	/** All the fields in InternalPlan assume that metal1 runs horizontally
+	/** All the fields in ProtoPlan assume that metal1 runs horizontally
 	 *  since that is how we build CapCell */
 	private static class ProtoPlan {
 		private static final double MAX_MOS_WIDTH = 40;

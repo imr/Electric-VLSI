@@ -80,7 +80,6 @@ fg.reserveSpaceOnLayer(6, 0, TRACKS, 4, TRACKS);
 
 makeCells();
 
-System.exit(0);
 
 
 
