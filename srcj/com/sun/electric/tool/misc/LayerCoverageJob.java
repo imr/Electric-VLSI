@@ -58,6 +58,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This utility class is designed for geometric coverage operations.
+ * @author  Gilda Garreton
+ * @version 0.1
+ */
 public class LayerCoverageJob extends Job
 {
 	private Cell curCell;

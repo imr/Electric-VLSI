@@ -10,22 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Comparator;
-import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Jan 14, 2005
- * Time: 4:39:34 PM
+ * Class to implement geometric sweep algorithm in 2D for areas.
+ * @author  Gilda Garreton
  * To change this template use File | Settings | File Templates.
  */
 public class PolySweepMerge extends GeometryHandler
 {
-	//private HashMap layers = new HashMap(); // should be more efficient here
     static final PolySweepShapeSort shapeSort = new PolySweepShapeSort();
     static final PolySweepAreaSort areaSort = new PolySweepAreaSort();
 

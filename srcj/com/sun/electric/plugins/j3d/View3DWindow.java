@@ -119,6 +119,11 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.vecmath.*;
 
+/**
+ * This class deals with 3D View using Java3D
+ * @author  Gilda Garreton
+ * @version 0.1
+ */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
         HighlightListener

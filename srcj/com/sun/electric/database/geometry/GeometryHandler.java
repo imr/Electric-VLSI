@@ -32,6 +32,7 @@ import java.util.HashMap;
 /**
  * To handle merge operation. Two different classes have been proposed
  * and this interface would handle the implementation
+ * @author  Gilda Garreton
  */
 public abstract class GeometryHandler {
     HashMap layers = new HashMap();

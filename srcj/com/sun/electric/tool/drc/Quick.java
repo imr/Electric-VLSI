@@ -101,7 +101,9 @@ import java.util.Map;
  * building these arrays is quick (1 second for a million-transistor chip) and the memory requirement
  * is not excessive (8 megabytes for a million-transistor chip).  It uses the CheckInst and CheckProto
  * objects.
+ * @author  Steve Rubin, Gilda Garreton
  */
+
 public class Quick
 {
 	private static final double TINYDELTA = DBMath.getEpsilon()*1.1;

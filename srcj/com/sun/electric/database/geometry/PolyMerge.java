@@ -64,8 +64,6 @@ import java.util.List;
 public class PolyMerge
         extends GeometryHandler
 {
-	//private HashMap layers = new HashMap(); // should be more efficient here
-
 	/**
 	 * Method to create a new "merge" object.
 	 */

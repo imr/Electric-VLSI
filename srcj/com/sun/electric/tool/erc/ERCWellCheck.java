@@ -58,6 +58,7 @@ import java.util.List;
 
 /**
  * This is the Electrical Rule Checker tool.
+ * @author  Steve Rubin, Gilda Garreton
  */
 public class ERCWellCheck
 {
@@ -153,7 +154,9 @@ public class ERCWellCheck
 			// Not sure if null goes here
 			Collection set = topMerge.getObjects(layer, false, true);
 
-            System.out.println("Layer " + layer.getName() + " " + set.size());
+		    if (Main.getDebug())
+                System.out.println("Layer " + layer.getName() + " " + set.size());
+
 			for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 			{
 				WellArea wa = new WellArea();
