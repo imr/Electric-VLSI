@@ -60,6 +60,7 @@ import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.tool.extract.Connectivity;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.io.FileType;
@@ -270,8 +271,15 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
         networkSubMenu.addMenuItem("List Total Wire Lengths on All Networks", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
-		networkSubMenu.addSeparator();
-		networkSubMenu.addMenuItem("Show Power and Ground", null,
+
+        networkSubMenu.addSeparator();
+		
+        networkSubMenu.addMenuItem("Extract Connectivity", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(); }});
+
+        networkSubMenu.addSeparator();
+
+        networkSubMenu.addMenuItem("Show Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
 		networkSubMenu.addMenuItem("Validate Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });

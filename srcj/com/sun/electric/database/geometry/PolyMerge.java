@@ -30,9 +30,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -68,7 +70,6 @@ public class PolyMerge
 	 */
 	public PolyMerge()
 	{
-		;
 	}
 
 	/**
@@ -115,7 +116,10 @@ public class PolyMerge
 	 */
 	public void subPolygon(Layer layer, PolyBase poly)
 	{
-		throw new Error("not implemented in PolyMerge.subPolygon()");
+		Area area = (Area)allLayers.get(layer);
+		if (area == null) return;
+		Area subtractArea = new Area(poly);
+		area.subtract(subtractArea);
 	}
 
 	/**
@@ -150,6 +154,53 @@ public class PolyMerge
 			Area newArea = subArea.createTransformedArea(trans);
 			area.add(newArea);
 		}
+	}
+
+	/**
+	 * Method to intersect two layers in this merge and produce a third.
+	 * @param sourceA the first Layer to intersect.
+	 * @param sourceB the second Layer to intersect.
+	 * @param dest the destination layer to place the intersection of the first two.
+	 * If there is no intersection, all geometry on this layer is cleared.
+	 */
+	public void intersectLayers(Layer sourceA, Layer sourceB, Layer dest)
+	{
+		Area destArea = null;
+		Area sourceAreaA = (Area)allLayers.get(sourceA);
+		if (sourceAreaA != null)
+		{
+			Area sourceAreaB = (Area)allLayers.get(sourceB);
+			if (sourceAreaB != null)
+			{
+				destArea = new Area(sourceAreaA);
+				destArea.intersect(sourceAreaB);
+				if (destArea.isEmpty()) destArea = null;
+			}
+		}
+		if (destArea == null) allLayers.remove(dest); else
+			allLayers.put(dest, destArea);
+	}
+
+	/**
+	 * Method to delete all geometry on a given layer.
+	 * @param layer the Layer to clear in this merge.
+	 */
+	public void deleteLayer(Layer layer)
+	{
+		allLayers.remove(layer);
+	}
+
+	/**
+	 * Method to determine whether a rectangle exists in the merge.
+	 * @param layer the layer being tested.
+	 * @param rect the rectangle being tested.
+	 * @return true if all of the rectangle is inside of the merge on the given layer.
+	 */
+	public boolean contains(Layer layer, Rectangle2D rect)
+	{
+		Area area = (Area)allLayers.get(layer);
+		if (area == null) return false;
+		return area.contains(rect);
 	}
 
 	/**

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02b: *********************************
 
+IMP: (01/12/05, SMR) First implementation of node extractor.
+
 BUG: (01/13/05, DN) Rename arc/nodes and undo can spoil database invariants (Bug #157).
 FIX: In "NodeInst.lowLevelSetNameKey" and ArcInst.lowLevelSetNameKey remove "isUsernamed()".
 

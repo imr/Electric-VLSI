@@ -360,7 +360,7 @@ public class Change extends EDialog implements HighlightListener
 			if (showPrimitives.isSelected())
 			{
 				// primitive: list primitives in this and the generic technology
-				for(Iterator it = curTech.getNodesSortedByName().iterator(); it.hasNext(); )
+				for(Iterator it = curTech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)it.next();
 					changeListModel.addElement(np.describe());
@@ -864,7 +864,6 @@ public class Change extends EDialog implements HighlightListener
 					} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 				}
             }
-            //WindowFrame.wantToRedoLibraryTree();
 			return true;
 		}
 

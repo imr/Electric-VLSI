@@ -232,7 +232,8 @@ public class PolyBase implements Shape
 			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED && style != Poly.Type.TEXTBOX) return null;
 		} else if (points.length == 5)
 		{
-			if (style != Poly.Type.OPENED && style != Poly.Type.OPENEDT1 &&
+			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED &&
+				style != Poly.Type.OPENED && style != Poly.Type.OPENEDT1 &&
 				style != Poly.Type.OPENEDT2 && style != Poly.Type.OPENEDT3) return null;
 			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return null;
 		} else return null;
