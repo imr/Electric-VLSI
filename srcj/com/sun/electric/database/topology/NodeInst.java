@@ -51,6 +51,8 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.awt.Dimension;
+import java.awt.geom.Dimension2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1655,7 +1657,30 @@ public class NodeInst extends Geometric
 	 * @return the prototype of this NodeInst.
 	 */
 	public NodeProto getProto() { return protoType; }
-    
+
+	/**
+	 * Routine to return the function of this NodeProto.
+	 * The Function is a technology-independent description of the behavior of this NodeProto.
+	 * @return function the function of this NodeProto.
+	 */
+	public NodeProto.Function getFunction()
+	{
+		if (protoType instanceof Cell) return NodeProto.Function.UNKNOWN;
+
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getPrimitiveFunction(this);
+	}
+
+	/**
+	 * Routine to return the size of this transistor NodeInst.
+	 * @return the size of the NodeInst.
+	 */
+	public Dimension getTransistorSize()
+	{
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorSize(this);
+	}
+
 	/**
 	 * Routine to return the NodeUsage of this NodeInst.
 	 * @return the NodeUsage of this NodeInst.

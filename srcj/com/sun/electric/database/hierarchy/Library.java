@@ -434,10 +434,6 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Routine to find a Library with the specified name.
-	 * @param libName the name of the Library.
-	 * Note that this is the Library name, and not the Library file.
-	 * @return the Library, or null if there is no known Library by that name.
 	 */
 	public static void clearChangeLocks()
 	{

@@ -49,6 +49,8 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.awt.Dimension;
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -713,6 +715,38 @@ public class Technology extends ElectricObject
 	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
 	 */
 	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
+
+	/**
+	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * This routine is overridden by technologies (such as Schematics) that know the node's function.
+	 * @param ni the NodeInst to check.
+	 * @return the NodeProto.Function that describes the NodeInst.
+	 */
+	public NodeProto.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
+
+	/**
+	 * Routine to return the size of a transistor NodeInst in this Technology.
+	 * @param ni the NodeInst.
+	 * @return the size of the NodeInst.
+	 */
+	public Dimension getTransistorSize(NodeInst ni)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		SizeOffset so = np.getSizeOffset();
+		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+		Dimension dim = new Dimension();
+		dim.setSize(width, height);
+		return dim;
+	}
+
+	/**
+	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
+	 * This routine is overridden by technologies (such as Schematics) that can change a node's function.
+	 * @param ni the NodeInst to check.
+	 * @param function the NodeProto.Function to set on the NodeInst.
+	 */
+	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function) {}
 
 	/**
 	 * Returns the default scale for this Technology.

@@ -53,37 +53,37 @@ public class Schematics extends Technology
 {
 	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 
-	/** Defines the Flip-flop type. */					public static final int FFTYPE =    07;
-	/** Defines an RS Flip-flop. */						public static final int FFTYPERS =   0;
-	/** Defines a JK Flip-flop. */						public static final int FFTYPEJK =   1;
-	/** Defines a D Flip-flop. */						public static final int FFTYPED =    2;
-	/** Defines a T Flip-flop. */						public static final int FFTYPET =    3;
-	/** Defines the Flip-flop clocking bits. */			public static final int FFCLOCK =  014;
-	/** Defines a Master/Slave Flip-flop. */			public static final int FFCLOCKMS =  0;
-	/** Defines a Positive clock Flip-flop. */			public static final int FFCLOCKP =  04;
-	/** Defines a Negative clock Flip-flop. */			public static final int FFCLOCKN = 010;
+	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;
+	/** Defines an RS Flip-flop. */						private static final int FFTYPERS =   0;
+	/** Defines a JK Flip-flop. */						private static final int FFTYPEJK =   1;
+	/** Defines a D Flip-flop. */						private static final int FFTYPED =    2;
+	/** Defines a T Flip-flop. */						private static final int FFTYPET =    3;
+	/** Defines the Flip-flop clocking bits. */			private static final int FFCLOCK =  014;
+	/** Defines a Master/Slave Flip-flop. */			private static final int FFCLOCKMS =  0;
+	/** Defines a Positive clock Flip-flop. */			private static final int FFCLOCKP =  04;
+	/** Defines a Negative clock Flip-flop. */			private static final int FFCLOCKN = 010;
 
-	/** Defines an nMOS transistor. */					public static final int TRANNMOS =   0;
-	/** Defines a DMOS transistor. */					public static final int TRANDMOS =   1;
-	/** Defines a PMOS transistor. */					public static final int TRANPMOS =   2;
-	/** Defines an NPN Junction transistor. */			public static final int TRANNPN =    3;
-	/** Defines a PNP Junction transistor. */			public static final int TRANPNP =    4;
-	/** Defines an N Junction FET transistor. */		public static final int TRANNJFET =  5;
-	/** Defines a P Junction FET transistor. */			public static final int TRANPJFET =  6;
-	/** Defines a Depletion MESFET transistor. */		public static final int TRANDMES =   7;
-	/** Defines an Enhancement MESFET transistor. */	public static final int TRANEMES =   8;
+	/** Defines an nMOS transistor. */					private static final int TRANNMOS =   0;
+	/** Defines a DMOS transistor. */					private static final int TRANDMOS =   1;
+	/** Defines a PMOS transistor. */					private static final int TRANPMOS =   2;
+	/** Defines an NPN Junction transistor. */			private static final int TRANNPN =    3;
+	/** Defines a PNP Junction transistor. */			private static final int TRANPNP =    4;
+	/** Defines an N Junction FET transistor. */		private static final int TRANNJFET =  5;
+	/** Defines a P Junction FET transistor. */			private static final int TRANPJFET =  6;
+	/** Defines a Depletion MESFET transistor. */		private static final int TRANDMES =   7;
+	/** Defines an Enhancement MESFET transistor. */	private static final int TRANEMES =   8;
 
-	/** Defines a normal Diode. */						public static final int DIODENORM =  0;
-	/** Defines a Zener Diode. */						public static final int DIODEZENER = 1;
+	/** Defines a normal Diode. */						private static final int DIODENORM =  0;
+	/** Defines a Zener Diode. */						private static final int DIODEZENER = 1;
 
-	/** Defines a normal Capacitor. */					public static final int CAPACNORM =  0;
-	/** Defines an Electrolytic Capacitor. */			public static final int CAPACELEC =  1;
+	/** Defines a normal Capacitor. */					private static final int CAPACNORM =  0;
+	/** Defines an Electrolytic Capacitor. */			private static final int CAPACELEC =  1;
 
-	/** Defines a Transconductance two-port (VCCS). */	public static final int TWOPVCCS =  0;
-	/** Defines a Transresistance two-port (CCVS). */	public static final int TWOPCCVS =  1;
-	/** Defines a Voltage gain two-port (VCVS). */		public static final int TWOPVCVS =  2;
-	/** Defines a Current gain two-port (CCCS). */		public static final int TWOPCCCS =  3;
-	/** Defines a Transmission Line two-port. */		public static final int TWOPTLINE = 4;
+	/** Defines a Transconductance two-port (VCCS). */	private static final int TWOPVCCS =  0;
+	/** Defines a Transresistance two-port (CCVS). */	private static final int TWOPCCVS =  1;
+	/** Defines a Voltage gain two-port (VCVS). */		private static final int TWOPVCVS =  2;
+	/** Defines a Current gain two-port (CCCS). */		private static final int TWOPCCCS =  3;
+	/** Defines a Transmission Line two-port. */		private static final int TWOPTLINE = 4;
 
 	/** wire arc */						public PrimitiveArc wire_arc;
 	/** bus arc */						public PrimitiveArc bus_arc;
@@ -1610,6 +1610,125 @@ public class Schematics extends Technology
 			index--;
 		}
 		return null;
+	}
+
+	/**
+	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * The Schematics technology allows primitives to have parameterized functions.
+	 * @param ni the NodeInst to check.
+	 * @return the NodeProto.Function that describes the NodeInst.
+	 */
+	public NodeProto.Function getPrimitiveFunction(NodeInst ni)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		int techBits = ni.getTechSpecific();
+		if (np == capacitorNode)
+		{
+			if (techBits == CAPACELEC) return NodeProto.Function.ECAPAC;
+			return NodeProto.Function.CAPAC;
+		}
+		if (np == diodeNode)
+		{
+			if (techBits == DIODEZENER) return NodeProto.Function.DIODEZ;
+			return NodeProto.Function.DIODE;
+		}
+		if (np == transistorNode)
+		{
+			switch (techBits)
+			{
+				case TRANNMOS:  return NodeProto.Function.TRANMOS;
+				case TRANDMOS:  return NodeProto.Function.TRADMOS;
+				case TRANPMOS:  return NodeProto.Function.TRAPMOS;
+				case TRANNPN:   return NodeProto.Function.TRANPN;
+				case TRANPNP:   return NodeProto.Function.TRAPNP;
+				case TRANNJFET: return NodeProto.Function.TRANJFET;
+				case TRANPJFET: return NodeProto.Function.TRAPJFET;
+				case TRANDMES:  return NodeProto.Function.TRADMES;
+				case TRANEMES:  return NodeProto.Function.TRAEMES;
+			}
+			return NodeProto.Function.TRANMOS;
+		}
+		if (np == transistor4Node)
+		{
+			switch (techBits)
+			{
+				case TRANNMOS:  return NodeProto.Function.TRA4NMOS;
+				case TRANDMOS:  return NodeProto.Function.TRA4DMOS;
+				case TRANPMOS:  return NodeProto.Function.TRA4PMOS;
+				case TRANNPN:   return NodeProto.Function.TRA4NPN;
+				case TRANPNP:   return NodeProto.Function.TRA4PNP;
+				case TRANNJFET: return NodeProto.Function.TRA4NJFET;
+				case TRANPJFET: return NodeProto.Function.TRA4PJFET;
+				case TRANDMES:  return NodeProto.Function.TRA4DMES;
+				case TRANEMES:  return NodeProto.Function.TRA4EMES;
+			}
+			return NodeProto.Function.TRANMOS;
+		}
+		if (np == twoportNode)
+		{
+			switch (techBits)
+			{
+				case TWOPVCCS:  return NodeProto.Function.VCCS;
+				case TWOPCCVS:  return NodeProto.Function.CCVS;
+				case TWOPVCVS:  return NodeProto.Function.VCVS;
+				case TWOPCCCS:   return NodeProto.Function.CCCS;
+			}
+			return NodeProto.Function.TLINE;
+		}
+		return ni.getProto().getFunction();
+	}
+
+	/**
+	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
+	 * This routine is overridden by technologies (such as Schematics) that can change a node's function.
+	 * @param ni the NodeInst to check.
+	 * @param function the NodeProto.Function to set on the NodeInst.
+	 */
+	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		if (np == capacitorNode)
+		{
+			if (function == NodeProto.Function.ECAPAC) ni.setTechSpecific(CAPACELEC); else
+				ni.setTechSpecific(CAPACNORM);
+		}
+		if (np == diodeNode)
+		{
+			if (function == NodeProto.Function.DIODEZ) ni.setTechSpecific(DIODEZENER); else
+				ni.setTechSpecific(DIODENORM);
+		}
+		if (np == transistorNode)
+		{
+			if (function == NodeProto.Function.TRANMOS) ni.setTechSpecific(TRANNMOS); else
+			if (function == NodeProto.Function.TRADMOS) ni.setTechSpecific(TRANDMOS); else
+			if (function == NodeProto.Function.TRAPMOS) ni.setTechSpecific(TRANPMOS); else
+			if (function == NodeProto.Function.TRANPN) ni.setTechSpecific(TRANNPN); else
+			if (function == NodeProto.Function.TRAPNP) ni.setTechSpecific(TRANPNP); else
+			if (function == NodeProto.Function.TRANJFET) ni.setTechSpecific(TRANNJFET); else
+			if (function == NodeProto.Function.TRAPJFET) ni.setTechSpecific(TRANPJFET); else
+			if (function == NodeProto.Function.TRADMES) ni.setTechSpecific(TRANDMES); else
+			if (function == NodeProto.Function.TRAEMES) ni.setTechSpecific(TRANEMES);
+		}
+		if (np == transistor4Node)
+		{
+			if (function == NodeProto.Function.TRA4NMOS) ni.setTechSpecific(TRANNMOS); else
+			if (function == NodeProto.Function.TRA4DMOS) ni.setTechSpecific(TRANDMOS); else
+			if (function == NodeProto.Function.TRA4PMOS) ni.setTechSpecific(TRANPMOS); else
+			if (function == NodeProto.Function.TRA4NPN) ni.setTechSpecific(TRANNPN); else
+			if (function == NodeProto.Function.TRA4PNP) ni.setTechSpecific(TRANPNP); else
+			if (function == NodeProto.Function.TRA4NJFET) ni.setTechSpecific(TRANNJFET); else
+			if (function == NodeProto.Function.TRA4PJFET) ni.setTechSpecific(TRANPJFET); else
+			if (function == NodeProto.Function.TRA4DMES) ni.setTechSpecific(TRANDMES); else
+			if (function == NodeProto.Function.TRA4EMES) ni.setTechSpecific(TRANEMES);
+		}
+		if (np == twoportNode)
+		{
+			if (function == NodeProto.Function.VCCS) ni.setTechSpecific(TWOPVCCS); else
+			if (function == NodeProto.Function.CCVS) ni.setTechSpecific(TWOPCCVS); else
+			if (function == NodeProto.Function.VCVS) ni.setTechSpecific(TWOPVCVS); else
+			if (function == NodeProto.Function.CCCS) ni.setTechSpecific(TWOPCCCS); else
+				ni.setTechSpecific(TWOPTLINE);
+		}
 	}
 
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {

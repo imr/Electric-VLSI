@@ -28,6 +28,7 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,6 +44,7 @@ import com.sun.electric.tool.user.Highlight;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Date;
 import java.util.ArrayList;
 import java.awt.geom.Point2D;
 
@@ -801,5 +803,342 @@ public class CircuitChanges
 //		}
 //		return(retval);
 //	}
+
+	/**
+	 * recursive helper routine for "us_copycell" which copies cell "fromnp"
+	 * to a new cell called "toname" in library "tolib" with the new view type
+	 * "toview".  All needed subcells are copied (unless "nosubcells" is true).
+	 * All shared view cells referenced by variables are copied too
+	 * (unless "norelatedviews" is true).  If "useexisting" is TRUE, any subcells
+	 * that already exist in the destination library will be used there instead of
+	 * creating a cross-library reference.
+	 * If "move" is nonzero, delete the original after copying, and update all
+	 * references to point to the new cell.  If "subdescript" is empty, the operation
+	 * is a top-level request.  Otherwise, this is for a subcell, so only create a
+	 * new cell if one with the same name and date doesn't already exists.
+	 */
+	Cell us_copyrecursively(Cell fromnp, String toname, Library tolib,
+		View toview, boolean verbose, boolean move, String subdescript, boolean norelatedviews,
+		boolean nosubcells, boolean useexisting)
+	{
+		Date fromnp_creationdate = fromnp.getCreationDate();
+		Date fromnp_revisiondate = fromnp.getRevisionDate();
+
+		// see if the cell is already there
+		for(Iterator it = tolib.getCells(); it.hasNext(); )
+		{
+			Cell newfromnp = (Cell)it.next();
+			if (!newfromnp.getProtoName().equalsIgnoreCase(toname)) continue;
+			if (newfromnp.getView() != toview) continue;
+			if (!newfromnp.getCreationDate().equals(fromnp.getCreationDate())) continue;
+			if (!newfromnp.getRevisionDate().equals(fromnp.getRevisionDate())) continue;
+			if (subdescript != null) return newfromnp;
+			break;
+		}
+
+		// copy subcells
+		if (!nosubcells)
+		{
+			boolean found = true;
+			while (found)
+			{
+				found = false;
+				for(Iterator it = fromnp.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					NodeProto np = ni.getProto();
+					if (!(np instanceof Cell)) continue;
+					Cell cell = (Cell)np;
+
+					// allow cross-library references to stay
+					if (cell.getLibrary() != fromnp.getLibrary()) continue;
+					if (cell.getLibrary() == tolib) continue;
+
+					// see if the cell is already there
+					if (us_indestlib(cell, tolib)) continue;
+
+					// copy subcell if not already there
+					Cell onp = us_copyrecursively(cell, cell.getProtoName(), tolib, cell.getView(),
+						verbose, move, "subcell ", norelatedviews, nosubcells, useexisting);
+					if (onp == null)
+					{
+						if (move) System.out.println("Move of subcell " + cell.describe() + " failed"); else
+							System.out.println("Copy of subcell " + cell.describe() + " failed");
+						return null;
+					}
+					found = true;
+					break;
+				}
+			}
+		}
+
+		// also copy equivalent views
+		if (!norelatedviews)
+		{
+			// first copy the icons
+			boolean found = true;
+			Cell fromnpwalk = fromnp;
+			while (found)
+			{
+				found = false;
+				for(Iterator it = fromnpwalk.getCellGroup().getCells(); it.hasNext(); )
+				{
+					Cell np = (Cell)it.next();
+					if (np.getView() != View.ICON) continue;
+
+					// see if the cell is already there
+					if (us_indestlib(np, tolib)) continue;
+
+					// copy equivalent view if not already there
+//					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
+					Cell onp = us_copyrecursively(np, np.getProtoName(), tolib, np.getView(),
+						verbose, move, "alternate view ", true, nosubcells, useexisting);
+					if (onp == null)
+					{
+						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
+							System.out.println("Copy of alternate view " + np.describe() + " failed");
+						return null;
+					}
+					found = true;
+					break;
+				}
+			}
+
+			// now copy the rest
+			found = true;
+			while (found)
+			{
+				found = false;
+				for(Iterator it = fromnpwalk.getCellGroup().getCells(); it.hasNext(); )
+				{
+					Cell np = (Cell)it.next();
+					if (np.getView() == View.ICON) continue;
+
+					// see if the cell is already there
+					if (us_indestlib(np, tolib)) continue;
+
+					// copy equivalent view if not already there
+//					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
+					Cell onp = us_copyrecursively(np, np.getProtoName(), tolib, np.getView(),
+						verbose, move, "alternate view ", true, nosubcells, useexisting);
+					if (onp == null)
+					{
+						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
+							System.out.println("Copy of alternate view " + np.describe() + " failed");
+						return null;
+					}
+					found = true;
+					break;
+				}
+			}
+		}
+
+		// see if the cell is NOW there
+		Cell beforenewfromnp = null;
+		Cell newfromnp = null;
+		for(Iterator it = tolib.getCells(); it.hasNext(); )
+		{
+			Cell thisCell = (Cell)it.next();
+			if (!thisCell.getProtoName().equalsIgnoreCase(toname)) continue;
+			if (thisCell.getView() != toview) continue;
+			if (thisCell.getCreationDate() != fromnp_creationdate) continue;
+			if (!move && thisCell.getRevisionDate() != fromnp_revisiondate) continue; // moving icon of schematic changes schematic's revision date
+			if (subdescript != null) return thisCell;
+			newfromnp = thisCell;
+			break;
+		}
+		if (beforenewfromnp == newfromnp || newfromnp == null)
+		{
+			// copy the cell
+			String newname = toname;
+			if (toview.getAbbreviation().length() > 0)
+			{
+				newname = toname + "{" + toview.getAbbreviation() + "}";
+			}
+			newfromnp = Cell.copynodeproto(fromnp, tolib, newname, useexisting);
+			if (newfromnp == null)
+			{
+				if (move)
+				{
+					System.out.println("Move of " + subdescript + fromnp.describe() + " failed");
+				} else
+				{
+					System.out.println("Copy of " + subdescript + fromnp.describe() + " failed");
+				}
+				return null;
+			}
+
+			// ensure that the copied cell is the right size
+//			(*el_curconstraint->solve)(newfromnp);
+
+			// if moving, adjust pointers and kill original cell
+			if (move)
+			{
+				// ensure that the copied cell is the right size
+//				(*el_curconstraint->solve)(newfromnp);
+
+				// clear highlighting if the current node is being replaced
+//				list = us_gethighlighted(WANTNODEINST, 0, 0);
+//				for(i=0; list[i] != NOGEOM; i++)
+//				{
+//					if (!list[i]->entryisnode) continue;
+//					ni = list[i]->entryaddr.ni;
+//					if (ni->proto == fromnp) break;
+//				}
+//				if (list[i] != NOGEOM) us_clearhighlightcount();
+
+				// now replace old instances with the moved one
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell np = (Cell)cIt.next();
+						boolean found = true;
+						while (found)
+						{
+							found = false;
+							for(Iterator nIt = np.getNodes(); nIt.hasNext(); )
+							{
+								NodeInst ni = (NodeInst)nIt.next();
+								if (ni.getProto() == fromnp)
+								{
+									NodeInst replacedNi = ni.replace(newfromnp, false, false);
+									if (replacedNi == null)
+										System.out.println("Error moving node " + ni.describe() + " in cell " + np.describe());
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+//				toolturnoff(net_tool, FALSE);
+				us_dokillcell(fromnp);
+//				toolturnon(net_tool);
+				fromnp = null;
+			}
+
+			if (verbose)
+			{
+				if (Library.getCurrent() != tolib)
+				{
+					String msg = "";
+					if (move) msg += "Moved "; else
+						 msg += "Copied ";
+					msg += subdescript + Library.getCurrent().getLibName() + ":" + newfromnp.noLibDescribe() +
+						" to library " + tolib.getLibName();
+					System.out.println(msg);
+				} else
+				{
+					System.out.println("Copied " + subdescript + newfromnp.describe());
+				}
+			}
+		}
+		return newfromnp;
+	}
+
+	/*
+	 * Routine to delete cell "np".  Validity checks are assumed to be made (i.e. the
+	 * cell is not used and is not locked).
+	 */
+	private void us_dokillcell(Cell np)
+	{
+//		// delete random references to this cell
+//		curcell = getcurcell();
+//		if (np == curcell)
+//		{
+//			(void)setval((INTBIG)el_curlib, VLIBRARY, x_("curnodeproto"), (INTBIG)NONODEPROTO, VNODEPROTO);
+//			us_clearhighlightcount();
+//		}
+//
+//		// close windows that reference this cell
+//		for(w = el_topwindowpart; w != NOWINDOWPART; w = nextw)
+//		{
+//			nextw = w->nextwindowpart;
+//			if (w->curnodeproto != np) continue;
+//			if (w == el_curwindowpart) iscurrent = TRUE; else iscurrent = FALSE;
+//			if (iscurrent)
+//				(void)setvalkey((INTBIG)us_tool, VTOOL, us_current_window_key, (INTBIG)NOWINDOWPART,
+//					VWINDOWPART|VDONTSAVE);
+//			startobjectchange((INTBIG)us_tool, VTOOL);
+//			neww = newwindowpart(w->location, w);
+//			if (neww == NOWINDOWPART) return;
+//
+//			// adjust the new window to account for borders in the old one
+//			if ((w->state&WINDOWTYPE) != DISPWINDOW)
+//			{
+//				neww->usehx -= DISPLAYSLIDERSIZE;
+//				neww->usely += DISPLAYSLIDERSIZE;
+//			}
+//			if ((w->state&WINDOWTYPE) == WAVEFORMWINDOW)
+//			{
+//				neww->uselx -= DISPLAYSLIDERSIZE;
+//				neww->usely -= DISPLAYSLIDERSIZE;
+//			}
+//			if ((w->state&WINDOWMODE) != 0)
+//			{
+//				neww->uselx -= WINDOWMODEBORDERSIZE;   neww->usehx += WINDOWMODEBORDERSIZE;
+//				neww->usely -= WINDOWMODEBORDERSIZE;   neww->usehy += WINDOWMODEBORDERSIZE;
+//			}
+//
+//			neww->curnodeproto = NONODEPROTO;
+//			neww->buttonhandler = DEFAULTBUTTONHANDLER;
+//			neww->charhandler = DEFAULTCHARHANDLER;
+//			neww->changehandler = DEFAULTCHANGEHANDLER;
+//			neww->termhandler = DEFAULTTERMHANDLER;
+//			neww->redisphandler = DEFAULTREDISPHANDLER;
+//			neww->state = (neww->state & ~(WINDOWTYPE|WINDOWMODE)) | DISPWINDOW;
+//			killwindowpart(w);
+//			endobjectchange((INTBIG)us_tool, VTOOL);
+//			if (iscurrent)
+//				(void)setvalkey((INTBIG)us_tool, VTOOL, us_current_window_key, (INTBIG)neww,
+//					VWINDOWPART|VDONTSAVE);
+//		}
+
+//		prevversion = np->prevversion;
+//		toolturnoff(net_tool, FALSE);
+		np.kill();
+//		toolturnon(net_tool);
+
+//		// see if this was the latest version of a cell
+//		if (prevversion != NONODEPROTO)
+//		{
+//			// newest version was deleted: rename next older version
+//			for(ni = prevversion->firstinst; ni != NONODEINST; ni = ni->nextinst)
+//			{
+//				if ((ni->userbits&NEXPAND) != 0) continue;
+//				startobjectchange((INTBIG)ni, VNODEINST);
+//				endobjectchange((INTBIG)ni, VNODEINST);
+//			}
+//		}
+//
+//		// update status display if necessary
+//		if (us_curnodeproto != NONODEPROTO && us_curnodeproto->primindex == 0)
+//		{
+//			if (np == us_curnodeproto)
+//			{
+//				if ((us_state&NONPERSISTENTCURNODE) != 0) us_setnodeproto(NONODEPROTO); else
+//					us_setnodeproto(el_curtech->firstnodeproto);
+//			}
+//		}
+	}
+
+	/*
+	 * Routine to return true if a cell like "np" exists in library "lib".
+	 */
+	private boolean us_indestlib(Cell np, Library lib)
+	{
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell onp = (Cell)it.next();
+			if (!onp.getProtoName().equalsIgnoreCase(np.getProtoName())) continue;
+			if (onp.getView() != np.getView()) continue;
+			if (onp.getCreationDate() != np.getCreationDate()) continue;
+			if (onp.getRevisionDate() != np.getRevisionDate()) continue;
+			return true;
+		}
+		return false;
+	}
 
 }

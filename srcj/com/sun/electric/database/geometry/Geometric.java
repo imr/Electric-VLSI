@@ -896,7 +896,7 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * Routine to copy the various state bits from another Geometric to this Geometric.
-	 * @param ai the other ArcInst to copy.
+	 * @param geom the other Geometric to copy.
 	 */
 	public void copyStateBits(Geometric geom) { this.userBits = geom.userBits; }
 

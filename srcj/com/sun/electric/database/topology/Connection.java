@@ -91,8 +91,8 @@ public class Connection extends ElectricObject
 	public short getEndShrink() { return endShrink; }
 
 	/**
-	 * Routine to set the location on this Connection.
-	 * @param pt the location on this Connection.
+	 * Routine to set the end shrinkage on this Connection.
+	 * @param endShrink the end shrinkage on this Connection.
 	 */
 	public void setEndShrink(short endShrink) { this.endShrink = endShrink; }
 

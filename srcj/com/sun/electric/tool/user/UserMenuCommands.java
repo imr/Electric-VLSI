@@ -47,6 +47,7 @@ import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
+import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
@@ -191,6 +192,8 @@ public final class UserMenuCommands
 		// setup the Help menu
 		Menu helpMenu = Menu.createMenu("Help", 'H');
 		menuBar.add(helpMenu);
+		helpMenu.addMenuItem("About Electric...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 
 		// setup Steve's test menu
 		Menu steveMenu = Menu.createMenu("Steve", 'S');
@@ -607,6 +610,13 @@ public final class UserMenuCommands
 	{
 //		NetFactory nf = new NetFactory();
 //		nf.testFour();
+	}
+    // ---------------------- THE HELP MENU -----------------
+
+	public static void aboutCommand()
+	{
+		About dialog = new About(null, true);
+		dialog.show();
 	}
 
     // ---------------------- THE STEVE MENU -----------------
