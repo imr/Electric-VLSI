@@ -469,14 +469,7 @@ public class NodeInst extends Geometric
 	 * This routine determines whether this NodeInst is such an icon.
 	 * @return true if this NodeInst is an icon of its parent.
 	 */
-	public boolean isIconOfParent()
-	{
-		NodeProto np = getProto();
-		if (!(np instanceof Cell))
-			return false;
-
-		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
-	}
+	public boolean isIconOfParent() { return nodeUsage.isIconOfParent(); }
 
 	/*
 	 * Routine to write a description of this NodeInst.

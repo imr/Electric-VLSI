@@ -91,6 +91,28 @@ public class Cell extends NodeProto
 	{
 		// private data
 		private ArrayList cells;
+		private Cell mainSchematics;
+
+		// ------------------ protected and private methods -----------------------
+
+		/**
+		 * Routine to update main schematics Cell in ths CellGroup.
+		 */
+		private void updateMainSchematics()
+		{
+			mainSchematics = null;
+			for (Iterator it = getCells(); it.hasNext();)
+			{
+				Cell f = (Cell) it.next();
+				if (f.getView() == View.SCHEMATIC)
+				{
+					mainSchematics = f.getNewestVersion();
+					break;
+				}
+			}
+		}
+
+		// ------------------------- public methods -----------------------------
 
 		/**
 		 * Constructs a <CODE>CellGroup</CODE>.
@@ -108,13 +130,18 @@ public class Cell extends NodeProto
 		{
 			cells.add(cell);
 			cell.cellGroup = this;
+			updateMainSchematics();
 		}
 
 		/**
 		 * Routine to remove a Cell from this CellGroup.
 		 * @param cell the cell to remove from this CellGroup.
 		 */
-		void remove(Cell f) { cells.remove(f); }
+		void remove(Cell f)
+		{
+			cells.remove(f);
+			updateMainSchematics();
+		}
 
 		/**
 		 * Routine to return an Iterator over all the Cells that are in this CellGroup.
@@ -122,15 +149,14 @@ public class Cell extends NodeProto
 		 */
 		public Iterator getCells() { return cells.iterator(); }
 
+		/**
+		 * Routine to return main schematics Cell in ths CellGroup.
+		 * @return main schematics Cell  in this CellGroup.
+		 */
+		public Cell getMainSchematics() { return mainSchematics; }
+
         /** See if this cell group contains @param cell */
-        public boolean containsCell(Cell cell) 
-        {
-            for (Iterator it=getCells(); it.hasNext();) {
-                Cell c = (Cell)it.next();
-                if (c == cell) return true;
-            }
-            return false;
-        }
+        public boolean containsCell(Cell cell) { return cells.contains(cell); }
         
 		public String toString() { return "CELLGROUP"; }
 	}
@@ -461,14 +487,7 @@ public class Cell extends NodeProto
 	 */
 	public boolean isIconOf(Cell cell)
 	{
-		if (getView() != View.ICON) return false;
-//		this = this->newestversion;
-		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell np = (Cell)it.next();
-			if (np == this) return true;
-		}
-		return false;
+		return view == View.ICON && cellGroup == cell.cellGroup;
 	}
 
 	/**
@@ -660,11 +679,7 @@ public class Cell extends NodeProto
 		}
 		nu.removeInst(ni);
 		if (nu.getNumInsts() == 0)
-		{
-			NodeProto protoType = nu.getProto();
-			protoType.removeUsageOf(nu);
-			usagesIn.remove(protoType);
-		}
+			removeUsage(nu);
 		nodes.remove(ni);
 
 		// must recompute the bounds of the cell
@@ -688,6 +703,17 @@ public class Cell extends NodeProto
 			protoType.addUsageOf(nu);
 		}
 		return nu;
+	}
+
+	/**
+	 * Routine to remove a NodeUsage of the cell.
+	 * @param nu is a NodeUsage to remove
+	 */
+	private void removeUsage(NodeUsage nu)
+	{
+		NodeProto protoType = nu.getProto();
+		protoType.removeUsageOf(nu);
+		usagesIn.remove(protoType);
 	}
 
 	/**
@@ -1263,19 +1289,7 @@ public class Cell extends NodeProto
 	 */
 	public Cell getEquivalent()
 	{
-		if (!view.getFullName().equals("icon"))
-		{
-			return this;
-		}
-
-		View sch = View.findView("schematic");
-		for (Iterator it = cellGroup.getCells(); it.hasNext();)
-		{
-			Cell f = (Cell) it.next();
-			if (f.getView() == sch)
-				return f.getNewestVersion();
-		}
-		return null;
+		return view == View.ICON ? cellGroup.getMainSchematics() : this;
 	}
 
 	/** Sanity check method used by Geometric.checkobj. */

@@ -133,14 +133,7 @@ public class NodeUsage
 	 * This routine determines whether this NodeInst is such an icon.
 	 * @return true if this NodeUsage is an icon of its parent.
 	 */
-	public boolean isIconOfParent()
-	{
-		NodeProto np = getProto();
-		if (!(np instanceof Cell))
-			return false;
-
-		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
-	}
+	public boolean isIconOfParent() { return protoType.isIconOf(parent); };
 
 	/**
 	 * Returns a printable version of this NodeInst.

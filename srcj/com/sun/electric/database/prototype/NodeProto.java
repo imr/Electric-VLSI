@@ -1286,6 +1286,47 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
+	 * Routine to check if NodeProto is a child of other NodeProto.
+	 * @param granny other NodeProto
+	 * @return true if this NodeProto is a child of NodeProto np.
+	 */
+// 	public boolean isChildOf(NodeProto granny)
+// 	{
+// 		if (granny == this) return true;
+// 		return isChildOf(granny, new HashSet());
+// 	}
+
+	/**
+	 * Recursive routine to check if NodeProto is a child of other NodeProto.
+	 * @param granny other NodeProto
+	 * @param checked set of NodeProtos which either are beeing checked or
+	 *              are surely not children of np
+	 * @return true if this NodeProto is a child of NodeProto np.
+	 */
+// 	private boolean isChildOf(NodeProto granny, HashSet checked)
+// 	{
+// 		for (Iterator it = getUsagesOf(); it.hasNext(); )
+// 		{
+// 			NodeUsage nu = (NodeUsage)it.next();
+// 			if (nu.isIconOfParent()) continue;
+// 			NodeProto father = nu.getProto();
+// 			if (father == granny) return true;
+// 			if (checked.contains(father)) continue;
+// 			checked.add(father);
+// 			if (father.isChildOf(granny, checked)) return true;
+// 		}
+// 		return false;
+// 	}
+
+	/**
+	 * Routine to determine whether this NodeProto  is an icon of another Cell.
+	 * overriden in Cell
+	 * @param cell the other cell which this may be an icon of.
+	 * @return true if this NodeProto is an icon of that other Cell.
+	 */
+	public boolean isIconOf(Cell cell) { return false; }
+
+	/**
 	 * Abstract routine to describe this NodeProto as a string.
 	 * PrimitiveNodes may prepend their Technology name if it is
 	 * not the current technology (for example, "mocmos:N-Transistor").
