@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP/MAN: (02/04/05, GVG) Reorganizing tech palette including Bug#31
 - Added "n"/"p" to well, active and transistors. Added "Mos" to transistors.
-Added "Act" to actives. On Y axis, 3-node pair (arc, pin, contact) sorted per layer
+Added "Act" to actives. On Y axis, 3-node row (arc, pin, contact) sorted per layer
 Done for all layout technologies.
 
 BUG: (02/04/05, DN) Duplicate or rename cells spoils "getInstancesOf" (Bug #192).
