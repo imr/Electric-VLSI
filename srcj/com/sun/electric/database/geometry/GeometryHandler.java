@@ -24,6 +24,8 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.technology.Layer;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
@@ -81,6 +83,25 @@ public abstract class GeometryHandler {
 	// To add an entire GeometryHandler like collections
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans) {;}
 
+    /**
+	 * Method to subtract a geometrical object from the merged collection.
+	 * @param key the key that this Object sits on.
+	 * @param element the Object to merge.
+	 */
+    public void subtract(Object key, Object element)
+    {
+        System.out.println("Error: subtract not implemented for GeometryHandler subclass " + this.getClass().getName());
+    }
+
+    /**
+     * Method to subtract all geometries stored in hash map from corresponding layers
+     * @param map
+     */
+    public void subtractAll(HashMap map)
+    {
+        System.out.println("Error: subtractAll not implemented for GeometryHandler subclass " + this.getClass().getName());
+    }
+
 	/**
 	 * Access to keySet to create a collection for example.
 	 */
@@ -115,12 +136,17 @@ public abstract class GeometryHandler {
 	 */
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
     {
+        System.out.println("Error: getObjects not implemented for GeometryHandler subclass " + this.getClass().getName());
         return null;
     }
 
     /**
      * Method to perform operations after no more elemenets will
      * be added. Valid for PolySweepMerge
+     * @param merge true if polygons must be merged otherwise non-overlapping polygons will be generated.
      */
-    public void postProcess() {;}
+    public void postProcess(boolean merge)
+    {
+        if (!merge) System.out.println("Error: postProcess not implemented for GeometryHandler subclass " + this.getClass().getName());
+    }
 }

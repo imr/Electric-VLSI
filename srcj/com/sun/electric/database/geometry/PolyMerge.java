@@ -51,7 +51,7 @@ import java.util.List;
  * where "layer" is a layer and "poly" is a polygon to be added.
  * <P>
  * You can also subtract a polygon by calling:<BR>
- *    merge.subPolygon(layer, poly);<BR>
+ *    merge.subtract(layer, poly);<BR>
  * <P>
  * To combine two different merges, use:<BR>
  *    merge.addMerge(addmerge, trans)<BR>
@@ -113,11 +113,11 @@ public class PolyMerge
 	 * @param layer the layer that this PolyBase sits on.
 	 * @param poly the PolyBase to merge.
 	 */
-	public void subPolygon(Layer layer, PolyBase poly)
+	public void subtract(Object layer, Object poly)
 	{
 		Area area = (Area)layers.get(layer);
 		if (area == null) return;
-		Area subtractArea = new Area(poly);
+		Area subtractArea = new Area((PolyBase)poly);
 		area.subtract(subtractArea);
 	}
 
@@ -266,7 +266,7 @@ public class PolyMerge
 					subtractPoints[2] = insetThisPt;
 					subtractPoints[3] = insetLastPt;
 					PolyBase subtractPoly = new PolyBase(subtractPoints);
-					subPolygon(dest, subtractPoly);
+					subtract(dest, subtractPoly);
 				}
 			}
 		}

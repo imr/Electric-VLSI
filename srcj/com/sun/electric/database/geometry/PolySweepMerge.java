@@ -7,12 +7,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.Shape;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Comparator;
+import java.util.*;
 
 /**
  * Class to implement geometric sweep algorithm in 2D for areas.
@@ -89,10 +84,43 @@ public class PolySweepMerge extends GeometryHandler
 
     private static class PolySweepContainer
     {
-        List polyList = null;
         private List areas = null; // Needs to be a list to apply sort
 
         public PolySweepContainer(boolean createPolyList)
+        {
+            areas = (createPolyList) ? new ArrayList() : null;
+        }
+
+        public void add(Object value)
+        {
+            if (value instanceof Shape)
+                value = new Area((Shape)value);
+            else
+                System.out.println("Error: invalid class for addition in PolySweepMerge");
+            areas.add(value);
+        }
+
+        public void subtract(Object element)
+        {
+            Area elem = null;
+            if (element instanceof Shape)
+                elem = new Area((Shape)element);
+            else
+                System.out.println("Error: invalid class for subtraction in PolySweepMerge");
+            for (int i = 0; i < areas.size(); i++)
+            {
+                Area a = (Area)areas.get(i);
+                a.subtract(elem);
+            }
+        }
+    }
+
+    private static class PolySweepContainerOld
+    {
+        List polyList = null;
+        private List areas = null; // Needs to be a list to apply sort
+
+        public PolySweepContainerOld(boolean createPolyList)
         {
             polyList = (createPolyList) ? new ArrayList() : null;
         }
@@ -101,20 +129,60 @@ public class PolySweepMerge extends GeometryHandler
         {
             polyList.add(value);
         }
+
+        public void subtract(Object element)
+        {
+            Area elem = (Area)element;
+            for (int i = 0; i < polyList.size(); i++)
+            {
+                Area a = (Area)polyList.get(i);
+                a.subtract(elem);
+            }
+        }
     }
 
     // To insert new element into handler
-	public void add(Object key, Object value, boolean fasterAlgorithm)
+	public void add(Object key, Object element, boolean fasterAlgorithm)
     {
-        Layer layer = (Layer)key;
-        PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+        PolySweepContainer container = (PolySweepContainer)layers.get(key);
 
         if (container == null)
         {
             container = new PolySweepContainer(true);
-            layers.put(layer, container);
+            layers.put(key, container);
         }
-        container.add(value);
+        container.add(element);
+    }
+
+    /**
+	 * Method to subtract a geometrical object from the merged collection.
+	 * @param key the key that this Object sits on.
+	 * @param element the Object to merge.
+	 */
+    public void subtract(Object key, Object element)
+    {
+        PolySweepContainer container = (PolySweepContainer)layers.get(key);
+
+        if (container == null) return;
+        container.subtract(element);
+    }
+
+    /**
+     * Method to subtract all geometries stored in hash map from corresponding layers
+     * @param map
+     */
+    public void subtractAll(HashMap map)
+    {
+       // Need to add exclusion before final calculation
+       for (Iterator it = map.keySet().iterator(); it.hasNext();)
+       {
+           Object key = it.next();
+           List list = (List)map.get(key);
+           PolySweepContainer container = (PolySweepContainer)layers.get(key);
+           if (container == null) continue;
+           for (int i = 0; i < list.size(); i++)
+              container.subtract(list.get(i));
+       }
     }
 
 	// To add an entire GeometryHandler like collections
@@ -200,7 +268,16 @@ public class PolySweepMerge extends GeometryHandler
 		return (getKeySet().iterator());
 	}
 
-    public void postProcess()
+    public void postProcess(boolean merge)
+    {
+        if (merge) mergeProcess();
+        else disjointProcess();
+    }
+
+    /**
+     * Method to generate a set of disjoint polygons from original set
+     */
+    private void disjointProcess()
     {
         for (Iterator it = getKeyIterator(); it.hasNext();)
         {
@@ -208,16 +285,64 @@ public class PolySweepMerge extends GeometryHandler
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
             if (container == null) continue;
 
-            Collections.sort(container.polyList, shapeSort);
+            //Collections.sort(container.polyList, shapeSort);
+            Collections.sort(container.areas, areaSort);
             double maxXSweep = -Double.MAX_VALUE;
             Area areaXTmp = null;
-            container.areas = new ArrayList();
             List twoFrontierAreas = new ArrayList();
             List tmp = new ArrayList();
 
-            for (int i = 0; i < container.polyList.size(); i++)
+            for (int i = 0; i < container.areas.size(); i++)
             {
-                Shape geom = (Shape)container.polyList.get(i);
+                Area geomArea = (Area)container.areas.get(i);
+                Rectangle2D rectX = geomArea.getBounds2D();
+                double minX = rectX.getX();
+                double maxX = rectX.getMaxX();
+
+                if (minX > maxXSweep)
+                {
+                    // Previous area is 100% disconnected
+                    if (areaXTmp != null)
+                    {
+                       sweepYFrontier(twoFrontierAreas, tmp, false);
+                       areaXTmp = null;
+                    }
+                    tmp.clear();
+                }
+                tmp.add(geomArea);
+                if (areaXTmp == null)
+                {
+                    // First one!
+                    areaXTmp = geomArea;
+                }
+                if (maxX > maxXSweep)
+                    maxXSweep = maxX;
+            }
+            sweepYFrontier(twoFrontierAreas, tmp, false);
+            container.areas = twoFrontierAreas;
+            //container.polyList = null;
+        }
+    }
+
+    private void mergeProcess()
+    {
+        for (Iterator it = getKeyIterator(); it.hasNext();)
+        {
+            Layer layer = (Layer)it.next();
+            PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+            if (container == null) continue;
+
+            //Collections.sort(container.polyList, shapeSort);
+            Collections.sort(container.areas, areaSort);
+            double maxXSweep = -Double.MAX_VALUE;
+            Area areaXTmp = null;
+            List areas = new ArrayList();
+            //List twoFrontierAreas = new ArrayList();
+            //List tmp = new ArrayList();
+
+            for (int i = 0; i < container.areas.size(); i++)
+            {
+                Area geom = (Area)container.areas.get(i);
                 Rectangle2D rectX = geom.getBounds2D();
                 double minX = rectX.getX();
                 double maxX = rectX.getMaxX();
@@ -227,60 +352,69 @@ public class PolySweepMerge extends GeometryHandler
                     if (areaXTmp != null)
                     {
                        // Note: this comparison is not meant to call Area.equals!
-                       if (!container.areas.contains(areaXTmp))
-                           container.areas.add(areaXTmp);
-                       sweepYFrontier(twoFrontierAreas, tmp);
+                       if (!areas.contains(areaXTmp))
+                           areas.add(areaXTmp);
+//                        if (!container.areas.contains(areaXTmp))
+//                           container.areas.add(areaXTmp);
+                       //sweepYFrontier(twoFrontierAreas, tmp, true);
                        areaXTmp = null;
                     }
-                    tmp.clear();
+                    //tmp.clear();
                 }
                 if (areaXTmp == null)
                 {
                     // First one!
-                    areaXTmp = new Area(geom);
-                    container.areas.add(areaXTmp);
-                    tmp.add(areaXTmp);
+                    areaXTmp = geom; //new Area(geom);
+                    areas.add(areaXTmp);
+                    //container.areas.add(areaXTmp);
+                    //tmp.add(areaXTmp);
                 }
                 else
                 {
-                    Area geomArea = new Area(geom);
-                    areaXTmp.add(geomArea);
-                    tmp.add(geomArea);
+                    //Area geomArea = new Area(geom);
+                    areaXTmp.add(geom); //geomArea);
+                    //tmp.add(geomArea);
                 }
                 if (maxX > maxXSweep)
                     maxXSweep = maxX;
             }
             // Can't use HashSet due to Comparator
-            if (areaXTmp != null && !container.areas.contains(areaXTmp))
-                container.areas.add(areaXTmp);
-            sweepYFrontier(twoFrontierAreas, tmp);
+            if (areaXTmp != null && !areas.contains(areaXTmp))
+                areas.add(areaXTmp);
+            container.areas = areas;
+//            if (areaXTmp != null && !container.areas.contains(areaXTmp))
+//                container.areas.add(areaXTmp);
+            //sweepYFrontier(twoFrontierAreas, tmp, true);
 
-            if (Main.LOCALDEBUGFLAG)
-            {
-            // Testing if we get same amount of single polygons
-            Collection set1 = getObjects(layer, false, true);
-            // Another tmp list
-            List set2 = new ArrayList();
-            for (Iterator iter = twoFrontierAreas.iterator(); iter.hasNext(); )
-            {
-                Area area = (Area)iter.next();
-                PolyBase.getPointsInArea(area, (Layer)layer, true, false, set2);
-            }
-            if (set2.size() != set1.size())
-                System.out.println("Wrong calculation");
-            }
-            if (mode == TWO_FRONTIER_MODE)
-            {
-                if (container.areas.size() != twoFrontierAreas.size())
-                     System.out.println("differrent set");
-                 container.areas = twoFrontierAreas;
-            }
-            container.polyList = null;
+//            if (Main.LOCALDEBUGFLAG)
+//            {
+//                // Testing if we get same amount of single polygons
+//                Collection set1 = getObjects(layer, false, true);
+//                // Another tmp list
+//                List set2 = new ArrayList();
+//                for (Iterator iter = twoFrontierAreas.iterator(); iter.hasNext(); )
+//                {
+//                    Area area = (Area)iter.next();
+//                    PolyBase.getPointsInArea(area, (Layer)layer, true, false, set2);
+//                }
+//                if (set2.size() != set1.size())
+//                    System.out.println("Wrong calculation");
+//            }
+//            if (mode == TWO_FRONTIER_MODE)
+//            {
+//                if (container.areas.size() != twoFrontierAreas.size())
+//                     System.out.println("differrent set");
+//                 container.areas = twoFrontierAreas;
+//            }
+            //container.polyList = null;
         }
     }
 
-    private static void sweepYFrontier(List twoFrontierAreas, List tmp)
+    private static void sweepYFrontier(List twoFrontierAreas, List tmp, boolean merge)
     {
+        // No fully tested yet
+        if (merge) return;
+
         // Y frontier
         Collections.sort(tmp, areaSort);
         double maxYSweep = -Double.MAX_VALUE;
@@ -305,18 +439,41 @@ public class PolySweepMerge extends GeometryHandler
             if (areaYTmp == null)
             {
                 // first one on Y
-                areaYTmp = area;
-                twoFrontierAreas.add(areaYTmp);
+                // In case no merge, areaYTmp will keep the entire region merged
+                // for substraction purposes
+                if (!merge)
+                {
+                    areaYTmp = (Area)area.clone();
+                    twoFrontierAreas.add(area);
+                }
+                else
+                {
+                    areaYTmp = area;
+                    twoFrontierAreas.add(areaYTmp);
+                }
             }
             else
             {
-                areaYTmp.add(area);
+                if (merge)
+                    areaYTmp.add(area);
+                else
+                {
+                    Area clone = (Area)area.clone();
+                    clone.intersect(areaYTmp);
+                    if (!clone.isEmpty())
+                        area.subtract(areaYTmp);
+                    if (!area.isEmpty())
+                    {
+                        twoFrontierAreas.add(area);
+                        areaYTmp.add(area);
+                    }
+                }
             }
 
             if (maxY > maxYSweep)
                 maxYSweep = maxY;
        }
-        if (areaYTmp != null && !twoFrontierAreas.contains(areaYTmp))
+        if (areaYTmp != null && merge && !twoFrontierAreas.contains(areaYTmp))
             twoFrontierAreas.add(areaYTmp);
     }
 

@@ -27,6 +27,8 @@ import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.Technology;
 
 import java.io.File;
 import java.io.IOException;
@@ -1067,6 +1069,8 @@ public class Sim
 	{
 		if (components != null)
 		{
+            Technology layoutTech = Schematics.getDefaultSchematicTechnology();
+            double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
 			// load the circuit from memory
 			for(Iterator it = components.iterator(); it.hasNext(); )
 			{
@@ -1080,7 +1084,7 @@ public class Sim
 					t.gate = getNode(tb.gateName);
 					t.source = getNode(tb.sourceName);
 					t.drain = getNode(tb.drainName);
-					long length = (long)(tb.getTransistorLength() * theConfig.lambdaCM);
+					long length = (long)(tb.getTransistorLength(lengthOff) * theConfig.lambdaCM);
 					long width = (long)(tb.getTransistorWidth() * theConfig.lambdaCM);
 					if (width <= 0 || length <= 0)
 					{

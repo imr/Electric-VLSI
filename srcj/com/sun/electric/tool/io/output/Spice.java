@@ -1570,7 +1570,7 @@ public class Spice extends Topology
 	 */
 	private void addArcInformation(PolyMerge merge, ArcInst ai)
 	{
-		boolean isDiffArc = arcIsDiff(ai);    // check arc function
+		boolean isDiffArc = ai.isDiffusionArc();    // check arc function
 
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
@@ -1615,19 +1615,19 @@ public class Spice extends Topology
 	/**
 	 * Method to return value if arc contains device active diffusion
 	 */
-	private boolean arcIsDiff(ArcInst ai)
-	{
-		ArcProto.Function fun = ai.getProto().getFunction();
-        boolean newV = ai.isDiffusionArc();
-        boolean oldV = (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN ||
-                fun == ArcProto.Function.DIFF || fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW);
-        if (newV != oldV)
-            System.out.println("Difference in arcIsDiff");
-        return oldV;
-//		if (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN || fun == ArcProto.Function.DIFF) return true;
-//		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
-//		return false;
-	}
+//	private boolean arcIsDiff(ArcInst ai)
+//	{
+//		ArcProto.Function fun = ai.getProto().getFunction();
+//        boolean newV = ai.isDiffusionArc();
+//        boolean oldV = (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN ||
+//                fun == ArcProto.Function.DIFF || fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW);
+//        if (newV != oldV)
+//            System.out.println("Difference in arcIsDiff");
+//        return oldV;
+////		if (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN || fun == ArcProto.Function.DIFF) return true;
+////		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
+////		return false;
+//	}
 
     private static final boolean CELLISEMPTYDEBUG = false;
     private HashMap checkedCells = new HashMap();

@@ -856,7 +856,7 @@ public class Connectivity
 					realizeNode(pv.pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
 	
 					// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
-					merge.subPolygon(layer, poly);
+					merge.subtract(layer, poly);
 					originalMerge.deleteLayer(tempLayer2);
 					double wid = desiredWidth - pv.largestShrink;
 					double hei = desiredHeight - pv.largestShrink;
@@ -877,7 +877,7 @@ public class Connectivity
 //System.out.println("    and also includes cut at ("+x+","+y+")");
 							checkCutSize(oPoly, pv.pNp, layer);
 							polyList.remove(oPoly);
-							merge.subPolygon(layer, oPoly);
+							merge.subtract(layer, oPoly);
 							if (o < ind) ind--;
 							o--;
 						}
@@ -1784,7 +1784,7 @@ public class Connectivity
 
 					// add this to the list of valid centerlines
 					validCenterlines.add(cl);
-					merge.subPolygon(tempLayer1, clPoly);
+					merge.subtract(tempLayer1, clPoly);
 					foundNew = true;
 				}
 			}
@@ -2247,7 +2247,7 @@ public class Connectivity
 			layer = geometricLayer(layer);
 
 			poly.transform(trans);
-			merge.subPolygon(layer, poly);
+			merge.subtract(layer, poly);
 		}
 	}
 
@@ -2279,7 +2279,7 @@ public class Connectivity
 			// make sure the geometric database is made up of proper layers
 			layer = geometricLayer(layer);
 
-			merge.subPolygon(layer, poly);
+			merge.subtract(layer, poly);
 		}
 		return ai;
 	}

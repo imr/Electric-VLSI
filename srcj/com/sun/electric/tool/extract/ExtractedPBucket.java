@@ -10,5 +10,5 @@ import com.sun.electric.technology.Technology;
  * To change this template use File | Settings | File Templates.
  */
 public interface ExtractedPBucket {
-    public String getInfo(double scale);
+    public String getInfo(Technology tech);
 }

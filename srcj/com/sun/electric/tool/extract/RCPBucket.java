@@ -1,5 +1,7 @@
 package com.sun.electric.tool.extract;
 
+import com.sun.electric.technology.Technology;
+
 /**
  * Created by IntelliJ IDEA.
  * User: gg151869
@@ -32,7 +34,7 @@ public class RCPBucket implements ExtractedPBucket
      * Method to be used to retrieve information while printing the deck
      * @return
      */
-    public String getInfo(double scale)
+    public String getInfo(Technology tech)
     {
         String info = type + " " + net1 + " " + net2 + " " + rcValue;;
         return info;

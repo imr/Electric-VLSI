@@ -2429,7 +2429,7 @@ public class Quick
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
-            quickArea.mainMerge.postProcess();
+            quickArea.mainMerge.postProcess(true);
 
 			// Job aborted
 			if (job != null && job.checkAbort()) return 0;
@@ -2451,10 +2451,7 @@ public class Quick
 //			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 //			if (!errorFound) errorFound = localError;
 //		}
-            if (mergeMode == GeometryHandler.ALGO_SWEEP)
-            {
-                ((PolySweepMerge)selectMerge).postProcess();
-            }
+        selectMerge.postProcess(true);
 
 		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
@@ -4135,8 +4132,8 @@ public class Quick
                 GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(info.getCell());
                 GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(info.getCell());
 
-                thisMerge.postProcess();
-                thisOtherMerge.postProcess();
+                thisMerge.postProcess(true);
+                thisOtherMerge.postProcess(true);
 
                 // merge everything sub trees
                 for(Iterator it = cell.getNodes(); it.hasNext(); )

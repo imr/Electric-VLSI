@@ -74,6 +74,10 @@ public class ParasiticTool extends Tool{
      */
     public static ParasiticTool getParasiticTool() { return tool; }
 
+    public static double getAreaScale(double scale) { return scale*scale/1000000; } // area in square microns
+
+    public static double getPerimScale(double scale) { return scale/1000; }          // perim in microns
+
     public void netwokParasitic(Network network, Cell cell)
     {
         AnalyzeParasitic job = new AnalyzeParasitic(network, cell);
@@ -132,8 +136,7 @@ public class ParasiticTool extends Tool{
                 {
                     Object obj = it.next();
                     NetPBucket bucket = (NetPBucket)netMap.get(obj);
-                    GeometryHandler merge = bucket.merge;
-                    if (merge != null) merge.postProcess();
+                    bucket.postProcess(false);
                 }
             }
         }
@@ -171,15 +174,16 @@ public class ParasiticTool extends Tool{
 
                 PortInst tailP = ai.getTail().getPortInst();
                 PortInst headP = ai.getHead().getPortInst();
-                Network net1 = netList.getNetwork(tailP);
-                Network net2 = netList.getNetwork(headP);
-                if (net1 != net) net2 = net1;
+//                Network net1 = netList.getNetwork(tailP);
+//                Network net2 = netList.getNetwork(headP);
+//                if (net1 != net) net2 = net1;
 
                 NetPBucket parasiticNet = getNetParasiticsBucket(net, info);
                 if (parasiticNet == null)
                     continue;
-
-                String net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents);
+                String netName = info.getUniqueNetNameProxy(net, "/").toString(numRemoveParents);
+                String net1Name = netName+"_"+tailP.getNodeInst().getName();
+                String net2Name = netName+"_"+headP.getNodeInst().getName();
                 boolean isDiffArc = ai.isDiffusionArc();    // check arc function
 
                 Technology tech = ai.getProto().getTechnology();
@@ -194,10 +198,11 @@ public class ParasiticTool extends Tool{
                     if (layer.getTechnology() != Technology.getCurrent()) continue;
                     if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 
-                    if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))
+                    if (isDiffArc || layer.getCapacitance() > 0.0)
+                    //if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))
                         parasiticNet.addCapacitance(layer, poly);
-                    if (layer.getResistance() > 0)
-                        parasiticNet.addResistance(layer, poly, net2Name);
+                    if (layer.getResistance() > 0.0)
+                        parasiticNet.modifyResistance(layer, poly, new String[] {net1Name, net2Name}, true);
                 }
             }
 
@@ -222,8 +227,13 @@ public class ParasiticTool extends Tool{
             // initialize to examine the polygons on this node
             Technology tech = np.getTechnology();
             AffineTransform trans = ni.rotateOut();
-            ExtractedPBucket parasitic = tool.createBucket(ni, netList, (ParasiticCellInfo)info);
+            ExtractedPBucket parasitic = tool.createBucket(ni, (ParasiticCellInfo)info);
             if (parasitic != null) transAndRCList.add(parasitic);
+
+            int numRemoveParents = context.getNumLevels();
+            PrimitiveNode.Function function = ni.getFunction();
+            // In case of contacts, the area is substracted.
+            boolean add = function != PrimitiveNode.Function.CONTACT;
 
             Poly [] polyList = tech.getShapeOfNode(ni, null, true, true, null);
             int tot = polyList.length;
@@ -240,19 +250,30 @@ public class ParasiticTool extends Tool{
 
                 // don't bother with layers without capacity
                 Layer layer = poly.getLayer();
-                if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
                 if (layer.getTechnology() != Technology.getCurrent()) continue;
-
-                // leave out the gate capacitance of transistors
-                if (layer.getFunction() == Layer.Function.GATE) continue;
+//                if (!layer.isDiffusionLayer() &&
+//                        layer.getCapacitance() == 0.0 && layer.getResistance() == 0.0) continue;
 
                 NetPBucket parasiticNet = getNetParasiticsBucket(net, info);
                 if (parasiticNet == null)
                     continue;
 
+                boolean isDiffLayer = layer.isDiffusionLayer();
+                if (function.isTransistor() && isDiffLayer) parasiticNet.addTransistor(parasitic);
+
                 // get the area of this polygon
                 poly.transform(trans);
-                parasiticNet.addCapacitance(layer, poly);
+
+                // leave out the gate capacitance of transistors
+                boolean gateLayer = (layer.getFunction() == Layer.Function.GATE);
+                if (isDiffLayer || !gateLayer && layer.getCapacitance() > 0.0) // diffusion might have zero capacitances )
+                    parasiticNet.addCapacitance(layer, poly);
+
+                // Doesn't include gates if user set that
+                if (gateLayer && !tech.isGateIncluded()) continue;
+                String netName = info.getUniqueNetNameProxy(net, "/").toString(numRemoveParents) + "_" + ni.getName();
+                if (layer.getResistance() > 0.0)
+                    parasiticNet.modifyResistance(layer, poly, new String[] {netName, netName}, add);
             }
 			return (true);
 		}

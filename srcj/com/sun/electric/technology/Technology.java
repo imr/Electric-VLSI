@@ -514,9 +514,6 @@ public class Technology implements Comparable
 	/** list of primitive nodes in this technology */		private LinkedHashMap nodes = new LinkedHashMap();
 	/** list of arcs in this technology */					private LinkedHashMap arcs = new LinkedHashMap();
 	/** list of NodeLayers in this Technology. */			private List nodeLayers;
-	/** minimum resistance in this Technology. */			private double minResistance;
-	/** minimum capacitance in this Technology. */			private double minCapacitance;
-	/** true if parasitic overrides were examined. */		private boolean parasiticOverridesGathered = false;
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -524,6 +521,9 @@ public class Technology implements Comparable
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
+    /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
+    /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
+
     /** To group elements for palette */                    protected Object[][] nodeGroups;
 	public static final int N_TYPE = 1;
 	public static final int P_TYPE = 0;
@@ -2460,8 +2460,18 @@ public class Technology implements Comparable
 	{
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("Mininum" + what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tools/Spice tab", getTechShortName() + " Min. " + what);
+			pref = Pref.makeDoublePref(what + "IN" + getTechName(), prefs, factory);
+			pref.attachToObject(this, "Tools/Parasitic tab", getTechShortName() + " " + what);
+		}
+		return pref;
+	}
+
+    private Pref getParasiticPref(String what, Pref pref, boolean factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeBooleanPref(what + "IN" + getTechName(), prefs, factory);
+			pref.attachToObject(this, "Tools/Parasitic tab", getTechShortName() + " " + what);
 		}
 		return pref;
 	}
@@ -2477,11 +2487,12 @@ public class Technology implements Comparable
 
 	/**
 	 * Returns the minimum resistance of this Technology.
+     * Default value is 10.0
 	 * @return the minimum resistance of this Technology.
 	 */
 	public double getMinResistance()
 	{
-		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, minResistance);
+		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, 10.0);
 		return prefMinResistance.getDouble();
 	}
 
@@ -2491,17 +2502,19 @@ public class Technology implements Comparable
 	 */
 	public void setMinResistance(double minResistance)
 	{
-		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, this.minResistance);
+		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, minResistance);
 		prefMinResistance.setDouble(minResistance);
 	}
 
 	/**
 	 * Returns the minimum capacitance of this Technology.
+     * Default value is 0.0
 	 * @return the minimum capacitance of this Technology.
 	 */
 	public double getMinCapacitance()
 	{
-		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, minCapacitance);
+        // 0.0 is the default value
+		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, 0.0);
 		return prefMinCapacitance.getDouble();
 	}
 
@@ -2511,9 +2524,51 @@ public class Technology implements Comparable
 	 */
 	public void setMinCapacitance(double minCapacitance)
 	{
-		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance);
+		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, minCapacitance);
 		prefMinCapacitance.setDouble(minCapacitance);
 	}
+
+	/**
+	 * Returns true if gate is included in resistance calculation. False is the default.
+	 * @return true if gate is included in resistance calculation.
+	 */
+	public boolean isGateIncluded()
+	{
+        // False is the default
+		prefIncludeGate = getParasiticPref("Gate Inclusion", prefIncludeGate, false);
+		return prefIncludeGate.getBoolean();
+	}
+
+    /**
+     * Sets tstate for gate inclusion. False is the default.
+     * @param set state for gate inclusion
+     */
+    public void setGateIncluded(boolean set)
+    {
+        prefIncludeGate = getParasiticPref("Gate Inclusion", prefIncludeGate, set);
+        prefIncludeGate.setBoolean(set);
+    }
+
+	/**
+	 * Sets state for ground network inclusion. False is the default.
+	 * @param set state for ground network inclusion
+	 */
+	public void setGroundNetIncluded(boolean set)
+	{
+		prefIncludeGnd = getParasiticPref("Ground Net Inclusion", prefIncludeGnd, set);
+		prefIncludeGnd.setBoolean(set);
+	}
+
+    /**
+     * Returns true if ground network is included in parasitics calculation. False is the default.
+     * @return true if ground network is included.
+     */
+    public boolean isGroundNetIncluded()
+    {
+        // False is the default
+        prefIncludeGnd = getParasiticPref("Ground Net Inclusion", prefIncludeGnd, false);
+        return prefIncludeGnd.getBoolean();
+    }
 
     /**
      * Gets the gate length subtraction for this Technology (in microns).
@@ -2523,11 +2578,7 @@ public class Technology implements Comparable
      */
     public double getGateLengthSubtraction()
     {
-        if (prefGateLengthSubtraction == null)
-        {
-            prefGateLengthSubtraction = Pref.makeDoublePref("Gate Length Subtraction (microns) " + "IN" + getTechName(), prefs, 0);
-            prefGateLengthSubtraction.attachToObject(this, "Tools/Spice tab", getTechShortName() + " Gate Length Subtraction (microns)");
-        }
+        prefGateLengthSubtraction = getParasiticPref("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
         return prefGateLengthSubtraction.getDouble();
     }
 
@@ -2551,8 +2602,8 @@ public class Technology implements Comparable
 	 */
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, this.minResistance = minResistance);
-		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance = minCapacitance);
+		prefMinResistance = getParasiticPref("MininumResistance", prefMinResistance, minResistance);
+		prefMinCapacitance = getParasiticPref("MininumCapacitance", prefMinCapacitance, minCapacitance);
 	}
 
 	/**

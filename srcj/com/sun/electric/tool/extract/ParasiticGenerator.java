@@ -15,6 +15,5 @@ import com.sun.electric.database.network.Netlist;
  * depending on tool
  */
 public interface ParasiticGenerator {
-    public ExtractedPBucket createBucket(NodeInst ni, Netlist netlist,
-                                         ParasiticTool.ParasiticCellInfo info);
+    public ExtractedPBucket createBucket(NodeInst ni, ParasiticTool.ParasiticCellInfo info);
 }

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP/MAN: (03/29/05, GVG) Improvements in resistance/capacitance calculation in Parasitic Tool.
+Two extra check boxes added: (a) include gate in resistance calculation, (b) include gnd network
+parasitic netlist.
+
 IMP: (03/25/05, SMR) Added HPGL output.
 
 IMP: (03/24/05, SMR) Unconnected nodes that are on the same network as a selected node now highlight

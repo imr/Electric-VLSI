@@ -622,7 +622,7 @@ public class ERCWellCheck
 					}
 				}
 
-                thisMerge.postProcess();
+                thisMerge.postProcess(true);
 
                 // merge everything sub trees
                 for(Iterator it = cell.getNodes(); it.hasNext(); )

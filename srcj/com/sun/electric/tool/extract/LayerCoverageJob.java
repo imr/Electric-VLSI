@@ -432,7 +432,7 @@ public class LayerCoverageJob extends Job
 		LayerVisitor visitor = new LayerVisitor(tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
-        tree.postProcess();
+        tree.postProcess(true);
 
 		switch (function)
 		{

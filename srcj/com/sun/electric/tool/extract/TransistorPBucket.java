@@ -2,6 +2,7 @@ package com.sun.electric.tool.extract;
 
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -19,6 +20,7 @@ public class TransistorPBucket implements ExtractedPBucket
     public String sourceName;
     public String drainName;
     private TransistorSize size;
+    private double sourceArea, drainArea, sourcePerim, drainPerim;
     public NodeInst ni;
     private double mFactor;
     
@@ -40,7 +42,10 @@ public class TransistorPBucket implements ExtractedPBucket
         return type;
     }
 
-    public double getTransistorLength() {return size.getDoubleLength();}
+    public double getTransistorLength(double legnthOffset)
+    {
+        return size.getDoubleLength() - legnthOffset;
+    }
 
     public double getTransistorWidth() {return size.getDoubleWidth() * mFactor;}
 
@@ -48,13 +53,32 @@ public class TransistorPBucket implements ExtractedPBucket
 
     public double getActivePerim() {return DBMath.round((getTransistorWidth() + size.getDoubleActiveLength())*2);}
 
-    public String getInfo(double scale)
+    public void addDifussionInformation(String net, double area, double perimeter)
+    {
+        if (net.equals(drainName))
+        {
+            drainArea += area;
+            drainPerim += perimeter;
+        }
+        else if (net.equals(sourceName))
+        {
+            sourceArea += area;
+            sourcePerim += perimeter;
+        }
+        else
+            System.out.println("Error in TransistorPBucket.addDifussionInformation");
+    }
+
+    public String getInfo(Technology tech)
     {
         // Only valid for IRSIM now
-        double length = getTransistorLength();
+        double scale = tech.getScale();
+        double legnthOffset = tech.getGateLengthSubtraction()/scale;
+        //scale /= 10;
+        double length = getTransistorLength(legnthOffset);
         double width = getTransistorWidth();
-        double activeArea = getActiveArea();
-        double activePerim = getActivePerim();
+//        double activeArea = getActiveArea();
+//        double activePerim = getActivePerim();
 //                    activeArea = size.getDoubleWidth() * 6;
 //            activePerim= size.getDoubleWidth() + 12;
 
@@ -68,8 +92,12 @@ public class TransistorPBucket implements ExtractedPBucket
         line.append(" " + TextUtils.formatDouble(ni.getAnchorCenterY()));
         if (type == 'n') line.append(" g=S_gnd");
         else line.append(" g=S_vdd"); // type = 'p'
-        line.append(" s=A_" + (int)activeArea + ",P_" + (int)activePerim);
-        line.append(" d=A_" + (int)activeArea + ",P_" + (int)activePerim);
+//        line.append(" s=A_" + (int)activeArea + ",P_" + (int)activePerim);
+//        line.append(" d=A_" + (int)activeArea + ",P_" + (int)activePerim);
+//        double areaScale = ParasiticTool.getAreaScale(scale); // area in square microns
+//        double perimScale = ParasiticTool.getPerimScale(scale);           // perim in microns
+        line.append(" s=A_" + (int)(sourceArea) + ",P_" + (int)(sourcePerim));
+        line.append(" d=A_" + (int)(drainArea) + ",P_" + (int)(drainPerim));
         return line.toString();
     }
 }

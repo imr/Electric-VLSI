@@ -25,11 +25,8 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.simulation.Simulation;
@@ -50,9 +47,6 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-
 
 /**
  * Class to handle the "Spice" tab of the Preferences dialog.
@@ -69,9 +63,7 @@ public class SpiceTab extends PreferencePanel
 
 	public String getName() { return "Spice"; }
 
-	private JList spiceLayerList;
 	private JList spiceCellList;
-	private DefaultListModel spiceLayerListModel;
 	private DefaultListModel spiceCellListModel;
 	private int spiceEngineInitial;
 	private String spiceLevelInitial;
@@ -82,14 +74,8 @@ public class SpiceTab extends PreferencePanel
 	private boolean spiceForceGlobalPwrGndInitial;
 	private boolean spiceUseCellParametersInitial;
 	private boolean spiceWriteTransSizesInLambdaInitial;
-	private double spiceTechMinResistanceInitial;
-	private double spiceTechMinCapacitanceInitial;
-    private double spiceGateLengthSubtractionInitial;
 	private String spiceHeaderCardInitial;
 	private String spiceTrailerCardInitial;
-	private HashMap spiceLayerResistanceOptions;
-	private HashMap spiceLayerCapacitanceOptions;
-	private HashMap spiceLayerEdgeCapacitanceOptions;
 	private HashMap spiceCellModelOptions;
     private boolean spiceUseRunDirInitial;
     private String spiceRunDirInitial;
@@ -176,43 +162,6 @@ public class SpiceTab extends PreferencePanel
         if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false);
         else setSpiceRunOptionsEnabled(true);
 
-		// the next section: parasitic values
-//		spiceTechnology.setText("For technology " + curTech.getTechName());
-
-		spiceLayerResistanceOptions = new HashMap();
-		spiceLayerCapacitanceOptions = new HashMap();
-		spiceLayerEdgeCapacitanceOptions = new HashMap();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			spiceLayerResistanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getResistance()));
-			spiceLayerCapacitanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getCapacitance()));
-			spiceLayerEdgeCapacitanceOptions.put(layer, Pref.makeDoublePref(null, null, layer.getEdgeCapacitance()));
-		}
-		spiceLayerListModel = new DefaultListModel();
-		spiceLayerList = new JList(spiceLayerListModel);
-		spiceLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//		spiceLayer.setViewportView(spiceLayerList);
-		spiceLayerList.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { spiceLayerListClick(); }
-		});
-		showLayersInTechnology(spiceLayerListModel);
-		spiceLayerList.setSelectedIndex(0);
-		spiceLayerListClick();
-//		spiceResistance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerResistanceOptions, spiceLayerList, curTech));
-//		spiceCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerCapacitanceOptions, spiceLayerList, curTech));
-//		spiceEdgeCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerEdgeCapacitanceOptions, spiceLayerList, curTech));
-	
-		spiceTechMinResistanceInitial = curTech.getMinResistance();
-//		spiceMinResistance.setText(Double.toString(spiceTechMinResistanceInitial));
-
-		spiceTechMinCapacitanceInitial = curTech.getMinCapacitance();
-//		spiceMinCapacitance.setText(Double.toString(spiceTechMinCapacitanceInitial));
-
-        spiceGateLengthSubtractionInitial = curTech.getGateLengthSubtraction();
-//        spiceGateLengthSubtraction.setText(Double.toString(spiceGateLengthSubtractionInitial));
-
 		// the next section: header and trailer cards
 		spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
 		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
@@ -286,16 +235,6 @@ public class SpiceTab extends PreferencePanel
 	}
 
 	private boolean spiceModelFileChanging = false;
-
-	private void showLayersInTechnology(DefaultListModel model)
-	{
-		model.clear();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			model.addElement(layer.getName());
-		}
-	}
 
 	/**
 	 * Method called when the user clicks on a model file radio button at in the bottom of the Spice Options dialog.
@@ -442,29 +381,6 @@ public class SpiceTab extends PreferencePanel
         stringNow = spiceRunProgramArgs.getText();
         if (!spiceRunProgramArgsInitial.equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
 
-		// the next section: parasitic values
-//		double doubleNow = TextUtils.atof(spiceMinResistance.getText());
-//		if (spiceTechMinResistanceInitial != doubleNow) curTech.setMinResistance(doubleNow);
-//		doubleNow = TextUtils.atof(spiceMinCapacitance.getText());
-//		if (spiceTechMinCapacitanceInitial != doubleNow) curTech.setMinCapacitance(doubleNow);
-//
-//		for(Iterator it = curTech.getLayers(); it.hasNext(); )
-//		{
-//			Layer layer = (Layer)it.next();
-//			Pref resistancePref = (Pref)spiceLayerResistanceOptions.get(layer);
-//			if (resistancePref != null && resistancePref.getDoubleFactoryValue() != resistancePref.getDouble())
-//				layer.setResistance(resistancePref.getDouble());
-//			Pref capacitancePref = (Pref)spiceLayerCapacitanceOptions.get(layer);
-//			if (capacitancePref != null && capacitancePref.getDoubleFactoryValue() != capacitancePref.getDouble())
-//				layer.setCapacitance(capacitancePref.getDouble());
-//			Pref edgeCapacitancePref = (Pref)spiceLayerEdgeCapacitanceOptions.get(layer);
-//			if (edgeCapacitancePref != null && edgeCapacitancePref.getDoubleFactoryValue() != edgeCapacitancePref.getDouble())
-//				layer.setEdgeCapacitance(edgeCapacitancePref.getDouble());
-//		}
-//
-//        doubleNow = TextUtils.atof(spiceGateLengthSubtraction.getText());
-//        if (spiceGateLengthSubtractionInitial != doubleNow) curTech.setGateLengthSubtraction(doubleNow);
-
 		// the next section: header and trailer cards
 		String header = "";
 		if (spiceHeaderCardsWithExtension.isSelected())
@@ -499,64 +415,6 @@ public class SpiceTab extends PreferencePanel
 					cell.newVar(Spice.SPICE_MODEL_FILE_KEY, fileName);
 			}
 		}
-	}
-
-	private void spiceLayerListClick()
-	{
-//		String layerName = (String)spiceLayerList.getSelectedValue();
-//		Layer layer = curTech.findLayer(layerName);
-//		if (layer != null)
-//		{
-//			Pref resistancePref = (Pref)spiceLayerResistanceOptions.get(layer);
-//			spiceResistance.setText(Double.toString(resistancePref.getDouble()));
-//			Pref capacitancePref = (Pref)spiceLayerCapacitanceOptions.get(layer);
-//			spiceCapacitance.setText(Double.toString(capacitancePref.getDouble()));
-//			Pref edgeCapacitancePref = (Pref)spiceLayerEdgeCapacitanceOptions.get(layer);
-//			spiceEdgeCapacitance.setText(Double.toString(edgeCapacitancePref.getDouble()));
-//		}
-	}
-
-	/**
-	 * Class to handle special changes to per-layer parasitics.
-	 */
-	private static class LayerDocumentListener implements DocumentListener
-	{
-		HashMap optionMap;
-		JList list;
-		Technology tech;
-
-		LayerDocumentListener(HashMap optionMap, JList list, Technology tech)
-		{
-			this.optionMap = optionMap;
-			this.list = list;
-			this.tech = tech;
-		}
-
-		private void change(DocumentEvent e)
-		{
-			// get the currently selected layer
-			String layerName = (String)list.getSelectedValue();
-			Layer layer = tech.findLayer(layerName);
-			if (layer == null) return;
-
-			// get the typed value
-			Document doc = e.getDocument();
-			int len = doc.getLength();
-			String text;
-			try
-			{
-				text = doc.getText(0, len);
-			} catch (BadLocationException ex) { return; }
-			Pref pref = (Pref)optionMap.get(layer);
-			double v = TextUtils.atof(text);
-
-			// update the option
-			pref.setDouble(v);
-		}
-
-		public void changedUpdate(DocumentEvent e) { change(e); }
-		public void insertUpdate(DocumentEvent e) { change(e); }
-		public void removeUpdate(DocumentEvent e) { change(e); }
 	}
 
     // enable or disable the spice run options
