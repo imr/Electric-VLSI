@@ -3267,10 +3267,12 @@ public class MoCMOS extends Technology
 						rules.addRule(index, theRules[i]);
 						break;
 					case DRC.RuleTemplate.SPACINGM:
+                        /*
 						rules.conListMulti[index] = new Double(distance);
 						rules.unConListMulti[index] = new Double(distance);
 						rules.conListMultiRules[index] = rule;
 						rules.unConListMultiRules[index] = rule;
+                        */
 						rules.addRule(index, theRules[i]);
 						break;
 					case DRC.RuleTemplate.SPACINGW:

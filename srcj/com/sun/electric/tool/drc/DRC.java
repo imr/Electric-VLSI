@@ -459,6 +459,17 @@ public class DRC extends Listener
 						System.out.println("Overwriting?");
 					map.put(r, r);
 				    break;
+			case RuleTemplate.SPACINGM:
+					conListMulti[index] = new Double(rule.distance);
+					unConListMulti[index] = new Double(rule.distance);
+					conListMultiRules[index] = rule.rule;
+					unConListMultiRules[index] = rule.rule;
+					internalType = RuleTemplate.UCONSPA;
+					r = new RRule(rule.rule, rule.distance, RuleTemplate.CONSPA, rule.maxW);
+					if (map.get(r) != null)
+						System.out.println("Overwriting?");
+					map.put(r, r);
+				    break;
 				case RuleTemplate.CONSPA:
 					conList[index] = new Double(rule.distance);
 					conListRules[index] = rule.rule;
