@@ -311,7 +311,7 @@ public class Connectivity
 
 		// cleanup by auto-stitching
 		System.out.print("Connecting everything...");
-//		AutoStitch.runAutoStitch(newCell, false, false);
+		AutoStitch.runAutoStitch(newCell, false, false);
 		System.out.println("done");
 		
 		// show the new version
@@ -988,7 +988,6 @@ public class Connectivity
 					}
 					if (contactArea == null || contactArea.size() == 0) continue;
 
-//					createLargestContact(centerX, centerY, pv, contactArea, polyList);
 					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
 					if (largest == null) continue;
 //System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
@@ -1085,6 +1084,7 @@ public class Connectivity
 					if (lowY >= centerY + minHeight/2) continue;
 					if (highY <= centerY - minHeight/2) continue;
 					double dist = lastPt.getX() - centerX;
+					if (Math.abs(dist) < minWidth/2) continue;
 					if (dist > 0)
 					{
 						// see if this is a new right edge
@@ -1103,6 +1103,7 @@ public class Connectivity
 					if (lowX >= centerX + minWidth/2) continue;
 					if (highX <= centerX - minWidth/2) continue;
 					double dist = lastPt.getY() - centerY;
+					if (Math.abs(dist) < minHeight/2) continue;
 					if (dist > 0)
 					{
 						// see if this is a new top edge

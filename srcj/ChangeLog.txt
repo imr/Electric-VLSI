@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+BUG: (01/24/05, SMR) CIF input places cell instances incorrectly.
+FIX: In CIF.nodesCall(), must compute instance position to account for cell-centers.
+
+IMP: (01/22/05, SMR) Finished coding PolyBase.contains().
+
 BUG: (01/21/05, SMR) Spice crossprobing doesn't work right (Bug #170).
 FIX: In WaveformWindow.java, do not convert "@" to "_" unless name match fails.
 

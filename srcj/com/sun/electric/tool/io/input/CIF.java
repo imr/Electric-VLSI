@@ -39,6 +39,7 @@ import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -544,6 +545,14 @@ public class CIF extends Input
 		if (ost.isJMirrorX()) sX = -sX;
 		if (ost.isJMirrorY()) sY = -sY;
 		rot = ost.getJAngle();
+
+		// special code to account for rotation of cell centers
+		AffineTransform ctrTrans = NodeInst.rotateAbout(rot, x, y, sX, sY);
+		Point2D spin = new Point2D.Double(x - bounds.getCenterX(), y - bounds.getCenterY());
+		ctrTrans.transform(spin, spin);
+		x = spin.getX();   y = spin.getY();
+
+		// create the node
 		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0);
 		if (ni == null)
 		{

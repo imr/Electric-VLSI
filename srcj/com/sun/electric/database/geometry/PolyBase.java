@@ -1105,26 +1105,45 @@ public class PolyBase implements Shape
 	/**
 	 * Method to tell whether a rectangle is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
-	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param x the X corner of the rectangle.
 	 * @param y the Y corner of the rectangle.
 	 * @param w the width of the rectangle.
 	 * @param h the height of the rectangle.
 	 * @return true if the rectangle is inside the Poly.
 	 */
-	public boolean contains(double x, double y, double w, double h)
+	public boolean contains(double lX, double lY, double w, double h)
 	{
-		// Implementation not valid for non-convex polygons
-		return (isInside(new Point2D.Double(x, y)) &&
-				isInside(new Point2D.Double(x+w, y)) &&
-				isInside(new Point2D.Double(x, y+h)) &&
-				isInside(new Point2D.Double(x+w, y+h)));
+		double hX = lX + w;
+		double hY = lY + h;
+		for(int i=0; i<points.length; i++)
+		{
+			int last = i-1;
+			if (last < 0) last = points.length-1;
+			Point2D thisPt = new Point2D.Double(points[i].getX(), points[i].getY());
+			Point2D lastPt = new Point2D.Double(points[last].getX(), points[last].getY());
+		    boolean invisible = GenMath.clipLine(lastPt, thisPt, lX, hX, lY, hY);
+		    if (invisible) continue;
+		    if (lastPt.getX() == thisPt.getX())
+		    {
+		    	if (thisPt.getX() <= lX || thisPt.getX() >= hX) continue;
+		    }
+		    if (lastPt.getY() == thisPt.getY())
+		    {
+		    	if (thisPt.getY() <= lY || thisPt.getY() >= hY) continue;
+		    }
+		    return false;
+		}
+		return true;
+//		// Implementation not valid for non-convex polygons
+//		return (isInside(new Point2D.Double(x, y)) &&
+//				isInside(new Point2D.Double(x+w, y)) &&
+//				isInside(new Point2D.Double(x, y+h)) &&
+//				isInside(new Point2D.Double(x+w, y+h)));
 	}
 
 	/**
 	 * Method to tell whether a rectangle is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
-	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param r the rectangle.
 	 * @return true if the rectangle is inside the Poly.
 	 */
