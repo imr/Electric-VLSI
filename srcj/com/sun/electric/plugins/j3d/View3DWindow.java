@@ -84,6 +84,8 @@ import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
 import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
+import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
+import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -126,7 +128,8 @@ public class View3DWindow extends JPanel
 			2000,  //20000
 			5000,
 			50 );
-    KBRotPosScaleSplinePathInterpolator splineInterpolator;
+    KBRotPosScaleSplinePathInterpolator kbSplineInter;
+    RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -1100,14 +1103,16 @@ public class View3DWindow extends JPanel
         if (!(content instanceof View3DWindow)) return;
         View3DWindow wnd = (View3DWindow)content;
 
-        boolean state = wnd.splineInterpolator.getEnable();
-        Transform3D yAxis = new Transform3D();
-        wnd.u.getViewingPlatform().getViewPlatformTransform().getTransform(yAxis);
-//        wnd.objTrans.getTransform(yAxis);
-//        wnd.translateB.getTransformGroup().getTransform(yAxis);
-//        wnd.rotateB.getTransformGroup().getTransform(yAxis);
-        wnd.splineInterpolator.setTransformAxis(yAxis);
-        wnd.splineInterpolator.setEnable(!state);
+        if (x== null)
+        {
+            boolean state = wnd.kbSplineInter.getEnable();
+            wnd.kbSplineInter.setEnable(!state);
+        }
+        else
+        {
+            boolean state = wnd.tcbSplineInter.getEnable();
+            wnd.tcbSplineInter.setEnable(!state);
+        }
     }
 
 	/**
@@ -1541,9 +1546,13 @@ public class View3DWindow extends JPanel
         float heading; // Sets the camera's heading. This automatically modifies the target's position.
         float pitch; // Sets the camera's pitch in degrees. This automatically modifies the target's position.
         float bank; // Sets the camera's bank in degrees. The angle is relative to the horizon.
+        double rotZ;
+        double rotY;
+        double rotX;
 
         public ThreeDDemoKnot(double xValue, double yValue, double zValue, double scale,
-                              double heading, double pitch, double bank)
+                              double heading, double pitch, double bank,
+                              double rotX, double rotY, double rotZ)
         {
             this.xValue = (float)xValue;
             this.yValue = (float)yValue;
@@ -1552,6 +1561,9 @@ public class View3DWindow extends JPanel
             this.heading = (float)heading;
             this.pitch = (float)pitch;
             this.bank = (float)bank;
+            this.rotZ = rotZ;
+            this.rotX = rotX;
+            this.rotY = rotY;
         }
     }
 
@@ -1564,18 +1576,16 @@ public class View3DWindow extends JPanel
         double [] zValues = new double[2];
         cell.getZValues(zValues);
         double zCenter = (zValues[0] + zValues[1])/2;
-        int count = 0;
-        
+        Rectangle2D bounding = cell.getBounds();
+        Vector3d translation = new Vector3d (bounding.getCenterX(), bounding.getCenterY(), zCenter);
+        yAxis.setTranslation(translation);
         for (Iterator it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() == Artwork.tech.pinNode)
             {
                 Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
-                System.out.println("Art " + ni.getBounds() + " " +
-                        polyList[0].getCenterX() + " " + polyList[0].getCenterY());
                 Poly poly = polyList[0];
-                int sequence = count++;
                 Variable var = (Variable)ni.getVar("3D_Z_VALUE");
                 double zValue = (var == null) ? zCenter : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_SCALE_VALUE");
@@ -1586,8 +1596,14 @@ public class View3DWindow extends JPanel
                 double pitch = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_BANK_VALUE");
                 double bank = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_ROTX_VALUE");
+                double rotX = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_ROTY_VALUE");
+                double rotY = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_ROTZ_VALUE");
+                double rotZ = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 ThreeDDemoKnot knot = new ThreeDDemoKnot(poly.getCenterX(), poly.getCenterY(),
-                        zValue, scale, heading, pitch, bank);
+                        zValue, scale, heading, pitch, bank, rotX, rotY, rotZ);
                 polys.add(knot);
             }
         }
@@ -1596,16 +1612,25 @@ public class View3DWindow extends JPanel
 
         objTrans.getTransform(yAxis);
         KBKeyFrame[] splineKeyFrames = new KBKeyFrame[polys.size()];
+        TCBKeyFrame[] keyFrames = new TCBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)
         {
             ThreeDDemoKnot knot = (ThreeDDemoKnot)polys.get(i);
-            splineKeyFrames[i] = getNextKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            splineKeyFrames[i] = getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            keyFrames[i] = getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
-        splineInterpolator = new KBRotPosScaleSplinePathInterpolator(alpha, objTrans,
+        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(alpha, objTrans,
                                                   yAxis, splineKeyFrames);
-        splineInterpolator.setSchedulingBounds(infiniteBounds);
-        behaviorBranch.addChild(splineInterpolator);
-        splineInterpolator.setEnable(false);
+        kbSplineInter.setSchedulingBounds(infiniteBounds);
+        behaviorBranch.addChild(kbSplineInter);
+        kbSplineInter.setEnable(false);
+
+        tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(alpha, objTrans,
+                                                  yAxis, keyFrames);
+        tcbSplineInter.setSchedulingBounds(infiniteBounds);
+        behaviorBranch.addChild(tcbSplineInter);
+        tcbSplineInter.setEnable(false);
+
         objTrans.addChild(behaviorBranch);
     }
 
@@ -1616,20 +1641,79 @@ public class View3DWindow extends JPanel
      * @param knot
      * @return
      */
-    private static KBKeyFrame getNextKeyFrame(float ratio, ThreeDDemoKnot knot)
+    private static KBKeyFrame getNextKBKeyFrame(float ratio, ThreeDDemoKnot knot)
     {
         // Prepare spline keyframe data
         Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
         Point3f point   = new Point3f (pos);            // position
-        float head  = 0.0f; //(float)Math.PI/2.0f;           // heading
-        float pitch = 0.0f;                          // pitch
-        float bank  = 0.0f;                          // bank
         Point3f scale   = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
-        KBKeyFrame key = new KBKeyFrame(ratio, 1, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
-
-        System.out.println("Mov " + pos);
+        KBKeyFrame key = new KBKeyFrame(ratio, 0, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
         return key;
     }
+
+    private static TCBKeyFrame getNextTCBKeyFrame(float ratio, ThreeDDemoKnot knot)
+    {
+        // Prepare spline keyframe data
+        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
+        Point3f point = new Point3f (pos);            // position
+        Quat4f quat = createQuaternionFromEuler(knot.rotX, knot.rotY, knot.rotZ);
+        Point3f scale = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
+        TCBKeyFrame key = new TCBKeyFrame(ratio, 0, point, quat, scale, 0.0f, 0.0f, 1.0f);
+        return key;
+    }
+
+    /**
+     * Convert an angular rotation about an axis to a Quaternion.
+     * From Selman's book
+     * @param axis
+     * @param angle
+     * @return
+     */
+	static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
+	{
+		double sin_a = Math.sin( angle / 2 );
+		double cos_a = Math.cos( angle / 2 );
+
+		// use a vector so we can call normalize
+		Vector4f q = new Vector4f( );
+
+		q.x = (float) (axis.x * sin_a);
+		q.y = (float) (axis.y * sin_a);
+		q.z = (float) (axis.z * sin_a);
+		q.w = (float) cos_a;
+
+		// It is necessary to normalise the quaternion
+		// in case any values are very close to zero.
+		q.normalize( );
+
+		// convert to a Quat4f and return
+		return new Quat4f( q );
+	}
+
+    /**
+     * Convert three rotations about the Euler axes to a Quaternion.
+     * From Selman's book
+     * @param angleX
+     * @param angleY
+     * @param angleZ
+     * @return
+     */ 
+	static Quat4f createQuaternionFromEuler( double angleX, double angleY, double angleZ )
+	{
+		// simply call createQuaternionFromAxisAndAngle
+		// for each axis and multiply the results
+		Quat4f qx = createQuaternionFromAxisAndAngle( new Vector3d( 1,0,0 ), angleX );
+		Quat4f qy = createQuaternionFromAxisAndAngle( new Vector3d( 0,1,0 ), angleY );
+		Quat4f qz = createQuaternionFromAxisAndAngle( new Vector3d( 0,0,1 ), angleZ );
+
+		// qx = qx * qy
+		qx.mul( qy );
+
+		// qx = qx * qz
+		qx.mul( qz );
+
+		return qx;
+	}
 
     private static void setupSplineKeyFrames (KBKeyFrame[] splineKeyFrames) {
 

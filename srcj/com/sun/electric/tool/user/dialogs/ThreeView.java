@@ -181,7 +181,7 @@ public class ThreeView extends EDialog
         // TODO add your handling code here:
         // Just way to stop motion
         WindowFrame wnd = WindowFrame.getCurrentWindowFrame();
-        wnd.set3DCamera(null, null, null);
+        wnd.set3DCamera(null, null, new Double(TextUtils.atof(zField.getText())));
     }//GEN-LAST:event_stopActionPerformed
 
     private void yFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yFieldActionPerformed
