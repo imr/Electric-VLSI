@@ -201,7 +201,7 @@ public abstract class InteractiveRouter extends Router {
                 // if this is a pin, replace it with the first contact in vertical route
                 PortInst pi = startRE.getPortInst();
                 NodeInst ni = pi.getNodeInst();
-                if (ni.getProto().getFunction() == NodeProto.Function.PIN) {
+                if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN) {
                     CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
                     if (re != null) re.reconnectArcs();
                     ni.kill();

@@ -766,10 +766,10 @@ public class ViewChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst mosNI = (NodeInst)it.next();
-			NodeProto.Function type = getNodeType(mosNI);
+			PrimitiveNode.Function type = getNodeType(mosNI);
 			NodeInst schemNI = null;
-			if (type == NodeProto.Function.UNKNOWN) continue;
-			if (type == NodeProto.Function.PIN)
+			if (type == PrimitiveNode.Function.UNKNOWN) continue;
+			if (type == PrimitiveNode.Function.PIN)
 			{
 				// compute new x, y coordinates
 				NodeProto prim = Schematics.tech.wirePinNode;
@@ -881,8 +881,8 @@ public class ViewChanges
 	 */
 	private static PortInst convertPort(NodeInst mosNI, PortProto mosPP, NodeInst schemNI)
 	{
-		NodeProto.Function fun = getNodeType(schemNI);
-		if (fun == NodeProto.Function.PIN)
+		PrimitiveNode.Function fun = getNodeType(schemNI);
+		if (fun == PrimitiveNode.Function.PIN)
 		{
 			return schemNI.getOnlyPortInst();
 		}
@@ -924,8 +924,8 @@ public class ViewChanges
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
-			NodeProto.Function fun = ni.getFunction();
-			if (fun != NodeProto.Function.PIN) continue;
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun != PrimitiveNode.Function.PIN) continue;
 
 			// see if this pin can be adjusted so that all wires are manhattan
 			int count = 0;
@@ -965,19 +965,19 @@ public class ViewChanges
 	/**
 	 * Method to figure out if a NodeInst is a MOS component
 	 * (a wire or transistor).  If it's a transistor, return its function; 
-	 * if it's a passive connector, return NodeProto.Function.PIN;
-	 * if it's a cell, return null; else return NodeProto.Function.UNKNOWN.
+	 * if it's a passive connector, return PrimitiveNode.Function.PIN;
+	 * if it's a cell, return null; else return PrimitiveNode.Function.UNKNOWN.
 	 */
-	private static NodeProto.Function getNodeType(NodeInst ni)
+	private static PrimitiveNode.Function getNodeType(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell) return null;
-		NodeProto.Function fun = ni.getFunction();
+		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor()) return fun;
-		if (fun == NodeProto.Function.PIN || fun == NodeProto.Function.CONTACT ||
-			fun == NodeProto.Function.NODE || fun == NodeProto.Function.CONNECT ||
-			fun == NodeProto.Function.SUBSTRATE || fun == NodeProto.Function.WELL)
-				return NodeProto.Function.PIN;
-		return NodeProto.Function.UNKNOWN;
+		if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
+			fun == PrimitiveNode.Function.NODE || fun == PrimitiveNode.Function.CONNECT ||
+			fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
+				return PrimitiveNode.Function.PIN;
+		return PrimitiveNode.Function.UNKNOWN;
 	}
 
 	/****************************** CONVERT TO ALTERNATE LAYOUT ******************************/
@@ -1206,8 +1206,8 @@ public class ViewChanges
 			if (oldNp instanceof Cell || oldNp.getTechnology() == newTech) return oldNp;
 
 			// if this is a layer node, check the layer functions
-			NodeProto.Function type = oldni.getFunction();
-			if (type == NodeProto.Function.NODE)
+			PrimitiveNode.Function type = oldni.getFunction();
+			if (type == PrimitiveNode.Function.NODE)
 			{
 				// get the polygon describing the first box of the old node
 				PrimitiveNode np = (PrimitiveNode)oldNp;
@@ -1219,7 +1219,7 @@ public class ViewChanges
 				for(Iterator it = newTech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode oNp = (PrimitiveNode)it.next();
-					if (oNp.getFunction() != NodeProto.Function.NODE) continue;
+					if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
 					Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
 					Layer oLayer = oNodeLayers[0].getLayer();
 					Layer.Function oFun = oLayer.getFunction();
@@ -1398,9 +1398,9 @@ public class ViewChanges
 			}
 
 			// special case again: one-port capacitors are OK
-			NodeProto.Function oldFun = ni.getFunction();
-			NodeProto.Function newFun = newNi.getFunction();
-			if (oldFun == NodeProto.Function.CAPAC && newFun == NodeProto.Function.ECAPAC) return newNi.getProto().getPort(0);
+			PrimitiveNode.Function oldFun = ni.getFunction();
+			PrimitiveNode.Function newFun = newNi.getFunction();
+			if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return newNi.getProto().getPort(0);
 
 			// association has failed: assume the first port
 			System.out.println("No port association between " + ni.getProto().describe() + ", port "

@@ -209,7 +209,7 @@ public class ParasiticTool extends Tool{
 
                     if (np == Generic.tech.cellCenterNode) continue;
 
-                    if (np.getFunction() == NodeProto.Function.PIN) continue;
+                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
 
                     // don't check between technologies
 					if (np.getTechnology() != tech) continue;

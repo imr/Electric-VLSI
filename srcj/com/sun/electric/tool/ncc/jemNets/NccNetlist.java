@@ -469,20 +469,20 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
-		NodeProto.Function func = ni.getFunction();
-		if (func==NodeProto.Function.TRA4NMOS) {
+		PrimitiveNode.Function func = ni.getFunction();
+		if (func==PrimitiveNode.Function.TRA4NMOS) {
 			// schematic NMOS
 			buildMOS(ni, Transistor.NTYPE, info);
-		} else if (func==NodeProto.Function.TRA4PMOS) {
+		} else if (func==PrimitiveNode.Function.TRA4PMOS) {
 			// schematic PMOS
 			buildMOS(ni, Transistor.PTYPE, info);
-		} else if (func==NodeProto.Function.TRANMOS) {
+		} else if (func==PrimitiveNode.Function.TRANMOS) {
 			// layout NMOS
 			buildMOS(ni, Transistor.NTYPE, info);
-		} else if (func==NodeProto.Function.TRAPMOS) {
+		} else if (func==PrimitiveNode.Function.TRAPMOS) {
 			// layout PMOS
 			buildMOS(ni, Transistor.PTYPE, info);
-		} else if (func==NodeProto.Function.RESIST) {
+		} else if (func==PrimitiveNode.Function.RESIST) {
 //		    error(true, "can't handle Resistors yet");
 		} else {	
 //		    globals.println("NccNetlist not handled: func="+

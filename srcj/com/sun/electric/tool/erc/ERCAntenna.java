@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
@@ -154,7 +155,7 @@ public class ERCAntenna
 
 		// flag for marking nodes and arcs, and also for marking cells
 		fsGeom = Geometric.getFlagSet(1);
-		fsCell = NodeProto.getFlagSet(1);
+		fsCell = Cell.getFlagSet(1);
 
 		// create mappings between ArcProtos and Layers
 		arcProtoToLayer = new HashMap();
@@ -482,7 +483,7 @@ public class ERCAntenna
 	private boolean hasDiffusion(NodeInst ni)
 	{
 		// stop if this is a pin
-		if (ni.getFunction() == NodeProto.Function.PIN) return false;
+		if (ni.getFunction() == PrimitiveNode.Function.PIN) return false;
 	
 		// analyze to see if there is diffusion here
 		Technology tech = ni.getProto().getTechnology();

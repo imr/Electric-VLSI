@@ -190,7 +190,7 @@ public class ROMGenerator
 		ArcProto m2arc = tech.findArcProto("Metal-2");
 
 		////////////// decoderpmos	
-		Cell decp = (Cell)NodeProto.findNodeProto(dpr+"{lay}");
+		Cell decp = (Cell)Cell.findNodeProto(dpr+"{lay}");
 		Rectangle2D decpBounds = decp.getBounds();
 		PortProto[] decpin = new PortProto[words];
 		PortProto[] decpout = new PortProto[words];
@@ -209,7 +209,7 @@ public class ROMGenerator
 		}
 
 		////////////// decodernmos	
-		Cell decn = (Cell)NodeProto.findNodeProto(dnr+"{lay}");
+		Cell decn = (Cell)Cell.findNodeProto(dnr+"{lay}");
 		Rectangle2D decnBounds = decn.getBounds();
 	 	PortProto[] decnout = new PortProto[words];
 	 	PortProto[] decnin = new PortProto[words];
@@ -227,7 +227,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// romplane
-		Cell romp = (Cell)NodeProto.findNodeProto(rp+"{lay}");
+		Cell romp = (Cell)Cell.findNodeProto(rp+"{lay}");
 		Rectangle2D rompBounds = romp.getBounds();
 		PortProto[] rompin = new PortProto[globalbits];
 		PortProto[] rompout = new PortProto[romarray.length];
@@ -248,7 +248,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// inverterplane
-		Cell invp = (Cell)NodeProto.findNodeProto(ip+"{lay}");
+		Cell invp = (Cell)Cell.findNodeProto(ip+"{lay}");
 		Rectangle2D invpBounds = invp.getBounds();
 		PortProto[] invin = new PortProto[romarray.length];
 		PortProto[] invout = new PortProto[romarray.length];
@@ -273,7 +273,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// ininverterplane top
-		Cell ininvtp = (Cell)NodeProto.findNodeProto(invt+"{lay}");
+		Cell ininvtp = (Cell)Cell.findNodeProto(invt+"{lay}");
 		Rectangle2D ininvtpBounds = ininvtp.getBounds();
 		PortProto[] ivttop  = new PortProto[bits];
 		PortProto[] ivtbot = new PortProto[bits];
@@ -520,7 +520,7 @@ public class ROMGenerator
 			muxplane(lambda, folds, romarray.length, mp);
 	
 			////////////// decodernmosmux
-			Cell decpmux = (Cell)NodeProto.findNodeProto(dpm+"{lay}");
+			Cell decpmux = (Cell)Cell.findNodeProto(dpm+"{lay}");
 			Rectangle2D decpmuxBounds = decpmux.getBounds();
 		 	PortProto[] decpmuxin = new PortProto[folds];
 		 	PortProto[] decpmuxout = new PortProto[folds];
@@ -540,7 +540,7 @@ public class ROMGenerator
 			}
 	
 			////////////// decoderpmosmux
-			Cell decnmux = (Cell)NodeProto.findNodeProto(dnm+"{lay}");
+			Cell decnmux = (Cell)Cell.findNodeProto(dnm+"{lay}");
 			Rectangle2D decnmuxBounds = decnmux.getBounds();
 		 	PortProto[] decnmuxout = new PortProto[folds];
 		 	PortProto[] decnmuxin = new PortProto[folds];
@@ -557,7 +557,7 @@ public class ROMGenerator
 			}
 			
 			////////////////////// muxplane
-			Cell muxp = (Cell)NodeProto.findNodeProto(mp+"{lay}");
+			Cell muxp = (Cell)Cell.findNodeProto(mp+"{lay}");
 			Rectangle2D muxpBounds = muxp.getBounds();
 			PortProto[] muxin = new PortProto[romarray.length];
 			PortProto[] muxout = new PortProto[romarray.length/folds];
@@ -576,7 +576,7 @@ public class ROMGenerator
 			}
 	
 			////////////////////// ininverterplane bottom
-			Cell ininvbp = (Cell)NodeProto.findNodeProto(invb+"{lay}");
+			Cell ininvbp = (Cell)Cell.findNodeProto(invb+"{lay}");
 			Rectangle2D ininvbpBounds = ininvbp.getBounds();
 			PortProto[] ivbtop  = new PortProto[foldbits];
 			PortProto[] ivbbot = new PortProto[foldbits];

@@ -175,10 +175,10 @@ public class EDIF extends Topology
 					GenMath.MutableInteger mi = (GenMath.MutableInteger)useCount.get(np);
 					if (mi == null) continue;
 
-					NodeProto.Function fun = np.getFunction();
-					if (fun == NodeProto.Function.UNKNOWN || fun == NodeProto.Function.PIN ||
-						fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.NODE ||
-						fun == NodeProto.Function.CONNECT || fun == NodeProto.Function.ART) continue;
+					PrimitiveNode.Function fun = np.getFunction();
+					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
+						fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
 					for (int i = 0; i < mi.intValue(); i++)
 						writePrimitive(np, i, fun);
 				}
@@ -266,10 +266,10 @@ public class EDIF extends Topology
 			Nodable no = (Nodable)nIt.next();
 			if (no.getProto() instanceof PrimitiveNode)
 			{
-				NodeProto.Function fun = ((NodeInst)no).getFunction();
-				if (fun == NodeProto.Function.UNKNOWN || fun == NodeProto.Function.PIN ||
-					fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.NODE ||
-					fun == NodeProto.Function.CONNECT || fun == NodeProto.Function.ART) continue;
+				PrimitiveNode.Function fun = ((NodeInst)no).getFunction();
+				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
+					fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
 			}
 
 			blockOpen("instance");
@@ -286,11 +286,11 @@ public class EDIF extends Topology
 			if (no.getProto() instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
-				NodeProto.Function fun = ni.getFunction();
+				PrimitiveNode.Function fun = ni.getFunction();
 				blockOpen("viewRef");
 				blockPutIdentifier("cell");
 				blockOpen("cellRef");
-				if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
 					// count the number of inputs
 					int i = 0;
@@ -464,10 +464,10 @@ public class EDIF extends Topology
 				} else
 				{
 					NodeInst ni = (NodeInst)no;
-					NodeProto.Function fun = ni.getFunction();
-					if (fun == NodeProto.Function.UNKNOWN || fun == NodeProto.Function.PIN ||
-						fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.NODE ||
-						fun == NodeProto.Function.CONNECT || fun == NodeProto.Function.ART) continue;
+					PrimitiveNode.Function fun = ni.getFunction();
+					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
+						fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
 					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
@@ -599,10 +599,10 @@ public class EDIF extends Topology
 	 * Method to dump the description of primitive "np" to the EDIF file
 	 * If the primitive is a schematic gate, use "i" as the number of inputs
 	 */
-	private void writePrimitive(NodeProto np, int i, NodeProto.Function fun)
+	private void writePrimitive(NodeProto np, int i, PrimitiveNode.Function fun)
 	{
 		// write primitive name
-		if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+		if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 		{
 			blockOpen("cell");
 			String name = makeToken(np.getName()) + i;
@@ -621,7 +621,7 @@ public class EDIF extends Topology
 		blockOpen("interface");
 
 		int firstPortIndex = 0;
-		if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+		if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 		{
 			for (int j = 0; j < i; j++)
 			{
@@ -664,9 +664,9 @@ public class EDIF extends Topology
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode)
 			{
-				NodeProto.Function fun = ni.getFunction();
+				PrimitiveNode.Function fun = ni.getFunction();
 				int i = 1;
-				if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
 					// count the number of inputs
 					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
@@ -683,10 +683,10 @@ public class EDIF extends Topology
 				}
 				count.setValue(Math.max(count.intValue(), i));
 	
-				if (fun != NodeProto.Function.UNKNOWN && fun != NodeProto.Function.PIN && fun != NodeProto.Function.CONTACT &&
-					fun != NodeProto.Function.NODE && fun != NodeProto.Function.CONNECT && fun != NodeProto.Function.METER &&
-						fun != NodeProto.Function.CONPOWER && fun != NodeProto.Function.CONGROUND && fun != NodeProto.Function.SOURCE &&
-							fun != NodeProto.Function.SUBSTRATE && fun != NodeProto.Function.WELL && fun != NodeProto.Function.ART)
+				if (fun != PrimitiveNode.Function.UNKNOWN && fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.METER &&
+						fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND && fun != PrimitiveNode.Function.SOURCE &&
+							fun != PrimitiveNode.Function.SUBSTRATE && fun != PrimitiveNode.Function.WELL && fun != PrimitiveNode.Function.ART)
 								primcount++;
 				continue;
 			}
@@ -771,12 +771,12 @@ public class EDIF extends Topology
 	 * Method to properly identify an instance of a primitive node
 	 * for ASPECT netlists
 	 */
-	private String describePrimitive(NodeInst ni, NodeProto.Function fun)
+	private String describePrimitive(NodeInst ni, PrimitiveNode.Function fun)
 	{
-		if (fun == NodeProto.Function.RESIST) return "Resistor";
-		if (fun == NodeProto.Function.TRANPN) return "npn";
-		if (fun == NodeProto.Function.TRAPNP) return "pnp";
-		if (fun == NodeProto.Function.SUBSTRATE) return "gtap";
+		if (fun == PrimitiveNode.Function.RESIST) return "Resistor";
+		if (fun == PrimitiveNode.Function.TRANPN) return "npn";
+		if (fun == PrimitiveNode.Function.TRAPNP) return "pnp";
+		if (fun == PrimitiveNode.Function.SUBSTRATE) return "gtap";
 		return makeToken(ni.getProto().getName());
 	}
 

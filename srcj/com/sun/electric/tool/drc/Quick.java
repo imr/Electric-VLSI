@@ -597,7 +597,7 @@ public class Quick
 		// Skipping special nodes
 		if (isSpecialNode(np)) return false; // Oct 5;
 
-        if (np.getFunction() == NodeProto.Function.PIN) return false; // Sept 30
+        if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 		// get all of the polygons on this node
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 		convertPseudoLayers(ni, nodeInstPolyList);
@@ -850,7 +850,7 @@ public class Quick
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
+                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
                     //if (np == Generic.tech.cellCenterNode) continue;  // Sept 30
 					//if (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode) continue;  // Oct 5
 					Technology tech = np.getTechnology();
@@ -1064,7 +1064,7 @@ public class Quick
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
 
-                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
+                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
 
 					// see if the objects directly touch
 					boolean touch = Geometric.objectsTouch(nGeom, geom);
@@ -3067,7 +3067,7 @@ public class Quick
 	 */
 	private void convertPseudoLayers(NodeInst ni, Poly [] pList)
 	{
-		if (ni.getProto().getFunction() != NodeProto.Function.PIN) return;
+		if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return;
 		if (ni.getNumConnections() != 0) return;
 		if (ni.getNumExports() == 0) return;
 

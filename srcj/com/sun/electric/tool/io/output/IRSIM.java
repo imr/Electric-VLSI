@@ -122,8 +122,8 @@ public class IRSIM extends Output
 			NodeInst ni = (NodeInst)no; 						// Nodable is NodeInst because it is primitive node
             if (!(ni.isPrimitiveTransistor())) return false;	// not transistor, ignore
             boolean isNMOS = false;
-            if (ni.getFunction() == NodeProto.Function.TRANMOS ||
-                ni.getFunction() == NodeProto.Function.TRA4NMOS)
+            if (ni.getFunction() == PrimitiveNode.Function.TRANMOS ||
+                ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
                 	isNMOS = true;
 
             PortInst g = ni.getTransistorGatePort();

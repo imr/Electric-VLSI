@@ -161,7 +161,7 @@ public class L extends Output
 			NodeInst ni = (NodeInst)it.next();
 			if (getNodeType(ni) == TRUEPIN) continue;
 			NodeProto np = ni.getProto();
-			NodeProto.Function fun = ni.getFunction();
+			PrimitiveNode.Function fun = ni.getFunction();
 
 			// determine type of component
 			String type = np.getName();
@@ -178,7 +178,7 @@ public class L extends Output
 			} else
 			{
 				PrimitiveNode npPrim = (PrimitiveNode)np;
-				if (fun == NodeProto.Function.PIN)
+				if (fun == PrimitiveNode.Function.PIN)
 				{
 					// if pin is an export, don't write separate node statement
 					if (ni.getNumExports() > 0) continue;
@@ -188,11 +188,11 @@ public class L extends Output
 				}
 
 				// special type names for well/substrate contacts
-				if (fun == NodeProto.Function.WELL) type = "MNSUB";
-				if (fun == NodeProto.Function.SUBSTRATE) type = "MPSUB";
+				if (fun == PrimitiveNode.Function.WELL) type = "MNSUB";
+				if (fun == PrimitiveNode.Function.SUBSTRATE) type = "MPSUB";
 
 				// special type names for contacts
-				if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT)
+				if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)
 				{
 					boolean conMetal1 = false, conMetal2 = false, conPActive = false, conNActive = false, conPoly = false;
 					for(int j=0; j<npPrim.getNumPorts(); j++)
@@ -220,9 +220,9 @@ public class L extends Output
 				}
 
 				// special type names for transistors
-				if (fun == NodeProto.Function.TRANMOS) type = "TN";
-				if (fun == NodeProto.Function.TRADMOS) type = "TD";
-				if (fun == NodeProto.Function.TRAPMOS) type = "TP";
+				if (fun == PrimitiveNode.Function.TRANMOS) type = "TN";
+				if (fun == PrimitiveNode.Function.TRADMOS) type = "TD";
+				if (fun == PrimitiveNode.Function.TRAPMOS) type = "TP";
 
 				// write the type and name
 				printWriter.print("\t" + type + " " + getLegalName(ni.getName()));
@@ -248,7 +248,7 @@ public class L extends Output
 				SizeOffset so = ni.getSizeOffset();
 				double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 				double len = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-				if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRAPMOS)
+				if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS)
 				{
 					TransistorSize ts = ni.getTransistorSize(null);
 					len = ts.getDoubleLength();
@@ -292,7 +292,7 @@ public class L extends Output
 					printWriter.print(" W=" + TextUtils.formatDouble(ai.getWidth()-ai.getProto().getWidthOffset()));
 
 				// write the starting node name (use port name if pin is an export)
-				if (ni.getNumExports() > 0 && ni.getFunction() == NodeProto.Function.PIN)
+				if (ni.getNumExports() > 0 && ni.getFunction() == PrimitiveNode.Function.PIN)
 				{
 					Export e = (Export)ni.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
@@ -382,7 +382,7 @@ public class L extends Output
 				} else printWriter.print(" TO");
 
 				// write the terminating node name (use port name if pin is an export)
-				if (oNi.getNumExports() > 0 && oNi.getFunction() == NodeProto.Function.PIN)
+				if (oNi.getNumExports() > 0 && oNi.getFunction() == PrimitiveNode.Function.PIN)
 				{
 					Export e = (Export)oNi.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
@@ -424,17 +424,17 @@ public class L extends Output
 	 */
 	private void transistorPorts(NodeInst ni)
 	{
-		NodeProto.Function fun = ni.getFunction();
+		PrimitiveNode.Function fun = ni.getFunction();
 		gateLeft = activeTop = gateRight = activeBottom = null;
 		if (ni.getNumPortInsts() < 3) return;
 		gateLeft = ni.getPortInst(0);
 		activeTop = ni.getPortInst(1);
 		gateRight = ni.getPortInst(2);
-		if (ni.getNumPortInsts() == 3 || fun == NodeProto.Function.TRANPN ||
-			fun == NodeProto.Function.TRAPNP || fun == NodeProto.Function.TRA4NMOS || fun == NodeProto.Function.TRA4DMOS ||
-			fun == NodeProto.Function.TRA4PMOS || fun == NodeProto.Function.TRA4NPN || fun == NodeProto.Function.TRA4PNP ||
-			fun == NodeProto.Function.TRA4NJFET || fun == NodeProto.Function.TRA4PJFET ||
-			fun == NodeProto.Function.TRA4DMES || fun == NodeProto.Function.TRA4EMES)
+		if (ni.getNumPortInsts() == 3 || fun == PrimitiveNode.Function.TRANPN ||
+			fun == PrimitiveNode.Function.TRAPNP || fun == PrimitiveNode.Function.TRA4NMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
+			fun == PrimitiveNode.Function.TRA4PMOS || fun == PrimitiveNode.Function.TRA4NPN || fun == PrimitiveNode.Function.TRA4PNP ||
+			fun == PrimitiveNode.Function.TRA4NJFET || fun == PrimitiveNode.Function.TRA4PJFET ||
+			fun == PrimitiveNode.Function.TRA4DMES || fun == PrimitiveNode.Function.TRA4EMES)
 		{
 			activeBottom = gateRight;
 			gateRight = null;
@@ -480,9 +480,9 @@ public class L extends Output
 	private int getNodeType(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell) return INSTANCE;
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRAPMOS) return TRANSISTOR;
-		if (fun != NodeProto.Function.PIN) return OTHERNODE;
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS) return TRANSISTOR;
+		if (fun != PrimitiveNode.Function.PIN) return OTHERNODE;
 		if (ni.getNumConnections() != 2) return OTHERNODE;
 		return TRUEPIN;
 	}

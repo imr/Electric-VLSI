@@ -65,7 +65,7 @@ public class AnnularRing extends EDialog
 		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			if (np.getFunction() == NodeProto.Function.NODE) total++;
+			if (np.getFunction() == PrimitiveNode.Function.NODE) total++;
 		}
 		if (total == 0)
 		{
@@ -91,7 +91,7 @@ public class AnnularRing extends EDialog
 		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			if (np.getFunction() != NodeProto.Function.NODE) continue;
+			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
 			layerModel.addElement(np.getName());
 		}
 		layerJList.setSelectedIndex(0);

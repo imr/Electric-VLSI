@@ -434,7 +434,7 @@ class NetCell
 				PortInst pi = ni.getPortInst(j);
 				int piOffset = getPortInstOffset(pi);
 				if (ni.isIconOfParent() ||
-					np.getFunction() == NodeProto.Function.ART && np != Generic.tech.simProbeNode ||
+					np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
 					np == Artwork.tech.pinNode ||
 					np == Generic.tech.invisiblePinNode) {
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
@@ -447,7 +447,7 @@ class NetCell
 				}
 				if (drawns[piOffset] >= 0) continue;
 				if (pi.getPortProto().isIsolated()) continue;
-				if (np.getFunction() == NodeProto.Function.PIN) {
+				if (np.getFunction() == PrimitiveNode.Function.PIN) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);

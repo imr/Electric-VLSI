@@ -77,7 +77,7 @@ public class LayoutText extends EDialog
 		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			if (np.getFunction() == NodeProto.Function.NODE)
+			if (np.getFunction() == PrimitiveNode.Function.NODE)
 				textLayer.addItem(np.getName());
 		}
 		if (lastLayer != null)

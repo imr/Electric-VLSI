@@ -55,7 +55,9 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -495,7 +497,7 @@ public class Change extends EDialog implements HighlightListener
 	                int index = dialog.changeList.getSelectedIndex();
 	                NodeProto np = (NodeProto)dialog.changeNodeProtoList.get(index);
 //					line = (String)dialog.changeList.getSelectedValue();
-//             		NodeProto np = NodeProto.findNodeProto(line);
+//             		NodeProto np = Cell.findNodeProto(line);
 					if (np == null) return false;
 
 					// sanity check
@@ -915,7 +917,7 @@ public class Change extends EDialog implements HighlightListener
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() instanceof Cell) continue;
 				if (ni.getNumExports() != 0) continue;
-				if (ni.getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 				boolean allArcs = true;
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
@@ -1030,12 +1032,7 @@ public class Change extends EDialog implements HighlightListener
 		{
 			NodeInst lastNi = ai.getConnection(end).getPortInst().getNodeInst();
 			PortProto lastPp = ai.getConnection(end).getPortInst().getPortProto();
-			FlagSet marked = NodeProto.getFlagSet(1);
-			for(Iterator it = ap.getTechnology().getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				np.clearBit(marked);
-			}
+			Set marked = new HashSet();
 			int depth = findPathToArc(lastPp, ap, 0, marked);
 			if (depth < 0) return null;
 
@@ -1057,11 +1054,10 @@ public class Change extends EDialog implements HighlightListener
 				retPi = thisPi;
 				if (newAi == null) return null;
 			}
-			marked.freeFlagSet();
 			return retPi;
 		}
 
-		int findPathToArc(PortProto pp, ArcProto ap, int depth, FlagSet marked)
+		int findPathToArc(PortProto pp, ArcProto ap, int depth, Set marked)
 		{
 			// see if the connection is made
 			if (pp.connectsTo(ap)) return depth;
@@ -1074,9 +1070,9 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode nextNp = (PrimitiveNode)it.next();
-				if (nextNp.isBit(marked)) continue;
-				NodeProto.Function fun = nextNp.getFunction();
-				if (fun != NodeProto.Function.CONTACT) continue;
+				if (marked.contains(nextNp)) continue;
+				PrimitiveNode.Function fun = nextNp.getFunction();
+				if (fun != PrimitiveNode.Function.CONTACT) continue;
 
 				// see if this contact connects to the destination
 				PortProto nextPp = nextNp.getPort(0);
@@ -1092,9 +1088,9 @@ public class Change extends EDialog implements HighlightListener
 
 				// this contact is part of the chain
 				contactStack[depth] = nextNp;
-				nextNp.setBit(marked);
+				marked.add(nextNp);
 				int newDepth = findPathToArc(nextPp, ap, depth+1, marked);
-				nextNp.clearBit(marked);
+				marked.remove(nextNp);
 				if (newDepth < 0) continue;
 				if (bestNp == null || newDepth < bestDepth)
 				{
@@ -1107,9 +1103,9 @@ public class Change extends EDialog implements HighlightListener
 			{
 				contactStack[depth] = bestNp;
 				contactStackArc[depth] = bestAp;
-				bestNp.setBit(marked);
+				marked.add(bestNp);
 				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, marked);
-				bestNp.clearBit(marked);
+				marked.remove(bestNp);
 				return newDepth;
 			}
 			return -1;

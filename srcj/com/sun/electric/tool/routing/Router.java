@@ -407,7 +407,7 @@ public abstract class Router {
         // special case: if this is a contact cut, use the size of the contact cut
 /*
         if (re.getPortProto() != null) {
-            if (re.getPortProto().getParent().getFunction() == NodeProto.Function.CONTACT) {
+            if (re.getPortProto().getParent().getFunction() == PrimitiveNode.Function.CONTACT) {
                 return re.getNodeSize();
             }
         }

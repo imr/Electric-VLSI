@@ -150,9 +150,9 @@ System.out.println("EXITING CELL "+info.getCell().describe());
 			NodeInst ni = (NodeInst)no;
 
 			// must be a logic gate
-			NodeProto.Function fun = ni.getFunction();
-			if (fun != NodeProto.Function.GATEAND && fun != NodeProto.Function.GATEOR &&
-				fun != NodeProto.Function.GATEXOR && fun != NodeProto.Function.BUFFER) return false;
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun != PrimitiveNode.Function.GATEAND && fun != PrimitiveNode.Function.GATEOR &&
+				fun != PrimitiveNode.Function.GATEXOR && fun != PrimitiveNode.Function.BUFFER) return false;
 Netlist nl = info.getNetlist();
 System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
 for(Iterator it = nl.getNetworks(); it.hasNext(); )
@@ -160,12 +160,12 @@ for(Iterator it = nl.getNetworks(); it.hasNext(); )
 	Network net = (Network)it.next();
 	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
 }
-if (fun != NodeProto.Function.PIN) return false;
+if (fun != PrimitiveNode.Function.PIN) return false;
 
 			String funName = "";
-			if (fun == NodeProto.Function.GATEAND) funName = "&"; else
-			if (fun == NodeProto.Function.GATEOR) funName = "#"; else
-				if (fun == NodeProto.Function.GATEXOR) funName = "$";
+			if (fun == PrimitiveNode.Function.GATEAND) funName = "&"; else
+			if (fun == PrimitiveNode.Function.GATEOR) funName = "#"; else
+				if (fun == PrimitiveNode.Function.GATEXOR) funName = "$";
 
 			// find output
 			Connection outputCon = null;

@@ -382,7 +382,7 @@ public class Verilog extends Topology
 			NodeProto niProto = no.getProto();
 
 			// not interested in passive nodes (ports electrically connected)
-			NodeProto.Function nodeType = NodeProto.Function.UNKNOWN;
+			PrimitiveNode.Function nodeType = PrimitiveNode.Function.UNKNOWN;
 			if (niProto instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
@@ -403,9 +403,9 @@ public class Verilog extends Topology
 				nodeType = ni.getFunction();
 
 				// special case: verilog should ignore R L C etc.
-				if (nodeType == NodeProto.Function.RESIST || nodeType == NodeProto.Function.CAPAC ||
-					nodeType == NodeProto.Function.ECAPAC || nodeType == NodeProto.Function.INDUCT ||
-					nodeType == NodeProto.Function.DIODE || nodeType == NodeProto.Function.DIODEZ)
+				if (nodeType == PrimitiveNode.Function.RESIST || nodeType == PrimitiveNode.Function.CAPAC ||
+					nodeType == PrimitiveNode.Function.ECAPAC || nodeType == PrimitiveNode.Function.INDUCT ||
+					nodeType == PrimitiveNode.Function.DIODE || nodeType == PrimitiveNode.Function.DIODEZ)
 						continue;
 			}
 
@@ -423,14 +423,14 @@ public class Verilog extends Topology
 			// use "assign" statement if requested
 			if (Simulation.getVerilogUseAssign())
 			{
-				if (nodeType == NodeProto.Function.GATEAND || nodeType == NodeProto.Function.GATEOR ||
-					nodeType == NodeProto.Function.GATEXOR || nodeType == NodeProto.Function.BUFFER)
+				if (nodeType == PrimitiveNode.Function.GATEAND || nodeType == PrimitiveNode.Function.GATEOR ||
+					nodeType == PrimitiveNode.Function.GATEXOR || nodeType == PrimitiveNode.Function.BUFFER)
 				{
 					// assign possible: determine operator
 					String op = "";
-					if (nodeType == NodeProto.Function.GATEAND) op = " & "; else
-					if (nodeType == NodeProto.Function.GATEOR) op = " | "; else
-					if (nodeType == NodeProto.Function.GATEXOR) op = " ^ ";
+					if (nodeType == PrimitiveNode.Function.GATEAND) op = " & "; else
+					if (nodeType == PrimitiveNode.Function.GATEOR) op = " | "; else
+					if (nodeType == PrimitiveNode.Function.GATEXOR) op = " ^ ";
 
 					// write a line describing this signal
 					StringBuffer infstr = new StringBuffer();
@@ -505,39 +505,39 @@ public class Verilog extends Topology
 			} else
 			{
 				// convert 4-port transistors to 3-port
-				if (nodeType == NodeProto.Function.TRA4NMOS)
+				if (nodeType == PrimitiveNode.Function.TRA4NMOS)
 				{
-					nodeType = NodeProto.Function.TRANMOS;  dropBias = true;
-				} else if (nodeType == NodeProto.Function.TRA4PMOS)
+					nodeType = PrimitiveNode.Function.TRANMOS;  dropBias = true;
+				} else if (nodeType == PrimitiveNode.Function.TRA4PMOS)
 				{
-					nodeType = NodeProto.Function.TRAPMOS;  dropBias = true;
+					nodeType = PrimitiveNode.Function.TRAPMOS;  dropBias = true;
 				}
 
-				if (nodeType == NodeProto.Function.TRANMOS)
+				if (nodeType == PrimitiveNode.Function.TRANMOS)
 				{
 					implicitPorts = 2;
 					nodeName = "tranif1";
 					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif1";
-				} else if (nodeType == NodeProto.Function.TRAPMOS)
+				} else if (nodeType == PrimitiveNode.Function.TRAPMOS)
 				{
 					implicitPorts = 2;
 					nodeName = "tranif0";
 					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif0";
-				} else if (nodeType == NodeProto.Function.GATEAND)
+				} else if (nodeType == PrimitiveNode.Function.GATEAND)
 				{
 					implicitPorts = 1;
 					nodeName = chooseNodeName((NodeInst)no, "and", "nand");
-				} else if (nodeType == NodeProto.Function.GATEOR)
+				} else if (nodeType == PrimitiveNode.Function.GATEOR)
 				{
 					implicitPorts = 1;
 					nodeName = chooseNodeName((NodeInst)no, "or", "nor");
-				} else if (nodeType == NodeProto.Function.GATEXOR)
+				} else if (nodeType == PrimitiveNode.Function.GATEXOR)
 				{
 					implicitPorts = 1;
 					nodeName = chooseNodeName((NodeInst)no, "xor", "xnor");
-				} else if (nodeType == NodeProto.Function.BUFFER)
+				} else if (nodeType == PrimitiveNode.Function.BUFFER)
 				{
 					implicitPorts = 1;
 					nodeName = chooseNodeName((NodeInst)no, "buf", "not");

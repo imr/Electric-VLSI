@@ -154,7 +154,7 @@ public class Generic extends Technology
 		univPinPort = PrimitivePort.newInstance(this, universalPinNode, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		universalPinNode.addPrimitivePorts(new PrimitivePort [] {univPinPort});
-		universalPinNode.setFunction(NodeProto.Function.PIN);
+		universalPinNode.setFunction(PrimitiveNode.Function.PIN);
 		universalPinNode.setWipeOn1or2();
 		universalPinNode.setHoldsOutline();
 		universalPinNode.setCanBeZeroSize();
@@ -168,7 +168,7 @@ public class Generic extends Technology
 		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
 		invisiblePinNode.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
-		invisiblePinNode.setFunction(NodeProto.Function.PIN);
+		invisiblePinNode.setFunction(PrimitiveNode.Function.PIN);
 		invisiblePinNode.setWipeOn1or2();
 		invisiblePinNode.setCanBeZeroSize();
 
@@ -185,7 +185,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, unroutedPinNode, new ArcProto[] {unrouted_arc,invisible_arc,universal_arc}, "unrouted", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		unroutedPinNode.setFunction(NodeProto.Function.PIN);
+		unroutedPinNode.setFunction(PrimitiveNode.Function.PIN);
 		unroutedPinNode.setWipeOn1or2();
 		unroutedPinNode.setCanBeZeroSize();
 
@@ -201,7 +201,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, cellCenterNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		cellCenterNode.setFunction(NodeProto.Function.ART);
+		cellCenterNode.setFunction(PrimitiveNode.Function.ART);
 		cellCenterNode.setCanBeZeroSize();
 
 		/** Port */
@@ -216,7 +216,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, portNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		portNode.setFunction(NodeProto.Function.ART);
+		portNode.setFunction(PrimitiveNode.Function.ART);
 		portNode.setCanBeZeroSize();
 
 		/** DRC Node */
@@ -230,7 +230,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		drcNode.setFunction(NodeProto.Function.NODE);
+		drcNode.setFunction(PrimitiveNode.Function.NODE);
 		drcNode.setHoldsOutline();
 
 		/** Essential Bounds Node */
@@ -247,7 +247,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, essentialBoundsNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		essentialBoundsNode.setFunction(NodeProto.Function.ART);
+		essentialBoundsNode.setFunction(PrimitiveNode.Function.ART);
 		essentialBoundsNode.setCanBeZeroSize();
 
 		/** Simulation Probe Node */
@@ -261,7 +261,7 @@ public class Generic extends Technology
 				PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {unrouted_arc,invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		simProbeNode.setFunction(NodeProto.Function.ART);
+		simProbeNode.setFunction(PrimitiveNode.Function.ART);
 		simProbeNode.setCanBeZeroSize();
 	}
 

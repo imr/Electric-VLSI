@@ -96,7 +96,7 @@ public class ReadableDump extends LibraryFiles
 	/** The current Cell in the Library. */							private int mainCell;
 	/** The current ArcInst end being processed. */					private int curArcEnd;
 	/** The current object type being processed. */					private int varPos;
-	/** The current Cell being processed. */						private Cell curNodeProto;
+	/** The current Cell being processed. */						private Cell curCell;
 	/** The index of the current Cell being processed. */			private int curCellNumber;
 	/** The index of the current NodeInst being processed. */		private int curNodeInstIndex;
 	/** The index of the current ArcInst being processed. */		private int curArcInstIndex;
@@ -875,7 +875,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordNewCel()
 	{
 		curCellNumber = TextUtils.atoi(keyWord);
-		curNodeProto = nodeProtoList[curCellNumber];
+		curCell = nodeProtoList[curCellNumber];
 
 		curCellGroup = -1;
 		int slashPos = keyWord.indexOf('/');
@@ -1002,7 +1002,7 @@ public class ReadableDump extends LibraryFiles
 		if (cell != null)
 		{
 			// cell found in external library: remember the external reference
-			curNodeProto = cell;
+			curCell = cell;
 			allCellsArray[curCellNumber] = cell;
 			nodeProtoList[curCellNumber] = null;
 		} else
@@ -1064,12 +1064,12 @@ public class ReadableDump extends LibraryFiles
 
 	private void finishCellInitialization()
 	{
-		curNodeProto.setTempInt(curCellGroup);
-		curNodeProto.lowLevelPopulate(curCellName.toString());
-		curNodeProto.lowLevelLink();
-		curNodeProto.lowLevelSetCreationDate(ELIBConstants.secondsToDate(curCellCreationDate));
-		curNodeProto.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(curCellRevisionDate));
-		curNodeProto.lowLevelSetUserbits(curCellUserbits);
+		curCell.setTempInt(curCellGroup);
+		curCell.lowLevelPopulate(curCellName.toString());
+		curCell.lowLevelLink();
+		curCell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(curCellCreationDate));
+		curCell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(curCellRevisionDate));
+		curCell.lowLevelSetUserbits(curCellUserbits);
 	}
 
 	/**
@@ -1078,7 +1078,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordTech()
 	{
 		Technology tech = findTechnologyName(keyWord);
-		curNodeProto.setTechnology(tech);
+		curCell.setTechnology(tech);
 	}
 
 	/**
@@ -1180,7 +1180,7 @@ public class ReadableDump extends LibraryFiles
 			curNodeInstProto = allCellsArray[TextUtils.atoi(keyWord, openSquare+1)];
 		} else
 		{
-			curNodeInstProto = NodeProto.findNodeProto(keyWord);
+			curNodeInstProto = Cell.findNodeProto(keyWord);
 			if (curNodeInstProto == null)
 			{
 				// get the technology
@@ -1553,7 +1553,7 @@ public class ReadableDump extends LibraryFiles
 				naddr = lib;
 				break;
 			case INVNODEPROTO:			// keyword applies to nodeproto
-				naddr = curNodeProto;
+				naddr = curCell;
 				break;
 			case INVNODEINST:			// keyword applies to nodeinst
 				naddr = nodeInstList[curCellNumber].theNode[curNodeInstIndex];
@@ -1811,7 +1811,7 @@ public class ReadableDump extends LibraryFiles
 				} else
 				{
 					// parse primitive nodeproto name
-					NodeProto np = NodeProto.findNodeProto(name);
+					NodeProto np = Cell.findNodeProto(name);
 					if (np == null)
 					{
 						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);

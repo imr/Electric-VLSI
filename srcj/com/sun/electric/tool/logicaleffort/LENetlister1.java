@@ -346,7 +346,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             leX = leX/9.0f;
             primitiveTransistor = true;
         }
-        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == NodeProto.Function.CAPAC)) {
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             type = Instance.Type.CAPACITOR;
             var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
             if (var == null) {

@@ -322,7 +322,7 @@ public class LibraryFiles extends Input
 
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
-		FlagSet markCellForNodes = NodeProto.getFlagSet(1);
+		FlagSet markCellForNodes = Cell.getFlagSet(1);
 		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();

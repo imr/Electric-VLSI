@@ -54,12 +54,13 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
 
 
 /**
@@ -71,6 +72,7 @@ public class ELIB extends Output
 	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private HashMap cellIndexMap;
+	/** indices assigned to PrimitiveNodes */					private int[] primNodeIndexMap;
 
 	/** all of the names used in variables */					private static HashMap varNames;
 	/** all of the views and their integer values. */			private HashMap viewMap;
@@ -120,7 +122,7 @@ public class ELIB extends Output
 		writeBigInteger(techCount);
 
 		// convert cellGroups to "next in cell group" pointers
-		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		FlagSet cellFlag = Cell.getFlagSet(1);
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -184,7 +186,7 @@ public class ELIB extends Output
 		int cellsHere = nodeProtoIndex;
 
 		// prepare to locate references to cells in other libraries
-		FlagSet externalRefFlag = NodeProto.getFlagSet(1);
+		FlagSet externalRefFlag = Cell.getFlagSet(1);
 		externalRefFlag.clearOnAllCells();
 
 		// scan for all cross-library references
@@ -206,6 +208,7 @@ public class ELIB extends Output
 			}
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
+				primNodeProtoIndex++;
 				PrimitiveNode np = (PrimitiveNode)nit.next();
 				findXLibVariables(np);
 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
@@ -244,7 +247,7 @@ public class ELIB extends Output
 					findXLibVariables(pp);
 				}
 				if (ni.getProto() instanceof Cell)
-					ni.getProto().setBit(externalRefFlag);
+					((Cell)ni.getProto()).setBit(externalRefFlag);
 			}
 			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
 			{
@@ -275,13 +278,17 @@ public class ELIB extends Output
 		}
 
 		// count and number the primitive node and port prototypes
+		primNodeIndexMap = new int[primNodeProtoIndex];
+		Arrays.fill(primNodeIndexMap, -1);
+		primNodeProtoIndex = 0;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				np.setTempInt(-2 - primNodeProtoIndex++);
+				assert primNodeIndexMap[np.getPrimNodeIndex()] == -1;
+				primNodeIndexMap[np.getPrimNodeIndex()] = -2 - primNodeProtoIndex++;
 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)eit.next();
@@ -785,19 +792,21 @@ public class ELIB extends Output
 	{
 		// write the nodeproto pointer
 		NodeProto np = ni.getProto();
-		writeBigInteger(np.getTempInt());
 
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
 		int lowX, highX, lowY, highY;
 		if (np instanceof Cell)
 		{
+			writeBigInteger(((Cell)np).getTempInt());
 			lowX = (int)Math.round((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
 			highX = (int)Math.round((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
 			lowY = (int)Math.round((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
 			highY = (int)Math.round((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		} else
 		{
+			assert primNodeIndexMap[((PrimitiveNode)np).getPrimNodeIndex()] < -1;
+			writeBigInteger(primNodeIndexMap[((PrimitiveNode)np).getPrimNodeIndex()]);
 			lowX = (int)Math.round((ni.getAnchorCenterX() - ni.getXSize()/2) * tech.getScale()*2);
 			highX = (int)Math.round((ni.getAnchorCenterX() + ni.getXSize()/2) * tech.getScale()*2);
 			lowY = (int)Math.round((ni.getAnchorCenterY() - ni.getYSize()/2) * tech.getScale()*2);
@@ -1121,6 +1130,11 @@ public class ELIB extends Output
 	private void putOutVar(Object obj)
 		throws IOException
 	{
+		if (obj == null)
+		{
+			writeBigInteger(-1);
+			return;
+		}
 		if (obj instanceof Integer)
 		{
 			writeBigInteger(((Integer)obj).intValue());
@@ -1160,43 +1174,37 @@ public class ELIB extends Output
 		if (obj instanceof Technology)
 		{
 			Technology tech = (Technology)obj;
-			if (tech == null) writeBigInteger(-1); else
-				writeBigInteger(tech.getIndex());
+			writeBigInteger(tech.getIndex());
 			return;
 		}
 		if (obj instanceof Library)
 		{
 			Library lib = (Library)obj;
-			if (lib == null) writeString("noname"); else
-				writeString(lib.getName());
+			writeString(lib.getName());
 			return;
 		}
 		if (obj instanceof Tool)
 		{
 			Tool tool = (Tool)obj;
-			if (tool == null) writeBigInteger(-1); else
-				writeBigInteger(tool.getIndex());
+			writeBigInteger(tool.getIndex());
 			return;
 		}
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			if (ni == null) writeBigInteger(-1); else
-				writeBigInteger(ni.getTempInt());
+			writeBigInteger(ni.getTempInt());
 			return;
 		}
 		if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
-			if (ai == null) writeBigInteger(-1); else
-				writeBigInteger(ai.getTempInt());
+			writeBigInteger(ai.getTempInt());
 			return;
 		}
 		if (obj instanceof NodeProto)
 		{
-			NodeProto np = (NodeProto)obj;
-			if (np == null) writeBigInteger(-1); else
-				writeBigInteger(np.getTempInt());
+			int i = (obj instanceof Cell ? ((Cell)obj).getTempInt() : primNodeIndexMap[((PrimitiveNode)obj).getPrimNodeIndex()]);
+			writeBigInteger(i);
 			return;
 		}
 		if (obj instanceof ArcProto)
@@ -1238,13 +1246,13 @@ public class ELIB extends Output
 					{
 						NodeProto np = (NodeProto)npArray[j];
 						if (np instanceof Cell)
-							np.setBit(externalRefFlag);
+							((Cell)np).setBit(externalRefFlag);
 					}
 				} else
 				{
 					NodeProto np = (NodeProto)refObj;
 					if (np instanceof Cell)
-						np.setBit(externalRefFlag);
+						((Cell)np).setBit(externalRefFlag);
 				}
 			}
 		}

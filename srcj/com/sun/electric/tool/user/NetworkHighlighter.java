@@ -155,7 +155,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                             PortInst pi = ai.getHead().getPortInst();
                             if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
                                 // ignore pins
-                                if (pi.getNodeInst().getProto().getFunction() != NodeProto.Function.PIN &&
+                                if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
                                     !nodesAdded.contains(pi)) {
                                     // prevent duplicates
                                     ports.add(pi);
@@ -164,7 +164,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                             }
                             pi = ai.getTail().getPortInst();
                             if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                                if (pi.getNodeInst().getProto().getFunction() != NodeProto.Function.PIN &&
+                                if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
                                     !nodesAdded.contains(pi)) {
                                     // prevent duplicates
                                     ports.add(pi);

@@ -766,7 +766,7 @@ public class View3DWindow extends JPanel
 	{
 		JMenuItem source = (JMenuItem)e.getSource();
 		// extract library and cell from string
-		Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
+		Cell cell = (Cell)Cell.findNodeProto(source.getText());
 		if (cell == null) return;
 		setCell(cell, VarContext.globalContext);
 	}

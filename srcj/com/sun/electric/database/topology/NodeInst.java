@@ -1588,7 +1588,7 @@ public class NodeInst extends Geometric implements Nodable
         // we only compress port if it is a rectangle
         Rectangle2D box = poly.getBox();
         if (forWiringTool && (box != null)) {
-            if ((arcWidth != -1) && (np.getFunction() == NodeProto.Function.CONTACT)) {
+            if ((arcWidth != -1) && (np.getFunction() == PrimitiveNode.Function.CONTACT)) {
                 // reduce the port size such that the connecting arc's width cannot extend
                 // beyond the width of the contact
                 SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
@@ -2011,7 +2011,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean isInlinePin()
 	{
-		if (protoType.getFunction() != NodeProto.Function.PIN) return false;
+		if (protoType.getFunction() != PrimitiveNode.Function.PIN) return false;
 
 		// see if the pin is connected to two arcs along the same slope
 		int j = 0;
@@ -2069,7 +2069,13 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortProto connectsTo(ArcProto arc)
 	{
-		return protoType.connectsTo(arc);
+		for (int i = 0, numPorts = protoType.getNumPorts(); i < numPorts; i++)
+		{
+			PortProto pp = protoType.getPort(i);
+			if (pp.connectsTo(arc))
+				return pp;
+		}
+		return null;
 	}
 
 	/**
@@ -2181,7 +2187,7 @@ public class NodeInst extends Geometric implements Nodable
 	public Point2D invisiblePinWithOffsetText(boolean repair)
 	{
 		// look for pins that are invisible and have text in different location
-		if (protoType.getFunction() != NodeProto.Function.PIN) return null;
+		if (protoType.getFunction() != PrimitiveNode.Function.PIN) return null;
 		if (this.getNumConnections() != 0) return null;
 
 		// stop now if this isn't invisible
@@ -2290,9 +2296,9 @@ public class NodeInst extends Geometric implements Nodable
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
 	 * @return function the function of this NodeProto.
 	 */
-	public NodeProto.Function getFunction()
+	public PrimitiveNode.Function getFunction()
 	{
-		if (protoType instanceof Cell) return NodeProto.Function.UNKNOWN;
+		if (protoType instanceof Cell) return PrimitiveNode.Function.UNKNOWN;
 
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getPrimitiveFunction(this);
@@ -2306,11 +2312,11 @@ public class NodeInst extends Geometric implements Nodable
      */
     public boolean isPrimitiveTransistor()
     {
-        NodeProto.Function func = protoType.getFunction(); // note bypasses ni.getFunction() call
-        if (func == NodeProto.Function.TRANS ||         // covers all Schematic trans
-            func == NodeProto.Function.TRANS4 ||        // covers all Schematic trans4
-            func == NodeProto.Function.TRANMOS ||       // covers all MoCMOS nmos gates
-            func == NodeProto.Function.TRAPMOS          // covers all MoCMOS pmos gates
+        PrimitiveNode.Function func = protoType.getFunction(); // note bypasses ni.getFunction() call
+        if (func == PrimitiveNode.Function.TRANS ||         // covers all Schematic trans
+            func == PrimitiveNode.Function.TRANS4 ||        // covers all Schematic trans4
+            func == PrimitiveNode.Function.TRANMOS ||       // covers all MoCMOS nmos gates
+            func == PrimitiveNode.Function.TRAPMOS          // covers all MoCMOS pmos gates
             )
             return true;
         return false;
@@ -2334,14 +2340,14 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean isFET()
 	{
-		NodeProto.Function fun = getFunction();
-		if (fun == NodeProto.Function.TRANMOS  || fun == NodeProto.Function.TRA4NMOS ||
-			fun == NodeProto.Function.TRAPMOS  || fun == NodeProto.Function.TRA4PMOS ||
-			fun == NodeProto.Function.TRADMOS  || fun == NodeProto.Function.TRA4DMOS ||
-			fun == NodeProto.Function.TRANJFET || fun == NodeProto.Function.TRA4NJFET ||
-			fun == NodeProto.Function.TRAPJFET || fun == NodeProto.Function.TRA4PJFET ||
-			fun == NodeProto.Function.TRADMES  || fun == NodeProto.Function.TRA4DMES ||
-			fun == NodeProto.Function.TRAEMES  || fun == NodeProto.Function.TRA4EMES)
+		PrimitiveNode.Function fun = getFunction();
+		if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
+			fun == PrimitiveNode.Function.TRAPMOS  || fun == PrimitiveNode.Function.TRA4PMOS ||
+			fun == PrimitiveNode.Function.TRADMOS  || fun == PrimitiveNode.Function.TRA4DMOS ||
+			fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRA4NJFET ||
+			fun == PrimitiveNode.Function.TRAPJFET || fun == PrimitiveNode.Function.TRA4PJFET ||
+			fun == PrimitiveNode.Function.TRADMES  || fun == PrimitiveNode.Function.TRA4DMES ||
+			fun == PrimitiveNode.Function.TRAEMES  || fun == PrimitiveNode.Function.TRA4EMES)
 				return true;
 		return false;
 	}
@@ -2831,8 +2837,8 @@ public class NodeInst extends Geometric implements Nodable
         // Technology only valid for PrimitiveNodes?
         PrimitiveNode np = (PrimitiveNode)protoType;
         PrimitiveNode noNp = (PrimitiveNode)noProtoType;
-	    NodeProto.Function function = np.getTechnology().getPrimitiveFunction(this);
-	    NodeProto.Function noFunc = noNp.getTechnology().getPrimitiveFunction(no);
+	    PrimitiveNode.Function function = np.getTechnology().getPrimitiveFunction(this);
+	    PrimitiveNode.Function noFunc = noNp.getTechnology().getPrimitiveFunction(no);
         if (function != noFunc)
         {
 	        if (buffer != null)

@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
@@ -252,10 +253,10 @@ public class Sim extends Output
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			NodeProto.Function fun = ni.getFunction();
+			PrimitiveNode.Function fun = ni.getFunction();
 
 			// if it is a transistor, write the information
-			if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRAPMOS)
+			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS)
 			{
 				Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 				int gate = ci.getNetID(gateNet);
@@ -267,9 +268,9 @@ public class Sim extends Output
 				int drain = ci.getNetID(drainNet);
 
 				String tType = "U";
-				if (fun == NodeProto.Function.TRANMOS) tType = "e"; else
-				if (fun == NodeProto.Function.TRADMOS) tType = "d"; else
-				if (fun == NodeProto.Function.TRAPMOS) tType = "p";
+				if (fun == PrimitiveNode.Function.TRANMOS) tType = "e"; else
+				if (fun == PrimitiveNode.Function.TRADMOS) tType = "d"; else
+				if (fun == PrimitiveNode.Function.TRAPMOS) tType = "p";
 
 				// determine size of transistor
 				TransistorSize size = ni.getTransistorSize(ci.getContext());

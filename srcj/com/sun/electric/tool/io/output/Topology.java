@@ -526,15 +526,15 @@ public abstract class Topology extends Output
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			NodeProto.Function fun = ni.getFunction();
-			if (fun == NodeProto.Function.CONPOWER || fun == NodeProto.Function.CONGROUND)
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.CONPOWER || fun == PrimitiveNode.Function.CONGROUND)
 			{
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
 					Network subNet = cni.netList.getNetwork(ai, 0);
-					if (fun == NodeProto.Function.CONPOWER)
+					if (fun == PrimitiveNode.Function.CONPOWER)
 					{
 						if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
 						{

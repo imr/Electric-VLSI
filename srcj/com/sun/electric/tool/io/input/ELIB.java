@@ -808,7 +808,7 @@ public class ELIB extends LibraryFiles
 		// read the primitive nodeproto variables
 		for(int i=0; i<primNodeProtoCount; i++)
 		{
-			NodeProto np = primNodeProtoList[i];
+			PrimitiveNode np = primNodeProtoList[i];
 			int j = readVariables(np, -1);
 			if (j < 0) return true;
 			if (j > 0) getPrimNodeProtoList(i);
@@ -870,7 +870,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// initialize for processing cell groups
-		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		FlagSet cellFlag = Cell.getFlagSet(1);
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];

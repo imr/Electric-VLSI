@@ -192,8 +192,8 @@ public class Tegas extends Topology
 			}
 
 			NodeInst ni = (NodeInst)no;
-			NodeProto.Function fun = ni.getFunction();
-			if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 			{
 				// Count number of inputs
 				String gateName = getGateName(ni);
@@ -202,8 +202,8 @@ public class Tegas extends Topology
 				continue;
 			}
 	
-			if (fun == NodeProto.Function.SOURCE || fun == NodeProto.Function.RESIST || fun == NodeProto.Function.CAPAC ||
-				fun == NodeProto.Function.DIODE || fun == NodeProto.Function.INDUCT || fun == NodeProto.Function.METER)
+			if (fun == PrimitiveNode.Function.SOURCE || fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
+				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.INDUCT || fun == PrimitiveNode.Function.METER)
 			{
 				System.out.println("CANNOT HANDLE " + ni.getProto().describe() + " NODES");
 				continue;
@@ -243,9 +243,9 @@ public class Tegas extends Topology
 				if (!con.isNegated()) continue;
 				if (con.getPortInst().getPortProto().getCharacteristic() == PortProto.Characteristic.OUT)
 				{
-					NodeProto.Function fun = con.getPortInst().getNodeInst().getFunction();
-					if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR ||
-						fun == NodeProto.Function.GATEXOR || fun == NodeProto.Function.BUFFER) continue;
+					PrimitiveNode.Function fun = con.getPortInst().getNodeInst().getFunction();
+					if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
+						fun == PrimitiveNode.Function.GATEXOR || fun == PrimitiveNode.Function.BUFFER) continue;
 				}
 				implicitInverters.put(ai, new Integer(count));
 				count++;
@@ -258,10 +258,10 @@ public class Tegas extends Topology
 		for(Iterator it = netList.getNodables(); it.hasNext(); )
 		{
 			Nodable no = (Nodable)it.next();
-			NodeProto.Function fun = getNodableFunction(no);
-			if (fun.isTransistor() || fun == NodeProto.Function.GATEXOR ||
-				fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR ||
-				fun == NodeProto.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
+			PrimitiveNode.Function fun = getNodableFunction(no);
+			if (fun.isTransistor() || fun == PrimitiveNode.Function.GATEXOR ||
+				fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
+				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
 			{
 				nodeNames.put(no, new Integer(count++));
 				continue;
@@ -273,16 +273,16 @@ public class Tegas extends Topology
 		for(Iterator it = netList.getNodables(); it.hasNext(); )
 		{
 			Nodable no = (Nodable)it.next();
-			NodeProto.Function fun = getNodableFunction(no);
-			if (fun == NodeProto.Function.PIN || fun == NodeProto.Function.ART) continue;
-			if (fun == NodeProto.Function.CONPOWER)
+			PrimitiveNode.Function fun = getNodableFunction(no);
+			if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART) continue;
+			if (fun == PrimitiveNode.Function.CONPOWER)
 			{
 				if (wrotePower) continue;
 				wrotePower = true;
 				writeWidthLimited(getPowerName((NodeInst)no));
 				continue;
 			}
-			if (fun == NodeProto.Function.CONGROUND)
+			if (fun == PrimitiveNode.Function.CONGROUND)
 			{
 				if (wroteGround) continue;
 				wroteGround = true;
@@ -291,9 +291,9 @@ public class Tegas extends Topology
 			}
 	
 			// handle nodeinst descriptions
-			if (fun.isTransistor() || fun == NodeProto.Function.GATEXOR ||
-				fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR ||
-				fun == NodeProto.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
+			if (fun.isTransistor() || fun == PrimitiveNode.Function.GATEXOR ||
+				fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
+				fun == PrimitiveNode.Function.BUFFER || fun.isFlipFlop() || no.getProto() instanceof Cell)
 			{
 				String str1 = getOutputSignals(no, context, cni) + " = " + getNodeProtoName(no) + getInputSignals(no, context, cni) + getGateDelay(no) + ";\n";
 				writeWidthLimited(str1);
@@ -322,7 +322,7 @@ public class Tegas extends Topology
 		if (nodeNum != null) nodeNumber = nodeNum.intValue();
 		StringBuffer infstr = new StringBuffer();
 		infstr.append("U" + nodeNumber + "(");
-		NodeProto.Function fun = getNodableFunction(no);
+		PrimitiveNode.Function fun = getNodableFunction(no);
 
 		boolean needComma = false;
 		if (no.getProto() instanceof Cell)
@@ -389,7 +389,7 @@ public class Tegas extends Topology
 	 */
 	private String getInputSignals(Nodable no, VarContext context, CellNetInfo cni)
 	{
-		NodeProto.Function fun = getNodableFunction(no);
+		PrimitiveNode.Function fun = getNodableFunction(no);
 
 		if (fun.isFlipFlop())
 			return getFlipFlopInputSignals((NodeInst)no);
@@ -426,7 +426,7 @@ public class Tegas extends Topology
 				if (fun.isTransistor() && pp.getName().startsWith("s")) continue;
 	
 				// Buffer primitive has a "c" port not used by TDL
-				if (fun == NodeProto.Function.BUFFER && pp.getName().equals("c")) continue;
+				if (fun == PrimitiveNode.Function.BUFFER && pp.getName().equals("c")) continue;
 	
 				boolean portWired = false;
 				for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
@@ -499,9 +499,9 @@ public class Tegas extends Topology
 		infstr.append("(" + signals[2] + "," + signals[0]);
 
 		// JK and SR have one input more than D or T flip flops
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.FLIPFLOPRSMS || fun == NodeProto.Function.FLIPFLOPRSP || fun == NodeProto.Function.FLIPFLOPRSN ||
-			fun == NodeProto.Function.FLIPFLOPJKMS || fun == NodeProto.Function.FLIPFLOPJKP || fun == NodeProto.Function.FLIPFLOPJKN)
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.FLIPFLOPRSMS || fun == PrimitiveNode.Function.FLIPFLOPRSP || fun == PrimitiveNode.Function.FLIPFLOPRSN ||
+			fun == PrimitiveNode.Function.FLIPFLOPJKMS || fun == PrimitiveNode.Function.FLIPFLOPJKP || fun == PrimitiveNode.Function.FLIPFLOPJKN)
 		{
 			infstr.append("," + signals[1]);
 		}
@@ -540,7 +540,7 @@ public class Tegas extends Topology
 	{
 		if (no.getProto() instanceof Cell) return "";
 		NodeInst ni = (NodeInst)no;
-		NodeProto.Function fun = ni.getFunction();
+		PrimitiveNode.Function fun = ni.getFunction();
 
 		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
 		String str1 = "/1,";
@@ -572,18 +572,18 @@ public class Tegas extends Topology
 		if (isNegatedNode(ni)) negated = true;
 
 		// Write USE description for current node
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.GATEAND)
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.GATEAND)
 		{
 			if (negated) return "NAND";
 			return "AND";
 		}
-		if (fun == NodeProto.Function.GATEOR)
+		if (fun == PrimitiveNode.Function.GATEOR)
 		{
 			if (negated) return "NOR";
 			return "OR";
 		}
-		if (fun == NodeProto.Function.GATEXOR)
+		if (fun == PrimitiveNode.Function.GATEXOR)
 		{
 			if (negated) return "NXOR";
 			return "XOR";
@@ -620,15 +620,15 @@ public class Tegas extends Topology
 			return "";
 		}
 
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.CONGROUND || fun == NodeProto.Function.CONPOWER)
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.CONGROUND || fun == PrimitiveNode.Function.CONPOWER)
 		{
 			if (ni.getNumConnections() > 0)
 			{
 				Connection con = (Connection)ni.getConnections().next();
 				Network net = netList.getNetwork(con.getArc(), 0);
 				String decl = net.describe() + " = ";
-				if (fun == NodeProto.Function.CONPOWER) decl += "PWR"; else
+				if (fun == PrimitiveNode.Function.CONPOWER) decl += "PWR"; else
 					decl += "GRND";
 				return decl + ";\n";
 			}
@@ -672,9 +672,9 @@ public class Tegas extends Topology
 		return conName;
 	}
 
-	private NodeProto.Function getNodableFunction(Nodable no)
+	private PrimitiveNode.Function getNodableFunction(Nodable no)
 	{
-		NodeProto.Function fun = NodeProto.Function.UNKNOWN;
+		PrimitiveNode.Function fun = PrimitiveNode.Function.UNKNOWN;
 		if (no.getProto() instanceof PrimitiveNode)
 		{
 			NodeInst ni = (NodeInst)no;
@@ -695,18 +695,18 @@ public class Tegas extends Topology
 			return convertName(no.getProto().describe());
 		}
 		NodeInst ni = (NodeInst)no;
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 		{
 			return getGateWidth(ni) + "-" + getGateName(ni);
 		}
-		if (fun == NodeProto.Function.BUFFER)
+		if (fun == PrimitiveNode.Function.BUFFER)
 		{
 			if (isNegatedNode(ni)) return "NOT";
 			return "DELAY";
 		}
 		if (fun.isFlipFlop()) return getFlipFlopName(ni);
-		if (fun == NodeProto.Function.TRANS) return "BDSWITCH";
+		if (fun == PrimitiveNode.Function.TRANS) return "BDSWITCH";
 		return "";
 	}
 
@@ -738,20 +738,20 @@ public class Tegas extends Topology
 	 */
 	private String getFlipFlopName(NodeInst ni)
 	{
-		NodeProto.Function fun = ni.getFunction();
-		if (fun == NodeProto.Function.FLIPFLOPRSMS) return "SRMNE";
-		if (fun == NodeProto.Function.FLIPFLOPRSP)  return "SREPE";
-		if (fun == NodeProto.Function.FLIPFLOPRSN)  return "SRENE";
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun == PrimitiveNode.Function.FLIPFLOPRSMS) return "SRMNE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPRSP)  return "SREPE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPRSN)  return "SRENE";
 
-		if (fun == NodeProto.Function.FLIPFLOPJKMS) return "JKMNE";
-		if (fun == NodeProto.Function.FLIPFLOPJKP)  return "JKEPE";
-		if (fun == NodeProto.Function.FLIPFLOPJKN)  return "JKENE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPJKMS) return "JKMNE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPJKP)  return "JKEPE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPJKN)  return "JKENE";
 
-		if (fun == NodeProto.Function.FLIPFLOPDMS)  return "DMNE";
-		if (fun == NodeProto.Function.FLIPFLOPDP)   return "DEPE";
-		if (fun == NodeProto.Function.FLIPFLOPDN)   return "DENE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPDMS)  return "DMNE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPDP)   return "DEPE";
+		if (fun == PrimitiveNode.Function.FLIPFLOPDN)   return "DENE";
 
-		if (fun == NodeProto.Function.FLIPFLOPTP || fun == NodeProto.Function.FLIPFLOPTN)
+		if (fun == PrimitiveNode.Function.FLIPFLOPTP || fun == PrimitiveNode.Function.FLIPFLOPTN)
 			System.out.println("T TYPE FLIP-FLOP MUST BE MS");
 		return "TMNE";
 	}

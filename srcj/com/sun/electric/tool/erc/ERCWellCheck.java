@@ -72,7 +72,7 @@ public class ERCWellCheck
 		Point2D            ctr;
 		int                netNum;
 		boolean            onProperRail;
-		NodeProto.Function fun;
+		PrimitiveNode.Function fun;
 		//NodeProto          np;
 		int                index;
 	};
@@ -195,14 +195,14 @@ public class ERCWellCheck
 				if (wellType != ERCPWell && wellType != ERCNWell) continue;
 
 				// presume N-well
-				NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
+				PrimitiveNode.Function desiredContact = PrimitiveNode.Function.SUBSTRATE;
 				String noContactError = "No N-Well contact found in this area";
 				int contactAction = ERC.getNWellCheck();
 
 				if (wellType == ERCPWell)
 				{
 					// P-well
-					desiredContact = NodeProto.Function.WELL;
+					desiredContact = PrimitiveNode.Function.WELL;
 					contactAction = ERC.getPWellCheck();
 					noContactError = "No P-Well contact found in this area";
 				}
@@ -240,14 +240,14 @@ public class ERCWellCheck
 				if (wc.netNum == -1)
 				{
 					String errorMsg = "N-Well contact is floating";
-					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
+					if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contact is floating";
 					MessageLog err = errorLogger.logError(errorMsg, cell, 0);
 					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					continue;
 				}
 				if (!wc.onProperRail)
 				{
-					if (wc.fun == NodeProto.Function.WELL)
+					if (wc.fun == PrimitiveNode.Function.WELL)
 					{
 						if (ERC.isMustConnectPWellToGround())
 						{
@@ -276,7 +276,7 @@ public class ERCWellCheck
 					if (wc.onProperRail && oWc.onProperRail)
 						continue; // Both proper connected to gdn/power exports
 					String errorMsg = "N-Well contacts are not connected";
-					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
+					if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contacts are not connected";
 					MessageLog err = errorLogger.logError(errorMsg, cell, 0);
 					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
@@ -291,7 +291,7 @@ public class ERCWellCheck
 				for(Iterator it = wellCons.iterator(); it.hasNext(); )
 				{
 					WellCon wc = (WellCon)it.next();
-					if (wc.fun == NodeProto.Function.SUBSTRATE) { found = true;   break; }
+					if (wc.fun == PrimitiveNode.Function.SUBSTRATE) { found = true;   break; }
 				}
 				if (!found)
 				{
@@ -306,7 +306,7 @@ public class ERCWellCheck
 				for(Iterator it = wellCons.iterator(); it.hasNext(); )
 				{
 					WellCon wc = (WellCon)it.next();
-					if (wc.fun == NodeProto.Function.WELL) { found = true;   break; }
+					if (wc.fun == PrimitiveNode.Function.WELL) { found = true;   break; }
 				}
 				if (!found)
 				{
@@ -387,8 +387,8 @@ public class ERCWellCheck
 					int wellType = getWellLayerType(wa.poly.getLayer());
 					//if (wellType != ERCPWell && wellType != ERCNWell) continue;
 					if (!isERCLayerRelated(wa.poly.getLayer())) continue;
-					NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
-					if (wellType == ERCPWell) desiredContact = NodeProto.Function.WELL;
+					PrimitiveNode.Function desiredContact = PrimitiveNode.Function.SUBSTRATE;
+					if (wellType == ERCPWell) desiredContact = PrimitiveNode.Function.WELL;
 
 					// find the worst distance to the edge of the area
 					Point2D [] points = wa.poly.getPoints();
@@ -602,8 +602,8 @@ public class ERCWellCheck
 			NodeInst ni = no.getNodeInst();
 			//AffineTransform trans = ni.transformOut();
 			AffineTransform trans = ni.rotateOut();
-            NodeProto.Function fun = ni.getFunction();
-	        boolean wellSubsContact = (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE);
+            PrimitiveNode.Function fun = ni.getFunction();
+	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
 
 	        // No done yet
 	        if (job.doneCells.get(cell) == null)
@@ -652,7 +652,7 @@ public class ERCWellCheck
 				wc.onProperRail = false;
 				if (net != null)
 				{
-					boolean searchWell = (fun == NodeProto.Function.WELL);
+					boolean searchWell = (fun == PrimitiveNode.Function.WELL);
 					// PWell: must be on ground or  NWell: must be on power
 					Network parentNet = net;
 					HierarchyEnumerator.CellInfo cinfo = info;

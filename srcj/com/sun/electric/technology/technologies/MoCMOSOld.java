@@ -886,7 +886,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mp_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mp_node.setFunction(NodeProto.Function.PIN);
+		mp_node.setFunction(PrimitiveNode.Function.PIN);
 		mp_node.setArcsWipe();
 		mp_node.setArcsShrink();
 
@@ -901,7 +901,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mp0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mp0_node.setFunction(NodeProto.Function.PIN);
+		mp0_node.setFunction(PrimitiveNode.Function.PIN);
 		mp0_node.setArcsWipe();
 		mp0_node.setArcsShrink();
 
@@ -916,7 +916,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		pp_node.setFunction(NodeProto.Function.PIN);
+		pp_node.setFunction(PrimitiveNode.Function.PIN);
 		pp_node.setArcsWipe();
 		pp_node.setArcsShrink();
 
@@ -932,7 +932,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, sap_node, new ArcProto [] {S_Active_arc}, "s-active", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
-		sap_node.setFunction(NodeProto.Function.PIN);
+		sap_node.setFunction(PrimitiveNode.Function.PIN);
 		sap_node.setArcsWipe();
 		sap_node.setArcsShrink();
 
@@ -948,7 +948,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, dap_node, new ArcProto [] {D_Active_arc}, "d-active", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(5), EdgeV.fromBottom(5), EdgeH.fromRight(5), EdgeV.fromTop(5))
 			});
-		dap_node.setFunction(NodeProto.Function.PIN);
+		dap_node.setFunction(PrimitiveNode.Function.PIN);
 		dap_node.setArcsWipe();
 		dap_node.setArcsShrink();
 
@@ -964,7 +964,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, ap_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		ap_node.setFunction(NodeProto.Function.PIN);
+		ap_node.setFunction(PrimitiveNode.Function.PIN);
 		ap_node.setArcsWipe();
 		ap_node.setArcsShrink();
 
@@ -982,7 +982,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, msac_node, new ArcProto [] {S_Active_arc, Metal_1_arc}, "metal-1-s-act", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
-		msac_node.setFunction(NodeProto.Function.CONTACT);
+		msac_node.setFunction(PrimitiveNode.Function.CONTACT);
 		msac_node.setSpecialType(PrimitiveNode.MULTICUT);
 		msac_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
@@ -1000,7 +1000,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mdac_node, new ArcProto [] {D_Active_arc, Metal_1_arc}, "metal-1-d-act", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(5), EdgeV.fromBottom(5), EdgeH.fromRight(5), EdgeV.fromTop(5))
 			});
-		mdac_node.setFunction(NodeProto.Function.CONTACT);
+		mdac_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mdac_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mdac_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
@@ -1017,7 +1017,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mpc_node, new ArcProto [] {Polysilicon_arc, Metal_1_arc}, "metal-1-polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		mpc_node.setFunction(NodeProto.Function.CONTACT);
+		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mpc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
@@ -1040,7 +1040,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, st_node, new ArcProto [] {S_Active_arc}, "s-trans-diff-bottom", 270,90, 3, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(2), EdgeH.fromRight(3), EdgeV.fromBottom(3))
 			});
-		st_node.setFunction(NodeProto.Function.TRAPMOS);
+		st_node.setFunction(PrimitiveNode.Function.TRAPMOS);
 		st_node.setHoldsOutline();
 		st_node.setCanShrink();
 		st_node.setSpecialType(PrimitiveNode.SERPTRANS);
@@ -1065,7 +1065,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, dt_node, new ArcProto [] {D_Active_arc}, "d-trans-diff-bottom", 270,90, 3, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(5), EdgeV.fromBottom(4), EdgeH.fromRight(5), EdgeV.fromBottom(5))
 			});
-		dt_node.setFunction(NodeProto.Function.TRANMOS);
+		dt_node.setFunction(PrimitiveNode.Function.TRANMOS);
 		dt_node.setHoldsOutline();
 		dt_node.setCanShrink();
 		dt_node.setSpecialType(PrimitiveNode.SERPTRANS);
@@ -1084,7 +1084,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mmc_node, new ArcProto [] {Metal_1_arc, Metal_2_arc}, "metal-1-metal-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mmc_node.setFunction(NodeProto.Function.CONTACT);
+		mmc_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mmc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mmc_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 
@@ -1103,7 +1103,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mwc_node, new ArcProto [] {Metal_1_arc, Active_arc}, "metal-1-well", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(5.5), EdgeV.fromBottom(5.5), EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))
 			});
-		mwc_node.setFunction(NodeProto.Function.WELL);
+		mwc_node.setFunction(PrimitiveNode.Function.WELL);
 		mwc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
@@ -1120,7 +1120,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, msc_node, new ArcProto [] {Metal_1_arc, Active_arc}, "metal-1-substrate", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		msc_node.setFunction(NodeProto.Function.SUBSTRATE);
+		msc_node.setFunction(PrimitiveNode.Function.SUBSTRATE);
 		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		msc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
@@ -1135,7 +1135,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mn_node.setFunction(NodeProto.Function.NODE);
+		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
 		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1150,7 +1150,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mn0_node.setFunction(NodeProto.Function.NODE);
+		mn0_node.setFunction(PrimitiveNode.Function.NODE);
 		mn0_node.setHoldsOutline();
 		mn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1165,7 +1165,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		pn_node.setFunction(NodeProto.Function.NODE);
+		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
 		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1180,7 +1180,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		an_node.setFunction(NodeProto.Function.NODE);
+		an_node.setFunction(PrimitiveNode.Function.NODE);
 		an_node.setHoldsOutline();
 		an_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1195,7 +1195,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, dan_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		dan_node.setFunction(NodeProto.Function.NODE);
+		dan_node.setFunction(PrimitiveNode.Function.NODE);
 		dan_node.setHoldsOutline();
 		dan_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1210,7 +1210,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, psn_node, new ArcProto [] {}, "select", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		psn_node.setFunction(NodeProto.Function.NODE);
+		psn_node.setFunction(PrimitiveNode.Function.NODE);
 		psn_node.setHoldsOutline();
 		psn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1225,7 +1225,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		cn_node.setFunction(NodeProto.Function.NODE);
+		cn_node.setFunction(PrimitiveNode.Function.NODE);
 		cn_node.setHoldsOutline();
 		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1240,7 +1240,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pcn_node, new ArcProto [] {}, "polycut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		pcn_node.setFunction(NodeProto.Function.NODE);
+		pcn_node.setFunction(PrimitiveNode.Function.NODE);
 		pcn_node.setHoldsOutline();
 		pcn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1255,7 +1255,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, acn_node, new ArcProto [] {}, "activecut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		acn_node.setFunction(NodeProto.Function.NODE);
+		acn_node.setFunction(PrimitiveNode.Function.NODE);
 		acn_node.setHoldsOutline();
 		acn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1270,7 +1270,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, vn_node, new ArcProto [] {}, "via", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		vn_node.setFunction(NodeProto.Function.NODE);
+		vn_node.setFunction(PrimitiveNode.Function.NODE);
 		vn_node.setHoldsOutline();
 		vn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1285,7 +1285,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pwn_node, new ArcProto [] {S_Active_arc}, "well", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
-		pwn_node.setFunction(NodeProto.Function.NODE);
+		pwn_node.setFunction(PrimitiveNode.Function.NODE);
 		pwn_node.setHoldsOutline();
 		pwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1300,7 +1300,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {}, "passivation", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		pn0_node.setFunction(NodeProto.Function.NODE);
+		pn0_node.setFunction(PrimitiveNode.Function.NODE);
 		pn0_node.setHoldsOutline();
 		pn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1315,7 +1315,7 @@ public class MoCMOSOld extends Technology
 				PrimitivePort.newInstance(this, pfn_node, new ArcProto [] {}, "pad-frame", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		pfn_node.setFunction(NodeProto.Function.NODE);
+		pfn_node.setFunction(PrimitiveNode.Function.NODE);
 		pfn_node.setHoldsOutline();
 		pfn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 

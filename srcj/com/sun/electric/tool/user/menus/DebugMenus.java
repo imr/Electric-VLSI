@@ -243,13 +243,13 @@ public class DebugMenus {
 				lateral = "right";
 			}
 
-			NodeProto m1m2Proto = NodeProto.findNodeProto(technology+":Metal-1-Metal-2-Con");
-			NodeProto m2PinProto = NodeProto.findNodeProto(technology+":Metal-2-Pin");
-			NodeProto p1PinProto = NodeProto.findNodeProto(technology+":" + polyName + "-Pin");
-			NodeProto m1PolyConProto = NodeProto.findNodeProto(technology+":Metal-1-" + polyName + "-Con");
-			NodeProto pTransProto = NodeProto.findNodeProto(technology+":P-Transistor");
-			NodeProto nTransProto = NodeProto.findNodeProto(technology+":N-Transistor");
-			NodeProto invisiblePinProto = NodeProto.findNodeProto("generic:Invisible-Pin");
+			NodeProto m1m2Proto = Cell.findNodeProto(technology+":Metal-1-Metal-2-Con");
+			NodeProto m2PinProto = Cell.findNodeProto(technology+":Metal-2-Pin");
+			NodeProto p1PinProto = Cell.findNodeProto(technology+":" + polyName + "-Pin");
+			NodeProto m1PolyConProto = Cell.findNodeProto(technology+":Metal-1-" + polyName + "-Con");
+			NodeProto pTransProto = Cell.findNodeProto(technology+":P-Transistor");
+			NodeProto nTransProto = Cell.findNodeProto(technology+":N-Transistor");
+			NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
 
 			// get information about the arcs
 			ArcProto m1Proto = ArcProto.findArcProto(technology+":Metal-1");
@@ -635,7 +635,7 @@ public class DebugMenus {
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
-				if (!Main.getDebug() && node.getFunction() == NodeProto.Function.NODE)
+				if (!Main.getDebug() && node.getFunction() == PrimitiveNode.Function.NODE)
 				{
 					deleteList.add(node);
 					continue;
@@ -769,7 +769,7 @@ public class DebugMenus {
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
-				if ( node.getFunction() == NodeProto.Function.NODE )
+				if ( node.getFunction() == PrimitiveNode.Function.NODE )
 				{
 					deleteList.add(node);
 					continue;

@@ -147,7 +147,7 @@ public class Tech {
 
 		// initialize vias
 		for (int i = 0; i < nbLay - 1; i++) {
-			vias[i] = findNode(NodeProto.Function.CONTACT,
+			vias[i] = findNode(PrimitiveNode.Function.CONTACT,
 					           new ArcProto[] {layers[i], layers[i+1]},
 					           tech);
 			error(vias[i] == null, "No via for layer: " + layerNms[i]);
@@ -291,7 +291,7 @@ public class Tech {
 	 * get the PrimitiveNode of a particular type that connects to the
 	 * complete set of wires given
 	 */
-	public static PrimitiveNode findNode(NodeProto.Function type, 
+	public static PrimitiveNode findNode(PrimitiveNode.Function type, 
 	                                     ArcProto[] arcs, Technology tech) {
 		for (Iterator it=tech.getNodes(); it.hasNext();) {
 			PrimitiveNode pn = (PrimitiveNode) it.next();

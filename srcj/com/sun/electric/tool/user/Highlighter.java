@@ -1786,8 +1786,8 @@ public class Highlighter implements DatabaseChangeListener {
 		if (np instanceof PrimitiveNode)
 		{
 			// special case for MOS transistors: examine the gate/active tabs
-			NodeProto.Function fun = np.getFunction();
-			if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
+			PrimitiveNode.Function fun = np.getFunction();
+			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRADMOS)
 			{
 				Technology tech = np.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, wnd);

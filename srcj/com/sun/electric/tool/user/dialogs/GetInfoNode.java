@@ -489,7 +489,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		// load special node information
 
-        NodeProto.Function fun = ni.getFunction();
+        PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
             /*
@@ -570,7 +570,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == NodeProto.Function.RESIST)
+		if (fun == PrimitiveNode.Function.RESIST)
 		{
 			textFieldLabel.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
@@ -581,9 +581,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC)
+		if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 		{
-			if (fun == NodeProto.Function.ECAPAC)
+			if (fun == PrimitiveNode.Function.ECAPAC)
 				textFieldLabel.setText("Electrolytic cap:"); else
 					textFieldLabel.setText("Capacitance:");
 //			formatinfstr(infstr, x_(" (%s):"),
@@ -594,7 +594,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == NodeProto.Function.INDUCT)
+		if (fun == PrimitiveNode.Function.INDUCT)
 		{
 			textFieldLabel.setText("Inductance:");
 //			formatinfstr(infstr, x_(" (%s):"),
@@ -887,8 +887,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					dialog.initialTextField = currentTextField;
 				}
 			}
-			NodeProto.Function fun = ni.getFunction();
-			if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
@@ -899,7 +899,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					changed = true;
 				}
 			}
-			if (fun == NodeProto.Function.RESIST)
+			if (fun == PrimitiveNode.Function.RESIST)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
@@ -910,7 +910,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					changed = true;
 				}
 			}
-			if (fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC)
+			if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
@@ -921,7 +921,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					changed = true;
 				}
 			}
-			if (fun == NodeProto.Function.INDUCT)
+			if (fun == PrimitiveNode.Function.INDUCT)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))

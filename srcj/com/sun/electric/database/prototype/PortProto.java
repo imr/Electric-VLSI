@@ -453,7 +453,7 @@ public abstract class PortProto extends ElectricObject
 	 * This is a zero-based index of ports on the NodeProto.
 	 * @param portIndex an index of this PortProto in NodeProto ports.
 	 */
-	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
+	public /*temporarily*/  void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
 	/**
 	 * Method to get the index of this PortProto.
@@ -461,14 +461,6 @@ public abstract class PortProto extends ElectricObject
 	 * @return the index of this PortProto.
 	 */
 	public final int getPortIndex() { return portIndex; }
-
-	/**
-	 * Method to remove this PortProto from its parent NodeProto.
-	 */
-	public void kill()
-	{
-		parent.removePort(this);
-	}
 
 //	/**
 //	 * Method to write a description of this PortProto.

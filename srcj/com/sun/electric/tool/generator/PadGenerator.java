@@ -989,7 +989,7 @@ public class PadGenerator {
                 if (view != null) {
                     corenameview = corename + "{" + view.getAbbreviation() + "}";
                 }
-                Cell corenp = (Cell) NodeProto.findNodeProto(corenameview);
+                Cell corenp = (Cell) Cell.findNodeProto(corenameview);
                 if (corenp == null) {
                     System.out.println("Line " + lineno + ": cannot find core cell " + corenameview);
                 } else {

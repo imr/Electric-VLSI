@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
@@ -397,15 +398,15 @@ public class Spice extends Topology
 		{
 			NodeInst ni = (NodeInst)aIt.next();
 			addNodeInformation(netList, spiceNetMap, ni);
-			NodeProto.Function fun = ni.getFunction();
-			if (fun == NodeProto.Function.TRANPN || fun == NodeProto.Function.TRA4NPN ||
-				fun == NodeProto.Function.TRAPNP || fun == NodeProto.Function.TRA4PNP ||
-				fun == NodeProto.Function.TRANS) bipolarTrans++; else
-			if (fun == NodeProto.Function.TRAEMES || fun == NodeProto.Function.TRA4EMES ||
-				fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRA4DMES ||
-				fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRA4DMOS ||
-				fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRA4NMOS) nmosTrans++; else
-			if (fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRA4PMOS) pmosTrans++;
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.TRANPN || fun == PrimitiveNode.Function.TRA4NPN ||
+				fun == PrimitiveNode.Function.TRAPNP || fun == PrimitiveNode.Function.TRA4PNP ||
+				fun == PrimitiveNode.Function.TRANS) bipolarTrans++; else
+			if (fun == PrimitiveNode.Function.TRAEMES || fun == PrimitiveNode.Function.TRA4EMES ||
+				fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRA4DMES ||
+				fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
+				fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRA4NMOS) nmosTrans++; else
+			if (fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS) pmosTrans++;
 		}
 
 		// accumulate geometry of all arcs
@@ -688,14 +689,14 @@ public class Spice extends Topology
 
 			// get the type of this node
 			NodeInst ni = (NodeInst)no;
-			NodeProto.Function fun = ni.getFunction();
+			PrimitiveNode.Function fun = ni.getFunction();
 
 			// handle resistors, inductors, capacitors, and diodes
-			if (fun == NodeProto.Function.RESIST || fun == NodeProto.Function.INDUCT ||
-				fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC ||
-				fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
+			if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.INDUCT ||
+				fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
+				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
-				if (fun == NodeProto.Function.RESIST)
+				if (fun == PrimitiveNode.Function.RESIST)
 				{
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
@@ -709,7 +710,7 @@ public class Spice extends Topology
 						}
 					}
 					writeTwoPort(ni, "R", extra, cni, netList, context);
-				} else if (fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC)
+				} else if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 					String extra = "";
@@ -723,7 +724,7 @@ public class Spice extends Topology
 						}
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context);
-				} else if (fun == NodeProto.Function.INDUCT)
+				} else if (fun == PrimitiveNode.Function.INDUCT)
 				{
 					Variable inductVar = ni.getVar(Schematics.SCHEM_INDUCTANCE);
 					String extra = "";
@@ -737,7 +738,7 @@ public class Spice extends Topology
 						}
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context);
-				} else if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
+				} else if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 				{
 					Variable diodeVar = ni.getVar(Schematics.SCHEM_DIODE);
 					String extra = "";
@@ -750,7 +751,7 @@ public class Spice extends Topology
 			}
 
 			// the default is to handle everything else as a transistor
-			if (niProto.getGroupFunction() != NodeProto.Function.TRANS)
+			if (((PrimitiveNode)niProto).getGroupFunction() != PrimitiveNode.Function.TRANS)
 				continue;
 
 			Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
@@ -779,87 +780,87 @@ public class Spice extends Topology
 			if (modelVar != null) modelName = modelVar.getObject().toString();
 
 			String modelChar = "";
-			if (fun == NodeProto.Function.TRANSREF)					// self-referential transistor
+			if (fun == PrimitiveNode.Function.TRANSREF)					// self-referential transistor
 			{
 				modelChar = "X";
 				biasCs = cni.getCellSignal(groundNet);
 				modelName = niProto.getName();
-			} else if (fun == NodeProto.Function.TRANMOS)			// NMOS (Enhancement) transistor
+			} else if (fun == PrimitiveNode.Function.TRANMOS)			// NMOS (Enhancement) transistor
 			{
 				modelChar = "M";
 				biasCs = cni.getCellSignal(groundNet);
 				if (modelName == null) modelName = "N";
-			} else if (fun == NodeProto.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "N";
-			} else if (fun == NodeProto.Function.TRADMOS)			// DMOS (Depletion) transistor
+			} else if (fun == PrimitiveNode.Function.TRADMOS)			// DMOS (Depletion) transistor
 			{
 				modelChar = "M";
 				biasCs = cni.getCellSignal(groundNet);
 				if (modelName == null) modelName = "D";
-			} else if (fun == NodeProto.Function.TRA4DMOS)			// DMOS (Depletion) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4DMOS)			// DMOS (Depletion) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "D";
-			} else if (fun == NodeProto.Function.TRAPMOS)			// PMOS (Complementary) transistor
+			} else if (fun == PrimitiveNode.Function.TRAPMOS)			// PMOS (Complementary) transistor
 			{
 				modelChar = "M";
 				biasCs = cni.getCellSignal(powerNet);
 				if (modelName == null) modelName = "P";
-			} else if (fun == NodeProto.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "P";
-			} else if (fun == NodeProto.Function.TRANPN)			// NPN (Junction) transistor
+			} else if (fun == PrimitiveNode.Function.TRANPN)			// NPN (Junction) transistor
 			{
 				modelChar = "Q";
 //				biasn = subnet != NOSPNET ? subnet : 0;
 				if (modelName == null) modelName = "NBJT";
-			} else if (fun == NodeProto.Function.TRA4NPN)			// NPN (Junction) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4NPN)			// NPN (Junction) 4-port transistor
 			{
 				modelChar = "Q";
 				if (modelName == null) modelName = "NBJT";
-			} else if (fun == NodeProto.Function.TRAPNP)			// PNP (Junction) transistor
+			} else if (fun == PrimitiveNode.Function.TRAPNP)			// PNP (Junction) transistor
 			{
 				modelChar = "Q";
 //				biasn = subnet != NOSPNET ? subnet : 0;
 				if (modelName == null) modelName = "PBJT";
-			} else if (fun == NodeProto.Function.TRA4PNP)			// PNP (Junction) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4PNP)			// PNP (Junction) 4-port transistor
 			{
 				modelChar = "Q";
 				if (modelName == null) modelName = "PBJT";
-			} else if (fun == NodeProto.Function.TRANJFET)			// NJFET (N Channel) transistor
+			} else if (fun == PrimitiveNode.Function.TRANJFET)			// NJFET (N Channel) transistor
 			{
 				modelChar = "J";
 				biasCs = null;
 				if (modelName == null) modelName = "NJFET";
-			} else if (fun == NodeProto.Function.TRA4NJFET)			// NJFET (N Channel) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4NJFET)			// NJFET (N Channel) 4-port transistor
 			{
 				modelChar = "J";
 				if (modelName == null) modelName = "NJFET";
-			} else if (fun == NodeProto.Function.TRAPJFET)			// PJFET (P Channel) transistor
+			} else if (fun == PrimitiveNode.Function.TRAPJFET)			// PJFET (P Channel) transistor
 			{
 				modelChar = "J";
 				biasCs = null;
 				if (modelName == null) modelName = "PJFET";
-			} else if (fun == NodeProto.Function.TRA4PJFET)			// PJFET (P Channel) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4PJFET)			// PJFET (P Channel) 4-port transistor
 			{
 				modelChar = "J";
 				if (modelName == null) modelName = "PJFET";
-			} else if (fun == NodeProto.Function.TRADMES ||			// DMES (Depletion) transistor
-				fun == NodeProto.Function.TRA4DMES)					// DMES (Depletion) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRADMES ||			// DMES (Depletion) transistor
+				fun == PrimitiveNode.Function.TRA4DMES)					// DMES (Depletion) 4-port transistor
 			{
 				modelChar = "Z";
 				biasCs = null;
 				modelName = "DMES";
-			} else if (fun == NodeProto.Function.TRAEMES ||			// EMES (Enhancement) transistor
-				fun == NodeProto.Function.TRA4EMES)					// EMES (Enhancement) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRAEMES ||			// EMES (Enhancement) transistor
+				fun == PrimitiveNode.Function.TRA4EMES)					// EMES (Enhancement) 4-port transistor
 			{
 				modelChar = "Z";
 				biasCs = null;
 				modelName = "EMES";
-			} else if (fun == NodeProto.Function.TRANS)				// special transistor
+			} else if (fun == PrimitiveNode.Function.TRANS)				// special transistor
 			{
 				modelChar = "Q";
 //				biasn = subnet != NOSPNET ? subnet : 0;
@@ -883,11 +884,11 @@ public class Spice extends Topology
 					w *= layoutTechnology.getScale() / 1000.0;
 				}
 
-				if (fun == NodeProto.Function.TRANMOS  || fun == NodeProto.Function.TRA4NMOS ||
-					fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRA4PMOS ||
-					fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRA4DMOS ||
-					((fun == NodeProto.Function.TRANJFET || fun == NodeProto.Function.TRAPJFET ||
-					  fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRAEMES) &&
+				if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
+					fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
+					fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
+					((fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRAPJFET ||
+					  fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRAEMES) &&
 					  spiceEngine == Simulation.SPICE_ENGINE_H))
 				{
                     // schematic transistors may be text
@@ -904,9 +905,9 @@ public class Spice extends Topology
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
                     }
 				}
-				if (fun != NodeProto.Function.TRANMOS && fun != NodeProto.Function.TRA4NMOS &&
-					fun != NodeProto.Function.TRAPMOS && fun != NodeProto.Function.TRA4PMOS &&
-					fun != NodeProto.Function.TRADMOS && fun != NodeProto.Function.TRA4DMOS)
+				if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
+					fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
+					fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS)
 				{
                     infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
                     if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
@@ -927,9 +928,9 @@ public class Spice extends Topology
 			// compute area of source and drain
 			if (!useCDL)
 			{
-				if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRA4NMOS ||
-					fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRA4PMOS ||
-					fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRA4DMOS)
+				if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRA4NMOS ||
+					fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
+					fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS)
 				{
 					double as = 0, ad = 0, ps = 0, pd = 0;
 					if (spNetSource.transistorCount != 0)
@@ -1420,7 +1421,7 @@ public class Spice extends Topology
 		NodeProto np = ni.getProto();
 		if (np instanceof Cell) return;  // No area for complex nodes
 
-		NodeProto.Function function = ni.getFunction();
+		PrimitiveNode.Function function = ni.getFunction();
 
 		// initialize to examine the polygons on this node
 		Technology tech = np.getTechnology();

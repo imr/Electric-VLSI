@@ -114,8 +114,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.powerNode);
             inPalette.add(Schematics.tech.resistorNode);
             inPalette.add(Schematics.tech.capacitorNode);
-            inPalette.add(makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900));
-            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 900));
+            inPalette.add(makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900));
+            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900));
             inPalette.add(Schematics.tech.switchNode);
             inPalette.add(Schematics.tech.muxNode);
             inPalette.add(Schematics.tech.xorNode);
@@ -129,8 +129,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.groundNode);
             inPalette.add(Schematics.tech.inductorNode);
             inPalette.add(Schematics.tech.diodeNode);
-            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 900));
-            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900));
+            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900));
+            inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900));
             inPalette.add(Schematics.tech.flipflopNode);
             inPalette.add(Schematics.tech.bufferNode);
             inPalette.add(Schematics.tech.orNode);
@@ -146,7 +146,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Artwork.tech.openedThickerPolygonNode);
             inPalette.add(Artwork.tech.filledTriangleNode);
             inPalette.add(Artwork.tech.filledBoxNode);
-            inPalette.add(makeNodeInst(Artwork.tech.filledPolygonNode, NodeProto.Function.ART, 0));
+            inPalette.add(makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0));
             inPalette.add(Artwork.tech.filledCircleNode);
             inPalette.add(Artwork.tech.pinNode);
             inPalette.add(Artwork.tech.crossedBoxNode);
@@ -159,11 +159,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Artwork.tech.openedDashedPolygonNode);
             inPalette.add(Artwork.tech.triangleNode);
             inPalette.add(Artwork.tech.boxNode);
-            inPalette.add(makeNodeInst(Artwork.tech.closedPolygonNode, NodeProto.Function.ART, 0));
+            inPalette.add(makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0));
             inPalette.add(Artwork.tech.circleNode);
             inPalette.add("Export");
             inPalette.add(Artwork.tech.arrowNode);
-            inPalette.add(makeNodeInst(Artwork.tech.splineNode, NodeProto.Function.ART, 0));
+            inPalette.add(makeNodeInst(Artwork.tech.splineNode, PrimitiveNode.Function.ART, 0));
         } else
         {
             int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
@@ -188,18 +188,18 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
-                NodeProto.Function fun = np.getFunction();
-                if (fun == NodeProto.Function.PIN)
+                PrimitiveNode.Function fun = np.getFunction();
+                if (fun == PrimitiveNode.Function.PIN)
                 {
                     pinTotal++;
                     inPalette.add(np);
-                } else if (fun == NodeProto.Function.NODE)
+                } else if (fun == PrimitiveNode.Function.NODE)
 	                pureTotal++;
                 else
                 {
-	                if (fun == NodeProto.Function.TRANMOS)
+	                if (fun == PrimitiveNode.Function.TRANMOS)
 	                    nTransistorList.add(np);
-	                else if (fun == NodeProto.Function.TRAPMOS)
+	                else if (fun == PrimitiveNode.Function.TRAPMOS)
 	                    pTransistorList.add(np);
 	                // Leaving standard transistors
 	                if (np.getSpecialType() != PrimitiveNode.SPECIALTRANS)
@@ -235,7 +235,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         return size;
     }
 
-    private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
+    private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle)
     {
         NodeInst ni = NodeInst.lowLevelAllocate();
         SizeOffset so = np.getProtoSizeOffset();
@@ -267,7 +267,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menu.add(menuItem = new JMenuItem("Normal Diode"));
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Schematics.tech.diodeNode));
                 menu.add(menuItem = new JMenuItem("Zener Diode"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.diodeNode, NodeProto.Function.DIODEZ, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODEZ, 0)));
                 menu.show(panel, e.getX(), e.getY());
                 return;
             }
@@ -277,7 +277,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menu.add(menuItem = new JMenuItem("Normal Capacitor"));
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Schematics.tech.capacitorNode));
                 menu.add(menuItem = new JMenuItem("Electrolytic Capacitor"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.capacitorNode, NodeProto.Function.ECAPAC, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.ECAPAC, 0)));
                 menu.show(panel, e.getX(), e.getY());
                 return;
             }
@@ -285,32 +285,32 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 JPopupMenu menu = new JPopupMenu("Flip-flop");
                 menu.add(menuItem = new JMenuItem("R-S master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSMS, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0)));
                 menu.add(menuItem = new JMenuItem("R-S positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSP, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0)));
                 menu.add(menuItem = new JMenuItem("R-S negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSN, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0)));
                 menu.addSeparator();
                 menu.add(menuItem = new JMenuItem("J-K master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKMS, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0)));
                 menu.add(menuItem = new JMenuItem("J-K positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKP, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0)));
                 menu.add(menuItem = new JMenuItem("J-K negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKN, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0)));
                 menu.addSeparator();
                 menu.add(menuItem = new JMenuItem("D master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDMS, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0)));
                 menu.add(menuItem = new JMenuItem("D positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDP, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0)));
                 menu.add(menuItem = new JMenuItem("D negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDN, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0)));
                 menu.addSeparator();
                 menu.add(menuItem = new JMenuItem("T master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTMS, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0)));
                 menu.add(menuItem = new JMenuItem("T positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTP, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0)));
                 menu.add(menuItem = new JMenuItem("T negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTN, 0)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTN, 0)));
                 menu.show(panel, e.getX(), e.getY());
                 return;
             }
@@ -318,50 +318,50 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 JPopupMenu menu = new JPopupMenu("4-Port Transistors");
                 menu.add(menuItem = new JMenuItem("nMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900)));
                 menu.add(menuItem = new JMenuItem("PMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900)));
                 menu.add(menuItem = new JMenuItem("DMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900)));
                 menu.add(menuItem = new JMenuItem("NPN 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NPN, 900)));
                 menu.add(menuItem = new JMenuItem("PNP 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900)));
                 menu.add(menuItem = new JMenuItem("DMES 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMES, 900)));
                 menu.add(menuItem = new JMenuItem("EMES 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4EMES, 900)));
                 menu.add(menuItem = new JMenuItem("PJFET 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900)));
                 menu.add(menuItem = new JMenuItem("NJFET 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 900)));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NJFET, 900)));
                 menu.show(panel, e.getX(), e.getY());
                 return;
             }
             if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistorNode)
             {
                 NodeInst ni = (NodeInst)obj;
-                if (ni.getFunction() == NodeProto.Function.TRAPNP)
+                if (ni.getFunction() == PrimitiveNode.Function.TRAPNP)
                 {
                     JPopupMenu menu = new JPopupMenu("3-Port Transistors");
                     menu.add(menuItem = new JMenuItem("nMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900)));
                     menu.add(menuItem = new JMenuItem("PMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900)));
                     menu.add(menuItem = new JMenuItem("DMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMOS, 900)));
                     menu.add(menuItem = new JMenuItem("NPN"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANPN, 900)));
                     menu.add(menuItem = new JMenuItem("PNP"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900)));
                     menu.add(menuItem = new JMenuItem("DMES"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMES, 900)));
                     menu.add(menuItem = new JMenuItem("EMES"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAEMES, 900)));
                     menu.add(menuItem = new JMenuItem("PJFET"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPJFET, 900)));
                     menu.add(menuItem = new JMenuItem("NJFET"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 900)));
+                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANJFET, 900)));
                     menu.show(panel, e.getX(), e.getY());
                     return;
                 }
@@ -474,7 +474,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;
-                    if (np.getFunction() != NodeProto.Function.NODE) continue;
+                    if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
                     menuItem = new JMenuItem(np.describe());
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
                     pureMenu.add(menuItem);
@@ -779,8 +779,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (toDraw instanceof NodeInst)
                         {
                             NodeInst ni = (NodeInst)toDraw;
-                            if (ni.getFunction() == NodeProto.Function.TRAPNP ||
-                                ni.getFunction() == NodeProto.Function.TRA4PNP)
+                            if (ni.getFunction() == PrimitiveNode.Function.TRAPNP ||
+                                ni.getFunction() == PrimitiveNode.Function.TRA4PNP)
                                 drawArrow = true;
                         }
 
@@ -862,9 +862,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Image drawNodeInMenu(EditWindow wnd, NodeInst ni)
         {
             // determine scale for rendering
-            NodeProto np = ni.getProto();
+            PrimitiveNode np = (PrimitiveNode)ni.getProto();
             double largest = 0;
-            NodeProto.Function groupFunction = np.getGroupFunction();
+            PrimitiveNode.Function groupFunction = np.getGroupFunction();
             for(Iterator it = np.getTechnology().getNodes(); it.hasNext(); )
             {
                 PrimitiveNode otherNp = (PrimitiveNode)it.next();
@@ -874,7 +874,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
 
             // for pins, make them the same scale as the arcs
-            if (groupFunction == NodeProto.Function.PIN)
+            if (groupFunction == PrimitiveNode.Function.PIN)
             {
                 largest = 0;
                 for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )

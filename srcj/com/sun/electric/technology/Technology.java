@@ -1158,9 +1158,9 @@ public class Technology extends ElectricObject
 	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that know the node's function.
 	 * @param ni the NodeInst to check.
-	 * @return the NodeProto.Function that describes the NodeInst.
+	 * @return the PrimitiveNode.Function that describes the NodeInst.
 	 */
-	public NodeProto.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
+	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
 
 	/**
 	 * Method to return the size of a transistor NodeInst in this Technology.
@@ -1269,9 +1269,9 @@ public class Technology extends ElectricObject
 	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.
-	 * @param function the NodeProto.Function to set on the NodeInst.
+	 * @param function the PrimitiveNode.Function to set on the NodeInst.
 	 */
-	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function) {}
+	public void setPrimitiveFunction(NodeInst ni, PrimitiveNode.Function function) {}
 
 	/**
 	 * Sets the technology to have no primitives.
@@ -2142,7 +2142,7 @@ public class Technology extends ElectricObject
 					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
 				}
 				Poly portPoly = new Poly(pointList);
-				if (ni.getFunction() == NodeProto.Function.NODE)
+				if (ni.getFunction() == PrimitiveNode.Function.NODE)
 				{
 					portPoly.setStyle(Poly.Type.FILLED);
 				} else

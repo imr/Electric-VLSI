@@ -115,8 +115,8 @@ public class Silos extends Topology
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;	// only real sources
 
-			NodeProto.Function nodetype = ni.getFunction();
-			if (nodetype != NodeProto.Function.SOURCE) continue;
+			PrimitiveNode.Function nodetype = ni.getFunction();
+			if (nodetype != PrimitiveNode.Function.SOURCE) continue;
 
 			Variable var = ni.getVar(SILOS_GLOBAL_NAME_KEY);
 			String name = "";
@@ -302,9 +302,9 @@ public class Silos extends Topology
 			if (niProto instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
-				NodeProto.Function nodeType = getPrimitiveType(ni);
-				if (nodeType == NodeProto.Function.UNKNOWN) continue;
-				if (nodeType == NodeProto.Function.TRANMOS || nodeType == NodeProto.Function.TRAPMOS)
+				PrimitiveNode.Function nodeType = getPrimitiveType(ni);
+				if (nodeType == PrimitiveNode.Function.UNKNOWN) continue;
+				if (nodeType == PrimitiveNode.Function.TRANMOS || nodeType == PrimitiveNode.Function.TRAPMOS)
 				{
 					// Transistors need a part number
 					writeWidthLimited(getNodeInstName(ni));
@@ -332,14 +332,14 @@ public class Silos extends Topology
 					continue;
 				}
 
-				if (nodeType == NodeProto.Function.METER || nodeType == NodeProto.Function.SOURCE)
+				if (nodeType == PrimitiveNode.Function.METER || nodeType == PrimitiveNode.Function.SOURCE)
 				{
 					if (cell != topCell) System.out.println("WARNING: Global Clock in a sub-cell");
 					continue;
 				}
 
-				if (nodeType == NodeProto.Function.GATEAND || nodeType == NodeProto.Function.GATEOR ||
-					nodeType == NodeProto.Function.GATEXOR || nodeType == NodeProto.Function.BUFFER)
+				if (nodeType == PrimitiveNode.Function.GATEAND || nodeType == PrimitiveNode.Function.GATEOR ||
+					nodeType == PrimitiveNode.Function.GATEXOR || nodeType == PrimitiveNode.Function.BUFFER)
 				{
 					// Gates use their output port as a name
 					PortProto outPP = null;
@@ -387,7 +387,7 @@ public class Silos extends Topology
 					continue;
 				}
 
-				if (nodeType == NodeProto.Function.CAPAC)
+				if (nodeType == PrimitiveNode.Function.CAPAC)
 				{
 					// find a connected port for the node name
 					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
@@ -413,7 +413,7 @@ public class Silos extends Topology
 					continue;
 				}
 
-				if (nodeType == NodeProto.Function.RESIST)
+				if (nodeType == PrimitiveNode.Function.RESIST)
 				{
 					// sorry! can't handle the resistive gate yet
 					continue;
@@ -543,42 +543,42 @@ public class Silos extends Topology
 	 */
 	private String getPrimitiveName(NodeInst ni, boolean neg)
 	{	
-		NodeProto.Function f = getPrimitiveType(ni);
-		if (f == NodeProto.Function.TRANMOS) return ".NMOS";
-		if (f == NodeProto.Function.TRAPMOS) return ".PMOS";
+		PrimitiveNode.Function f = getPrimitiveType(ni);
+		if (f == PrimitiveNode.Function.TRANMOS) return ".NMOS";
+		if (f == PrimitiveNode.Function.TRAPMOS) return ".PMOS";
 
-		if (f == NodeProto.Function.BUFFER)
+		if (f == PrimitiveNode.Function.BUFFER)
 		{
 			if (neg) return ".INV";
 			return ".BUF";
 		}
-		if (f == NodeProto.Function.GATEXOR)
+		if (f == PrimitiveNode.Function.GATEXOR)
 		{
 			if (neg) return ".XNOR";
 			return ".XOR";
 		}
-		if (f == NodeProto.Function.GATEAND)
+		if (f == PrimitiveNode.Function.GATEAND)
 		{
 			if (neg) return ".NAND";
 			return ".NAND";
 		}
-		if (f == NodeProto.Function.GATEOR)
+		if (f == PrimitiveNode.Function.GATEOR)
 		{
 			if (neg) return ".NOR";
 			return ".OR";
 		}
 
-		if (f == NodeProto.Function.RESIST) return ".RES";
-		if (f == NodeProto.Function.CAPAC) return ".CAP";
+		if (f == PrimitiveNode.Function.RESIST) return ".RES";
+		if (f == PrimitiveNode.Function.CAPAC) return ".CAP";
 
-		if (f == NodeProto.Function.FLIPFLOPRSMS || f == NodeProto.Function.FLIPFLOPRSP) return ".SRPEFF";
-		if (f == NodeProto.Function.FLIPFLOPRSN) return ".SRNEFF";
-		if (f == NodeProto.Function.FLIPFLOPJKMS || f == NodeProto.Function.FLIPFLOPJKP) return ".JKPEFF";
-		if (f == NodeProto.Function.FLIPFLOPJKN) return ".JKNEFF";
-		if (f == NodeProto.Function.FLIPFLOPDMS || f == NodeProto.Function.FLIPFLOPDP) return ".DPEFF";
-		if (f == NodeProto.Function.FLIPFLOPDN) return ".DNEFF";
-		if (f == NodeProto.Function.FLIPFLOPTMS || f == NodeProto.Function.FLIPFLOPTP) return ".TPEFF";
-		if (f == NodeProto.Function.FLIPFLOPTN) return ".TNEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPRSMS || f == PrimitiveNode.Function.FLIPFLOPRSP) return ".SRPEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPRSN) return ".SRNEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPJKMS || f == PrimitiveNode.Function.FLIPFLOPJKP) return ".JKPEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPJKN) return ".JKNEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPDMS || f == PrimitiveNode.Function.FLIPFLOPDP) return ".DPEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPDN) return ".DNEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPTMS || f == PrimitiveNode.Function.FLIPFLOPTP) return ".TPEFF";
+		if (f == PrimitiveNode.Function.FLIPFLOPTN) return ".TNEFF";
 
 		return convertName(ni.getProto().getName());
 	}
@@ -588,25 +588,25 @@ public class Silos extends Topology
 	 * Read the contents of the added string, make it available to
 	 * the caller
 	 */
-	private NodeProto.Function getPrimitiveType(NodeInst ni)
+	private PrimitiveNode.Function getPrimitiveType(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell) return null;
 
-		NodeProto.Function func = ni.getFunction();
-		if (func == NodeProto.Function.TRAPMOS || func == NodeProto.Function.TRA4PMOS)
-			return NodeProto.Function.TRAPMOS;
-		if (func == NodeProto.Function.TRANMOS || func == NodeProto.Function.TRA4NMOS)
-			return NodeProto.Function.TRANMOS;
-		if (func == NodeProto.Function.GATEAND || func == NodeProto.Function.GATEOR ||
-			func == NodeProto.Function.GATEXOR || func == NodeProto.Function.BUFFER ||
-			func == NodeProto.Function.RESIST || func == NodeProto.Function.CAPAC ||
-			func == NodeProto.Function.SOURCE || func == NodeProto.Function.METER ||
-			func == NodeProto.Function.FLIPFLOPRSMS || func == NodeProto.Function.FLIPFLOPRSP || func == NodeProto.Function.FLIPFLOPRSN ||
-			func == NodeProto.Function.FLIPFLOPJKMS || func == NodeProto.Function.FLIPFLOPJKP || func == NodeProto.Function.FLIPFLOPJKN ||
-			func == NodeProto.Function.FLIPFLOPDMS || func == NodeProto.Function.FLIPFLOPDP || func == NodeProto.Function.FLIPFLOPDN ||
-			func == NodeProto.Function.FLIPFLOPTMS || func == NodeProto.Function.FLIPFLOPTP || func == NodeProto.Function.FLIPFLOPTN)
+		PrimitiveNode.Function func = ni.getFunction();
+		if (func == PrimitiveNode.Function.TRAPMOS || func == PrimitiveNode.Function.TRA4PMOS)
+			return PrimitiveNode.Function.TRAPMOS;
+		if (func == PrimitiveNode.Function.TRANMOS || func == PrimitiveNode.Function.TRA4NMOS)
+			return PrimitiveNode.Function.TRANMOS;
+		if (func == PrimitiveNode.Function.GATEAND || func == PrimitiveNode.Function.GATEOR ||
+			func == PrimitiveNode.Function.GATEXOR || func == PrimitiveNode.Function.BUFFER ||
+			func == PrimitiveNode.Function.RESIST || func == PrimitiveNode.Function.CAPAC ||
+			func == PrimitiveNode.Function.SOURCE || func == PrimitiveNode.Function.METER ||
+			func == PrimitiveNode.Function.FLIPFLOPRSMS || func == PrimitiveNode.Function.FLIPFLOPRSP || func == PrimitiveNode.Function.FLIPFLOPRSN ||
+			func == PrimitiveNode.Function.FLIPFLOPJKMS || func == PrimitiveNode.Function.FLIPFLOPJKP || func == PrimitiveNode.Function.FLIPFLOPJKN ||
+			func == PrimitiveNode.Function.FLIPFLOPDMS || func == PrimitiveNode.Function.FLIPFLOPDP || func == PrimitiveNode.Function.FLIPFLOPDN ||
+			func == PrimitiveNode.Function.FLIPFLOPTMS || func == PrimitiveNode.Function.FLIPFLOPTP || func == PrimitiveNode.Function.FLIPFLOPTN)
 				return func;
-		return(NodeProto.Function.UNKNOWN);
+		return(PrimitiveNode.Function.UNKNOWN);
 	}
 
 	/**
@@ -757,7 +757,7 @@ public class Silos extends Topology
 	private static final int PRE  = 5;
 	private static final int CLR  = 6;
 
-	private void writeFlipFlop(boolean top, NodeInst ni, Cell np, NodeProto.Function type, Netlist netList, CellNetInfo cni)
+	private void writeFlipFlop(boolean top, NodeInst ni, Cell np, PrimitiveNode.Function type, Netlist netList, CellNetInfo cni)
 	{
 		String [] portNames = new String[7];
 		Iterator it = ni.getProto().getPorts();
@@ -772,7 +772,7 @@ public class Silos extends Topology
 			portNames[CLR] = "";		// If neither on, don't print
 			portNames[PRE] = "";
 		}
-		if (type == NodeProto.Function.FLIPFLOPDMS)
+		if (type == PrimitiveNode.Function.FLIPFLOPDMS)
 		{
 			writeWidthLimited(portNames[CK] + portNames[JORD] + portNames[PRE] + portNames[CLR] + " /" + portNames[Q]+ portNames[QB]);
 		} else

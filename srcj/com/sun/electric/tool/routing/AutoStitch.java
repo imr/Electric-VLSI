@@ -39,9 +39,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -127,7 +128,7 @@ public class AutoStitch
 
 		public boolean doIt()
 		{
-			FlagSet cellMark = NodeProto.getFlagSet(1);
+			FlagSet cellMark = Cell.getFlagSet(1);
 			nodeMark = NodeInst.getFlagSet(1);
 
 			// clear flag for finding cells that will be checked
@@ -877,11 +878,11 @@ public class AutoStitch
             //Router.createRouteNoJob(route, ni.getParent(), false);
 
             // if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
-            if (ni.getFunction() == NodeProto.Function.PIN) {
+            if (ni.getFunction() == PrimitiveNode.Function.PIN) {
                 if (!possibleInlinePins.contains(ni))
                     possibleInlinePins.add(ni);
             }
-            if (oNi.getFunction() == NodeProto.Function.PIN) {
+            if (oNi.getFunction() == PrimitiveNode.Function.PIN) {
                 if (!possibleInlinePins.contains(oNi))
                     possibleInlinePins.add(oNi);
             }

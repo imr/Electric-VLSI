@@ -405,7 +405,7 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)geom;
 	
 				// ignore pins
-				if (ni.getFunction() == NodeProto.Function.PIN) continue;
+				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				EditWindow.gridAlign(center);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
@@ -1580,7 +1580,7 @@ public class CircuitChanges
 			if (ni.getFlagValue(deleteFlag) == 0) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
-				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
 				nodesToDelete.add(ni);
 			}
@@ -1599,7 +1599,7 @@ public class CircuitChanges
 			if (ni.getFlagValue(deleteFlag) == 0) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
-				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.getNumExports() != 0) continue;
                 if (!ni.isInlinePin()) continue;
 				nodesToPassThru.add(ni);
@@ -2713,7 +2713,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// if the pin is an export, save it
 			if (ni.getNumExports() > 0) continue;
@@ -2746,7 +2746,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// if the pin is standard size, leave it alone
 			double overSizeX = ni.getXSize() - ni.getProto().getDefWidth();
@@ -2809,7 +2809,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// make sure all arcs touch each other
 			boolean nodeIsBad = false;
@@ -2923,7 +2923,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 	
 			// if the pin is an export, save it
 			if (ni.getNumExports() > 0) continue;
@@ -3101,7 +3101,7 @@ public class CircuitChanges
         if (highlighter == null) return;
 
 		// see which cells (in any library) have nonmanhattan stuff
-		FlagSet cellMark = NodeProto.getFlagSet(1);
+		FlagSet cellMark = Cell.getFlagSet(1);
 		cellMark.clearOnAllCells();
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{

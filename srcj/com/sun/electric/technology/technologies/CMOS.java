@@ -527,7 +527,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mp_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mp_node.setFunction(NodeProto.Function.PIN);
+		mp_node.setFunction(PrimitiveNode.Function.PIN);
 		mp_node.setArcsWipe();
 		mp_node.setArcsShrink();
 
@@ -542,7 +542,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		pp_node.setFunction(NodeProto.Function.PIN);
+		pp_node.setFunction(PrimitiveNode.Function.PIN);
 		pp_node.setArcsWipe();
 		pp_node.setArcsShrink();
 
@@ -558,7 +558,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, dpp_node, new ArcProto [] {Diffusion_p_arc}, "diff-p", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
-		dpp_node.setFunction(NodeProto.Function.PIN);
+		dpp_node.setFunction(PrimitiveNode.Function.PIN);
 		dpp_node.setArcsWipe();
 		dpp_node.setArcsShrink();
 
@@ -574,7 +574,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, dwp_node, new ArcProto [] {Diffusion_well_arc}, "diff-w", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
-		dwp_node.setFunction(NodeProto.Function.PIN);
+		dwp_node.setFunction(PrimitiveNode.Function.PIN);
 		dwp_node.setArcsWipe();
 		dwp_node.setArcsShrink();
 
@@ -591,7 +591,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mpc_node, new ArcProto [] {Polysilicon_arc, Metal_arc}, "metal-poly", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		mpc_node.setFunction(NodeProto.Function.CONTACT);
+		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
@@ -609,7 +609,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mdpc_node, new ArcProto [] {Diffusion_p_arc, Metal_arc}, "metal-diff-p", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
-		mdpc_node.setFunction(NodeProto.Function.CONTACT);
+		mdpc_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mdpc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mdpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
@@ -627,7 +627,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mdwc_node, new ArcProto [] {Diffusion_well_arc, Metal_arc}, "metal-diff-w", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
-		mdwc_node.setFunction(NodeProto.Function.CONTACT);
+		mdwc_node.setFunction(PrimitiveNode.Function.CONTACT);
 		mdwc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mdwc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
@@ -650,7 +650,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_p_arc}, "trans-diff-bottom", 270,85, 3, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(3), EdgeV.fromBottom(1))
 			});
-		t_node.setFunction(NodeProto.Function.TRAPMOS);
+		t_node.setFunction(PrimitiveNode.Function.TRAPMOS);
 		t_node.setHoldsOutline();
 		t_node.setCanShrink();
 		t_node.setSpecialType(PrimitiveNode.SERPTRANS);
@@ -675,7 +675,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, tw_node, new ArcProto [] {Diffusion_well_arc}, "transw-diff-bottom", 270,85, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(2), EdgeH.fromRight(4), EdgeV.fromBottom(2))
 			});
-		tw_node.setFunction(NodeProto.Function.TRANMOS);
+		tw_node.setFunction(PrimitiveNode.Function.TRANMOS);
 		tw_node.setHoldsOutline();
 		tw_node.setCanShrink();
 		tw_node.setSpecialType(PrimitiveNode.SERPTRANS);
@@ -699,7 +699,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mdsc_node, new ArcProto [] {Diffusion_well_arc, Metal_arc}, "metal-diff-splw-r", 0,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(1), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
-		mdsc_node.setFunction(NodeProto.Function.WELL);
+		mdsc_node.setFunction(PrimitiveNode.Function.WELL);
 
 		/** Metal-Diff-SplitN-Cut */
 		PrimitiveNode mdsc0_node = PrimitiveNode.newInstance("Metal-Diff-SplitN-Cut", this, 10, 8, new SizeOffset(2, 0, 2, 2),
@@ -718,7 +718,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mdsc0_node, new ArcProto [] {Metal_arc}, "metal-diff-splp-r", 180,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(2), EdgeV.fromBottom(3), EdgeH.fromRight(1), EdgeV.fromTop(3))
 			});
-		mdsc0_node.setFunction(NodeProto.Function.SUBSTRATE);
+		mdsc0_node.setFunction(PrimitiveNode.Function.SUBSTRATE);
 
 		/** Metal-Node */
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-Node", this, 3, 3, null,
@@ -731,7 +731,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		mn_node.setFunction(NodeProto.Function.NODE);
+		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
 		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -746,7 +746,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		pn_node.setFunction(NodeProto.Function.NODE);
+		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
 		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -761,7 +761,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, dn_node, new ArcProto [] {}, "diffusion", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		dn_node.setFunction(NodeProto.Function.NODE);
+		dn_node.setFunction(PrimitiveNode.Function.NODE);
 		dn_node.setHoldsOutline();
 		dn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -776,7 +776,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {}, "p+", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		pn0_node.setFunction(NodeProto.Function.NODE);
+		pn0_node.setFunction(PrimitiveNode.Function.NODE);
 		pn0_node.setHoldsOutline();
 		pn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -791,7 +791,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		cn_node.setFunction(NodeProto.Function.NODE);
+		cn_node.setFunction(PrimitiveNode.Function.NODE);
 		cn_node.setHoldsOutline();
 		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -806,7 +806,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, ocn_node, new ArcProto [] {}, "ohmic-cut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		ocn_node.setFunction(NodeProto.Function.NODE);
+		ocn_node.setFunction(PrimitiveNode.Function.NODE);
 		ocn_node.setHoldsOutline();
 		ocn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -821,7 +821,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, wn_node, new ArcProto [] {}, "well", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		wn_node.setFunction(NodeProto.Function.NODE);
+		wn_node.setFunction(PrimitiveNode.Function.NODE);
 		wn_node.setHoldsOutline();
 		wn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -836,7 +836,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, on_node, new ArcProto [] {}, "overglass", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		on_node.setFunction(NodeProto.Function.NODE);
+		on_node.setFunction(PrimitiveNode.Function.NODE);
 		on_node.setHoldsOutline();
 		on_node.setSpecialType(PrimitiveNode.POLYGONAL);
 

@@ -335,7 +335,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		wirePinNode.setFunction(NodeProto.Function.PIN);
+		wirePinNode.setFunction(PrimitiveNode.Function.PIN);
 		wirePinNode.setSquare();
 		wirePinNode.setWipeOn1or2();
 		wirePinNode.setCanBeZeroSize();
@@ -356,7 +356,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, busPinNode, new ArcProto[] {wire_arc, bus_arc}, "bus", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		busPinNode.setFunction(NodeProto.Function.PIN);
+		busPinNode.setFunction(PrimitiveNode.Function.PIN);
 		busPinNode.setSquare();
 		busPinNode.setWipeOn1or2();
 		busPinNode.setCanBeZeroSize();
@@ -373,7 +373,7 @@ public class Schematics extends Technology
 			EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5));
 		wireCon_port.setIsolated();
 		wireConNode.addPrimitivePorts(new PrimitivePort [] {wireCon_port});
-		wireConNode.setFunction(NodeProto.Function.CONNECT);
+		wireConNode.setFunction(PrimitiveNode.Function.CONNECT);
 		letterJ.setMessage("J");
 		letterJ.setDescriptor(tdBig);
 
@@ -398,7 +398,7 @@ public class Schematics extends Technology
 			PortProto.Characteristic.IN, EdgeH.makeCenter(), EdgeV.fromBottom(2), EdgeH.makeCenter(), EdgeV.fromBottom(2));
 		bufferSidePort.setNegatable(true);
 		bufferNode.addPrimitivePorts(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
-		bufferNode.setFunction(NodeProto.Function.BUFFER);
+		bufferNode.setFunction(PrimitiveNode.Function.BUFFER);
 
 		/** general and */
 		andNode = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
@@ -433,7 +433,7 @@ public class Schematics extends Technology
 			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2));
 		andBottomPort.setNegatable(true);
 		andNode.addPrimitivePorts(new PrimitivePort [] { andInPort, andOutPort, andTopPort, andBottomPort});
-		andNode.setFunction(NodeProto.Function.GATEAND);
+		andNode.setFunction(PrimitiveNode.Function.GATEAND);
 		andNode.setAutoGrowth(0, 4);
 
 		/** general or */
@@ -477,7 +477,7 @@ public class Schematics extends Technology
 			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
 		orBottomPort.setNegatable(true);
 		orNode.addPrimitivePorts(new PrimitivePort [] {orInPort, orOutPort, orTopPort, orBottomPort});
-		orNode.setFunction(NodeProto.Function.GATEOR);
+		orNode.setFunction(PrimitiveNode.Function.GATEOR);
 		orNode.setAutoGrowth(0, 4);
 
 		/** general xor */
@@ -525,7 +525,7 @@ public class Schematics extends Technology
 			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
 		xorBottomPort.setNegatable(true);
 		xorNode.addPrimitivePorts(new PrimitivePort [] {xorInPort, xorOutPort, xorTopPort, xorBottomPort});
-		xorNode.setFunction(NodeProto.Function.GATEXOR);
+		xorNode.setFunction(PrimitiveNode.Function.GATEXOR);
 		xorNode.setAutoGrowth(0, 4);
 
 		/** general flip flop */
@@ -712,7 +712,7 @@ public class Schematics extends Technology
 		flipflopCLR.setNegatable(true);
 		flipflopNode.addPrimitivePorts(new PrimitivePort []
 			{flipflopI1, flipflopI2, flipflopQ, flipflopQB, flipflopCK, flipflopPRE, flipflopCLR});
-		flipflopNode.setFunction(NodeProto.Function.FLIPFLOPRSMS);
+		flipflopNode.setFunction(PrimitiveNode.Function.FLIPFLOPRSMS);
 
 		/** mux */
 		muxNode = PrimitiveNode.newInstance("Mux", this, 8.0, 10.0, new SizeOffset(0.5, 0.5, 0, 0),
@@ -737,7 +737,7 @@ public class Schematics extends Technology
 			PortProto.Characteristic.IN, EdgeH.makeCenter(), BOTBYP875, EdgeH.makeCenter(), BOTBYP875);
 		muxSidePort.setNegatable(true);
 		muxNode.addPrimitivePorts(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
-		muxNode.setFunction(NodeProto.Function.MUX);
+		muxNode.setFunction(PrimitiveNode.Function.MUX);
 		muxNode.setAutoGrowth(0, 4);
 
 		/** black box */
@@ -763,7 +763,7 @@ public class Schematics extends Technology
 		bbox_port4.setIsolated();
 		bbox_port4.setNegatable(true);
 		bboxNode.addPrimitivePorts(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
-		bboxNode.setFunction(NodeProto.Function.UNKNOWN);
+		bboxNode.setFunction(PrimitiveNode.Function.UNKNOWN);
 
 		/** switch */
 		switchNode = PrimitiveNode.newInstance("Switch", this, 6.0, 2.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
@@ -788,7 +788,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, switchNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter())
 			});
-		switchNode.setFunction(NodeProto.Function.UNKNOWN);
+		switchNode.setFunction(PrimitiveNode.Function.UNKNOWN);
 		switchNode.setAutoGrowth(0, 4);
 
 		/** off page connector */
@@ -809,7 +809,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, offpageNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,45, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
-		offpageNode.setFunction(NodeProto.Function.CONNECT);
+		offpageNode.setFunction(PrimitiveNode.Function.CONNECT);
 
 		/** power */
 		powerNode = PrimitiveNode.newInstance("Power", this, 3.0, 3.0, null,
@@ -827,7 +827,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, powerNode, new ArcProto[] {wire_arc}, "pwr", 0,180, 0, PortProto.Characteristic.PWR,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		powerNode.setFunction(NodeProto.Function.CONPOWER);
+		powerNode.setFunction(PrimitiveNode.Function.CONPOWER);
 		powerNode.setSquare();
 
 		/** ground */
@@ -847,7 +847,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, groundNode, new ArcProto[] {wire_arc}, "gnd", 90,90, 0, PortProto.Characteristic.GND,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
-		groundNode.setFunction(NodeProto.Function.CONGROUND);
+		groundNode.setFunction(PrimitiveNode.Function.CONGROUND);
 
 		/** source */
 		sourceNode = PrimitiveNode.newInstance("Source", this, 6.0, 6.0, null,
@@ -867,7 +867,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, sourceNode, new ArcProto[] {wire_arc}, "minus", 270,0, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		sourceNode.setFunction(NodeProto.Function.SOURCE);
+		sourceNode.setFunction(PrimitiveNode.Function.SOURCE);
 		sourceNode.setSquare();
 
 		/** transistor */
@@ -961,7 +961,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, transistorNode, new ArcProto[] {wire_arc}, "d", 0,90, 2, PortProto.Characteristic.BIDIR,
 					EdgeH.makeRightEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())
 			});
-		transistorNode.setFunction(NodeProto.Function.TRANS);
+		transistorNode.setFunction(PrimitiveNode.Function.TRANS);
 
 		/** resistor */
 		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0),
@@ -986,7 +986,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, resistorNode, new ArcProto[] {wire_arc}, "b", 0,90, 1, PortProto.Characteristic.UNKNOWN,
 					RIGHTBYP66, EdgeV.makeCenter(), RIGHTBYP66, EdgeV.makeCenter())
 			});
-		resistorNode.setFunction(NodeProto.Function.RESIST);
+		resistorNode.setFunction(PrimitiveNode.Function.RESIST);
 
 		/** capacitor */
 		Technology.NodeLayer capacitorLayer = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1013,7 +1013,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		capacitorNode.setFunction(NodeProto.Function.CAPAC);
+		capacitorNode.setFunction(PrimitiveNode.Function.CAPAC);
 
 		/** diode */
 		Technology.NodeLayer diodeLayer1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1048,7 +1048,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, diodeNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		diodeNode.setFunction(NodeProto.Function.DIODE);
+		diodeNode.setFunction(PrimitiveNode.Function.DIODE);
 
 		/** inductor */
 		inductorNode = PrimitiveNode.newInstance("Inductor", this, 2.0, 4.0, null,
@@ -1074,7 +1074,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, inductorNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		inductorNode.setFunction(NodeProto.Function.INDUCT);
+		inductorNode.setFunction(PrimitiveNode.Function.INDUCT);
 
 		/** meter */
 		Technology.NodeLayer meterLetterV = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, Technology.TechPoint.makeFullBox());
@@ -1095,7 +1095,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, meterNode, new ArcProto[] {wire_arc}, "b", 270,0, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		meterNode.setFunction(NodeProto.Function.METER);
+		meterNode.setFunction(PrimitiveNode.Function.METER);
 		meterNode.setSquare();
 
 		/** well contact */
@@ -1113,7 +1113,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, wellNode, new ArcProto[] {wire_arc}, "well", 90,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
-		wellNode.setFunction(NodeProto.Function.WELL);
+		wellNode.setFunction(PrimitiveNode.Function.WELL);
 
 		/** substrate contact */
 		substrateNode = PrimitiveNode.newInstance("Substrate", this, 3.0, 3.0, null,
@@ -1134,7 +1134,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, substrateNode, new ArcProto[] {wire_arc}, "substrate", 90,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
-		substrateNode.setFunction(NodeProto.Function.SUBSTRATE);
+		substrateNode.setFunction(PrimitiveNode.Function.SUBSTRATE);
 
 		/** two-port */
 		Technology.NodeLayer twoLayerBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -1243,7 +1243,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "y", 0,90, 3, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeRightEdge(), BOTBYP66, EdgeH.makeRightEdge(), BOTBYP66)
 			});
-		twoportNode.setFunction(NodeProto.Function.TLINE);
+		twoportNode.setFunction(PrimitiveNode.Function.TLINE);
 
 		/** 4-port transistor */
 		Technology.NodeLayer tranLayerNMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1317,7 +1317,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "b", 270,90, 3, PortProto.Characteristic.BIDIR,
 					LEFTBYP5, EdgeV.makeBottomEdge(), LEFTBYP5, EdgeV.makeBottomEdge())
 			});
-		transistor4Node.setFunction(NodeProto.Function.TRANS4);
+		transistor4Node.setFunction(PrimitiveNode.Function.TRANS4);
 
 		/** global signal */
 		globalNode = PrimitiveNode.newInstance("Global-Signal", this, 3.0, 3.0, null,
@@ -1339,7 +1339,7 @@ public class Schematics extends Technology
 				PrimitivePort.newInstance(this, globalNode, new ArcProto[] {wire_arc}, "global", 270,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
-		globalNode.setFunction(NodeProto.Function.CONNECT);
+		globalNode.setFunction(PrimitiveNode.Function.CONNECT);
 	}
 
 	//**************************************** METHODS ****************************************
@@ -1886,155 +1886,155 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * Method to return the pure "PrimitiveNode Function" a primitive NodeInst in this Technology.
 	 * The Schematics technology allows primitives to have parameterized functions.
 	 * @param ni the NodeInst to check.
-	 * @return the NodeProto.Function that describes the NodeInst.
+	 * @return the PrimitiveNode.Function that describes the NodeInst.
 	 */
-	public NodeProto.Function getPrimitiveFunction(NodeInst ni)
+	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int techBits = ni.getTechSpecific();
 		if (np == capacitorNode)
 		{
-			if (techBits == CAPACELEC) return NodeProto.Function.ECAPAC;
-			return NodeProto.Function.CAPAC;
+			if (techBits == CAPACELEC) return PrimitiveNode.Function.ECAPAC;
+			return PrimitiveNode.Function.CAPAC;
 		}
 		if (np == diodeNode)
 		{
-			if (techBits == DIODEZENER) return NodeProto.Function.DIODEZ;
-			return NodeProto.Function.DIODE;
+			if (techBits == DIODEZENER) return PrimitiveNode.Function.DIODEZ;
+			return PrimitiveNode.Function.DIODE;
 		}
 		if (np == transistorNode)
 		{
 			switch (techBits)
 			{
-				case TRANNMOS:  return NodeProto.Function.TRANMOS;
-				case TRANDMOS:  return NodeProto.Function.TRADMOS;
-				case TRANPMOS:  return NodeProto.Function.TRAPMOS;
-				case TRANNPN:   return NodeProto.Function.TRANPN;
-				case TRANPNP:   return NodeProto.Function.TRAPNP;
-				case TRANNJFET: return NodeProto.Function.TRANJFET;
-				case TRANPJFET: return NodeProto.Function.TRAPJFET;
-				case TRANDMES:  return NodeProto.Function.TRADMES;
-				case TRANEMES:  return NodeProto.Function.TRAEMES;
+				case TRANNMOS:  return PrimitiveNode.Function.TRANMOS;
+				case TRANDMOS:  return PrimitiveNode.Function.TRADMOS;
+				case TRANPMOS:  return PrimitiveNode.Function.TRAPMOS;
+				case TRANNPN:   return PrimitiveNode.Function.TRANPN;
+				case TRANPNP:   return PrimitiveNode.Function.TRAPNP;
+				case TRANNJFET: return PrimitiveNode.Function.TRANJFET;
+				case TRANPJFET: return PrimitiveNode.Function.TRAPJFET;
+				case TRANDMES:  return PrimitiveNode.Function.TRADMES;
+				case TRANEMES:  return PrimitiveNode.Function.TRAEMES;
 			}
-			return NodeProto.Function.TRANMOS;
+			return PrimitiveNode.Function.TRANMOS;
 		}
 		if (np == transistor4Node)
 		{
 			switch (techBits)
 			{
-				case TRANNMOS:  return NodeProto.Function.TRA4NMOS;
-				case TRANDMOS:  return NodeProto.Function.TRA4DMOS;
-				case TRANPMOS:  return NodeProto.Function.TRA4PMOS;
-				case TRANNPN:   return NodeProto.Function.TRA4NPN;
-				case TRANPNP:   return NodeProto.Function.TRA4PNP;
-				case TRANNJFET: return NodeProto.Function.TRA4NJFET;
-				case TRANPJFET: return NodeProto.Function.TRA4PJFET;
-				case TRANDMES:  return NodeProto.Function.TRA4DMES;
-				case TRANEMES:  return NodeProto.Function.TRA4EMES;
+				case TRANNMOS:  return PrimitiveNode.Function.TRA4NMOS;
+				case TRANDMOS:  return PrimitiveNode.Function.TRA4DMOS;
+				case TRANPMOS:  return PrimitiveNode.Function.TRA4PMOS;
+				case TRANNPN:   return PrimitiveNode.Function.TRA4NPN;
+				case TRANPNP:   return PrimitiveNode.Function.TRA4PNP;
+				case TRANNJFET: return PrimitiveNode.Function.TRA4NJFET;
+				case TRANPJFET: return PrimitiveNode.Function.TRA4PJFET;
+				case TRANDMES:  return PrimitiveNode.Function.TRA4DMES;
+				case TRANEMES:  return PrimitiveNode.Function.TRA4EMES;
 			}
-			return NodeProto.Function.TRA4NMOS;
+			return PrimitiveNode.Function.TRA4NMOS;
 		}
 		if (np == flipflopNode)
 		{
 			switch (techBits)
 			{
-				case FFTYPERS|FFCLOCKMS: return NodeProto.Function.FLIPFLOPRSMS;
-				case FFTYPERS|FFCLOCKP:  return NodeProto.Function.FLIPFLOPRSP;
-				case FFTYPERS|FFCLOCKN:  return NodeProto.Function.FLIPFLOPRSN;
+				case FFTYPERS|FFCLOCKMS: return PrimitiveNode.Function.FLIPFLOPRSMS;
+				case FFTYPERS|FFCLOCKP:  return PrimitiveNode.Function.FLIPFLOPRSP;
+				case FFTYPERS|FFCLOCKN:  return PrimitiveNode.Function.FLIPFLOPRSN;
 
-				case FFTYPEJK|FFCLOCKMS: return NodeProto.Function.FLIPFLOPJKMS;
-				case FFTYPEJK|FFCLOCKP:  return NodeProto.Function.FLIPFLOPJKP;
-				case FFTYPEJK|FFCLOCKN:  return NodeProto.Function.FLIPFLOPJKN;
+				case FFTYPEJK|FFCLOCKMS: return PrimitiveNode.Function.FLIPFLOPJKMS;
+				case FFTYPEJK|FFCLOCKP:  return PrimitiveNode.Function.FLIPFLOPJKP;
+				case FFTYPEJK|FFCLOCKN:  return PrimitiveNode.Function.FLIPFLOPJKN;
 
-				case FFTYPED|FFCLOCKMS:  return NodeProto.Function.FLIPFLOPDMS;
-				case FFTYPED|FFCLOCKP:   return NodeProto.Function.FLIPFLOPDP;
-				case FFTYPED|FFCLOCKN:   return NodeProto.Function.FLIPFLOPDN;
+				case FFTYPED|FFCLOCKMS:  return PrimitiveNode.Function.FLIPFLOPDMS;
+				case FFTYPED|FFCLOCKP:   return PrimitiveNode.Function.FLIPFLOPDP;
+				case FFTYPED|FFCLOCKN:   return PrimitiveNode.Function.FLIPFLOPDN;
 
-				case FFTYPET|FFCLOCKMS:  return NodeProto.Function.FLIPFLOPTMS;
-				case FFTYPET|FFCLOCKP:   return NodeProto.Function.FLIPFLOPTP;
-				case FFTYPET|FFCLOCKN:   return NodeProto.Function.FLIPFLOPTN;
+				case FFTYPET|FFCLOCKMS:  return PrimitiveNode.Function.FLIPFLOPTMS;
+				case FFTYPET|FFCLOCKP:   return PrimitiveNode.Function.FLIPFLOPTP;
+				case FFTYPET|FFCLOCKN:   return PrimitiveNode.Function.FLIPFLOPTN;
 			}
-			return NodeProto.Function.FLIPFLOPRSMS;
+			return PrimitiveNode.Function.FLIPFLOPRSMS;
 		}
 		if (np == twoportNode)
 		{
 			switch (techBits)
 			{
-				case TWOPVCCS:  return NodeProto.Function.VCCS;
-				case TWOPCCVS:  return NodeProto.Function.CCVS;
-				case TWOPVCVS:  return NodeProto.Function.VCVS;
-				case TWOPCCCS:  return NodeProto.Function.CCCS;
+				case TWOPVCCS:  return PrimitiveNode.Function.VCCS;
+				case TWOPCCVS:  return PrimitiveNode.Function.CCVS;
+				case TWOPVCVS:  return PrimitiveNode.Function.VCVS;
+				case TWOPCCCS:  return PrimitiveNode.Function.CCCS;
 			}
-			return NodeProto.Function.TLINE;
+			return PrimitiveNode.Function.TLINE;
 		}
 		return ni.getProto().getFunction();
 	}
 
 	/**
-	 * Method to return the technology-specific function bits for a given Nodeproto.Function.
+	 * Method to return the technology-specific function bits for a given PrimitiveNode.Function.
 	 * @param function the universal function description
 	 * @return the technology-specific bits to use for that function in this technology.
 	 */
-	public static int getPrimitiveFunctionBits(NodeProto.Function function)
+	public static int getPrimitiveFunctionBits(PrimitiveNode.Function function)
 	{
-		if (function == NodeProto.Function.ECAPAC) return CAPACELEC;
-		if (function == NodeProto.Function.CAPAC) return CAPACNORM;
+		if (function == PrimitiveNode.Function.ECAPAC) return CAPACELEC;
+		if (function == PrimitiveNode.Function.CAPAC) return CAPACNORM;
 
-		if (function == NodeProto.Function.DIODEZ) return DIODEZENER;
-		if (function == NodeProto.Function.DIODE) return DIODENORM;
+		if (function == PrimitiveNode.Function.DIODEZ) return DIODEZENER;
+		if (function == PrimitiveNode.Function.DIODE) return DIODENORM;
 
-		if (function == NodeProto.Function.TRANMOS)  return TRANNMOS;
-		if (function == NodeProto.Function.TRADMOS)  return TRANDMOS;
-		if (function == NodeProto.Function.TRAPMOS)  return TRANPMOS;
-		if (function == NodeProto.Function.TRANPN)   return TRANNPN;
-		if (function == NodeProto.Function.TRAPNP)   return TRANPNP;
-		if (function == NodeProto.Function.TRANJFET) return TRANNJFET;
-		if (function == NodeProto.Function.TRAPJFET) return TRANPJFET;
-		if (function == NodeProto.Function.TRADMES)  return TRANDMES;
-		if (function == NodeProto.Function.TRAEMES)  return TRANEMES;
+		if (function == PrimitiveNode.Function.TRANMOS)  return TRANNMOS;
+		if (function == PrimitiveNode.Function.TRADMOS)  return TRANDMOS;
+		if (function == PrimitiveNode.Function.TRAPMOS)  return TRANPMOS;
+		if (function == PrimitiveNode.Function.TRANPN)   return TRANNPN;
+		if (function == PrimitiveNode.Function.TRAPNP)   return TRANPNP;
+		if (function == PrimitiveNode.Function.TRANJFET) return TRANNJFET;
+		if (function == PrimitiveNode.Function.TRAPJFET) return TRANPJFET;
+		if (function == PrimitiveNode.Function.TRADMES)  return TRANDMES;
+		if (function == PrimitiveNode.Function.TRAEMES)  return TRANEMES;
 
-		if (function == NodeProto.Function.TRA4NMOS)  return TRANNMOS;
-		if (function == NodeProto.Function.TRA4DMOS)  return TRANDMOS;
-		if (function == NodeProto.Function.TRA4PMOS)  return TRANPMOS;
-		if (function == NodeProto.Function.TRA4NPN)   return TRANNPN;
-		if (function == NodeProto.Function.TRA4PNP)   return TRANPNP;
-		if (function == NodeProto.Function.TRA4NJFET) return TRANNJFET;
-		if (function == NodeProto.Function.TRA4PJFET) return TRANPJFET;
-		if (function == NodeProto.Function.TRA4DMES)  return TRANDMES;
-		if (function == NodeProto.Function.TRA4EMES)  return TRANEMES;
+		if (function == PrimitiveNode.Function.TRA4NMOS)  return TRANNMOS;
+		if (function == PrimitiveNode.Function.TRA4DMOS)  return TRANDMOS;
+		if (function == PrimitiveNode.Function.TRA4PMOS)  return TRANPMOS;
+		if (function == PrimitiveNode.Function.TRA4NPN)   return TRANNPN;
+		if (function == PrimitiveNode.Function.TRA4PNP)   return TRANPNP;
+		if (function == PrimitiveNode.Function.TRA4NJFET) return TRANNJFET;
+		if (function == PrimitiveNode.Function.TRA4PJFET) return TRANPJFET;
+		if (function == PrimitiveNode.Function.TRA4DMES)  return TRANDMES;
+		if (function == PrimitiveNode.Function.TRA4EMES)  return TRANEMES;
 
-		if (function == NodeProto.Function.FLIPFLOPRSMS) return FFTYPERS | FFCLOCKMS;
-		if (function == NodeProto.Function.FLIPFLOPRSP)  return FFTYPERS | FFCLOCKP;
-		if (function == NodeProto.Function.FLIPFLOPRSN)  return FFTYPERS | FFCLOCKN;
-		if (function == NodeProto.Function.FLIPFLOPJKMS) return FFTYPEJK | FFCLOCKMS;
-		if (function == NodeProto.Function.FLIPFLOPJKP)  return FFTYPEJK | FFCLOCKP;
-		if (function == NodeProto.Function.FLIPFLOPJKN)  return FFTYPEJK | FFCLOCKN;
-		if (function == NodeProto.Function.FLIPFLOPDMS)  return FFTYPED  | FFCLOCKMS;
-		if (function == NodeProto.Function.FLIPFLOPDP)   return FFTYPED  | FFCLOCKP;
-		if (function == NodeProto.Function.FLIPFLOPDN)   return FFTYPED  | FFCLOCKN;
-		if (function == NodeProto.Function.FLIPFLOPTMS)  return FFTYPET  | FFCLOCKMS;
-		if (function == NodeProto.Function.FLIPFLOPTP)   return FFTYPET  | FFCLOCKP;
-		if (function == NodeProto.Function.FLIPFLOPTN)   return FFTYPET  | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSMS) return FFTYPERS | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSP)  return FFTYPERS | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSN)  return FFTYPERS | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKMS) return FFTYPEJK | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKP)  return FFTYPEJK | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKN)  return FFTYPEJK | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPDMS)  return FFTYPED  | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPDP)   return FFTYPED  | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPDN)   return FFTYPED  | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPTMS)  return FFTYPET  | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPTP)   return FFTYPET  | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPTN)   return FFTYPET  | FFCLOCKN;
 
-		if (function == NodeProto.Function.VCCS) return TWOPVCCS;
-		if (function == NodeProto.Function.CCVS) return TWOPCCVS;
-		if (function == NodeProto.Function.VCVS) return TWOPVCVS;
-		if (function == NodeProto.Function.CCCS) return TWOPCCCS;
-		if (function == NodeProto.Function.TLINE) return TWOPTLINE;
+		if (function == PrimitiveNode.Function.VCCS) return TWOPVCCS;
+		if (function == PrimitiveNode.Function.CCVS) return TWOPCCVS;
+		if (function == PrimitiveNode.Function.VCVS) return TWOPVCVS;
+		if (function == PrimitiveNode.Function.CCCS) return TWOPCCCS;
+		if (function == PrimitiveNode.Function.TLINE) return TWOPTLINE;
 
 		return 0;
 	}
 
 	/**
-	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
+	 * Method to set the pure "PrimitiveNode Function" for a primitive NodeInst in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.
-	 * @param function the NodeProto.Function to set on the NodeInst.
+	 * @param function the PrimitiveNode.Function to set on the NodeInst.
 	 */
-	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function)
+	public void setPrimitiveFunction(NodeInst ni, PrimitiveNode.Function function)
 	{
 		ni.setTechSpecific(getPrimitiveFunctionBits(function));
 

@@ -785,8 +785,8 @@ public class ToolMenu {
         for(Iterator it = cell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = (NodeInst)it.next();
-            NodeProto.Function fun = ni.getFunction();
-            if (fun != NodeProto.Function.CONPOWER && fun != NodeProto.Function.CONGROUND)
+            PrimitiveNode.Function fun = ni.getFunction();
+            if (fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND)
                 continue;
             for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
             {
@@ -1135,7 +1135,7 @@ public class ToolMenu {
 
                     // Coverage implants are pure primitive nodes
                     // and they are ignored.
-                    if (!testCase && node.getFunction() == NodeProto.Function.NODE)
+                    if (!testCase && node.getFunction() == PrimitiveNode.Function.NODE)
                     {
                         deleteList.add(node);
                         continue;

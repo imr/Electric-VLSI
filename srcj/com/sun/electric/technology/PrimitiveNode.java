@@ -24,7 +24,10 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.AbstractNodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.technologies.Generic;
 
@@ -38,8 +41,375 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode extends NodeProto
+public class PrimitiveNode extends AbstractNodeProto
 {
+	/**
+	 * Function is a typesafe enum class that describes the function of a NodeProto.
+	 * Functions are technology-independent and include different types of transistors,
+	 * contacts, and other circuit elements.
+	 */
+	public static class Function
+	{
+		private final String name;
+		private final String shortName;
+		private final Name basename;
+		private final String constantName; // Used only by Technology editor?
+
+		private Function(String name, String shortName, String constantName)
+		{
+			this.name = name;
+			this.shortName = shortName;
+			this.constantName = constantName;
+			this.basename = Name.findName(shortName+'@').getBasename();
+		}
+
+		/**
+		 * Returns a name of this Function.
+		 * @return a name of this Function.
+		 */
+		public String getName() { return name; }
+
+		/**
+		 * Returns a short name of this Function.
+		 * @return a short name of this Function.
+		 */
+		public String getShortName() { return shortName; }
+
+		/**
+		 * Returns a base name of this Function for autonaming.
+		 * @return a base name of this Function for autonaming.
+		 */
+		public Name getBasename() { return basename; }
+
+		/**
+		 * Method to tell whether this function describes a transistor.
+		 * @return true if this function describes a transistor.
+		 */
+		public boolean isTransistor()
+		{
+			if (this == TRANMOS || this == TRAPMOS || this == TRADMOS ||
+				this == TRA4NMOS || this == TRA4PMOS || this == TRA4DMOS ||
+				this == TRANPN || this == TRAPNP || this == TRANJFET || this == TRAPJFET || this == TRAEMES || this == TRADMES ||
+				this == TRA4NPN || this == TRA4PNP || this == TRA4NJFET || this == TRA4PJFET || this == TRA4EMES || this == TRA4DMES ||
+				this == TRANSREF || this == TRANS || this == TRANS4) return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this function describes a flip-flop.
+		 * @return true if this function describes a flip-flop.
+		 */
+		public boolean isFlipFlop()
+		{
+			if (this == FLIPFLOPRSMS || this == FLIPFLOPRSP || this == FLIPFLOPRSN ||
+				this == FLIPFLOPJKMS || this == FLIPFLOPJKP || this == FLIPFLOPJKN ||
+				this == FLIPFLOPDMS || this == FLIPFLOPDP || this == FLIPFLOPDN ||
+				this == FLIPFLOPTMS || this == FLIPFLOPTP || this == FLIPFLOPTN) return true;
+			return false;
+		}
+
+		/**
+		 * Returns a printable version of this Function.
+		 * @return a printable version of this Function.
+		 */
+		public String toString() { return name; }
+
+		/**
+		 * Describes a node with unknown behavior.
+		 */
+		public static final Function UNKNOWN =   new Function("unknown", "node", "NPUNKNOWN");
+		/**
+		 * Describes a single-layer pin.
+		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
+		 */
+		public static final Function PIN =       new Function("pin", "pin", "NPPIN");
+		/**
+		 * Describes a two-layer contact.
+		 * Contacts connects wires of two different layers in the center of the node.
+		 */
+		public static final Function CONTACT =   new Function("contact", "contact", "NPCONTACT");
+		/**
+		 * Describes a pure-layer node.
+		 * Pure-layer nodes have a solid piece of geometry on a single layer.
+		 */
+		public static final Function NODE =      new Function("pure-layer-node", "plnode", "NPNODE");
+		/**
+		 * node a node that connects all ports.
+		 */
+		public static final Function CONNECT =   new Function("connection", "conn", "NPCONNECT");
+		/**
+		 * Describes a MOS enhancement transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRANMOS =   new Function("nMOS-transistor", "nmos", "NPTRANMOS");
+		/**
+		 * Describes a MOS depletion transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRADMOS =   new Function("DMOS-transistor", "dmos", "NPTRADMOS");
+		/**
+		 * Describes a MOS complementary transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRAPMOS =   new Function("pMOS-transistor", "pmos", "NPTRAPMOS");
+		/**
+		 * Describes a NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		public static final Function TRANPN =    new Function("NPN-transistor", "npn", "NPTRANPN");
+		/**
+		 * Describes a PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		public static final Function TRAPNP =    new Function("PNP-transistor", "pnp", "NPTRAPNP");
+		/**
+		 * Describes a N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRANJFET =  new Function("n-type-JFET-transistor", "njfet", "NPTRANJFET");
+		/**
+		 * Describes a P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRAPJFET =  new Function("p-type-JFET-transistor", "pjfet", "NPTRAPJFET");
+		/**
+		 * Describes a MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRADMES =   new Function("depletion-mesfet", "dmes", "NPTRADMES");
+		/**
+		 * Describes a MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRAEMES =   new Function("enhancement-mesfet", "emes", "NPTRAEMES");
+		/**
+		 * Describes a general-purpose transistor.
+		 * It is defined self-referentially by the prototype name of the primitive.
+		 */
+		public static final Function TRANSREF =  new Function("prototype-defined-transistor","tref", "NPTRANSREF");
+		/**
+		 * Describes an undetermined transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
+		 */
+		public static final Function TRANS =     new Function("transistor", "trans", "NPTRANS");
+		/**
+		 * Describes a 4-port MOS enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NMOS =  new Function("4-port-nMOS-transistor", "nmos4p", "NPTRA4NMOS");
+		/**
+		 * Describes a 4-port MOS depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4DMOS =  new Function("4-port-DMOS-transistor", "dmos4p", "NPTRA4DMOS");
+		/**
+		 * Describes a 4-port MOS complementary transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PMOS =  new Function("4-port-pMOS-transistor", "pmos4p", "NPTRA4PMOS");
+		/**
+		 * Describes a 4-port NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NPN =   new Function("4-port-NPN-transistor", "npn4p", "NPTRA4NPN");
+		/**
+		 * Describes a 4-port PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PNP =   new Function("4-port-PNP-transistor", "pnp4p", "NPTRA4PNP");
+		/**
+		 * Describes a 4-port N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NJFET = new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
+		/**
+		 * Describes a 4-port P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PJFET = new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
+		/**
+		 * Describes a 4-port MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4DMES =  new Function("4-port-depletion-mesfet", "dmes4p", "NPTRA4DMES");
+		/**
+		 * Describes a 4-port MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4EMES =  new Function("4-port-enhancement-mesfet",	"emes4p", "NPTRA4EMES");
+		/**
+		 * Describes a general-purpose transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
+		 */
+		public static final Function TRANS4 =    new Function("4-port-transistor", "trans4p", "NPTRANS4");
+		/**
+		 * Describes a resistor.
+		 */
+		public static final Function RESIST =    new Function("resistor", "res", "NPRESIST");
+		/**
+		 * Describes a capacitor.
+		 */
+		public static final Function CAPAC =     new Function("capacitor", "cap", "NPCAPAC");
+		/**
+		 * Describes an electrolytic capacitor.
+		 */
+		public static final Function ECAPAC =    new Function("electrolytic-capacitor", "ecap", "NPECAPAC");
+		/**
+		 * Describes a diode.
+		 */
+		public static final Function DIODE =     new Function("diode", "diode", "NPDIODE");
+		/**
+		 * Describes a zener diode.
+		 */
+		public static final Function DIODEZ =    new Function("zener-diode", "zdiode", "NPDIODEZ");
+		/**
+		 * Describes an inductor.
+		 */
+		public static final Function INDUCT =    new Function("inductor", "ind", "NPINDUCT");
+		/**
+		 * Describes a meter.
+		 */
+		public static final Function METER =     new Function("meter", "meter", "NPMETER");
+		/**
+		 * Describes a transistor base.
+		 */
+		public static final Function BASE =      new Function("base", "base", "NPBASE");
+		/**
+		 * Describes a transistor emitter.
+		 */
+		public static final Function EMIT =      new Function("emitter", "emit", "NPEMIT");
+		/**
+		 * Describes a transistor collector.
+		 */
+		public static final Function COLLECT =   new Function("collector", "coll", "NPCOLLECT");
+		/**
+		 * Describes a buffer.
+		 * It has input on the first port, clocking on the second port, and output on the third port.
+		 */
+		public static final Function BUFFER =    new Function("buffer", "buf", "NPBUFFER");
+		/**
+		 * Describes an AND gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEAND =   new Function("AND-gate", "and", "NPGATEAND");
+		/**
+		 * Describes an OR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEOR =    new Function("OR-gate", "or", "NPGATEOR");
+		/**
+		 * Describes an XOR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEXOR =   new Function("XOR-gate", "xor", "NPGATEXOR");
+		/**
+		 * Describes a RS flip-flop with master-slave triggering.
+		 */
+		public static final Function FLIPFLOPRSMS =  new Function("flip-flop-RS-MS", "ffRSms", "NPFLIPFLOP");
+		/**
+		 * Describes a RS flip-flop with positive triggering.
+		 */
+		public static final Function FLIPFLOPRSP =  new Function("flip-flop-RS-P", "ffRSp", "NPFLIPFLOP");
+		/**
+		 * Describes a RS flip-flop with negative triggering.
+		 */
+		public static final Function FLIPFLOPRSN =  new Function("flip-flop-RS-N", "ffRSn", "NPFLIPFLOP");
+		/**
+		 * Describes a JK flip-flop with master-slave triggering.
+		 */
+		public static final Function FLIPFLOPJKMS =  new Function("flip-flop-JK-MS", "ffJKms", "NPFLIPFLOP");
+		/**
+		 * Describes a JK flip-flop with positive triggering.
+		 */
+		public static final Function FLIPFLOPJKP =  new Function("flip-flop-JK-P", "ffJKp", "NPFLIPFLOP");
+		/**
+		 * Describes a JK flip-flop with negative triggering.
+		 */
+		public static final Function FLIPFLOPJKN =  new Function("flip-flop-JK-N", "ffJKn", "NPFLIPFLOP");
+		/**
+		 * Describes a D flip-flop with master-slave triggering.
+		 */
+		public static final Function FLIPFLOPDMS =  new Function("flip-flop-D-MS", "ffDms", "NPFLIPFLOP");
+		/**
+		 * Describes a D flip-flop with positive triggering.
+		 */
+		public static final Function FLIPFLOPDP =  new Function("flip-flop-D-P", "ffDp", "NPFLIPFLOP");
+		/**
+		 * Describes a D flip-flop with negative triggering.
+		 */
+		public static final Function FLIPFLOPDN =  new Function("flip-flop-D-N", "ffDn", "NPFLIPFLOP");
+		/**
+		 * Describes a T flip-flop with master-slave triggering.
+		 */
+		public static final Function FLIPFLOPTMS =  new Function("flip-flop-T-MS", "ffTms", "NPFLIPFLOP");
+		/**
+		 * Describes a T flip-flop with positive triggering.
+		 */
+		public static final Function FLIPFLOPTP =  new Function("flip-flop-T-P", "ffTp", "NPFLIPFLOP");
+		/**
+		 * Describes a T flip-flop with negative triggering.
+		 */
+		public static final Function FLIPFLOPTN =  new Function("flip-flop-T-N", "ffTn", "NPFLIPFLOP");
+		/**
+		 * Describes a multiplexor.
+		 */
+		public static final Function MUX =       new Function("multiplexor", "mux", "NPMUX");
+		/**
+		 * Describes a power connection.
+		 */
+		public static final Function CONPOWER =  new Function("power", "pwr", "NPCONPOWER");
+		/**
+		 * Describes a ground connection.
+		 */
+		public static final Function CONGROUND = new Function("ground", "gnd", "NPCONGROUND");
+		/**
+		 * Describes voltage or current source.
+		 */
+		public static final Function SOURCE =    new Function("source", "source", "NPSOURCE");
+		/**
+		 * Describes a substrate contact.
+		 */
+		public static final Function SUBSTRATE = new Function("substrate", "substr", "NPSUBSTRATE");
+		/**
+		 * Describes a well contact.
+		 */
+		public static final Function WELL =      new Function("well", "well", "NPWELL");
+		/**
+		 * Describes a pure artwork.
+		 */
+		public static final Function ART =       new Function("artwork", "art", "NPART");
+		/**
+		 * Describes an array.
+		 */
+		public static final Function ARRAY =     new Function("array", "array", "NPARRAY");
+		/**
+		 * Describes an alignment object.
+		 */
+		public static final Function ALIGN =     new Function("align", "align", "NPALIGN");
+		/**
+		 * Describes a current-controlled voltage source.
+		 */
+		public static final Function CCVS =      new Function("ccvs", "ccvs", "NPCCVS");
+		/**
+		 * Describes a current-controlled current source.
+		 */
+		public static final Function CCCS =      new Function("cccs", "cccs", "NPCCCS");
+		/**
+		 * Describes a voltage-controlled voltage source.
+		 */
+		public static final Function VCVS =      new Function("vcvs", "vcvs", "NPVCVS");
+		/**
+		 * Describes a voltage-controlled current source.
+		 */
+		public static final Function VCCS =      new Function("vccs", "vccs", "NPVCCS");
+		/**
+		 * Describes a transmission line.
+		 */
+		public static final Function TLINE =     new Function("transmission-line", "transm", "NPTLINE");
+	}
+
 	// constants used in the "specialType" field
 	/** Defines a normal node. */					public static final int NORMAL = 0;
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
@@ -49,8 +419,12 @@ public class PrimitiveNode extends NodeProto
 
 	// --------------------- private data -----------------------------------
 	
+	/** The name of this PrimitiveNode. */			private String protoName;
+	/** This PrimitiveNode's Technology. */			private Technology tech;
+	/** The function of this PrimitiveNode. */		private Function function;
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
+	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts;
 	/** flag bits */								private int userBits;
 	/** Index of this PrimitiveNode. */				private int primNodeIndex;
 	/** special type of unusual primitives */		private int specialType;
@@ -74,6 +448,7 @@ public class PrimitiveNode extends NodeProto
 	{
 		// things in the base class
 		this.protoName = protoName;
+		this.function = Function.UNKNOWN;
 
 		// things in this class
 		this.tech = tech;
@@ -129,6 +504,69 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
+	 * Method to return the name of this PrimitiveNode in the Technology.
+	 * @return the name of this PrimitiveNode.
+	 */
+	public String getName() { return protoName; }
+
+	/**
+	 * Method to set the function of this PrimitiveNode.
+	 * The Function is a technology-independent description of the behavior of this PrimitiveNode.
+	 * @param function the new function of this PrimitiveNode.
+	 */
+	public void setFunction(Function function) { checkChanging(); this.function = function; }
+
+	/**
+	 * Method to return the function of this PrimitiveNode.
+	 * The Function is a technology-independent description of the behavior of this PrimitiveNode.
+	 * @return the function of this PrimitiveNode.
+	 */
+	public Function getFunction() { return function; }
+
+	/**
+	 * Method to return the function of this PrimitiveNode, grouped according to its
+	 * general function.
+	 * For example, all transistors return the same value.
+	 * @return the group function of this PrimitiveNode.
+	 */
+	public Function getGroupFunction()
+	{
+		if (function == Function.TRANMOS || function == Function.TRA4NMOS ||
+			function == Function.TRAPMOS || function == Function.TRA4PMOS ||
+			function == Function.TRADMOS || function == Function.TRA4DMOS ||
+			function == Function.TRANPN || function == Function.TRA4NPN ||
+			function == Function.TRAPNP || function == Function.TRA4PNP ||
+			function == Function.TRANJFET || function == Function.TRA4NJFET ||
+			function == Function.TRAPJFET || function == Function.TRA4PJFET ||
+			function == Function.TRADMES || function == Function.TRA4DMES ||
+			function == Function.TRAEMES || function == Function.TRA4EMES ||
+			function == Function.TRANS4)
+				return Function.TRANS;
+		if (function == Function.RESIST || function == Function.CAPAC ||
+			function == Function.ECAPAC || function == Function.DIODE ||
+			function == Function.DIODEZ || function == Function.INDUCT)
+				return Function.INDUCT;
+		if (function == Function.CCVS || function == Function.CCCS ||
+			function == Function.VCVS || function == Function.VCCS ||
+			function == Function.TLINE)
+				return Function.TLINE;
+		if (function == Function.BASE || function == Function.EMIT ||
+			function == Function.COLLECT)
+				return Function.COLLECT;
+		if (function == Function.BUFFER || function == Function.GATEAND ||
+			function == Function.GATEOR || function == Function.MUX ||
+			function == Function.GATEXOR)
+				return Function.GATEXOR;
+		if (function == Function.CONPOWER || function == Function.CONGROUND)
+			return Function.CONGROUND;
+		if (function == Function.METER || function == Function.SOURCE)
+			return Function.SOURCE;
+		if (function == Function.SUBSTRATE || function == Function.WELL)
+			return Function.WELL;
+		return function;
+	}
+
+	/**
 	 * Method to return the list of Layers that comprise this PrimitiveNode.
 	 * @return the list of Layers that comprise this PrimitiveNode.
 	 */
@@ -144,7 +582,7 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/** 
-	 * Iterator for Layers on this ArcProto
+	 * Iterator for Layers on this NodeProto
 	 */ 
 	private static class NodeLayerIterator implements Iterator 
 	{ 
@@ -358,17 +796,123 @@ public class PrimitiveNode extends NodeProto
 	public Technology getTechnology() { return tech; }
 
 	/**
-	 * Method to add an array of Ports to this PrimitiveNode.
+	 * Method to add an array of PrimitivePorts to this PrimitiveNode.
 	 * The method is only used during initialization.
 	 * @param ports the array of PrimitivePorts to add.
 	 */
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
+		assert primPorts == null : this + " addPrimitivePorts twice";
+		primPorts = ports;
 		for(int i = 0; i < ports.length; i++)
 		{
-			ports[i].setParent(this);
-			addPort(ports[i], null);
+			PrimitivePort port = ports[i];
+			port.setParent(this);
+			port.setPortIndex(i);
 		}
+	}
+
+	/**
+	 * Method to find the PortProto that has a particular name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
+	public PortProto findPortProto(String name)
+	{
+        if (name == null) return null;
+		return findPortProto(Name.findName(name));
+	}
+
+	/**
+	 * Method to find the PortProto that has a particular Name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
+	public PortProto findPortProto(Name name)
+	{
+        if (name == null) return null;
+		name = name.lowerCase();
+		for (int i = 0; i < primPorts.length; i++)
+		{
+			if (primPorts[i].getNameKey().lowerCase() == name)
+				return primPorts[i];
+		}
+		return null;
+	}
+
+	/**
+	 * Method to return an iterator over all PortProtos of this NodeProto.
+	 * @return an iterator over all PortProtos of this NodeProto.
+	 */
+	public Iterator getPorts()
+	{
+		return new ArrayIterator(primPorts);
+	}
+
+	/** 
+	 * Iterator for array of Objects
+	 */ 
+	private static class ArrayIterator implements Iterator 
+	{ 
+		Object [] array; 
+		int pos; 
+
+		public ArrayIterator(Object [] a) 
+		{ 
+			array = a; 
+			pos = 0; 
+		} 
+
+		public boolean hasNext() 
+		{ 
+			return pos < array.length; 
+		} 
+
+		public Object next() throws NoSuchElementException 
+		{ 
+			if (pos >= array.length) 
+				throw new NoSuchElementException(); 
+			return array[pos++];
+		} 
+
+		public void remove() throws UnsupportedOperationException, IllegalStateException 
+		{ 
+			throw new UnsupportedOperationException(); 
+		}
+	}
+
+	/**
+	 * Method to return the number of PortProtos on this NodeProto.
+	 * @return the number of PortProtos on this NodeProto.
+	 */
+	public int getNumPorts()
+	{
+		return primPorts.length;
+	}
+
+	/**
+	 * Method to return the PortProto at specified position.
+	 * @param portIndex specified position of PortProto.
+	 * @return the PortProto at specified position..
+	 */
+	public final PortProto getPort(int portIndex)
+	{
+		return primPorts[portIndex];
+	}
+
+	/**
+	 * Method to return the PrimitivePort on this PrimitiveNode that can connect to an arc of the specified type.
+	 * The method finds a PrimitivePort that can make the connection.
+	 * @param arc the type of arc to connect to an instance of this PrimitiveNode.
+	 * @return a PrimitivePort that can connect to this type of ArcProto.
+	 * Returns null if this ArcProto cannot connect to anything on this PrimitiveNode.
+	 */
+	public PrimitivePort connectsTo(ArcProto arc)
+	{
+		for (int i = 0; i < primPorts.length; i++)
+		{
+			if (primPorts[i].connectsTo(arc))
+				return primPorts[i];
+		}
+		return null;
 	}
 
 	/**
@@ -430,7 +974,7 @@ public class PrimitiveNode extends NodeProto
 	 */
 	public boolean isPin()
 	{
-		return (getFunction() == NodeProto.Function.PIN);
+		return (getFunction() == Function.PIN);
 	}
 
 	/**

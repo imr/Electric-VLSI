@@ -1373,8 +1373,8 @@ public class Layout extends Constraints
 		 * if instances are scattered or port motion has occured, examine
 		 * entire database in proper recursive order and adjust cell sizes
 		 */
-		cellModFlag = NodeProto.getFlagSet(1);
-		cellNoModFlag = NodeProto.getFlagSet(1);
+		cellModFlag = Cell.getFlagSet(1);
+		cellNoModFlag = Cell.getFlagSet(1);
 		markNode = NodeInst.getFlagSet(1);
 		touchNode = NodeInst.getFlagSet(1);
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -1428,19 +1428,19 @@ public class Layout extends Constraints
 				NodeInst ni = (NodeInst)it.next();
 				if (!ni.isBit(markNode)) continue;
 				ni.clearBit(markNode);
-				NodeProto np = ni.getProto();
+				Cell subCell = (Cell)ni.getProto();
 
 				// ignore recursive references (showing icon in contents)
 				if (ni.isIconOfParent()) continue;
 
 				// if this nodeinst is to change, mark the parent cell also
-				if (np.isBit(cellModFlag)) start.setBit(cellModFlag);
+				if (subCell.isBit(cellModFlag)) start.setBit(cellModFlag);
 
 				// don't look inside if the cell is certified
-				if (np.isBit(cellModFlag) || np.isBit(cellNoModFlag)) continue;
+				if (subCell.isBit(cellModFlag) || subCell.isBit(cellNoModFlag)) continue;
 
 				// look inside nodeinst to see if it changed
-				if (lookDown((Cell)np)) start.setBit(cellModFlag);
+				if (lookDown(subCell)) start.setBit(cellModFlag);
 				foundone = true;
 			}
 		}
@@ -1459,9 +1459,10 @@ public class Layout extends Constraints
 			NodeProto np = ni.getProto();
 			ni.clearBit(markNode);
 			ni.clearBit(touchNode);
-			if (np instanceof PrimitiveNode) continue;
+			if (!(np instanceof Cell)) continue;
+			Cell subCell = (Cell)np;
 			if (ni.isIconOfParent()) continue;
-			if (!np.isBit(cellModFlag)) continue;
+			if (!subCell.isBit(cellModFlag)) continue;
 			ni.setBit(markNode);
 			ni.setBit(touchNode);
 		}

@@ -287,7 +287,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	{
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 
-		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		FlagSet cellFlag = Cell.getFlagSet(1);
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();

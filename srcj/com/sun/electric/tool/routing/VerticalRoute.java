@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -391,7 +392,7 @@ public class VerticalRoute {
         for (Iterator portsIt = tech.getPorts(); portsIt.hasNext(); ) {
             PrimitivePort pp = (PrimitivePort)portsIt.next();
             // ignore anything whose parent is not a CONTACT
-            if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
+            if (pp.getParent().getFunction() != PrimitiveNode.Function.CONTACT) continue;
             if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
             if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
                 specifiedRoute.add(pp);
@@ -404,7 +405,7 @@ public class VerticalRoute {
         for (Iterator portsIt = tech.getPorts(); portsIt.hasNext(); ) {
             PrimitivePort pp = (PrimitivePort)portsIt.next();
             // ignore anything whose parent is not a CONTACT
-            if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
+            if (pp.getParent().getFunction() != PrimitiveNode.Function.CONTACT) continue;
             if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
             if (pp.connectsTo(startArc)) {
                 if (pp == startPort) continue;                       // ignore start port

@@ -60,7 +60,7 @@ public class Schematic
 
 	public static void doCheck(Cell cell)
 	{
-		cellsCheckedBit = NodeProto.getFlagSet(1);
+		cellsCheckedBit = Cell.getFlagSet(1);
 		cellsCheckedBit.clearOnAllCells();
 
         if (errorLogger != null) errorLogger.delete();
@@ -181,7 +181,7 @@ public class Schematic
 			}
 
 			// check all pins
-			if (np.getFunction() == NodeProto.Function.PIN)
+			if (np.getFunction() == PrimitiveNode.Function.PIN)
 			{
 				// may be stranded if there are no exports or arcs
 				if (ni.getNumExports() == 0 && ni.getNumConnections() == 0)
@@ -315,7 +315,7 @@ public class Schematic
 					NodeInst ni = con.getPortInst().getNodeInst();
 
 					// OK if not a pin
-					if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+					if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 
 					// OK if it has exports on it
 					if (ni.getNumExports() != 0) continue;

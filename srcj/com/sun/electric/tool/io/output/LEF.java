@@ -282,9 +282,9 @@ public class LEF extends Output
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell) continue;
 			if (ni == ignore) continue;
-			NodeProto.Function fun = ni.getFunction();
-			if (fun != NodeProto.Function.PIN && fun != NodeProto.Function.CONTACT &&
-				fun != NodeProto.Function.NODE && fun != NodeProto.Function.CONNECT) continue;
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+				fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT) continue;
 			boolean found = true;
 			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{

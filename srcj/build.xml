@@ -18,7 +18,8 @@
     </target>
 
     <target name="run" depends="init,compile" description="Run">
-        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true" maxmemory="1024m">
+        <java classname="com.sun.electric.Launcher" failonerror="true"
+            fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
@@ -29,6 +30,7 @@
 
     <target name="runMain" depends="init,compile" description="Run the Main class">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="512m">
+	    <jvmarg value="-enableassertions"/>
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>

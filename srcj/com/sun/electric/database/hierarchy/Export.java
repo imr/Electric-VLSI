@@ -294,7 +294,7 @@ public class Export extends PortProto
 	{
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
-		getParent().addPort(this, oldPortInsts);
+		((Cell)getParent()).addExport(this, oldPortInsts);
         setLinked(true);
 		return false;
 	}
@@ -308,7 +308,7 @@ public class Export extends PortProto
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
         setLinked(false);
-		return getParent().removePort(this);
+		return ((Cell)getParent()).removeExport(this);
 	}
 
 	/**

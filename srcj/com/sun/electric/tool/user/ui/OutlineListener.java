@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -69,7 +70,7 @@ class OutlineListener
 		if (origPoints == null)
 		{
 			// node has no points: fake some
-			if (ni.getFunction() == NodeProto.Function.NODE)
+			if (ni.getFunction() == PrimitiveNode.Function.NODE)
 			{
 				InitializePoints job = new InitializePoints(this, ni);
 				return;

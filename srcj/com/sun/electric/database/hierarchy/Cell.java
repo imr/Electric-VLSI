@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.prototype.AbstractNodeProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
@@ -99,7 +100,7 @@ import javax.swing.JOptionPane;
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
-public class Cell extends NodeProto implements Comparable
+public class Cell extends AbstractNodeProto implements Comparable
 {
 	// ------------------------- private classes -----------------------------
 
@@ -298,6 +299,9 @@ public class Cell extends NodeProto implements Comparable
 
 	/** counter for enumerating cells */							private static int cellNumber = 0;
 
+	/** The object used to request flag bits. */					private static final FlagSet.Generator flagGenerator = new FlagSet.Generator("Cell");
+
+	/** The name of the Cell. */									private String protoName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
 	/** The library this Cell belongs to. */						private Library lib;
@@ -306,9 +310,11 @@ public class Cell extends NodeProto implements Comparable
 	/** The date this Cell was last modified. */					private Date revisionDate;
 	/** The version of this Cell. */								private int version;
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
+	/** A list of Exports on the Cell. */							private List exports;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
+	/** A list of NodeUsages of this Cell. */						/*package*/ List usagesOf;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
@@ -322,6 +328,10 @@ public class Cell extends NodeProto implements Comparable
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
 	/** 0-based index of this Cell. */								private int cellIndex;
+	/** This Cell's Technology. */									private Technology tech;
+	/** The temporary integer value. */								private int tempInt;
+	/** The temporary Object. */									private Object tempObj;
+	/** The temporary flag bits. */									private int flagBits;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -332,10 +342,11 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	private Cell()
 	{
-//		setIndex(cellNumber++);
 		this.cellIndex = cellNumber++;
+		exports = new ArrayList();
 		nodes = new ArrayList();
 		usagesIn = new HashMap();
+		usagesOf = new ArrayList();
 		maxSuffix = new HashMap();
 		arcs = new ArrayList();
 		tempNames = new HashMap();
@@ -768,7 +779,7 @@ public class Cell extends NodeProto implements Comparable
 		// prepare basename for autonaming
 		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
 		if (basename == null)
-			basename = NodeProto.Function.UNKNOWN.getBasename();
+			basename = PrimitiveNode.Function.UNKNOWN.getBasename();
 	}
 
 	/**
@@ -838,7 +849,9 @@ public class Cell extends NodeProto implements Comparable
 		for (Iterator it = getUsagesIn(); it.hasNext(); )
 		{
 			NodeUsage nu = (NodeUsage)it.next();
-			nu.getProto().addUsageOf(nu);
+			NodeProto np = nu.getProto();
+			if (np instanceof Cell)
+				((Cell)np).usagesOf.add(nu);
 		}
 
 		// success
@@ -880,7 +893,9 @@ public class Cell extends NodeProto implements Comparable
 		for (Iterator it = getUsagesIn(); it.hasNext(); )
 		{
 			NodeUsage nu = (NodeUsage)it.next();
-			nu.getProto().removeUsageOf(nu);
+			NodeProto np = nu.getProto();
+			if (np instanceof Cell)
+				((Cell)np).usagesOf.remove(nu);
 		}
 
 		setLinked(false);
@@ -1699,7 +1714,8 @@ public class Cell extends NodeProto implements Comparable
 		{
 			nu = new NodeUsage(protoType, this);
 			usagesIn.put(protoType, nu);
-			protoType.addUsageOf(nu);
+			if (protoType instanceof Cell)
+				((Cell)protoType).usagesOf.add(nu);
 		}
 		return nu;
 	}
@@ -1712,7 +1728,8 @@ public class Cell extends NodeProto implements Comparable
 	{
 		if (!isLinked()) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
 		NodeProto protoType = nu.getProto();
-		protoType.removeUsageOf(nu);
+		if (protoType instanceof Cell)
+			((Cell)protoType).usagesOf.remove(nu);
 		usagesIn.remove(protoType);
 	}
 
@@ -1819,6 +1836,118 @@ public class Cell extends NodeProto implements Comparable
 	/****************************** EXPORTS ******************************/
 
 	/**
+	 * Add a PortProto to this NodeProto.
+	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
+	 * @param port the PortProto to add to this NodeProto.
+	 * @param oldPortInsts a collection of PortInsts to Undo or null.
+	 */
+	void addExport(Export export, Collection oldPortInsts)
+	{
+		checkChanging();
+		export.setPortIndex(exports.size());
+		exports.add(export);
+
+		// create a PortInst for every instance of this node
+		if (oldPortInsts != null)
+		{
+			for(Iterator it = oldPortInsts.iterator(); it.hasNext(); )
+			{
+				PortInst pi = (PortInst)it.next();
+				pi.getNodeInst().linkPortInst(pi);
+			}
+		} else
+		{
+			for(Iterator it = getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.addPortInst(export);
+			}
+		}
+	}
+
+	/**
+	 * Removes an Export from this Cell.
+	 * @param export the Export to remove from this Cell.
+	 * @return collection of deleted PortInsts of the Export.
+	 */
+	Collection removeExport(Export export)
+	{
+		checkChanging();
+		int portIndex = export.getPortIndex();
+		exports.remove(portIndex);
+		for (; portIndex < exports.size(); portIndex++)
+		{
+			((Export)exports.get(portIndex)).setPortIndex(portIndex);
+		}
+
+		Collection portInsts = new ArrayList();
+		// remove the PortInst from every instance of this node
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			portInsts.add(ni.removePortInst(export));
+		}
+
+		export.setPortIndex(-1);
+		return portInsts;
+	}
+
+	/**
+	 * Method to find the PortProto that has a particular name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
+	public PortProto findPortProto(String name)
+	{
+        if (name == null) return null;
+		return findPortProto(Name.findName(name));
+	}
+
+	/**
+	 * Method to find the PortProto that has a particular Name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
+	public PortProto findPortProto(Name name)
+	{
+        if (name == null) return null;
+		name = name.lowerCase();
+		for (int i = 0; i < exports.size(); i++)
+		{
+			PortProto pp = (PortProto) exports.get(i);
+			if (pp.getNameKey().lowerCase() == name)
+				return pp;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to return an iterator over all PortProtos of this NodeProto.
+	 * @return an iterator over all PortProtos of this NodeProto.
+	 */
+	public Iterator getPorts()
+	{
+		return exports.iterator();
+	}
+
+	/**
+	 * Method to return the number of PortProtos on this NodeProto.
+	 * @return the number of PortProtos on this NodeProto.
+	 */
+	public int getNumPorts()
+	{
+		return exports.size();
+	}
+
+	/**
+	 * Method to return the PortProto at specified position.
+	 * @param portIndex specified position of PortProto.
+	 * @return the PortProto at specified position..
+	 */
+	public final PortProto getPort(int portIndex)
+	{
+		return (PortProto)exports.get(portIndex);
+	}
+
+	/**
 	 * Method to find a named Export on this Cell.
 	 * @param name the name of the export.
 	 * @return the export.  Returns null if that name was not found.
@@ -1839,6 +1968,13 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/****************************** TEXT ******************************/
+
+	/**
+	 * Method to return the pure name of this Cell, without
+	 * any view or version information.
+	 * @return the pure name of this Cell.
+	 */
+	public String getName() { return protoName; }
 
 	/**
 	 * Method to describe this cell.
@@ -1879,6 +2015,54 @@ public class Cell extends NodeProto implements Comparable
 		if (view != null)
 			name += "{" +  view.getAbbreviation() + "}";
 		return name;
+	}
+
+	/**
+	 * Method to find the NodeProto with the given name.
+	 * This can be a PrimitiveNode (and can be prefixed by a Technology name),
+	 * or it can be a Cell (and be prefixed by a Library name).
+	 * @param line the name of the NodeProto.
+	 * @return the specified NodeProto, or null if none can be found.
+	 */
+	public static NodeProto findNodeProto(String line)
+	{
+		Technology tech = Technology.getCurrent();
+		Library lib = Library.getCurrent();
+		boolean saidtech = false;
+		boolean saidlib = false;
+		int colon = line.indexOf(':');
+		String withoutPrefix;
+		if (colon == -1) withoutPrefix = line; else
+		{
+			String prefix = line.substring(0, colon);
+			Technology t = Technology.findTechnology(prefix);
+			if (t != null)
+			{
+				tech = t;
+				saidtech = true;
+			}
+			Library l = Library.findLibrary(prefix);
+			if (l != null)
+			{
+				lib = l;
+				saidlib = true;
+			}
+			withoutPrefix = line.substring(colon+1);
+		}
+
+		/* try primitives in the technology */
+		if (!saidlib)
+		{
+			PrimitiveNode np = tech.findNodeProto(withoutPrefix);
+			if (np != null) return np;
+		}
+		
+		if (!saidtech)
+		{
+			Cell np = lib.findNodeProto(withoutPrefix);
+			if (np != null) return np;
+		}
+		return null;
 	}
 
 	/**
@@ -2157,51 +2341,21 @@ public class Cell extends NodeProto implements Comparable
 		return true;
 	}
 
-//	/**
-//	 * Method to write a description of this Cell.
-//	 * Displays the description in the Messages Window.
-//	 */
-//	public void getInfo()
-//	{
-//		System.out.println("--------- CELL " + describe() +  " ---------");
-//		System.out.println("  technology= " + tech);
-//		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
-//		System.out.println("  creation date= " + df.format(creationDate));
-//		System.out.println("  revision date= " + df.format(revisionDate));
-//		System.out.println("  newestVersion= " + getNewestVersion().describe());
-//		Rectangle2D rect = getBounds();
-//		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
-//		System.out.println("  nodes (" + getNumNodes() + "):");
-//		for (Iterator it = getUsagesIn(); it.hasNext();)
-//		{
-//			NodeUsage nu = (NodeUsage)it.next();
-//			if (nu.getNumIcons() == 0)
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-//			else
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-//		}
-//		System.out.println("  arcs (" + arcs.size() + "):");
-//		for (int i = 0; i < arcs.size(); i++)
-//		{
-//			if (i > 20)
-//			{
-//				System.out.println("     ...");
-//				break;
-//			}
-//			System.out.println("     " + arcs.get(i));
-//		}
-//		if (getUsagesOf().hasNext())
-//			System.out.println("  instances:");
-//		for (Iterator it = getUsagesOf(); it.hasNext();)
-//		{
-//			NodeUsage nu = (NodeUsage)it.next();
-//			if (nu.getNumIcons() == 0)
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-//			else
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-//		}
-//		super.getInfo();
-//	}
+	/**
+	 * Method to determine whether a variable key on Cell is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
+	 */
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		String name = key.getName();
+		if (name.equals("NET_last_good_ncc") ||
+			name.equals("NET_last_good_ncc_facet") ||
+			name.equals("SIM_window_signal_order")) return true;
+		return super.isDeprecatedVariable(key);
+	}
 
 	/**
 	 * Returns a printable version of this Cell.
@@ -2213,6 +2367,60 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/****************************** HIERARCHY ******************************/
+
+	/**
+	 * Method to return an iterator over all usages of this NodeProto.
+	 * @return an iterator over all usages of this NodeProto.
+	 */
+	public Iterator getUsagesOf()
+	{
+		return usagesOf.iterator();
+	}
+
+	/**
+	 * Method to return an iterator over all instances of this NodeProto.
+	 * @return an iterator over all instances of this NodeProto.
+	 */
+	public Iterator getInstancesOf()
+	{
+		return new NodeInstsIterator();
+	}
+
+	private class NodeInstsIterator implements Iterator
+	{
+		private Iterator uit;
+		private NodeUsage nu;
+		private int i, n;
+
+		NodeInstsIterator()
+		{
+			uit = getUsagesOf();
+			i = n = 0;
+			while (i >= n && uit.hasNext())
+			{
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+			}
+		}
+
+		public boolean hasNext() { return i < n; }
+
+		public Object next()
+		{
+			if (i >= n) uit.next(); // throw NoSuchElementException
+			NodeInst ni = nu.getInst(i);
+			i++;
+			while (i >= n && uit.hasNext())
+			{
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+				i = 0;
+			}
+			return ni;
+		}
+
+		public void remove() { throw new UnsupportedOperationException("NodeInstsIterator.remove()"); };
+	}
 
     /**
      * Determines whether an instantiation of cell <code>toInstantiate</code>
@@ -2689,7 +2897,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public void checkCellDates()
 	{
-		FlagSet cellDateFlagSet = NodeProto.getFlagSet(1);
+		FlagSet cellDateFlagSet = Cell.getFlagSet(1);
 		cellDateFlagSet.clearOnAllCells();
 		checkCellDate(getRevisionDate(), cellDateFlagSet);
 		cellDateFlagSet.freeFlagSet();
@@ -2752,7 +2960,17 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public int checkAndRepair()
 	{
-		int errorCount = super.checkAndRepair();
+		int errorCount = 0;
+
+		for (int i = 0; i < exports.size(); i++)
+		{
+			Export pp = (Export)exports.get(i);
+			if (pp.getPortIndex() != i)
+			{
+				System.out.println(this + ", " + pp + " has wrong index");
+				errorCount++;
+			}
+		}
 
 		// make sure that every connection is on an arc and a node
 		HashMap connections = new HashMap();
@@ -2901,6 +3119,61 @@ public class Cell extends NodeProto implements Comparable
 	public static int getCellNumber() { return cellNumber; }
 
 	/**
+	 * Method to set an arbitrary integer in a temporary location on this Cell.
+	 * @param tempInt the integer to be set on this Cell.
+	 */
+	public void setTempInt(int tempInt) { checkChanging(); this.tempInt = tempInt; }
+
+	/**
+	 * Method to get the temporary integer on this Cell.
+	 * @return the temporary integer on this Cell.
+	 */
+	public int getTempInt() { return tempInt; }
+
+	/**
+	 * Method to set an arbitrary Object in a temporary location on this Cell.
+	 * @param tempObj the Object to be set on this Cell.
+	 */
+	public void setTempObj(Object tempObj) { checkChanging(); this.tempObj = tempObj; }
+
+	/**
+	 * Method to get the temporary Object on this Cell.
+	 * @return the temporary Object on this Cell.
+	 */
+	public Object getTempObj() { return tempObj; }
+
+	/**
+	 * Method to get access to flag bits on this Cell.
+	 * Flag bits allow Cells to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param numBits the number of flag bits desired.
+	 * @return a FlagSet object that can be used to mark and test the Cell.
+	 */
+	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
+
+	/**
+	 * Method to set the specified flag bits on this Cell.
+	 * @param set the flag bits that are to be set on this Cell.
+	 */
+	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
+
+	/**
+	 * Method to set the specified flag bits on this Cell.
+	 * @param set the flag bits that are to be cleared on this Cell.
+	 */
+	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
+
+	/**
+	 * Method to test the specified flag bits on this Cell.
+	 * @param set the flag bits that are to be tested on this Cell.
+	 * @return true if the flag bits are set.
+	 */
+	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
+
+	/**
 	 * Method to clear change lock of this cell.
 	 */
 	public void clearChangeLock()
@@ -2971,6 +3244,17 @@ public class Cell extends NodeProto implements Comparable
 		if (tech == null)
             tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
 		return tech;
+	}
+
+	/**
+	 * Method to set the Technology to which this NodeProto belongs
+	 * It can only be called for Cells because PrimitiveNodes have fixed Technology membership.
+	 * @param tech the new technology for this NodeProto (Cell).
+	 */
+	public void setTechnology(Technology tech)
+	{
+		if (this instanceof Cell)
+			this.tech = tech;
 	}
 
 	/**

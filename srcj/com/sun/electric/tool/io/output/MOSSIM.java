@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
 
 import java.util.HashMap;
@@ -189,10 +190,10 @@ public class MOSSIM extends Topology
 			{
 				// handle primitives
 				NodeInst ni = (NodeInst)no;
-				NodeProto.Function type = ni.getFunction();
+				PrimitiveNode.Function type = ni.getFunction();
 
 				// if it is a transistor, write the information
-				if (type != NodeProto.Function.TRANMOS && type != NodeProto.Function.TRADMOS && type != NodeProto.Function.TRAPMOS)
+				if (type != PrimitiveNode.Function.TRANMOS && type != PrimitiveNode.Function.TRADMOS && type != PrimitiveNode.Function.TRAPMOS)
 					continue;
 
 				// gate is port 0 or 2, source is port 1, drain is port 3
@@ -202,9 +203,9 @@ public class MOSSIM extends Topology
 
 				// write the transistor
 				StringBuffer infstr = new StringBuffer();
-				if (type == NodeProto.Function.TRANMOS) infstr.append("n"); else
-					if (type == NodeProto.Function.TRAPMOS) infstr.append("p"); else
-						if (type == NodeProto.Function.TRADMOS) infstr.append("d");
+				if (type == PrimitiveNode.Function.TRANMOS) infstr.append("n"); else
+					if (type == PrimitiveNode.Function.TRAPMOS) infstr.append("p"); else
+						if (type == PrimitiveNode.Function.TRADMOS) infstr.append("d");
 
 				// write the strength of the transistor
 				Variable var = ni.getVar(MOSSIM_STRENGTH_KEY);

@@ -43,8 +43,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The NodeProto interface defines a type of NodeInst.
- * It can be implemented as PrimitiveNode (for primitives from Technologies)
+ * The NodeProto class defines a type of NodeInst.
+ * It is an abstract class that can be implemented as PrimitiveNode (for primitives from Technologies)
  * or as Cell (for cells in Libraries).
  * <P>
  * Every node in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
@@ -57,39 +57,48 @@ import java.util.List;
  * PrimitiveNodes are statically created and placed in the Technology objects,
  * but complex Cells are created by the tools and placed in Library objects.
  * <P>
- * The basic NodeProto has a list of varibales, a list of ports, the bounds and much more.
+ * The basic NodeProto has a list of ports, the bounds, a list of instances of this NodeProto
+ * as a NodeInst in other Cells, and much more.
  */
-public interface NodeProto
+public abstract class AbstractNodeProto extends ElectricObject implements NodeProto
 {
+	// ------------------------ private data --------------------------
+
+	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
+	/** set if instances should be expanded */				private static final int WANTNEXPAND =          02;
+	/** node function (from efunction.h) */					private static final int NFUNCTION =          0774;
+	/** right shift for NFUNCTION */						private static final int NFUNCTIONSH =           2;
+	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
+	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
+	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
+	/** set if this primitive can be zero-sized */			private static final int CANBEZEROSIZE =    010000;
+	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
+	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
+	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
+//	/** set if this cell is open in the explorer tree */	private static final int OPENINEXPLORER =  0400000;
+//	/** set if this cell is open in the explorer tree */	private static final int VOPENINEXPLORER =01000000;
+	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
+	/** set if everything in cell is locked */				private static final int NPLOCKED =       04000000;
+	/** set if instances in cell are locked */				private static final int NPILOCKED =     010000000;
+	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY = 020000000;
+	/** set if cell is from a technology-library */			private static final int TECEDITCELL =   040000000;
+
+	/** Internal flag bits. */								protected int userBits;
+
+	// ----------------- protected and private methods -----------------
+
+	/**
+	 * This constructor should not be called.
+	 * Use the subclass factory methods to create Cell or PrimitiveNode objects.
+	 */
+	protected AbstractNodeProto()
+	{
+        // nodeprotos are always assumed to be in the database
+        setLinked(true);
+	}
+
 	// ----------------------- public methods -----------------------
-
-	/**
-	 * Method to return the Variable on this ElectricObject with a given name.
-	 * @param name the name of the Variable.
-	 * @return the Variable with that name, or null if there is no such Variable.
-	 */
-	public Variable getVar(String name);
-
-	/**
-	 * Method to return the Variable on this ElectricObject with a given key.
-	 * @param key the key of the Variable.
-	 * @return the Variable with that key, or null if there is no such Variable.
-	 */
-	public Variable getVar(Variable.Key key);
-
-	/**
-	 * Method to create a Variable on this ElectricObject with the specified values.
-	 * @param key the key of the Variable.
-	 * @param value the object to store in the Variable.
-	 * @return the Variable that has been created.
-	 */
-	public Variable newVar(Variable.Key key, Object value);
-
-	/**
-	 * Method to return an Iterator over all Variables on this ElectricObject.
-	 * @return an Iterator over all Variables on this ElectricObject.
-	 */
-	public Iterator getVariables();
 
 	/**
 	 * Method to allow instances of this NodeProto to shrink.
@@ -100,7 +109,7 @@ public interface NodeProto
 	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
 	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void setCanShrink();
+	public void setCanShrink() { checkChanging(); userBits |= NODESHRINK; }
 
 	/**
 	 * Method to prevent instances of this NodeProto from shrinking.
@@ -111,7 +120,7 @@ public interface NodeProto
 	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
 	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void clearCanShrink();
+	public void clearCanShrink() { checkChanging(); userBits &= ~NODESHRINK; }
 
 	/**
 	 * Method to tell if instances of this NodeProto can shrink.
@@ -123,21 +132,21 @@ public interface NodeProto
 	 * Note that shrinkage does not apply if there is no arc connected.
 	 * @return true if instances of this NodeProto can shrink.
 	 */
-	public boolean canShrink();
+	public boolean canShrink() { return (userBits & NODESHRINK) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * The setting has no meaning for PrimitiveNode instances.
 	 */
-	public void setWantExpanded();
+	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are "not expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * The setting has no meaning for PrimitiveNode instances.
 	 */
-	public void clearWantExpanded();
+	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; }
 
 	/**
 	 * Method to tell if instances of it are "not expanded" by when created.
@@ -145,14 +154,14 @@ public interface NodeProto
 	 * The setting has no meaning for PrimitiveNode instances.
 	 * @return true if instances of it are "not expanded" by when created.
 	 */
-	public boolean isWantExpanded();
+	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
 
 	/**
 	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
 	 * @return the function of this NodeProto.
 	 */
-	public PrimitiveNode.Function getFunction();
+	public PrimitiveNode.Function getFunction() { return PrimitiveNode.Function.UNKNOWN; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are "arc-wipable".
@@ -164,7 +173,7 @@ public interface NodeProto
 	 * @see ArcProto#setWipable
 	 * @see NodeInst#setWiped
 	 */
-	public void setArcsWipe();
+	public void setArcsWipe() { checkChanging(); userBits |= ARCSWIPE; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are not "arc-wipable".
@@ -176,7 +185,7 @@ public interface NodeProto
 	 * @see ArcProto#setWipable
 	 * @see NodeInst#setWiped
 	 */
-	public void clearArcsWipe();
+	public void clearArcsWipe() { checkChanging(); userBits &= ~ARCSWIPE; }
 
 	/**
 	 * Method to tell if instances of this NodeProto are "arc-wipable" by when created.
@@ -189,21 +198,21 @@ public interface NodeProto
 	 * @see ArcProto#setWipable
 	 * @see NodeInst#setWiped
 	 */
-	public boolean isArcsWipe();
+	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are "square".
 	 * Square nodes must have the same X and Y size.
 	 * This is useful for round components that really have only one dimension.
 	 */
-	public void setSquare();
+	public void setSquare() { checkChanging(); userBits |= NSQUARE; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are not "square".
 	 * Square nodes must have the same X and Y size.
 	 * This is useful for round components that really have only one dimension.
 	 */
-	public void clearSquare();
+	public void clearSquare() { checkChanging(); userBits &= ~NSQUARE; }
 
 	/**
 	 * Method to tell if instances of this NodeProto are square.
@@ -211,7 +220,7 @@ public interface NodeProto
 	 * This is useful for round components that really have only one dimension.
 	 * @return true if instances of this NodeProto are square.
 	 */
-	public boolean isSquare();
+	public boolean isSquare() { return (userBits & NSQUARE) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it may hold outline information.
@@ -219,7 +228,7 @@ public interface NodeProto
 	 * It can be as simple as an opened-polygon that connects the points,
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
 	 */
-	public void setHoldsOutline();
+	public void setHoldsOutline() { checkChanging(); userBits |= HOLDSTRACE; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it may not hold outline information.
@@ -227,7 +236,7 @@ public interface NodeProto
 	 * It can be as simple as an opened-polygon that connects the points,
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
 	 */
-	public void clearHoldsOutline();
+	public void clearHoldsOutline() { checkChanging(); userBits &= ~HOLDSTRACE; }
 
 	/**
 	 * Method to tell if instances of this NodeProto can hold an outline.
@@ -236,40 +245,40 @@ public interface NodeProto
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
 	 * @return true if instances of this NodeProto can hold an outline.
 	 */
-	public boolean isHoldsOutline();
+	public boolean isHoldsOutline() { return (userBits & HOLDSTRACE) != 0; }
 
 	
 	/**
 	 * Method to set this NodeProto so that it can be zero in size.
 	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
 	 */
-	public void setCanBeZeroSize();
+	public void setCanBeZeroSize() { checkChanging(); userBits |= CANBEZEROSIZE; }
 
 	/**
 	 * Method to set this NodeProto so that it cannot be zero in size.
 	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
 	 */
-	public void clearCanBeZeroSize();
+	public void clearCanBeZeroSize() { checkChanging(); userBits &= ~CANBEZEROSIZE; }
 
 	/**
 	 * Method to tell if instances of this NodeProto can be zero in size.
 	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
 	 * @return true if instances of this NodeProto can be zero in size.
 	 */
-	public boolean isCanBeZeroSize();
+	public boolean isCanBeZeroSize() { return (userBits & CANBEZEROSIZE) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are wiped when 1 or 2 arcs connect.
 	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
 	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
 	 */
-	public void setWipeOn1or2();
+	public void setWipeOn1or2() { checkChanging(); userBits |= WIPEON1OR2; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are not wiped when 1 or 2 arcs connect.
 	 * Only Schematics pins enable this state.
 	 */
-	public void clearWipeOn1or2();
+	public void clearWipeOn1or2() { checkChanging(); userBits &= ~WIPEON1OR2; }
 
 	/**
 	 * Method to tell if instances of this NodeProto are wiped when 1 or 2 arcs connect.
@@ -277,7 +286,7 @@ public interface NodeProto
 	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
 	 * @return true if instances of this NodeProto are wiped when 1 or 2 arcs connect.
 	 */
-	public boolean isWipeOn1or2();
+	public boolean isWipeOn1or2() { return (userBits & WIPEON1OR2) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are locked.
@@ -285,7 +294,7 @@ public interface NodeProto
 	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
 	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
-	public void setLockedPrim();
+	public void setLockedPrim() { checkChanging(); userBits |= LOCKEDPRIM; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are not locked.
@@ -293,7 +302,7 @@ public interface NodeProto
 	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
 	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
-	public void clearLockedPrim();
+	public void clearLockedPrim() { checkChanging(); userBits &= ~LOCKEDPRIM; }
 
 	/**
 	 * Method to tell if instances of this NodeProto are loced.
@@ -302,21 +311,21 @@ public interface NodeProto
 	 * and then locked to prevent the customization work from damaging the circuit.
 	 * @return true if instances of this NodeProto are loced.
 	 */
-	public boolean isLockedPrim();
+	public boolean isLockedPrim() { return (userBits & LOCKEDPRIM) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are selectable only by their edges.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
-	public void setEdgeSelect();
+	public void setEdgeSelect() { checkChanging(); userBits |= NEDGESELECT; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are not selectable only by their edges.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
-	public void clearEdgeSelect();
+	public void clearEdgeSelect() { checkChanging(); userBits &= ~NEDGESELECT; }
 
 	/**
 	 * Method to tell if instances of this NodeProto are selectable on their edges.
@@ -324,21 +333,21 @@ public interface NodeProto
 	 * of allowing a click anywhere in the bounding box to work.
 	 * @return true if instances of this NodeProto are selectable on their edges.
 	 */
-	public boolean isEdgeSelect();
+	public boolean isEdgeSelect() { return (userBits & NEDGESELECT) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that arcs connected to instances will shrink in nonmanhattan situations.
 	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
 	 * will cause tabs to emerge at the connection site.
 	 */
-	public void setArcsShrink();
+	public void setArcsShrink() { checkChanging(); userBits |= ARCSHRINK; }
 
 	/**
 	 * Method to set this NodeProto so that arcs connected to instances will not shrink in nonmanhattan situations.
 	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
 	 * will cause tabs to emerge at the connection site.
 	 */
-	public void clearArcsShrink();
+	public void clearArcsShrink() { checkChanging(); userBits &= ~ARCSHRINK; }
 
 	/**
 	 * Method to tell if instances of this NodeProto cause arcs to shrink in nonmanhattan situations.
@@ -346,21 +355,21 @@ public interface NodeProto
 	 * will cause tabs to emerge at the connection site.
 	 * @return true if instances of this NodeProto cause arcs to shrink in nonmanhattan situations.
 	 */
-	public boolean isArcsShrink();
+	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that everything inside of it is locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void setAllLocked();
+	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; }
 
 	/**
 	 * Method to set this NodeProto so that everything inside of it is not locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void clearAllLocked();
+	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; }
 
 	/**
 	 * Method to tell if the contents of this NodeProto are locked.
@@ -368,21 +377,21 @@ public interface NodeProto
 	 * This only applies to Cells.
 	 * @return true if the contents of this NodeProto are locked.
 	 */
-	public boolean isAllLocked();
+	public boolean isAllLocked() { return (userBits & NPLOCKED) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that all instances inside of it are locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void setInstancesLocked();
+	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; }
 
 	/**
 	 * Method to set this NodeProto so that all instances inside of it are not locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void clearInstancesLocked();
+	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; }
 
 	/**
 	 * Method to tell if the sub-instances in this NodeProto are locked.
@@ -390,21 +399,21 @@ public interface NodeProto
 	 * This only applies to Cells.
 	 * @return true if the sub-instances in this NodeProto are locked.
 	 */
-	public boolean isInstancesLocked();
+	public boolean isInstancesLocked() { return (userBits & NPILOCKED) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that it is not used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
 	 */
-	public void setNotUsed();
+	public void setNotUsed() { checkChanging(); userBits |= NNOTUSED; }
 
 	/**
 	 * Method to set this NodeProto so that it is used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
 	 */
-	public void clearNotUsed();
+	public void clearNotUsed() { checkChanging(); userBits &= ~NNOTUSED; }
 
 	/**
 	 * Method to tell if this NodeProto is used.
@@ -412,7 +421,7 @@ public interface NodeProto
 	 * The state is useful for hiding primitives that the user should not use.
 	 * @return true if this NodeProto is used.
 	 */
-	public boolean isNotUsed();
+	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that it is part of a cell library.
@@ -420,7 +429,7 @@ public interface NodeProto
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void setInCellLibrary();
+	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; }
 
 	/**
 	 * Method to set this NodeProto so that it is not part of a cell library.
@@ -428,7 +437,7 @@ public interface NodeProto
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void clearInCellLibrary();
+	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; }
 
 	/**
 	 * Method to tell if this NodeProto is part of a cell library.
@@ -437,21 +446,21 @@ public interface NodeProto
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 * @return true if this NodeProto is part of a cell library.
 	 */
-	public boolean isInCellLibrary();
+	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that it is part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void setInTechnologyLibrary();
+	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; }
 
 	/**
 	 * Method to set this NodeProto so that it is not part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void clearInTechnologyLibrary();
+	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; }
 
 	/**
 	 * Method to tell if this NodeProto is part of a Technology Library.
@@ -459,20 +468,30 @@ public interface NodeProto
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 * @return true if this NodeProto is part of a Technology Library.
 	 */
-	public boolean isInTechnologyLibrary();
+	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
 	/**
 	 * Method to tell if this NodeProto is icon cell which is a part of multi-part icon.
 	 * @return true if this NodeProto is part of multi-part icon.
 	 */
-	public boolean isMultiPartIcon();
+	public boolean isMultiPartIcon() { return false; }
 
 	/**
 	 * Abstract method to return the default rotation for new instances of this NodeProto.
 	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this NodeProto.
 	 * If the value is 3600 or greater, it means that X should be mirrored.
 	 */
-	public int getDefPlacementAngle();
+	public int getDefPlacementAngle()
+	{
+		int defAngle = User.getNewNodeRotation();
+		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
+		if (var != null)
+		{
+			Integer rot = (Integer)var.getObject();
+			defAngle = rot.intValue();
+		}
+		return defAngle;
+	}
 
 	/**
 	 * Abstract method to return the default width of this NodeProto.
@@ -480,7 +499,7 @@ public interface NodeProto
 	 * PrimitiveNodes return the default width of new instances of this NodeProto.
 	 * @return the width to use when creating new NodeInsts of this NodeProto.
 	 */
-	public double getDefWidth();
+	public abstract double getDefWidth();
 
 	/**
 	 * Abstract method to return the default height of this NodeProto.
@@ -488,13 +507,13 @@ public interface NodeProto
 	 * PrimitiveNodes return the default height of new instances of this NodeProto.
 	 * @return the height to use when creating new NodeInsts of this NodeProto.
 	 */
-	public double getDefHeight();
+	public abstract double getDefHeight();
 
 	/**
 	 * Method to size offset of this Cell.
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public SizeOffset getProtoSizeOffset();
+	public abstract SizeOffset getProtoSizeOffset();
 
 	/**
 	 * Abstract method to return the Technology to which this NodeProto belongs.
@@ -502,45 +521,14 @@ public interface NodeProto
 	 * For PrimitiveNodes, the Technology is simply the one that owns it.
 	 * @return the Technology associated with this NodeProto.
 	 */
-	public Technology getTechnology();
-
-	/**
-	 * Method to find the PortProto that has a particular name.
-	 * @return the PortProto, or null if there is no PortProto with that name.
-	 */
-	public PortProto findPortProto(String name);
-
-	/**
-	 * Method to find the PortProto that has a particular Name.
-	 * @return the PortProto, or null if there is no PortProto with that name.
-	 */
-	public PortProto findPortProto(Name name);
-
-	/**
-	 * Method to return an iterator over all PortProtos of this NodeProto.
-	 * @return an iterator over all PortProtos of this NodeProto.
-	 */
-	public Iterator getPorts();
-
-	/**
-	 * Method to return the number of PortProtos on this NodeProto.
-	 * @return the number of PortProtos on this NodeProto.
-	 */
-	public int getNumPorts();
-
-	/**
-	 * Method to return the PortProto at specified position.
-	 * @param portIndex specified position of PortProto.
-	 * @return the PortProto at specified position..
-	 */
-	public PortProto getPort(int portIndex);
+	public abstract Technology getTechnology();
 
 	/**
 	 * Method to determine whether this NodeProto is an icon Cell.
 	 * overriden in Cell
 	 * @return true if this NodeProto is an icon  Cell.
 	 */
-	public boolean isIcon();
+	public boolean isIcon() { return false; }
 
 	/**
 	 * Method to determine whether this NodeProto is an icon of another Cell.
@@ -548,7 +536,7 @@ public interface NodeProto
 	 * @param cell the other cell which this may be an icon of.
 	 * @return true if this NodeProto is an icon of that other Cell.
 	 */
-	public boolean isIconOf(Cell cell);
+	public boolean isIconOf(Cell cell) { return false; }
 
 	/**
 	 * Abstract method to describe this NodeProto as a string.
@@ -559,17 +547,7 @@ public interface NodeProto
 	 * (for example: "Wires:wire100{ic}").
 	 * @return a String describing this NodeProto.
 	 */
-	public String describe();
-
-	/**
-	 * Method to return the name of this NodeProto.
-	 * When this is a PrimitiveNode, the name is just its name in
-	 * the Technology.
-	 * When this is a Cell, the name is the pure cell name, without
-	 * any view or version information.
-	 * @return the prototype name of this NodeProto.
-	 */
-	public String getName();
+	public abstract String describe();
 
 	/**
 	 * Low-level method to get the user bits.
@@ -580,7 +558,7 @@ public interface NodeProto
 	 * This should not normally be called by any other part of the system.
 	 * @return the "user bits".
 	 */
-	public int lowLevelGetUserbits();
+	public int lowLevelGetUserbits() { return userBits; }
 
 	/**
 	 * Low-level method to set the user bits.
@@ -591,11 +569,14 @@ public interface NodeProto
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits);
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; }
 
 	/**
 	 * Returns a printable version of this NodeProto.
 	 * @return a printable version of this NodeProto.
 	 */
-	public String toString();
+	public String toString()
+	{
+		return "NodeProto " + describe();
+	}
 }

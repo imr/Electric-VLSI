@@ -526,7 +526,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
             return LENodable.Type.TRANSISTOR;
         }
-        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == NodeProto.Function.CAPAC)) {
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             return LENodable.Type.CAPACITOR;
         }
         return null;

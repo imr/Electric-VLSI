@@ -678,7 +678,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mp_node, new ArcProto [] {Metal_1_arc}, "metal1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		mp_node.setFunction(NodeProto.Function.PIN);
+		mp_node.setFunction(PrimitiveNode.Function.PIN);
 		mp_node.setArcsWipe();
 		mp_node.setArcsShrink();
 
@@ -693,7 +693,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mp0_node, new ArcProto [] {Metal_2_arc}, "metal2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
-		mp0_node.setFunction(NodeProto.Function.PIN);
+		mp0_node.setFunction(PrimitiveNode.Function.PIN);
 		mp0_node.setArcsWipe();
 		mp0_node.setArcsShrink();
 
@@ -709,7 +709,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, np_node, new ArcProto [] {NPPoly_arc}, "p", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
-		np_node.setFunction(NodeProto.Function.PIN);
+		np_node.setFunction(PrimitiveNode.Function.PIN);
 		np_node.setArcsWipe();
 		np_node.setArcsShrink();
 
@@ -725,7 +725,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {PPPoly_arc}, "p", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
-		pp_node.setFunction(NodeProto.Function.PIN);
+		pp_node.setFunction(PrimitiveNode.Function.PIN);
 		pp_node.setArcsWipe();
 		pp_node.setArcsShrink();
 
@@ -742,7 +742,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, v_node, new ArcProto [] {Metal_1_arc, Metal_2_arc}, "via", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
-		v_node.setFunction(NodeProto.Function.CONNECT);
+		v_node.setFunction(PrimitiveNode.Function.CONNECT);
 		v_node.setSpecialType(PrimitiveNode.MULTICUT);
 		v_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
@@ -760,7 +760,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mpc_node, new ArcProto [] {Metal_1_arc, PPPoly_arc}, "m", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		mpc_node.setFunction(NodeProto.Function.CONNECT);
+		mpc_node.setFunction(PrimitiveNode.Function.CONNECT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mpc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
 
@@ -778,7 +778,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mnc_node, new ArcProto [] {Metal_1_arc, NPPoly_arc}, "m", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		mnc_node.setFunction(NodeProto.Function.CONNECT);
+		mnc_node.setFunction(PrimitiveNode.Function.CONNECT);
 		mnc_node.setSpecialType(PrimitiveNode.MULTICUT);
 		mnc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
 
@@ -800,7 +800,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, n_node, new ArcProto [] {NPPoly_arc}, "p2", 270,0, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(1), EdgeH.fromRight(2), EdgeV.fromBottom(1))
 			});
-		n_node.setFunction(NodeProto.Function.RESIST);
+		n_node.setFunction(PrimitiveNode.Function.RESIST);
 
 		/** NMResistor */
 		PrimitiveNode n0_node = PrimitiveNode.newInstance("NMResistor", this, 5, 7, new SizeOffset(1, 1, 2, 2),
@@ -822,7 +822,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, n0_node, new ArcProto [] {NPPoly_arc}, "p2", 270,0, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(1), EdgeH.fromRight(2), EdgeV.fromBottom(1))
 			});
-		n0_node.setFunction(NodeProto.Function.UNKNOWN);
+		n0_node.setFunction(PrimitiveNode.Function.UNKNOWN);
 
 		/** npn111 */
 		PrimitiveNode n1_node = PrimitiveNode.newInstance("npn111", this, 20, 11, new SizeOffset(10, 8, 3.5, 3.5),
@@ -851,7 +851,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, n1_node, new ArcProto [] {PPPoly_arc}, "b", 0,180, 2, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromRight(5), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
-		n1_node.setFunction(NodeProto.Function.TRANPN);
+		n1_node.setFunction(PrimitiveNode.Function.TRANPN);
 
 		/** PNJunction */
 		PrimitiveNode p_node = PrimitiveNode.newInstance("PNJunction", this, 4, 4, new SizeOffset(1, 1, 1, 1),
@@ -869,7 +869,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, p_node, new ArcProto [] {NPPoly_arc}, "n", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2))
 			});
-		p_node.setFunction(NodeProto.Function.CONNECT);
+		p_node.setFunction(PrimitiveNode.Function.CONNECT);
 
 		/** Metal1_Node */
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal1_Node", this, 2, 2, null,
@@ -882,7 +882,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		mn_node.setFunction(NodeProto.Function.NODE);
+		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
 		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -897,7 +897,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		mn0_node.setFunction(NodeProto.Function.NODE);
+		mn0_node.setFunction(PrimitiveNode.Function.NODE);
 		mn0_node.setHoldsOutline();
 		mn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -912,7 +912,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, nn_node, new ArcProto [] {}, "N+implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		nn_node.setFunction(NodeProto.Function.NODE);
+		nn_node.setFunction(PrimitiveNode.Function.NODE);
 		nn_node.setHoldsOutline();
 		nn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -927,7 +927,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {}, "P+implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		pn_node.setFunction(NodeProto.Function.NODE);
+		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
 		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -942,7 +942,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, pdn_node, new ArcProto [] {}, "poly-def", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		pdn_node.setFunction(NodeProto.Function.NODE);
+		pdn_node.setFunction(PrimitiveNode.Function.NODE);
 		pdn_node.setHoldsOutline();
 		pdn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -957,7 +957,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, fin_node, new ArcProto [] {}, "field", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		fin_node.setFunction(NodeProto.Function.NODE);
+		fin_node.setFunction(PrimitiveNode.Function.NODE);
 		fin_node.setHoldsOutline();
 		fin_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -972,7 +972,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, iin_node, new ArcProto [] {}, "isolation", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		iin_node.setFunction(NodeProto.Function.NODE);
+		iin_node.setFunction(PrimitiveNode.Function.NODE);
 		iin_node.setHoldsOutline();
 		iin_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -987,7 +987,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, sin_node, new ArcProto [] {}, "sink-implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		sin_node.setFunction(NodeProto.Function.NODE);
+		sin_node.setFunction(PrimitiveNode.Function.NODE);
 		sin_node.setHoldsOutline();
 		sin_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1002,7 +1002,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, nin_node, new ArcProto [] {}, "N-implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		nin_node.setFunction(NodeProto.Function.NODE);
+		nin_node.setFunction(PrimitiveNode.Function.NODE);
 		nin_node.setHoldsOutline();
 		nin_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1017,7 +1017,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, sen_node, new ArcProto [] {}, "silicide-exclusion", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		sen_node.setFunction(NodeProto.Function.NODE);
+		sen_node.setFunction(PrimitiveNode.Function.NODE);
 		sen_node.setHoldsOutline();
 		sen_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1032,7 +1032,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "contact", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		cn_node.setFunction(NodeProto.Function.NODE);
+		cn_node.setFunction(PrimitiveNode.Function.NODE);
 		cn_node.setHoldsOutline();
 		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1047,7 +1047,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, vn_node, new ArcProto [] {}, "via", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		vn_node.setFunction(NodeProto.Function.NODE);
+		vn_node.setFunction(PrimitiveNode.Function.NODE);
 		vn_node.setHoldsOutline();
 		vn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1062,7 +1062,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, spn_node, new ArcProto [] {}, "scratch-protection", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		spn_node.setFunction(NodeProto.Function.NODE);
+		spn_node.setFunction(PrimitiveNode.Function.NODE);
 		spn_node.setHoldsOutline();
 		spn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1077,7 +1077,7 @@ public class Bipolar extends Technology
 				PrimitivePort.newInstance(this, bn_node, new ArcProto [] {}, "buried", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
-		bn_node.setFunction(NodeProto.Function.NODE);
+		bn_node.setFunction(PrimitiveNode.Function.NODE);
 		bn_node.setHoldsOutline();
 		bn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 

@@ -85,9 +85,14 @@ public class NodeUsage
 			NodeInst ni = (NodeInst)insts.get(i);
 			if (ni.getNodeUsage() != this || ni.getProto() != protoType || ni.getParent() != parent)
 			{
-				System.out.println("Error in NodeUsage.chechAndRepair");
+				System.out.println("Error in " + this);
 				error++;
 			}
+		}
+		if (protoType instanceof Cell && !(((Cell)protoType).usagesOf.contains(this)))
+		{
+				System.out.println(protoType + " doesn't contain " + this);
+				error++;
 		}
 		return error;
 	}

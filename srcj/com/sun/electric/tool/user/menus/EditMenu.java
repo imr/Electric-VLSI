@@ -1243,11 +1243,11 @@ public class EditMenu {
         {
             PrimitiveNode np = (PrimitiveNode)it.next();
             if (np.isNotUsed()) continue;
-            NodeProto.Function fun = np.getFunction();
+            PrimitiveNode.Function fun = np.getFunction();
             totalCount++;
-            if (fun == NodeProto.Function.PIN) pinCount++; else
-            if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT) contactCount++; else
-            if (fun == NodeProto.Function.NODE) pureCount++;
+            if (fun == PrimitiveNode.Function.PIN) pinCount++; else
+            if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT) contactCount++; else
+            if (fun == PrimitiveNode.Function.NODE) pureCount++;
         }
         if (pinCount > 0)
         {
@@ -1257,8 +1257,8 @@ public class EditMenu {
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
-                NodeProto.Function fun = np.getFunction();
-                if (fun == NodeProto.Function.PIN) sb.append(" " + np.getName());
+                PrimitiveNode.Function fun = np.getFunction();
+                if (fun == PrimitiveNode.Function.PIN) sb.append(" " + np.getName());
             }
             System.out.println(sb.toString());
         }
@@ -1270,8 +1270,8 @@ public class EditMenu {
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
-                NodeProto.Function fun = np.getFunction();
-                if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT)
+                PrimitiveNode.Function fun = np.getFunction();
+                if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)
                     sb.append(" " + np.getName());
             }
             System.out.println(sb.toString());
@@ -1284,9 +1284,9 @@ public class EditMenu {
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
-                NodeProto.Function fun = np.getFunction();
-                if (fun != NodeProto.Function.PIN && fun != NodeProto.Function.CONTACT &&
-                    fun != NodeProto.Function.CONNECT && fun != NodeProto.Function.NODE)
+                PrimitiveNode.Function fun = np.getFunction();
+                if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+                    fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.NODE)
                         sb.append(" " + np.getName());
             }
             System.out.println(sb.toString());
@@ -1299,8 +1299,8 @@ public class EditMenu {
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
                 if (np.isNotUsed()) continue;
-                NodeProto.Function fun = np.getFunction();
-                if (fun == NodeProto.Function.NODE) sb.append(" " + np.getName());
+                PrimitiveNode.Function fun = np.getFunction();
+                if (fun == PrimitiveNode.Function.NODE) sb.append(" " + np.getName());
             }
             System.out.println(sb.toString());
         }
