@@ -685,8 +685,8 @@ public class Cell extends NodeProto implements Comparable
         // check for same name already in library
         for (Iterator it = getLibrary().getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
-            if (newName.equals(c.getName())) {
-                System.out.println("Already a Cell named "+newName+" in Library "+getLibrary().getName());
+            if (newName.equals(c.getName()) && (getView() == c.getView())) {
+                System.out.println("Already a Cell named "+noLibDescribe()+" in Library "+getLibrary().getName());
                 return;
             }
         }
