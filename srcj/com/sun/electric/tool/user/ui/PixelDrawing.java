@@ -983,7 +983,7 @@ public class PixelDrawing
 			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
 
             Undo.removeDatabaseChangeListener(renderedCell);
-			renderedCell.setScreenSize(new Dimension(screenBounds.width, screenBounds.height));
+			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
 			renderedCell.setScale(wnd.getScale());
 			renderedCell.getOffscreen().clearImage(true);
 			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());

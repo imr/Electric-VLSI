@@ -765,33 +765,40 @@ public class ViewChanges
 
 		public boolean doIt()
 		{
-			// create cell in new technology
-			Cell newCell = makeNewCell(oldCell.getName(), View.SCHEMATIC, oldCell);
+			Cell newCell = convertSchematicCell(oldCell);
 			if (newCell == null) return false;
-
-			// create the parts in this cell
-			HashMap newNodes = new HashMap();
-			buildSchematicNodes(oldCell, newCell, Schematics.tech, newNodes);
-			buildSchematicArcs(oldCell, newCell, newNodes);
-
-			// now make adjustments for manhattan-ness
-			makeArcsManhattan(newCell);
-
-			// set "fixed-angle" if reasonable
-			for(Iterator it = newCell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				Point2D headPt = ai.getHead().getLocation();
-				Point2D tailPt = ai.getTail().getLocation();
-				if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
-				if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
-			}
-
-			System.out.println("Cell " + newCell.describe() + " created with a schematic representation of " +
-				oldCell.describe());
 			WindowFrame.createEditWindow(newCell);
 			return true;
 		}
+	}
+
+	private static Cell convertSchematicCell(Cell oldCell)
+	{
+		// create cell in new technology
+		Cell newCell = makeNewCell(oldCell.getName(), View.SCHEMATIC, oldCell);
+		if (newCell == null) return null;
+
+		// create the parts in this cell
+		HashMap newNodes = new HashMap();
+		buildSchematicNodes(oldCell, newCell, Schematics.tech, newNodes);
+		buildSchematicArcs(oldCell, newCell, newNodes);
+
+		// now make adjustments for manhattan-ness
+		makeArcsManhattan(newCell);
+
+		// set "fixed-angle" if reasonable
+		for(Iterator it = newCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Point2D headPt = ai.getHead().getLocation();
+			Point2D tailPt = ai.getTail().getLocation();
+			if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
+			if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
+		}
+
+		System.out.println("Cell " + newCell.describe() + " created with a schematic representation of " +
+			oldCell.describe());
+		return newCell;
 	}
 
 	/**
@@ -832,7 +839,12 @@ public class ViewChanges
 			{
 				// a cell
 				Cell proto = (Cell)mosNI.getProto();
-				Cell equivCell = proto.getEquivalent();
+				Cell equivCell = proto.otherView(View.SCHEMATIC);
+				if (equivCell == null)
+					equivCell = convertSchematicCell(proto);
+
+//				Cell equivCell = proto.getEquivalent();
+//System.out.println("Equivalent of subcell "+proto.describe()+" is "+equivCell.describe());
 				schemNI = makeSchematicNode(equivCell, mosNI, equivCell.getDefWidth(), equivCell.getDefHeight(), mosNI.getAngle(), 0, newCell);
 			} else
 			{
@@ -944,6 +956,7 @@ public class ViewChanges
 		{
 			// a cell
 			PortProto schemPP = schemNI.getProto().findPortProto(mosPP.getName());
+			if (schemPP == null) return null;
 			return schemNI.findPortInstFromProto(schemPP);
 		}
 

@@ -228,15 +228,15 @@ public class PostScript extends Output
 				unitsY *= scale;
 			}
 		}
-		int i, j;
+		double i, j;
 		if (usePlotter)
 		{
-			i = (int)(unitsX / printBounds.getWidth());
-			j = (int)(unitsX / printBounds.getHeight());
+			i = unitsX / printBounds.getWidth();
+			j = unitsX / printBounds.getHeight();
 		} else
 		{
-			i = (int)Math.min(unitsX / printBounds.getWidth(), unitsY / printBounds.getHeight());
-			j = (int)Math.min(unitsX / printBounds.getHeight(), unitsY / printBounds.getWidth());
+			i = Math.min(unitsX / printBounds.getWidth(), unitsY / printBounds.getHeight());
+			j = Math.min(unitsX / printBounds.getHeight(), unitsY / printBounds.getWidth());
 		}
 		if (rotatePlot) i = j;
 		double matrix00 = i;   double matrix01 = 0;
@@ -582,6 +582,7 @@ public class PostScript extends Output
 					ni.addDisplayableVariables(rect, polys, 0, wnd, true);
 					for (int i=0; i<polys.length; i++)
 					{
+						if (polys[i] == null) break;
 						polys[i].transform(subRot);
 						psPoly(polys[i]);
 					}
@@ -970,7 +971,7 @@ public class PostScript extends Output
 	{
 		Point2D ps = psXform(pt);
 		putPSHeader(HEADERDOT);
-		printWriter.print(ps.getX() + " " + ps.getY() + " Putdot\n");
+		printWriter.print(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()) + " Putdot\n");
 	}
 
 	/**
@@ -985,21 +986,25 @@ public class PostScript extends Output
 		switch (pattern)
 		{
 			case 0:
-				printWriter.print(pt1.getX() + " " + pt1.getY() + " " + pt2.getX() + " " + pt2.getY() + " Drawline\n");
+				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
 				break;
 			case 1:
 				printWriter.print("[" + i + " " + i*3 + "] 0 setdash ");
-				printWriter.print(pt1.getX() + " " + pt1.getY() + " " + pt2.getX() + " " + pt2.getY() + " Drawline\n");
+				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
 				printWriter.print(" [] 0 setdash\n");
 				break;
 			case 2:
 				printWriter.print("[" + i*6 + " " + i*3 + "] 0 setdash ");
-				printWriter.print(pt1.getX() + " " + pt1.getY() + " " + pt2.getX() + " " + pt2.getY() + " Drawline\n");
+				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
 				printWriter.print(" [] 0 setdash\n");
 				break;
 			case 3:
 				printWriter.print(PSSCALE + " setlinewidth ");
-				printWriter.print(pt1.getX() + " " + pt1.getY() + " " + pt2.getX() + " " + pt2.getY() + " Drawline\n");
+				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
 				printWriter.print(PSSCALE/2 + " setlinewidth\n");
 				break;
 		}
@@ -1016,7 +1021,7 @@ public class PostScript extends Output
 		double radius = pc.distance(ps1);
 		int startAngle = (DBMath.figureAngle(pc, ps2) + 5) / 10;
 		int endAngle = (DBMath.figureAngle(pc, ps1) + 5) / 10;
-		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " " +
+		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " " +
 			startAngle + " " + endAngle + " arc stroke\n");
 	}
 
@@ -1028,7 +1033,7 @@ public class PostScript extends Output
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
 		double radius = pc.distance(ps);
-		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " 0 360 arc stroke\n");
+		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc stroke\n");
 	}
 
 	/**
@@ -1039,7 +1044,7 @@ public class PostScript extends Output
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
 		double radius = pc.distance(ps);
-		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " 0 360 arc fill\n");
+		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc fill\n");
 	}
 
 	/**
@@ -1090,7 +1095,7 @@ public class PostScript extends Output
 			{
 				if (i != 0) printWriter.print(" ");
 				Point2D ps = psXform(points[i]);
-				printWriter.print(ps.getX() + " " + ps.getY());
+				printWriter.print(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()));
 			}
 			printWriter.print("] Polygon fill\n");
 			return;
@@ -1117,7 +1122,8 @@ public class PostScript extends Output
 			if (psi.getX() < lx) lx = psi.getX();   if (psi.getX() > hx) hx = psi.getX();
 			if (psi.getY() < ly) ly = psi.getY();   if (psi.getY() > hy) hy = psi.getY();
 		}
-		printWriter.print("] " + (hx-lx+1) + " " + (hy-ly+1) + " " + lx + " " + ly + " Filledpolygon\n");
+		printWriter.print("] " + TextUtils.formatDouble(hx-lx+1) + " " + TextUtils.formatDouble(hy-ly+1) + " " +
+			TextUtils.formatDouble(lx) + " " + TextUtils.formatDouble(ly) + " Filledpolygon\n");
 	}
 
 	String defaultFontName = "Times";
@@ -1182,7 +1188,8 @@ public class PostScript extends Output
 		}
 		if (poly.getStyle() == Poly.Type.TEXTBOX)
 		{
-			printWriter.print(cX + " " + cY + " " + sX + " " + sY + " ");
+			printWriter.print(TextUtils.formatDouble(cX) + " " + TextUtils.formatDouble(cY) + " " +
+				TextUtils.formatDouble(sX) + " " + TextUtils.formatDouble(sY) + " ");
 			writePSString(text);
 			printWriter.print(" " + size + " Boxstring\n");
 		} else
@@ -1259,7 +1266,7 @@ public class PostScript extends Output
 					printWriter.print(xoff + " " + yoff + " translate 270 rotate\n");
 				}
 			}
-			printWriter.print((int)x + " " + (int)y + " ");
+			printWriter.print(TextUtils.formatDouble(x) + " " + TextUtils.formatDouble(y) + " ");
 			writePSString(text);
 			printWriter.print(" " + size + " " + opName + "\n");
 			if (rot != TextDescriptor.Rotation.ROT0)

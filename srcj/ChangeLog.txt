@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+BUG: (12/7/04, SMR) Conversin from layout to schematic is broken (Bug #56).
+FIX: Fixed "ViewChanges.java" to work right.
+
+BUG: (12/7/04, SMR) PostScript output is empty.
+FIX: Make scaling factors "i" and "j" double in PostScript.start().
+
+BUG: (12/7/04, SMR) Unexpanded cell outlines may get cut off on the right and bottom.
+FIX: In PixelDrawing.expandedCellCached()" make caches wider and taller by 1.
+
 IMP: (12/6/04, GVG) Export PNG files. Valid for EditWindow, Waveform and 3D View.
 
 IMP: (12/6/04, DN) "TextUtils.getFileNameWithoutExtension()" returns legal
@@ -11,7 +20,7 @@ IMP: (12/6/04, DN) "TextUtils.getFileNameWithoutExtension()" returns legal
      "LibraryFiles.readExternalLibraryFromFileName()" uses this name
      for library creation.
 
-IMP: (12/5/04, SMR) Sped up drawing of highlights by doing proper clipping in Highlight.java.
+IMP: (12/5/04, SMR) Sped up drawing of highlights by doing proper clipping in Highlight.java. (Bug #51)
 
 IMP: (12/3/04, SMR) Made Artwork Circles work properly, including problems with constraints (Layout.modFlex()),
      selection, better highlighting.

@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -471,13 +472,18 @@ public abstract class ElectricObject
 		double height = 0;
 		Poly.Type style = td.getPos().getPolyType();
 		boolean headerString = false;
+		Font font = null;
 		if (varLength > 1)
 		{
 			// compute text height
-			Font font = wnd.getFont(td);
-			if (font == null) varLength = 0; else
+			font = wnd.getFont(td);
+//			if (font == null)
+//			{
+//				varLength = 0;
+//			} else
 			{
-				height = font.getSize2D() / wnd.getScale();
+				if (font == null) height = 1; else
+					height = font.getSize2D() / wnd.getScale();
 				if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 				{
 					headerString = true;
@@ -504,9 +510,30 @@ public abstract class ElectricObject
 				}
 			}
 		}
+
 		Poly [] polys = new Poly[varLength];
 		for(int i=0; i<varLength; i++)
 		{
+			String message = null;
+			VarContext context = null;
+			if (wnd != null) context = wnd.getVarContext();
+			TextDescriptor entryTD = td;
+			if (varLength > 1 && headerString)
+			{
+				if (i == 0)
+				{
+					message = var.getTrueName()+ "[" + (varLength-1) + "]:";
+					entryTD = new TextDescriptor(null, td);
+					entryTD.setUnderline(true);
+				} else
+				{
+					message = var.describe(i-1, context, this);
+				}
+			} else
+			{
+				message = var.describe(i, context, this);
+			}
+
 			Point2D [] pointList = null;
 			if (style == Poly.Type.TEXTBOX && this instanceof Geometric)
 			{
@@ -515,32 +542,29 @@ public abstract class ElectricObject
 				pointList = Poly.makePoints(bounds);
 			} else
 			{
-				pointList = new Point2D.Double[1];
-				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-			}
-			polys[i] = new Poly(pointList);
-			polys[i].setStyle(style);
-			polys[i].setTextDescriptor(td);
-			polys[i].setLayer(null);
-			polys[i].setVariable(var);
-			VarContext context = null;
-			if (wnd != null) context = wnd.getVarContext();
-			if (varLength > 1 && headerString)
-			{
-				if (i == 0)
+				if (font == null)
 				{
-					polys[i].setString(var.getTrueName()+ "[" + (varLength-1) + "]:");
-					TextDescriptor newTD = new TextDescriptor(null, td);
-					newTD.setUnderline(true);
-					polys[i].setTextDescriptor(newTD);
+					// text too small: make it "greek"
+					double dSize = td.getTrueSize(wnd);
+					int fakeWidth = (int)(message.length() * dSize * 0.75);
+					pointList = new Point2D.Double[2];
+					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
+					pointList[1] = new Point2D.Double(cX+offX+fakeWidth/2, cY+offY);
 				} else
 				{
-					polys[i].setString(var.describe(i-1, context, this));
+					pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 				}
-			} else
-			{
-				polys[i].setString(var.describe(i, context, this));
 			}
+			polys[i] = new Poly(pointList);
+			if (font == null) polys[i].setStyle(Poly.Type.OPENED); else
+			{
+				polys[i].setString(message);
+				polys[i].setStyle(style);
+				polys[i].setTextDescriptor(entryTD);
+			}
+			polys[i].setVariable(var);
+			polys[i].setLayer(null);
 			cY -= height;
 		}
 		return polys;

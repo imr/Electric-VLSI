@@ -223,6 +223,7 @@ public class Poly extends PolyBase {
 	 */
 	public boolean setExactTextBounds(EditWindow wnd, ElectricObject eObj)
 	{
+		if (getString() == null) return true;
 		String theString = getString().trim();
 		if (theString.length() == 0) return true;
 		int numLines = 1;
