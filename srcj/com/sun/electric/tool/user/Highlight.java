@@ -52,12 +52,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
-import java.awt.Point;
-import java.awt.BasicStroke;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1194,8 +1189,8 @@ public class Highlight
 					Point c2 = wnd.databaseToScreen(x-size, y);
 					Point c3 = wnd.databaseToScreen(x, y+size);
 					Point c4 = wnd.databaseToScreen(x, y-size);
-					g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
-					g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
+					drawLine(g, wnd, c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
+					drawLine(g, wnd, c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
 				} else
 				{
 					double nodeX = (nodeLowX + nodeHighX) / 2;
@@ -1219,8 +1214,8 @@ public class Highlight
 					trans.transform(thisPt, thisPt);
 					Point cThis = wnd.databaseToScreen(thisPt);
 					int size = 3;
-					g.drawLine(cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
-					g.drawLine(cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
+					drawLine(g, wnd, cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
+					drawLine(g, wnd, cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
 
 					// draw two connected lines
 					Point2D prevPt = null, nextPt = null;
@@ -1234,7 +1229,7 @@ public class Highlight
 						if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
 						{
 							Point cPrev = wnd.databaseToScreen(prevPt);
-							g.drawLine(cThis.x + offX, cThis.y + offY, cPrev.x, cPrev.y);
+							drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cPrev.x, cPrev.y);
 						}
 					}
 					int nextPoint = point + 1;
@@ -1251,7 +1246,7 @@ public class Highlight
 						if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
 						{
 							Point cNext = wnd.databaseToScreen(nextPt);
-							g.drawLine(cThis.x + offX, cThis.y + offY, cNext.x, cNext.y);
+							drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cNext.x, cNext.y);
 						}
 					}
 
@@ -1274,8 +1269,8 @@ public class Highlight
 							Point cPrevCtr = wnd.databaseToScreen(prevCtr);
 							Point cPrevArrow1 = wnd.databaseToScreen(prevArrow1);
 							Point cPrevArrow2 = wnd.databaseToScreen(prevArrow2);
-							g.drawLine(cPrevCtr.x, cPrevCtr.y, cPrevArrow1.x, cPrevArrow1.y);
-							g.drawLine(cPrevCtr.x, cPrevCtr.y, cPrevArrow2.x, cPrevArrow2.y);
+							drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow1.x, cPrevArrow1.y);
+							drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow2.x, cPrevArrow2.y);
 						}
 
 						if (nextPoint >= 0)
@@ -1290,8 +1285,8 @@ public class Highlight
 							Point cNextCtr = wnd.databaseToScreen(nextCtr);
 							Point cNextArrow1 = wnd.databaseToScreen(nextArrow1);
 							Point cNextArrow2 = wnd.databaseToScreen(nextArrow2);
-							g.drawLine(cNextCtr.x, cNextCtr.y, cNextArrow1.x, cNextArrow1.y);
-							g.drawLine(cNextCtr.x, cNextCtr.y, cNextArrow2.x, cNextArrow2.y);
+							drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow1.x, cNextArrow1.y);
+							drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow2.x, cNextArrow2.y);
 						}
 					}
 
@@ -1373,7 +1368,7 @@ public class Highlight
 					if (!ai.isBit(markObj)) continue;
 					Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
 					Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
-					g.drawLine(c1.x, c1.y, c2.x, c2.y);
+					drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
 				}
 
 				// draw dots in all connected nodes
@@ -1399,7 +1394,7 @@ public class Highlight
 							Point c1 = wnd.databaseToScreen(arcEnd);
 							Point c2 = wnd.databaseToScreen(nodeCenter);
 							g2.setStroke(dottedLine);
-							g.drawLine(c1.x, c1.y, c2.x, c2.y);
+							drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
 						}
 					}
 				}
@@ -2103,6 +2098,7 @@ public class Highlight
 	 */
 	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened, Point2D thickCenter)
 	{
+        Dimension screen = wnd.getScreenSize();
 		boolean onePoint = true;
 		Point firstP = wnd.databaseToScreen(points[0].getX(), points[0].getY());
 		for(int i=1; i<points.length; i++)
@@ -2115,8 +2111,8 @@ public class Highlight
 		}
 		if (onePoint)
 		{
-			g.drawLine(firstP.x + offX-CROSSSIZE, firstP.y + offY, firstP.x + offX+CROSSSIZE, firstP.y + offY);
-			g.drawLine(firstP.x + offX, firstP.y + offY-CROSSSIZE, firstP.x + offX, firstP.y + offY+CROSSSIZE);
+			drawLine(g, wnd, firstP.x + offX-CROSSSIZE, firstP.y + offY, firstP.x + offX+CROSSSIZE, firstP.y + offY);
+			drawLine(g, wnd, firstP.x + offX, firstP.y + offY-CROSSSIZE, firstP.x + offX, firstP.y + offY+CROSSSIZE);
 			return;
 		}
 
@@ -2141,17 +2137,30 @@ public class Highlight
 			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
 			int fX = lp.x + offX;   int fY = lp.y + offY;
 			int tX = p.x + offX;    int tY = p.y + offY;
-			g.drawLine(fX, fY, tX, tY);
+			drawLine(g, wnd, fX, fY, tX, tY);
 			if (thickCenter != null)
 			{
 				if (fX < cX) fX--; else fX++;
 				if (fY < cY) fY--; else fY++;
 				if (tX < cX) tX--; else tX++;
 				if (tY < cY) tY--; else tY++;
-				g.drawLine(fX, fY, tX, tY);
+				drawLine(g, wnd, fX, fY, tX, tY);
 			}
 		}
 	}
+
+    /**
+     * Implementing clipping here speeds things up a lot if there are
+     * many large highlights off-screen
+     */ 
+    private static void drawLine(Graphics g, EditWindow wnd, int x1, int y1, int x2, int y2)
+    {
+        Dimension size = wnd.getScreenSize();
+        if (((x1 >= 0) && (x1 <= size.getWidth())) || ((x2 >= 0) && (x2 <= size.getWidth())) ||
+            ((y1 >= 0) && (y1 <= size.getHeight())) || ((y2 >= 0) && (y2 <= size.getHeight()))) {
+                g.drawLine(x1, y1, x2, y2);
+        }
+    }
 
 	/**
 	 * Method to tell whether two Highlights are the same.

@@ -544,6 +544,7 @@ public class EditWindow extends JPanel
 			drawCellFrame(g);
 
 			// add in highlighting
+            long start = System.currentTimeMillis();
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -551,6 +552,8 @@ public class EditWindow extends JPanel
 				if (highCell != cell) continue;
 				h.showHighlight(this, g);
 			}
+            long end = System.currentTimeMillis();
+            //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 
 			// add in drag area
 			if (doingAreaDrag) showDragBox(g);
