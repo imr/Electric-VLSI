@@ -29,18 +29,18 @@ public class Layer
 
 		public String toString() { return name; }
 
-		/** layer is P-type */						public static final int PTYPE=          0100;
-		/** layer is N-type */						public static final int NTYPE=          0200;
-		/** layer is depletion */					public static final int DEPLETION=      0400;
-		/** layer is enhancement */					public static final int ENHANCEMENT=   01000;
-		/** layer is light doped */					public static final int LIGHT=         02000;
-		/** layer is heavy doped */					public static final int HEAVY=         04000;
-		/** layer is pseudo */						public static final int PSEUDO=       010000;
-		/** layer is nonelectrical */				public static final int NONELEC=      020000;
-		/** layer contacts metal */					public static final int CONMETAL=     040000;
-		/** layer contacts polysilicon */			public static final int CONPOLY=     0100000;
-		/** layer contacts diffusion */				public static final int CONDIFF=     0200000;
-		/** layer inside transistor */				public static final int INTRANS=   020000000;
+		/** layer is P-type */						public static final int PTYPE =          0100;
+		/** layer is N-type */						public static final int NTYPE =          0200;
+		/** layer is depletion */					public static final int DEPLETION =      0400;
+		/** layer is enhancement */					public static final int ENHANCEMENT =   01000;
+		/** layer is light doped */					public static final int LIGHT =         02000;
+		/** layer is heavy doped */					public static final int HEAVY =         04000;
+		/** layer is pseudo */						public static final int PSEUDO =       010000;
+		/** layer is nonelectrical */				public static final int NONELEC =      020000;
+		/** layer contacts metal */					public static final int CONMETAL =     040000;
+		/** layer contacts polysilicon */			public static final int CONPOLY =     0100000;
+		/** layer contacts diffusion */				public static final int CONDIFF =     0200000;
+		/** layer inside transistor */				public static final int INTRANS =   020000000;
 
 		/** unknown layer */						public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN");
 		/** metal layer 1 */						public static final Function METAL1     = new Function("metal-1",    "LFMETAL1");

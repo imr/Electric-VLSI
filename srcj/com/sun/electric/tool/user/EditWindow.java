@@ -22,7 +22,7 @@ import java.awt.font.*;
 import java.util.*;
 
 public class EditWindow extends JPanel 
-	implements MouseMotionListener, MouseListener
+	implements MouseMotionListener, MouseListener, KeyListener
 {
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx, offy;
@@ -110,6 +110,27 @@ public class EditWindow extends JPanel
 //		clipPoly.transform(screen);
 //		clipBound = clipPoly.getBounds();
 //System.out.println("node is "+clipBound.getWidth()+"x"+clipBound.getHeight()+" at ("+clipBound.getCenterX()+","+clipBound.getCenterY());
+
+		// debug to show outline
+//		if (topLevel)
+//		{
+//			Layer outlineLayer = Layer.newInstance("Outline",
+//				new EGraphics(EGraphics.LAYERO, EGraphics.BLACK, EGraphics.SOLIDC, EGraphics.SOLIDC, 255,255,255,1,1,
+//				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+//					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
+//			Rectangle2D rect = ni.getBounds();
+//			Poly [] polys = new Poly[1];
+//			Point2D.Double [] points = new Point2D.Double[4];
+//			points[0] = new Point2D.Double(rect.getMinX(), rect.getMinY());
+//			points[1] = new Point2D.Double(rect.getMaxX(), rect.getMinY());
+//			points[2] = new Point2D.Double(rect.getMaxX(), rect.getMaxY());
+//			points[3] = new Point2D.Double(rect.getMinX(), rect.getMaxY());
+//			polys[0] = new Poly(points);
+//			polys[0].setStyle(Poly.Type.CLOSED);
+//			polys[0].setLayer(outlineLayer);
+//			AffineTransform identity = new AffineTransform();
+//			drawPolys(g2, polys, identity);
+//		}
 
 		AffineTransform localTrans = ni.rotateOut(trans);
 		if (np instanceof Cell)
@@ -211,24 +232,12 @@ public class EditWindow extends JPanel
 			g2.setPaint(color);
 			poly.transform(trans);
 			Poly.Type style = poly.getStyle();
-			if (style == Poly.Type.FILLED || style == Poly.Type.FILLEDRECT)
+			if (style == Poly.Type.FILLED)
 			{
 				g2.fill(poly);
 			} else if (style == Poly.Type.CLOSED)
 			{
-				AffineTransform saveAT = g2.getTransform();
-				g2.scale(1/scale, 1/scale);
-				GeneralPath gp = new GeneralPath();
-				Point2D [] points = poly.getPoints();
-				gp.moveTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
-				for(int j=1; j<points.length; j++)
-					gp.lineTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
-				gp.lineTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
-				g2.draw(gp);
-				g2.setTransform(saveAT);
-			} else if (style == Poly.Type.CLOSEDRECT)
-			{
-				System.out.println("Cannot render CLOSEDRECT polygon");
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.CROSSED)
 			{
 				AffineTransform saveAT = g2.getTransform();
@@ -246,47 +255,35 @@ public class EditWindow extends JPanel
 				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.OPENED)
 			{
-				AffineTransform saveAT = g2.getTransform();
-				g2.scale(1/scale, 1/scale);
-				GeneralPath gp = new GeneralPath();
-				Point2D [] points = poly.getPoints();
-				gp.moveTo((float)(points[0].getX()*scale), (float)(points[0].getY()*scale));
-				for(int j=1; j<points.length; j++)
-					gp.lineTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
-				g2.draw(gp);
-				g2.setTransform(saveAT);
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.OPENEDT1)
 			{
-				System.out.println("Cannot render OPENEDT1 polygon");
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.OPENEDT2)
 			{
-				System.out.println("Cannot render OPENEDT2 polygon");
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.OPENEDT3)
 			{
-				System.out.println("Cannot render OPENEDT3 polygon");
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.OPENEDO1)
 			{
-				System.out.println("Cannot render OPENEDO1 polygon");
+				drawOutline(g2, poly);
+			} else if (style == Poly.Type.GRIDDOTS)
+			{
+				System.out.println("Cannot render GRIDDOTS polygon");
 			} else if (style == Poly.Type.VECTORS)
 			{
-				AffineTransform saveAT = g2.getTransform();
-				g2.scale(1/scale, 1/scale);
-				GeneralPath gp = new GeneralPath();
-				Point2D [] points = poly.getPoints();
-				for(int j=0; j<points.length; j+=2)
-				{
-					gp.moveTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
-					gp.lineTo((float)(points[j+1].getX()*scale), (float)(points[j+1].getY()*scale));
-				}
-				g2.draw(gp);
-				g2.setTransform(saveAT);
+				drawOutline(g2, poly);
 			} else if (style == Poly.Type.CIRCLE)
 			{
-				System.out.println("Cannot render CIRCLE polygon");
+				drawCircular(g2, poly);
 			} else if (style == Poly.Type.THICKCIRCLE)
 			{
-				System.out.println("Cannot render THICKCIRCLE polygon");
+				drawCircular(g2, poly);
 			} else if (style == Poly.Type.DISC)
+			{
+				drawCircular(g2, poly);
+			} else if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 			{
 				AffineTransform saveAT = g2.getTransform();
 				double scale = 100;
@@ -294,21 +291,19 @@ public class EditWindow extends JPanel
 				Point2D [] points = poly.getPoints();
 				int ctrX = (int)(points[0].getX() * scale);
 				int ctrY = (int)(points[0].getY() * scale);
-				int edgeX = (int)(points[1].getX() * scale);
-				int edgeY = (int)(points[1].getY() * scale);
-				int diameter;
-				if (edgeX == ctrX) diameter = Math.abs(ctrY - edgeY); else
-					if (edgeY == ctrY) diameter = Math.abs(ctrX - edgeX); else
-						diameter = (int)Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
-System.out.println("Disc center=("+ctrX+","+ctrY+") diameter ("+diameter+")");
-				g2.fillOval(ctrX, ctrY, diameter, diameter);
+				int startX = (int)(points[1].getX() * scale);
+				int startY = (int)(points[1].getY() * scale);
+				int endX = (int)(points[2].getX() * scale);
+				int endY = (int)(points[2].getY() * scale);
+				int radius;
+				if (startX == ctrX) radius = Math.abs(ctrY - startY); else
+					if (startY == ctrY) radius = Math.abs(ctrX - startX); else
+						radius = (int)Math.sqrt((ctrY - startY)*(ctrY - startY) + (ctrX - startX) * (ctrX - startX));
+				int diameter = radius * 2;
+				int startAngle = (int)(-Math.atan2(startY-ctrY, startX-ctrX) * 180.0 / Math.PI);
+				int endAngle = (int)(-Math.atan2(endY-ctrY, endX-ctrX) * 180.0 / Math.PI);
+				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, startAngle, endAngle - startAngle);
 				g2.setTransform(saveAT);
-			} else if (style == Poly.Type.CIRCLEARC)
-			{
-				System.out.println("Cannot render CIRCLEARC polygon");
-			} else if (style == Poly.Type.THICKCIRCLEARC)
-			{
-				System.out.println("Cannot render THICKCIRCLEARC polygon");
 			} else if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
 				style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
 				style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
@@ -316,10 +311,7 @@ System.out.println("Disc center=("+ctrX+","+ctrY+") diameter ("+diameter+")");
 			{
 				double x = poly.getCenterX();
 				double y = poly.getCenterY();
-				drawTextCentered(g2, x, y, poly.getString(), 0.25, Color.black);
-			} else if (style == Poly.Type.GRIDDOTS)
-			{
-				System.out.println("Cannot render GRIDDOTS polygon");
+				drawTextCentered(g2, x, y, poly.getString(), 0.1, Color.black);
 			} else if (style == Poly.Type.CROSS)
 			{
 				// draw the big cross
@@ -350,6 +342,60 @@ System.out.println("Disc center=("+ctrX+","+ctrY+") diameter ("+diameter+")");
 				g2.setTransform(saveAT);
 			}
 		}
+	}
+
+	void drawOutline(Graphics2D g2, Poly poly)
+	{
+		AffineTransform saveAT = g2.getTransform();
+		Poly.Type theStyle = poly.getStyle();
+		double theScale = scale;
+		if (theStyle == Poly.Type.OPENEDT3) theScale /= 2;
+		g2.scale(1/theScale, 1/theScale);
+		GeneralPath gp = new GeneralPath();
+		Point2D [] points = poly.getPoints();
+		if (theStyle == Poly.Type.VECTORS)
+		{
+			for(int j=0; j<points.length; j+=2)
+			{
+				gp.moveTo((float)(points[j].getX()*scale), (float)(points[j].getY()*scale));
+				gp.lineTo((float)(points[j+1].getX()*scale), (float)(points[j+1].getY()*scale));
+			}
+		} else
+		{
+			gp.moveTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
+			for(int j=1; j<points.length; j++)
+				gp.lineTo((float)(points[j].getX()*theScale), (float)(points[j].getY()*theScale));
+			if (theStyle == Poly.Type.CLOSED)
+				gp.lineTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
+		}
+		g2.draw(gp);
+		g2.setTransform(saveAT);
+	}
+
+	void drawCircular(Graphics2D g2, Poly poly)
+	{
+		AffineTransform saveAT = g2.getTransform();
+		double cScale = 100;
+		if (poly.getStyle() == Poly.Type.THICKCIRCLE) cScale = 50;
+		g2.scale(1/cScale, 1/cScale);
+		Point2D [] points = poly.getPoints();
+		int ctrX = (int)(points[0].getX() * cScale);
+		int ctrY = (int)(points[0].getY() * cScale);
+		int edgeX = (int)(points[1].getX() * cScale);
+		int edgeY = (int)(points[1].getY() * cScale);
+		int radius;
+		if (edgeX == ctrX) radius = Math.abs(ctrY - edgeY); else
+			if (edgeY == ctrY) radius = Math.abs(ctrX - edgeX); else
+				radius = (int)Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
+		int diameter = radius * 2;
+		if (poly.getStyle() == Poly.Type.DISC)
+		{
+			g2.fillOval(ctrX-radius, ctrY-radius, diameter, diameter);
+		} else
+		{
+			g2.drawOval(ctrX-radius, ctrY-radius, diameter, diameter);
+		}
+		g2.setTransform(saveAT);
 	}
 
 //		/** text at center */								public static final Type TEXTCENT=       new Type();
@@ -437,4 +483,19 @@ System.out.println("Disc center=("+ctrX+","+ctrY+") diameter ("+diameter+")");
 		needsupdate = true;
 		repaint();
 	}
+	
+	public void keyPressed(KeyEvent e)
+	{
+	}
+	
+	public void keyReleased(KeyEvent e)
+	{
+	}
+	
+	public void keyTyped(KeyEvent e)
+	{
+		if (e.getKeyChar() == 'q')
+			System.out.println("Quitting?");
+	}
+	
 }

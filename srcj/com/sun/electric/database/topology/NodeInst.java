@@ -7,6 +7,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.Point;
@@ -27,32 +28,35 @@ import java.util.Iterator;
  */
 public class NodeInst extends Geometric
 {
+	/** The NodeInst class */								public static Class CLASS      = (new NodeInst()).getClass();
+	/** The NodeInst[] class */								public static Class ARRAYCLASS = (new NodeInst[0]).getClass();
+
 	// -------------------------- constants --------------------------------
-//	/** node is not in use */								private static final int DEADN=                     01;
-	/** node has text that is far away */					private static final int NHASFARTEXT=               02;
-	/** if on, draw node expanded */						private static final int NEXPAND=                   04;
-	/** set if node not drawn due to wiping arcs */			private static final int WIPED=                    010;
-	/** set if node is to be drawn shortened */				private static final int NSHORT=                   020;
-	//  used by database:                                                                                     0140
-//	/** if on, this nodeinst is marked for death */			private static final int KILLN=                   0200;
-//	/** nodeinst re-drawing is scheduled */					private static final int REWANTN=                 0400;
-//	/** only local nodeinst re-drawing desired */			private static final int RELOCLN=                01000;
-//	/** transparent nodeinst re-draw is done */				private static final int RETDONN=                02000;
-//	/** opaque nodeinst re-draw is done */					private static final int REODONN=                04000;
-	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT=           010000;
-//	/** if on, nodeinst wants to be (un)expanded */			private static final int WANTEXP=               020000;
-//	/** temporary flag for nodeinst display */				private static final int TEMPFLG=               040000;
-	/** set if hard to select */							private static final int HARDSELECTN=          0100000;
-	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE=     040000000;
-	/** technology-specific bits for primitives */			private static final int NTECHBITS=          037400000;
-	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH=               17;
-	/** set if node is locked (can't be changed) */			private static final int NILOCKED=          0100000000;
+//	/** node is not in use */								private static final int DEADN =                     01;
+	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
+	/** if on, draw node expanded */						private static final int NEXPAND =                   04;
+	/** set if node not drawn due to wiping arcs */			private static final int WIPED =                    010;
+	/** set if node is to be drawn shortened */				private static final int NSHORT =                   020;
+	//  used by database:                                                                                      0140
+//	/** if on, this nodeinst is marked for death */			private static final int KILLN =                   0200;
+//	/** nodeinst re-drawing is scheduled */					private static final int REWANTN =                 0400;
+//	/** only local nodeinst re-drawing desired */			private static final int RELOCLN =                01000;
+//	/** transparent nodeinst re-draw is done */				private static final int RETDONN =                02000;
+//	/** opaque nodeinst re-draw is done */					private static final int REODONN =                04000;
+	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT =           010000;
+//	/** if on, nodeinst wants to be (un)expanded */			private static final int WANTEXP =               020000;
+//	/** temporary flag for nodeinst display */				private static final int TEMPFLG =               040000;
+	/** set if hard to select */							private static final int HARDSELECTN =          0100000;
+	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE =     040000000;
+	/** technology-specific bits for primitives */			private static final int NTECHBITS =          037400000;
+	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
+	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
 
 	// Name of Variable holding instance name.
 	private static final String VAR_INST_NAME = "NODE_name";
 
 	// ---------------------- private data ----------------------------------
-	/** prototype of this node instance */					private NodeProto prototype;
+	/** prototype of this node instance */					private NodeProto protoType;
 	/** flag bits for this node instance */					private int userBits;
 	/** labling information for this node instance */		private int textbits;
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
@@ -93,14 +97,14 @@ public class NodeInst extends Geometric
 	 * Low-level routine to fill-in the NodeInst information.
 	 * Returns true on error.
 	 */
-	public boolean lowLevelPopulate(NodeProto prototype, Point2D.Double center, double width, double height, double angle,
+	public boolean lowLevelPopulate(NodeProto protoType, Point2D.Double center, double width, double height, double angle,
 		Cell parent)
 	{
 		setParent(parent);
-		this.prototype = prototype;
+		this.protoType = protoType;
 
 		// create all of the portInsts on this node inst
-		for (Iterator it = prototype.getPorts(); it.hasNext();)
+		for (Iterator it = protoType.getPorts(); it.hasNext();)
 		{
 			PortProto pp = (PortProto) it.next();
 			PortInst pi = PortInst.newInstance(pp, this);
@@ -119,8 +123,6 @@ public class NodeInst extends Geometric
 		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
-		this.cos = Math.cos(angle);
-		this.sin = Math.sin(angle);
 		updateGeometric();
 		return false;
 	}
@@ -132,7 +134,7 @@ public class NodeInst extends Geometric
 	public boolean lowLevelLink()
 	{
 		// add to linked lists
-		prototype.addInstance(this);
+		protoType.addInstance(this);
 		parent.addNode(this);
 		return false;
 	}
@@ -203,14 +205,14 @@ public class NodeInst extends Geometric
 		// disconnect from the parent
 		getParent().removeNode(this);
 		// remove instance from the prototype
-		prototype.removeInstance(this);
+		protoType.removeInstance(this);
 		super.remove();
 	}
 
 	public void getInfo()
 	{
 		System.out.println("--------- NODE INSTANCE: ---------");
-		System.out.println(" Prototype: " + prototype.describe());
+		System.out.println(" Prototype: " + protoType.describe());
 		super.getInfo();
 		System.out.println(" Ports:");
 		for(Iterator it = getPortInsts(); it.hasNext();)
@@ -345,7 +347,7 @@ public class NodeInst extends Geometric
 	public AffineTransform transformOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
-		Cell lowerCell = (Cell)prototype;
+		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
 		double dx = getCenterX() - bounds.getCenterX();
 		double dy = getCenterY() - bounds.getCenterY();
@@ -366,7 +368,7 @@ public class NodeInst extends Geometric
 	public AffineTransform translateOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
-		Cell lowerCell = (Cell)prototype;
+		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
 		double dx = getCenterX() - bounds.getCenterX();
 		double dy = getCenterY() - bounds.getCenterY();
@@ -385,14 +387,13 @@ public class NodeInst extends Geometric
 
 	public AffineTransform rotateOut()
 	{
-		AffineTransform transform = new AffineTransform();
-		transform.setToRotation(angle, cX, cY);
-		return transform;
+		return rotateAbout(angle, sX, sY, cX, cY);
 	}
-	
+
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
-		if (angle == 0) return prevTransform;
+		// if there is no transformation, stop now
+		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
 
 		AffineTransform transform = rotateOut();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -428,6 +429,15 @@ public class NodeInst extends Geometric
 	{
 		return (PortInst) portMap.get(name);
 	}
+	
+	public Integer [] getTrace()
+	{
+		ElectricObject.Variable var = this.getVal("trace", ElectricObject.INTEGERARRAYCLASS);
+		if (var == null) return null;
+		Object obj = var.getObject();
+		if (obj instanceof Object[]) return (Integer []) obj;
+		return null;
+	}
 
 	/**
 	 * routine to determine whether pin display should be supressed by counting
@@ -451,7 +461,7 @@ public class NodeInst extends Geometric
 	 */
 	public PortProto connectsTo(ArcProto arc)
 	{
-		return prototype.connectsTo(arc);
+		return protoType.connectsTo(arc);
 	}
 
 	void addConnection(Connection c)
@@ -469,14 +479,18 @@ public class NodeInst extends Geometric
 		return exports.iterator();
 	}
 
+	public int getNumExports() { return exports.size(); }
+
 	public Iterator getConnections()
 	{
 		return connections.iterator();
 	}
 
+	public int getNumConnections() { return connections.size(); }
+
 	public NodeProto getProto()
 	{
-		return prototype;
+		return protoType;
 	}
 
 	/** Get the Text Descriptor associated with this port. */
@@ -495,25 +509,26 @@ public class NodeInst extends Geometric
 	/** Return the instance name. <p> If there is no name return null. */
 	public String getName()
 	{
-		Variable var = getVal(VAR_INST_NAME);
+		Variable var = getVal(VAR_INST_NAME, ElectricObject.STRINGCLASS);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}
 
 	/** Set the instance name. */
-	public void setName(String val)
+	public void setName(String name)
 	{
-		setVal(VAR_INST_NAME, val);
+		Variable var = setVal(VAR_INST_NAME, name);
+		if (var != null) var.setDisplay();
 	}
 
 	public String describe()
 	{
-		return prototype.getProtoName();
+		return protoType.getProtoName();
 	}
 
 	public String toString()
 	{
-		return "NodeInst " + prototype.getProtoName();
+		return "NodeInst " + protoType.getProtoName();
 	}
 
 	/** Get the location of the NodeProto's reference point in the
@@ -522,7 +537,7 @@ public class NodeInst extends Geometric
 //	public Point2D getReferencePoint()
 //	{
 //		// Tricky! First transform the reference point in BASE units.
-//		Point2D.Double p = prototype.getRefPointBase();
+//		Point2D.Double p = protoType.getRefPointBase();
 //		Poly poly =
 //			new Poly(new double[] { p.x }, new double[] { p.y });
 //		Poly xformedPoly = xformPoly(poly);
@@ -658,7 +673,7 @@ public class NodeInst extends Geometric
 //		double y,
 //		double angle)
 //	{
-//		NodeProto p = prototype;
+//		NodeProto p = protoType;
 ////		if (p instanceof Cell)
 ////			 ((Cell) p).updateBounds();
 //
@@ -697,7 +712,7 @@ public class NodeInst extends Geometric
 //		double y,
 //		double angle)
 //	{
-//		NodeProto p = prototype;
+//		NodeProto p = protoType;
 //		error(
 //			p instanceof Cell,
 //			"alterShapeWH only handles primitiveNodes. "

@@ -4,18 +4,22 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.TecGeneric;
+import com.sun.electric.technology.technologies.TecSchematics;
+import com.sun.electric.technology.technologies.TecArtwork;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * A Technology object contains PrimitiveNodes and ArcProtos.  There may
@@ -24,6 +28,16 @@ import java.awt.geom.Point2D;
  */
 public class Technology extends ElectricObject
 {
+//	/** The Technology class */											public static Class CLASS      = (new Technology()).getClass();
+//	/** The Technology[] class */										public static Class ARRAYCLASS = (new Technology[0]).getClass();
+
+	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
+	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
+	/**  has no negated arcs */											private static final int NONEGATEDARCS =       04;
+	/** nonstandard technology (cannot be edited) */					private static final int NONSTANDARD =        010;
+	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
+	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
+
 	public static class ArcLayer
 	{
 		Layer layer;
@@ -47,11 +61,11 @@ public class Technology extends ElectricObject
 		private EdgeV y;
 		
 		public static final TechPoint [] ATCENTER = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter)};
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER)};
 		public static final TechPoint [] FULLBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.TopEdge)};
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)};
 		public static final TechPoint [] IN0HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 					new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))};
@@ -136,15 +150,16 @@ public class Technology extends ElectricObject
 		public int getRepresentation() { return representation; }
 		public TechPoint [] getPoints() { return points; }
 		public EdgeH getLeftEdge() { return points[0].getX(); }
-		public EdgeV getBottomEdge() { return points[0].getY(); }
-		public EdgeH getRightEdge() { return points[1].getX(); }
-		public EdgeV getTopEdge() { return points[1].getY(); }
+		public EdgeV getBOTTOMEDGE() { return points[0].getY(); }
+		public EdgeH getRIGHTEDGE() { return points[1].getX(); }
+		public EdgeV getTOPEDGE() { return points[1].getY(); }
 		public String getMessage() { return message; }
 		public void setMessage(String message) { this.message = message; }
 	}
 
 	/** name of the technology */						private String techName;
 	/** full description of the technology */			private String techDesc;
+	/** flags for the technology */						private int userBits;
 	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** list of primitive nodes in the technology */	private List nodes;
@@ -152,6 +167,7 @@ public class Technology extends ElectricObject
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
 	/* the current technology in Electric */			private static Technology curTech = null;
+	/* the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/* counter for enumerating technologies */			private static int techNumber = 0;
 
 	protected Technology()
@@ -160,6 +176,7 @@ public class Technology extends ElectricObject
 		this.arcs = new ArrayList();
 		this.scale = 1.0;
 		this.techIndex = techNumber++;
+		userBits = 0;
 
 		// add the technology to the global list
 		technologies.add(this);
@@ -185,6 +202,36 @@ public class Technology extends ElectricObject
 		arcs.add(ap);
 	}
 
+	/** Set the NonElectrical bit */
+	public void setNonElectrical() { userBits |= NONELECTRICAL; }
+	/** Get the NonElectrical bit */
+	public boolean isNonElectrical() { return (userBits & NONELECTRICAL) != 0; }
+
+	/** Set the No Directional Arcs bit */
+	public void setNoDirectionalArcs() { userBits |= NODIRECTIONALARCS; }
+	/** Get the No Directional bit */
+	public boolean isNoDirectionalArcs() { return (userBits & NODIRECTIONALARCS) != 0; }
+
+	/** Set the No Negated Arcs bit */
+	public void setNoNegatedArcs() { userBits |= NONEGATEDARCS; }
+	/** Get the No Directional bit */
+	public boolean isNoNegatedArcs() { return (userBits & NONEGATEDARCS) != 0; }
+
+	/** Set the NonStandard bit */
+	public void setNonStandard() { userBits |= NONSTANDARD; }
+	/** Get the No Directional bit */
+	public boolean isNonStandard() { return (userBits & NONSTANDARD) != 0; }
+
+	/** Set the Static Technology bit */
+	public void setStaticTechnology() { userBits |= NONSTANDARD; }
+	/** Get the No Directional bit */
+	public boolean isStaticTechnology() { return (userBits & NONSTANDARD) != 0; }
+
+	/** Set the No Primitive Nodes bit */
+	public void setNoPrimitiveNodes() { userBits |= NOPRIMTECHNOLOGY; }
+	/** Get the No Directional bit */
+	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
+
 	/**
 	 * Return the current Technology
 	 */
@@ -193,7 +240,12 @@ public class Technology extends ElectricObject
 	/**
 	 * Set the current Technology
 	 */
-	public static void setCurrent(Technology tech) { curTech = tech; }
+	public static void setCurrent(Technology tech)
+	{
+		curTech = tech;
+		if (tech != TecGeneric.tech && tech != TecSchematics.tech && tech != TecArtwork.tech)
+			curLayoutTech = tech;
+	}
 
 	/** 
 	 * get the name (short) of this technology
@@ -256,7 +308,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get an iterator over all of the PrimitiveNodes in this technology
+	 * get an iterator over all of the Technologies
 	 */
 	public static Iterator getTechnologyIterator()
 	{
@@ -279,7 +331,11 @@ public class Technology extends ElectricObject
 		}
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
+		return getShape(ni, primLayers);
+	}
 
+	public Poly [] getShape(NodeInst ni, Technology.NodeLayer [] primLayers)
+	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
 		double lowX = ni.getCenterX() - halfWidth;
@@ -288,8 +344,34 @@ public class Technology extends ElectricObject
 		double lowY = ni.getCenterY() - halfHeight;
 		double highY = ni.getCenterY() + halfHeight;
 
+		NodeProto np = ni.getProto();
+		if (np.isHoldsOutline())
+		{
+			Integer [] outline = ni.getTrace();
+			if (outline != null)
+			{
+				int numPolys = ni.numDisplayableVariables() + 1;
+				Poly [] polys = new Poly[numPolys];
+				int numPoints = outline.length / 2;
+				Point2D.Double [] pointList = new Point2D.Double[numPoints];
+				for(int i=0; i<numPoints; i++)
+				{
+					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].intValue(),
+						ni.getCenterY() + outline[i*2+1].intValue());
+				}
+				polys[0] = new Poly(pointList);
+				Technology.NodeLayer primLayer = primLayers[0];
+				polys[0].setStyle(primLayer.getStyle());
+				polys[0].setLayer(primLayer.getLayer());
+				Rectangle2D rect = ni.getBounds();
+				ni.addDisplayableVariables(rect, polys, 1);
+				return polys;
+			}
+		}
+
 		// construct the polygons
-		Poly [] polys = new Poly[primLayers.length];
+		int numPolys = ni.numDisplayableVariables() + primLayers.length;
+		Poly [] polys = new Poly[numPolys];
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
@@ -297,26 +379,27 @@ public class Technology extends ElectricObject
 			Poly.Type style = primLayer.getStyle();
 			if (representation == Technology.NodeLayer.BOX)
 			{
-//				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
-//				{
-//				} else
-				{
-					double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
-					double portHighX = ni.getCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
-					double portLowY = ni.getCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
-					double portHighY = ni.getCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
-					double portX = (portLowX + portHighX) / 2;
-					double portY = (portLowY + portHighY) / 2;
-					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-				}
+				double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
+				double portHighX = ni.getCenterX() + primLayer.getRIGHTEDGE().getMultiplier() * ni.getXSize() + primLayer.getRIGHTEDGE().getAdder();
+				double portLowY = ni.getCenterY() + primLayer.getBOTTOMEDGE().getMultiplier() * ni.getYSize() + primLayer.getBOTTOMEDGE().getAdder();
+				double portHighY = ni.getCenterY() + primLayer.getTOPEDGE().getMultiplier() * ni.getYSize() + primLayer.getTOPEDGE().getAdder();
+				double portX = (portLowX + portHighX) / 2;
+				double portY = (portLowY + portHighY) / 2;
+				polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 			} else if (representation == Technology.NodeLayer.POINTS)
 			{
 				TechPoint [] points = primLayer.getPoints();
 				Point2D.Double [] pointList = new Point2D.Double[points.length];
 				for(int j=0; j<points.length; j++)
 				{
-					double x = ni.getCenterX() + points[j].getX().getMultiplier() * ni.getXSize() + points[j].getX().getAdder();
-					double y = ni.getCenterY() + points[j].getY().getMultiplier() * ni.getYSize() + points[j].getY().getAdder();
+					EdgeH xFactor = points[j].getX();
+					EdgeV yFactor = points[j].getY();
+					double x = 0, y = 0;
+					if (xFactor != null && yFactor != null)
+					{
+						x = ni.getCenterX() + xFactor.getMultiplier() * ni.getXSize() + xFactor.getAdder();
+						y = ni.getCenterY() + yFactor.getMultiplier() * ni.getYSize() + yFactor.getAdder();
+					}
 					pointList[j] = new Point2D.Double(x, y);
 				}
 				polys[i] = new Poly(pointList);
@@ -331,34 +414,79 @@ public class Technology extends ElectricObject
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
 		}
+		Rectangle2D rect = ni.getBounds();
+		ni.addDisplayableVariables(rect, polys, primLayers.length);
 		return polys;
 	}
 
 	/**
-	 * Get a list of polygons that describe arc "ai"
+	 * Get a list of polygons that describe arc "ai".
 	 */
 	public Poly [] getShape(ArcInst ai)
 	{
+		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+		Technology tech = ap.getTechnology();
 		Technology.ArcLayer [] primLayers = ap.getLayers();
 
-		// get information about the arc
-		double halfWidth = ai.getXSize() / 2;
-		double lowX = ai.getCenterX() - halfWidth;
-		double highX = ai.getCenterX() + halfWidth;
-		double halfHeight = ai.getYSize() / 2;
-		double lowY = ai.getCenterY() - halfHeight;
-		double highY = ai.getCenterY() + halfHeight;
-		
-		// construct the polygons
-		Poly [] polys = new Poly[primLayers.length];
+		// see how many polygons describe this arc
+		boolean addArrow = false;
+		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
+		int numDisplayable = ai.numDisplayableVariables();
+		int maxPolys = primLayers.length + numDisplayable;
+		if (addArrow) maxPolys++;
+		Poly [] polys = new Poly[maxPolys];
+		int polyNum = 0;
+
+		// construct the polygons that describe the basic arc
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.ArcLayer primLayer = primLayers[i];
-			polys[i] = ai.makearcpoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
-			if (polys[i] == null) return null;
-			polys[i].setLayer(primLayer.getLayer());
+			polys[polyNum] = ai.makearcpoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+			if (polys[polyNum] == null) return null;
+			polys[polyNum].setLayer(primLayer.getLayer());
+			polyNum++;
 		}
+
+		// add an arrow to the arc description
+		if (addArrow)
+		{
+			Point2D.Double headLoc = ai.getHead().getLocation();
+			Point2D.Double tailLoc = ai.getTail().getLocation();
+			double headX = headLoc.getX();   double headY = headLoc.getY();
+			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
+			double angle = ai.getAngle();
+			if (ai.isReverseEnds())
+			{
+				double swap = headX;   headX = tailX;   tailX = swap;
+				swap = headY;   headY = tailY;   tailY = swap;
+				angle += Math.PI;
+			}
+			int numPoints = 6;
+			if (ai.isSkipHead()) numPoints = 2;
+			Point2D.Double [] points = new Point2D.Double[numPoints];
+			points[0] = new Point2D.Double(headX, headY);
+			points[1] = new Point2D.Double(tailX, tailY);
+			if (!ai.isSkipHead())
+			{
+				points[2] = points[0];
+				double angleOfArrow = Math.PI/6;		// 30 degrees
+				double backAngle1 = angle - angleOfArrow;
+				double backAngle2 = angle + angleOfArrow;
+				points[3] = new Point2D.Double(headX + Math.cos(backAngle1), headY + Math.sin(backAngle1));
+				points[4] = points[0];
+				points[5] = new Point2D.Double(headX + Math.cos(backAngle2), headY + Math.sin(backAngle2));
+			}
+			polys[polyNum] = new Poly(points);
+			polys[polyNum].setStyle(Poly.Type.VECTORS);
+			polys[polyNum].setLayer(null);
+			polyNum++;
+		}
+		
+		// add in the displayable variables
+		Rectangle2D rect = ai.getBounds();
+		ai.addDisplayableVariables(rect, polys, polyNum);
+
 		return polys;
 	}
 
@@ -464,7 +592,8 @@ public class Technology extends ElectricObject
 		return "Technology " + techName;
 	}
 
-	public static Technology whatTechnology(NodeProto cell, Iterator nodeIterator, Iterator arcIterator)
+	public static Technology whatTechnology(NodeProto cell, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
+		ArcProto [] arcProtoList, int startArcProto, int endArcProto)
 	{
 		// primitives know their technology
 		if (cell instanceof PrimitiveNode) return(((PrimitiveNode)cell).getTechnology());
@@ -483,14 +612,14 @@ public class Technology extends ElectricObject
 		for(int i=0; i<maxTech; i++) useCount[i] = 0;
 
 		// count technologies of all primitive nodes in the cell
-		if (nodeIterator != null)
+		if (nodeProtoList != null)
 		{
-			// use the node iterator
-			for(; nodeIterator.hasNext(); )
+			// iterate over the NodeProtos in the list
+			for(int i=startNodeProto; i<endNodeProto; i++)
 			{
-				NodeInst ni = (NodeInst)nodeIterator.next();
-				NodeProto np = ni.getProto();
-				if (np instanceof PrimitiveNode) useCount[np.getTechnology().getIndex()]++;
+				NodeProto np = nodeProtoList[i];
+				Technology nodeTech = np.getTechnology();
+				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
 		} else
 		{
@@ -498,18 +627,18 @@ public class Technology extends ElectricObject
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (np instanceof PrimitiveNode) useCount[np.getTechnology().getIndex()]++;
+				Technology nodeTech = np.getTechnology();
+				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
 		}
 
 		// count technologies of all arcs in the cell
-		if (arcIterator != null)
+		if (arcProtoList != null)
 		{
-			// use the node iterator
-			for(; arcIterator.hasNext(); )
+			// iterate over the arcprotos in the list
+			for(int i=startArcProto; i<endArcProto; i++)
 			{
-				ArcInst ai = (ArcInst)arcIterator.next();
-				ArcProto ap = ai.getProto();
+				ArcProto ap = arcProtoList[i];
 				useCount[ap.getTechnology().getIndex()]++;
 			}
 		} else
@@ -523,8 +652,8 @@ public class Technology extends ElectricObject
 		}
 
 		// find a concensus
-		int best = 0;         Technology besttech = null;
-		int bestlayout = 0;   Technology bestlayouttech = null;
+		int best = 0;         Technology bestTech = null;
+		int bestLayout = 0;   Technology bestLayoutTech = null;
 		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -536,51 +665,50 @@ public class Technology extends ElectricObject
 			if (useCount[tech.getIndex()] > best)
 			{
 				best = useCount[tech.getIndex()];
-				besttech = tech;
+				bestTech = tech;
 			}
 
 			// find the most popular of the layout technologies
-//			if (tech == sch_tech || tech == art_tech) continue;
-			if (useCount[tech.getIndex()] > bestlayout)
+			if (tech == TecSchematics.tech || tech == TecArtwork.tech) continue;
+			if (useCount[tech.getIndex()] > bestLayout)
 			{
-				bestlayout = useCount[tech.getIndex()];
-				bestlayouttech = tech;
+				bestLayout = useCount[tech.getIndex()];
+				bestLayoutTech = tech;
 			}
 		}
 
 		Technology retTech = null;
-//		// presume generic
-//		if (cell.getCellView() == View.ICON)
-//		{
-//			// in icons, if there is any artwork, use it
-//			if (useCount[art_tech.getIndex()] > 0) return(art_tech);
-//
-//			// in icons, if there is nothing, presume artwork
-//			if (besttech == NOTECHNOLOGY) return(art_tech);
-//
-//			// use artwork as a default
-//			rettech = art_tech;
-//		} else if (cell.getCellView() == View.SCHEMATIC)
-//		{
-//			// in schematic, if there are any schematic components, use it
-//			if (useCount[sch_tech.getIndex()] > 0) return(sch_tech);
-//
-//			// in schematic, if there is nothing, presume schematic
-//			if (besttech == NOTECHNOLOGY) return(sch_tech);
-//
-//			// use schematic as a default
-//			retTech = sch_tech;
-//		} else
-//		{
-//			// use the current layout technology as the default
-//			retTech = el_curlayouttech;
-//		}
+		if (((Cell)cell).getView() == View.ICON)
+		{
+			// in icons, if there is any artwork, use it
+			if (useCount[TecArtwork.tech.getIndex()] > 0) return(TecArtwork.tech);
+
+			// in icons, if there is nothing, presume artwork
+			if (bestTech == null) return(TecArtwork.tech);
+
+			// use artwork as a default
+			retTech = TecArtwork.tech;
+		} else if (((Cell)cell).getView() == View.SCHEMATIC)
+		{
+			// in schematic, if there are any schematic components, use it
+			if (useCount[TecSchematics.tech.getIndex()] > 0) return(TecSchematics.tech);
+
+			// in schematic, if there is nothing, presume schematic
+			if (bestTech == null) return(TecSchematics.tech);
+
+			// use schematic as a default
+			retTech = TecSchematics.tech;
+		} else
+		{
+			// use the current layout technology as the default
+			retTech = curLayoutTech;
+		}
 
 		// if a layout technology was voted the most, return it
-		if (bestlayouttech != null) retTech = bestlayouttech; else
+		if (bestLayoutTech != null) retTech = bestLayoutTech; else
 		{
 			// if any technology was voted the most, return it
-			if (besttech != null) retTech = besttech; else
+			if (bestTech != null) retTech = bestTech; else
 			{
 //				// if this is an icon, presume the technology of its contents
 //				cv = contentsview(cell);

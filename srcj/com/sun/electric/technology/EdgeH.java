@@ -11,9 +11,9 @@ public class EdgeH
 		this.adder = adder;
 	}
 
-	public static final EdgeH LeftEdge = new EdgeH(-0.5, 0.0);
-	public static final EdgeH RightEdge = new EdgeH(0.5, 0.0);
-	public static final EdgeH AtCenter = new EdgeH(0.0, 0.0);
+	public static final EdgeH LEFTEDGE = new EdgeH(-0.5, 0.0);
+	public static final EdgeH RIGHTEDGE = new EdgeH(0.5, 0.0);
+	public static final EdgeH CENTER = new EdgeH(0.0, 0.0);
 
 	public double getMultiplier() { return multiplier; }
 	public double getAdder() { return adder; }

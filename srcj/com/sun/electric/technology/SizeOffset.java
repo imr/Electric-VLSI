@@ -17,16 +17,21 @@ package com.sun.electric.technology;
 // so it may properly compute NodeInst and ArcInst bounding boxes
 // without this ridiculous invisible surround.
 
-class SizeOffset
+public class SizeOffset
 {
 	final double lx, ly, hx, hy;
-	SizeOffset(double lx, double ly, double hx, double hy)
+	public SizeOffset(double lx, double ly, double hx, double hy)
 	{
 		this.lx = lx;
 		this.ly = ly;
 		this.hx = hx;
 		this.hy = hy;
 	}
+
+	public double getLowXOffset() { return lx; }
+	public double getHighXOffset() { return hx; }
+	public double getLowYOffset() { return ly; }
+	public double getHighYOffset() { return hy; }
 
 	public String toString()
 	{

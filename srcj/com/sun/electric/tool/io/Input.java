@@ -10,6 +10,7 @@ public class Input
 	String filePath;
 	Library lib;
 	FileInputStream fileInputStream;
+	DataInputStream dataInputStream;
 
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be read.
@@ -69,6 +70,7 @@ public class Input
 			System.out.println("Could not find file " + fileName);
 			return null;
 		}
+		in.dataInputStream = new DataInputStream(in.fileInputStream);
 		if (in.ReadLib())
 		{
 			System.out.println("Error reading library");

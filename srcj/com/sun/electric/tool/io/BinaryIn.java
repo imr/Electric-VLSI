@@ -20,12 +20,17 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.ByteOrder;
+
 
 public class BinaryIn extends Input
 {
@@ -666,8 +671,11 @@ public class BinaryIn extends Input
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
 		lib.setFromDisk();
-		NodeProto currentCell = convertNodeProto(curCell);
-		lib.setCurCell((Cell)currentCell);
+		if (curCell >= 0)
+		{
+			NodeProto currentCell = convertNodeProto(curCell);
+			lib.setCurCell((Cell)currentCell);
+		}
 
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
@@ -951,6 +959,13 @@ public class BinaryIn extends Input
 		}
 		cell.setTemp1(1);
 
+		// determine the lambda value for this cell
+		double lambda = 1.0;
+		int startArc = firstArcIndex[cellIndex];
+		int endArc = firstArcIndex[cellIndex+1];
+		Technology cellTech = Technology.whatTechnology(cell, nodeTypeList, startNode, endNode, arcTypeList, startArc, endArc);
+		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
+
 		// finish initializing the NodeInsts in the cell
 		for(int i=startNode; i<endNode; i++)
 		{
@@ -958,18 +973,24 @@ public class BinaryIn extends Input
 			NodeInst ni = nodeList[i];
 			NodeProto np = nodeTypeList[i];
 
-			// determine the lambda value for this cell
-			double lambdaForCell = 1.0;
-			Technology cellTech = Technology.whatTechnology(cell, null, null);
-			if (cellTech != null) lambdaForCell = techScale[cellTech.getIndex()];
-
 			// determine the value of lambda for this node
-			double lambda = lambdaForCell;
 			if (np instanceof PrimitiveNode)
 			{
-				Technology tech = ((PrimitiveNode)np).getTechnology();
-				lambda = techScale[tech.getIndex()];
+				// special case for "trace" on a node: scale the values
+				if (np.isHoldsOutline())
+				{
+					Integer [] outline = ni.getTrace();
+					if (outline != null)
+					{
+						for(int j=0; j<outline.length; j++)
+						{
+							int oldValue = outline[j].intValue();
+							outline[j] = new Integer((int)(oldValue/lambda));
+						}
+					}
+				}
 			}
+
 			int lowX = nodeLowXList[i];
 			int lowY = nodeLowYList[i];
 			int highX = nodeHighXList[i];
@@ -979,7 +1000,7 @@ public class BinaryIn extends Input
 			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
-			double angle = rotation * 1800 / Math.PI;
+			double angle = rotation * Math.PI / 1800;
 			if (transpose) width = -width;
 			ni.lowLevelPopulate(np, center, width, height, angle, cell);
 			ni.lowLevelLink();
@@ -1005,8 +1026,6 @@ public class BinaryIn extends Input
 
 		// finish initializing the ArcInsts in the cell
 		boolean arcInfoError = false;
-		int startArc = firstArcIndex[cellIndex];
-		int endArc = firstArcIndex[cellIndex+1];
 		for(int i=startArc; i<endArc; i++)
 		{
 			ArcInst ai = arcList[i];
@@ -1037,7 +1056,7 @@ public class BinaryIn extends Input
 					" because ends are unknown");
 				continue;
 			}
-			ai.lowLevelPopulate(ap, width, headPortInst, headX, headY, tailPortInst, tailX, tailY);
+			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
 		}
 	}
@@ -1509,20 +1528,12 @@ public class BinaryIn extends Input
 	private static final int VWINDOWFRAME=             034;		/** window frame pointer */
 	private static final int VPOLYGON=                 035;		/** polygon pointer */
 	private static final int VBOOLEAN=                 036;		/** boolean variable */
-
 	private static final int VTYPE=                    037;		/** all above type fields */
 	private static final int VCODE1=                   040;		/** variable is interpreted code (with VCODE2) */
 	private static final int VDISPLAY=                0100;		/** display variable (uses textdescript field) */
 	private static final int VISARRAY=                0200;		/** set if variable is array of above objects */
-	private static final int VCREF=                   0400;		/** variable points into C structure */
 	private static final int VLENGTH=          03777777000;		/** array length (0: array is -1 terminated) */
-	private static final int VLENGTHSH=                  9;		/** right shift for VLENGTH */
 	private static final int VCODE2=           04000000000;		/** variable is interpreted code (with VCODE1) */
-	private static final int VLISP=                 VCODE1;		/** variable is LISP */
-	private static final int VTCL=                  VCODE2;		/** variable is TCL */
-	private static final int VJAVA=         (VCODE1|VCODE2);	/** variable is Java */
-	private static final int VDONTSAVE=       010000000000;		/** set to prevent saving on disk */
-	private static final int VCANTSET=        020000000000;		/** set to prevent changing value */
 
 	/**
 	 * routine to read the global namespace.  returns true upon error
@@ -1552,7 +1563,6 @@ public class BinaryIn extends Input
 		{
 			short key = readSmallInteger();
 			int newtype = readBigInteger();
-			int ty = newtype;
 
 			// version 9 and later reads text description on displayable variables
 			boolean definedDescript = false;
@@ -1568,7 +1578,7 @@ public class BinaryIn extends Input
 					definedDescript = true;
 				} else
 				{
-					if ((ty&VDISPLAY) != 0)
+					if ((newtype&VDISPLAY) != 0)
 					{
 						if (convertTextDescriptors)
 						{
@@ -1588,14 +1598,34 @@ public class BinaryIn extends Input
 //				defaulttextdescript(newDescript, NOGEOM);
 			}
 			Object newAddr;
-			if ((ty&VISARRAY) != 0)
+			if ((newtype&VISARRAY) != 0)
 			{
 				int len = readBigInteger();
 				int cou = len;
-				if ((ty&VLENGTH) == 0) cou++;
-				Object [] newAddrArray = new Object[cou];
+				if ((newtype&VLENGTH) == 0) cou++;
+				Object [] newAddrArray = null;
+				switch (newtype&VTYPE)
+				{
+					case VADDRESS:
+					case VINTEGER:
+					case VFRACT:      newAddrArray = new Integer[cou];     break;
+					case VFLOAT:      newAddrArray = new Float[cou];       break;
+					case VDOUBLE:     newAddrArray = new Double[cou];      break;
+					case VSHORT:      newAddrArray = new Short[cou];       break;
+					case VBOOLEAN:
+					case VCHAR:       newAddrArray = new Byte[cou];        break;
+					case VSTRING:     newAddrArray = new String[cou];      break;
+					case VNODEINST:   newAddrArray = new NodeInst[cou];    break;
+					case VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
+					case VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
+					case VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
+					case VARCINST:    newAddrArray = new ArcInst[cou];     break;
+					case VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
+					case VLIBRARY:    newAddrArray = new Library[cou];     break;
+					case VTOOL:       newAddrArray = new Tool[cou];        break;
+				}
 				newAddr = newAddrArray;
-				if ((ty&VTYPE) == VGENERAL)
+				if ((newtype&VTYPE) == VGENERAL)
 				{
 					for(int j=0; j<len; j += 2)
 					{
@@ -1607,14 +1637,15 @@ public class BinaryIn extends Input
 				{
 					for(int j=0; j<len; j++)
 					{
-						Object ret = getInVar(ty);
+						Object ret = getInVar(newtype);
 						if (ret == null) return(-1);
 						newAddrArray[j] = ret;
 					}
+					
 				}
 			} else
 			{
-				newAddr = getInVar(ty);
+				newAddr = getInVar(newtype);
 				if (newAddr == null) return(-1);
 			}
 
@@ -1633,6 +1664,7 @@ public class BinaryIn extends Input
 				ElectricObject.Variable var = obj.setVal(realName[key], newAddr);
 				if (var == null) return(-1);
 				var.getTextDescriptor().lowLevelSet(descript0, descript1);
+				var.lowLevelSetFlags(newtype);
 
 				// handle updating of technology caches
 //				if (type == VTECHNOLOGY)
@@ -1924,10 +1956,13 @@ public class BinaryIn extends Input
 	byte readByte()
 		throws IOException
 	{
-		int value = fileInputStream.read();
+		int value = dataInputStream.read();
 		if (value == -1) throw new IOException();
 		return (byte)value;
 	}
+
+	static ByteBuffer bb = ByteBuffer.allocateDirect(8);
+	static byte [] rawData = new byte[8];
 
 	/**
 	 * routine to read an integer (4 bytes) from the input stream and return it.
@@ -1935,33 +1970,62 @@ public class BinaryIn extends Input
 	int readBigInteger()
 		throws IOException
 	{
-		byte [] data = new byte[4];
-		readBytes(data, sizeOfBig, 4, true);
-		int intValue = ((data[3]&0xFF) << 24) | ((data[2]&0xFF) << 16) |
-			((data[1]&0xFF) << 8) | (data[0]&0xFF);
-		return intValue;
+		if (bytesSwapped)
+		{
+			return dataInputStream.readInt();
+		} else
+		{
+			readBytes(rawData, sizeOfBig, 4, true);
+			bb.put(0, rawData[3]);
+			bb.put(1, rawData[2]);
+			bb.put(2, rawData[1]);
+			bb.put(3, rawData[0]);
+			return bb.getInt(0);
+		}
 	}
 
 	/**
 	 * routine to read a float (4 bytes) from the input stream and return it.
 	 */
-	int readFloat()
+	float readFloat()
 		throws IOException
 	{
-		byte [] data = new byte[4];
-		readBytes(data, sizeOfBig, 4, true);
-		return 0;
+		if (bytesSwapped)
+		{
+			return dataInputStream.readFloat();
+		} else
+		{
+			readBytes(rawData, sizeOfBig, 4, true);
+			bb.put(0, rawData[3]);
+			bb.put(1, rawData[2]);
+			bb.put(2, rawData[1]);
+			bb.put(3, rawData[0]);
+			return bb.getFloat(0);
+		}
 	}
 
 	/**
 	 * routine to read a double (8 bytes) from the input stream and return it.
 	 */
-	int readDouble()
+	double readDouble()
 		throws IOException
 	{
-		byte [] data = new byte[8];
-		readBytes(data, sizeOfBig*2, 8, true);
-		return 0;
+		if (bytesSwapped)
+		{
+			return dataInputStream.readDouble();
+		} else
+		{
+			readBytes(rawData, sizeOfBig, 8, true);
+			bb.put(0, rawData[7]);
+			bb.put(1, rawData[2]);
+			bb.put(2, rawData[3]);
+			bb.put(3, rawData[4]);
+			bb.put(4, rawData[3]);
+			bb.put(5, rawData[2]);
+			bb.put(6, rawData[1]);
+			bb.put(7, rawData[0]);
+			return bb.getDouble(0);
+		}
 	}
 
 	/**
@@ -1970,10 +2034,16 @@ public class BinaryIn extends Input
 	short readSmallInteger()
 		throws IOException
 	{
-		byte [] data = new byte[2];
-		readBytes(data, sizeOfSmall, 2, true);
-		short intValue = (short)(((data[1]&0xFF) << 8) | (data[0]&0xFF));
-		return intValue;
+		if (bytesSwapped)
+		{
+			return dataInputStream.readShort();
+		} else
+		{
+			readBytes(rawData, sizeOfSmall, 2, true);
+			bb.put(0, rawData[1]);
+			bb.put(1, rawData[0]);
+			return bb.getShort(0);
+		}
 	}
 
 	/**
@@ -1994,7 +2064,7 @@ public class BinaryIn extends Input
 			// disk and memory match: read the data
 			int len = readBigInteger();
 			byte [] stringBytes = new byte[len];
-			int ret = fileInputStream.read(stringBytes, 0, len);
+			int ret = dataInputStream.read(stringBytes, 0, len);
 			if (ret != len) throw new IOException();
 			String theString = new String(stringBytes);
 			return theString;
@@ -2011,36 +2081,16 @@ public class BinaryIn extends Input
 		throws IOException
 	{
 		// check for direct transfer
-		if (diskSize == memorySize && !bytesSwapped)
+		if (diskSize == memorySize)
 		{
 			// just peel it off the disk
-			int ret = fileInputStream.read(data, 0, diskSize);
+			int ret = dataInputStream.read(data, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
 		} else
 		{
 			// not a simple read, use a buffer
-			int ret = fileInputStream.read(swapBuf, 0, diskSize);
+			int ret = dataInputStream.read(swapBuf, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
-			if (bytesSwapped)
-			{
-				byte swapbyte;
-				switch (diskSize)
-				{
-					case 2:
-						swapbyte = swapBuf[0]; swapBuf[0] = swapBuf[1]; swapBuf[1] = swapbyte;
-						break;
-					case 4:
-						swapbyte = swapBuf[3]; swapBuf[3] = swapBuf[0]; swapBuf[0] = swapbyte;
-						swapbyte = swapBuf[2]; swapBuf[2] = swapBuf[1]; swapBuf[1] = swapbyte;
-						break;
-					case 8:
-						swapbyte = swapBuf[7]; swapBuf[7] = swapBuf[0]; swapBuf[0] = swapbyte;
-						swapbyte = swapBuf[6]; swapBuf[6] = swapBuf[1]; swapBuf[1] = swapbyte;
-						swapbyte = swapBuf[5]; swapBuf[5] = swapBuf[2]; swapBuf[2] = swapbyte;
-						swapbyte = swapBuf[4]; swapBuf[4] = swapBuf[3]; swapBuf[3] = swapbyte;
-						break;
-				}
-			}
 			if (diskSize == memorySize)
 			{
 				for(int i=0; i<memorySize; i++) data[i] = swapBuf[i];

@@ -15,6 +15,9 @@ import java.util.Iterator;
  */
 public class Tool extends ElectricObject
 {
+	/** The Tool class */									public static Class CLASS      = (new Tool()).getClass();
+	/** The Tool[] class */									public static Class ARRAYCLASS = (new Tool[0]).getClass();
+
 	// The name of this tool
 	private String toolName;
 	private int toolState;
@@ -24,24 +27,24 @@ public class Tool extends ElectricObject
 	private static List tools = new ArrayList();
 	private static int toolNumber = 0;
 
-	/** set if tool is on */								public static final int TOOLON=             01;
-	/** set if tool is running in background */				public static final int TOOLBG=             02;
-	/** set if tool will fix errors */						public static final int TOOLFIX=            04;
-	/** set if tool is coded in interpretive language */	public static final int TOOLLANG=          010;
-	/** set if tool functions incrementally */				public static final int TOOLINCREMENTAL=   020;
-	/** set if tool does analysis */						public static final int TOOLANALYSIS=      040;
-	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS=    0100;
+	/** set if tool is on */								public static final int TOOLON =             01;
+	/** set if tool is running in background */				public static final int TOOLBG =             02;
+	/** set if tool will fix errors */						public static final int TOOLFIX =            04;
+	/** set if tool is coded in interpretive language */	public static final int TOOLLANG =          010;
+	/** set if tool functions incrementally */				public static final int TOOLINCREMENTAL =   020;
+	/** set if tool does analysis */						public static final int TOOLANALYSIS =      040;
+	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS =    0100;
 
-	private Tool(String toolName)
+	private Tool()
 	{
-		this.toolName = toolName;
-		this.toolIndex = toolNumber++;
 	}
 
 	/** Initialize this tool with a name */
 	public static final Tool newInstance(String toolName)
 	{
-		Tool t = new Tool(toolName);
+		Tool t = new Tool();
+		t.toolName = toolName;
+		t.toolIndex = toolNumber++;
 		return t;
 	}
 

@@ -22,6 +22,9 @@ import java.awt.geom.AffineTransform;
  */
 public class Geometric extends ElectricObject
 {
+	/** The Geometric class */									public static Class CLASS      = (new Geometric()).getClass();
+	/** The Geometric[] class */								public static Class ARRAYCLASS = (new Geometric[0]).getClass();
+
 	// ------------------------------- private data ------------------------------
 
 	// The internal representation of position and orientation is the
@@ -37,7 +40,6 @@ public class Geometric extends ElectricObject
 	/** center coordinate of this geometric */		protected double cX, cY;
 	/** size of this geometric */					protected double sX, sY;
 	/** angle of this geometric */					protected double angle;
-	/** sine and cosine of the angle */				protected double cos, sin;
 
 	// ------------------------ private and protected methods--------------------
 
@@ -64,6 +66,28 @@ public class Geometric extends ElectricObject
 			visBounds.getWidth() + "x" + visBounds.getHeight());
 	}
 
+	private AffineTransform rotateTranspose = null;
+
+	public AffineTransform rotateAbout(double angle, double sX, double sY, double cX, double cY)
+	{
+		AffineTransform transform = new AffineTransform();
+		if (sX < 0 || sY < 0)
+		{
+			// must do transposition, so it is trickier
+			double cosine = Math.cos(angle);
+			double sine = Math.sin(angle);
+			if (rotateTranspose == null) rotateTranspose = new AffineTransform();
+			rotateTranspose.setTransform(-sine, -cosine, -cosine, sine, 0.0, 0.0);
+			transform.setToTranslation(cX, cY);
+			transform.concatenate(rotateTranspose);
+			transform.translate(-cX, -cY);
+		} else
+		{
+			transform.setToRotation(angle, cX, cY);
+		}
+		return transform;
+	}
+	
 	public void updateGeometricBounds()
 	{
 		// start with a unit polygon, centered at the origin
@@ -72,8 +96,7 @@ public class Geometric extends ElectricObject
 		// transform by the relevant amount
 		AffineTransform scale = new AffineTransform();
 		scale.setToScale(sX, sY);
-		AffineTransform rotate = new AffineTransform();
-		rotate.setToRotation(angle);
+		AffineTransform rotate = rotateAbout(angle, sX, sY, 0, 0);
 		AffineTransform translate = new AffineTransform();
 		translate.setToTranslation(cX, cY);
 		rotate.concatenate(scale);
@@ -86,25 +109,6 @@ public class Geometric extends ElectricObject
 	}
 
 	// ------------------------ public methods -----------------------------
-
-//	// The prototype of this Geometric object is either an ArcProto or
-//	// NodeProto.
-//	private Object getProto()
-//	{
-//		if (this instanceof NodeInst)
-//			return ((NodeInst) this).getProto();
-//		else
-//			return ((ArcInst) this).getProto();
-//	}
-//
-//	Technology getProtoTechnology()
-//	{
-//		Object proto = getProto();
-//		if (proto instanceof NodeProto)
-//			return ((NodeProto) proto).getTechnology();
-//		else
-//			return ((ArcProto) proto).getTechnology();
-//	}
 
 	/** Cell containing this Geometric object */
 	public Cell getParent() { return parent; }
@@ -126,8 +130,8 @@ public class Geometric extends ElectricObject
 
 	/** get angle of rotation in degrees */
 	public double getAngle() { return angle; }
-	public double getXSize() { return sX; }
-	public double getYSize() { return sY; }
+	public double getXSize() { return Math.abs(sX); }
+	public double getYSize() { return Math.abs(sY); }
 	public Rectangle2D getBounds() { return visBounds; }
 
 }

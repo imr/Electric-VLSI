@@ -41,6 +41,9 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.variable.ElectricObject;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -52,62 +55,53 @@ public class TecArtwork extends Technology
 {
 	public static final TecArtwork tech = new TecArtwork();
 
-	/** Pin */						private PrimitiveNode p_node;
-	/** Box */						private PrimitiveNode b_node;
-	/** Crossed-Box */				private PrimitiveNode cb_node;
-	/** Filled-Box */				private PrimitiveNode fb_node;
-	/** Circle */					private PrimitiveNode c_node;
-	/** Filled-Circle */			private PrimitiveNode fc_node;
-	/** Spline */					private PrimitiveNode s_node;
-	/** Triangle */					private PrimitiveNode t_node;
-	/** Filled-Triangle */			private PrimitiveNode ft_node;
-	/** Arrow */					private PrimitiveNode a_node;
-	/** Opened-Polygon */			private PrimitiveNode op_node;
-	/** Opened-Dotted-Polygon */	private PrimitiveNode odp_node;
-	/** Opened-Dashed-Polygon */	private PrimitiveNode odp0_node;
-	/** Opened-Thicker-Polygon */	private PrimitiveNode otp_node;
-	/** Closed-Polygon */			private PrimitiveNode cp_node;
-	/** Filled-Polygon */			private PrimitiveNode fp_node;
-	/** Thick-Circle */				private PrimitiveNode tc_node;
+	/** number of lines in an ellipse */	private static final int ELLIPSEPOINTS =        30;
+	/** granularity of a spline */			private static final int SPLINEGRAIN   =        20;
 
-	/** Solid arc */				private PrimitiveArc Solid_arc;
-	/** Dotted arc */				private PrimitiveArc Dotted_arc;
-	/** Dashed arc */				private PrimitiveArc Dashed_arc;
-	/** Thick arc */				private PrimitiveArc Thicker_arc;
+	/** Pin */								private PrimitiveNode p_node;
+	/** Box */								private PrimitiveNode b_node;
+	/** Crossed-Box */						private PrimitiveNode cb_node;
+	/** Filled-Box */						private PrimitiveNode fb_node;
+	/** Circle */							private PrimitiveNode c_node;
+	/** Filled-Circle */					private PrimitiveNode fc_node;
+	/** Spline */							private PrimitiveNode s_node;
+	/** Triangle */							private PrimitiveNode t_node;
+	/** Filled-Triangle */					private PrimitiveNode ft_node;
+	/** Arrow */							private PrimitiveNode a_node;
+	/** Opened-Polygon */					private PrimitiveNode op_node;
+	/** Opened-Dotted-Polygon */			private PrimitiveNode odp_node;
+	/** Opened-Dashed-Polygon */			private PrimitiveNode odp0_node;
+	/** Opened-Thicker-Polygon */			private PrimitiveNode otp_node;
+	/** Closed-Polygon */					private PrimitiveNode cp_node;
+	/** Filled-Polygon */					private PrimitiveNode fp_node;
+	/** Thick-Circle */						private PrimitiveNode tc_node;
+
+	/** Solid arc */						private PrimitiveArc Solid_arc;
+	/** Dotted arc */						private PrimitiveArc Dotted_arc;
+	/** Dashed arc */						private PrimitiveArc Dashed_arc;
+	/** Thick arc */						private PrimitiveArc Thicker_arc;
+	/** Thick arc */						private Layer G_lay;
 
 	// -------------------- private and protected methods ------------------------
 	private TecArtwork()
 	{
 		setTechName("artwork");
 		setTechDesc("General Purpose Sketchpad Facility");
+		setNonStandard();
+		setNonElectrical();
+		setNoNegatedArcs();
+		setStaticTechnology();
 
 		//**************************************** LAYERS ****************************************
 
-		/** G layer */
-		Layer G_lay = Layer.newInstance("Graphics",
+		/** Graphics layer */
+		G_lay = Layer.newInstance("Graphics",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BLACK, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
-			new int[] { 0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff,   // XXXXXXXXXXXXXXXX
-						0xffff}));// XXXXXXXXXXXXXXXX
+			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
 		// The layer functions
 		G_lay.setFunction(Layer.Function.ART);		// Graphics
-
-		// The CIF names
-		G_lay.setCIFLayer("");		// Graphics
 
 		// The DXF names
 		G_lay.setDXFLayer("OBJECT");		// Graphics
@@ -120,7 +114,7 @@ public class TecArtwork extends Technology
 		/** Solid arc */
 		Solid_arc = PrimitiveArc.newInstance(this, "Solid", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.CLOSED)
+			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENED)
 		});
 		Solid_arc.setFunction(PrimitiveArc.Function.NONELEC);
 		Solid_arc.setWipable();
@@ -129,7 +123,7 @@ public class TecArtwork extends Technology
 		/** Dotted arc */
 		Dotted_arc = PrimitiveArc.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.CLOSED)
+			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT1)
 		});
 		Dotted_arc.setFunction(PrimitiveArc.Function.NONELEC);
 		Dotted_arc.setWipable();
@@ -138,7 +132,7 @@ public class TecArtwork extends Technology
 		/** Dashed arc */
 		Dashed_arc = PrimitiveArc.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.CLOSED)
+			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT2)
 		});
 		Dashed_arc.setFunction(PrimitiveArc.Function.NONELEC);
 		Dashed_arc.setWipable();
@@ -147,7 +141,7 @@ public class TecArtwork extends Technology
 		/** Thicker arc */
 		Thicker_arc = PrimitiveArc.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.CLOSED)
+			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT3)
 		});
 		Thicker_arc.setFunction(PrimitiveArc.Function.NONELEC);
 		Thicker_arc.setWipable();
@@ -156,99 +150,36 @@ public class TecArtwork extends Technology
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
 		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.AtCenter),
-			new Technology.TechPoint(EdgeH.AtCenter, EdgeV.TopEdge),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.BottomEdge),
-			new Technology.TechPoint(EdgeH.AtCenter, EdgeV.BottomEdge),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
 		};
 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
-			new Technology.TechPoint(new EdgeH(-0.125, 0), EdgeV.TopEdge),
-			new Technology.TechPoint(new EdgeH(0.125, 0), EdgeV.BottomEdge),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.TopEdge),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(new EdgeH(-0.125, 0), EdgeV.TOPEDGE),
+			new Technology.TechPoint(new EdgeH(0.125, 0), EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
 		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.TopEdge),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter),
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
 		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.BottomEdge),
-			new Technology.TechPoint(EdgeH.AtCenter, EdgeV.TopEdge),
-		};
-		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
-			new Technology.TechPoint(new EdgeH(-0.475, 0), new EdgeV(-0.45, 0)),
-			new Technology.TechPoint(new EdgeH(-0.458333, 0), new EdgeV(-0.4, 0)),
-			new Technology.TechPoint(new EdgeH(-0.441667, 0), new EdgeV(-0.35, 0)),
-			new Technology.TechPoint(new EdgeH(-0.425, 0), new EdgeV(-0.3, 0)),
-			new Technology.TechPoint(new EdgeH(-0.4, 0), new EdgeV(-0.25, 0)),
-			new Technology.TechPoint(new EdgeH(-0.383333, 0), new EdgeV(-0.208333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.366667, 0), new EdgeV(-0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.35, 0), new EdgeV(-0.116667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.325, 0), new EdgeV(-0.075, 0)),
-			new Technology.TechPoint(new EdgeH(-0.308333, 0), new EdgeV(-0.0416667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.291667, 0), EdgeV.AtCenter),
-			new Technology.TechPoint(new EdgeH(-0.275, 0), new EdgeV(0.025, 0)),
-			new Technology.TechPoint(new EdgeH(-0.258333, 0), new EdgeV(0.0583333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.241667, 0), new EdgeV(0.0833333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.225, 0), new EdgeV(0.108333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.208333, 0), new EdgeV(0.125, 0)),
-			new Technology.TechPoint(new EdgeH(-0.191667, 0), new EdgeV(0.141667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.175, 0), new EdgeV(0.15, 0)),
-			new Technology.TechPoint(new EdgeH(-0.158333, 0), new EdgeV(0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.141667, 0), new EdgeV(0.166667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.125, 0), new EdgeV(0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.108333, 0), new EdgeV(0.15, 0)),
-			new Technology.TechPoint(new EdgeH(-0.1, 0), new EdgeV(0.141667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.0833333, 0), new EdgeV(0.125, 0)),
-			new Technology.TechPoint(new EdgeH(-0.0666667, 0), new EdgeV(0.108333, 0)),
-			new Technology.TechPoint(new EdgeH(-0.05, 0), new EdgeV(0.0916667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.0416667, 0), new EdgeV(0.0666667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.025, 0), new EdgeV(0.0416667, 0)),
-			new Technology.TechPoint(new EdgeH(-0.00833333, 0), new EdgeV(0.0166667, 0)),
-			new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-			new Technology.TechPoint(new EdgeH(0.00833333, 0), new EdgeV(-0.0166667, 0)),
-			new Technology.TechPoint(new EdgeH(0.025, 0), new EdgeV(-0.0416667, 0)),
-			new Technology.TechPoint(new EdgeH(0.0416667, 0), new EdgeV(-0.0666667, 0)),
-			new Technology.TechPoint(new EdgeH(0.05, 0), new EdgeV(-0.0916667, 0)),
-			new Technology.TechPoint(new EdgeH(0.0666667, 0), new EdgeV(-0.108333, 0)),
-			new Technology.TechPoint(new EdgeH(0.0833333, 0), new EdgeV(-0.125, 0)),
-			new Technology.TechPoint(new EdgeH(0.1, 0), new EdgeV(-0.141667, 0)),
-			new Technology.TechPoint(new EdgeH(0.108333, 0), new EdgeV(-0.15, 0)),
-			new Technology.TechPoint(new EdgeH(0.125, 0), new EdgeV(-0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(0.141667, 0), new EdgeV(-0.166667, 0)),
-			new Technology.TechPoint(new EdgeH(0.158333, 0), new EdgeV(-0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(0.175, 0), new EdgeV(-0.15, 0)),
-			new Technology.TechPoint(new EdgeH(0.191667, 0), new EdgeV(-0.141667, 0)),
-			new Technology.TechPoint(new EdgeH(0.208333, 0), new EdgeV(-0.125, 0)),
-			new Technology.TechPoint(new EdgeH(0.225, 0), new EdgeV(-0.108333, 0)),
-			new Technology.TechPoint(new EdgeH(0.241667, 0), new EdgeV(-0.0833333, 0)),
-			new Technology.TechPoint(new EdgeH(0.258333, 0), new EdgeV(-0.0583333, 0)),
-			new Technology.TechPoint(new EdgeH(0.275, 0), new EdgeV(-0.025, 0)),
-			new Technology.TechPoint(new EdgeH(0.291667, 0), EdgeV.AtCenter),
-			new Technology.TechPoint(new EdgeH(0.308333, 0), new EdgeV(0.0416667, 0)),
-			new Technology.TechPoint(new EdgeH(0.325, 0), new EdgeV(0.075, 0)),
-			new Technology.TechPoint(new EdgeH(0.35, 0), new EdgeV(0.116667, 0)),
-			new Technology.TechPoint(new EdgeH(0.366667, 0), new EdgeV(0.158333, 0)),
-			new Technology.TechPoint(new EdgeH(0.383333, 0), new EdgeV(0.208333, 0)),
-			new Technology.TechPoint(new EdgeH(0.4, 0), new EdgeV(0.25, 0)),
-			new Technology.TechPoint(new EdgeH(0.425, 0), new EdgeV(0.3, 0)),
-			new Technology.TechPoint(new EdgeH(0.441667, 0), new EdgeV(0.35, 0)),
-			new Technology.TechPoint(new EdgeH(0.458333, 0), new EdgeV(0.4, 0)),
-			new Technology.TechPoint(new EdgeH(0.475, 0), new EdgeV(0.45, 0)),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.TopEdge),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
 		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-			new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
 		};
 
 		//******************** NODES ********************
 
 		/** Pin */
-		p_node = PrimitiveNode.newInstance("Pin", this, 1, 1, 0, 0,
+		p_node = PrimitiveNode.newInstance("Pin", this, 1, 1, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
@@ -256,27 +187,27 @@ public class TecArtwork extends Technology
 		p_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, p_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		p_node.setFunction(NodeProto.Function.PIN);
 		p_node.setArcsWipe();
 		p_node.setArcsShrink();
 
 		/** Box */
-		b_node = PrimitiveNode.newInstance("Box", this, 6, 6, 0, 0,
+		b_node = PrimitiveNode.newInstance("Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		b_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, b_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "box", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		b_node.setFunction(NodeProto.Function.ART);
 
 		/** Crossed-Box */
-		cb_node = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, 0, 0,
+		cb_node = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
@@ -284,25 +215,25 @@ public class TecArtwork extends Technology
 		cb_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, cb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cb_node.setFunction(NodeProto.Function.ART);
 
 		/** Filled-Box */
-		fb_node = PrimitiveNode.newInstance("Filled-Box", this, 6, 6, 0, 0,
+		fb_node = PrimitiveNode.newInstance("Filled-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		fb_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, fb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fb_node.setFunction(NodeProto.Function.ART);
 
 		/** Circle */
-		c_node = PrimitiveNode.newInstance("Circle", this, 6, 6, 0, 0,
+		c_node = PrimitiveNode.newInstance("Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_6)
@@ -310,13 +241,13 @@ public class TecArtwork extends Technology
 		c_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, c_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		c_node.setFunction(NodeProto.Function.ART);
 
 
 		/** Filled-Circle */
-		fc_node = PrimitiveNode.newInstance("Filled-Circle", this, 6, 6, 0, 0,
+		fc_node = PrimitiveNode.newInstance("Filled-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
@@ -324,26 +255,27 @@ public class TecArtwork extends Technology
 		fc_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, fc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fc_node.setFunction(NodeProto.Function.ART);
 		fc_node.setSquare();
 
 		/** Spline */
-		s_node = PrimitiveNode.newInstance("Spline", this, 6, 6, 0, 0,
+		s_node = PrimitiveNode.newInstance("Spline", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_5)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
 			});
 		s_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, s_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		s_node.setFunction(NodeProto.Function.ART);
+		s_node.setHoldsOutline();
 
 		/** Triangle */
-		t_node = PrimitiveNode.newInstance("Triangle", this, 6, 6, 0, 0,
+		t_node = PrimitiveNode.newInstance("Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_4)
@@ -351,12 +283,12 @@ public class TecArtwork extends Technology
 		t_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "triangle", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		t_node.setFunction(NodeProto.Function.ART);
 
 		/** Filled-Triangle */
-		ft_node = PrimitiveNode.newInstance("Filled-Triangle", this, 6, 6, 0, 0,
+		ft_node = PrimitiveNode.newInstance("Filled-Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_4)
@@ -364,12 +296,12 @@ public class TecArtwork extends Technology
 		ft_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ft_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "ftriangle", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		ft_node.setFunction(NodeProto.Function.ART);
 
 		/** Arrow */
-		a_node = PrimitiveNode.newInstance("Arrow", this, 2, 2, 0, 0,
+		a_node = PrimitiveNode.newInstance("Arrow", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_3)
@@ -377,12 +309,12 @@ public class TecArtwork extends Technology
 		a_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, a_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "arrow", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.RightEdge, EdgeV.AtCenter, EdgeH.RightEdge, EdgeV.AtCenter)
+					EdgeH.RIGHTEDGE, EdgeV.CENTER, EdgeH.RIGHTEDGE, EdgeV.CENTER)
 			});
 		a_node.setFunction(NodeProto.Function.ART);
 
 		/** Opened-Polygon */
-		op_node = PrimitiveNode.newInstance("Opened-Polygon", this, 6, 6, 0, 0,
+		op_node = PrimitiveNode.newInstance("Opened-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
@@ -390,12 +322,13 @@ public class TecArtwork extends Technology
 		op_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, op_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		op_node.setFunction(NodeProto.Function.ART);
+		op_node.setHoldsOutline();
 
 		/** Opened-Dotted-Polygon */
-		odp_node = PrimitiveNode.newInstance("Opened-Dotted-Polygon", this, 6, 6, 0, 0,
+		odp_node = PrimitiveNode.newInstance("Opened-Dotted-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, box_2)
@@ -403,12 +336,13 @@ public class TecArtwork extends Technology
 		odp_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, odp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		odp_node.setFunction(NodeProto.Function.ART);
+		odp_node.setHoldsOutline();
 
 		/** Opened-Dashed-Polygon */
-		odp0_node = PrimitiveNode.newInstance("Opened-Dashed-Polygon", this, 6, 6, 0, 0,
+		odp0_node = PrimitiveNode.newInstance("Opened-Dashed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, box_2)
@@ -416,12 +350,13 @@ public class TecArtwork extends Technology
 		odp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, odp0_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		odp0_node.setFunction(NodeProto.Function.ART);
+		odp0_node.setHoldsOutline();
 
 		/** Opened-Thicker-Polygon */
-		otp_node = PrimitiveNode.newInstance("Opened-Thicker-Polygon", this, 6, 6, 0, 0,
+		otp_node = PrimitiveNode.newInstance("Opened-Thicker-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, box_2)
@@ -429,12 +364,13 @@ public class TecArtwork extends Technology
 		otp_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, otp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		otp_node.setFunction(NodeProto.Function.ART);
+		otp_node.setHoldsOutline();
 
 		/** Closed-Polygon */
-		cp_node = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, 0, 0,
+		cp_node = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.MINBOX, box_1)
@@ -442,12 +378,13 @@ public class TecArtwork extends Technology
 		cp_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, cp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cp_node.setFunction(NodeProto.Function.ART);
+		cp_node.setHoldsOutline();
 
 		/** Filled-Polygon */
-		fp_node = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, 0, 0,
+		fp_node = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1)
@@ -455,12 +392,13 @@ public class TecArtwork extends Technology
 		fp_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, fp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fp_node.setFunction(NodeProto.Function.ART);
+		fp_node.setHoldsOutline();
 
 		/** Thick-Circle */
-		tc_node = PrimitiveNode.newInstance("Thick-Circle", this, 6, 6, 0, 0,
+		tc_node = PrimitiveNode.newInstance("Thick-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(G_lay, 0, Poly.Type.THICKCIRCLE, Technology.NodeLayer.POINTS, box_6)
@@ -468,18 +406,294 @@ public class TecArtwork extends Technology
 		tc_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, tc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		tc_node.setFunction(NodeProto.Function.ART);
 	};
+
+	/**
+	 * Get a list of polygons that describe node "ni"
+	 */
+	public Poly [] getShape(NodeInst ni)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		getGraphics(ni);
+
+		if (np == c_node || np == tc_node)
+		{
+			double [] angles = getarcdegrees(ni);
+			if (ni.getXSize() != ni.getYSize())
+			{
+				// handle ellipses
+				Point2D.Double [] pointList = fillEllipse(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize(),
+					angles[0], angles[1]);
+				Poly [] polys = new Poly[1];
+				polys[0] = new Poly(pointList);
+				if (np == c_node) polys[0].setStyle(Poly.Type.OPENED); else
+					polys[0].setStyle(Poly.Type.OPENEDT3);
+				Technology.NodeLayer [] primLayers = np.getLayers();
+				Technology.NodeLayer primLayer = primLayers[0];
+				polys[0].setLayer(primLayer.getLayer());
+				return polys;
+			}
+
+			// if there is arc information here, make it an arc of a circle
+			if (angles[0] != 0.0 || angles[1] != 0.0)
+			{
+				// fill an arc of a circle here
+				Poly [] polys = new Poly[1];
+				Point2D.Double [] pointList = new Point2D.Double[3];
+				double cX = ni.getCenterX();
+				double cY = ni.getCenterY();
+				double dist = ni.getXSize() / 2;
+				pointList[0] = new Point2D.Double(cX, cY);
+				pointList[1] = new Point2D.Double(cX + Math.cos(angles[0])*dist, cY + Math.sin(angles[0])*dist);
+				pointList[2] = new Point2D.Double(cX + Math.cos(angles[0]+angles[1])*dist, cY + Math.sin(angles[0]+angles[1])*dist);
+				polys[0] = new Poly(pointList);
+				if (np == c_node) polys[0].setStyle(Poly.Type.CIRCLEARC); else
+					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
+				Technology.NodeLayer [] primLayers = np.getLayers();
+				Technology.NodeLayer primLayer = primLayers[0];
+				polys[0].setLayer(primLayer.getLayer());
+				return polys;
+			}
+		} else if (np == s_node)
+		{
+			Integer [] tracePoints = ni.getTrace();
+			if (tracePoints != null)
+			{
+				double cX = ni.getCenterX();
+				double cY = ni.getCenterY();
+				Point2D.Double [] pointList = fillSpline(cX, cY, tracePoints);
+				Poly [] polys = new Poly[1];
+				polys[0] = new Poly(pointList);
+				polys[0].setStyle(Poly.Type.OPENED);
+				Technology.NodeLayer [] primLayers = np.getLayers();
+				Technology.NodeLayer primLayer = primLayers[0];
+				polys[0].setLayer(primLayer.getLayer());
+				return polys;
+			}
+		}
+		return super.getShape(ni);
+	}
+
+	public Poly [] getShape(ArcInst ai)
+	{
+		getGraphics(ai);
+		return super.getShape(ai);
+	}
+
+	/**
+	 * routine to fill polygon "poly" with the vectors for the ellipse whose
+	 * bounding box is given by the rectangle (lx-hx) and (ly-hy).
+	 */
+	Point2D.Double [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
+	{
+		// ensure that the polygon can hold the vectors
+		boolean closed = true;
+		if (startoffset == 0 && endangle == 0)
+		{
+			// full ellipse
+			endangle = Math.PI * 2.0;
+		} else
+		{
+			// partial ellipse
+			closed = false;
+		}
+		int pts = (int)(endangle * ELLIPSEPOINTS / (Math.PI * 2.0));
+		if (closed) pts++;
+
+		Point2D.Double [] points = new Point2D.Double[pts];
+
+		// compute the length of the semi-major and semi-minor axes
+		double a = sX / 2;
+		double b = sY / 2;
+
+		if (closed)
+		{
+			// more efficient algorithm used for full ellipse drawing
+			double p = 2.0 * Math.PI / (ELLIPSEPOINTS-1);
+			double c2 = Math.cos(p);    double s2 = Math.sin(p);
+			double c3 = 1.0;            double s3 = 0.0;
+			for(int m=0; m<ELLIPSEPOINTS; m++)
+			{
+				points[m] = new Point2D.Double(cX + a * c3, cY + b * s3);
+				double t1 = c3*c2 - s3*s2;
+				s3 = s3*c2 + c3*s2;
+				c3 = t1;
+			}
+		} else
+		{
+			// less efficient algorithm for partial ellipse drawing
+			for(int m=0; m<pts; m++)
+			{
+				double p = startoffset + m * endangle / (pts-1);
+				double c2 = Math.cos(p);   double s2 = Math.sin(p);
+				points[m] = new Point2D.Double(cY + a * c2, cY + b * s2);
+			}
+		}
+		return points;
+	}
+
+	double getTracePointX(Integer [] tracePoints, int index, double cX)
+	{
+		double v = tracePoints[index*2].doubleValue();
+		return v + cX;
+	}
+
+	double getTracePointY(Integer [] tracePoints, int index, double cY)
+	{
+		double v = tracePoints[index*2+1].doubleValue();
+		return v + cY;
+	}
+
+	/*
+	 * Routine to convert the "count" spline control points in "points" that are centered at (cx,cy)
+	 * to a line approximation in "poly".  Uses "steps" lines per spline segment.
+	 */
+	Point2D.Double []  fillSpline(double cX, double cY, Integer [] tracePoints)
+	{
+		int steps = SPLINEGRAIN;
+		int count = tracePoints.length / 2;
+		int outPoints = (count - 1) * steps + 1;
+		Point2D.Double [] points = new Point2D.Double[outPoints];
+		int out = 0;
+
+		double splineStep = 1.0 / (double)steps;
+		double x2 = getTracePointX(tracePoints, 0, cX)*2 - getTracePointX(tracePoints, 1, cX);
+		double y2 = getTracePointY(tracePoints, 0, cY)*2 - getTracePointY(tracePoints, 1, cY);
+		double x3 = getTracePointX(tracePoints, 0, cX);
+		double y3 = getTracePointY(tracePoints, 0, cY);
+		double x4 = getTracePointX(tracePoints, 1, cX);
+		double y4 = getTracePointY(tracePoints, 1, cY);
+		for(int k = 2; k <= count; k++)
+		{
+			double x1 = x2;   x2 = x3;   x3 = x4;
+			double y1 = y2;   y2 = y3;   y3 = y4;
+			if (k == count)
+			{
+			   x4 = getTracePointX(tracePoints, k-1, cX)*2 - getTracePointX(tracePoints, k-2, cX);
+			   y4 = getTracePointY(tracePoints, k-1, cY)*2 - getTracePointY(tracePoints, k-2, cY);
+			} else
+			{
+			   x4 = getTracePointX(tracePoints, k, cX);
+			   y4 = getTracePointY(tracePoints, k, cY);
+			}
+
+			int i=0;
+			for(double t=0.0; i<steps; i++, t+= splineStep)
+			{
+				double tsq = t * t;
+				double t4 = tsq * t;
+				double t3 = -3.0*t4 + 3.0*tsq + 3.0*t + 1.0;
+				double t2 = 3.0*t4 - 6.0*tsq + 4.0;
+				double t1 = -t4 + 3.0*tsq - 3.0*t + 1.0;
+
+				double x = (x1*t1 + x2*t2 + x3*t3 + x4*t4) / 6.0;
+				double y = (y1*t1 + y2*t2 + y3*t3 + y4*t4) / 6.0;
+				points[out++] = new Point2D.Double(x, y);
+			}
+		}
+
+		// close the spline
+		points[out++] = new Point2D.Double(getTracePointX(tracePoints, count-1, cX),
+			getTracePointY(tracePoints, count-1, cY));
+		return points;
+	}
+
+	/**
+	 * routine to get the starting and ending angle of the arc described by node "ni".
+	 * Sets "startoffset" to the fractional difference between the node rotation and the
+	 * true starting angle of the arc (this will be less than a tenth of a degree, since
+	 * node rotation is in tenths of a degree).  Sets "endangle" to the ending rotation
+	 * of the arc (the true ending angle is this plus the node rotation and "startoffset").
+	 * Both "startoffset" and "endangle" are in radians).
+	 * If the node is not circular, both values are set to zero.
+	 */
+	double [] getarcdegrees(NodeInst ni)
+	{
+		double [] returnValues = new double[2];
+		returnValues[0] = returnValues[1] = 0.0;
+
+		NodeProto np = ni.getProto();
+		if (!(np instanceof PrimitiveNode)) return returnValues;
+		if (np != c_node && np != tc_node) return returnValues;
+
+		Variable var = ni.getVal("ART_degrees");
+		if (var != null)
+		{
+			Object addr = var.getObject();
+			if (addr instanceof Integer)
+			{
+				Integer iAddr = (Integer)addr;
+				returnValues[0] = 0.0;
+				returnValues[1] = (double)iAddr.intValue() * Math.PI / 1800.0;
+			} else if (addr instanceof Float[])
+			{
+				Float [] fAddr = (Float [])addr;
+				returnValues[0] = fAddr[0].doubleValue();
+				returnValues[1] = fAddr[1].doubleValue();
+			}
+		}
+		return returnValues;
+	}
+
+	void getGraphics(ElectricObject obj)
+	{
+		// get the color information
+		ElectricObject.Variable var = obj.getVal("ART_color", ElectricObject.INTEGERCLASS);
+		EGraphics graphics = G_lay.getGraphics();
+		if (var == null)
+		{
+			graphics.setColor(EGraphics.BLACK);
+		} else
+		{
+			Integer color = (Integer)var.getObject();
+			graphics.setColor(color.intValue());
+		}
+
+//		// get the stipple pattern information
+//		artpl->patternvar = getvalkey(addr, type, -1, art_patternkey);
+//		if (artpl->patternvar != NOVARIABLE)
+//		{
+//			len = getlength(artpl->patternvar);
+//			if ((len != 8 && len != 16) ||
+//				((artpl->patternvar->type&VTYPE) != VINTEGER && (artpl->patternvar->type&VTYPE) != VSHORT))
+//			{
+//				ttyputerr(_("'ART_pattern' must be a 16-member INTEGER or SHORT array"));
+//				artpl->patternvar = NOVARIABLE;
+//				return;
+//			}
+//
+//			sty = PATTERNED;
+//			if ((artpl->patternvar->type&VTYPE) == VINTEGER)
+//			{
+//				for(i=0; i<len; i++)
+//					art_st_lay.raster[i] = (UINTSML)(((INTBIG *)artpl->patternvar->addr)[i]);
+//			} else
+//			{
+//				for(i=0; i<len; i++)
+//					art_st_lay.raster[i] = ((INTSML *)artpl->patternvar->addr)[i];
+//				sty |= OUTLINEPAT;
+//			}
+//			if (len == 8)
+//			{
+//				for(i=0; i<8; i++) art_st_lay.raster[i+8] = art_st_lay.raster[i];
+//			}
+//
+//			// set the outline style (outlined if SHORT used)
+//			art_st_lay.colstyle = art_st_lay.bwstyle = (INTSML)sty;
+//		}
+	}
 
 	/*
 	 * Routine to convert old primitive node names to their proper type.
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
-//		if (name == "Message" || name == "Centered-Message" ||
-//			name == "Left-Message" || name == "Right-Message") return gen_invispinprim;
+		if (name == "Message" || name == "Centered-Message" ||
+			name == "Left-Message" || name == "Right-Message")
+				return (PrimitiveNode)NodeProto.findNodeProto("generic:Invisible-Pin");
 		if (name == "Opened-FarDotted-Polygon") return otp_node;
 		return null;
 	}

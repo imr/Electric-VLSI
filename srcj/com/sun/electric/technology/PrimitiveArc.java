@@ -39,7 +39,7 @@ public class PrimitiveArc extends ArcProto
 		// check the arguments
 		if (tech.findArcProto(protoName) != null)
 		{
-			System.out.println("Technology " + tech.getTechName() + " has multiple arcs named " + protoName);
+			System.out.println("Error: technology " + tech.getTechName() + " has multiple arcs named " + protoName);
 			return null;
 		}
 		if (defaultWidth < 0.0)

@@ -7,14 +7,19 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 
 /**
  * This is the Schematics technology.
@@ -22,6 +27,42 @@ import java.awt.geom.Point2D;
 public class TecSchematics extends Technology
 {
 	public static final TecSchematics tech = new TecSchematics();
+
+	/** Flip-flop type */						public static final int FFTYPE =    07;
+	/** Flip-flop is RS type */					public static final int FFTYPERS =   0;
+	/** Flip-flop is JK type */					public static final int FFTYPEJK =   1;
+	/** Flip-flop is D type */					public static final int FFTYPED =    2;
+	/** Flip-flop is T type */					public static final int FFTYPET =    3;
+	/** Flip-flop clocking bits */				public static final int FFCLOCK =  014;
+	/** Flip-flop is Master/Slave */			public static final int FFCLOCKMS =  0;
+	/** Flip-flop is Positive clock */			public static final int FFCLOCKP =  04;
+	/** Flip-flop is Negative clock */			public static final int FFCLOCKN = 010;
+
+	/** Transistor is nMOS */					public static final int TRANNMOS =   0;
+	/** Transistor is DMOS */					public static final int TRANDMOS =   1;
+	/** Transistor is PMOS */					public static final int TRANPMOS =   2;
+	/** Transistor is NPN Junction */			public static final int TRANNPN =    3;
+	/** Transistor is PNP Junction */			public static final int TRANPNP =    4;
+	/** Transistor is N Junction FET */			public static final int TRANNJFET =  5;
+	/** Transistor is P Junction FET */			public static final int TRANPJFET =  6;
+	/** Transistor is Depletion MESFET */		public static final int TRANDMES =   7;
+	/** Transistor is Enhancement MESFET */		public static final int TRANEMES =   8;
+
+	/** Diode is normal */						public static final int DIODENORM =  0;
+	/** Diode is Zener */						public static final int DIODEZENER = 1;
+
+	/** Capacitor is normal */					public static final int CAPACNORM =  0;
+	/** Capacitor is Electrolytic */			public static final int CAPACELEC =  1;
+
+	/** Two-port is Transconductance (VCCS) */	public static final int TWOPVCCS =  0;
+	/** Two-port is Transresistance (CCVS) */	public static final int TWOPCCVS =  1;
+	/** Two-port is Voltage gain (VCVS) */		public static final int TWOPVCVS =  2;
+	/** Two-port is Current gain (CCCS) */		public static final int TWOPCCCS =  3;
+	/** Two-port is Transmission Line */		public static final int TWOPTLINE = 4;
+
+	/** wire arc */						private PrimitiveArc wire_arc;
+	/** bus arc */						private PrimitiveArc bus_arc;
+
 	/** wire-pin */						private PrimitiveNode wirePin_node;
 	/** bus-pin */						private PrimitiveNode busPin_node;
 	/** wire-con */						private PrimitiveNode wireCon_node;
@@ -49,211 +90,132 @@ public class TecSchematics extends Technology
 	/** transistor-4 */					private PrimitiveNode transistor4_node;
 	/** global */						private PrimitiveNode global_node;
 
-//#define SCALABLEGATES 1   /* uncomment for experimental scalable gate code */
-//
-///* twentieths of a unit fractions */
-//#define D1	(WHOLE/20)		/* 0.05 */
-//#define FO	(WHOLE/40)		/* 0.025 */
-//#define D2	(WHOLE/10)		/* 0.10 */
-//#define D3	(WHOLE/20 * 3)	/* 0.15 */
-//#define D4	(WHOLE/5)		/* 0.20 */
-//#define D5	(WHOLE/4)		/* 0.25 */
-//#define D6	(WHOLE/10 * 3)	/* 0.30 */
-//#define D7	(WHOLE/20 * 7)	/* 0.35 */
-//#define D8	(WHOLE/5 * 2)	/* 0.40 */
-//#define D9	(WHOLE/20 * 9)	/* 0.45 */
-//#define D12	(WHOLE/5 * 3)	/* 0.60 */
-//#define D13	(WHOLE/20 * 13)	/* 0.65 */
-//#define D14	(WHOLE/10 * 7)	/* 0.70 */
-//#define D16	(WHOLE/5 * 4)	/* 0.80 */
-//
-///* right of center by this amount */
-//#define CENTERR0Q   0,Q0	/* 0.25 */
-//#define CENTERR0T   0,T0	/* 0.75 */
-//#define CENTERR1Q   0,Q1	/* 1.25 */
-//#define CENTERR1T   0,T1	/* 1.75 */
-//#define CENTERR2Q   0,Q2	/* 2.25 */
-//#define CENTERR2T   0,T2	/* 2.75 */
-//#define CENTERR3Q   0,Q3	/* 3.25 */
-//#define CENTERR3T   0,T3	/* 3.75 */
-//
-///* left of center by this amount */
-//#define CENTERL0Q   0,-Q0	/* 0.25 */
-//#define CENTERL0T   0,-T0	/* 0.75 */
-//#define CENTERL1Q   0,-Q1	/* 1.25 */
-//#define CENTERL1T   0,-T1	/* 1.75 */
-//#define CENTERL2Q   0,-Q2	/* 2.25 */
-//#define CENTERL2T   0,-T2	/* 2.75 */
-//#define CENTERL3Q   0,-Q3	/* 3.25 */
-//#define CENTERL3T   0,-T3	/* 3.75 */
-//#define CENTERL4Q   0,-Q4	/* 4.25 */
-//#define CENTERL9    0,-K9	/* 9.00 */
-//#define CENTERL10   0,-K10	/* 10.00 */
-//
-///* up from center by this amount */
-//#define CENTERU0Q   0,Q0	/* 0.25 */
-//#define CENTERU0T   0,T0	/* 0.75 */
-//#define CENTERU1Q   0,Q1	/* 1.25 */
-//#define CENTERU1T   0,T1	/* 1.75 */
-//#define CENTERU2Q   0,Q2	/* 2.25 */
-//#define CENTERU2T   0,T2	/* 2.75 */
-//#define CENTERU3Q   0,Q3	/* 3.25 */
-//#define CENTERU3T   0,T3	/* 3.75 */
-//
-///* down from center by this amount */
-//#define CENTERD0Q   0,-Q0	/* 0.25 */
-//#define CENTERD0T   0,-T0	/* 0.75 */
-//#define CENTERD1Q   0,-Q1	/* 1.25 */
-//#define CENTERD1T   0,-T1	/* 1.75 */
-//#define CENTERD2Q   0,-Q2	/* 2.25 */
-//#define CENTERD2T   0,-T2	/* 2.75 */
-//#define CENTERD3Q   0,-Q3	/* 3.25 */
-//#define CENTERD3T   0,-T3	/* 3.75 */
+	private Layer arc_lay, bus_lay, node_lay, text_lay;
+	private Technology.NodeLayer [] ffLayersRSMS, ffLayersRSP, ffLayersRSN;
+	private Technology.NodeLayer [] ffLayersJKMS, ffLayersJKP, ffLayersJKN;
+	private Technology.NodeLayer [] ffLayersDMS, ffLayersDP, ffLayersDN;
+	private Technology.NodeLayer [] ffLayersTMS, ffLayersTP, ffLayersTN;
+	private Technology.NodeLayer [] tranLayersN, tranLayersP, tranLayersD;
+	private Technology.NodeLayer [] tranLayersNPN, tranLayersPNP;
+	private Technology.NodeLayer [] tranLayersNJFET, tranLayersPJFET;
+	private Technology.NodeLayer [] tranLayersDMES, tranLayersEMES;
+	private Technology.NodeLayer [] twoLayersDefault, twoLayersVCVS, twoLayersVCCS, twoLayersCCVS, twoLayersCCCS, twoLayersTran;
+	private Technology.NodeLayer [] tran4LayersN, tran4LayersP, tran4LayersD;
+	private Technology.NodeLayer [] tran4LayersNPN, tran4LayersPNP;
+	private Technology.NodeLayer [] tran4LayersNJFET, tran4LayersPJFET;
+	private Technology.NodeLayer [] tran4LayersDMES, tran4LayersEMES;
+	private Technology.NodeLayer [] diodeLayersNorm, diodeLayersZener;
+	private Technology.NodeLayer [] capacitorLayersNorm, capacitorLayersElectrolytic;
 
 	// this much from the center to the left edge
-	/* 0.1 */			private static final EdgeH LEFTBYP1 = new EdgeH(-0.1,0);
-	/* 0.1333... */		private static final EdgeH LEFTBYP125 = new EdgeH(-0.1333,0);
-	/* 0.1666... */		private static final EdgeH LEFTBYP166 = new EdgeH(-0.1666,0);
-	/* 0.2 */			private static final EdgeH LEFTBYP2 = new EdgeH(-0.2,0);
-	/* 0.25 */			private static final EdgeH LEFTBYP25 = new EdgeH(-0.25,0);
-	/* 0.3 */			private static final EdgeH LEFTBYP3 = new EdgeH(-0.3,0);
-	/* 0.3333... */		private static final EdgeH LEFTBYP33 = new EdgeH(-0.3333,0);
-	/* 0.35 */			private static final EdgeH LEFTBYP35 = new EdgeH(-0.35,0);
-	/* 0.3666... */		private static final EdgeH LEFTBYP3666 = new EdgeH(-0.3666,0);
-	/* 0.4 */			private static final EdgeH LEFTBYP4 = new EdgeH(-0.4,0);
-	/* 0.45 */			private static final EdgeH LEFTBYP45 = new EdgeH(-0.45,0);
-	/* 0.5 */			private static final EdgeH LEFTBYP5 = new EdgeH(-0.5,0);
-	/* 0.6 */			private static final EdgeH LEFTBYP6 = new EdgeH(-0.6,0);
-	/* 0.6333... */		private static final EdgeH LEFTBYP6333 = new EdgeH(-0.6333,0);
-	/* 0.6666... */		private static final EdgeH LEFTBYP66 = new EdgeH(-0.6666,0);
-	/* 0.7 */			private static final EdgeH LEFTBYP7 = new EdgeH(-0.7,0);
-	/* 0.75 */			private static final EdgeH LEFTBYP75 = new EdgeH(-0.75,0);
-	/* 0.8 */			private static final EdgeH LEFTBYP8 = new EdgeH(-0.8,0);
-	/* 0.875 */			private static final EdgeH LEFTBYP875 = new EdgeH(-0.875,0);
-	/* 0.9 */			private static final EdgeH LEFTBYP9 = new EdgeH(-0.9,0);
-	/* 1.2 */			private static final EdgeH LEFTBYP12 = new EdgeH(-1.2,0);
-	/* 1.4 */			private static final EdgeH LEFTBYP14 = new EdgeH(-1.4,0);
-	/* 1.6 */			private static final EdgeH LEFTBY1P6 = new EdgeH(-1.6,0);
+	/* 0.1 */			private final EdgeH LEFTBYP1 = new EdgeH(-0.1/2,0);
+	/* 0.1333... */		private final EdgeH LEFTBYP125 = new EdgeH(-0.1333/2,0);
+	/* 0.1666... */		private final EdgeH LEFTBYP166 = new EdgeH(-0.1666/2,0);
+	/* 0.2 */			private final EdgeH LEFTBYP2 = new EdgeH(-0.2/2,0);
+	/* 0.25 */			private final EdgeH LEFTBYP25 = new EdgeH(-0.25/2,0);
+	/* 0.3 */			private final EdgeH LEFTBYP3 = new EdgeH(-0.3/2,0);
+	/* 0.3333... */		private final EdgeH LEFTBYP33 = new EdgeH(-0.3333/2,0);
+	/* 0.35 */			private final EdgeH LEFTBYP35 = new EdgeH(-0.35/2,0);
+	/* 0.3666... */		private final EdgeH LEFTBYP3666 = new EdgeH(-0.3666/2,0);
+	/* 0.4 */			private final EdgeH LEFTBYP4 = new EdgeH(-0.4/2,0);
+	/* 0.45 */			private final EdgeH LEFTBYP45 = new EdgeH(-0.45/2,0);
+	/* 0.5 */			private final EdgeH LEFTBYP5 = new EdgeH(-0.5/2,0);
+	/* 0.6 */			private final EdgeH LEFTBYP6 = new EdgeH(-0.6/2,0);
+	/* 0.6333... */		private final EdgeH LEFTBYP6333 = new EdgeH(-0.6333/2,0);
+	/* 0.6666... */		private final EdgeH LEFTBYP66 = new EdgeH(-0.6666/2,0);
+	/* 0.7 */			private final EdgeH LEFTBYP7 = new EdgeH(-0.7/2,0);
+	/* 0.75 */			private final EdgeH LEFTBYP75 = new EdgeH(-0.75/2,0);
+	/* 0.8 */			private final EdgeH LEFTBYP8 = new EdgeH(-0.8/2,0);
+	/* 0.875 */			private final EdgeH LEFTBYP875 = new EdgeH(-0.875/2,0);
+	/* 0.9 */			private final EdgeH LEFTBYP9 = new EdgeH(-0.9/2,0);
+	/* 1.2 */			private final EdgeH LEFTBYP12 = new EdgeH(-1.2/2,0);
+	/* 1.4 */			private final EdgeH LEFTBYP14 = new EdgeH(-1.4/2,0);
+	/* 1.6 */			private final EdgeH LEFTBY1P6 = new EdgeH(-1.6/2,0);
 
 	// this much from the center to the right edge
-	/* 0.1 */			private static final EdgeH RIGHTBYP1 = new EdgeH(0.1,0);
-	/* 0.1333... */		private static final EdgeH RIGHTBYP125 = new EdgeH(0.1333,0);
-	/* 0.1666... */		private static final EdgeH RIGHTBYP166 = new EdgeH(0.1666,0);
-	/* 0.2 */			private static final EdgeH RIGHTBYP2 = new EdgeH(0.2,0);
-	/* 0.25 */			private static final EdgeH RIGHTBYP25 = new EdgeH(0.25,0);
-	/* 0.3 */			private static final EdgeH RIGHTBYP3 = new EdgeH(0.3,0);
-	/* 0.3333... */		private static final EdgeH RIGHTBYP33 = new EdgeH(0.3333,0);
-	/* 0.35 */			private static final EdgeH RIGHTBYP35 = new EdgeH(0.35,0);
-	/* 0.3666... */		private static final EdgeH RIGHTBYP3666 = new EdgeH(0.3666,0);
-	/* 0.3833... */		private static final EdgeH RIGHTBYP3833 = new EdgeH(0.3833,0);
-	/* 0.4 */			private static final EdgeH RIGHTBYP4 = new EdgeH(0.4,0);
-	/* 0.4333... */		private static final EdgeH RIGHTBYP433 = new EdgeH(0.4333,0);
-	/* 0.45 */			private static final EdgeH RIGHTBYP45 = new EdgeH(0.45,0);
-	/* 0.5 */			private static final EdgeH RIGHTBYP5 = new EdgeH(0.5,0);
-	/* 0.5166... */		private static final EdgeH RIGHTBYP5166 = new EdgeH(0.5166,0);
-	/* 0.55 */			private static final EdgeH RIGHTBYP55 = new EdgeH(0.55,0);
-	/* 0.5666... */		private static final EdgeH RIGHTBYP566 = new EdgeH(0.5666,0);
-	/* 0.6 */			private static final EdgeH RIGHTBYP6 = new EdgeH(0.6,0);
-	/* 0.6166... */		private static final EdgeH RIGHTBYP6166 = new EdgeH(0.6166,0);
-	/* 0.6333... */		private static final EdgeH RIGHTBYP6333 = new EdgeH(0.6333,0);
-	/* 0.6666... */		private static final EdgeH RIGHTBYP66 = new EdgeH(0.6666,0);
-	/* 0.7 */			private static final EdgeH RIGHTBYP7 = new EdgeH(0.7,0);
-	/* 0.75 */			private static final EdgeH RIGHTBYP75 = new EdgeH(0.75,0);
-	/* 0.8 */			private static final EdgeH RIGHTBYP8 = new EdgeH(0.8,0);
-	/* 0.875 */			private static final EdgeH RIGHTBYP875 = new EdgeH(0.875,0);
-	/* 0.9 */			private static final EdgeH RIGHTBYP9 = new EdgeH(0.9,0);
+	/* 0.1 */			private final EdgeH RIGHTBYP1 = new EdgeH(0.1/2,0);
+	/* 0.1333... */		private final EdgeH RIGHTBYP125 = new EdgeH(0.1333/2,0);
+	/* 0.1666... */		private final EdgeH RIGHTBYP166 = new EdgeH(0.1666/2,0);
+	/* 0.2 */			private final EdgeH RIGHTBYP2 = new EdgeH(0.2/2,0);
+	/* 0.25 */			private final EdgeH RIGHTBYP25 = new EdgeH(0.25/2,0);
+	/* 0.3 */			private final EdgeH RIGHTBYP3 = new EdgeH(0.3/2,0);
+	/* 0.3333... */		private final EdgeH RIGHTBYP33 = new EdgeH(0.3333/2,0);
+	/* 0.35 */			private final EdgeH RIGHTBYP35 = new EdgeH(0.35/2,0);
+	/* 0.3666... */		private final EdgeH RIGHTBYP3666 = new EdgeH(0.3666/2,0);
+	/* 0.3833... */		private final EdgeH RIGHTBYP3833 = new EdgeH(0.3833/2,0);
+	/* 0.4 */			private final EdgeH RIGHTBYP4 = new EdgeH(0.4/2,0);
+	/* 0.4333... */		private final EdgeH RIGHTBYP433 = new EdgeH(0.4333/2,0);
+	/* 0.45 */			private final EdgeH RIGHTBYP45 = new EdgeH(0.45/2,0);
+	/* 0.5 */			private final EdgeH RIGHTBYP5 = new EdgeH(0.5/2,0);
+	/* 0.5166... */		private final EdgeH RIGHTBYP5166 = new EdgeH(0.5166/2,0);
+	/* 0.55 */			private final EdgeH RIGHTBYP55 = new EdgeH(0.55/2,0);
+	/* 0.5666... */		private final EdgeH RIGHTBYP566 = new EdgeH(0.5666/2,0);
+	/* 0.6 */			private final EdgeH RIGHTBYP6 = new EdgeH(0.6/2,0);
+	/* 0.6166... */		private final EdgeH RIGHTBYP6166 = new EdgeH(0.6166/2,0);
+	/* 0.6333... */		private final EdgeH RIGHTBYP6333 = new EdgeH(0.6333/2,0);
+	/* 0.6666... */		private final EdgeH RIGHTBYP66 = new EdgeH(0.6666/2,0);
+	/* 0.7 */			private final EdgeH RIGHTBYP7 = new EdgeH(0.7/2,0);
+	/* 0.75 */			private final EdgeH RIGHTBYP75 = new EdgeH(0.75/2,0);
+	/* 0.8 */			private final EdgeH RIGHTBYP8 = new EdgeH(0.8/2,0);
+	/* 0.875 */			private final EdgeH RIGHTBYP875 = new EdgeH(0.875/2,0);
+	/* 0.9 */			private final EdgeH RIGHTBYP9 = new EdgeH(0.9/2,0);
 
 	// this much from the center to the bottom edge
-	/* 0.1 */			private static final EdgeV BOTBYP1 = new EdgeV(-0.1,0); 
-	/* 0.125 */			private static final EdgeV BOTBYP125 = new EdgeV(-0.125,0);   
-	/* 0.166...  */		private static final EdgeV BOTBYP166 = new EdgeV(-0.166,0);	
-	/* 0.2 */			private static final EdgeV BOTBYP2 = new EdgeV(-0.2,0); 
-	/* 0.25 */			private static final EdgeV BOTBYP25 = new EdgeV(-0.25,0);	
-	/* 0.3 */			private static final EdgeV BOTBYP3 = new EdgeV(-0.3,0); 
-	/* 0.3333... */		private static final EdgeV BOTBYP33 = new EdgeV(-0.3333,0);	
-	/* 0.375 */			private static final EdgeV BOTBYP375 = new EdgeV(-0.375,0);        
-	/* 0.4 */			private static final EdgeV BOTBYP4 = new EdgeV(-0.4,0); 
-	/* 0.5 */			private static final EdgeV BOTBYP5 = new EdgeV(-0.5,0); 
-	/* 0.6 */			private static final EdgeV BOTBYP6 = new EdgeV(-0.6,0); 
-	/* 0.6666... */		private static final EdgeV BOTBYP66 = new EdgeV(-0.6666,0);	
-	/* 0.7 */			private static final EdgeV BOTBYP7 = new EdgeV(-0.7,0); 
-	/* 0.75 */			private static final EdgeV BOTBYP75 = new EdgeV(-0.75,0);	
-	/* 0.8 */			private static final EdgeV BOTBYP8 = new EdgeV(-0.8,0); 
-	/* 0.875 */			private static final EdgeV BOTBYP875 = new EdgeV(-0.875,0);        
-	/* 0.9 */			private static final EdgeV BOTBYP9 = new EdgeV(-0.9,0);	
+	/* 0.1 */			private final EdgeV BOTBYP1 = new EdgeV(-0.1/2,0); 
+	/* 0.125 */			private final EdgeV BOTBYP125 = new EdgeV(-0.125/2,0);   
+	/* 0.166...  */		private final EdgeV BOTBYP166 = new EdgeV(-0.166/2,0);	
+	/* 0.2 */			private final EdgeV BOTBYP2 = new EdgeV(-0.2/2,0); 
+	/* 0.25 */			private final EdgeV BOTBYP25 = new EdgeV(-0.25/2,0);	
+	/* 0.3 */			private final EdgeV BOTBYP3 = new EdgeV(-0.3/2,0); 
+	/* 0.3333... */		private final EdgeV BOTBYP33 = new EdgeV(-0.3333/2,0);	
+	/* 0.375 */			private final EdgeV BOTBYP375 = new EdgeV(-0.375/2,0);        
+	/* 0.4 */			private final EdgeV BOTBYP4 = new EdgeV(-0.4/2,0); 
+	/* 0.5 */			private final EdgeV BOTBYP5 = new EdgeV(-0.5/2,0); 
+	/* 0.6 */			private final EdgeV BOTBYP6 = new EdgeV(-0.6/2,0); 
+	/* 0.6666... */		private final EdgeV BOTBYP66 = new EdgeV(-0.6666/2,0);	
+	/* 0.7 */			private final EdgeV BOTBYP7 = new EdgeV(-0.7/2,0); 
+	/* 0.75 */			private final EdgeV BOTBYP75 = new EdgeV(-0.75/2,0);	
+	/* 0.8 */			private final EdgeV BOTBYP8 = new EdgeV(-0.8/2,0); 
+	/* 0.875 */			private final EdgeV BOTBYP875 = new EdgeV(-0.875/2,0);        
+	/* 0.9 */			private final EdgeV BOTBYP9 = new EdgeV(-0.9/2,0);	
 
 	// this much from the center to the top edge
-	/* 0.1 */			private static final EdgeV TOPBYP1 = new EdgeV(0.1,0);	
-	/* 0.2 */			private static final EdgeV TOPBYP2 = new EdgeV(0.2,0);	
-	/* 0.25 */			private static final EdgeV TOPBYP25 = new EdgeV(0.25,0);	
-	/* 0.3 */			private static final EdgeV TOPBYP3 = new EdgeV(0.3,0);	
-	/* 0.3333... */		private static final EdgeV TOPBYP33 = new EdgeV(0.3333,0);	
-	/* 0.4 */			private static final EdgeV TOPBYP4 = new EdgeV(0.4,0);	
-	/* 0.5 */			private static final EdgeV TOPBYP5 = new EdgeV(0.5,0);	
-	/* 0.5833... */		private static final EdgeV TOPBYP5833 = new EdgeV(0.5833,0);	
-	/* 0.6 */			private static final EdgeV TOPBYP6 = new EdgeV(0.6,0);	
-	/* 0.6666... */		private static final EdgeV TOPBYP66 = new EdgeV(0.6666,0);	
-	/* 0.7 */			private static final EdgeV TOPBYP7 = new EdgeV(0.7,0);	
-	/* 0.75 */			private static final EdgeV TOPBYP75 = new EdgeV(0.75,0);	
-	/* 0.8 */			private static final EdgeV TOPBYP8 = new EdgeV(0.8,0);	
-	/* 0.8666... */		private static final EdgeV TOPBYP866 = new EdgeV(0.8666,0);	
-	/* 0.875 */			private static final EdgeV TOPBYP875 = new EdgeV(0.875,0);	
-	/* 0.9 */			private static final EdgeV TOPBYP9 = new EdgeV(0.9,0);	
-
-//INTBIG            sch_meterkey;			/* key for "SCHEM_meter_type" */
-//INTBIG            sch_diodekey;			/* key for "SCHEM_diode" */
-//INTBIG            sch_capacitancekey;	/* key for "SCHEM_capacitance" */
-//INTBIG            sch_resistancekey;	/* key for "SCHEM_resistance" */
-//INTBIG            sch_inductancekey;	/* key for "SCHEM_inductance" */
-//INTBIG            sch_functionkey;		/* key for "SCHEM_function" */
-//INTBIG            sch_spicemodelkey;	/* key for "SIM_spice_model" */
-//INTBIG            sch_globalnamekey;	/* key for "SCHEM_global_name" */
-//ARCPROTO         *sch_wirearc, *sch_busarc;
-//static INTBIG     sch_bubblediameter = K1+D4;
-
-//typedef struct
-//{
-//	/* for arc drawing */
-//	INTBIG        bubblebox, arrowbox;
-//
-//	/* for node drawing */
-//	TECH_POLYGON *layerlist;
-//
-//	/* control of the bar in a switch node */
-//	INTBIG        switchbarvalue;
-//
-//	/* control of the bus pin node */
-//	INTBIG        buspinlayer;
-//	INTBIG        buspinsize;
-//	INTBIG       *buspinpoints;
-//
-//	/* for extra steiner points on nodes */
-//	INTBIG        extrasteinerpoint;
-//	TECH_PORTS   *extrasteinerport[10];
-//} SCHPOLYLOOP;
-//static SCHPOLYLOOP sch_oneprocpolyloop;
-//
-//static PORTPROTO *sch_anddiffports, *sch_ordiffports, *sch_xordiffports;
-//INTBIG            sch_wirepinsizex;		/* X size if wire-pin primitives */
-//INTBIG            sch_wirepinsizey;		/* Y size if wire-pin primitives */
-
+	/* 0.1 */			private final EdgeV TOPBYP1 = new EdgeV(0.1/2,0);	
+	/* 0.2 */			private final EdgeV TOPBYP2 = new EdgeV(0.2/2,0);	
+	/* 0.25 */			private final EdgeV TOPBYP25 = new EdgeV(0.25/2,0);	
+	/* 0.3 */			private final EdgeV TOPBYP3 = new EdgeV(0.3/2,0);	
+	/* 0.3333... */		private final EdgeV TOPBYP33 = new EdgeV(0.3333/2,0);	
+	/* 0.4 */			private final EdgeV TOPBYP4 = new EdgeV(0.4/2,0);	
+	/* 0.5 */			private final EdgeV TOPBYP5 = new EdgeV(0.5/2,0);	
+	/* 0.5833... */		private final EdgeV TOPBYP5833 = new EdgeV(0.5833/2,0);	
+	/* 0.6 */			private final EdgeV TOPBYP6 = new EdgeV(0.6/2,0);	
+	/* 0.6666... */		private final EdgeV TOPBYP66 = new EdgeV(0.6666/2,0);	
+	/* 0.7 */			private final EdgeV TOPBYP7 = new EdgeV(0.7/2,0);	
+	/* 0.75 */			private final EdgeV TOPBYP75 = new EdgeV(0.75/2,0);	
+	/* 0.8 */			private final EdgeV TOPBYP8 = new EdgeV(0.8/2,0);	
+	/* 0.8666... */		private final EdgeV TOPBYP866 = new EdgeV(0.8666/2,0);	
+	/* 0.875 */			private final EdgeV TOPBYP875 = new EdgeV(0.875/2,0);	
+	/* 0.9 */			private final EdgeV TOPBYP9 = new EdgeV(0.9/2,0);	
 
 	// -------------------- private and protected methods ------------------------
+
 	private TecSchematics()
 	{
 		setTechName("schematic");
 		setTechDesc("Schematic Capture");
+		setNonStandard();
+		setStaticTechnology();
 
 		//**************************************** LAYERS ****************************************
 
 		/** arc layer */
-		Layer arc_lay = Layer.newInstance("Arc",
+		arc_lay = Layer.newInstance("Arc",
 			new EGraphics(EGraphics.LAYERO, EGraphics.BLUE, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,255,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
-		Layer bus_lay = Layer.newInstance("Bus",
+		bus_lay = Layer.newInstance("Bus",
 			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
@@ -273,13 +235,13 @@ public class TecSchematics extends Technology
 						0x0000}));//                 
 
 		/** node layer */
-		Layer node_lay = Layer.newInstance("Node",
+		node_lay = Layer.newInstance("Node",
 			new EGraphics(EGraphics.LAYERO, EGraphics.RED, EGraphics.SOLIDC, EGraphics.SOLIDC, 255,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
-		Layer text_lay = Layer.newInstance("Text",
+		text_lay = Layer.newInstance("Text",
 			new EGraphics(EGraphics.LAYERO, EGraphics.CELLTXT, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
@@ -294,11 +256,9 @@ public class TecSchematics extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** wire arc */
-		PrimitiveArc wire_arc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
+		wire_arc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(arc_lay, 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(arc_lay, 0, Poly.Type.CIRCLE),
-			new Technology.ArcLayer(arc_lay, 0, Poly.Type.VECTORS)
+			new Technology.ArcLayer(arc_lay, 0, Poly.Type.FILLED)
 		});
 		wire_arc.setFunction(PrimitiveArc.Function.METAL1);
 		wire_arc.setFixedAngle();
@@ -306,11 +266,9 @@ public class TecSchematics extends Technology
 		wire_arc.setAngleIncrement(45);
 
 		/** bus arc */
-		PrimitiveArc bus_arc = PrimitiveArc.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
+		bus_arc = PrimitiveArc.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(bus_lay, 0, Poly.Type.CIRCLE),
-			new Technology.ArcLayer(arc_lay, 0, Poly.Type.VECTORS)
+			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED)
 		});
 		bus_arc.setFunction(PrimitiveArc.Function.BUS);
 		bus_arc.setFixedAngle();
@@ -320,255 +278,46 @@ public class TecSchematics extends Technology
 
 		//**************************************** NODES ****************************************
 
-//static CHAR sch_NULLSTR[] = {x_("")};
-//static CHAR sch_D[] = {x_("D")};
-//static CHAR sch_E[] = {x_("E")};
-//static CHAR sch_J[] = {x_("J")};
-//static CHAR sch_K[] = {x_("K")};
-//static CHAR sch_Q[] = {x_("Q")};
-//static CHAR sch_R[] = {x_("R")};
-//static CHAR sch_S[] = {x_("S")};
-//static CHAR sch_T[] = {x_("T")};
-//static CHAR sch_V[] = {x_("V")};
-//static CHAR sch_PR[] = {x_("PR")};
-//static CHAR sch_QB[] = {x_("QB")};
-//
-//static INTBIG sch_g_pindisc[]    = {CENTER,    CENTER,    RIGHTEDGE, CENTER};
-//static INTBIG sch_g_buspindisc[] = {CENTER,    CENTER,    RIGHTBYP5, CENTER};
-//static INTBIG sch_g_bustapdisc[] = {CENTER,    CENTER,    RIGHTBYP25,CENTER};
-//static CHAR  *sch_g_wireconj[]   = {0,  0,     0, 0,      sch_J};
-//static INTBIG sch_g_inv[]        = {RIGHTBYP66,CENTER,    LEFTEDGE,  TOPBYP875,
-//								    LEFTEDGE,  BOTBYP875};
-//static INTBIG sch_g_and[]        = {CENTERR0H, CENTER,    CENTERR0H, CENTERU3,
-//								    CENTERR0H, CENTERD3};
-//static INTBIG sch_g_andbox[]     = {CENTERR0H, CENTERU3,  CENTERL4,  CENTERU3,
-//								    CENTERL4,  TOPEDGE,   CENTERL4,  BOTEDGE,
-//								    CENTERL4,  CENTERD3,  CENTERR0H, CENTERD3};
-//static INTBIG sch_g_or[]         = {CENTERL4,  TOPEDGE,   CENTERL4,  CENTERU3,
-//								    CENTERL4,  CENTERU3,  CENTERL0T, CENTERU3,
-//								    CENTERL4,  BOTEDGE,   CENTERL4,  CENTERD3,
-//								    CENTERL4,  CENTERD3,  CENTERL0T, CENTERD3};
-//static INTBIG sch_g_ort[]        = {CENTERL0T, CENTERD3,  CENTERL0T, CENTERU3,
-//								    CENTERR4H, CENTER};
-//static INTBIG sch_g_orb[]        = {CENTERL0T, CENTERU3,  CENTERR4H, CENTER,
-//								    CENTERL0T, CENTERD3};
-//static INTBIG sch_g_orl[]        = {CENTERL9,  CENTER,    CENTERL4,  CENTERU3,
-//								    CENTERL4,  CENTERD3};
-//static INTBIG sch_g_xor[]        = {CENTERL10, CENTER,    CENTERL5,  CENTERU3,
-//								    CENTERL5,  CENTERD3};
-//static INTBIG sch_g_ffbox[]      = {LEFTEDGE,  BOTEDGE,   RIGHTEDGE, TOPEDGE};
-//static INTBIG sch_g_ffarrow[]    = {LEFTEDGE,  BOTBYP2,   LEFTBYP7,  CENTER,
-//								    LEFTEDGE,  TOPBYP2};
-//static CHAR *sch_g_fftextd[]    = {(CHAR *)-H0,  0,  (CHAR *)D4,0,   (CHAR *)-H0,  0,  (CHAR *)D8,0,
-//								   (CHAR *)-D4,0,  (CHAR *)D8,0,   (CHAR *)-D4,0,  (CHAR *)D4,0,
-//								   sch_D};
-//static CHAR *sch_g_fftexte[]    = {(CHAR *)-H0,  0,  (CHAR *)-D4,0,   (CHAR *)-H0,  0,  (CHAR *)-D8,0,
-//								   (CHAR *)-D4,0,  (CHAR *)-D8,0,   (CHAR *)-D4,0,  (CHAR *)-D4,0,
-//								   sch_E};
-//static CHAR *sch_g_fftextq[]    = {(CHAR *)H0,  0, (CHAR *)D4,0,   (CHAR *)H0,  0, (CHAR *)D8,0,
-//								   (CHAR *)D4,0, (CHAR *)D8,0,   (CHAR *)D4,0, (CHAR *)D4,0,
-//								   sch_Q};
-//static CHAR *sch_g_fftextqb[]   = {(CHAR *)H0,  0, (CHAR *)-D4,0,   (CHAR *)H0,  0, (CHAR *)-D8,0,
-//								   (CHAR *)D4,0, (CHAR *)-D8,0,   (CHAR *)D4,0, (CHAR *)-D4,0,
-//								   sch_QB};
-//static CHAR *sch_g_fftextpr[]   = {(CHAR *)-D6,0,  (CHAR *)D6,0,   (CHAR *)-D6,0,  (CHAR *)H0,  0,
-//								   (CHAR *)D6,0, (CHAR *)H0,  0,   (CHAR *)D6,0, (CHAR *)D6,0,
-//								   sch_PR};
-//static CHAR *sch_g_fftextclr[]  = {(CHAR *)-D6,0,  (CHAR *)-D6,0,   (CHAR *)-D6,0,  (CHAR *)-H0,  0,
-//								   (CHAR *)D6,0, (CHAR *)-H0,  0,   (CHAR *)D6,0, (CHAR *)-D6,0,
-//								   0 /* "CLR" */};
-//static CHAR *sch_g_meterv[]     = {(CHAR *)-H0,  0,  (CHAR *)-H0,  0,   (CHAR *)H0,  0, (CHAR *)H0,  0,
-//								   sch_V};
-//static INTBIG sch_g_ffn[]        = {LEFTBYP6,  TOPBYP2,   LEFTBYP4,  TOPBYP2,
-//								    LEFTBYP4,  BOTBYP2,   LEFTBYP2,  BOTBYP2};
-//static INTBIG sch_g_ffp[]        = {LEFTBYP6,  BOTBYP2,   LEFTBYP4,  BOTBYP2,
-//								    LEFTBYP4,  TOPBYP2,   LEFTBYP2,  TOPBYP2};
-//static INTBIG sch_g_ffms[]       = {LEFTBYP6,  BOTBYP2,   LEFTBYP4,  BOTBYP2,
-//								    LEFTBYP4,  TOPBYP2,   LEFTBYP2,  TOPBYP2,
-//								    LEFTBYP2,  BOTBYP2,   CENTER,    BOTBYP2};
-//static INTBIG sch_g_mux[]        = {RIGHTBYP8, TOPBYP75,  RIGHTBYP8, BOTBYP75,
-//								    LEFTBYP8,  BOTEDGE,   LEFTBYP8,  TOPEDGE};
-//static INTBIG sch_g_bbox[]       = {LEFTEDGE,  BOTEDGE,   RIGHTEDGE, TOPEDGE};
-//static INTBIG sch_g_switchin[]   = {RIGHTIN1,  CENTER,    RIGHTIN1Q, CENTER};
-//static INTBIG sch_g_switchbar[]  = {RIGHTIN1,  CENTER,    LEFTIN1,   CENTER};
-//static INTBIG sch_g_switchout[]  = {LEFTIN1,   BOTIN0H,   LEFTIN0T,  BOTIN0H};
-//static INTBIG sch_g_offpage[]    = {LEFTEDGE,  BOTEDGE,   LEFTEDGE,  TOPEDGE,
-//								    RIGHTBYP5, TOPEDGE,   RIGHTEDGE, CENTER,
-//								    RIGHTBYP5, BOTEDGE};
-//static INTBIG sch_g_pwr1[]       = {CENTER,    CENTER,    CENTER,    TOPEDGE};
-//static INTBIG sch_g_pwr2[]       = {CENTER,    CENTER,    CENTER,    TOPBYP75};
-//static INTBIG sch_g_gnd[]        = {CENTER,    CENTER,    CENTER,    TOPEDGE,
-//								    LEFTEDGE,  CENTER,    RIGHTEDGE, CENTER,
-//								    LEFTBYP75, BOTBYP25,  RIGHTBYP75,BOTBYP25,
-//								    LEFTBYP5,  BOTBYP5,   RIGHTBYP5, BOTBYP5,
-//								    LEFTBYP25, BOTBYP75,  RIGHTBYP25,BOTBYP75,
-//								    CENTER,    BOTEDGE,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_resist[]     = {LEFTBYP66, CENTER,    LEFTBYP6,  CENTER,
-//								    LEFTBYP5,  TOPEDGE,   LEFTBYP3,  BOTEDGE,
-//								    LEFTBYP1,  TOPEDGE,   RIGHTBYP1, BOTEDGE,
-//								    RIGHTBYP3, TOPEDGE,   RIGHTBYP5, BOTEDGE,
-//								    RIGHTBYP6, CENTER,    RIGHTBYP66,CENTER};
-//static INTBIG sch_g_capac[]      = {LEFTEDGE,  TOPBYP2,   RIGHTEDGE, TOPBYP2,
-//								    LEFTEDGE,  BOTBYP2,   RIGHTEDGE, BOTBYP2,
-//								    CENTER,    TOPBYP2,   CENTER,    TOPEDGE,
-//								    CENTER,    BOTBYP2,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_capace[]     = {RIGHTBYP2, BOTBYP6,   RIGHTBYP6, BOTBYP6,
-//								    RIGHTBYP4, BOTBYP4,   RIGHTBYP4, BOTBYP8};
-//static INTBIG sch_g_source[]     = {CENTER,    CENTER,    RIGHTEDGE, CENTER};
-//static INTBIG sch_g_sourcepl[]   = {LEFTBYP3,  TOPBYP6,   RIGHTBYP3, TOPBYP6,
-//								    CENTER,    TOPBYP3,   CENTER,    TOPBYP9};
-//static INTBIG sch_g_mos[]        = {LEFTEDGE,  BOTEDGE,   LEFTBYP75, BOTEDGE,
-//								    LEFTBYP75, BOTBYP5,   RIGHTBYP75,BOTBYP5,
-//								    RIGHTBYP75,BOTEDGE,   RIGHTEDGE, BOTEDGE};
-//static INTBIG sch_g_trantop[]    = {LEFTBYP75, BOTBYP25,  RIGHTBYP75,BOTBYP25};
-//static INTBIG sch_g_nmos[]       = {CENTER,    BOTBYP25,  CENTER,    TOPIN1};
-//static INTBIG sch_g_nmos4[]      = {LEFTBYP5,  BOTBYP5,   LEFTBYP5,  BOTEDGE,
-//									LEFTBYP5,  BOTBYP5,   LEFTBYP35, BOTBYP75,
-//									LEFTBYP5,  BOTBYP5,   LEFTBYP66, BOTBYP75};
-//static INTBIG sch_g_dmos4[]      = {LEFTBYP5,  BOTBYP75,  LEFTBYP5,  BOTEDGE,
-//									LEFTBYP5,  BOTBYP75,  LEFTBYP35, BOTBYP9,
-//									LEFTBYP5,  BOTBYP75,  LEFTBYP66, BOTBYP9};
-//static INTBIG sch_g_pmos4[]      = {LEFTBYP5,  BOTBYP5,   LEFTBYP5,  BOTEDGE,
-//									LEFTBYP5,  BOTEDGE,   LEFTBYP35, BOTBYP75,
-//									LEFTBYP5,  BOTEDGE,   LEFTBYP66, BOTBYP75};
-//static INTBIG sch_g_bip4[]       = {LEFTBYP5,  BOTEDGE,   CENTER,    BOTBYP25};
-//static INTBIG sch_g_nmes4[]      = {LEFTBYP5,  BOTBYP25,  LEFTBYP5,  BOTEDGE,
-//									LEFTBYP5,  BOTBYP25,  LEFTBYP35, BOTBYP5,
-//									LEFTBYP5,  BOTBYP25,  LEFTBYP66, BOTBYP5};
-//static INTBIG sch_g_pmes4[]      = {LEFTBYP5,  BOTBYP25,  LEFTBYP5,  BOTEDGE,
-//									LEFTBYP5,  BOTEDGE,   LEFTBYP35, BOTBYP75,
-//									LEFTBYP5,  BOTEDGE,   LEFTBYP66, BOTBYP75};
-//static INTBIG sch_g_pmos[]       = {CENTER,    TOPBYP25,  CENTER,    TOPIN1};
-//static INTBIG sch_g_pmoscir[]    = {CENTER,    CENTER,    CENTER,    BOTBYP25};
-//static INTBIG sch_g_dmos[]       = {LEFTBYP75, BOTBYP75,  RIGHTBYP75,BOTBYP5};
-//static INTBIG sch_g_btran1[]     = {LEFTEDGE,  BOTEDGE,   LEFTBYP75, BOTEDGE,
-//								    LEFTBYP25, BOTBYP25,  RIGHTBYP25,BOTBYP25,
-//								    RIGHTBYP75,BOTEDGE,   RIGHTEDGE, BOTEDGE};
-//static INTBIG sch_g_btran2[]     = {LEFTBYP75, BOTBYP75,  LEFTBYP75, BOTEDGE,
-//								    LEFTBYP5,  BOTBYP875};
-//static INTBIG sch_g_btran3[]     = {LEFTBYP5,  BOTBYP375, LEFTBYP25, BOTBYP25,
-//								    LEFTBYP25, BOTBYP5};
-//static INTBIG sch_g_btran4[]     = {LEFTEDGE,  BOTEDGE,   LEFTBYP75, BOTEDGE,
-//									LEFTBYP75, BOTEDGE,   LEFTBYP75, BOTBYP25,
-//									LEFTBYP875,BOTBYP25,  RIGHTBYP875,BOTBYP25,
-//									RIGHTBYP75,BOTBYP25,  RIGHTBYP75,BOTEDGE,
-//									RIGHTBYP75,BOTEDGE,   RIGHTEDGE, BOTEDGE};
-//static INTBIG sch_g_btran5[]     = {LEFTBYP125,CENTER,    CENTER,    BOTBYP25,
-//								    RIGHTBYP125,CENTER};
-//static INTBIG sch_g_btran6[]     = {LEFTBYP125,CENTER,    CENTER,    TOPBYP25,
-//								    RIGHTBYP125,CENTER};
-//static INTBIG sch_g_btran7[]     = {LEFTEDGE,  BOTEDGE,   LEFTBYP75, BOTEDGE,
-//								    LEFTBYP75, BOTEDGE,   LEFTBYP75, BOTBYP25,
-//								    LEFTBYP875,BOTBYP25,  LEFTBYP5,  BOTBYP25,
-//								    LEFTBYP25, BOTBYP25,  RIGHTBYP25,BOTBYP25,
-//								    RIGHTBYP5, BOTBYP25,  RIGHTBYP875,BOTBYP25,
-//								    RIGHTBYP75,BOTBYP25,  RIGHTBYP75,BOTEDGE,
-//								    RIGHTBYP75,BOTEDGE,   RIGHTEDGE, BOTEDGE};
-//static INTBIG sch_g_diode1[]     = {LEFTEDGE,  TOPBYP5,   RIGHTEDGE, TOPBYP5,
-//								    CENTER,    TOPBYP5,   CENTER,    TOPEDGE,
-//								    CENTER,    BOTBYP5,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_diode2[]     = {LEFTEDGE,  BOTBYP5,   RIGHTEDGE, BOTBYP5,
-//								    CENTER,    TOPBYP5};
-//static INTBIG sch_g_diode3[]     = {LEFTEDGE,  TOPBYP75,  LEFTEDGE,  TOPBYP5,
-//								    LEFTEDGE,  TOPBYP5,   RIGHTEDGE, TOPBYP5,
-//								    RIGHTEDGE, TOPBYP5,   RIGHTEDGE, TOPBYP25,
-//								    CENTER,    TOPBYP5,   CENTER,    TOPEDGE,
-//								    CENTER,    BOTBYP5,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_induct1[]    = {CENTER,    TOPEDGE,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_induct2[]    = {LEFTBYP5,  TOPBYP33,  CENTER,    TOPBYP33};
-//static INTBIG sch_g_induct3[]    = {LEFTBYP5,  CENTER,    CENTER,    CENTER};
-//static INTBIG sch_g_induct4[]    = {LEFTBYP5,  BOTBYP33,  CENTER,    BOTBYP33};
-//static INTBIG sch_g_meter[]      = {CENTER,    CENTER,    RIGHTEDGE, CENTER};
-//static INTBIG sch_g_well[]       = {LEFTEDGE,  BOTEDGE,   RIGHTEDGE, BOTEDGE,
-//								    CENTER,    TOPEDGE,   CENTER,    BOTEDGE};
-//static INTBIG sch_g_global1[]    = {LEFTEDGE,  CENTER,    CENTER,    TOPEDGE,
-//								    RIGHTEDGE, CENTER,    CENTER,    BOTEDGE};
-//static INTBIG sch_g_global2[]    = {LEFTBYP9,  CENTER,    CENTER,    TOPBYP9,
-//								    RIGHTBYP9, CENTER,    CENTER,    BOTBYP9};
-//static INTBIG sch_g_substrate[]  = {CENTER,    CENTER,    CENTER,    TOPEDGE,
-//								    LEFTEDGE,  CENTER,    RIGHTEDGE, CENTER,
-//								    LEFTEDGE,  CENTER,    CENTER,    BOTEDGE,
-//								    RIGHTEDGE, CENTER,    CENTER,    BOTEDGE};
-//
-//static INTBIG sch_g_twocsarr[]   = {RIGHTBYP3833,TOPBYP33,RIGHTBYP3833,BOTBYP33,
-//								    RIGHTBYP3833,BOTBYP33,RIGHTBYP33,BOTBYP166,
-//								    RIGHTBYP3833,BOTBYP33,RIGHTBYP433,BOTBYP166};
-//static INTBIG sch_g_twoulpl[]    = {LEFTBYP35, TOPBYP66,  LEFTBYP45, TOPBYP66,
-//								    LEFTBYP4,  TOPBYP5833,LEFTBYP4,  TOPBYP75};
-//static INTBIG sch_g_twourpl[]    = {RIGHTBYP35,TOPBYP66,  RIGHTBYP45,TOPBYP66,
-//								    RIGHTBYP4, TOPBYP5833,RIGHTBYP4, TOPBYP75};
-//static INTBIG sch_g_twourrpl[]   = {RIGHTBYP5166,TOPBYP66,RIGHTBYP6166,TOPBYP66,
-//								    RIGHTBYP566,TOPBYP5833,RIGHTBYP566,TOPBYP75};
-//static INTBIG sch_g_twobox[]     = {LEFTBYP8,  BOTEDGE,   RIGHTBYP8, TOPEDGE};
-//static INTBIG sch_g_twogwire[]   = {LEFTEDGE,  TOPBYP66,  LEFTBYP8,  TOPBYP66,
-//								    LEFTEDGE,  BOTBYP66,  LEFTBYP8,  BOTBYP66,
-//								    RIGHTEDGE, TOPBYP66,  RIGHTBYP8, TOPBYP66,
-//								    RIGHTEDGE, BOTBYP66,  RIGHTBYP8, BOTBYP66};
-//static INTBIG sch_g_twonormwire[]= {LEFTEDGE,  TOPBYP66,  LEFTBYP6,  TOPBYP66,
-//								    LEFTEDGE,  BOTBYP66,  LEFTBYP6,  BOTBYP66,
-//								    RIGHTEDGE, TOPBYP66,  RIGHTBYP6, TOPBYP66,
-//								    RIGHTBYP6, TOPBYP66,  RIGHTBYP6, TOPBYP3,
-//								    RIGHTEDGE, BOTBYP66,  RIGHTBYP6, BOTBYP66,
-//								    RIGHTBYP6, BOTBYP66,  RIGHTBYP6, BOTBYP3};
-//static INTBIG sch_g_twoccwire[]  = {LEFTBYP6,  TOPBYP66,  LEFTBYP6,  BOTBYP66};
-//static INTBIG sch_g_twocswire[]  = {RIGHTBYP6, TOPBYP3,   RIGHTBYP45,CENTER,
-//								    RIGHTBYP45,CENTER,    RIGHTBYP6, BOTBYP3,
-//								    RIGHTBYP6, BOTBYP3,   RIGHTBYP75,CENTER,
-//								    RIGHTBYP75,CENTER,    RIGHTBYP6, TOPBYP3};
-//static INTBIG sch_g_twovsc[]     = {RIGHTBYP6, CENTER,    RIGHTBYP6, TOPBYP3};
-//static INTBIG sch_g_twotr1[]     = {CENTER,    CENTER,    LEFTBYP8,  BOTEDGE,
-//								    LEFTBYP8,  TOPEDGE};
-//static INTBIG sch_g_twotr2[]     = {LEFTBY1P6, CENTER,    LEFTBYP8,  TOPEDGE,
-//								    LEFTBYP8,  BOTEDGE};
-//static INTBIG sch_g_twotr3[]     = {CENTER,    CENTER,    RIGHTBYP8, TOPEDGE,
-//								    RIGHTBYP8, BOTEDGE};
-//static INTBIG sch_g_twotrbox[]   = {LEFTBYP8,  TOPEDGE,   RIGHTBYP8, TOPEDGE,
-//								    LEFTBYP8,  BOTEDGE,   RIGHTBYP8, BOTEDGE};
-//static INTBIG sch_g_twotrwire[]  = {LEFTEDGE,  TOPBYP66,  LEFTBYP8,  TOPBYP66,
-//								    LEFTEDGE,  BOTBYP66,  LEFTBYP8,  BOTBYP66,
-//								    RIGHTEDGE, TOPBYP66,  RIGHTBYP9, TOPBYP66,
-//								    RIGHTEDGE, BOTBYP66,  RIGHTBYP9, BOTBYP66};
-
 		/** wire pin */
-		wirePin_node = PrimitiveNode.newInstance("Wire_Pin", this, 0.5, 0.5, 0.0, 0.0,
+		wirePin_node = PrimitiveNode.newInstance("Wire_Pin", this, 0.5, 0.5, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter)})
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
 		wirePin_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wirePin_node, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		wirePin_node.setFunction(NodeProto.Function.PIN);
 		wirePin_node.setSquare();
-		wirePin_node.setArcsWipe();
+		wirePin_node.setWipeOn1or2();
 
 		/** bus pin */
-		busPin_node = PrimitiveNode.newInstance("Bus_Pin", this, 2.0, 2.0, 0.0, 0.0,
+		busPin_node = PrimitiveNode.newInstance("Bus_Pin", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(bus_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter)}),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
 				new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter)})
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
 		busPin_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, busPin_node, new ArcProto[] {wire_arc}, "bus", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+				PrimitivePort.newInstance(this, busPin_node, new ArcProto[] {wire_arc, bus_arc}, "bus", 0,180, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		busPin_node.setFunction(NodeProto.Function.PIN);
 		busPin_node.setSquare();
-		busPin_node.setArcsWipe();
+		busPin_node.setWipeOn1or2();
 
 		/** wire con */
 		Technology.NodeLayer letterJ;
-		wireCon_node = PrimitiveNode.newInstance("Wire_Con", this, 2.0, 2.0, 0.0, 0.0,
+		wireCon_node = PrimitiveNode.newInstance("Wire_Con", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
@@ -583,41 +332,41 @@ public class TecSchematics extends Technology
 		letterJ.setMessage("J");
 
 		/** general buffer */
-		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, 0.0, 0.0,
+		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 1, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint [] {
-						new Technology.TechPoint(RIGHTBYP66, EdgeV.AtCenter),
-						new Technology.TechPoint(EdgeH.LeftEdge, TOPBYP875),
-						new Technology.TechPoint(EdgeH.LeftEdge, BOTBYP875)
+						new Technology.TechPoint(RIGHTBYP66, EdgeV.CENTER),
+						new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP875),
+						new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP875)
 					})
 			});
 		buffer_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.AtCenter, EdgeH.LeftEdge, EdgeV.AtCenter),
+					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
 				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc}, "c", 270,0, 1, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, BOTBYP33, EdgeH.AtCenter, BOTBYP33),
+					EdgeH.CENTER, BOTBYP33, EdgeH.CENTER, BOTBYP33),
 				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2, PortProto.Function.UNKNOWN,
-					RIGHTBYP66, EdgeV.AtCenter, RIGHTBYP66, EdgeV.AtCenter)
+					RIGHTBYP66, EdgeV.CENTER, RIGHTBYP66, EdgeV.CENTER)
 			});
 		buffer_node.setFunction(NodeProto.Function.BUFFER);
 
 		/** general and */
-		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, 0.0, 0.0,
+		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))}),
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
 						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
 						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))
 					})
@@ -625,9 +374,9 @@ public class TecSchematics extends Technology
 		and_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
-					EdgeH.fromCenter(3.5), EdgeV.BottomEdge, EdgeH.fromCenter(3.5), EdgeV.TopEdge),
+					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
-					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-4), EdgeV.TopEdge),
+					EdgeH.fromCenter(3.5), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(3.5), EdgeV.TOPEDGE),
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
 					EdgeH.fromCenter(2.75), EdgeV.fromCenter(2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
@@ -636,39 +385,38 @@ public class TecSchematics extends Technology
 		and_node.setFunction(NodeProto.Function.GATEAND);
 
 		/** general or */
-		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, 0.0, 0.0,
+		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(-4.5), EdgeV.AtCenter)}),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER)}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
-					new Technology.TechPoint [] {
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
-					})
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
+				})
 			});
 		or_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
-					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-3), EdgeV.TopEdge),
+					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE),
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.AtCenter, EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
 					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
@@ -677,43 +425,42 @@ public class TecSchematics extends Technology
 		or_node.setFunction(NodeProto.Function.GATEOR);
 
 		/** general xor */
-		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, 0.0, 0.0,
+		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(-4.5), EdgeV.AtCenter)}),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER)}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(-3))}),
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
-					new Technology.TechPoint [] {
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
-					})
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
+				})
 			});
 		xor_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
-					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-3), EdgeV.TopEdge),
+					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE),
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.AtCenter, EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
 					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
@@ -721,504 +468,1044 @@ public class TecSchematics extends Technology
 			});
 		xor_node.setFunction(NodeProto.Function.GATEXOR);
 
-///* general flip flop */
-//static TECH_PORTS sch_ff_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("i1"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT,  LEFTEDGE, TOPBYP6, LEFTEDGE, TOPBYP6},
-//	{ new ArcProto[] {wire_arc}, x_("i2"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(1<<PORTNETSH)|INPORT,  LEFTEDGE, BOTBYP6, LEFTEDGE, BOTBYP6},
-//	{ new ArcProto[] {wire_arc}, x_("q"), NOPORTPROTO, (0<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(2<<PORTNETSH)|OUTPORT, RIGHTEDGE, TOPBYP6, RIGHTEDGE, TOPBYP6},
-//	{ new ArcProto[] {wire_arc}, x_("qb"), NOPORTPROTO, (0<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(3<<PORTNETSH)|OUTPORT, RIGHTEDGE, BOTBYP6, RIGHTEDGE, BOTBYP6},
-//	{ new ArcProto[] {wire_arc}, x_("ck"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(4<<PORTNETSH)|INPORT,  LEFTEDGE, CENTER, LEFTEDGE, CENTER},
-//	{ new ArcProto[] {wire_arc}, x_("preset"), NOPORTPROTO, (90<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(5<<PORTNETSH)|INPORT,  CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("clear"), NOPORTPROTO,(270<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(6<<PORTNETSH)|INPORT,  CENTER, BOTEDGE, CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_ffp_l[] = {					/* layers */
-//	{node_lay, 0,                4, CLOSEDRECT, BOX,    sch_g_ffbox},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextd},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftexte},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextq},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextqb},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextpr},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextclr},
-//	{node_lay, 0,                3, OPENED,     POINTS, sch_g_ffarrow},
-//	{node_lay, 0,                4, OPENED,     POINTS, sch_g_ffp}};
-//static TECH_POLYGON sch_ffn_l[] = {					/* layers */
-//	{node_lay, 0,                4, CLOSEDRECT, BOX,    sch_g_ffbox},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextd},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftexte},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextq},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextqb},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextpr},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextclr},
-//	{node_lay, 0,                3, OPENED,     POINTS, sch_g_ffarrow},
-//	{node_lay, 0,                4, OPENED,     POINTS, sch_g_ffn}};
-//static TECH_POLYGON sch_ffms_l[] = {				/* layers */
-//	{node_lay, 0,                4, CLOSEDRECT, BOX,    sch_g_ffbox},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextd},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftexte},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextq},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextqb},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextpr},
-//	{text_lay, TXTSETQLAMBDA(4), 4, TEXTBOX,    POINTS, (INTBIG *)sch_g_fftextclr},
-//	{node_lay, 0,                3, OPENED,     POINTS, sch_g_ffarrow},
-//	{node_lay, 0,                6, OPENED,     POINTS, sch_g_ffms}};
-//static TECH_NODES sch_ff = {
-//	x_("Flip-Flop"), NFF, NONODEPROTO,				/* name */
-//	K6,K10,											/* size */
-//	7,sch_ff_p,										/* ports */
-//	9,sch_ffp_l,									/* layers */
-//	(NPFLIPFLOP<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* general MUX */
-//static TECH_PORTS sch_mux_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT|PORTISOLATED, LEFTBYP8,BOTEDGE,LEFTBYP8,TOPEDGE},
-//	{ new ArcProto[] {bus_arc}, x_("s"), NOPORTPROTO, (270<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(2<<PORTNETSH)|INPORT, CENTER, BOTBYP875, CENTER, BOTBYP875},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH)|OUTPORT, RIGHTBYP8, CENTER, RIGHTBYP8, CENTER}};
-//	static TECH_POLYGON sch_mux_l[] = {					/* layers */
-//	{node_lay, 0, 4, CLOSED,     POINTS, sch_g_mux}};
-//static TECH_NODES sch_mux = {
-//	x_("Mux"), NMUX, NONODEPROTO,					/* name */
-//	K8,K10,											/* size */
-//	3,sch_mux_p,									/* ports */
-//	1,sch_mux_l,									/* layers */
-//	(NPMUX<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* black box */
-//static TECH_PORTS sch_bbox_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (0<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(0<<PORTNETSH)|PORTISOLATED, RIGHTEDGE, BOTEDGE, RIGHTEDGE, TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("b"), NOPORTPROTO, (90<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(1<<PORTNETSH)|PORTISOLATED, LEFTEDGE,  TOPEDGE, RIGHTEDGE, TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("c"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(2<<PORTNETSH)|PORTISOLATED, LEFTEDGE,  BOTEDGE, LEFTEDGE,  TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("d"), NOPORTPROTO, (270<<PORTANGLESH)|(45<<PORTARANGESH)|
-//		(3<<PORTNETSH)|PORTISOLATED, LEFTEDGE,  BOTEDGE, RIGHTEDGE, BOTEDGE}};
-//static TECH_POLYGON sch_bbox_l[] = {				/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,    sch_g_bbox}};
-//static TECH_NODES sch_bbox = {
-//	x_("Bbox"), NBBOX, NONODEPROTO,					/* name */
-//	K10,K10,										/* size */
-//	4,sch_bbox_p,									/* ports */
-//	1,sch_bbox_l,									/* layers */
-//	(NPUNKNOWN<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* switch */
-//static TECH_PORTS sch_switch_p[] = {				/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH)|PORTISOLATED, LEFTIN1, BOTIN1, LEFTIN1, TOPIN1},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), RIGHTIN1, CENTER, RIGHTIN1, CENTER}};
-//static TECH_POLYGON sch_switch_l[] = {				/* layers */
-//	{node_lay, 0, 2, DISC,       POINTS, sch_g_switchin},
-//	{node_lay, 0, 2, OPENED,     POINTS, sch_g_switchbar},
-//	{node_lay, 0, 2, DISC,       POINTS, sch_g_switchout}};
-//static TECH_NODES sch_switch = {
-//	x_("Switch"),NSWITCH,NONODEPROTO,				/* name */
-//	K6,K2,											/* size */
-//	2,sch_switch_p,									/* ports */
-//	3,sch_switch_l,									/* layers */
-//	(NPUNKNOWN<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* off page connector */
-//static TECH_PORTS sch_offpage_p[] = {				/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH),
-//		LEFTEDGE,  CENTER, LEFTEDGE,  CENTER},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(45<<PORTARANGESH),
-//		RIGHTEDGE, CENTER, RIGHTEDGE, CENTER}};
-//static TECH_POLYGON sch_offpage_l[] = {				/* layers */
-//	{node_lay, 0,         5, CLOSED,   POINTS, sch_g_offpage}};
-//static TECH_NODES sch_offpage = {
-//	x_("Off-Page"), NOFFPAGE, NONODEPROTO,			/* name */
-//	K4,K2,											/* size */
-//	2,sch_offpage_p,								/* ports */
-//	1,sch_offpage_l,								/* layers */
-//	(NPCONNECT<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* power */
-//static TECH_PORTS sch_pwr_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("pwr"), NOPORTPROTO, (180<<PORTARANGESH)|PWRPORT,
-//		CENTER, CENTER, CENTER, CENTER}};
-//static TECH_POLYGON sch_pwr_l[] = {					/* layers */
-//	{node_lay, 0,        2, CIRCLE,   POINTS, sch_g_pwr1},
-//	{node_lay, 0,        2, CIRCLE,   POINTS, sch_g_pwr2}};
-//static TECH_NODES sch_pwr = {
-//	x_("Power"), NPWR, NONODEPROTO,					/* name */
-//	K3,K3,											/* size */
-//	1,sch_pwr_p,									/* ports */
-//	2,sch_pwr_l,									/* layers */
-//	(NPCONPOWER<<NFUNCTIONSH)|NSQUARE,				/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* ground */
-//static TECH_PORTS sch_gnd_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("gnd"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		GNDPORT, CENTER, TOPEDGE, CENTER, TOPEDGE}};
-//static TECH_POLYGON sch_gnd_l[] = {					/* layers */
-//	{node_lay, 0, 12, VECTORS, POINTS, sch_g_gnd}};
-//static TECH_NODES sch_gnd = {
-//	x_("Ground"), NGND, NONODEPROTO,				/* name */
-//	K3,K4,											/* size */
-//	1,sch_gnd_p,									/* ports */
-//	1,sch_gnd_l,									/* layers */
-//	(NPCONGROUND<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* source */
-//static TECH_PORTS sch_source_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("plus"),   NOPORTPROTO, (90<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH), CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("minus"),  NOPORTPROTO, (270<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH), CENTER, BOTEDGE, CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_sourcev_l[] = {				/* layers */
-//	{node_lay, 0,                2, CIRCLE,   POINTS, sch_g_source},
-//	{node_lay, 0,                4, VECTORS,  POINTS, sch_g_sourcepl}};
-//static TECH_NODES sch_source = {
-//	x_("Source"), NSOURCE, NONODEPROTO,				/* name */
-//	K6,K6,											/* size */
-//	2,sch_source_p,									/* ports */
-//	2,sch_sourcev_l,								/* layers */
-//	(NPSOURCE<<NFUNCTIONSH)|NSQUARE,				/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* transistor */
-//static TECH_PORTS sch_trans_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("g"), NOPORTPROTO, (180<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT, CENTER, TOPIN1, CENTER, TOPIN1},
-//	{ new ArcProto[] {wire_arc}, x_("s"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH)|BIDIRPORT, LEFTEDGE,  BOTEDGE,  LEFTEDGE,  BOTEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("d"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(2<<PORTNETSH)|BIDIRPORT, RIGHTEDGE, BOTEDGE,  RIGHTEDGE, BOTEDGE}};
-//static TECH_POLYGON sch_nmos_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos}};
-//static TECH_POLYGON sch_pmos_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_pmos},
-//	{node_lay, 0,         2, CIRCLE,     POINTS, sch_g_pmoscir}};
-//static TECH_POLYGON sch_dmos_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         4, FILLEDRECT, BOX,    sch_g_dmos}};
-//static TECH_POLYGON sch_npn_l[] = {					/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_btran1},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran2}};
-//static TECH_POLYGON sch_pnp_l[] = {					/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_btran1},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran3}};
-//static TECH_POLYGON sch_njfet_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran5}};
-//static TECH_POLYGON sch_pjfet_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran6}};
-//static TECH_POLYGON sch_dmes_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos}};
-//static TECH_POLYGON sch_emes_l[] = {				/* layers */
-//	{node_lay, 0,        14, VECTORS,    POINTS, sch_g_btran7},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos}};
-//static TECH_NODES sch_trans = {
-//	x_("Transistor"), NTRANSISTOR, NONODEPROTO,		/* name */
-//	K4,K4,											/* size */
-//	3,sch_trans_p,									/* ports */
-//	3,sch_nmos_l,									/* layers */
-//	(NPTRANS<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* resistor */
-//static TECH_PORTS sch_resist_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH), LEFTBYP66,  CENTER, LEFTBYP66,  CENTER},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), RIGHTBYP66, CENTER, RIGHTBYP66, CENTER}};
-//	static TECH_POLYGON sch_resist_l[] = {			/* layers */
-//	{node_lay, 0,        10, OPENED,   POINTS, sch_g_resist}};
-//static TECH_NODES sch_resist = {
-//	x_("Resistor"), NRESISTOR, NONODEPROTO,			/* name */
-//	K6,K1,											/* size */
-//	2,sch_resist_p,									/* ports */
-//	1,sch_resist_l,									/* layers */
-//	(NPRESIST<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* capacitor */
-//static TECH_PORTS sch_capac_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH), CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (270<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), CENTER, BOTEDGE,  CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_capac_l[] = {				/* layers */
-//	{node_lay, 0,         8, VECTORS,  POINTS, sch_g_capac},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_capace}};
-//static TECH_NODES sch_capac = {
-//	x_("Capacitor"), NCAPACITOR, NONODEPROTO,		/* name */
-//	K3,K4,											/* size */
-//	2,sch_capac_p,									/* ports */
-//	1,sch_capac_l,									/* layers */
-//	(NPCAPAC<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* diode */
-//static TECH_PORTS sch_diode_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH), CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (270<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), CENTER, BOTEDGE,  CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_diode_l[] = {				/* layers */
-//	{node_lay, 0,         6, VECTORS,  POINTS, sch_g_diode1},
-//	{node_lay, 0,         3, FILLED,   POINTS, sch_g_diode2}};
-//static TECH_NODES sch_diode = {
-//	x_("Diode"), NDIODE, NONODEPROTO,				/* name */
-//	K2,K4,											/* size */
-//	2,sch_diode_p,									/* ports */
-//	2,sch_diode_l,									/* layers */
-//	(NPDIODE<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* inductor */
-//static TECH_PORTS sch_induct_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH), CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (270<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), CENTER, BOTEDGE,  CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_induct_l[] = {				/* layers */
-//	{node_lay, 0,         2, OPENED,   POINTS, sch_g_induct1},
-//	{node_lay, 0,         2, CIRCLE,   POINTS, sch_g_induct2},
-//	{node_lay, 0,         2, CIRCLE,   POINTS, sch_g_induct3},
-//	{node_lay, 0,         2, CIRCLE,   POINTS, sch_g_induct4}};
-//static TECH_NODES sch_induct = {
-//	x_("Inductor"), NINDUCTOR, NONODEPROTO,			/* name */
-//	K2,K4,											/* size */
-//	2,sch_induct_p,									/* ports */
-//	4,sch_induct_l,									/* layers */
-//	(NPINDUCT<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* meter */
-//static TECH_PORTS sch_meter_p[] = {					/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"),  NOPORTPROTO, (90<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH), CENTER, TOPEDGE, CENTER, TOPEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("b"),  NOPORTPROTO, (270<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH), CENTER, BOTEDGE, CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_meterv_l[] = {				/* layers */
-//	{node_lay, 0,                2, CIRCLE,  POINTS, sch_g_meter},
-//	{text_lay, TXTSETQLAMBDA(8), 4, TEXTBOX, BOX,    (INTBIG *)sch_g_meterv}};
-//static TECH_NODES sch_meter = {
-//	x_("Meter"), NMETER, NONODEPROTO,				/* name */
-//	K6,K6,											/* size */
-//	2,sch_meter_p,									/* ports */
-//	2,sch_meterv_l,									/* layers */
-//	(NPMETER<<NFUNCTIONSH)|NSQUARE,					/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* well contact */
-//static TECH_PORTS sch_well_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("well"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH),
-//		CENTER, TOPEDGE, CENTER, TOPEDGE}};
-//static TECH_POLYGON sch_well_l[] = {				/* layers */
-//	{node_lay, 0, 4, VECTORS, POINTS, sch_g_well}};
-//static TECH_NODES sch_well = {
-//	x_("Well"), NWELL, NONODEPROTO,					/* name */
-//	K4,K2,											/* size */
-//	1,sch_well_p,									/* ports */
-//	1,sch_well_l,									/* layers */
-//	(NPWELL<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* substrate contact */
-//static TECH_PORTS sch_substrate_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("substrate"), NOPORTPROTO, (90<<PORTANGLESH)|(90<<PORTARANGESH),
-//		CENTER, TOPEDGE, CENTER, TOPEDGE}};
-//static TECH_POLYGON sch_substrate_l[] = {			/* layers */
-//	{node_lay, 0, 8, VECTORS, POINTS, sch_g_substrate}};
-//static TECH_NODES sch_substrate = {
-//	x_("Substrate"), NSUBSTRATE, NONODEPROTO,		/* name */
-//	K3,K3,											/* size */
-//	1,sch_substrate_p,								/* ports */
-//	1,sch_substrate_l,								/* layers */
-//	(NPSUBSTRATE<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* two-port */
-//static TECH_PORTS sch_twoport_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(0<<PORTNETSH), LEFTEDGE, TOPBYP66, LEFTEDGE, TOPBYP66},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH), LEFTEDGE, BOTBYP66, LEFTEDGE, BOTBYP66},
-//	{ new ArcProto[] {wire_arc}, x_("x"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(2<<PORTNETSH), RIGHTEDGE, TOPBYP66, RIGHTEDGE, TOPBYP66},
-//	{ new ArcProto[] {wire_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(3<<PORTNETSH), RIGHTEDGE, BOTBYP66, RIGHTEDGE, BOTBYP66}};
-//static TECH_POLYGON sch_twoportg_l[] = {			/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,  sch_g_twobox},
-//	{node_lay, 0,         8, VECTORS,  POINTS, sch_g_twogwire},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twourpl}};
-//static TECH_POLYGON sch_twoportvcvs_l[] = {			/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,  sch_g_twobox},
-//	{node_lay, 0,        12, VECTORS,  POINTS, sch_g_twonormwire},
-//	{node_lay, 0,         2, CIRCLE,   POINTS, sch_g_twovsc},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twourpl},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl}};
-//static TECH_POLYGON sch_twoportvccs_l[] = {			/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,  sch_g_twobox},
-//	{node_lay, 0,        12, VECTORS,  POINTS, sch_g_twonormwire},
-//	{node_lay, 0,         8, VECTORS,  POINTS, sch_g_twocswire},
-//	{node_lay, 0,         6, VECTORS,  POINTS, sch_g_twocsarr},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl}};
-//static TECH_POLYGON sch_twoportccvs_l[] = {			/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,  sch_g_twobox},
-//	{node_lay, 0,         2, /*VECTORS*/OPENEDT1,  POINTS, sch_g_twoccwire},
-//	{node_lay, 0,        12, VECTORS,  POINTS, sch_g_twonormwire},
-//	{node_lay, 0,         2, CIRCLE,   POINTS, sch_g_twovsc},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twourpl},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl}};
-//static TECH_POLYGON sch_twoportcccs_l[] = {			/* layers */
-//	{node_lay, 0,         4, CLOSEDRECT, BOX,  sch_g_twobox},
-//	{node_lay, 0,         2, /*VECTORS*/OPENEDT1,  POINTS, sch_g_twoccwire},
-//	{node_lay, 0,        12, VECTORS,  POINTS, sch_g_twonormwire},
-//	{node_lay, 0,         8, VECTORS,  POINTS, sch_g_twocswire},
-//	{node_lay, 0,         6, VECTORS,  POINTS, sch_g_twocsarr},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl}};
-//static TECH_POLYGON sch_twoporttran_l[] = {			/* layers */
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twotrbox},
-//	{node_lay, 0,         3, CIRCLEARC,POINTS, sch_g_twotr1},
-//	{node_lay, 0,         3, CIRCLEARC,POINTS, sch_g_twotr2},
-//	{node_lay, 0,         3, CIRCLEARC,POINTS, sch_g_twotr3},
-//	{node_lay, 0,         8, VECTORS,  POINTS, sch_g_twotrwire},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twoulpl},
-//	{node_lay, 0,         4, VECTORS,  POINTS, sch_g_twourrpl}};
-//static TECH_NODES sch_twoport = {
-//	x_("Two-Port"), NTWOPORT, NONODEPROTO,			/* name */
-//	K10,K6,											/* size */
-//	4,sch_twoport_p,								/* ports */
-//	4,sch_twoportg_l,								/* layers */
-//	(NPTLINE<<NFUNCTIONSH),							/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* 4-port transistor */
-//static TECH_PORTS sch_trans4_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("g"), NOPORTPROTO, (180<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT, CENTER, TOPIN1, CENTER, TOPIN1},
-//	{ new ArcProto[] {wire_arc}, x_("s"), NOPORTPROTO, (180<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(1<<PORTNETSH)|BIDIRPORT, LEFTEDGE,  BOTEDGE,  LEFTEDGE,  BOTEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("d"), NOPORTPROTO, (0<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(2<<PORTNETSH)|BIDIRPORT, RIGHTEDGE, BOTEDGE,  RIGHTEDGE, BOTEDGE},
-//	{ new ArcProto[] {wire_arc}, x_("b"), NOPORTPROTO, (270<<PORTANGLESH)|(90<<PORTARANGESH)|
-//		(3<<PORTNETSH)|BIDIRPORT, LEFTBYP5, BOTEDGE,  LEFTBYP5, BOTEDGE}};
-//static TECH_POLYGON sch_nmos4_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_nmos4}};
-//static TECH_POLYGON sch_pmos4_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_pmos},
-//	{node_lay, 0,         2, CIRCLE,     POINTS, sch_g_pmoscir},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_pmos4}};
-//static TECH_POLYGON sch_dmos4_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_mos},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         4, FILLEDRECT, BOX,    sch_g_dmos},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_dmos4}};
-//static TECH_POLYGON sch_npn4_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_btran1},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran2},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_bip4}};
-//static TECH_POLYGON sch_pnp4_l[] = {				/* layers */
-//	{node_lay, 0,         6, OPENED,     POINTS, sch_g_btran1},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran3},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_bip4}};
-//static TECH_POLYGON sch_njfet4_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran5},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_pmes4}};
-//static TECH_POLYGON sch_pjfet4_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         3, OPENED,     POINTS, sch_g_btran6},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_nmes4}};
-//static TECH_POLYGON sch_dmes4_l[] = {				/* layers */
-//	{node_lay, 0,        10, VECTORS,    POINTS, sch_g_btran4},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_trantop},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_nmes4}};
-//static TECH_POLYGON sch_emes4_l[] = {				/* layers */
-//	{node_lay, 0,        14, VECTORS,    POINTS, sch_g_btran7},
-//	{node_lay, 0,         2, OPENED,     POINTS, sch_g_nmos},
-//	{node_lay, 0,         6, VECTORS,    POINTS, sch_g_nmes4}};
-//static TECH_NODES sch_trans4 = {
-//	x_("4-Port-Transistor"), NTRANSISTOR4, NONODEPROTO,	/* name */
-//	K4,K4,											/* size */
-//	4,sch_trans4_p,									/* ports */
-//	3,sch_nmos4_l,									/* layers */
-//	(NPTRANS4<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* global signal */
-//static TECH_PORTS sch_globalsig_p[] = {				/* ports */
-//	{ new ArcProto[] {wire_arc}, x_("global"), NOPORTPROTO, (270<<PORTANGLESH)|(90<<PORTARANGESH),
-//		CENTER, BOTEDGE, CENTER, BOTEDGE}};
-//static TECH_POLYGON sch_globalsig_l[] = {			/* layers */
-//	{node_lay, 0, 4, CLOSED, POINTS, sch_g_global1},
-//	{node_lay, 0, 4, CLOSED, POINTS, sch_g_global2}};
-//static TECH_NODES sch_globalsig = {
-//	x_("Global-Signal"), NGLOBALSIG, NONODEPROTO,	/* name */
-//	K3,K3,											/* size */
-//	1,sch_globalsig_p,								/* ports */
-//	2,sch_globalsig_l,								/* layers */
-//	(NPCONNECT<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
+		/** general flip flop */
+		Technology.NodeLayer ffBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX);
+		Technology.NodeLayer ffArrow = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP2),
+				new Technology.TechPoint(LEFTBYP7, EdgeV.CENTER),
+				new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP2)});
+		Technology.NodeLayer ffWaveformN = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6, TOPBYP2),
+			new Technology.TechPoint(LEFTBYP4, TOPBYP2),
+			new Technology.TechPoint(LEFTBYP4, BOTBYP2),
+			new Technology.TechPoint(LEFTBYP2, BOTBYP2)});
+		Technology.NodeLayer ffWaveformP = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6, BOTBYP2),
+			new Technology.TechPoint(LEFTBYP4, BOTBYP2),
+			new Technology.TechPoint(LEFTBYP4, TOPBYP2),
+			new Technology.TechPoint(LEFTBYP2, TOPBYP2)});
+		Technology.NodeLayer ffWaveformMS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6, BOTBYP2),
+			new Technology.TechPoint(LEFTBYP4, BOTBYP2),
+			new Technology.TechPoint(LEFTBYP4, TOPBYP2),
+			new Technology.TechPoint(LEFTBYP2, TOPBYP2),
+			new Technology.TechPoint(LEFTBYP2, BOTBYP2),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP2)});
+		Technology.NodeLayer ffLetterD = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
+		ffLetterD.setMessage("D");
+		Technology.NodeLayer ffLetterR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
+		ffLetterR.setMessage("R");
+		Technology.NodeLayer ffLetterJ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
+		ffLetterJ.setMessage("J");
+		Technology.NodeLayer ffLetterT = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
+			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
+		ffLetterT.setMessage("T");
+		Technology.NodeLayer ffLetterE = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
+		ffLetterE.setMessage("E");
+		Technology.NodeLayer ffLetterS = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
+		ffLetterS.setMessage("S");
+		Technology.NodeLayer ffLetterK = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
+			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
+		ffLetterK.setMessage("K");
+		Technology.NodeLayer ffLetterQ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP4),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP8),
+			new Technology.TechPoint(RIGHTBYP4,       TOPBYP8),
+			new Technology.TechPoint(RIGHTBYP4,       TOPBYP4)});
+		ffLetterQ.setMessage("Q");
+		Technology.NodeLayer ffLetterQB = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP4),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP8),
+			new Technology.TechPoint(RIGHTBYP4,       BOTBYP8),
+			new Technology.TechPoint(RIGHTBYP4,       BOTBYP4)});
+		ffLetterQB.setMessage("QB");
+		Technology.NodeLayer ffLetterPR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6,        TOPBYP6),
+			new Technology.TechPoint(LEFTBYP6,        EdgeV.TOPEDGE),
+			new Technology.TechPoint(RIGHTBYP6,       EdgeV.TOPEDGE),
+			new Technology.TechPoint(RIGHTBYP6,       TOPBYP6)});
+		ffLetterPR.setMessage("PR");
+		Technology.NodeLayer ffLetterCLR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6,        BOTBYP6),
+			new Technology.TechPoint(LEFTBYP6,        EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(RIGHTBYP6,       EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(RIGHTBYP6,       BOTBYP6)});
+		ffLetterCLR.setMessage("CLR");
+		ffLayersRSMS = new Technology.NodeLayer []
+		{
+			ffWaveformMS, ffLetterR, ffLetterS,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersRSP = new Technology.NodeLayer []
+		{
+			ffWaveformP, ffLetterR, ffLetterS,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersRSN = new Technology.NodeLayer []
+		{
+			ffWaveformN, ffLetterR, ffLetterS,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersJKMS = new Technology.NodeLayer []
+		{
+			ffWaveformMS, ffLetterJ, ffLetterK,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersJKP = new Technology.NodeLayer []
+		{
+			ffWaveformP, ffLetterJ, ffLetterK,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersJKN = new Technology.NodeLayer []
+		{
+			ffWaveformN, ffLetterJ, ffLetterK,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersDMS = new Technology.NodeLayer []
+		{
+			ffWaveformMS, ffLetterD, ffLetterE,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersDP = new Technology.NodeLayer []
+		{
+			ffWaveformP, ffLetterD, ffLetterE,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersDN = new Technology.NodeLayer []
+		{
+			ffWaveformN, ffLetterD, ffLetterE,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersTMS = new Technology.NodeLayer []
+		{
+			ffWaveformMS, ffLetterT,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersTP = new Technology.NodeLayer []
+		{
+			ffWaveformP, ffLetterT,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		ffLayersTN = new Technology.NodeLayer []
+		{
+			ffWaveformN, ffLetterT,
+			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
+		};
+		flipflop_node = PrimitiveNode.newInstance("Flip-Flop", this, 6.0, 10.0, null, ffLayersRSMS);
+		flipflop_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "i1", 180,45, 0, PortProto.Function.IN,
+					EdgeH.LEFTEDGE, TOPBYP6, EdgeH.LEFTEDGE, TOPBYP6),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "i2", 180,45, 1, PortProto.Function.IN,
+					EdgeH.LEFTEDGE, BOTBYP6, EdgeH.LEFTEDGE, BOTBYP6),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "q", 0,45, 2, PortProto.Function.OUT,
+					EdgeH.RIGHTEDGE, TOPBYP6, EdgeH.RIGHTEDGE, TOPBYP6),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "qb", 0,45, 3, PortProto.Function.OUT,
+					EdgeH.RIGHTEDGE, BOTBYP6, EdgeH.RIGHTEDGE, BOTBYP6),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "ck", 180,45, 4, PortProto.Function.IN,
+					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "preset", 90,45, 5, PortProto.Function.IN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "clear", 270,45, 6, PortProto.Function.IN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		flipflop_node.setFunction(NodeProto.Function.FLIPFLOP);
 
+		/** mux */
+		mux_node = PrimitiveNode.newInstance("Mux", this, 8.0, 10.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(RIGHTBYP8, TOPBYP75),
+						new Technology.TechPoint(RIGHTBYP8, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
+						new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE)
+					})
+			});
+		mux_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
+					LEFTBYP8, EdgeV.BOTTOMEDGE, LEFTBYP8, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "s", 270,0, 2, PortProto.Function.IN,
+					EdgeH.CENTER, BOTBYP875, EdgeH.CENTER, BOTBYP875),
+				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
+					RIGHTBYP8, EdgeV.CENTER, RIGHTBYP8, EdgeV.CENTER)
+			});
+		mux_node.setFunction(NodeProto.Function.MUX);
+
+		/** black box */
+		bbox_node = PrimitiveNode.newInstance("Bbox", this, 10.0, 10.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+			});
+		bbox_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "a", 0,45, 0, PortProto.Function.UNKNOWN,
+					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "b", 90,45, 1, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, EdgeV.TOPEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "c", 180,45, 2, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "d", 270,45, 3, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)
+			});
+		bbox_node.setFunction(NodeProto.Function.UNKNOWN);
+
+		/** switch */
+		switch_node = PrimitiveNode.newInstance("Switch", this, 6.0, 2.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromRight(1.25), EdgeV.CENTER)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.CENTER)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromCenter(1))})
+			});
+		switch_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, switch_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(1)),
+				PrimitivePort.newInstance(this, switch_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,90, 1, PortProto.Function.UNKNOWN,
+					EdgeH.fromRight(1), EdgeV.CENTER, EdgeH.fromRight(1), EdgeV.CENTER)
+			});
+		switch_node.setFunction(NodeProto.Function.UNKNOWN);
+
+		/** off page connector */
+		offpage_node = PrimitiveNode.newInstance("Off-Page", this, 2.0, 1.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.BOTTOMEDGE)})
+			});
+		offpage_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, offpage_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,45, 0, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
+				PrimitivePort.newInstance(this, offpage_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,45, 0, PortProto.Function.UNKNOWN,
+					EdgeH.RIGHTEDGE, EdgeV.CENTER, EdgeH.RIGHTEDGE, EdgeV.CENTER)
+			});
+		offpage_node.setFunction(NodeProto.Function.CONNECT);
+
+		/** power */
+		power_node = PrimitiveNode.newInstance("Power", this, 3.0, 3.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, TOPBYP75)})
+			});
+		power_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, power_node, new ArcProto[] {wire_arc, bus_arc}, "pwr", 0,180, 0, PortProto.Function.PWR,
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+			});
+		power_node.setFunction(NodeProto.Function.CONPOWER);
+		power_node.isSquare();
+
+		/** ground */
+		ground_node = PrimitiveNode.newInstance("Ground", this, 3.0, 4.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER), new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER), new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(LEFTBYP75, BOTBYP25), new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
+					new Technology.TechPoint(LEFTBYP5, BOTBYP5), new Technology.TechPoint(RIGHTBYP5, BOTBYP5),
+					new Technology.TechPoint(LEFTBYP25, BOTBYP75), new Technology.TechPoint(RIGHTBYP25, BOTBYP75),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE), new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+			});
+		ground_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, ground_node, new ArcProto[] {wire_arc, bus_arc}, "gnd", 90,90, 0, PortProto.Function.GND,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+			});
+		ground_node.setFunction(NodeProto.Function.CONGROUND);
+
+		/** source */
+		source_node = PrimitiveNode.newInstance("Source", this, 6.0, 6.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP3, TOPBYP6), new Technology.TechPoint(RIGHTBYP3, TOPBYP6),
+					new Technology.TechPoint(EdgeH.CENTER, TOPBYP3), new Technology.TechPoint(EdgeH.CENTER, TOPBYP9)})
+			});
+		source_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, source_node, new ArcProto[] {wire_arc}, "plus", 90,0, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, source_node, new ArcProto[] {wire_arc}, "minus", 270,0, 1, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		source_node.setFunction(NodeProto.Function.SOURCE);
+		source_node.isSquare();
+
+		/** transistor */
+		Technology.NodeLayer tranLayerMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, BOTBYP5),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer tranLayerTranTop = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP25)});
+		Technology.NodeLayer tranLayerNMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(1))});
+		Technology.NodeLayer tranLayerPMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP25),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(1))});
+		Technology.NodeLayer tranLayerPMOSCircle = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25)});
+		Technology.NodeLayer tranLayerDMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP75, BOTBYP75),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP5)});
+		Technology.NodeLayer tranLayerBTran1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP25, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP25, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer tranLayerBTran2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP75, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP875)});
+		Technology.NodeLayer tranLayerBTran3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP375),
+			new Technology.TechPoint(LEFTBYP25, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP25, BOTBYP5)});
+		Technology.NodeLayer tranLayerBTran4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP875, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP875, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer tranLayerBTran5 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP125, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP125, EdgeV.CENTER)});
+		Technology.NodeLayer tranLayerBTran6 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP125, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP25),
+			new Technology.TechPoint(RIGHTBYP125, EdgeV.CENTER)});
+		Technology.NodeLayer tranLayerBTran7 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP875, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP25, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP25, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP5, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP875, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+		tranLayersN = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS};
+		tranLayersP = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerPMOS, tranLayerPMOSCircle};
+		tranLayersD = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerDMOS};
+		tranLayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2};
+		tranLayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3};
+		tranLayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5};
+		tranLayersPJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran6};
+		tranLayersDMES = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS};
+		tranLayersEMES = new Technology.NodeLayer [] {tranLayerBTran7, tranLayerNMOS};
+		transistor_node = PrimitiveNode.newInstance("Transistor", this, 4.0, 4.0, new SizeOffset(0, 0, 0, 1), tranLayersN);
+		transistor_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, transistor_node, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortProto.Function.IN,
+					EdgeH.CENTER, EdgeV.fromTop(1), EdgeH.CENTER, EdgeV.fromTop(1)),
+				PrimitivePort.newInstance(this, transistor_node, new ArcProto[] {wire_arc}, "s", 180,90, 1, PortProto.Function.BIDIR,
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+				PrimitivePort.newInstance(this, transistor_node, new ArcProto[] {wire_arc}, "d", 0,90, 2, PortProto.Function.BIDIR,
+					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)
+			});
+		transistor_node.setFunction(NodeProto.Function.TRANS);
+
+		/** resistor */
+		resistor_node = PrimitiveNode.newInstance("Resistor", this, 2.0, 1.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP66, EdgeV.CENTER),
+					new Technology.TechPoint(LEFTBYP6, EdgeV.CENTER),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.TOPEDGE),
+					new Technology.TechPoint(LEFTBYP3, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(LEFTBYP1, EdgeV.TOPEDGE),
+					new Technology.TechPoint(RIGHTBYP1, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(RIGHTBYP3, EdgeV.TOPEDGE),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(RIGHTBYP6, EdgeV.CENTER),
+					new Technology.TechPoint(RIGHTBYP66, EdgeV.CENTER)})
+			});
+		resistor_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Function.UNKNOWN,
+					LEFTBYP66, EdgeV.CENTER, LEFTBYP66, EdgeV.CENTER),
+				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 0,90, 1, PortProto.Function.UNKNOWN,
+					RIGHTBYP66, EdgeV.CENTER, RIGHTBYP66, EdgeV.CENTER)
+			});
+		resistor_node.setFunction(NodeProto.Function.RESIST);
+
+		/** capacitor */
+		Technology.NodeLayer capacitorLayer = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP2),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP2),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP2),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP2),
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP2),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP2),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer capacitorLayerEl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP2, BOTBYP6),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP6),
+			new Technology.TechPoint(RIGHTBYP4, BOTBYP4),
+			new Technology.TechPoint(RIGHTBYP4, BOTBYP8)});
+		capacitorLayersNorm = new Technology.NodeLayer [] {capacitorLayer};
+		capacitorLayersElectrolytic = new Technology.NodeLayer [] {capacitorLayer, capacitorLayerEl};
+		capacitor_node = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
+		capacitor_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		capacitor_node.setFunction(NodeProto.Function.CAPAC);
+
+		/** diode */
+		Technology.NodeLayer diodeLayer1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer diodeLayer2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP5),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5)});
+		Technology.NodeLayer diodeLayer3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP75),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP25),
+			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP5),
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+		diodeLayersNorm = new Technology.NodeLayer [] {diodeLayer1, diodeLayer2};
+		diodeLayersZener = new Technology.NodeLayer [] {diodeLayer3, diodeLayer2};
+		diode_node = PrimitiveNode.newInstance("Diode", this, 2.0, 4.0, null,diodeLayersNorm);
+		diode_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		diode_node.setFunction(NodeProto.Function.DIODE);
+
+		/** inductor */
+		inductor_node = PrimitiveNode.newInstance("Inductor", this, 2.0, 4.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP5, TOPBYP33),
+					new Technology.TechPoint(EdgeH.CENTER, TOPBYP33)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP5, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP5, BOTBYP33),
+					new Technology.TechPoint(EdgeH.CENTER, BOTBYP33)})
+			});
+		inductor_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		inductor_node.setFunction(NodeProto.Function.INDUCT);
+
+		/** meter */
+		Technology.NodeLayer meterLetterV = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, Technology.TechPoint.FULLBOX);
+		meterLetterV.setMessage("V");
+		meter_node = PrimitiveNode.newInstance("Meter", this, 6.0, 6.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
+				meterLetterV
+			});
+		meter_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, meter_node, new ArcProto[] {wire_arc}, "a", 90,0, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+				PrimitivePort.newInstance(this, meter_node, new ArcProto[] {wire_arc}, "b", 270,0, 1, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		meter_node.setFunction(NodeProto.Function.METER);
+		meter_node.isSquare();
+
+		/** well contact */
+		well_node = PrimitiveNode.newInstance("Well", this, 4.0, 2.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+			});
+		well_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, well_node, new ArcProto[] {wire_arc}, "well", 90,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+			});
+		well_node.setFunction(NodeProto.Function.WELL);
+
+		/** substrate contact */
+		substrate_node = PrimitiveNode.newInstance("Substrate", this, 3.0, 3.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+			});
+		substrate_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, substrate_node, new ArcProto[] {wire_arc}, "substrate", 90,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+			});
+		substrate_node.setFunction(NodeProto.Function.SUBSTRATE);
+
+		/** two-port */
+		Technology.NodeLayer twoLayerBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer twoLayerNormWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP6, TOPBYP66),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(LEFTBYP6, BOTBYP66),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP3),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP66),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP66),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP3)});
+		Technology.NodeLayer twoLayerVSC = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP3)});
+		Technology.NodeLayer twoLayerURPl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP35, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP45, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP4, TOPBYP5833),
+			new Technology.TechPoint(RIGHTBYP4, TOPBYP75)});
+		Technology.NodeLayer twoLayerULPl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP35, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP45, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP4, TOPBYP5833),
+			new Technology.TechPoint(LEFTBYP4, TOPBYP75)});
+		Technology.NodeLayer twoLayerCSArr = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP3833, TOPBYP33),
+			new Technology.TechPoint(RIGHTBYP3833, BOTBYP33),
+			new Technology.TechPoint(RIGHTBYP3833, BOTBYP33),
+			new Technology.TechPoint(RIGHTBYP33, BOTBYP166),
+			new Technology.TechPoint(RIGHTBYP3833, BOTBYP33),
+			new Technology.TechPoint(RIGHTBYP433, BOTBYP166)});
+		Technology.NodeLayer twoLayerGWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP8, TOPBYP66),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(LEFTBYP8, BOTBYP66),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP8, TOPBYP66),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(RIGHTBYP8, BOTBYP66)});
+		Technology.NodeLayer twoLayerCSWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP3),
+			new Technology.TechPoint(RIGHTBYP45, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP45, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP3),
+			new Technology.TechPoint(RIGHTBYP6, BOTBYP3),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP3)});
+		Technology.NodeLayer twoLayerCCWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP6, BOTBYP66)});
+		Technology.NodeLayer twoLayerTrBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.TOPEDGE),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer twoLayerTr1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE)});
+		Technology.NodeLayer twoLayerTr2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBY1P6, EdgeV.CENTER),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer twoLayerTr3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.TOPEDGE),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+		Technology.NodeLayer twoLayerTrWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(LEFTBYP8, TOPBYP66),
+			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(LEFTBYP8, BOTBYP66),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP9, TOPBYP66),
+			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(RIGHTBYP9, BOTBYP66)});
+		Technology.NodeLayer twoLayerURRPl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP5166, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP6166, TOPBYP66),
+			new Technology.TechPoint(RIGHTBYP566, TOPBYP5833),
+			new Technology.TechPoint(RIGHTBYP566, TOPBYP75)});
+		twoLayersDefault = new Technology.NodeLayer [] {twoLayerBox, twoLayerGWire, twoLayerULPl, twoLayerURPl};
+		twoLayersVCVS = new Technology.NodeLayer [] {twoLayerBox, twoLayerNormWire, twoLayerVSC, twoLayerURPl, twoLayerULPl};
+		twoLayersVCCS = new Technology.NodeLayer [] {twoLayerBox, twoLayerNormWire, twoLayerCSWire, twoLayerCSArr, twoLayerULPl};
+		twoLayersCCVS = new Technology.NodeLayer [] {twoLayerBox, twoLayerCCWire, twoLayerNormWire, twoLayerVSC, twoLayerURPl, twoLayerULPl};
+		twoLayersCCCS = new Technology.NodeLayer [] {twoLayerBox, twoLayerCCWire, twoLayerNormWire, twoLayerCSWire, twoLayerCSArr, twoLayerULPl};
+		twoLayersTran = new Technology.NodeLayer [] {twoLayerTrBox, twoLayerTr1, twoLayerTr2, twoLayerTr3, twoLayerTrWire, twoLayerULPl, twoLayerURRPl};
+		twoport_node = PrimitiveNode.newInstance("Two-Port", this, 10.0, 6.0, null, twoLayersDefault);
+		twoport_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, twoport_node, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, TOPBYP66, EdgeH.LEFTEDGE, TOPBYP66),
+				PrimitivePort.newInstance(this, twoport_node, new ArcProto[] {wire_arc}, "b", 180,90, 1, PortProto.Function.UNKNOWN,
+					EdgeH.LEFTEDGE, BOTBYP66, EdgeH.LEFTEDGE, BOTBYP66),
+				PrimitivePort.newInstance(this, twoport_node, new ArcProto[] {wire_arc}, "x", 0,90, 2, PortProto.Function.UNKNOWN,
+					EdgeH.RIGHTEDGE, TOPBYP66, EdgeH.RIGHTEDGE, TOPBYP66),
+				PrimitivePort.newInstance(this, twoport_node, new ArcProto[] {wire_arc}, "y", 0,90, 3, PortProto.Function.UNKNOWN,
+					EdgeH.RIGHTEDGE, BOTBYP66, EdgeH.RIGHTEDGE, BOTBYP66)
+			});
+		twoport_node.setFunction(NodeProto.Function.TLINE);
+
+		/** 4-port transistor */
+		Technology.NodeLayer tranLayerNMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
+		Technology.NodeLayer tranLayerPMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
+		Technology.NodeLayer tranLayerDMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP35, BOTBYP9),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP66, BOTBYP9)});
+		Technology.NodeLayer tranLayerBIP4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25)});
+		Technology.NodeLayer tranLayerPMES4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
+		Technology.NodeLayer tranLayerNMES4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP35, BOTBYP5),
+			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
+			new Technology.TechPoint(LEFTBYP66, BOTBYP5)});
+		tran4LayersN = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerNMOS4};
+		tran4LayersP = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerPMOS, tranLayerPMOSCircle, tranLayerPMOS4};
+		tran4LayersD = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerDMOS, tranLayerDMOS4};
+		tran4LayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2, tranLayerBIP4};
+		tran4LayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3, tranLayerBIP4};
+		tran4LayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5, tranLayerPMES4};
+		tran4LayersPJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran6, tranLayerNMES4};
+		tran4LayersDMES = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerNMES4};
+		tran4LayersEMES = new Technology.NodeLayer [] {tranLayerBTran7, tranLayerNMOS, tranLayerNMES4};
+		transistor4_node = PrimitiveNode.newInstance("4-Port-Transistor", this, 4.0, 4.0, new SizeOffset(0, 0, 0, 1),
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+			});
+		transistor4_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, transistor4_node, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortProto.Function.IN,
+					EdgeH.CENTER, EdgeV.fromTop(1), EdgeH.CENTER, EdgeV.fromTop(1)),
+				PrimitivePort.newInstance(this, transistor4_node, new ArcProto[] {wire_arc}, "s", 180,90, 1, PortProto.Function.BIDIR,
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+				PrimitivePort.newInstance(this, transistor4_node, new ArcProto[] {wire_arc}, "d", 0,90, 2, PortProto.Function.BIDIR,
+					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
+				PrimitivePort.newInstance(this, transistor4_node, new ArcProto[] {wire_arc}, "b", 270,90, 3, PortProto.Function.BIDIR,
+					LEFTBYP5, EdgeV.BOTTOMEDGE, LEFTBYP5, EdgeV.BOTTOMEDGE)
+			});
+		transistor4_node.setFunction(NodeProto.Function.TRANS4);
+
+		/** global signal */
+		global_node = PrimitiveNode.newInstance("Global-Signal", this, 3.0, 3.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP9, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, TOPBYP9),
+					new Technology.TechPoint(RIGHTBYP9, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, BOTBYP9)})
+			});
+		global_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, global_node, new ArcProto[] {wire_arc}, "global", 270,90, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+			});
+		global_node.setFunction(NodeProto.Function.CONNECT);
 	}
-	
-//static INTBIG sch_node_widoff[NODEPROTOCOUNT*4] = {
-//	  0, 0, 0, 0,    0, 0, 0, 0,    0, 0, 0, 0,					/* pins */
-//	  0,K1, 0, 0,    0,H0, 0, 0,   K1,H0, 0, 0,    0,H0, 0, 0,	/* gates: buffer, and, or, xor */
-//	  0, 0, 0, 0,    0, 0, 0, 0,								/* flipflop, mux */
-//	  0, 0, 0, 0,    0, 0, 0, 0,								/* box/switch */
-//	  0, 0, 0, 0,												/* offpage */
-//	  0, 0, 0, 0,    0, 0, 0, 0,    0, 0, 0, 0,					/* pwr/gnd/source */
-//	  0, 0, 0,K1,    0, 0, 0, 0,    0, 0, 0, 0,					/* trans/resist/capac */
-//	  0, 0, 0, 0,    0, 0, 0, 0,								/* diode/inductor */
-//	  0, 0, 0, 0,												/* meter */
-//	  0, 0, 0, 0,    0, 0, 0, 0,								/* well/substrate */
-//	  0, 0, 0, 0,    0, 0, 0,K1,    0, 0, 0, 0					/* twoport/4-port/global */
-//};
+
+	//**************************************** ROUTINES ****************************************
+
+	/**
+	 * Get a list of polygons that describe node "ni"
+	 */
+	public Poly [] getShape(NodeInst ni)
+	{
+		NodeProto prototype = ni.getProto();
+		if (!(prototype instanceof PrimitiveNode)) return null;
+
+		// see if the node is "wiped" (not drawn)
+		if (ni.isWiped()) return null;
+
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		Technology.NodeLayer [] primLayers = np.getLayers();
+		if (np == wirePin_node)
+		{
+			if (ni.pinUseCount()) return null;
+		} else if (np == busPin_node)
+		{
+			// bus pins get bigger in "T" configurations, disappear when alone and exported
+			int busCon = 0, nonBusCon = 0;
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				if (con.getArc().getProto() == bus_arc) busCon++; else
+					nonBusCon++;
+			}
+			int implicitCon = 0;
+			if (busCon == 0 && nonBusCon == 0) implicitCon = 1;
+
+//			/* if the next level up the hierarchy is visible, consider arcs connected there */
+//			if (win != NOWINDOWPART && ni->firstportexpinst != NOPORTEXPINST)
+//			{
+//				db_gettraversalpath(ni->parent, NOWINDOWPART, &nilist, &depth);
+//				if (depth == 1)
+//				{
+//					upni = nilist[0];
+//					if (upni->proto == ni->parent && upni->parent == win->curnodeproto)
+//					{
+//						for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
+//						{
+//							for (pi = upni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
+//							{
+//								if (pi->proto != pe->exportproto) continue;
+//								if (pi->conarcinst->proto == sch_busarc) busCon++; else
+//									nonBusCon++;
+//							}
+//						}
+//					}
+//				}
+//			}
+
+			// bus pins don't show wire pin in center if not tapped
+			double wireDiscSize = 0.25;
+			if (nonBusCon == 0) wireDiscSize = 0;
+
+			double busDiscSize;
+			if (busCon+implicitCon > 2)
+			{
+				// larger pin because it is connected to 3 or more bus arcs
+				busDiscSize = 1.0;
+			} else
+			{
+				// smaller pin because it has 0, 1, or 2 connections
+				busDiscSize = 0.5;
+				if (busCon == 0)
+				{
+					if (nonBusCon+implicitCon > 2)
+					{
+						busDiscSize = 0;
+					} else
+					{
+						if (ni.getNumExports() != 0)
+							wireDiscSize = busDiscSize = 0;
+					}
+				}
+			}
+			int totalLayers = 0;
+			if (busDiscSize > 0) totalLayers++;
+			if (wireDiscSize > 0) totalLayers++;
+			Technology.NodeLayer [] busPinLayers = new Technology.NodeLayer[totalLayers];
+			totalLayers = 0;
+			if (busDiscSize > 0)
+			{
+				busPinLayers[totalLayers++] = new Technology.NodeLayer(bus_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(busDiscSize))});
+			}
+			if (wireDiscSize > 0)
+			{
+				busPinLayers[totalLayers++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(wireDiscSize))});
+			}
+			primLayers = busPinLayers;
+		} else if (np == flipflop_node)
+		{
+			int ffBits = ni.getTechSpecific();
+			switch (ffBits)
+			{
+				case FFTYPERS|FFCLOCKMS: primLayers = ffLayersRSMS;  break;
+				case FFTYPERS|FFCLOCKP:  primLayers = ffLayersRSP;   break;
+				case FFTYPERS|FFCLOCKN:  primLayers = ffLayersRSN;   break;
+
+				case FFTYPEJK|FFCLOCKMS: primLayers = ffLayersJKMS;  break;
+				case FFTYPEJK|FFCLOCKP:  primLayers = ffLayersJKP;   break;
+				case FFTYPEJK|FFCLOCKN:  primLayers = ffLayersJKN;   break;
+
+				case FFTYPED|FFCLOCKMS: primLayers = ffLayersDMS;    break;
+				case FFTYPED|FFCLOCKP:  primLayers = ffLayersDP;     break;
+				case FFTYPED|FFCLOCKN:  primLayers = ffLayersDN;     break;
+
+				case FFTYPET|FFCLOCKMS: primLayers = ffLayersTMS;    break;
+				case FFTYPET|FFCLOCKP:  primLayers = ffLayersTP;     break;
+				case FFTYPET|FFCLOCKN:  primLayers = ffLayersTN;     break;
+			}
+		} else if (np == transistor_node)
+		{
+			int tranBits = ni.getTechSpecific();
+			switch (tranBits)
+			{
+				case TRANNMOS:  primLayers = tranLayersN;      break;
+				case TRANDMOS:  primLayers = tranLayersD;      break;
+				case TRANPMOS:  primLayers = tranLayersP;      break;
+				case TRANNPN:   primLayers = tranLayersNPN;    break;
+				case TRANPNP:   primLayers = tranLayersPNP;    break;
+				case TRANNJFET: primLayers = tranLayersNJFET;  break;
+				case TRANPJFET: primLayers = tranLayersPJFET;  break;
+				case TRANDMES:  primLayers = tranLayersDMES;   break;
+				case TRANEMES:  primLayers = tranLayersEMES;   break;
+			}
+		} else if (np == twoport_node)
+		{
+			int tranBits = ni.getTechSpecific();
+			switch (tranBits)
+			{
+				case TWOPVCCS:  primLayers = twoLayersVCCS;   break;
+				case TWOPCCVS:  primLayers = twoLayersCCVS;   break;
+				case TWOPVCVS:  primLayers = twoLayersVCVS;   break;
+				case TWOPCCCS:  primLayers = twoLayersCCCS;   break;
+				case TWOPTLINE: primLayers = twoLayersTran;   break;
+			}
+		} else if (np == diode_node)
+		{
+			int diodeBits = ni.getTechSpecific();
+			switch (diodeBits)
+			{
+				case DIODENORM:  primLayers = diodeLayersNorm;    break;
+				case DIODEZENER: primLayers = diodeLayersZener;   break;
+			}
+		} else if (np == capacitor_node)
+		{
+			int capacitorBits = ni.getTechSpecific();
+			switch (capacitorBits)
+			{
+				case CAPACNORM: primLayers = capacitorLayersNorm;           break;
+				case CAPACELEC: primLayers = capacitorLayersElectrolytic;   break;
+			}
+		} else if (np == switch_node)
+		{
+			int numLayers = 3;
+			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1; 
+			Technology.NodeLayer [] switchLayers = new Technology.NodeLayer[numLayers];
+			switchLayers[0] = primLayers[0];
+			if ((numLayers%2) == 0) switchLayers[1] = primLayers[1]; else
+				switchLayers[1] = primLayers[2];
+			for(int i=2; i<numLayers; i++)
+			{
+				double yValue = 2 * (i-1) - 1;
+				switchLayers[i] = new Technology.NodeLayer(node_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(yValue)),
+					new Technology.TechPoint(EdgeH.fromLeft(1.25), EdgeV.fromBottom(yValue))});
+			}
+			primLayers = switchLayers;
+		} else if (np == transistor4_node)
+		{
+			int tranBits = ni.getTechSpecific();
+			switch (tranBits)
+			{
+				case TRANNMOS:  primLayers = tran4LayersN;      break;
+				case TRANDMOS:  primLayers = tran4LayersD;      break;
+				case TRANPMOS:  primLayers = tran4LayersP;      break;
+				case TRANNPN:   primLayers = tran4LayersNPN;    break;
+				case TRANPNP:   primLayers = tran4LayersPNP;    break;
+				case TRANNJFET: primLayers = tran4LayersNJFET;  break;
+				case TRANPJFET: primLayers = tran4LayersPJFET;  break;
+				case TRANDMES:  primLayers = tran4LayersDMES;   break;
+				case TRANEMES:  primLayers = tran4LayersEMES;   break;
+			}
+		}
+		return getShape(ni, primLayers);
+	}
+
+	public Poly [] getShape(ArcInst ai)
+	{
+		// Bus arcs are handled in a standard way
+		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+		if (ap == bus_arc)
+			return super.getShape(ai);
+
+		// Wire arc: if not negated, handle in a standard way
+		if (!ai.isNegated() || ai.isSkipTail())
+			return super.getShape(ai);
+
+		// draw a negated Wire arc
+		Point2D.Double headLoc = ai.getHead().getLocation();
+		Point2D.Double tailLoc = ai.getTail().getLocation();
+		double headX = headLoc.getX();   double headY = headLoc.getY();
+		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
+		double angle = ai.getAngle();
+		double bubbleSize = 1.2;
+		double cosDist = Math.cos(angle) * bubbleSize;
+		double sinDist = Math.sin(angle) * bubbleSize;
+		double bubbleX, bubbleY;
+		Point2D.Double bubbleEdge;
+		if (ai.isReverseEnds())
+		{
+			bubbleX = headX + cosDist/2;
+			bubbleY = headY + sinDist/2;
+			bubbleEdge = headLoc;
+			headX += cosDist;
+			headY += sinDist;
+		} else
+		{
+			bubbleX = tailX - cosDist/2;
+			bubbleY = tailY - sinDist/2;
+			bubbleEdge = tailLoc;
+			tailX -= cosDist;
+			tailY -= sinDist;
+		}
+
+		Poly [] polys = new Poly[2];
+		Point2D.Double newHead = new Point2D.Double(headX, headY);
+		Point2D.Double newTail = new Point2D.Double(tailX, tailY);
+		Point2D.Double newBubble = new Point2D.Double(bubbleX, bubbleY);
+
+		Point2D.Double [] points = new Point2D.Double[2];
+		points[0] = newHead;
+		points[1] = newTail;
+		polys[0] = new Poly(points);
+		polys[0].setStyle(Poly.Type.OPENED);
+		polys[0].setLayer(arc_lay);
+
+		points = new Point2D.Double[2];
+		points[0] = newBubble;
+		points[1] = bubbleEdge;
+		polys[1] = new Poly(points);
+		polys[1].setStyle(Poly.Type.CIRCLE);
+		polys[1].setLayer(arc_lay);
+
+		// construct the polygons
+		return polys;
+	}
 
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {
 //	x_(""), x_(""), x_(""),										/* pins */
@@ -1234,108 +1521,8 @@ public class TecSchematics extends Technology
 //	x_(""), x_(""), x_("")										/* twoport/4-port/global */
 //};
 
-/******************** VARIABLE AGGREGATION ********************/
-
-//TECH_VARIABLES sch_variables[] =
-//{
-//	/* set general information about the technology */
-//	{x_("TECH_layer_names"), (CHAR *)sch_layer_names, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{x_("TECH_layer_function"), (CHAR *)sch_layer_function, 0.0,
-//		VINTEGER|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{x_("TECH_node_width_offset"), (CHAR *)sch_node_widoff, 0.0,
-//		VFRACT|VDONTSAVE|VISARRAY|((NODEPROTOCOUNT*4)<<VLENGTHSH)},
-//	{x_("TECH_vhdl_names"), (CHAR *)sch_node_vhdlstring, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(NODEPROTOCOUNT<<VLENGTHSH)},
-//
-//	/* set information for the USER analysis tool */
-//	{x_("USER_layer_letters"), (CHAR *)sch_layer_letters, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{NULL, NULL, 0.0, 0}
-//};
-
 /******************** ROUTINES ********************/
-//
-//BOOLEAN sch_initprocess(TECHNOLOGY *tech, INTBIG pass)
-//{
-//	switch (pass)
-//	{
-//		case 0:
-//			/* initialize the technology variable */
-//			sch_tech = tech;
-//			break;
-//
-//		case 1:
-//			/* cache pointers to the primitives */
-//			sch_wirepinprim = getnodeproto(x_("schematic:Wire_Pin"));
-//			sch_buspinprim = getnodeproto(x_("schematic:Bus_Pin"));
-//			sch_wireconprim = getnodeproto(x_("schematic:Wire_Con"));
-//			sch_bufprim = getnodeproto(x_("schematic:Buffer"));
-//			sch_andprim = getnodeproto(x_("schematic:And"));
-//			sch_orprim = getnodeproto(x_("schematic:Or"));
-//			sch_xorprim = getnodeproto(x_("schematic:Xor"));
-//			sch_ffprim = getnodeproto(x_("schematic:Flip-Flop"));
-//			sch_muxprim = getnodeproto(x_("schematic:Mux"));
-//			sch_bboxprim = getnodeproto(x_("schematic:Bbox"));
-//			sch_switchprim = getnodeproto(x_("schematic:Switch"));
-//			sch_offpageprim = getnodeproto(x_("schematic:Off-Page"));
-//			sch_pwrprim = getnodeproto(x_("schematic:Power"));
-//			sch_gndprim = getnodeproto(x_("schematic:Ground"));
-//			sch_sourceprim = getnodeproto(x_("schematic:Source"));
-//			sch_transistorprim = getnodeproto(x_("schematic:Transistor"));
-//			sch_resistorprim = getnodeproto(x_("schematic:Resistor"));
-//			sch_capacitorprim = getnodeproto(x_("schematic:Capacitor"));
-//			sch_diodeprim = getnodeproto(x_("schematic:Diode"));
-//			sch_inductorprim = getnodeproto(x_("schematic:Inductor"));
-//			sch_meterprim = getnodeproto(x_("schematic:Meter"));
-//			sch_wellprim = getnodeproto(x_("schematic:Well"));
-//			sch_substrateprim = getnodeproto(x_("schematic:Substrate"));
-//			sch_twoportprim = getnodeproto(x_("schematic:Two-Port"));
-//			sch_transistor4prim = getnodeproto(x_("schematic:4-Port-Transistor"));
-//			sch_globalprim = getnodeproto(x_("schematic:Global-Signal"));
-//
-//			sch_wirearc = getarcproto(x_("schematic:wire"));
-//			sch_busarc = getarcproto(x_("schematic:bus"));
-//
-//			sch_meterkey = makekey(x_("SCHEM_meter_type"));
-//			sch_diodekey = makekey(x_("SCHEM_diode"));
-//			sch_capacitancekey = makekey(x_("SCHEM_capacitance"));
-//			sch_resistancekey = makekey(x_("SCHEM_resistance"));
-//			sch_inductancekey = makekey(x_("SCHEM_inductance"));
-//			sch_functionkey = makekey(x_("SCHEM_function"));
-//			sch_spicemodelkey = makekey(x_("SIM_spice_model"));
-//			sch_globalnamekey = makekey(x_("SCHEM_global_name"));
-//
-//			/* differential ports are enabled */
-//			sch_anddiffports = sch_ordiffports = sch_xordiffports = NOPORTPROTO;
-//
-//			/* translate strings on schematic nodes */
-//			sch_g_fftextclr[16] = _("CLR");
-//			sch_wirepinsizex = sch_wirepinprim->highx - sch_wirepinprim->lowx;
-//			sch_wirepinsizey = sch_wirepinprim->highy - sch_wirepinprim->lowy;
-//			break;
-//
-//		case 2:
-//			/* set the default transistor placement to be rotated */
-//			nextchangequiet();
-//			setvalkey((INTBIG)sch_transistorprim, VNODEPROTO, us_placement_angle_key, 900, VINTEGER|VDONTSAVE);
-//			nextchangequiet();
-//			setvalkey((INTBIG)sch_transistor4prim, VNODEPROTO, us_placement_angle_key, 900, VINTEGER|VDONTSAVE);
-//			break;
-//	}
-//	return(FALSE);
-//}
-//
-//void sch_termprocess(void)
-//{
-//	/* put all ports into play so that deallocation will be complete */
-//	if (sch_anddiffports == NOPORTPROTO) return;
-//	sch_andprim->firstportproto->nextportproto->nextportproto = sch_anddiffports;
-//	sch_orprim->firstportproto->nextportproto->nextportproto = sch_ordiffports;
-//	sch_xorprim->firstportproto->nextportproto->nextportproto = sch_xordiffports;
-//	sch_anddiffports = sch_ordiffports = sch_xordiffports = NOPORTPROTO;
-//}
-//
+
 //void sch_setmode(INTBIG count, CHAR *par[])
 //{
 //	REGISTER CHAR *pp;
@@ -1396,7 +1583,7 @@ public class TecSchematics extends Technology
 //	}
 //	ttyputbadusage(x_("technology tell schematic"));
 //}
-//
+
 //INTBIG sch_request(CHAR *command, va_list ap)
 //{
 //	REGISTER PORTPROTO *pp;
@@ -1433,13 +1620,8 @@ public class TecSchematics extends Technology
 //	}
 //	return(0);
 //}
-//
-//INTBIG sch_nodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win)
-//{
-//	return(sch_intnodepolys(ni, reasonable, win, &tech_oneprocpolyloop, &sch_oneprocpolyloop));
-//}
-//
-//INTBIG sch_intnodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, SCHPOLYLOOP *schpl)
+
+//INTBIG sch_nodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, SCHPOLYLOOP *schpl)
 //{
 //	REGISTER INTBIG total, pindex, buscon, nonbuscon, hei, arcs, i, implicitcon;
 //	INTBIG depth;
@@ -1452,211 +1634,6 @@ public class TecSchematics extends Technology
 //	pindex = ni->proto->primindex;
 //	total = sch_nodeprotos[pindex-1]->layercount;
 //	schpl->layerlist = sch_nodeprotos[pindex-1]->layerlist;
-//
-//	/* special cases for special primitives */
-//	switch (pindex)
-//	{
-//		case NWIREPIN:	/* wire pins disappear with one or two wires */
-//			if (tech_pinusecount(ni, win)) total = 0;
-//			break;
-//
-//		case NBUSPIN:	/* bus pins get bigger in "T" configurations, disappear when alone and exported */
-//			buscon = nonbuscon = 0;
-//			for (pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//			{
-//				if (pi->conarcinst->proto == sch_busarc) buscon++; else
-//					nonbuscon++;
-//			}
-//			if (buscon == 0 && nonbuscon == 0) implicitcon = 1; else
-//				implicitcon = 0;
-//
-//			/* if the next level up the hierarchy is visible, consider arcs connected there */
-//			if (win != NOWINDOWPART && ni->firstportexpinst != NOPORTEXPINST)
-//			{
-//				db_gettraversalpath(ni->parent, NOWINDOWPART, &nilist, &depth);
-//				if (depth == 1)
-//				{
-//					upni = nilist[0];
-//					if (upni->proto == ni->parent && upni->parent == win->curnodeproto)
-//					{
-//						for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//						{
-//							for (pi = upni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//							{
-//								if (pi->proto != pe->exportproto) continue;
-//								if (pi->conarcinst->proto == sch_busarc) buscon++; else
-//									nonbuscon++;
-//							}
-//						}
-//					}
-//				}
-//			}
-//
-//			/* bus pins don't show wire pin in center if not tapped */
-//			if (nonbuscon == 0) total--;
-//
-//			schpl->buspinlayer = bus_lay;
-//			schpl->buspinpoints = sch_g_buspindisc;
-//			if (buscon+implicitcon > 2)
-//			{
-//				/* larger pin because it is connected to 3 or more bus arcs */
-//				schpl->buspinsize = H0;
-//			} else
-//			{
-//				/* smaller pin because it has 0, 1, or 2 connections */
-//				schpl->buspinsize = Q0;
-//				if (buscon == 0)
-//				{
-//					if (nonbuscon+implicitcon > 2)
-//					{
-//						schpl->buspinlayer = arc_lay;
-//						schpl->buspinpoints = sch_g_bustapdisc;
-//						total--;
-//					} else
-//					{
-//						if (ni->firstportexpinst != NOPORTEXPINST)
-//							total = 0;
-//					}
-//				}
-//			}
-//			break;
-//
-//		case NFF:	/* determine graphics to use for FlipFlops */
-//			switch (ni->userbits&FFCLOCK)
-//			{
-//				case FFCLOCKMS:		/* FlipFlop is Master/slave */
-//					schpl->layerlist = sch_ffms_l;
-//					break;
-//				case FFCLOCKP:		/* FlipFlop is Positive clock */
-//					schpl->layerlist = sch_ffp_l;
-//					break;
-//				case FFCLOCKN:		/* FlipFlop is Negative clock */
-//					schpl->layerlist = sch_ffn_l;
-//					break;
-//			}
-//			break;
-//
-//		case NSWITCH:	/* add in multiple connection sites for switch */
-//			hei = (ni->highy - ni->lowy) / lambdaofnode(ni);
-//			if (hei >= 4) total += (hei/2)-1;
-//			if (((hei/2)&1) == 0) schpl->switchbarvalue = 0; else
-//				schpl->switchbarvalue = K1;
-//			break;
-//
-//		case NTRANSISTOR:	/* determine graphics to use for transistors */
-//			switch (ni->userbits&NTECHBITS)
-//			{
-//				case TRANNMOS:				/* Transistor is N channel MOS */
-//					schpl->layerlist = sch_nmos_l;
-//					total = 3;
-//					break;
-//				case TRANDMOS:				/* Transistor is Depletion MOS */
-//					schpl->layerlist = sch_dmos_l;
-//					total = 4;
-//					break;
-//				case TRANPMOS:				/* Transistor is P channel MOS */
-//					schpl->layerlist = sch_pmos_l;
-//					total = 4;
-//					break;
-//				case TRANNPN:				/* Transistor is NPN Junction */
-//					schpl->layerlist = sch_npn_l;
-//					total = 4;
-//					break;
-//				case TRANPNP:				/* Transistor is PNP Junction */
-//					schpl->layerlist = sch_pnp_l;
-//					total = 4;
-//					break;
-//				case TRANNJFET:				/* Transistor is N Channel Junction FET */
-//					schpl->layerlist = sch_njfet_l;
-//					total = 4;
-//					break;
-//				case TRANPJFET:				/* Transistor is P Channel Junction FET */
-//					schpl->layerlist = sch_pjfet_l;
-//					total = 4;
-//					break;
-//				case TRANDMES:				/* Transistor is Depletion MESFET */
-//					schpl->layerlist = sch_dmes_l;
-//					total = 3;
-//					break;
-//				case TRANEMES:				/* Transistor is Enhancement MESFET */
-//					schpl->layerlist = sch_emes_l;
-//					total = 2;
-//					break;
-//			}
-//			break;
-//
-//		case NCAPACITOR:	/* determine graphics to use for capacitors */
-//			if ((ni->userbits&NTECHBITS) == CAPACELEC)
-//				total++;
-//			break;
-//
-//		case NTWOPORT:	/* determine graphics to use for Two-Ports */
-//			switch (ni->userbits&NTECHBITS)
-//			{
-//				case TWOPVCCS:					/* Two-port is Transconductance (VCCS) */
-//					schpl->layerlist = sch_twoportvccs_l;
-//					total = 5;
-//					break;
-//				case TWOPCCVS:					/* Two-port is Transresistance (CCVS) */
-//					schpl->layerlist = sch_twoportccvs_l;
-//					total = 6;
-//					break;
-//				case TWOPVCVS:					/* Two-port is Voltage gain (VCVS) */
-//					schpl->layerlist = sch_twoportvcvs_l;
-//					total = 5;
-//					break;
-//				case TWOPCCCS:					/* Two-port is Current gain (CCCS) */
-//					schpl->layerlist = sch_twoportcccs_l;
-//					total = 6;
-//					break;
-//				case TWOPTLINE:					/* Two-port is Transmission Line */
-//					schpl->layerlist = sch_twoporttran_l;
-//					total = 7;
-//					break;
-//			}
-//			break;
-//		case NTRANSISTOR4:	/* determine graphics to use for 4-port transistors */
-//			switch (ni->userbits&NTECHBITS)
-//			{
-//				case TRANNMOS:				/* Transistor is N channel MOS */
-//					schpl->layerlist = sch_nmos4_l;
-//					total = 4;
-//					break;
-//				case TRANDMOS:				/* Transistor is Depletion MOS */
-//					schpl->layerlist = sch_dmos4_l;
-//					total = 5;
-//					break;
-//				case TRANPMOS:				/* Transistor is P channel MOS */
-//					schpl->layerlist = sch_pmos4_l;
-//					total = 5;
-//					break;
-//				case TRANNPN:				/* Transistor is NPN Junction */
-//					schpl->layerlist = sch_npn4_l;
-//					total = 5;
-//					break;
-//				case TRANPNP:				/* Transistor is PNP Junction */
-//					schpl->layerlist = sch_pnp4_l;
-//					total = 5;
-//					break;
-//				case TRANNJFET:				/* Transistor is N Channel Junction FET */
-//					schpl->layerlist = sch_njfet4_l;
-//					total = 5;
-//					break;
-//				case TRANPJFET:				/* Transistor is P Channel Junction FET */
-//					schpl->layerlist = sch_pjfet4_l;
-//					total = 5;
-//					break;
-//				case TRANDMES:				/* Transistor is Depletion MESFET */
-//					schpl->layerlist = sch_dmes4_l;
-//					total = 4;
-//					break;
-//				case TRANEMES:				/* Transistor is Enhancement MESFET */
-//					schpl->layerlist = sch_emes4_l;
-//					total = 3;
-//					break;
-//			}
-//			break;
-//	}
 //
 //	schpl->extrasteinerpoint = total;
 //	switch (pindex)
@@ -1697,49 +1674,9 @@ public class TecSchematics extends Technology
 //	if (reasonable != 0) *reasonable = total;
 //	return(total);
 //}
-//
-//void sch_shapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly)
+
+//void sch_shapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl, SCHPOLYLOOP *schpl)
 //{
-//	sch_intshapenodepoly(ni, box, poly, &tech_oneprocpolyloop, &sch_oneprocpolyloop);
-//}
-//
-//void sch_intshapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl, SCHPOLYLOOP *schpl)
-//{
-//	REGISTER INTBIG lambda, width, height;
-//	REGISTER VARIABLE *var;
-//	REGISTER TECH_PORTS *tp;
-//	REGISTER TECH_POLYGON *lay;
-//
-//	/* handle displayable variables */
-//	if (box >= pl->realpolys)
-//	{
-//		var = tech_filldisplayablenvar(ni, poly, pl->curwindowpart, 0, pl);
-//		return;
-//	}
-//
-//	/* get the unit size (lambda) */
-//	switch (ni->proto->primindex)
-//	{
-//#ifdef SCALABLEGATES
-//		case NAND:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			lambda = width / 8;
-//			if (height < lambda * 6) lambda = height / 6;
-//			break;
-//		case NOR:
-//		case NXOR:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			lambda = width / 10;
-//			if (height < lambda * 6) lambda = height / 6;
-//			break;
-//#endif
-//		default:
-//			lambda = lambdaofnode(ni);
-//			break;
-//	}
-//
 //	if (box >= schpl->extrasteinerpoint)
 //	{
 //		/* handle extra steiner points */
@@ -1759,123 +1696,14 @@ public class TecSchematics extends Technology
 //		return;
 //	}
 //
-//	/* handle extra blobs on tall switches */
 //	lay = &schpl->layerlist[box];
-//	switch (ni->proto->primindex)
-//	{
-//		case NBUSPIN:
-//			if (box == 0)
-//			{
-//				sch_buspin_l[0].layernum = (INTSML)schpl->buspinlayer;
-//				sch_buspin_l[0].points = schpl->buspinpoints;
-//				sch_g_buspindisc[4] = schpl->buspinsize;
-//			}
-//			break;
-//		case NSWITCH:
-//			if (box >= 2)
-//			{
-//				sch_g_switchout[3] = sch_g_switchout[7] = WHOLE*2*(box-1) - WHOLE;
-//				box = 2;
-//				lay = &schpl->layerlist[box];
-//			}
-//			if (lay->points == sch_g_switchbar)
-//				sch_g_switchbar[7] = schpl->switchbarvalue;
-//			break;
-//		case NFF:
-//			if (lay->points == (INTBIG *)sch_g_fftextd)
-//			{
-//				switch (ni->userbits&FFTYPE)
-//				{
-//					case FFTYPERS: sch_g_fftextd[16] = sch_R;        break;
-//					case FFTYPEJK: sch_g_fftextd[16] = sch_J;        break;
-//					case FFTYPED:  sch_g_fftextd[16] = sch_D;        break;
-//					case FFTYPET:  sch_g_fftextd[16] = sch_T;        break;
-//				}
-//			} else if (lay->points == (INTBIG *)sch_g_fftexte)
-//			{
-//				switch (ni->userbits&FFTYPE)
-//				{
-//					case FFTYPERS: sch_g_fftexte[16] = sch_S;        break;
-//					case FFTYPEJK: sch_g_fftexte[16] = sch_K;        break;
-//					case FFTYPED:  sch_g_fftexte[16] = sch_E;        break;
-//					case FFTYPET:  sch_g_fftexte[16] = sch_NULLSTR;  break;
-//				}
-//			}
-//			break;
-//		case NDIODE:	/* determine graphics to use for diodes */
-//			if (box == 0)
-//			{
-//				switch (ni->userbits&NTECHBITS)
-//				{
-//					case DIODENORM:					/* Diode is normal */
-//						lay->points = sch_g_diode1;
-//						lay->count = 6;
-//						break;
-//					case DIODEZENER:				/* Diode is Zener */
-//						lay->points = sch_g_diode3;
-//						lay->count = 10;
-//						break;
-//				}
-//			}
-//			break;
-//	}
-//
 //	tech_fillpoly(poly, lay, ni, lambda, FILLED);
 //	TDCLEAR(poly->textdescript);
 //	TDSETSIZE(poly->textdescript, lay->portnum);
 //	poly->tech = sch_tech;
 //	poly->desc = sch_layers[poly->layer];
 //}
-//
-//INTBIG sch_allnodepolys(NODEINST *ni, POLYLIST *plist, WINDOWPART *win, BOOLEAN onlyreasonable)
-//{
-//	REGISTER INTBIG tot, j;
-//	INTBIG reasonable;
-//	REGISTER NODEPROTO *np;
-//	REGISTER POLYGON *poly;
-//	POLYLOOP mypl;
-//	SCHPOLYLOOP myschpl;
-//
-//	np = ni->proto;
-//	mypl.curwindowpart = win;
-//	tot = sch_intnodepolys(ni, &reasonable, win, &mypl, &myschpl);
-//	if (onlyreasonable) tot = reasonable;
-//	if (mypl.realpolys < tot) tot = mypl.realpolys;
-//	if (ensurepolylist(plist, tot, db_cluster)) return(-1);
-//	for(j = 0; j < tot; j++)
-//	{
-//		poly = plist->polygons[j];
-//		poly->tech = sch_tech;
-//		sch_intshapenodepoly(ni, j, poly, &mypl, &myschpl);
-//	}
-//	return(tot);
-//}
-//
-//INTBIG sch_nodeEpolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win)
-//{
-//	Q_UNUSED( ni );
-//	Q_UNUSED( win );
-//
-//	if (reasonable != 0) *reasonable = 0;
-//	return(0);
-//}
-//
-//void sch_shapeEnodepoly(NODEINST *ni, INTBIG box, POLYGON *poly)
-//{
-//	Q_UNUSED( ni );
-//	Q_UNUSED( box );
-//	Q_UNUSED( poly );
-//}
-//
-//INTBIG sch_allnodeEpolys(NODEINST *ni, POLYLIST *plist, WINDOWPART *win, BOOLEAN onlyreasonable)
-//{
-//	Q_UNUSED( ni );
-//	Q_UNUSED( plist );
-//	Q_UNUSED( win );
-//	Q_UNUSED( onlyreasonable );
-//	return(0);
-//}
-//
+
 //void sch_nodesizeoffset(NODEINST *ni, INTBIG *lx, INTBIG *ly, INTBIG *hx, INTBIG *hy)
 //{
 //	REGISTER INTBIG index, width, height, unitsize;
@@ -1883,7 +1711,6 @@ public class TecSchematics extends Technology
 //	index = ni->proto->primindex;
 //	switch (index)
 //	{
-//#ifdef SCALABLEGATES
 //		case NAND:
 //			width = ni->highx - ni->lowx;
 //			height = ni->highy - ni->lowy;
@@ -1911,7 +1738,6 @@ public class TecSchematics extends Technology
 //			*hx = unitsize/2;
 //			*ly = *hy = 0;
 //			break;
-//#endif
 //		default:
 //			tech_nodeprotosizeoffset(ni->proto, lx, ly, hx, hy, lambdaofnode(ni));
 //			break;
@@ -1931,7 +1757,6 @@ public class TecSchematics extends Technology
 //
 //	switch (ni->proto->primindex)
 //	{
-//#ifdef SCALABLEGATES
 //		case NAND:
 //			width = ni->highx - ni->lowx;
 //			height = ni->highy - ni->lowy;
@@ -1945,7 +1770,6 @@ public class TecSchematics extends Technology
 //			lambda = width / 10;
 //			if (height < lambda * 6) lambda = height / 6;
 //			break;
-//#endif
 //		default:
 //			lambda = lambdaofnode(ni);
 //			break;
@@ -2057,151 +1881,5 @@ public class TecSchematics extends Technology
 //		}
 //	}
 //	tech_fillportpoly(ni, pp, poly, trans, sch_nodeprotos[pindex-1], CLOSED, lambda);
-//}
-//
-//INTBIG sch_arcpolys(ARCINST *ai, WINDOWPART *win)
-//{
-//	return(sch_intarcpolys(ai, win, &tech_oneprocpolyloop, &sch_oneprocpolyloop));
-//}
-//
-//INTBIG sch_intarcpolys(ARCINST *ai, WINDOWPART *win, POLYLOOP *pl, SCHPOLYLOOP *schpl)
-//{
-//	REGISTER INTBIG i;
-//
-//	i = sch_arcprotos[ai->proto->arcindex]->laycount;
-//	schpl->bubblebox = schpl->arrowbox = -1;
-//	if ((ai->userbits&(ISNEGATED|NOTEND0)) == ISNEGATED) schpl->bubblebox = i++;
-//	if ((ai->userbits&ISDIRECTIONAL) != 0) schpl->arrowbox = i++;
-//
-//	/* add in displayable variables */
-//	pl->realpolys = i;
-//	i += tech_displayableavars(ai, win, pl);
-//	return(i);
-//}
-//
-//void sch_shapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly)
-//{
-//	sch_intshapearcpoly(ai, box, poly, &tech_oneprocpolyloop, &sch_oneprocpolyloop);
-//}
-//
-//void sch_intshapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly, POLYLOOP *pl, SCHPOLYLOOP *schpl)
-//{
-//	REGISTER INTBIG aindex, bubbleend;
-//	REGISTER INTBIG angle;
-//	REGISTER INTBIG x1,y1, cosdist, sindist, x2,y2, lambda, i,
-//		saveendx, saveendy, bubblesize;
-//	REGISTER TECH_ARCLAY *thista;
-//
-//	/* handle displayable variables */
-//	if (box >= pl->realpolys)
-//	{
-//		(void)tech_filldisplayableavar(ai, poly, pl->curwindowpart, 0, pl);
-//		return;
-//	}
-//
-//	/* initialize for the arc */
-//	aindex = ai->proto->arcindex;
-//	thista = &sch_arcprotos[aindex]->list[box];
-//	poly->layer = thista->lay;
-//	poly->desc = sch_layers[poly->layer];
-//	lambda = lambdaofarc(ai);
-//	if (schpl->bubblebox < 0 && schpl->arrowbox < 0)
-//	{
-//		/* simple arc */
-//		makearcpoly(ai->length, ai->width-thista->off*lambda/WHOLE,
-//			ai, poly, thista->style);
-//		return;
-//	}
-//
-//	/* prepare special information for negated and/or directional arcs */
-//	bubbleend = 0;
-//	x1 = ai->end[0].xpos;   y1 = ai->end[0].ypos;
-//	x2 = ai->end[1].xpos;   y2 = ai->end[1].ypos;
-//	angle = ((ai->userbits&AANGLE) >> AANGLESH) * 10;
-//	if ((ai->userbits&REVERSEEND) != 0)
-//	{
-//		i = x1;   x1 = x2;   x2 = i;
-//		i = y1;   y1 = y2;   y2 = i;
-//		bubbleend = 1;
-//		angle = (angle+1800) % 3600;
-//	}
-//	bubblesize = sch_bubblediameter * lambda;
-//	cosdist = mult(cosine(angle), bubblesize) / WHOLE;
-//	sindist = mult(sine(angle), bubblesize) / WHOLE;
-//
-//	/* handle the main body of the arc */
-//	if (box == 0)
-//	{
-//		if (schpl->bubblebox >= 0)
-//		{
-//			/* draw the arc, shortened at the end for the negating bubble */
-//			saveendx = ai->end[bubbleend].xpos;
-//			saveendy = ai->end[bubbleend].ypos;
-//			ai->end[bubbleend].xpos = x1 + cosdist;
-//			ai->end[bubbleend].ypos = y1 + sindist;
-//			makearcpoly(ai->length-sch_bubblediameter,
-//				ai->width-thista->off*lambda/WHOLE, ai, poly, thista->style);
-//			ai->end[bubbleend].xpos = saveendx;
-//			ai->end[bubbleend].ypos = saveendy;
-//		} else
-//		{
-//			makearcpoly(ai->length, ai->width-thista->off*lambda/WHOLE,
-//				ai, poly, thista->style);
-//		}
-//		return;
-//	}
-//
-//	/* draw the negating bubble */
-//	if (box == schpl->bubblebox)
-//	{
-//		poly->count = 2;
-//		if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//		poly->xv[0] = x1 + cosdist / 2;
-//		poly->yv[0] = y1 + sindist / 2;
-//		poly->xv[1] = x1;   poly->yv[1] = y1;
-//		poly->style = CIRCLE;
-//		return;
-//	}
-//
-//	/* draw the directional arrow */
-//	if (box == schpl->arrowbox)
-//	{
-//		if ((ai->userbits&(ISNEGATED|NOTEND0)) == ISNEGATED)
-//		{
-//			x1 += cosdist;
-//			y1 += sindist;
-//		}
-//		poly->style = VECTORS;
-//		poly->layer = -1;
-//		if (aindex == ABUS)
-//		{
-//			poly->desc = &sch_t_lay;
-//			x2 -= cosdist / 2;
-//			y2 -= sindist / 2;
-//		}
-//		if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//		poly->count = 2;
-//		poly->xv[0] = x1;   poly->yv[0] = y1;
-//		poly->xv[1] = x2;   poly->yv[1] = y2;
-//		if ((ai->userbits&NOTEND1) == 0)
-//			tech_addheadarrow(poly, angle, x2, y2, lambda);
-//	}
-//}
-//
-//INTBIG sch_allarcpolys(ARCINST *ai, POLYLIST *plist, WINDOWPART *win)
-//{
-//	REGISTER INTBIG tot, j;
-//	POLYLOOP mypl;
-//	SCHPOLYLOOP myschpl;
-//
-//	mypl.curwindowpart = win;
-//	tot = sch_intarcpolys(ai, win, &mypl, &myschpl);
-//	tot = mypl.realpolys;
-//	if (ensurepolylist(plist, tot, db_cluster)) return(-1);
-//	for(j = 0; j < tot; j++)
-//	{
-//		sch_intshapearcpoly(ai, j, plist->polygons[j], &mypl, &myschpl);
-//	}
-//	return(tot);
 //}
 }

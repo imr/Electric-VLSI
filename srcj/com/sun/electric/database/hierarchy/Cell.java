@@ -35,6 +35,9 @@ import java.text.DateFormat;
  */
 public class Cell extends NodeProto
 {
+	/** The Cell class */								public static Class CLASS      = (new Cell()).getClass();
+	/** The Cell[] class */								public static Class ARRAYCLASS = (new Cell[0]).getClass();
+
 	// ------------------------- private classes -----------------------------
 
 	private class VersionGroup
@@ -90,22 +93,10 @@ public class Cell extends NodeProto
 
 	// ------------------ protected and private methods -----------------------
 
-	private Cell(Library cellLib)
+	private Cell()
 	{
-		nodes = new ArrayList();
-		arcs = new ArrayList();
-		cellGroup = new CellGroup(this);
-		versionGroup = new VersionGroup(this);
-		timeStamp = -1; // initial time is in the past
-		tech = null;
-		lib = cellLib;
-		referencePointCoord = new Point2D.Double(0, 0);
-		creationDate = new Date();
-		revisionDate = new Date();
-		userBits = 0;
-		elecBounds = new Rectangle2D.Double();
-		boundsEmpty = true;
-		boundsDirty = false;
+		this.cellGroup = new CellGroup(this);
+		this.versionGroup = new VersionGroup(this);
 	}
 
 	/**
@@ -113,7 +104,19 @@ public class Cell extends NodeProto
 	 */
 	public static Cell lowLevelAllocate(Library lib)
 	{
-		Cell c = new Cell(lib);
+		Cell c = new Cell();
+		c.nodes = new ArrayList();
+		c.arcs = new ArrayList();
+		c.timeStamp = -1; // initial time is in the past
+		c.tech = null;
+		c.lib = lib;
+		c.referencePointCoord = new Point2D.Double(0, 0);
+		c.creationDate = new Date();
+		c.revisionDate = new Date();
+		c.userBits = 0;
+		c.elecBounds = new Rectangle2D.Double();
+		c.boundsEmpty = true;
+		c.boundsDirty = false;
 		return c;
 	}
 
@@ -584,8 +587,10 @@ public class Cell extends NodeProto
 	public double getDefWidth() { return elecBounds.width; }
 	public double getDefHeight() { return elecBounds.height; }
 
-	public double getWidthOffset() { return 0; }
-	public double getHeightOffset() { return 0; }
+	public double getLowXOffset() { return 0; }
+	public double getHighXOffset() { return 0; }
+	public double getLowYOffset() { return 0; }
+	public double getHighYOffset() { return 0; }
 
 	/** If there are two or more essential bounds return the bounding
 	 * box that surrounds all of them; otherwise return null; */
@@ -807,12 +812,6 @@ public class Cell extends NodeProto
 	public Export findExport(String nm)
 	{
 		return (Export) findPortProto(nm);
-	}
-
-	/** Get the Cell's technology (best guess) */
-	public Technology getTechnology()
-	{
-		return tech;
 	}
 
 	/** Return an iterator over the NodeInsts of this Cell */

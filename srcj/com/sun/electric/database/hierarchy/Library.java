@@ -19,16 +19,19 @@ import java.util.Iterator;
  */
 public class Library extends ElectricObject
 {
+	/** The Library class */								public static Class CLASS      = (new Library()).getClass();
+	/** The Library[] class */								public static Class ARRAYCLASS = (new Library[0]).getClass();
+
 	// ------------------------ private data ------------------------------
 
-	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR=           01;
-//	/** recheck networks in library */						private static final int REDOCELLLIB=               02;
-	/** set if library came from disk */					private static final int READFROMDISK=              04;
-	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS=                 070;
-	/** right shift for LIBUNITS */							private static final int LIBUNITSSH=                 3;
-	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR=         0100;
-	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY=           0200;
-//	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB=             0400;
+	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
+//	/** recheck networks in library */						private static final int REDOCELLLIB =               02;
+	/** set if library came from disk */					private static final int READFROMDISK =              04;
+	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
+	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
+	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
+	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
+//	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private String fileName;
@@ -41,15 +44,40 @@ public class Library extends ElectricObject
 
 	// ----------------- private and protected methods --------------------
 
-	private Library(String libName, String fileName)
+	private Library()
 	{
-		this.cells = new ArrayList();
-		this.curCell = null;
-		this.libName = libName;
-		this.fileName = fileName;
+	}
+
+	/**
+	 * The factory to create new libraries.
+	 */
+	public static Library newInstance(String libraryName, String libraryFile)
+	{
+		// make sure the name is legal
+		String legalName = libraryName.replace(' ', '-');
+		if (!legalName.equalsIgnoreCase(libraryName))
+			System.out.println("Warning: library renamed to '" + legalName + "'");
+		
+		// see if the library name already exists
+		Library existingLibrary = Library.findLibrary(legalName);
+		if (existingLibrary != null)
+		{
+			System.out.println("Error: library '" + legalName + "' already exists");
+			return null;
+		}
+		
+		// create the library
+		Library lib = new Library();
+		lib.cells = new ArrayList();
+		lib.curCell = null;
+		lib.libName = legalName;
+		lib.fileName = libraryFile;
 	
 		// add the library to the global list
-		libraries.add(this);
+		libraries.add(lib);
+		Library.setCurrent(lib);
+
+		return lib;
 	}
 
 	void addCell(Cell c)
@@ -106,31 +134,6 @@ public class Library extends ElectricObject
 	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
 	/** Get the Units value */
 	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
-
-	/**
-	 * The factory to create new libraries.
-	 */
-	public static Library newInstance(String libraryName, String libraryFile)
-	{
-		// make sure the name is legal
-		String legalName = libraryName.replace(' ', '-');
-		if (!legalName.equalsIgnoreCase(libraryName))
-			System.out.println("Warning: library renamed to '" + legalName + "'");
-		
-		// see if the library name already exists
-		Library existingLibrary = Library.findLibrary(legalName);
-		if (existingLibrary != null)
-		{
-			System.out.println("Error: library '" + legalName + "' already exists");
-			return null;
-		}
-		
-		// create the library
-		Library lib = new Library(legalName, libraryFile);
-		Library.setCurrent(lib);
-
-		return lib;
-	}
 
 	public void killLibrary()
 	{

@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
@@ -25,17 +26,16 @@ public class PrimitiveNode extends NodeProto
 	
 	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
 
-	/** technology of this primitive */				private Technology tech;
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** flag bits */								private int userBits;
 	/** special factors for unusual primitives */	private int[] specialValues;
 	/** default width and height */					private double defWidth, defHeight;
-	/** offset from database to user */				private double widthOffset, heightOffset;
+	/** offset from database to user */				private SizeOffset offset;
 
 	// ------------------ private and protected methods ----------------------
 	
 	private PrimitiveNode(String protoName, Technology tech, double defWidth, double defHeight,
-		double widthOffset, double heightOffset, Technology.NodeLayer [] layers)
+		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
 		this.protoName = protoName;
@@ -47,8 +47,7 @@ public class PrimitiveNode extends NodeProto
 		this.specialValues = new int [] {0,0,0,0,0,0};
 		this.defWidth = defWidth;
 		this.defHeight = defHeight;
-		this.widthOffset = widthOffset;
-		this.heightOffset = heightOffset;
+		this.offset = offset;
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
@@ -57,14 +56,23 @@ public class PrimitiveNode extends NodeProto
 	// ------------------------- public methods -------------------------------
 
 	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
-		double widthOffset, double heightOffset, Technology.NodeLayer [] layers)
+		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
-		PrimitiveNode pn = new PrimitiveNode(protoName, tech, width, height, widthOffset, heightOffset, layers);
+		// check the arguments
+		if (tech.findNodeProto(protoName) != null)
+		{
+			System.out.println("Error: technology " + tech.getTechName() + " has multiple nodes named " + protoName);
+			return null;
+		}
+		if (width < 0.0 || height < 0.0)
+		{
+			System.out.println("Error: technology " + tech.getTechName() + " node " + protoName + " has negative size");
+			return null;
+		}
+
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, width, height, offset, layers);
 		return pn;
 	}
-
-	/** Get the Technology to which this PrimitiveNode belongs */
-	public Technology getTechnology() { return tech; }
 
 	public Technology.NodeLayer [] getLayers() { return layers; }
 	
@@ -76,13 +84,15 @@ public class PrimitiveNode extends NodeProto
 	public double getDefWidth() { return defWidth; }
 	public double getDefHeight() { return defHeight; }
 
-	public void setSizeOffset(double widthOffset, double heightOffset)
-	{
-		this.widthOffset = widthOffset;
-		this.heightOffset = heightOffset;
-	}
-	public double getWidthOffset() { return widthOffset; }
-	public double getHeightOffset() { return heightOffset; }
+//	public void setSizeOffset(double widthOffset, double heightOffset)
+//	{
+//		this.widthOffset = widthOffset;
+//		this.heightOffset = heightOffset;
+//	}
+	public double getLowXOffset() { return offset.getLowXOffset(); }
+	public double getHighXOffset() { return offset.getHighXOffset(); }
+	public double getLowYOffset() { return offset.getLowYOffset(); }
+	public double getHighYOffset() { return offset.getHighYOffset(); }
 
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{

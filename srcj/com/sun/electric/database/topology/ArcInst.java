@@ -5,6 +5,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -21,29 +22,32 @@ import java.awt.geom.Rectangle2D;
  */
 public class ArcInst extends Geometric /*implements Networkable*/
 {
+	/** The ArcInst class */								public static Class CLASS      = (new ArcInst()).getClass();
+	/** The ArcInst[] class */								public static Class ARRAYCLASS = (new ArcInst[0]).getClass();
+
 	// -------------------------- private data ----------------------------------
 
-	/** fixed-length arc */								private static final int FIXED=                     01;
-	/** fixed-angle arc */								private static final int FIXANG=                    02;
-	/** arc has text that is far away */				private static final int AHASFARTEXT=               04;
-//	/** arc is not in use */							private static final int DEADA=                    020;
-	/** angle of arc from end 0 to end 1 */				private static final int AANGLE=                037740;
-	/** bits of right shift for AANGLE field */			private static final int AANGLESH=                   5;
-	/** set if arc is to be drawn shortened */			private static final int ASHORT=                040000;
-	/** set if ends do not extend by half width */		private static final int NOEXTEND=             0400000;
-	/** set if ends are negated */						private static final int ISNEGATED=           01000000;
-	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL=       02000000;
-	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0=             04000000;
-	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1=            010000000;
-	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND=         020000000;
-	/** set if arc can't slide around in ports */		private static final int CANTSLIDE=          040000000;
-//	/** if on, this arcinst is marked for death */		private static final int KILLA=             0200000000;
-//	/** arcinst re-drawing is scheduled */				private static final int REWANTA=           0400000000;
-//	/** only local arcinst re-drawing desired */		private static final int RELOCLA=          01000000000;
-//	/**transparent arcinst re-draw is done */			private static final int RETDONA=          02000000000;
-//	/** opaque arcinst re-draw is done */				private static final int REODONA=          04000000000;
-	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT=      010000000000;
-	/** set if hard to select */						private static final int HARDSELECTA=     020000000000;
+	/** fixed-length arc */								private static final int FIXED =                     01;
+	/** fixed-angle arc */								private static final int FIXANG =                    02;
+	/** arc has text that is far away */				private static final int AHASFARTEXT =               04;
+//	/** arc is not in use */							private static final int DEADA =                    020;
+	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
+	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
+	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
+	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
+	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
+	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
+	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0 =             04000000;
+	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
+	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
+	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
+//	/** if on, this arcinst is marked for death */		private static final int KILLA =             0200000000;
+//	/** arcinst re-drawing is scheduled */				private static final int REWANTA =           0400000000;
+//	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
+//	/**transparent arcinst re-draw is done */			private static final int RETDONA =          02000000000;
+//	/** opaque arcinst re-draw is done */				private static final int REODONA =          04000000000;
+	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
+	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
 
 	// Name of the variable holding the ArcInst's name.
 	private static final String VAR_ARC_NAME = "ARC_name";
@@ -74,8 +78,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.cX = (p1.x + p2.x) / 2;
 		this.cY = (p1.y + p2.y) / 2;
 		this.angle = Math.atan2(dy, dx);
-		this.cos = dx / len;
-		this.sin = dy / len;
 		updateGeometricBounds();
 	}
 
@@ -85,11 +87,18 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		if (onHead) head = c; else
 			tail = c;
 	}
+
 	/** get the connection on a particular end */
 	public Connection getConnection(boolean onHead)
 	{
 		return onHead ? head : tail;
 	}
+
+	/** get the Head connection */
+	public Connection getHead() { return head; }
+
+	/** get the Tail connection */
+	public Connection getTail() { return tail; }
 
 	// Remove this ArcInst.  Will also remove the connections on either side.
 	public void remove()
@@ -165,14 +174,16 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
 		if (!ppa.connectsTo(protoType))
 		{
-			System.out.println("Cannot create arc: type " + protoType.describe() + " cannot connect to port " + pa.getProtoName());
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + pa.getProtoName());
 			return true;
 		}
 		PortProto pb = b.getPortProto();
 		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
 		if (!ppb.connectsTo(protoType))
 		{
-			System.out.println("Cannot create arc: type " + protoType.describe() + " cannot connect to port " + pb.getProtoName());
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + pb.getProtoName());
 			return true;
 		}
 
@@ -365,12 +376,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * Cell.rebuildNetworks(). */
 	public void setName(String name)
 	{
-		setVal(VAR_ARC_NAME, name);
+		Variable var = setVal(VAR_ARC_NAME, name);
+		if (var != null) var.setDisplay();
 	}
 
 	public String getName()
 	{
-		Variable var = getVal(VAR_ARC_NAME);
+		Variable var = getVal(VAR_ARC_NAME, ElectricObject.STRINGCLASS);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}
@@ -380,30 +392,31 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Point2D end1 = head.getLocation();
 		Point2D end2 = tail.getLocation();
 
-		/* zero-width polygons are simply lines */
+		// zero-width polygons are simply lines
 		if (wid == 0)
 		{
 			Poly poly = new Poly(new Point2D[]{end1, end2});
+			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
 		}
 
-		/* determine the end extension on each end */
+		// determine the end extension on each end
 		double e1 = wid/2;
 		double e2 = wid/2;
-//		if ((ai->userbits&NOEXTEND) != 0)
+		if (!isExtended())
+		{
+			// nonextension arc: set extension to zero for all included ends
+			if (!isSkipTail()) e1 = 0;
+			if (!isSkipHead()) e2 = 0;
+//		} else if (isShortened())
 //		{
-//			/* nonextension arc: set extension to zero for all included ends */
-//			if ((ai->userbits&NOTEND0) == 0) e1 = 0;
-//			if ((ai->userbits&NOTEND1) == 0) e2 = 0;
-//		} else if ((ai->userbits&ASHORT) != 0)
-//		{
-//			/* shortened arc: compute variable extension */
+//			// shortened arc: compute variable extension
 //			e1 = tech_getextendfactor(wid, ai->endshrink&0xFFFF);
 //			e2 = tech_getextendfactor(wid, (ai->endshrink>>16)&0xFFFF);
-//		}
+		}
 
-		/* make the polygon */
+		// make the polygon
 		Poly poly = tech_makeendpointpoly(len, wid, getAngle(), end1, e1, end2, e2);
 		if (poly != null) poly.setStyle(style);
 		return poly;
@@ -480,6 +493,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //			new Point2D.Double(yextra + xe2, ye2 - xextra)});
 //		return poly;
 		return null;
+	}
+
+	public String describe()
+	{
+		return protoType.getProtoName();
 	}
 
 	/** Printable version of this ArcInst */

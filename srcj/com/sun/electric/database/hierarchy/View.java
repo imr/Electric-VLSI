@@ -13,11 +13,14 @@ import java.util.Iterator;
  */
 public class View extends ElectricObject
 {
+	/** The View class */									public static Class CLASS      = (new View()).getClass();
+	/** The View[] class */									public static Class ARRAYCLASS = (new View[0]).getClass();
+
 	// -------------------------- private data -----------------------------
 
-	/** view contains only text */							private final static int TEXTVIEW   =01;	
-	/** view is one of multiple pages  */					private final static int MULTIPAGEVIEW   =02;	
-	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW   =04;	
+	/** view contains only text */							private final static int TEXTVIEW       = 01;	
+	/** view is one of multiple pages  */					private final static int MULTIPAGEVIEW  = 02;	
+	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW  = 04;	
 
 	/** the full name of the view */						private String fullName;
 	/** the abbreviation of the view */						private String shortName;
@@ -63,16 +66,8 @@ public class View extends ElectricObject
 
 	// -------------------------- private methods -----------------------------
 
-	private View(String fullName, String shortName, int type)
+	private View()
 	{
-		this.fullName = fullName;
-		this.shortName = shortName;
-		this.type = type;
-
-		// enter both the full and short names into the hash table
-		viewNames.put(fullName, this);
-		viewNames.put(shortName, this);
-		views.add(this);
 	}
 
 	public static View makeInstance(String fullName, String shortName, int type)
@@ -93,7 +88,15 @@ public class View extends ElectricObject
 			type |= View.MULTIPAGEVIEW;
 
 		// create the view
-		View v = new View(fullName, shortName, type);
+		View v = new View();
+		v.fullName = fullName;
+		v.shortName = shortName;
+		v.type = type;
+
+		// enter both the full and short names into the hash table
+		viewNames.put(fullName, v);
+		viewNames.put(shortName, v);
+		views.add(v);
 		return v;
 	}
 

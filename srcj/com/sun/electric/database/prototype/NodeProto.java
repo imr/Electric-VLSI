@@ -160,26 +160,27 @@ public abstract class NodeProto extends ElectricObject
 
 	// ------------------------ private data --------------------------
 
-	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK=           01;
-	/** set if instances should be expanded */				private static final int WANTNEXPAND=          02;
-	/** node function (from efunction.h) */					private static final int NFUNCTION=          0774;
-	/** right shift for NFUNCTION */						private static final int NFUNCTIONSH=           2;
-	/** set if instances can be wiped */					private static final int ARCSWIPE=          01000;
-	/** set if node is to be kept square in size */			private static final int NSQUARE=           02000;
-	/** primitive can hold trace information */				private static final int HOLDSTRACE=        04000;
-//	/** set to reevaluate this cell's network */			private static final int REDOCELLNET=      010000;
-	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2=       020000;
-	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM=       040000;
-	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT=     0100000;
-	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK=       0200000;
-	//  used by database:                                                                            01400000
-	/** set if not used (don't put in menu) */				private static final int NNOTUSED=       02000000;
-	/** set if everything in cell is locked */				private static final int NPLOCKED=       04000000;
-	/** set if instances in cell are locked */				private static final int NPILOCKED=     010000000;
-	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY= 020000000;
-	/** set if cell is from a technology-library */			private static final int TECEDITCELL=   040000000;
+	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
+	/** set if instances should be expanded */				private static final int WANTNEXPAND =          02;
+	/** node function (from efunction.h) */					private static final int NFUNCTION =          0774;
+	/** right shift for NFUNCTION */						private static final int NFUNCTIONSH =           2;
+	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
+	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
+	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
+//	/** set to reevaluate this cell's network */			private static final int REDOCELLNET =      010000;
+	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
+	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
+	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
+	//  used by database:                                                                             01400000
+	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
+	/** set if everything in cell is locked */				private static final int NPLOCKED =       04000000;
+	/** set if instances in cell are locked */				private static final int NPILOCKED =     010000000;
+	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY = 020000000;
+	/** set if cell is from a technology-library */			private static final int TECEDITCELL =   040000000;
 
 	/** the name of the NodeProto */						protected String protoName;
+	/** technology of this primitive */						protected Technology tech;
 	/** the exports in the NodeProto */						private List ports;
 	/** JNetworks that comprise this NodeProto */			private List networks;
 	/** All instances of this NodeProto */					private List instances;
@@ -391,10 +392,20 @@ public abstract class NodeProto extends ElectricObject
 
 	public abstract double getDefWidth();
 	public abstract double getDefHeight();
-	public abstract double getWidthOffset();
-	public abstract double getHeightOffset();
+	public abstract double getLowXOffset();
+	public abstract double getHighXOffset();
+	public abstract double getLowYOffset();
+	public abstract double getHighYOffset();
 
-	public abstract Technology getTechnology();
+	/** Get the Technology to which this NodeProto belongs */
+	public Technology getTechnology() { return tech; }
+
+	/** Set the Technology to which this NodeProto belongs (only works for Cells) */
+	public void setTechnology(Technology tech)
+	{
+		if (this instanceof Cell)
+			this.tech = tech;
+	}
 
 	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
 	 * NodeProto is a Cell containing an instance of a Cell-Center in

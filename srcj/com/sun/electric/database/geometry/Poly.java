@@ -26,40 +26,40 @@ public class Poly implements Shape
 		public String toString() { return "Polygon type"; }
 
 		// polygons ************
-		/** closed polygon, filled in */					public static final Type FILLED=         new Type();
-		/** closed polygon, outline  */						public static final Type CLOSED=         new Type();
+		/** closed polygon, filled in */					public static final Type FILLED =         new Type();
+		/** closed polygon, outline  */						public static final Type CLOSED =         new Type();
 		// rectangles ************
-		/** closed rectangle, filled in */					public static final Type FILLEDRECT=     new Type();
-		/** closed rectangle, outline */					public static final Type CLOSEDRECT=     new Type();
-		/** closed rectangle, outline crossed */			public static final Type CROSSED=        new Type();
+//		/** closed rectangle, filled in */					public static final Type FILLEDRECT =     new Type();
+//		/** closed rectangle, outline */					public static final Type CLOSEDRECT =     new Type();
+		/** closed rectangle, outline crossed */			public static final Type CROSSED =        new Type();
 		// lines ************
-		/** open outline, solid */							public static final Type OPENED=         new Type();
-		/** open outline, dotted */							public static final Type OPENEDT1=       new Type();
-		/** open outline, dashed  */						public static final Type OPENEDT2=       new Type();
-		/** open outline, thicker */						public static final Type OPENEDT3=       new Type();
-		/** open outline pushed by 1 */						public static final Type OPENEDO1=       new Type();
-		/** vector endpoint pairs, solid */					public static final Type VECTORS=        new Type();
+		/** open outline, solid */							public static final Type OPENED =         new Type();
+		/** open outline, dotted */							public static final Type OPENEDT1 =       new Type();
+		/** open outline, dashed  */						public static final Type OPENEDT2 =       new Type();
+		/** open outline, thicker */						public static final Type OPENEDT3 =       new Type();
+		/** open outline pushed by 1 */						public static final Type OPENEDO1 =       new Type();
+		/** vector endpoint pairs, solid */					public static final Type VECTORS =        new Type();
 		// curves ************
-		/** circle at [0] radius to [1] */					public static final Type CIRCLE=         new Type();
-		/** thick circle at [0] radius to [1] */			public static final Type THICKCIRCLE=    new Type();
-		/** filled circle */								public static final Type DISC=           new Type();
-		/** arc of circle at [0] ends [1] and [2] */		public static final Type CIRCLEARC=      new Type();
-		/** thick arc of circle at [0] ends [1] and [2] */	public static final Type THICKCIRCLEARC= new Type();
+		/** circle at [0] radius to [1] */					public static final Type CIRCLE =         new Type();
+		/** thick circle at [0] radius to [1] */			public static final Type THICKCIRCLE =    new Type();
+		/** filled circle */								public static final Type DISC =           new Type();
+		/** arc of circle at [0] ends [1] and [2] */		public static final Type CIRCLEARC =      new Type();
+		/** thick arc of circle at [0] ends [1] and [2] */	public static final Type THICKCIRCLEARC = new Type();
 		// text ************
-		/** text at center */								public static final Type TEXTCENT=       new Type();
-		/** text below top edge */							public static final Type TEXTTOP=        new Type();
-		/** text above bottom edge */						public static final Type TEXTBOT=        new Type();
-		/** text to right of left edge */					public static final Type TEXTLEFT=       new Type();
-		/** text to left of right edge */					public static final Type TEXTRIGHT=      new Type();
-		/** text to lower-right of top-left corner */		public static final Type TEXTTOPLEFT=    new Type();
-		/** text to upper-right of bottom-left corner */	public static final Type TEXTBOTLEFT=    new Type();
-		/** text to lower-left of top-right corner */		public static final Type TEXTTOPRIGHT=   new Type();
-		/** text to upper-left of bottom-right corner */	public static final Type TEXTBOTRIGHT=   new Type();
-		/** text that fits in box (may shrink) */			public static final Type TEXTBOX=        new Type();
+		/** text at center */								public static final Type TEXTCENT =       new Type();
+		/** text below top edge */							public static final Type TEXTTOP =        new Type();
+		/** text above bottom edge */						public static final Type TEXTBOT =        new Type();
+		/** text to right of left edge */					public static final Type TEXTLEFT =       new Type();
+		/** text to left of right edge */					public static final Type TEXTRIGHT =      new Type();
+		/** text to lower-right of top-left corner */		public static final Type TEXTTOPLEFT =    new Type();
+		/** text to upper-right of bottom-left corner */	public static final Type TEXTBOTLEFT =    new Type();
+		/** text to lower-left of top-right corner */		public static final Type TEXTTOPRIGHT =   new Type();
+		/** text to upper-left of bottom-right corner */	public static final Type TEXTBOTRIGHT =   new Type();
+		/** text that fits in box (may shrink) */			public static final Type TEXTBOX =        new Type();
 		// miscellaneous ************
-		/** grid dots in the window */						public static final Type GRIDDOTS=       new Type();
-		/** cross */										public static final Type CROSS=          new Type();
-		/** big cross */									public static final Type BIGCROSS=       new Type();
+		/** grid dots in the window */						public static final Type GRIDDOTS =       new Type();
+		/** cross */										public static final Type CROSS =          new Type();
+		/** big cross */									public static final Type BIGCROSS =       new Type();
 	}
 
 	private Layer layer;
@@ -69,38 +69,19 @@ public class Poly implements Shape
 	private String string;
 
 	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
-	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS=        077;
-	/** right-shift of TXTPOINTS */							public static final int TXTPOINTSSH=        0;
-	public static final int TXTMAXPOINTS=      63;
+	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS =        077;
+	/** right-shift of TXTPOINTS */							public static final int TXTPOINTSSH =        0;
+	public static final int TXTMAXPOINTS =      63;
 //	public static final int TXTSETPOINTS(p)   ((p)<<TXTPOINTSSH)
 //	public static final int TXTGETPOINTS(p)   (((p)&TXTPOINTS)>>TXTPOINTSSH)
 
-	public static final int TXTQGRID=    077700;		
-	public static final int TXTQGRIDSH=       6;		
-	public static final int TXTMAXQGRID=    511;
+	public static final int TXTQGRID =    077700;		
+	public static final int TXTQGRIDSH =       6;		
+	public static final int TXTMAXQGRID =    511;
 //	public static final int TXTSETQGRID(ql) ((ql)<<TXTQGRIDSH)
 //	public static final int TXTGETQGRIDql) (((ql)&TXTQGRID)>>TXTQGRIDSH)
-	/** fixed-width text for text editing */			public static final int TXTEDITOR=     077770;
-	/** text for menu selection */						public static final int TXTMENU=       077771;
-
-	/** Paint this Poly */
-//	public void paint(Graphics2D g)
-//	{
-//		layer.paint(g, this);
-//	}
-
-	/** Paint the rectangular bounds of this poly */
-//	public void paintBorder(Graphics2D g)
-//	{
-//		Rectangle r = getBounds();
-//		Rectangle2D.Double r2 =
-//			new Rectangle2D.Double(
-//				r.getX() - 1,
-//				r.getY() - 1,
-//				r.getWidth() + 2,
-//				r.getHeight() + 2);
-//		layer.paint(g, r2);
-//	}
+	/** fixed-width text for text editing */			public static final int TXTEDITOR =     077770;
+	/** text for menu selection */						public static final int TXTMENU =       077771;
 
 	/** Create a new Poly given (x,y) points and a specific Layer */
 	public Poly(Point2D [] points)

@@ -7,6 +7,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
@@ -109,54 +110,54 @@ public class TecGeneric extends Technology
 		//**************************************** NODES ****************************************
 
 		/** Universal pin */
-		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, 0.0, 0.0,
+		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(universal_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter)})
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
 		universalPin_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		universalPin_node.setFunction(NodeProto.Function.PIN);
 		universalPin_node.setWipeOn1or2();
 		universalPin_node.setHoldsOutline();
 
 		/** Invisible pin */
-		invisiblePin_node = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, 0.0, 0.0,
+		invisiblePin_node = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		invisiblePin_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, invisiblePin_node, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		invisiblePin_node.setFunction(NodeProto.Function.PIN);
 		invisiblePin_node.setWipeOn1or2();
 
 		/** Unrouted pin */
-		unroutedPin_node = PrimitiveNode.newInstance("Unrouted-Pin", this, 1.0, 1.0, 0.0, 0.0,
+		unroutedPin_node = PrimitiveNode.newInstance("Unrouted-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(unrouted_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.AtCenter)})
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
 		unroutedPin_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, unroutedPin_node, new ArcProto[] {unrouted_arc}, "unrouted", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		unroutedPin_node.setFunction(NodeProto.Function.PIN);
 		unroutedPin_node.setWipeOn1or2();
 
 		/** Cell Center */
-		cellCenter_node = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, 0.0, 0.0,
+		cellCenter_node = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
@@ -165,12 +166,12 @@ public class TecGeneric extends Technology
 		cellCenter_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, cellCenter_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cellCenter_node.setFunction(NodeProto.Function.ART);
 
 		/** Port */
-		port_node = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, 4.0, 4.0,
+		port_node = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -179,50 +180,50 @@ public class TecGeneric extends Technology
 		port_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, port_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		port_node.setFunction(NodeProto.Function.ART);
 
 		/** DRC Node */
-		drc_node = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, 0.0, 0.0,
+		drc_node = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		drc_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, drc_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.AtCenter, EdgeV.AtCenter, EdgeH.AtCenter, EdgeV.AtCenter)
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		drc_node.setFunction(NodeProto.Function.NODE);
 		drc_node.setHoldsOutline();
 
 		/** Essential Bounds Node */
-		essentialBounds_node = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, 0.0, 0.0,
+		essentialBounds_node = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
-					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.fromCenter(-1))})
+					new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(-1))})
 			});
 		essentialBounds_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, essentialBounds_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		essentialBounds_node.setFunction(NodeProto.Function.ART);
 
 		/** Simulation Probe Node */
-		simProbe_node = PrimitiveNode.newInstance("Simulation-Probe", this, 10.0, 10.0, 0.0, 0.0,
+		simProbe_node = PrimitiveNode.newInstance("Simulation-Probe", this, 10.0, 10.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(simprobe_lay, 0, Poly.Type.FILLEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(simprobe_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		simProbe_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, simProbe_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.LeftEdge, EdgeV.BottomEdge, EdgeH.RightEdge, EdgeV.TopEdge)
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		simProbe_node.setFunction(NodeProto.Function.ART);
 	}
