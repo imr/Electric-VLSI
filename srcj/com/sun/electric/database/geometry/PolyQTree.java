@@ -159,6 +159,15 @@ public class PolyQTree
 
 		public boolean equals(Object obj)
 		{
+			// reflexive
+			if (obj == this) return true;
+
+			// should consider null case
+			// symmetry but violates transitivity?
+			// It seems Map doesn't provide obj as PolyNode
+			if (!(obj instanceof Area))
+				return obj.equals(this);
+
 			Area a = (Area)obj;
 			return (super.equals(a));
 		}

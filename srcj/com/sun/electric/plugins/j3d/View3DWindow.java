@@ -449,8 +449,7 @@ public class View3DWindow extends JPanel
 			double thickness = layer.getThickness();
 			double distance = layer.getDistance();
 
-			if (thickness == 0)
-				System.out.println("Layer has zero thickness: " + layer.getName());
+			if (thickness == 0) continue; // Skip zero-thickness layers
 
 			if (transform != null)
 				poly.transform(transform);
