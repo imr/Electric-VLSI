@@ -509,7 +509,7 @@ public class Quick
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !DRC.isIgnoreHierarchicalAreaChecking() && !onlyFirstError)
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !onlyFirstError)
 			checkMinArea(cell);
 
 		// now look at every node and arc here
