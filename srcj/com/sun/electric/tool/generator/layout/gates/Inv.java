@@ -28,6 +28,9 @@ import com.sun.electric.tool.generator.layout.StdCellParams;
 
 public class Inv {
   public static Cell makePart(double sz, StdCellParams stdCell) {
+  	// Temporary hack until I figure out if I should completely
+  	// switch to new topology.
+  	if (sz>25) return Inv_star_wideOutput.makePart(sz, "", stdCell);
     return Inv_star.makePart(sz, "", stdCell);
   }
 }

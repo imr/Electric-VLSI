@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.generator.layout;
 
+import java.lang.reflect.Method;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
@@ -32,10 +34,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.io.output.CIF;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-
-import java.lang.reflect.Method;
 
 /*
  * Regression test for gate generators
@@ -105,11 +104,13 @@ public class GateRegression extends Job {
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
+            Tech.setTechnology(Tech.TSMC90);
             stdCell = new StdCellParams(scratchLib, Tech.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
+            Tech.setTechnology(Tech.MOCMOS);
             stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
@@ -121,8 +122,11 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
+        //Inv2iKn.makePart(10, stdCell);
+        //Inv2iKn_wideOutput.makePart(10, stdCell);
         allSizes(stdCell, technology);
-        //aPass(200, stdCell, technology);
+
+        //aPass(50, stdCell, technology);
 
         // test the ability to move ground bus
         stdCell.setGndY(stdCell.getGndY() - 7);

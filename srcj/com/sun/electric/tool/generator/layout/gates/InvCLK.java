@@ -28,6 +28,6 @@ import com.sun.electric.tool.generator.layout.StdCellParams;
 
 public class InvCLK {
   public static Cell makePart(double sz, StdCellParams stdCell) {
-    return Inv2_star.makePart(sz, "CLK", stdCell);
+    return Inv_star_wideOutput.makePart(sz, "CLK", stdCell);
   }
 }

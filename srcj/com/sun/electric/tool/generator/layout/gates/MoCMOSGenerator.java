@@ -38,7 +38,6 @@ public class MoCMOSGenerator {
      * @return the generated Cell
      */
     public static Cell makeGate(String gateType, double Xstrength, StdCellParams sc) {
-
         double x = Xstrength;
         String pNm = gateType;
         Cell gate = null;
@@ -116,9 +115,8 @@ public class MoCMOSGenerator {
     */
     public static void generateAllGates(double x, StdCellParams stdCell) {
         tracePass(x);
-
 		Inv.makePart(x, stdCell); 			traceGate();
-		Inv2_star.makePart(x, "", stdCell); traceGate();
+		Inv_star_wideOutput.makePart(x, "", stdCell); traceGate();
 		Inv2i.makePart(x, stdCell); 		traceGate();
 		Inv2iKn.makePart(x, stdCell); 		traceGate();
 		Inv2iKp.makePart(x, stdCell); 		traceGate();

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+IMP: (02/10/05, RK) The layout generators for inv2iKp and inv2iKn now use a different floorplan with a 10 lambda wide output bus.
+
 IMP: (02/09/05, SMR) Signal names in the explorer tree are now sorted, but with subcells listed first.
      Also allowed "Window / Toggle Grid" to work in waveform window.
      Also waveform window "Measure" mode displays better.
