@@ -1054,7 +1054,8 @@ public class User extends Listener
 	 * The default is the Java "user directory".
 	 * @return the path of the current working directory.
 	 */
-	public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
+    //public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
+    public static String getWorkingDirectory() { return java.lang.System.getProperty("user.dir"); }
 	/**
 	 * Method to set the path of the current working directory.
 	 * @param dir the path of the current working directory.
