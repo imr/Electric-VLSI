@@ -470,8 +470,11 @@ public class Technology extends ElectricObject
 	/** flags for the technology */						private int userBits;
 	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
+	/** list of layers in the technology */				private List layers;
 	/** list of primitive nodes in the technology */	private List nodes;
 	/** list of arcs in the technology */				private List arcs;
+	/** minimum resistance in this Technology. */		private double minResistance;
+	/** minimum capacitance in this Technology. */		private double minCapacitance;
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
 	/* the current technology in Electric */			private static Technology curTech = null;
@@ -484,6 +487,7 @@ public class Technology extends ElectricObject
 	 */
 	protected Technology()
 	{
+		this.layers = new ArrayList();
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
 		this.scale = 1.0;
@@ -511,11 +515,21 @@ public class Technology extends ElectricObject
 	}
 
 	/**
+	 * Routine to add a new Layer to this Technology.
+	 * This is usually done during initialization.
+	 * @param layer the Layer to be added to this Technology.
+	 */
+	public void addLayer(Layer layer)
+	{
+		layers.add(layer);
+	}
+
+	/**
 	 * Routine to add a new PrimitiveNode to this Technology.
 	 * This is usually done during initialization.
 	 * @param np the PrimitiveNode to be added to this Technology.
 	 */
-	void addNodeProto(PrimitiveNode np)
+	public void addNodeProto(PrimitiveNode np)
 	{
 		nodes.add(np);
 	}
@@ -715,6 +729,30 @@ public class Technology extends ElectricObject
 	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
 	 */
 	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
+
+	/**
+	 * Returns the minimum resistance of this Technology.
+	 * @return the minimum resistance of this Technology.
+	 */
+	public double getMinResistance() { return minResistance; }
+
+	/**
+	 * Sets the minimum resistance of this Technology.
+	 * @param minResistance the minimum resistance of this Technology.
+	 */
+	public void setMinResistance(double minResistance) { this.minResistance = minResistance; }
+
+	/**
+	 * Returns the minimum capacitance of this Technology.
+	 * @return the minimum capacitance of this Technology.
+	 */
+	public double getMinCapacitance() { return minCapacitance; }
+
+	/**
+	 * Sets the minimum capacitance of this Technology.
+	 * @param minCapacitance the minimum capacitance of this Technology.
+	 */
+	public void setMinCapacitance(double minCapacitance) { this.minCapacitance = minCapacitance; }
 
 	/**
 	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
@@ -1853,6 +1891,24 @@ public class Technology extends ElectricObject
 
 		// give up and report the generic technology
 		return retTech;
+	}
+
+	/**
+	 * Returns an Iterator on the Layers in this Technology.
+	 * @return an Iterator on the Layers in this Technology.
+	 */
+	public Iterator getLayers()
+	{
+		return layers.iterator();
+	}
+
+	/**
+	 * Returns the number of Layers in this Technology.
+	 * @return the number of Layers in this Technology.
+	 */
+	public int getNumLayers()
+	{
+		return layers.size();
 	}
 
 	// *************************** ArcProtos ***************************

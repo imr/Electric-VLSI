@@ -506,7 +506,6 @@ public class OutputBinary extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-System.out.println("Writing "+cell.getProtoName()+" which has "+cell.getNumArcs()+" arcs and "+cell.getNumNodes()+" nodes");
 			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)ait.next();

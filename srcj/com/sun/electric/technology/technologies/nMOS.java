@@ -61,7 +61,7 @@ public class nMOS extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** M layer */
-		Layer M_lay = Layer.newInstance("Metal",
+		Layer M_lay = Layer.newInstance(this, "Metal",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 70,250,70,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
@@ -81,7 +81,7 @@ public class nMOS extends Technology
 						0x8888}));// X   X   X   X   
 
 		/** P layer */
-		Layer P_lay = Layer.newInstance("Polysilicon",
+		Layer P_lay = Layer.newInstance(this, "Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 250,250,0,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0x8888,   // X   X   X   X   
@@ -101,7 +101,7 @@ public class nMOS extends Technology
 						0x2222}));//   X   X   X   X 
 
 		/** D layer */
-		Layer D_lay = Layer.newInstance("Diffusion",
+		Layer D_lay = Layer.newInstance(this, "Diffusion",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,0.8,1,
 			new int[] { 0x4444,   //  X   X   X   X  
 						0x1111,   //    X   X   X   X
@@ -121,7 +121,7 @@ public class nMOS extends Technology
 						0x1111}));//    X   X   X   X
 
 		/** I layer */
-		Layer I_lay = Layer.newInstance("Implant",
+		Layer I_lay = Layer.newInstance(this, "Implant",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21364,4096,24384,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
@@ -141,12 +141,12 @@ public class nMOS extends Technology
 						0x0000}));//                 
 
 		/** CC layer */
-		Layer CC_lay = Layer.newInstance("Contact-Cut",
+		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** BC layer */
-		Layer BC_lay = Layer.newInstance("Buried-Contact",
+		Layer BC_lay = Layer.newInstance(this, "Buried-Contact",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x2222,   //   X   X   X   X 
@@ -166,7 +166,7 @@ public class nMOS extends Technology
 						0x8888}));// X   X   X   X   
 
 		/** O layer */
-		Layer O_lay = Layer.newInstance("Overglass",
+		Layer O_lay = Layer.newInstance(this, "Overglass",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x2222,   //   X   X   X   X 
@@ -186,7 +186,7 @@ public class nMOS extends Technology
 						0x2222}));//   X   X   X   X 
 
 		/** LI layer */
-		Layer LI_lay = Layer.newInstance("Light-Implant",
+		Layer LI_lay = Layer.newInstance(this, "Light-Implant",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 150,90,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0xcccc,   // XX  XX  XX  XX  
@@ -206,12 +206,12 @@ public class nMOS extends Technology
 						0x0000}));//                 
 
 		/** OC layer */
-		Layer OC_lay = Layer.newInstance("Oversize-Contact",
+		Layer OC_lay = Layer.newInstance(this, "Oversize-Contact",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** HE layer */
-		Layer HE_lay = Layer.newInstance("Hard-Enhancement",
+		Layer HE_lay = Layer.newInstance(this, "Hard-Enhancement",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -231,7 +231,7 @@ public class nMOS extends Technology
 						0x0808}));//     X       X   
 
 		/** LE layer */
-		Layer LE_lay = Layer.newInstance("Light-Enhancement",
+		Layer LE_lay = Layer.newInstance(this, "Light-Enhancement",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x4040,   //  X       X      
 						0x8080,   // X       X       
@@ -251,12 +251,12 @@ public class nMOS extends Technology
 						0x2020}));//   X       X     
 
 		/** T layer */
-		Layer T_lay = Layer.newInstance("Transistor",
+		Layer T_lay = Layer.newInstance(this, "Transistor",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PM layer */
-		Layer PM_lay = Layer.newInstance("Pseudo-Metal",
+		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 70,250,70,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
@@ -276,7 +276,7 @@ public class nMOS extends Technology
 						0x8888}));// X   X   X   X   
 
 		/** PP layer */
-		Layer PP_lay = Layer.newInstance("Pseudo-Polysilicon",
+		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 250,250,0,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0x8888,   // X   X   X   X   
@@ -296,7 +296,7 @@ public class nMOS extends Technology
 						0x2222}));//   X   X   X   X 
 
 		/** PD layer */
-		Layer PD_lay = Layer.newInstance("Pseudo-Diffusion",
+		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,180,180,0.8,1,
 			new int[] { 0x4444,   //  X   X   X   X  
 						0x1111,   //    X   X   X   X

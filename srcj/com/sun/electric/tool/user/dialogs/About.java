@@ -8,6 +8,8 @@ package com.sun.electric.tool.user.dialogs;
 
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
 
 
@@ -18,7 +20,58 @@ import javax.swing.JScrollPane;
 public class About extends javax.swing.JDialog
 {
 	JList list;
+	DefaultListModel model;
 	boolean showingCast = false;
+	static class CastOfThousands
+	{
+		String name;
+		String work;
+		private CastOfThousands(String name, String work) { this.name = name;   this.work = work; }
+		static CastOfThousands [] theCast = new CastOfThousands[] {
+			new CastOfThousands("Philip Attfield", 			"Box merging"),
+			new CastOfThousands("Brett Bissinger", 		    "Node extraction"),
+			new CastOfThousands("Ron Bolton", 				"Mathematical help"),
+			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
+			new CastOfThousands("Mark Brinsmead", 			"Mathematical help"),
+			new CastOfThousands("Stefano Concina", 			"Polygon clipping"),
+			new CastOfThousands("Jonathan Gainsley", 		"Testing and design"),
+			new CastOfThousands("Peter Gallant", 			"ALS simulator"),
+			new CastOfThousands("R. Brian Gardiner", 		"Electric lifeline"),
+			new CastOfThousands("T. J. Goodman", 			"Texsim output"),
+			new CastOfThousands("Gerrit Groenewold", 		"SPICE parts"),
+			new CastOfThousands("David Groulx", 		    "Node extraction"),
+			new CastOfThousands("D. Guptill", 			    "X-window help"),
+			new CastOfThousands("David Harris", 			"Color PostScript output"),
+			new CastOfThousands("Robert Hon", 				"CIF input parser"),
+			new CastOfThousands("Jason Imada", 				"ROM generator"),
+			new CastOfThousands("Sundaravarathan Iyengar", 	"nMOS PLA generator"),
+			new CastOfThousands("Allan Jost", 				"VHDL compiler help, X-window help"),
+			new CastOfThousands("Wallace Kroeker", 			"Digital filter technology, CMOS PLA generator"),
+			new CastOfThousands("Andrew Kostiuk", 			"VHDL compiler, Silicon Compiler"),
+			new CastOfThousands("Oliver Laumann", 			"ELK Lisp"),
+			new CastOfThousands("Glen Lawson", 				"Maze routing, GDS input, EDIF I/O"),
+			new CastOfThousands("Frank Lee", 				"ROM generator"),
+			new CastOfThousands("Neil Levine", 				"PADS output"),
+			new CastOfThousands("David Lewis", 				"Flat DRC checking"),
+			new CastOfThousands("Erwin Liu", 				"Schematic and Round CMOS technology help"),
+			new CastOfThousands("Dick Lyon", 				"MOSIS and Round CMOS technology help"),
+			new CastOfThousands("John Mohammed", 			"Mathematical help"),
+			new CastOfThousands("Mark Moraes", 				"Hierarchical DRC, X-window help"),
+			new CastOfThousands("Dmitry Nadezhin", 			"Qt port, simulation, networks, optimizations, development"),
+			new CastOfThousands("Sid Penstone", 			"SPICE, SILOS, GDS, Box merging, technologies"),
+			new CastOfThousands("J. P. Polonovski", 		"Memory allocation help"),
+			new CastOfThousands("Kevin Ryan", 			    "X-window help"),
+			new CastOfThousands("Nora Ryan", 				"Compaction, technology conversion"),
+			new CastOfThousands("Miguel Saro", 				"French translation"),
+			new CastOfThousands("Brent Serbin", 			"ALS simulator"),
+			new CastOfThousands("Lyndon Swab", 				"HPGL output, SPICE output help, technologies"),
+			new CastOfThousands("Brian W. Thomson", 		"Mimic stitcher, RSIM interface"),
+			new CastOfThousands("Burnie West", 				"Bipolar technology, EDIF output help"),
+			new CastOfThousands("Telle Whitney", 			"River router"),
+			new CastOfThousands("Rob Winstanley", 			"CIF input, RNL output"),
+			new CastOfThousands("Russell Wright", 			"SDF input, miscellaneous help"),
+			new CastOfThousands("David J. Yurach",			"VHDL help")};
+	}
 
 	/** Creates new form About */
 	public About(java.awt.Frame parent, boolean modal)
@@ -40,8 +93,17 @@ public class About extends javax.swing.JDialog
 		jComboBox1.addItem("UK,Ireland");
 
 		// make an empty list
-		list = new JList();
-		jScrollPane1.setViewportView(list);
+		model = new DefaultListModel();
+		list = new JList(model);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		Center.setViewportView(list);
+		list.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			public void mouseClicked(java.awt.event.MouseEvent evt)
+			{
+				listClick(evt);
+			}
+		});
 	}
 	
 	/** This method is called from within the constructor to
@@ -53,22 +115,26 @@ public class About extends javax.swing.JDialog
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jLabel1 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        Center = new javax.swing.JScrollPane();
+        Top = new javax.swing.JPanel();
+        TopRight = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        jComboBox1 = new javax.swing.JComboBox();
+        TopLeft = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
+        Bottom = new javax.swing.JPanel();
         jLabel9 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
         jButton4 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jComboBox1 = new javax.swing.JComboBox();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().setLayout(new java.awt.BorderLayout(0, 10));
 
         setTitle("About Electric");
         setName("");
@@ -80,13 +146,58 @@ public class About extends javax.swing.JDialog
             }
         });
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel1.setText("The Electric VLSI Design System");
-        jLabel1.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        Center.setMinimumSize(new java.awt.Dimension(200, 100));
+        Center.setPreferredSize(new java.awt.Dimension(200, 100));
+        getContentPane().add(Center, java.awt.BorderLayout.CENTER);
+
+        Top.setLayout(new java.awt.BorderLayout(10, 0));
+
+        TopRight.setLayout(new java.awt.GridBagLayout());
+
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel7.setMaximumSize(new java.awt.Dimension(64, 64));
+        jLabel7.setMinimumSize(new java.awt.Dimension(64, 64));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        getContentPane().add(jLabel1, gridBagConstraints);
+        TopRight.add(jLabel7, gridBagConstraints);
+
+        jComboBox1.setMinimumSize(new java.awt.Dimension(100, 25));
+        jComboBox1.setName("");
+        jComboBox1.setPreferredSize(new java.awt.Dimension(100, 25));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                regionChanged(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        TopRight.add(jComboBox1, gridBagConstraints);
+
+        Top.add(TopRight, java.awt.BorderLayout.CENTER);
+
+        TopLeft.setLayout(new java.awt.GridBagLayout());
+
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel4.setText("The Electric VLSI Design System");
+        jLabel4.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        TopLeft.add(jLabel4, gridBagConstraints);
+
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel2.setText("Version 7.01a");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        TopLeft.add(jLabel2, gridBagConstraints);
 
         jButton3.setText("OK");
         jButton3.addActionListener(new java.awt.event.ActionListener()
@@ -101,15 +212,9 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 3;
-        getContentPane().add(jButton3, gridBagConstraints);
-
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel2.setText("Version 7.01a");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel2, gridBagConstraints);
+        gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        TopLeft.add(jButton3, gridBagConstraints);
 
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel3.setText("Written by Steven M. Rubin");
@@ -117,7 +222,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel3, gridBagConstraints);
+        TopLeft.add(jLabel3, gridBagConstraints);
 
         jButton1.setText("And A Cast of Thousands");
         jButton1.addActionListener(new java.awt.event.ActionListener()
@@ -132,34 +237,34 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(5, 0, 10, 0);
-        getContentPane().add(jButton1, gridBagConstraints);
+        gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
+        TopLeft.add(jButton1, gridBagConstraints);
 
-        jLabel7.setMaximumSize(new java.awt.Dimension(64, 64));
-        jLabel7.setMinimumSize(new java.awt.Dimension(64, 64));
+        Top.add(TopLeft, java.awt.BorderLayout.WEST);
+
+        getContentPane().add(Top, java.awt.BorderLayout.NORTH);
+
+        Bottom.setLayout(new java.awt.GridBagLayout());
+
+        jLabel9.setText("Electric comes with ABSOLUTELY NO WARRANTY");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
-        getContentPane().add(jLabel7, gridBagConstraints);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weighty = 0.1;
+        Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel8.setText("Copyright (c) 2003 Sun Microsystems and Static Free Software");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(10, 0, 5, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel8, gridBagConstraints);
-
-        jLabel9.setText("Electric comes with ABSOLUTELY NO WARRANTY");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel9, gridBagConstraints);
+        gridBagConstraints.weighty = 0.1;
+        Bottom.add(jLabel8, gridBagConstraints);
 
         jButton2.setText("Warranty Details");
         jButton2.addActionListener(new java.awt.event.ActionListener()
@@ -172,25 +277,9 @@ public class About extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        getContentPane().add(jButton2, gridBagConstraints);
-
-        jLabel10.setText("This is free software, and you are welcome to");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel10, gridBagConstraints);
-
-        jLabel11.setText("redistribute it under certain conditions");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel11, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
+        Bottom.add(jButton2, gridBagConstraints);
 
         jButton4.setText("Copying Details");
         jButton4.addActionListener(new java.awt.event.ActionListener()
@@ -203,61 +292,33 @@ public class About extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridheight = 2;
-        getContentPane().add(jButton4, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        Bottom.add(jButton4, gridBagConstraints);
 
-        jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 150));
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(200, 150));
-        jScrollPane1.addAncestorListener(new javax.swing.event.AncestorListener()
-        {
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt)
-            {
-            }
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt)
-            {
-                listClicked(evt);
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt)
-            {
-            }
-        });
-
+        jLabel11.setText("redistribute it under certain conditions");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jScrollPane1, gridBagConstraints);
-
-        jComboBox1.setMinimumSize(new java.awt.Dimension(100, 25));
-        jComboBox1.setName("");
-        jComboBox1.setPreferredSize(new java.awt.Dimension(100, 25));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                regionChanged(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        getContentPane().add(jComboBox1, gridBagConstraints);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weighty = 0.1;
+        Bottom.add(jLabel11, gridBagConstraints);
+
+        jLabel10.setText("This is free software, and you are welcome to");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weighty = 0.1;
+        Bottom.add(jLabel10, gridBagConstraints);
+
+        getContentPane().add(Bottom, java.awt.BorderLayout.SOUTH);
 
         pack();
     }//GEN-END:initComponents
-
-	private void listClicked(javax.swing.event.AncestorEvent evt)//GEN-FIRST:event_listClicked
-	{//GEN-HEADEREND:event_listClicked
-		// user clicked in the list
-		System.out.println("list click ");
-		if (list == null) return;
-		int line = list.getSelectedIndex();
-		System.out.println("Line "+line);
-
-	}//GEN-LAST:event_listClicked
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
@@ -267,52 +328,11 @@ public class About extends javax.swing.JDialog
 
 	private void showCast(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showCast
 	{//GEN-HEADEREND:event_showCast
-		String [] castString = new String[] {
-			"Philip Attfield", //			"Box merging"
-			"Brett Bissinger", //		    "Node extraction"
-			"Ron Bolton", //				"Mathematical help"
-			"Robert Bosnyak", //			"Pads library"
-			
-			"Mark Brinsmead", //			"Mathematical help"
-			"Stefano Concina", //			"Polygon clipping"
-			"Jonathan Gainsley", //		"Testing and design"
-			"Peter Gallant", //			"ALS simulator"
-			"R. Brian Gardiner", //		"Electric lifeline"
-			"T. J. Goodman", //			"Texsim output"
-			"Gerrit Groenewold", //		"SPICE parts"
-			"David Groulx", //		    "Node extraction"
-			"D. Guptill", //			    "X-window help"
-			"David Harris", //			"Color PostScript output"
-			"Robert Hon", //				"CIF input parser"
-			"Jason Imada", //				"ROM generator"
-			"Sundaravarathan Iyengar", //	"nMOS PLA generator"
-			"Allan Jost", //				"VHDL compiler help, X-window help"
-			"Wallace Kroeker", //			"Digital filter technology, CMOS PLA generator"
-			"Andrew Kostiuk", //			"VHDL compiler, Silicon Compiler"
-			"Oliver Laumann", //			"ELK Lisp"
-			"Glen Lawson", //				"Maze routing, GDS input, EDIF I/O"
-			"Frank Lee", //				"ROM generator"
-			"Neil Levine", //				"PADS output"
-			"David Lewis", //				"Flat DRC checking"
-			"Erwin Liu", //				"Schematic and Round CMOS technology help"
-			"Dick Lyon", //				"MOSIS and Round CMOS technology help"
-			"John Mohammed", //			"Mathematical help"
-			"Mark Moraes", //				"Hierarchical DRC, X-window help"
-			"Dmitry Nadezhin", //			"Qt port, simulation, networks, optimizations, development"
-			"Sid Penstone", //			"SPICE, SILOS, GDS, Box merging, technologies"
-			"J. P. Polonovski", //		"Memory allocation help"
-			"Kevin Ryan", //			    "X-window help"
-			"Nora Ryan", //				"Compaction, technology conversion"
-			"Miguel Saro", //				"French translation"
-			"Brent Serbin", //			"ALS simulator"
-			"Lyndon Swab", //				"HPGL output, SPICE output help, technologies"
-			"Brian W. Thomson", //		"Mimic stitcher, RSIM interface"
-			"Burnie West", //				"Bipolar technology, EDIF output help"
-			"Telle Whitney", //			"River router"
-			"Rob Winstanley", //			"CIF input, RNL output"
-			"Russell Wright", //			"SDF input, miscellaneous help"
-			"David J. Yurach"}; //			"VHDL help"
-		list.setListData(castString);
+//		String [] nameData = new String[CastOfThousands.theCast.length];
+		model.clear();
+		for(int i=0; i<CastOfThousands.theCast.length; i++)
+			model.addElement(CastOfThousands.theCast[i].name);
+//		list.setListData(nameData);
 		showingCast = true;
 	}//GEN-LAST:event_showCast
 
@@ -488,7 +508,10 @@ public class About extends javax.swing.JDialog
 			"Our decision will be guided by the two goals of preserving the free status of",
 			"all derivatives of our free software and of promoting the sharing and reuse of",
 			"software generally."};
-		list.setListData(copyingString);
+		model.clear();
+		for(int i=0; i<copyingString.length; i++)
+			model.addElement(copyingString[i]);
+//		list.setListData(copyingString);
 		showingCast = false;
 	}//GEN-LAST:event_showCopying
 
@@ -515,7 +538,10 @@ public class About extends javax.swing.JDialog
 			"or losses sustained by you or third parties or a failure of the program to operate",
 			"with any other programs), even if such holder or other party has been advised of",
 			"the possibility of such damages."};
-		list.setListData(warrantyString);
+		model.clear();
+		for(int i=0; i<warrantyString.length; i++)
+			model.addElement(warrantyString[i]);
+//		list.setListData(warrantyString);
 		showingCast = false;
 	}//GEN-LAST:event_showWarranty
 
@@ -549,31 +575,33 @@ public class About extends javax.swing.JDialog
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
-	
-	/**
-	 * @param args the command line arguments
-	 */
-	public static void main(String args[])
+
+	private void listClick(java.awt.event.MouseEvent evt)
 	{
-		new About(new javax.swing.JFrame(), true).show();
+		if (!showingCast) return;
+		int index = list.getSelectedIndex();
+		model.setElementAt(CastOfThousands.theCast[index].name + " did " + CastOfThousands.theCast[index].work, index);
 	}
 	
-	
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Bottom;
+    private javax.swing.JScrollPane Center;
+    private javax.swing.JPanel Top;
+    private javax.swing.JPanel TopLeft;
+    private javax.swing.JPanel TopRight;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -48,8 +48,11 @@ import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.dialogs.About;
+import com.sun.electric.tool.user.dialogs.EditCell;
+import com.sun.electric.tool.user.dialogs.Options;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.simulation.Spice;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.KeyStroke;
 
@@ -89,6 +93,9 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
+		fileMenu.add(importSubMenu);
+		fileMenu.addMenuItem("Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { optionsCommand(); } });
 		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 		{
 //			MRJApplicationUtils.registerQuitHandler(new MRJQuitHandler()
@@ -133,6 +140,9 @@ public final class UserMenuCommands
 		// setup the Cell menu
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
 		menuBar.add(cellMenu);
+		cellMenu.addMenuItem("Edit Cell", KeyStroke.getKeyStroke('N', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editCellCommand(); } });
+		cellMenu.addSeparator();
         cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
         cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
@@ -167,9 +177,13 @@ public final class UserMenuCommands
 		toolMenu.add(drcSubMenu);
 		Menu simulationSubMenu = Menu.createMenu("Simulation", 'S');
 		toolMenu.add(simulationSubMenu);
+		simulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { writeSpiceDeckCommand(); }});
+
 		Menu ercSubMenu = Menu.createMenu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		Menu networkSubMenu = Menu.createMenu("Network", 'N');
+		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("NCC test 1", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
 		networkSubMenu.addMenuItem("NCC test 2", null, 
@@ -178,7 +192,6 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
 		networkSubMenu.addMenuItem("NCC test 4", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
-		toolMenu.add(networkSubMenu);
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
         logEffortSubMenu.addMenuItem("Analyze Cell", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
@@ -353,6 +366,16 @@ public final class UserMenuCommands
 	}
 
 	/**
+	 * This routine implements the command to show Options.
+	 */
+	public static void optionsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		Options dialog = new Options(jf, true);
+		dialog.show();
+	}
+
+	/**
 	 * This routine implements the command to quit Electric.
 	 */
 	public static void quitCommand()
@@ -510,7 +533,14 @@ public final class UserMenuCommands
 
 	// ---------------------- THE CELL MENU -----------------
 
-    public static void downHierCommand() {
+    public static void editCellCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		EditCell dialog = new EditCell(jf, true);
+		dialog.show();
+    }
+
+	public static void downHierCommand() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         curEdit.downHierarchy();
     }
@@ -588,6 +618,11 @@ public final class UserMenuCommands
 
 	// ---------------------- THE TOOLS MENU -----------------
 
+	public static void writeSpiceDeckCommand()
+	{
+		Spice.writeSpiceDeck();
+	}
+
     // Logical Effort Tool
     public static void analyzeCellCommand()
     {
@@ -632,7 +667,8 @@ public final class UserMenuCommands
 
 	public static void aboutCommand()
 	{
-		About dialog = new About(null, true);
+		JFrame jf = TopLevel.getCurrentJFrame();
+		About dialog = new About(jf, true);
 		dialog.show();
 	}
 

@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -90,6 +91,7 @@ public class Tool extends ElectricObject implements Change
         // Init LEtool -> must be initialized after EvalJavaBash init() runs, 
         // otherwise Interpreter will be null
         LETool.tool.init();
+        Simulation.tool.init();
 	}
 
 	/**

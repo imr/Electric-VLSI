@@ -61,7 +61,7 @@ public class CMOS extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** M layer */
-		Layer M_lay = Layer.newInstance("Metal",
+		Layer M_lay = Layer.newInstance(this, "Metal",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
@@ -81,7 +81,7 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** P layer */
-		Layer P_lay = Layer.newInstance("Polysilicon",
+		Layer P_lay = Layer.newInstance(this, "Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
@@ -101,7 +101,7 @@ public class CMOS extends Technology
 						0x1010}));//    X       X    
 
 		/** D layer */
-		Layer D_lay = Layer.newInstance("Diffusion",
+		Layer D_lay = Layer.newInstance(this, "Diffusion",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -121,7 +121,7 @@ public class CMOS extends Technology
 						0x3030}));//   XX      XX    
 
 		/** P0 layer */
-		Layer P0_lay = Layer.newInstance("P+",
+		Layer P0_lay = Layer.newInstance(this, "P+",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 16508,4096,-800,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -141,17 +141,17 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** CC layer */
-		Layer CC_lay = Layer.newInstance("Contact-Cut",
+		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** OC layer */
-		Layer OC_lay = Layer.newInstance("Ohmic-Cut",
+		Layer OC_lay = Layer.newInstance(this, "Ohmic-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PW layer */
-		Layer PW_lay = Layer.newInstance("P-Well",
+		Layer PW_lay = Layer.newInstance(this, "P-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
@@ -171,7 +171,7 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** O layer */
-		Layer O_lay = Layer.newInstance("Overglass",
+		Layer O_lay = Layer.newInstance(this, "Overglass",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
@@ -191,12 +191,12 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** T layer */
-		Layer T_lay = Layer.newInstance("Transistor",
+		Layer T_lay = Layer.newInstance(this, "Transistor",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PM layer */
-		Layer PM_lay = Layer.newInstance("Pseudo-Metal",
+		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
@@ -216,7 +216,7 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** PP layer */
-		Layer PP_lay = Layer.newInstance("Pseudo-Polysilicon",
+		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
@@ -236,7 +236,7 @@ public class CMOS extends Technology
 						0x1010}));//    X       X    
 
 		/** PD layer */
-		Layer PD_lay = Layer.newInstance("Pseudo-Diffusion",
+		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -256,7 +256,7 @@ public class CMOS extends Technology
 						0x3030}));//   XX      XX    
 
 		/** PP0 layer */
-		Layer PP0_lay = Layer.newInstance("Pseudo-P+",
+		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 16508,4096,-800,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -276,7 +276,7 @@ public class CMOS extends Technology
 						0x0000}));//                 
 
 		/** PPW layer */
-		Layer PPW_lay = Layer.newInstance("Pseudo-P-Well",
+		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      

@@ -9,9 +9,11 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
@@ -55,8 +57,56 @@ public class LETool extends Tool {
         } catch (bsh.EvalError e) {
             System.out.println("  LETool init() bean shell error: "+e.getMessage());
         }
-    }
-    
+
+		// initialize preferences
+ 		if (!Prefs.exists("LEUseLocalSettings")) setUseLocalSettings(true);
+ 		if (!Prefs.exists("LEDisplayIntermediateCaps")) setDisplayIntermediateCaps(true);
+ 		if (!Prefs.exists("LEGlobalFanOut")) setGlobalFanOut(4.5);
+		if (!Prefs.exists("LEConvergence")) setConvergence(0.1);
+		if (!Prefs.exists("LEMaxIterations")) setMaxIterations(3);
+		if (!Prefs.exists("LEGateCapacitance")) setGateCapacitance(0.4);
+		if (!Prefs.exists("LEDefWireCapRatio")) setDefWireCapRatio(0.1);
+		if (!Prefs.exists("LEDiffToGateCapRatioNMOS")) setDiffToGateCapRatioNMOS(0.7);
+		if (!Prefs.exists("LEDiffToGateCapRatioPMOS")) setDiffToGateCapRatioPMOS(0.7);
+		if (!Prefs.exists("LEKeeperSizeRatio")) setKeeperSizeRatio(0.1);
+   }
+
+	public static double getGlobalFanOut() { return Prefs.getDoubleOption("LEGlobalFanOut"); }
+	public static void setGlobalFanOut(double v) { Prefs.setDoubleOption("LEGlobalFanOut", v); }
+
+	public static double getConvergence() { return Prefs.getDoubleOption("LEConvergence"); }
+	public static void setConvergence(double v) { Prefs.setDoubleOption("LEConvergence", v); }
+
+	public static int getMaxIterations() { return Prefs.getIntegerOption("LEMaxIterations"); }
+	public static void setMaxIterations(int v) { Prefs.setIntegerOption("LEMaxIterations", v); }
+
+	public static double getGateCapacitance() { return Prefs.getDoubleOption("LEGateCapacitance"); }
+	public static void setGateCapacitance(double v) { Prefs.setDoubleOption("LEGateCapacitance", v); }
+
+	public static double getDefWireCapRatio() { return Prefs.getDoubleOption("LEDefWireCapRatio"); }
+	public static void setDefWireCapRatio(double v) { Prefs.setDoubleOption("LEDefWireCapRatio", v); }
+
+	public static double getDiffToGateCapRatioNMOS() { return Prefs.getDoubleOption("LEDiffToGateCapRatioNMOS"); }
+	public static void setDiffToGateCapRatioNMOS(double v) { Prefs.setDoubleOption("LEDiffToGateCapRatioNMOS", v); }
+
+	public static double getDiffToGateCapRatioPMOS() { return Prefs.getDoubleOption("LEDiffToGateCapRatioPMOS"); }
+	public static void setDiffToGateCapRatioPMOS(double v) { Prefs.setDoubleOption("LEDiffToGateCapRatioPMOS", v); }
+
+	public static double getKeeperSizeRatio() { return Prefs.getDoubleOption("LEKeeperSizeRatio"); }
+	public static void setKeeperSizeRatio(double v) { Prefs.setDoubleOption("LEKeeperSizeRatio", v); }
+
+	public static double getArcRatio(ArcProto arc) { return Prefs.getDoubleOption("LERatio"+arc.getTechnology().getTechName()+arc.getProtoName()); }
+	public static void setArcRatio(ArcProto arc, double v) { Prefs.setDoubleOption("LERatio"+arc.getTechnology().getTechName()+arc.getProtoName(), v); }
+
+	public static boolean isUseLocalSettings() { return Prefs.getBooleanOption("LEUseLocalSettings"); }
+	public static void setUseLocalSettings(boolean v) { Prefs.setBooleanOption("LEUseLocalSettings", v); }
+
+	public static boolean isDisplayIntermediateCaps() { return Prefs.getBooleanOption("LEDisplayIntermediateCaps"); }
+	public static void setDisplayIntermediateCaps(boolean v) { Prefs.setBooleanOption("LEDisplayIntermediateCaps", v); }
+
+	public static boolean isHighlightComponents() { return Prefs.getBooleanOption("LEHighlightComponents"); }
+	public static void setHighlightComponents(boolean v) { Prefs.setBooleanOption("LEHighlightComponents", v); }
+
     public Object getdrive() {
         Interpreter env = EvalJavaBsh.getInterpreter();
         try {            

@@ -71,7 +71,7 @@ import java.awt.geom.Rectangle2D;
 public class Clipboard
 {
 	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
-	/** The Clipboard Library. */						private static Library clipLib;
+	/** The Clipboard Library. */						private static Library clipLib = null;
 	/** The Clipboard Cell. */							private static Cell clipCell;
 
 	/**
@@ -80,6 +80,11 @@ public class Clipboard
 	 */
 	private Clipboard()
 	{
+	}
+
+	private static void init()
+	{
+		if (clipLib != null) return;
 		clipLib = Library.newInstance("Clipboard!!", null);
 		clipLib.setHidden();
 		clipCell = Cell.newInstance(clipLib, "Clipboard!!");
@@ -90,6 +95,8 @@ public class Clipboard
 	 */
 	public static void clear()
 	{
+		init();
+
 		// delete all arcs in the clipboard
 		List arcsToDelete = new ArrayList();
 		for(Iterator it = clipCell.getArcs(); it.hasNext(); )
@@ -218,6 +225,7 @@ public class Clipboard
 		public void doIt()
 		{
 			// get objects to paste
+			Clipboard.init();
 			int ntotal = clipCell.getNumNodes();
 			int atotal = clipCell.getNumArcs();
 			int total = ntotal + atotal;

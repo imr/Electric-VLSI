@@ -61,7 +61,7 @@ public class MoCMOSOld extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** M layer */
-		Layer M_lay = Layer.newInstance("Metal-1",
+		Layer M_lay = Layer.newInstance(this, "Metal-1",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
@@ -81,7 +81,7 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** M0 layer */
-		Layer M0_lay = Layer.newInstance("Metal-2",
+		Layer M0_lay = Layer.newInstance(this, "Metal-2",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21372,4096,27600,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -101,7 +101,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** P layer */
-		Layer P_lay = Layer.newInstance("Polysilicon",
+		Layer P_lay = Layer.newInstance(this, "Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 224,95,255,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
@@ -121,7 +121,7 @@ public class MoCMOSOld extends Technology
 						0x1010}));//    X       X    
 
 		/** SA layer */
-		Layer SA_lay = Layer.newInstance("S-Active",
+		Layer SA_lay = Layer.newInstance(this, "S-Active",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -141,7 +141,7 @@ public class MoCMOSOld extends Technology
 						0x3030}));//   XX      XX    
 
 		/** DA layer */
-		Layer DA_lay = Layer.newInstance("D-Active",
+		Layer DA_lay = Layer.newInstance(this, "D-Active",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -161,7 +161,7 @@ public class MoCMOSOld extends Technology
 						0x3030}));//   XX      XX    
 
 		/** PS layer */
-		Layer PS_lay = Layer.newInstance("P-Select",
+		Layer PS_lay = Layer.newInstance(this, "P-Select",
 			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 89,44,51,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -181,7 +181,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** NS layer */
-		Layer NS_lay = Layer.newInstance("N-Select",
+		Layer NS_lay = Layer.newInstance(this, "N-Select",
 			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 89,44,51,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -201,7 +201,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** PW layer */
-		Layer PW_lay = Layer.newInstance("P-Well",
+		Layer PW_lay = Layer.newInstance(this, "P-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -221,7 +221,7 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** NW layer */
-		Layer NW_lay = Layer.newInstance("N-Well",
+		Layer NW_lay = Layer.newInstance(this, "N-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -241,17 +241,17 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** CC layer */
-		Layer CC_lay = Layer.newInstance("Contact-Cut",
+		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V layer */
-		Layer V_lay = Layer.newInstance("Via",
+		Layer V_lay = Layer.newInstance(this, "Via",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P0 layer */
-		Layer P0_lay = Layer.newInstance("Passivation",
+		Layer P0_lay = Layer.newInstance(this, "Passivation",
 			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0,0,0,0.8,1,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
@@ -271,22 +271,22 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** T layer */
-		Layer T_lay = Layer.newInstance("Transistor",
+		Layer T_lay = Layer.newInstance(this, "Transistor",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PC layer */
-		Layer PC_lay = Layer.newInstance("Poly-Cut",
+		Layer PC_lay = Layer.newInstance(this, "Poly-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** AC layer */
-		Layer AC_lay = Layer.newInstance("Active-Cut",
+		Layer AC_lay = Layer.newInstance(this, "Active-Cut",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** SAW layer */
-		Layer SAW_lay = Layer.newInstance("S-Active-Well",
+		Layer SAW_lay = Layer.newInstance(this, "S-Active-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -306,7 +306,7 @@ public class MoCMOSOld extends Technology
 						0x3030}));//   XX      XX    
 
 		/** PM layer */
-		Layer PM_lay = Layer.newInstance("Pseudo-Metal-1",
+		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
@@ -326,7 +326,7 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** PM0 layer */
-		Layer PM0_lay = Layer.newInstance("Pseudo-Metal-2",
+		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21372,4096,27600,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -346,7 +346,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** PP layer */
-		Layer PP_lay = Layer.newInstance("Pseudo-Polysilicon",
+		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 224,95,255,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
@@ -366,7 +366,7 @@ public class MoCMOSOld extends Technology
 						0x1010}));//    X       X    
 
 		/** PSA layer */
-		Layer PSA_lay = Layer.newInstance("Pseudo-S-Active",
+		Layer PSA_lay = Layer.newInstance(this, "Pseudo-S-Active",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -386,7 +386,7 @@ public class MoCMOSOld extends Technology
 						0x3030}));//   XX      XX    
 
 		/** PDA layer */
-		Layer PDA_lay = Layer.newInstance("Pseudo-D-Active",
+		Layer PDA_lay = Layer.newInstance(this, "Pseudo-D-Active",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
@@ -406,7 +406,7 @@ public class MoCMOSOld extends Technology
 						0x3030}));//   XX      XX    
 
 		/** PPS layer */
-		Layer PPS_lay = Layer.newInstance("Pseudo-P-Select",
+		Layer PPS_lay = Layer.newInstance(this, "Pseudo-P-Select",
 			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 89,44,51,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -426,7 +426,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** PNS layer */
-		Layer PNS_lay = Layer.newInstance("Pseudo-N-Select",
+		Layer PNS_lay = Layer.newInstance(this, "Pseudo-N-Select",
 			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 89,44,51,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
@@ -446,7 +446,7 @@ public class MoCMOSOld extends Technology
 						0x0808}));//     X       X   
 
 		/** PPW layer */
-		Layer PPW_lay = Layer.newInstance("Pseudo-P-Well",
+		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -466,7 +466,7 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** PNW layer */
-		Layer PNW_lay = Layer.newInstance("Pseudo-N-Well",
+		Layer PNW_lay = Layer.newInstance(this, "Pseudo-N-Well",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
@@ -486,7 +486,7 @@ public class MoCMOSOld extends Technology
 						0x0000}));//                 
 
 		/** PF layer */
-		Layer PF_lay = Layer.newInstance("Pad-Frame",
+		Layer PF_lay = Layer.newInstance(this, "Pad-Frame",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 224,57,192,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 

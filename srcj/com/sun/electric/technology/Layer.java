@@ -187,6 +187,7 @@ public class Layer
 	private String gdsLayer;
 	private String skillLayer;
 	private double thickness, height;
+	private double resistance, capacitance, edgeCapacitance;
 
 	private Layer(String name, EGraphics graphics)
 	{
@@ -196,13 +197,15 @@ public class Layer
 
 	/**
 	 * Routine to create a new layer with the given name and graphics.
+	 * @param tech the Technology that this layer belongs to.
 	 * @param name the name of the layer.
 	 * @param graphics the appearance of the layer.
 	 * @return the Layer object.
 	 */
-	public static Layer newInstance(String name, EGraphics graphics)
+	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
 		Layer layer = new Layer(name, graphics);
+		tech.addLayer(layer);
 		return layer;
 	}
 
@@ -323,6 +326,37 @@ public class Layer
 	 * @return the Skill name of this layer.
 	 */
 	public String getSkillLayer() { return skillLayer; }
+
+	/**
+	 * Routine to set the Spice parasitics for this Layer.
+	 * @param resistance the resistance of this Layer.
+	 * @param capacitance the capacitance of this Layer.
+	 * @param edgeCapacitance the edge capacitance of this Layer.
+	 */
+	public void setSpiceParasitics(double resistance, double capacitance, double edgeCapacitance)
+	{
+		this.resistance = resistance;
+		this.capacitance = capacitance;
+		this.edgeCapacitance = edgeCapacitance;
+	}
+
+	/**
+	 * Routine to return the Spice resistance for this layer.
+	 * @return the Spice resistance for this layer.
+	 */
+	public double getSpiceResistance() { return resistance; }
+
+	/**
+	 * Routine to return the Spice capacitance for this layer.
+	 * @return the Spice capacitance for this layer.
+	 */
+	public double getSpiceCapacitance() { return capacitance; }
+
+	/**
+	 * Routine to return the Spice edge capacitance for this layer.
+	 * @return the Spice edge capacitance for this layer.
+	 */
+	public double getSpiceEdgeCapacitance() { return edgeCapacitance; }
 
 	/**
 	 * Returns a printable version of this Layer.

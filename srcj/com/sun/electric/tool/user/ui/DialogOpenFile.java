@@ -125,7 +125,7 @@ public class DialogOpenFile extends JFileChooser
 	/**
 	 * Routine to invoke a "save file" dialog and return the selected file.
 	 */
-	public String chooseOutputFile(String initialFile)
+	public String chooseOutputFile(String defaultFile)
 	{
 		saveDialog = true;
 		setDialogTitle("Write " + description);
@@ -133,7 +133,7 @@ public class DialogOpenFile extends JFileChooser
 		if (extension != null) filter.addExtension(extension);
 		filter.setDescription(description);
 		setFileFilter(filter);
-		setSelectedFile(new File(initialFile));
+		setSelectedFile(new File(defaultFile));
 		int returnVal = showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{

@@ -226,6 +226,21 @@ public class TopLevel extends JFrame
 	}
 
 	/**
+	 * Routine to return the current EditWindow.
+	 * @return the current EditWindow.
+	 */
+	public static JFrame getCurrentJFrame()
+	{
+		if (mdi)
+        {
+			return topLevel;
+ 		} else
+        {
+        	return current;
+        }
+	}
+
+	/**
 	 * Routine to return the EditWindow associated with this top-level window.
 	 * @return the EditWindow associated with this top-level window.
 	 */

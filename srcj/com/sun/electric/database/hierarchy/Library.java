@@ -398,14 +398,14 @@ public class Library extends ElectricObject
 			explorerTree = new DefaultMutableTreeNode("LIBRARIES");
 		explorerTree.removeAllChildren();
 		Library curLib = Library.getCurrent();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		List sortedList = Library.getVisibleLibrariesSortedByName();
+		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			if (lib.isHidden()) continue;
 			String nodeName = lib.getLibName();
 			if (lib == curLib) nodeName = "[Current] " + nodeName;
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(nodeName);
-			for(Iterator eit = lib.getCells(); eit.hasNext(); )
+			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(cell);
@@ -448,6 +448,100 @@ public class Library extends ElectricObject
 		}
 	}
 
+	// why must this class be "static"?   --smr
+	private static class VisibleLibraryIterator implements Iterator
+	{
+		private Iterator uit;
+		private Library nextLib;
+
+		VisibleLibraryIterator()
+		{
+			uit = getLibraries();
+			nextLib = nextLibrary();
+		}
+
+		private Library nextLibrary()
+		{
+			while (uit.hasNext())
+			{
+				Library lib = (Library)uit.next();
+				if (!lib.isHidden()) return lib;
+			}
+			return null;
+		}
+
+		public boolean hasNext()
+		{
+			return nextLib != null;
+		}
+
+		public Object next()
+		{
+			if (nextLib == null) return uit.next(); // throw NoSuchElementException
+			Library lib = nextLib;
+			nextLib = nextLibrary();
+			return lib;
+		}
+
+		public void remove() { throw new UnsupportedOperationException("VisibleLibraryIterator.remove()"); };
+	}
+
+	/**
+	 * Routine to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public static Iterator getLibraries()
+	{
+		return libraries.iterator();
+	}
+
+	/**
+	 * Routine to return the number of libraries.
+	 * @return the number of libraries.
+	 */
+	public static int getNumLibraries()
+	{
+		return libraries.size();
+	}
+
+	/**
+	 * Routine to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public static Iterator getVisibleLibraries()
+	{
+		return new VisibleLibraryIterator();
+	}
+
+	/**
+	 * Routine to return the number of libraries.
+	 * @return the number of libraries.
+	 */
+	public static int getNumVisibleLibraries()
+	{
+		// surely there is a better way to do this...  smr
+		int numVis = 0;
+		for(Iterator it = getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (!lib.isHidden()) numVis++;
+		}
+		return numVis;
+	}
+
+	/**
+	 * Routine to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public static List getVisibleLibrariesSortedByName()
+	{
+		List sortedList = new ArrayList();
+		for(Iterator it = new VisibleLibraryIterator(); it.hasNext(); )
+			sortedList.add(it.next());
+		Collections.sort(sortedList, new LibCaseInsensitive());
+		return sortedList;
+	}
+
 	static class LibCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
@@ -458,16 +552,6 @@ public class Library extends ElectricObject
 			String s2 = l2.getLibName();
 			return s1.compareToIgnoreCase(s2);
 		}
-	}
-
-	/**
-	 * Return an iterator over all libraries.
-	 * @return an iterator over all libraries.
-	 */
-	public static Iterator getLibraries()
-	{
-		Collections.sort(libraries, new LibCaseInsensitive());
-		return libraries.iterator();
 	}
 
 	/**
@@ -563,8 +647,21 @@ public class Library extends ElectricObject
 	 */
 	public Iterator getCells()
 	{
-		Collections.sort(cells, new CellCaseInsensitive());
+//		Collections.sort(cells, new CellCaseInsensitive());
 		return cells.iterator();
+	}
+
+	/**
+	 * Routine to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public List getCellsSortedByName()
+	{
+		List sortedList = new ArrayList();
+		for(Iterator it = getCells(); it.hasNext(); )
+			sortedList.add(it.next());
+		Collections.sort(sortedList, new CellCaseInsensitive());
+		return sortedList;
 	}
 
 }
