@@ -137,9 +137,9 @@ public class Quick
 	private HashMap networkLists = null;
 	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
 	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
-	private Job job; // Reference to running job
+	private DRC.CheckDRCLayoutJob job; // Reference to running job
 
-	public Quick(Job job)
+	public Quick(DRC.CheckDRCLayoutJob job)
 	{
 		this.job = job;
 	}
@@ -228,29 +228,12 @@ public class Quick
      * @param drcJob
 	 * @return the number of errors found
 	 */
-	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds, Job drcJob)
+	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
 	{
 		Quick q = new Quick(drcJob);
 		return q.doCheck(cell, count, geomsToCheck, validity, bounds);
 	}
 
-	/**
-	* Check if we are scheduled to abort. If so, print msg if non null
-	 * and return true.
-	 * @param msg message to print if we are aborted
-	 * @return true on abort, false otherwise
-	 */
-	/*
-	protected boolean checkAbort(String msg) {
-		if (job.getScheduledToAbort()) {
-			if (msg != null) System.out.println("LETool aborted: "+msg);
-			else System.out.println("LETool aborted: no changes made");
-			setAborted();                   // Job has been aborted
-			return true;
-		}
-		return false;
-	}
-	*/
 
     // returns the number of errors found
 	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
@@ -472,6 +455,9 @@ public class Quick
 	 */
 	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
+		// Job aborted or scheduled for abort
+		if (job.getAborted() || job.checkAbort()) return -1;
+
 		// Previous # of errors/warnings
 		int prevErrors = 0;
 		int prevWarns = 0;
@@ -812,6 +798,9 @@ public class Quick
 	private boolean checkCellInstContents(Rectangle2D bounds, NodeInst thisNi,
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
+				// Job aborted or scheduled for abort
+		if (job.getAborted() || job.checkAbort()) return true;
+
 		Cell cell = (Cell)thisNi.getProto();
 		boolean logsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;

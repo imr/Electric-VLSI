@@ -300,7 +300,7 @@ public class DRC extends Listener
 			boolean scheduledAbort = getScheduledToAbort();
 			if (scheduledAbort)
 			{
-				System.out.println(this);  // should call Job.toString()
+				System.out.println(this + ": aborted");  // should call Job.toString()
 				setAborted();                   // Job has been aborted
 			}
 			return scheduledAbort;
@@ -346,7 +346,6 @@ public class DRC extends Listener
 		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
 		{
 			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS);
-			//this.cell = cell;
 			this.objectsToCheck = objectsToCheck;
 			startJob();
 		}

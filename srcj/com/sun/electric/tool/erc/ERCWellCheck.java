@@ -458,7 +458,7 @@ public class ERCWellCheck
 		}
 	}
 
-	public static class Visitor extends HierarchyEnumerator.Visitor
+	private static class Visitor extends HierarchyEnumerator.Visitor
     {
 		boolean newAlgorithm;
 		WellCheck job;
