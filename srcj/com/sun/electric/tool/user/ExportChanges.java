@@ -442,7 +442,13 @@ public final class ExportChanges
             {
                 portsToExport.add(eIt.next());
             }
+            // remove exported ports
+            for (Iterator exit = ni.getExports(); exit.hasNext(); ) {
+                Export e = (Export)exit.next();
+                portsToExport.remove(e.getOriginalPort());
+            }
         }
+
         if (portsToExport.size() > 0) {
             ExportPorts job = new ExportPorts(cell, portsToExport, includeWiredPorts);
         } else {
