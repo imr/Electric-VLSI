@@ -1291,6 +1291,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 		// move reference point by (dx,dy)
 		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
+		if (referencePointNode.getAnchorCenterX() != 0 || referencePointNode.getAnchorCenterY() != 0)
+		{
+			// This seems to be possible only when Java VM or java.lang.Math has bug.
+			System.out.println("Cell.adjustReferencePoint: oldCenter=" + cX + "," + cY +
+							   " newCenter=" + referencePointNode.getAnchorCenterX() + "," + referencePointNode.getAnchorCenterY());
+			referencePointNode.getAnchorCenter().setLocation(new Point2D.Double(0,0));
+		}
 
 		// must adjust all nodes by (dx,dy)
 		for(Iterator it = getNodes(); it.hasNext(); )
