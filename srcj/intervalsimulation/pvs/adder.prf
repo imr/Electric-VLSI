@@ -1,0 +1,3698 @@
+(adder_def)
+(adder_bit
+ (ngpk_inclusive 0
+  (ngpk_inclusive-1 nil 3300246853 3300418546 ("" (grind) nil nil)
+   unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil))
+   88 70 t shostak))
+ (n2gpk_TCC1 0
+  (n2gpk_TCC1-1 nil 3300246715 3300442800
+   ("" (cond-coverage-tcc) nil nil) proved-complete
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil))
+   280 200 nil shostak))
+ (k_0 0
+  (k_0-1 nil 3300246861 3300418546 ("" (grind) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (n2gpk const-decl "gpk" adder_bit nil))
+   107 100 t shostak))
+ (p_1 0
+  (p_1-1 nil 3300246868 3300418547 ("" (grind) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (n2gpk const-decl "gpk" adder_bit nil))
+   108 90 t shostak))
+ (g_2 0
+  (g_2-1 nil 3300246877 3300418547 ("" (grind) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (n2gpk const-decl "gpk" adder_bit nil))
+   91 90 t shostak))
+ (bijection 0
+  (bijection-1 nil 3300246893 3300418547
+   ("" (expand "bijective?")
+    (("" (split)
+      (("1" (expand "injective?") (("1" (grind) nil nil)) nil)
+       ("2" (expand "surjective?")
+        (("2" (skosimp*)
+          (("2" (lemma "gpk_inclusive")
+            (("2" (inst?)
+              (("2" (split)
+                (("1" (inst + "0") (("1" (grind) nil nil)) nil)
+                 ("2" (inst + "1") (("2" (grind) nil nil)) nil)
+                 ("3" (inst + "2") (("3" (grind) nil nil)) nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((n2gpk const-decl "gpk" adder_bit nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (< const-decl "bool" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number nonempty-type-decl nil numbers nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (injective? const-decl "bool" functions nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpk_inclusive formula-decl nil adder_bit nil)
+    (surjective? const-decl "bool" functions nil)
+    (bijective? const-decl "bool" functions nil))
+   570 510 t shostak))
+ (bit2ngpk_TCC1 0
+  (bit2ngpk_TCC1-1 nil 3300246715 3300442801 ("" (subtype-tcc) nil nil)
+   proved-complete nil 498 420 nil shostak))
+ (sbit_TCC1 0
+  (sbit_TCC1-1 nil 3300246716 3300442801 ("" (subtype-tcc) nil nil)
+   proved-complete
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil))
+   582 550 nil shostak))
+ (sbit_TCC2 0
+  (sbit_TCC2-1 nil 3300246716 3300442802 ("" (subtype-tcc) nil nil)
+   proved-complete
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil))
+   740 710 nil shostak))
+ (sbit_TCC3 0
+  (sbit_TCC3-1 nil 3300246717 3300442803 ("" (subtype-tcc) nil nil)
+   proved-complete
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil))
+   703 660 nil shostak))
+ (co_table_TCC1 0
+  (co_table_TCC1-1 nil 3300246718 3300442803
+   ("" (cond-coverage-tcc) nil nil) proved-complete nil 71 70 nil
+   shostak))
+ (co_table_TCC2 0
+  (co_table_TCC2-1 nil 3300246718 3300442803
+   ("" (cond-disjoint-tcc) nil nil) proved-complete nil 94 90 nil
+   shostak))
+ (co_table_TCC3 0
+  (co_table_TCC3-1 nil 3300246718 3300442803
+   ("" (cond-coverage-tcc) nil nil) proved-complete nil 74 70 nil
+   shostak))
+ (co_table_TCC4 0
+  (co_table_TCC4-1 nil 3300246718 3300442803
+   ("" (cond-coverage-tcc) nil nil) proved-complete nil 89 80 nil
+   shostak))
+ (co_table 0
+  (co_table-1 nil 3300267732 3300418548 ("" (grind) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (b2n const-decl "nbit" bit nil))
+   706 670 t shostak))
+ (sbit_table_TCC1 0
+  (sbit_table_TCC1-1 nil 3300246718 3300442803
+   ("" (cond-disjoint-tcc) nil nil) proved-complete nil 61 60 nil
+   shostak))
+ (sbit_table_TCC2 0
+  (sbit_table_TCC2-1 nil 3300246718 3300442803
+   ("" (cond-disjoint-tcc) nil nil) proved-complete nil 86 70 nil
+   shostak))
+ (sbit_table 0
+  (sbit_table-1 nil 3300267749 3300418549 ("" (grind) nil nil)
+   unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (b2n const-decl "nbit" bit nil) (n2b const-decl "bool" bit nil))
+   923 830 t shostak))
+ (co_sbit2 0
+  (co_sbit2-1 nil 3300267780 3300418550
+   ("" (skosimp*)
+    (("" (rewrite "co_table")
+      (("" (rewrite "sbit_table") (("" (grind) nil nil)) nil)) nil))
+    nil)
+   unfinished
+   ((co_table formula-decl nil adder_bit nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bit type-eq-decl nil bit nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (b2n const-decl "nbit" bit nil)
+    (sbit_table formula-decl nil adder_bit nil))
+   1416 1380 t shostak))
+ (co_sbit3 0
+  (co_sbit3-1 nil 3300267860 3300418551 ("" (grind) nil nil) unfinished
+   ((b2n const-decl "nbit" bit nil)
+    (bit2ngpk const-decl "ngpk" adder_bit nil)
+    (n2b const-decl "bool" bit nil))
+   738 670 t shostak))
+ (sbit_bool 0
+  (sbit_bool-1 nil 3300267879 3300418552 ("" (grind) nil nil)
+   unfinished
+   ((b2n const-decl "nbit" bit nil)
+    (bit2ngpk const-decl "ngpk" adder_bit nil)
+    (n2b const-decl "bool" bit nil)
+    (/= const-decl "boolean" notequal nil)
+    (XOR const-decl "bool" xor_def nil))
+   1265 1190 t shostak))
+ (co_bool 0
+  (co_bool-1 nil 3300267888 3300418553 ("" (grind) nil nil) unfinished
+   ((b2n const-decl "nbit" bit nil)
+    (bit2ngpk const-decl "ngpk" adder_bit nil))
+   667 620 t shostak))
+ (left_p 0
+  (left_p-1 nil 3300267897 3300418553 ("" (grind) nil nil) unfinished
+   ((O const-decl "gpk" adder_bit nil)) 16 10 t shostak))
+ (right_p 0
+  (right_p-1 nil 3300267904 3300418553 ("" (grind) nil nil) unfinished
+   ((O const-decl "gpk" adder_bit nil)) 64 60 t shostak))
+ (both_p 0
+  (both_p-1 nil 3300267909 3300418553 ("" (grind) nil nil) unfinished
+   ((O const-decl "gpk" adder_bit nil)) 95 90 t shostak))
+ (assoc 0
+        (assoc-1 nil 3300267916 3300418554 ("" (grind) nil nil)
+         unfinished ((O const-decl "gpk" adder_bit nil)) 107 80 t
+         shostak)))
+(generic_adder
+ (adder_output_range 0
+  (adder_output_range-1 nil 3300275694 3300418555
+   ("" (skosimp*)
+    (("" (expand "ai2nat")
+      ((""
+        (case "b2n(ai!1`ci)<=1 & bv2nat_rec(n!1, ai!1`a)<=exp2(n!1)-1 & bv2nat_rec(n!1, ai!1`b)<=exp2(n!1)-1")
+        (("1" (grind :if-match nil) nil nil)
+         ("2" (hide 2)
+          (("2" (split)
+            (("1" (grind) nil nil)
+             ("2" (lemma "bv_nat[N].bv2nat_rec_bound")
+              (("2" (grind) nil nil)) nil)
+             ("3" (lemma "bv_nat[N].bv2nat_rec_bound")
+              (("3" (grind) nil nil)) nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((ai2nat const-decl "nat" generic_adder nil)
+    (bv2nat_rec_bound formula-decl nil bv_nat nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil) (nbit type-eq-decl nil bit nil)
+    (b2n const-decl "nbit" bit nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (bvec type-eq-decl nil bv nil) (bit type-eq-decl nil bit nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (bv2nat_rec def-decl "nat" bv_nat nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (exp2 def-decl "posnat" exp2 nil))
+   1713 1660 t shostak))
+ (carry_TCC1 0
+  (carry_TCC1-1 nil 3300271807 3300517236 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   397 310 nil shostak))
+ (carry_TCC2 0
+  (carry_TCC2-1 nil 3300271807 3300517236 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   190 160 nil shostak))
+ (carry_TCC3 0
+  (carry_TCC3-1 nil 3300271807 3300517236
+   ("" (termination-tcc) nil nil) proved nil 27 30 nil shostak))
+ (sum_TCC1 0
+  (sum_TCC1-1 nil 3300271807 3300517236 ("" (subtype-tcc) nil nil)
+   proved nil 21 20 nil shostak))
+ (sum_invariant 0
+  (sum_invariant-1 nil 3300276050 3300418560
+   ("" (induct "n")
+    (("1" (grind) nil nil)
+     ("2" (skosimp*)
+      (("2" (inst?)
+        (("2" (expand "ai2nat")
+          (("2" (expand "bv2nat_rec" +)
+            (("2" (expand "^")
+              (("2" (replace -2)
+                (("2" (hide -2)
+                  (("2" (simplify)
+                    (("2"
+                      (case "b2n(carry(jt!1, ai!1)) + b2n(ai!1`a(jt!1)) + b2n(ai!1`b(jt!1)) = 2 * b2n(carry(1 + jt!1, ai!1)) + b2n(sum(ai!1)(jt!1))")
+                      (("1" (both-sides "*" "exp2(jt!1)" -)
+                        (("1" (replace -1)
+                          (("1" (hide -)
+                            (("1" (expand "exp2" + 2)
+                              (("1" (assert) nil nil)) nil))
+                            nil))
+                          nil)
+                         ("2" (assert) nil nil))
+                        nil)
+                       ("2" (hide 2 -1)
+                        (("2" (lemma "co_sbit3")
+                          (("2"
+                            (inst - "ai!1`a(jt!1)" "ai!1`b(jt!1)"
+                             "carry(jt!1,ai!1)")
+                            (("1" (expand "carry" + 2)
+                              (("1"
+                                (expand "sum" +)
+                                (("1" (propax) nil nil))
+                                nil))
+                              nil)
+                             ("2" (hide 1)
+                              (("2"
+                                (lemma "co_sbit3")
+                                (("2"
+                                  (inst
+                                   -
+                                   "ai!1`a(jt!1)"
+                                   "ai!1`b(jt!1)"
+                                   "carry(jt!1,ai!1)")
+                                  (("1"
+                                    (expand "carry" + 2)
+                                    (("1"
+                                      (expand "sum" +)
+                                      (("1" (propax) nil nil))
+                                      nil))
+                                    nil)
+                                   ("2"
+                                    (hide 2)
+                                    (("2"
+                                      (reveal -2)
+                                      (("2" (propax) nil nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil)
+                       ("3" (hide 2) (("3" (assert) nil nil)) nil)
+                       ("4" (propax) nil nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((^ const-decl "bit" bv nil)
+    (both_sides_times1 formula-decl nil real_props nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (co_sbit3 formula-decl nil adder_bit nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (exp2 def-decl "posnat" exp2 nil)
+    (carry def-decl "bit" generic_adder nil)
+    (b2n const-decl "nbit" bit nil) (nbit type-eq-decl nil bit nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (sum const-decl "bvec[N]" generic_adder nil)
+    (bv2nat_rec def-decl "nat" bv_nat nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (ai2nat const-decl "nat" generic_adder nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (pred type-eq-decl nil defined_types nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil))
+   4518 4150 t shostak))
+ (carry_prop 0
+  (carry_prop-1 nil 3300372331 3300418561
+   ("" (skosimp*)
+    (("" (rewrite "sum_invariant")
+      (("" (case "carry(n!1,ai!1)")
+        (("1" (expand "b2n") (("1" (assert) nil nil)) nil)
+         ("2" (expand "b2n")
+          (("2" (assert)
+            (("2" (hide 1)
+              (("2" (lemma "bv_nat[N].bv2nat_rec_bound")
+                (("2" (grind) nil nil)) nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((sum_invariant formula-decl nil generic_adder nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (bvec type-eq-decl nil bv nil) (bit type-eq-decl nil bit nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (sum const-decl "bvec[N]" generic_adder nil)
+    (bv2nat_rec_bound formula-decl nil bv_nat nil)
+    (b2n const-decl "nbit" bit nil)
+    (carry def-decl "bit" generic_adder nil))
+   1221 1170 t shostak))
+ (carries_device_correct_TCC1 0
+  (carries_device_correct_TCC1-1 nil 3300271808 3300517236
+   ("" (subtype-tcc) nil nil) proved nil 24 30 nil shostak))
+ (output_device_TCC1 0
+  (output_device_TCC1-1 nil 3300271807 3300517236
+   ("" (subtype-tcc) nil nil) proved nil 330 300 nil shostak))
+ (output_device_TCC2 0
+  (output_device_TCC2-1 nil 3300271808 3300517237
+   ("" (subtype-tcc) nil nil) proved nil 303 300 nil shostak))
+ (output_device_TCC3 0
+  (output_device_TCC3-1 nil 3300271808 3300517237
+   ("" (subtype-tcc) nil nil) proved nil 86 70 nil shostak))
+ (generic_correct 0
+  (generic_correct-1 nil 3300272032 3300418564
+   ("" (skosimp*)
+    (("" (expand "adder_device_correct")
+      (("" (skosimp*)
+        (("" (expand "carries_device_correct")
+          (("" (inst - "ai!1" "_")
+            ((""
+              (case "cdev!1(ai!1) = LAMBDA (n: upto[N]): carry(n,ai!1)")
+              (("1" (hide -2)
+                (("1" (expand "generic_adder")
+                  (("1" (replace -1)
+                    (("1" (hide -1)
+                      (("1" (expand "output_device")
+                        (("1" (expand "^")
+                          (("1" (expand "xor_device")
+                            (("1" (expand "XOR")
+                              (("1"
+                                (expand "ao2nat")
+                                (("1"
+                                  (lemma "sum_invariant")
+                                  (("1"
+                                    (inst?)
+                                    (("1"
+                                      (expand "ai2nat")
+                                      (("1"
+                                        (expand "bv2nat")
+                                        (("1"
+                                          (expand "sum")
+                                          (("1"
+                                            (replace -1)
+                                            (("1"
+                                              (hide -1)
+                                              (("1"
+                                                (lemma "sbit_bool")
+                                                (("1"
+                                                  (simplify)
+                                                  (("1"
+                                                    (case
+                                                     "(LAMBDA (i_1: below(N)):((ai!1`a(i_1) XOR ai!1`b(i_1)) XOR carry(i_1, ai!1)))=LAMBDA i: sbit(ai!1`a(i), ai!1`b(i), carry(i, ai!1))")
+                                                    (("1"
+                                                      (hide -2)
+                                                      (("1"
+                                                        (assert)
+                                                        nil
+                                                        nil))
+                                                      nil)
+                                                     ("2"
+                                                      (hide 2)
+                                                      (("2"
+                                                        (apply-extensionality)
+                                                        (("2"
+                                                          (hide 2)
+                                                          (("2"
+                                                            (inst?)
+                                                            (("2"
+                                                              (lemma
+                                                               "equality_props[bool].symmetry_of_equals")
+                                                              (("2"
+                                                                (inst?)
+                                                                (("2"
+                                                                  (split)
+                                                                  (("1"
+                                                                    (propax)
+                                                                    nil
+                                                                    nil)
+                                                                   ("2"
+                                                                    (hide
+                                                                     2)
+                                                                    (("2"
+                                                                      (expand
+                                                                       "XOR")
+                                                                      (("2"
+                                                                        (assert)
+                                                                        (("2"
+                                                                          (bddsimp)
+                                                                          nil
+                                                                          nil))
+                                                                        nil))
+                                                                      nil))
+                                                                    nil))
+                                                                  nil))
+                                                                nil))
+                                                              nil))
+                                                            nil))
+                                                          nil))
+                                                        nil))
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil)
+               ("2" (hide 2)
+                (("2" (apply-extensionality)
+                  (("1" (hide 2) (("1" (inst?) nil nil)) nil)
+                   ("2" (hide -1 2) (("2" (grind) nil nil)) nil))
+                  nil))
+                nil)
+               ("3" (hide -1 2) (("3" (grind) nil nil)) nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((adder_device_correct const-decl "bool" adder_def nil)
+    (carries_device_correct const-decl "bool" generic_adder nil)
+    (carry def-decl "bit" generic_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (upto nonempty-type-eq-decl nil nat_types nil)
+    (<= const-decl "bool" reals nil)
+    (carries_device type-eq-decl nil generic_adder nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (carries type-eq-decl nil generic_adder nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (< const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (IFF const-decl "[bool, bool -> bool]" booleans nil)
+    (generic_adder const-decl "adder_device" generic_adder nil)
+    (^ const-decl "bvec[PROJ_1(sp) - PROJ_2(sp) + 1]" bv_caret nil)
+    (XOR const-decl "bvec[N]" bv_bitwise nil)
+    (sum_invariant formula-decl nil generic_adder nil)
+    (ai2nat const-decl "nat" generic_adder nil)
+    (sum const-decl "bvec[N]" generic_adder nil)
+    (symmetry_of_equals formula-decl nil equality_props nil)
+    (XOR const-decl "bool" xor_def nil)
+    (sbit_bool formula-decl nil adder_bit nil)
+    (bv2nat const-decl "below(exp2(N))" bv_nat nil)
+    (ao2nat const-decl "nat" adder_def nil)
+    (xor_device const-decl "bvec[N]" generic_adder nil)
+    (output_device const-decl "adder_output" generic_adder nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (N formal-const-decl "posnat" generic_adder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil))
+   2740 2510 t shostak)))
+(ripple_adder
+ (ripple_carries_device_TCC1 0
+  (ripple_carries_device_TCC1-1 nil 3300271808 3300517237
+   ("" (subtype-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" ripple_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   183 150 nil shostak))
+ (ripple_carries_device_TCC2 0
+  (ripple_carries_device_TCC2-1 nil 3300271808 3300517237
+   ("" (subtype-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" ripple_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   146 140 nil shostak))
+ (ripple_carries_device_TCC3 0
+  (ripple_carries_device_TCC3-1 nil 3300271809 3300517237
+   ("" (termination-tcc) nil nil) proved nil 51 20 nil shostak))
+ (ripple_adder_TCC1 0
+  (ripple_adder_TCC1-1 nil 3300271809 3300517237
+   ("" (subtype-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (>= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil))
+   417 390 nil shostak))
+ (ripple_carries_device_correct 0
+  (ripple_carries_device_correct-1 nil 3300275339 3300418566
+   ("" (expand "carries_device_correct")
+    (("" (induct-and-simplify "n") nil nil)) nil)
+   unfinished
+   ((b2n const-decl "nbit" bit nil)
+    (bit2ngpk const-decl "ngpk" adder_bit nil)
+    (ripple_carry_bit_device const-decl "bit" ripple_adder nil)
+    (XOR const-decl "bool" xor_def nil)
+    (/= const-decl "boolean" notequal nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" ripple_adder nil)
+    (carry def-decl "bit" generic_adder nil)
+    (ripple_carries_device def-decl "bit" ripple_adder nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (pred type-eq-decl nil defined_types nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (carries_device_correct const-decl "bool" generic_adder nil))
+   1665 1580 t shostak))
+ (ripple_adder_correct 0
+  (ripple_adder_correct-1 nil 3300275443 3300418567
+   ("" (expand "ripple_adder")
+    (("" (lemma "generic_correct")
+      (("" (inst?)
+        (("1" (prop)
+          (("1" (hide 2)
+            (("1" (lemma "ripple_carries_device_correct")
+              (("1" (propax) nil nil)) nil))
+            nil))
+          nil)
+         ("2" (hide 2) (("2" (grind) nil nil)) nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((N formal-const-decl "posnat" ripple_adder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (generic_correct formula-decl nil generic_adder nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (ripple_carries_device_correct formula-decl nil ripple_adder nil)
+    (ripple_carries_device def-decl "bit" ripple_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (carries_device type-eq-decl nil generic_adder nil)
+    (carries type-eq-decl nil generic_adder nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (bvec type-eq-decl nil bv nil) (bit type-eq-decl nil bit nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (IFF const-decl "[bool, bool -> bool]" booleans nil)
+    (<= const-decl "bool" reals nil) (< const-decl "bool" reals nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (ripple_adder const-decl "adder_device" ripple_adder nil))
+   804 760 t shostak)))
+(gpkv
+ (gpkcarry_TCC1 0
+  (gpkcarry_TCC1-1 nil 3300418513 3300517238 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   194 180 nil shostak))
+ (gpkcarry_TCC2 0
+  (gpkcarry_TCC2-1 nil 3300418514 3300517238 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   200 190 nil shostak))
+ (gpkcarry_TCC3 0
+  (gpkcarry_TCC3-1 nil 3300418514 3300517238
+   ("" (termination-tcc) nil nil) proved nil 34 30 nil shostak))
+ (concat 0
+  (concat-2 nil 3300418640 3300418652
+   ("" (induct-and-simplify "high")
+    (("" (expand "gpkcarry" +) (("" (grind :if-match nil) nil nil))
+      nil))
+    nil)
+   unfinished
+   ((upto_induction formula-decl nil bounded_nat_inductions nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (O const-decl "gpk" adder_bit nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (IMPLIES const-decl "[bool, bool -> bool]" booleans nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (gpk type-decl nil adder_bit nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (pred type-eq-decl nil defined_types nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil))
+   9149 4570 t nil)
+  (concat-1 nil 3300140573 3300418576
+   ("" (induct-and-simplify "high")
+    (("" (expand "carry" +) (("" (grind :if-match nil) nil nil)) nil))
+    nil)
+   unfinished
+   ((<= const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (pred type-eq-decl nil defined_types nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (IMPLIES const-decl "[bool, bool -> bool]" booleans nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (O const-decl "gpk" adder_bit nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil))
+   9111 8580 t shostak))
+ (gpkcarry_p_TCC1 0
+  (gpkcarry_p_TCC1-1 nil 3300418514 3300517238
+   ("" (subtype-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   228 200 nil shostak))
+ (gpkcarry_p 0
+  (gpkcarry_p-1 nil 3300418837 3300419876
+   ("" (skosimp*)
+    (("" (lemma "concat")
+      (("" (inst - "high!1" "low!1" "i!1+1" "v!1")
+        (("1" (split)
+          (("1" (replace -1)
+            (("1" (hide -1)
+              (("1" (lemma "both_p")
+                (("1" (inst?)
+                  (("1" (prop)
+                    (("1" (hide -1 -3)
+                      (("1" (expand "gpkcarry")
+                        (("1" (assert)
+                          (("1" (lemma "both_p")
+                            (("1" (grind) nil nil)) nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil)
+                   ("2" (hide -1 -3 2) (("2" (grind) nil nil)) nil))
+                  nil))
+                nil))
+              nil))
+            nil)
+           ("2" (hide -1 -3 2) (("2" (grind) nil nil)) nil)
+           ("3" (grind) nil nil))
+          nil)
+         ("2" (assert) nil nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((concat formula-decl nil gpkv nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (O const-decl "gpk" adder_bit nil)
+    (both_p formula-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (gpk type-decl nil adder_bit nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (<= const-decl "bool" reals nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil))
+   1039234 14220 t shostak))
+ (sum_TCC1 0
+  (sum_TCC1-1 nil 3300141375 3300517238 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   169 150 nil shostak))
+ (sum_TCC2 0
+  (sum_TCC2-1 nil 3300141375 3300517239 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   166 150 nil shostak))
+ (sum_TCC3 0
+  (sum_TCC3-1 nil 3300141376 3300517239 ("" (termination-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   176 150 nil shostak))
+ (sum_TCC4 0
+  (sum_TCC4-1 nil 3300144064 3300517239 ("" (termination-tcc) nil nil)
+   proved nil 26 30 nil shostak))
+ (sum_TCC5 0
+  (sum_TCC5-1 nil 3300144064 3300517240 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   838 790 nil shostak))
+ (sum_limit 0
+  (sum_limit-1 nil 3300141474 3300418579
+   ("" (induct-and-simplify "high")
+    (("" (hide -1)
+      (("" (case "nv!1(jt!1)<=2")
+        (("1" (both-sides "*" "exp2(jt!1)" -1)
+          (("1"
+            (case "sum(jt!1, nv!1) + nv!1(jt!1) * exp2(jt!1) <= 2 * exp2(jt!1) + 2 * exp2(jt!1) - 2")
+            (("1" (assert) nil nil) ("2" (assert) nil nil)) nil))
+          nil)
+         ("2" (hide -1 2) (("2" (assert) nil nil)) nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((= const-decl "[T, T -> boolean]" equalities nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (both_sides_times_pos_le1 formula-decl nil real_props nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (pred type-eq-decl nil defined_types nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ngpkvec type-eq-decl nil gpkv nil) (sum def-decl "nat" gpkv nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (exp2 def-decl "posnat" exp2 nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil))
+   2815 2730 t shostak))
+ (gpkcarry_sum_TCC1 0
+  (gpkcarry_sum_TCC1-1 nil 3300418515 3300517240
+   ("" (subtype-tcc) nil nil) proved nil 16 10 nil shostak))
+ (gpkcarry_sum_TCC2 0
+  (gpkcarry_sum_TCC2-1 nil 3300418516 3300517240
+   ("" (cond-disjoint-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   350 340 nil shostak))
+ (gpkcarry_sum_TCC3 0
+  (gpkcarry_sum_TCC3-1 nil 3300418516 3300517240
+   ("" (cond-coverage-tcc) nil nil) proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   275 260 nil shostak))
+ (gpkcarry_sum 0
+  (gpkcarry_sum-1 nil 3300419938 3300420747
+   ("" (induct "high")
+    (("1" (grind) nil nil)
+     ("2" (skosimp*)
+      (("2" (inst?)
+        (("2" (expand "sum" +)
+          (("2" (expand "gpkcarry" +)
+            (("2" (replace -2)
+              (("2" (hide -2)
+                (("2" (expand "n2gpk")
+                  (("2" (expand "n2gpk")
+                    (("2" (grind)
+                      (("2" (expand "sum")
+                        (("2" (lift-if)
+                          (("2" (assert)
+                            (("2" (split)
+                              (("1" (propax) nil nil)
+                               ("2"
+                                (lemma "sum_limit")
+                                (("2"
+                                  (inst?)
+                                  (("1"
+                                    (grind :if-match nil)
+                                    (("1"
+                                      (hide -2 -3)
+                                      (("1"
+                                        (typepred "nv!1(jt!1-1)")
+                                        (("1"
+                                          (case "nv!1(jt!1-1)<=2")
+                                          (("1"
+                                            (hide -2)
+                                            (("1"
+                                              (both-sides
+                                               "*"
+                                               "exp2(jt!1-1)"
+                                               -)
+                                              (("1" (assert) nil nil))
+                                              nil))
+                                            nil)
+                                           ("2"
+                                            (hide -2 2 3)
+                                            (("2" (assert) nil nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil)
+                                   ("2"
+                                    (case-replace "jt!1=0")
+                                    (("2" (assert) nil nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil)
+     ("3" (hide 2) (("3" (grind) nil nil)) nil))
+    nil)
+   unfinished
+   ((O const-decl "gpk" adder_bit nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (both_sides_times_pos_le1 formula-decl nil real_props nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (sum_limit formula-decl nil gpkv nil)
+    (n2gpk const-decl "gpk" adder_bit nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (sum def-decl "nat" gpkv nil) (exp2 def-decl "posnat" exp2 nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (g adt-constructor-decl "(g?)" adder_bit nil)
+    (g? adt-recognizer-decl "[gpk -> boolean]" adder_bit nil)
+    (p adt-constructor-decl "(p?)" adder_bit nil)
+    (p? adt-recognizer-decl "[gpk -> boolean]" adder_bit nil)
+    (k adt-constructor-decl "(k?)" adder_bit nil)
+    (k? adt-recognizer-decl "[gpk -> boolean]" adder_bit nil)
+    (IF const-decl "[boolean, T, T -> T]" if_def nil)
+    (n2gpk const-decl "gpk" gpkv nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (gpk type-decl nil adder_bit nil)
+    (pred type-eq-decl nil defined_types nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ngpkvec type-eq-decl nil gpkv nil)
+    (<= const-decl "bool" reals nil))
+   809004 12940 t shostak))
+ (even_sum_TCC1 0
+  (even_sum_TCC1-1 nil 3300157374 3300517240 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   94 80 nil shostak))
+ (even_sum 0
+  (even_sum-2 nil 3300420854 3300420867
+   ("" (skosimp*)
+    (("" (lemma gpkcarry_p)
+      (("" (inst?)
+        (("" (assert) (("" (inst?) (("" (grind) nil nil)) nil)) nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ngpkvec type-eq-decl nil gpkv nil)
+    (n2gpk const-decl "gpk" gpkv nil)
+    (n2gpk const-decl "gpk" adder_bit nil)
+    (O const-decl "gpk" adder_bit nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (gpkcarry_p formula-decl nil gpkv nil))
+   7167 380 t nil)
+  (even_sum-1 nil 3300156474 3300418579
+   ("" (skosimp*)
+    (("" (lemma carry_p)
+      (("" (inst?)
+        (("" (assert) (("" (inst?) (("" (grind) nil nil)) nil)) nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((O const-decl "gpk" adder_bit nil)
+    (n2gpk const-decl "gpk" adder_bit nil)
+    (n2gpk const-decl "gpk" gpkv nil)
+    (ngpkvec type-eq-decl nil gpkv nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (gpk type-decl nil adder_bit nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (<= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil))
+   498 460 t shostak))
+ (ai2ngpkv_TCC1 0
+  (ai2ngpkv_TCC1-1 nil 3300417376 3300517241 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (below type-eq-decl nil naturalnumbers nil))
+   180 150 nil shostak))
+ (ai2ngpkv_TCC2 0
+  (ai2ngpkv_TCC2-1 nil 3300417376 3300517241 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (below type-eq-decl nil naturalnumbers nil))
+   555 520 nil shostak))
+ (ai2ngpkv_TCC3 0
+  (ai2ngpkv_TCC3-1 nil 3300417377 3300517242 ("" (subtype-tcc) nil nil)
+   proved
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (below type-eq-decl nil naturalnumbers nil))
+   582 560 nil shostak))
+ (sum_ai_TCC1 0
+  (sum_ai_TCC1-1 nil 3300417768 3300517242 ("" (subtype-tcc) nil nil)
+   proved nil 21 20 nil shostak))
+ (sum_ai_TCC2 0
+  (sum_ai_TCC2-1 nil 3300417768 3300517242 ("" (subtype-tcc) nil nil)
+   proved nil 35 20 nil shostak))
+ (sum_ai 0
+  (sum_ai-1 nil 3300417782 3300418585
+   ("" (induct "i")
+    (("1" (grind) nil nil)
+     ("2" (skosimp*)
+      (("2" (inst?)
+        (("2" (expand "sum" +)
+          (("2" (expand "ai2nat")
+            (("2" (expand "bv2nat_rec" +)
+              (("2" (replace -2)
+                (("2" (hide -)
+                  (("2" (simplify)
+                    (("2" (expand "ai2ngpkv")
+                      (("2" (expand "^")
+                        (("2" (expand "exp2" +) (("2" (grind) nil nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((^ const-decl "bit" bv nil) (exp2 def-decl "posnat" exp2 nil)
+    (b2n const-decl "nbit" bit nil)
+    (bv2nat_rec def-decl "nat" bv_nat nil)
+    (below_induction formula-decl nil bounded_nat_inductions nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (ai2ngpkv const-decl "ngpk" gpkv nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (sum def-decl "nat" gpkv nil) (ngpkvec type-eq-decl nil gpkv nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ai2nat const-decl "nat" generic_adder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (pred type-eq-decl nil defined_types nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil))
+   5529 5400 t shostak))
+ (gpkcarry_ai 0
+  (gpkcarry_ai-1 nil 3300420896 3300421474
+   ("" (skosimp*)
+    (("" (rewrite "gpkcarry_sum")
+      (("" (rewrite "sum_ai" :dir rl)
+        (("" (lemma "carry_prop")
+          (("" (inst?)
+            (("" (case "ai2nat(i!1, ai!1) >= exp2(i!1)")
+              (("1" (assert)
+                (("1" (lift-if) (("1" (grind) nil nil)) nil)) nil)
+               ("2" (assert)
+                (("2" (lift-if)
+                  (("2" (assert) (("2" (grind) nil nil)) nil)) nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((gpkcarry_sum formula-decl nil gpkv nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N formal-const-decl "posnat" gpkv nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ngpkvec type-eq-decl nil gpkv nil) (bvec type-eq-decl nil bv nil)
+    (bit type-eq-decl nil bit nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (ai2ngpkv const-decl "ngpk" gpkv nil)
+    (carry_prop formula-decl nil generic_adder nil)
+    (ai2nat const-decl "nat" generic_adder nil)
+    (exp2 def-decl "posnat" exp2 nil) (b2n const-decl "nbit" bit nil)
+    (sum_ai formula-decl nil gpkv nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil))
+   577429 7000 t shostak)))
+(LEAdder
+ (le_device_TCC1 0
+  (le_device_TCC1-1 nil 3300442809 3300517733
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil))
+   147 140 nil shostak))
+ (le_device_TCC2 0
+  (le_device_TCC2-1 nil 3300442810 3300517733
+   ("" (termination-tcc) nil nil) unfinished nil 25 20 nil shostak))
+ (le_device_TCC3 0
+  (le_device_TCC3-1 nil 3300442810 3300517733
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (< const-decl "bool" reals nil))
+   275 240 nil shostak))
+ (le_device_TCC4 0
+  (le_device_TCC4-1 nil 3300442810 3300517735
+   ("" (subtype-tcc)
+    (("" (case "i!1 >= rem(exp2(l!1))(i!1)")
+      (("1" (hide -2 -3 -4) (("1" (grind) nil nil)) nil)
+       ("2" (hide -2 -3 3)
+        (("2" (lemma "rem_mod")
+          (("2" (inst?) (("2" (grind) nil nil)) nil)) nil))
+        nil))
+      nil))
+    nil)
+   unchecked
+   ((exp2 def-decl "posnat" exp2 nil)
+    (rem const-decl "{r: mod(b) | EXISTS q: x = b * q + r}"
+         modulo_arithmetic nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (rem_mod formula-decl nil modulo_arithmetic nil)
+    (< const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   2163 2080 t shostak))
+ (rem_le 0
+  (rem_le-1 nil 3300447069 3300517753
+   ("" (skosimp*)
+    (("" (case "i!1>=b!1")
+      (("1" (typepred "rem(b!1)(i!1)")
+        (("1" (hide -2) (("1" (assert) nil nil)) nil)) nil)
+       ("2" (lemma "rem_mod")
+        (("2" (inst?) (("1" (assert) nil nil) ("2" (assert) nil nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unchecked
+   ((rem_mod formula-decl nil modulo_arithmetic nil) nil nil
+    (rem const-decl "{r: mod(b) | EXISTS q: x = b * q + r}"
+         modulo_arithmetic nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (< const-decl "bool" reals nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil))
+   1114 540 t shostak))
+ (le_invariant_TCC1 0
+  (le_invariant_TCC1-1 nil 3300442812 3300517736
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   566 550 nil shostak))
+ (le_invariant_TCC2 0
+  (le_invariant_TCC2-1 nil 3300442812 3300517737
+   ("" (subtype-tcc)
+    (("" (lemma "rem_mod") (("" (inst?) (("" (assert) nil nil)) nil))
+      nil))
+    nil)
+   unchecked
+   ((rem_mod formula-decl nil modulo_arithmetic nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (exp2 def-decl "posnat" exp2 nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   1131 1090 t shostak))
+ (le_invariant 0
+  (le_invariant-4 nil 3300519033 3300519064
+   ("" (induct "l")
+    (("1" (skosimp*)
+      (("1" (expand "exp2")
+        (("1" (case-replace "rem(1)(i!1)=0")
+          (("1" (hide -1) (("1" (grind) nil nil)) nil)
+           ("2" (hide 2) (("2" (grind) nil nil)) nil))
+          nil))
+        nil))
+      nil)
+     ("2" (skosimp*)
+      (("2" (expand "le_device" +)
+        (("2" (lift-if)
+          (("2" (inst-cp - "i!1" "v!1")
+            (("2" (split)
+              (("1"
+                (inst -
+                 "exp2(jt!1) - 1 - rem(exp2(1 + jt!1))(i!1) + i!1"
+                 "v!1")
+                (("1" (replace -2)
+                  (("1" (replace -3)
+                    (("1" (hide -2 -3)
+                      (("1"
+                        (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)+exp2(jt!1)")
+                        (("1" (replace -1)
+                          (("1" (hide -)
+                            (("1" (flatten)
+                              (("1"
+                                (lemma "concat")
+                                (("1"
+                                  (inst
+                                   -
+                                   "i!1+1"
+                                   "i!1 - rem(exp2(jt!1))(i!1) - exp2(jt!1)"
+                                   "i!1 - rem(exp2(jt!1))(i!1)"
+                                   "v!1")
+                                  (("1"
+                                    (split)
+                                    (("1"
+                                      (replace -1)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (case
+                                           "rem(exp2(jt!1))(-1 - rem(exp2(jt!1))(i!1) + i!1)=exp2(jt!1)-1")
+                                          (("1"
+                                            (replace -1)
+                                            (("1"
+                                              (hide -)
+                                              (("1" (assert) nil nil))
+                                              nil))
+                                            nil)
+                                           ("2"
+                                            (hide -1 2)
+                                            (("2"
+                                              (lemma "rem_diff2")
+                                              (("2"
+                                                (inst
+                                                 -
+                                                 "exp2(jt!1)"
+                                                 "i!1-1"
+                                                 "i!1")
+                                                (("2"
+                                                  (replace -1)
+                                                  (("2"
+                                                    (hide -1)
+                                                    (("2"
+                                                      (assert)
+                                                      (("2"
+                                                        (rewrite
+                                                         "rem_def")
+                                                        (("2"
+                                                          (inst + "-1")
+                                                          (("2"
+                                                            (assert)
+                                                            nil
+                                                            nil))
+                                                          nil))
+                                                        nil))
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2"
+                                      (hide -1 2)
+                                      (("2" (assert) nil nil))
+                                      nil)
+                                     ("3"
+                                      (hide -1 2)
+                                      (("3" (assert) nil nil))
+                                      nil))
+                                    nil)
+                                   ("2"
+                                    (hide 2)
+                                    (("2"
+                                      (split)
+                                      (("1"
+                                        (lemma "rem_le")
+                                        (("1"
+                                          (inst?)
+                                          (("1" (assert) nil nil))
+                                          nil))
+                                        nil)
+                                       ("2" (assert) nil nil))
+                                      nil))
+                                    nil)
+                                   ("3"
+                                    (hide 2)
+                                    (("3"
+                                      (split)
+                                      (("1"
+                                        (reveal -2)
+                                        (("1"
+                                          (hide -2)
+                                          (("1"
+                                            (lemma "rem_le")
+                                            (("1"
+                                              (inst
+                                               -
+                                               "exp2(1+jt!1)"
+                                               "i!1")
+                                              (("1" (assert) nil nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil)
+                                       ("2" (assert) nil nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil)
+                         ("2" (flatten)
+                          (("2" (hide -2 2)
+                            (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                              (("2"
+                                (skosimp*)
+                                (("2"
+                                  (lemma "rem_def2")
+                                  (("2"
+                                    (inst
+                                     -
+                                     "exp2(jt!1)"
+                                     "i!1"
+                                     "rem(exp2(1+jt!1))(i!1)-exp2(jt!1)")
+                                    (("1"
+                                      (flatten)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (split)
+                                          (("1" (assert) nil nil)
+                                           ("2"
+                                            (hide 2)
+                                            (("2"
+                                              (expand "divides")
+                                              (("2"
+                                                (inst + "2 * q!1 + 1")
+                                                (("2"
+                                                  (hide -1 -3)
+                                                  (("2"
+                                                    (expand "exp2" - 2)
+                                                    (("2"
+                                                      (assert)
+                                                      nil
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2"
+                                      (split)
+                                      (("1" (assert) nil nil)
+                                       ("2"
+                                        (hide -2 -3 2)
+                                        (("2"
+                                          (expand "exp2" - 2)
+                                          (("2" (assert) nil nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil)
+                 ("2" (hide 2)
+                  (("2" (split)
+                    (("1" (hide -)
+                      (("1" (lemma "rem_le")
+                        (("1" (inst - "exp2(1 + jt!1)" "i!1")
+                          (("1" (assert) nil nil)) nil))
+                        nil))
+                      nil)
+                     ("2" (hide -2)
+                      (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                        (("2" (skosimp*)
+                          (("2"
+                            (case "exp2(1+jt!1)*q!1 <= N - exp2(1+jt!1)")
+                            (("1" (case "exp2(1+jt!1)>exp2(jt!1)-1")
+                              (("1" (assert) nil nil)
+                               ("2"
+                                (hide - 2)
+                                (("2"
+                                  (expand "exp2" + 1)
+                                  (("2" (assert) nil nil))
+                                  nil))
+                                nil))
+                              nil)
+                             ("2" (case "q!1 <= exp2(L-jt!1-1) -1 ")
+                              (("1"
+                                (both-sides "*" "exp2(jt!1+1)" -1)
+                                (("1"
+                                  (expand "N")
+                                  (("1"
+                                    (hide 2)
+                                    (("1"
+                                      (hide -2 -3)
+                                      (("1"
+                                        (assert)
+                                        (("1"
+                                          (lemma "exp2_sum")
+                                          (("1"
+                                            (inst
+                                             -
+                                             "L - 1 - jt!1"
+                                             "1 + jt!1")
+                                            (("1" (assert) nil nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil)
+                                 ("2" (assert) nil nil)
+                                 ("3" (assert) nil nil))
+                                nil)
+                               ("2"
+                                (case "q!1 < exp2(L - jt!1 - 1)")
+                                (("1" (assert) nil nil)
+                                 ("2"
+                                  (hide 2 3 4)
+                                  (("2"
+                                    (both-sides "*" "exp2(1 + jt!1)" 1)
+                                    (("1"
+                                      (simplify)
+                                      (("1"
+                                        (lemma "exp2_sum")
+                                        (("1"
+                                          (inst
+                                           -
+                                           "L - 1 - jt!1"
+                                           "1 + jt!1")
+                                          (("1"
+                                            (replace -1 :dir rl)
+                                            (("1"
+                                              (hide -1)
+                                              (("1"
+                                                (assert)
+                                                (("1"
+                                                  (typepred "i!1")
+                                                  (("1"
+                                                    (expand "N")
+                                                    (("1"
+                                                      (assert)
+                                                      nil
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil)
+                                           ("2" (assert) nil nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2" (assert) nil nil)
+                                     ("3" (assert) nil nil))
+                                    nil))
+                                  nil)
+                                 ("3" (assert) nil nil))
+                                nil)
+                               ("3" (assert) nil nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil)
+               ("2" (hide -2)
+                (("2" (flatten)
+                  (("2"
+                    (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)")
+                    (("1" (assert) nil nil)
+                     ("2" (hide -2 3)
+                      (("2" (lemma "rem_def2")
+                        (("2"
+                          (inst - "exp2(jt!1)" "i!1"
+                           "rem(exp2(jt!1+1))(i!1)")
+                          (("1" (flatten)
+                            (("1" (hide -1)
+                              (("1"
+                                (split)
+                                (("1" (assert) nil nil)
+                                 ("2"
+                                  (expand "divides")
+                                  (("2"
+                                    (typepred
+                                     "rem(exp2(1 + jt!1))(i!1)")
+                                    (("2"
+                                      (skosimp*)
+                                      (("2"
+                                        (inst + "q!1*2")
+                                        (("2"
+                                          (hide -1 -3 2 3)
+                                          (("2"
+                                            (expand "exp2" - 2)
+                                            (("2" (assert) nil nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil)
+                           ("2" (assert) nil nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil)
+     ("3" (hide 2)
+      (("3" (skosimp*)
+        (("3" (lemma "rem_le")
+          (("3" (inst?) (("3" (assert) nil nil)) nil)) nil))
+        nil))
+      nil))
+    nil)
+   unchecked
+   ((exp2 def-decl "posnat" exp2 nil)
+    (rem const-decl "{r: mod(b) | EXISTS q: x = b * q + r}"
+         modulo_arithmetic nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (< const-decl "bool" reals nil)
+    (pred type-eq-decl nil defined_types nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (le_device def-decl "gpkvec" LEAdder nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil)
+    (O const-decl "gpk" adder_bit nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil) nil nil
+    (concat formula-decl nil gpkv nil)
+    (rem_le formula-decl nil LEAdder nil)
+    (rem_def formula-decl nil modulo_arithmetic nil)
+    (rem_diff2 formula-decl nil modulo_arithmetic nil)
+    (- const-decl "[numfield -> numfield]" number_fields nil) nil
+    (rem_def2 formula-decl nil modulo_arithmetic nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (both_sides_times_pos_lt1 formula-decl nil real_props nil)
+    (both_sides_times_pos_le1 formula-decl nil real_props nil)
+    (exp2_sum formula-decl nil exp2 nil))
+   28074 12730 t nil)
+  (le_invariant-3 nil 3300518536 3300519016
+   ("" (induct "l")
+    (("1" (skosimp*)
+      (("1" (expand "exp2")
+        (("1" (case-replace "rem(1)(i!1)=0")
+          (("1" (hide -1) (("1" (grind) nil)))
+           ("2" (hide 2) (("2" (grind) nil)))))))))
+     ("2" (skosimp*)
+      (("2" (expand "le_device" +)
+        (("2" (lift-if)
+          (("2" (inst-cp - "i!1" "v!1")
+            (("2" (split)
+              (("1"
+                (inst -
+                 "exp2(jt!1) - 1 - rem(exp2(1 + jt!1))(i!1) + i!1"
+                 "v!1")
+                (("1" (replace -2)
+                  (("1" (replace -3)
+                    (("1" (hide -2 -3)
+                      (("1"
+                        (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)+exp2(jt!1)")
+                        (("1" (replace -1)
+                          (("1" (hide -)
+                            (("1" (flatten)
+                              (("1"
+                                (lemma "concat")
+                                (("1"
+                                  (inst
+                                   -
+                                   "i!1+1"
+                                   "i!1 - rem(exp2(jt!1))(i!1) - exp2(jt!1)"
+                                   "i!1 - rem(exp2(jt!1))(i!1)"
+                                   "v")
+                                  (("1"
+                                    (split)
+                                    (("1"
+                                      (replace -1)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (case
+                                           "rem(exp2(jt!1))(-1 - rem(exp2(jt!1))(i!1) + i!1)=exp2(jt!1)-1")
+                                          (("1"
+                                            (replace -1)
+                                            (("1"
+                                              (hide -)
+                                              (("1" (assert) nil)))))
+                                           ("2"
+                                            (hide -1 2)
+                                            (("2"
+                                              (lemma "rem_diff2")
+                                              (("2"
+                                                (inst
+                                                 -
+                                                 "exp2(jt!1)"
+                                                 "i!1-1"
+                                                 "i!1")
+                                                (("2"
+                                                  (replace -1)
+                                                  (("2"
+                                                    (hide -1)
+                                                    (("2"
+                                                      (assert)
+                                                      (("2"
+                                                        (rewrite
+                                                         "rem_def")
+                                                        (("2"
+                                                          (inst + "-1")
+                                                          (("2"
+                                                            (assert)
+                                                            nil)))))))))))))))))))))))
+                                     ("2"
+                                      (hide -1 2)
+                                      (("2" (assert) nil)))
+                                     ("3"
+                                      (hide -1 2)
+                                      (("3" (assert) nil)))))
+                                   ("2"
+                                    (hide 2)
+                                    (("2"
+                                      (split)
+                                      (("1"
+                                        (lemma "rem_le")
+                                        (("1"
+                                          (inst?)
+                                          (("1" (assert) nil)))))
+                                       ("2" (assert) nil)))))
+                                   ("3"
+                                    (hide 2)
+                                    (("3"
+                                      (split)
+                                      (("1"
+                                        (reveal -2)
+                                        (("1"
+                                          (hide -2)
+                                          (("1"
+                                            (lemma "rem_le")
+                                            (("1"
+                                              (inst
+                                               -
+                                               "exp2(1+jt!1)"
+                                               "i!1")
+                                              (("1"
+                                                (assert)
+                                                nil)))))))))
+                                       ("2" (assert) nil)))))))))))))))
+                         ("2" (flatten)
+                          (("2" (hide -2 2)
+                            (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                              (("2"
+                                (skosimp*)
+                                (("2"
+                                  (lemma "rem_def2")
+                                  (("2"
+                                    (inst
+                                     -
+                                     "exp2(jt!1)"
+                                     "i!1"
+                                     "rem(exp2(1+jt!1))(i!1)-exp2(jt!1)")
+                                    (("1"
+                                      (flatten)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (split)
+                                          (("1" (assert) nil)
+                                           ("2"
+                                            (hide 2)
+                                            (("2"
+                                              (expand "divides")
+                                              (("2"
+                                                (inst + "2 * q!1 + 1")
+                                                (("2"
+                                                  (hide -1 -3)
+                                                  (("2"
+                                                    (expand "exp2" - 2)
+                                                    (("2"
+                                                      (assert)
+                                                      nil)))))))))))))))))
+                                     ("2"
+                                      (split)
+                                      (("1" (assert) nil)
+                                       ("2"
+                                        (hide -2 -3 2)
+                                        (("2"
+                                          (expand "exp2" - 2)
+                                          (("2"
+                                            (assert)
+                                            nil)))))))))))))))))))))))))))
+                 ("2" (hide 2)
+                  (("2" (split)
+                    (("1" (hide -)
+                      (("1" (lemma "rem_le")
+                        (("1" (inst - "exp2(1 + jt!1)" "i!1")
+                          (("1" (assert) nil)))))))
+                     ("2" (hide -2)
+                      (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                        (("2" (skosimp*)
+                          (("2"
+                            (case "exp2(1+jt!1)*q!1 <= N - exp2(1+jt!1)")
+                            (("1" (case "exp2(1+jt!1)>exp2(jt!1)-1")
+                              (("1" (assert) nil)
+                               ("2"
+                                (hide - 2)
+                                (("2"
+                                  (expand "exp2" + 1)
+                                  (("2" (assert) nil)))))))
+                             ("2" (case "q!1 <= exp2(L-jt!1-1) -1 ")
+                              (("1"
+                                (both-sides "*" "exp2(jt!1+1)" -1)
+                                (("1"
+                                  (expand "N")
+                                  (("1"
+                                    (hide 2)
+                                    (("1"
+                                      (hide -2 -3)
+                                      (("1"
+                                        (assert)
+                                        (("1"
+                                          (lemma "exp2_sum")
+                                          (("1"
+                                            (inst
+                                             -
+                                             "L - 1 - jt!1"
+                                             "1 + jt!1")
+                                            (("1"
+                                              (assert)
+                                              nil)))))))))))))
+                                 ("2" (assert) nil)
+                                 ("3" (assert) nil)))
+                               ("2"
+                                (case "q!1 < exp2(L - jt!1 - 1)")
+                                (("1" (assert) nil)
+                                 ("2"
+                                  (hide 2 3 4)
+                                  (("2"
+                                    (both-sides "*" "exp2(1 + jt!1)" 1)
+                                    (("1"
+                                      (simplify)
+                                      (("1"
+                                        (lemma "exp2_sum")
+                                        (("1"
+                                          (inst
+                                           -
+                                           "L - 1 - jt!1"
+                                           "1 + jt!1")
+                                          (("1"
+                                            (replace -1 :dir rl)
+                                            (("1"
+                                              (hide -1)
+                                              (("1"
+                                                (assert)
+                                                (("1"
+                                                  (typepred "i!1")
+                                                  (("1"
+                                                    (expand "N")
+                                                    (("1"
+                                                      (assert)
+                                                      nil)))))))))))
+                                           ("2" (assert) nil)))))))
+                                     ("2" (assert) nil)
+                                     ("3" (assert) nil)))))
+                                 ("3" (assert) nil)))
+                               ("3" (assert) nil)))))))))))))))))
+               ("2" (hide -2)
+                (("2" (flatten)
+                  (("2"
+                    (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)")
+                    (("1" (assert) nil)
+                     ("2" (hide -2 3)
+                      (("2" (lemma "rem_def2")
+                        (("2"
+                          (inst - "exp2(jt!1)" "i!1"
+                           "rem(exp2(jt!1+1))(i!1)")
+                          (("1" (flatten)
+                            (("1" (hide -1)
+                              (("1"
+                                (split)
+                                (("1" (assert) nil)
+                                 ("2"
+                                  (expand "divides")
+                                  (("2"
+                                    (typepred
+                                     "rem(exp2(1 + jt!1))(i!1)")
+                                    (("2"
+                                      (skosimp*)
+                                      (("2"
+                                        (inst + "q!1*2")
+                                        (("2"
+                                          (hide -1 -3 2 3)
+                                          (("2"
+                                            (expand "exp2" - 2)
+                                            (("2"
+                                              (assert)
+                                              nil)))))))))))))))))))
+                           ("2" (assert) nil)))))))))))))))))))))))
+     ("3" (hide 2)
+      (("3" (skosimp*)
+        (("3" (lemma "rem_le")
+          (("3" (inst?) (("3" (assert) nil))))))))))
+    nil)
+   unfinished nil 101663 15610 t nil)
+  (le_invariant-2 nil 3300518358 3300518521
+   ("" (induct "l")
+    (("1" (skosimp*)
+      (("1" (expand "exp2")
+        (("1" (case-replace "rem(1)(i!1)=0")
+          (("1" (hide -1) (("1" (grind) nil)))
+           ("2" (hide 2) (("2" (grind) nil)))))))))
+     ("2" (skosimp*)
+      (("2" (expand "le_device" +)
+        (("2" (lift-if)
+          (("2" (inst-cp - "i!1" "v!1")
+            (("2" (split)
+              (("1"
+                (inst -
+                 "exp2(jt!1) - 1 - rem(exp2(1 + jt!1))(i!1) + i!1")
+                (("1" (replace -2)
+                  (("1" (replace -3)
+                    (("1" (hide -2 -3)
+                      (("1"
+                        (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)+exp2(jt!1)")
+                        (("1" (replace -1)
+                          (("1" (hide -)
+                            (("1" (flatten)
+                              (("1"
+                                (lemma "concat")
+                                (("1"
+                                  (inst
+                                   -
+                                   "i!1+1"
+                                   "i!1 - rem(exp2(jt!1))(i!1) - exp2(jt!1)"
+                                   "i!1 - rem(exp2(jt!1))(i!1)"
+                                   "v")
+                                  (("1"
+                                    (split)
+                                    (("1"
+                                      (replace -1)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (case
+                                           "rem(exp2(jt!1))(-1 - rem(exp2(jt!1))(i!1) + i!1)=exp2(jt!1)-1")
+                                          (("1"
+                                            (replace -1)
+                                            (("1"
+                                              (hide -)
+                                              (("1" (assert) nil)))))
+                                           ("2"
+                                            (hide -1 2)
+                                            (("2"
+                                              (lemma "rem_diff2")
+                                              (("2"
+                                                (inst
+                                                 -
+                                                 "exp2(jt!1)"
+                                                 "i!1-1"
+                                                 "i!1")
+                                                (("2"
+                                                  (replace -1)
+                                                  (("2"
+                                                    (hide -1)
+                                                    (("2"
+                                                      (assert)
+                                                      (("2"
+                                                        (rewrite
+                                                         "rem_def")
+                                                        (("2"
+                                                          (inst + "-1")
+                                                          (("2"
+                                                            (assert)
+                                                            nil)))))))))))))))))))))))
+                                     ("2"
+                                      (hide -1 2)
+                                      (("2" (assert) nil)))
+                                     ("3"
+                                      (hide -1 2)
+                                      (("3" (assert) nil)))))
+                                   ("2"
+                                    (hide 2)
+                                    (("2"
+                                      (split)
+                                      (("1"
+                                        (lemma "rem_le")
+                                        (("1"
+                                          (inst?)
+                                          (("1" (assert) nil)))))
+                                       ("2" (assert) nil)))))
+                                   ("3"
+                                    (hide 2)
+                                    (("3"
+                                      (split)
+                                      (("1"
+                                        (reveal -2)
+                                        (("1"
+                                          (hide -2)
+                                          (("1"
+                                            (lemma "rem_le")
+                                            (("1"
+                                              (inst
+                                               -
+                                               "exp2(1+jt!1)"
+                                               "i!1")
+                                              (("1"
+                                                (assert)
+                                                nil)))))))))
+                                       ("2" (assert) nil)))))))))))))))
+                         ("2" (flatten)
+                          (("2" (hide -2 2)
+                            (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                              (("2"
+                                (skosimp*)
+                                (("2"
+                                  (lemma "rem_def2")
+                                  (("2"
+                                    (inst
+                                     -
+                                     "exp2(jt!1)"
+                                     "i!1"
+                                     "rem(exp2(1+jt!1))(i!1)-exp2(jt!1)")
+                                    (("1"
+                                      (flatten)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (split)
+                                          (("1" (assert) nil)
+                                           ("2"
+                                            (hide 2)
+                                            (("2"
+                                              (expand "divides")
+                                              (("2"
+                                                (inst + "2 * q!1 + 1")
+                                                (("2"
+                                                  (hide -1 -3)
+                                                  (("2"
+                                                    (expand "exp2" - 2)
+                                                    (("2"
+                                                      (assert)
+                                                      nil)))))))))))))))))
+                                     ("2"
+                                      (split)
+                                      (("1" (assert) nil)
+                                       ("2"
+                                        (hide -2 -3 2)
+                                        (("2"
+                                          (expand "exp2" - 2)
+                                          (("2"
+                                            (assert)
+                                            nil)))))))))))))))))))))))))))
+                 ("2" (hide 2)
+                  (("2" (split)
+                    (("1" (hide -)
+                      (("1" (lemma "rem_le")
+                        (("1" (inst - "exp2(1 + jt!1)" "i!1")
+                          (("1" (assert) nil)))))))
+                     ("2" (hide -2)
+                      (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                        (("2" (skosimp*)
+                          (("2"
+                            (case "exp2(1+jt!1)*q!1 <= N - exp2(1+jt!1)")
+                            (("1" (case "exp2(1+jt!1)>exp2(jt!1)-1")
+                              (("1" (assert) nil)
+                               ("2"
+                                (hide - 2)
+                                (("2"
+                                  (expand "exp2" + 1)
+                                  (("2" (assert) nil)))))))
+                             ("2" (case "q!1 <= exp2(L-jt!1-1) -1 ")
+                              (("1"
+                                (both-sides "*" "exp2(jt!1+1)" -1)
+                                (("1"
+                                  (expand "N")
+                                  (("1"
+                                    (hide 2)
+                                    (("1"
+                                      (hide -2 -3)
+                                      (("1"
+                                        (assert)
+                                        (("1"
+                                          (lemma "exp2_sum")
+                                          (("1"
+                                            (inst
+                                             -
+                                             "L - 1 - jt!1"
+                                             "1 + jt!1")
+                                            (("1"
+                                              (assert)
+                                              nil)))))))))))))
+                                 ("2" (assert) nil)
+                                 ("3" (assert) nil)))
+                               ("2"
+                                (case "q!1 < exp2(L - jt!1 - 1)")
+                                (("1" (assert) nil)
+                                 ("2"
+                                  (hide 2 3 4)
+                                  (("2"
+                                    (both-sides "*" "exp2(1 + jt!1)" 1)
+                                    (("1"
+                                      (simplify)
+                                      (("1"
+                                        (lemma "exp2_sum")
+                                        (("1"
+                                          (inst
+                                           -
+                                           "L - 1 - jt!1"
+                                           "1 + jt!1")
+                                          (("1"
+                                            (replace -1 :dir rl)
+                                            (("1"
+                                              (hide -1)
+                                              (("1"
+                                                (assert)
+                                                (("1"
+                                                  (typepred "i!1")
+                                                  (("1"
+                                                    (expand "N")
+                                                    (("1"
+                                                      (assert)
+                                                      nil)))))))))))
+                                           ("2" (assert) nil)))))))
+                                     ("2" (assert) nil)
+                                     ("3" (assert) nil)))))
+                                 ("3" (assert) nil)))
+                               ("3" (assert) nil)))))))))))))))))
+               ("2" (hide -2)
+                (("2" (flatten)
+                  (("2"
+                    (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)")
+                    (("1" (assert) nil)
+                     ("2" (hide -2 3)
+                      (("2" (lemma "rem_def2")
+                        (("2"
+                          (inst - "exp2(jt!1)" "i!1"
+                           "rem(exp2(jt!1+1))(i!1)")
+                          (("1" (flatten)
+                            (("1" (hide -1)
+                              (("1"
+                                (split)
+                                (("1" (assert) nil)
+                                 ("2"
+                                  (expand "divides")
+                                  (("2"
+                                    (typepred
+                                     "rem(exp2(1 + jt!1))(i!1)")
+                                    (("2"
+                                      (skosimp*)
+                                      (("2"
+                                        (inst + "q!1*2")
+                                        (("2"
+                                          (hide -1 -3 2 3)
+                                          (("2"
+                                            (expand "exp2" - 2)
+                                            (("2"
+                                              (assert)
+                                              nil)))))))))))))))))))
+                           ("2" (assert) nil)))))))))))))))))))))))
+     ("3" (hide 2)
+      (("3" (skosimp*)
+        (("3" (lemma "rem_le")
+          (("3" (inst?) (("3" (assert) nil))))))))))
+    nil)
+   unfinished nil 112520 9010 t nil)
+  (le_invariant-1 nil 3300443603 3300518340
+   ("" (induct "l")
+    (("1" (skosimp*)
+      (("1" (expand "exp2")
+        (("1" (case-replace "rem(1)(i!1)=0")
+          (("1" (hide -1) (("1" (grind) nil nil)) nil)
+           ("2" (hide 2) (("2" (grind) nil nil)) nil))
+          nil))
+        nil))
+      nil)
+     ("2" (skosimp*)
+      (("2" (expand "le_device" +)
+        (("2" (lift-if)
+          (("2" (inst-cp - "i!1")
+            (("2" (split)
+              (("1"
+                (inst -
+                 "exp2(jt!1) - 1 - rem(exp2(1 + jt!1))(i!1) + i!1")
+                (("1" (replace -2)
+                  (("1" (replace -3)
+                    (("1" (hide -2 -3)
+                      (("1"
+                        (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)+exp2(jt!1)")
+                        (("1" (replace -1)
+                          (("1" (hide -)
+                            (("1" (flatten)
+                              (("1"
+                                (lemma "concat")
+                                (("1"
+                                  (inst
+                                   -
+                                   "i!1+1"
+                                   "i!1 - rem(exp2(jt!1))(i!1) - exp2(jt!1)"
+                                   "i!1 - rem(exp2(jt!1))(i!1)"
+                                   "v")
+                                  (("1"
+                                    (split)
+                                    (("1"
+                                      (replace -1)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (case
+                                           "rem(exp2(jt!1))(-1 - rem(exp2(jt!1))(i!1) + i!1)=exp2(jt!1)-1")
+                                          (("1"
+                                            (replace -1)
+                                            (("1"
+                                              (hide -)
+                                              (("1" (assert) nil nil))
+                                              nil))
+                                            nil)
+                                           ("2"
+                                            (hide -1 2)
+                                            (("2"
+                                              (lemma "rem_diff2")
+                                              (("2"
+                                                (inst
+                                                 -
+                                                 "exp2(jt!1)"
+                                                 "i!1-1"
+                                                 "i!1")
+                                                (("2"
+                                                  (replace -1)
+                                                  (("2"
+                                                    (hide -1)
+                                                    (("2"
+                                                      (assert)
+                                                      (("2"
+                                                        (rewrite
+                                                         "rem_def")
+                                                        (("2"
+                                                          (inst + "-1")
+                                                          (("2"
+                                                            (assert)
+                                                            nil
+                                                            nil))
+                                                          nil))
+                                                        nil))
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2"
+                                      (hide -1 2)
+                                      (("2" (assert) nil nil))
+                                      nil)
+                                     ("3"
+                                      (hide -1 2)
+                                      (("3" (assert) nil nil))
+                                      nil))
+                                    nil)
+                                   ("2"
+                                    (hide 2)
+                                    (("2"
+                                      (split)
+                                      (("1"
+                                        (lemma "rem_le")
+                                        (("1"
+                                          (inst?)
+                                          (("1" (assert) nil nil))
+                                          nil))
+                                        nil)
+                                       ("2" (assert) nil nil))
+                                      nil))
+                                    nil)
+                                   ("3"
+                                    (hide 2)
+                                    (("3"
+                                      (split)
+                                      (("1"
+                                        (reveal -2)
+                                        (("1"
+                                          (hide -2)
+                                          (("1"
+                                            (lemma "rem_le")
+                                            (("1"
+                                              (inst
+                                               -
+                                               "exp2(1+jt!1)"
+                                               "i!1")
+                                              (("1" (assert) nil nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil)
+                                       ("2" (assert) nil nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil)
+                         ("2" (flatten)
+                          (("2" (hide -2 2)
+                            (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                              (("2"
+                                (skosimp*)
+                                (("2"
+                                  (lemma "rem_def2")
+                                  (("2"
+                                    (inst
+                                     -
+                                     "exp2(jt!1)"
+                                     "i!1"
+                                     "rem(exp2(1+jt!1))(i!1)-exp2(jt!1)")
+                                    (("1"
+                                      (flatten)
+                                      (("1"
+                                        (hide -1)
+                                        (("1"
+                                          (split)
+                                          (("1" (assert) nil nil)
+                                           ("2"
+                                            (hide 2)
+                                            (("2"
+                                              (expand "divides")
+                                              (("2"
+                                                (inst + "2 * q!1 + 1")
+                                                (("2"
+                                                  (hide -1 -3)
+                                                  (("2"
+                                                    (expand "exp2" - 2)
+                                                    (("2"
+                                                      (assert)
+                                                      nil
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2"
+                                      (split)
+                                      (("1" (assert) nil nil)
+                                       ("2"
+                                        (hide -2 -3 2)
+                                        (("2"
+                                          (expand "exp2" - 2)
+                                          (("2" (assert) nil nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil)
+                 ("2" (hide 2)
+                  (("2" (split)
+                    (("1" (hide -)
+                      (("1" (lemma "rem_le")
+                        (("1" (inst - "exp2(1 + jt!1)" "i!1")
+                          (("1" (assert) nil nil)) nil))
+                        nil))
+                      nil)
+                     ("2" (hide -2)
+                      (("2" (typepred "rem(exp2(1 + jt!1))(i!1)")
+                        (("2" (skosimp*)
+                          (("2"
+                            (case "exp2(1+jt!1)*q!1 <= N - exp2(1+jt!1)")
+                            (("1" (case "exp2(1+jt!1)>exp2(jt!1)-1")
+                              (("1" (assert) nil nil)
+                               ("2"
+                                (hide - 2)
+                                (("2"
+                                  (expand "exp2" + 1)
+                                  (("2" (assert) nil nil))
+                                  nil))
+                                nil))
+                              nil)
+                             ("2" (case "q!1 <= exp2(L-jt!1-1) -1 ")
+                              (("1"
+                                (both-sides "*" "exp2(jt!1+1)" -1)
+                                (("1"
+                                  (expand "N")
+                                  (("1"
+                                    (hide 2)
+                                    (("1"
+                                      (hide -2 -3)
+                                      (("1"
+                                        (assert)
+                                        (("1"
+                                          (lemma "exp2_sum")
+                                          (("1"
+                                            (inst
+                                             -
+                                             "L - 1 - jt!1"
+                                             "1 + jt!1")
+                                            (("1" (assert) nil nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil)
+                                 ("2" (assert) nil nil)
+                                 ("3" (assert) nil nil))
+                                nil)
+                               ("2"
+                                (case "q!1 < exp2(L - jt!1 - 1)")
+                                (("1" (assert) nil nil)
+                                 ("2"
+                                  (hide 2 3 4)
+                                  (("2"
+                                    (both-sides "*" "exp2(1 + jt!1)" 1)
+                                    (("1"
+                                      (simplify)
+                                      (("1"
+                                        (lemma "exp2_sum")
+                                        (("1"
+                                          (inst
+                                           -
+                                           "L - 1 - jt!1"
+                                           "1 + jt!1")
+                                          (("1"
+                                            (replace -1 :dir rl)
+                                            (("1"
+                                              (hide -1)
+                                              (("1"
+                                                (assert)
+                                                (("1"
+                                                  (typepred "i!1")
+                                                  (("1"
+                                                    (expand "N")
+                                                    (("1"
+                                                      (assert)
+                                                      nil
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil)
+                                           ("2" (assert) nil nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2" (assert) nil nil)
+                                     ("3" (assert) nil nil))
+                                    nil))
+                                  nil)
+                                 ("3" (assert) nil nil))
+                                nil)
+                               ("3" (assert) nil nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil)
+               ("2" (hide -2)
+                (("2" (flatten)
+                  (("2"
+                    (case "rem(exp2(1+jt!1))(i!1)=rem(exp2(jt!1))(i!1)")
+                    (("1" (assert) nil nil)
+                     ("2" (hide -2 3)
+                      (("2" (lemma "rem_def2")
+                        (("2"
+                          (inst - "exp2(jt!1)" "i!1"
+                           "rem(exp2(jt!1+1))(i!1)")
+                          (("1" (flatten)
+                            (("1" (hide -1)
+                              (("1"
+                                (split)
+                                (("1" (assert) nil nil)
+                                 ("2"
+                                  (expand "divides")
+                                  (("2"
+                                    (typepred
+                                     "rem(exp2(1 + jt!1))(i!1)")
+                                    (("2"
+                                      (skosimp*)
+                                      (("2"
+                                        (inst + "q!1*2")
+                                        (("2"
+                                          (hide -1 -3 2 3)
+                                          (("2"
+                                            (expand "exp2" - 2)
+                                            (("2" (assert) nil nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil)
+                           ("2" (assert) nil nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil)
+     ("3" (hide 2)
+      (("3" (skosimp*)
+        (("3" (lemma "rem_le")
+          (("3" (inst?) (("3" (assert) nil nil)) nil)) nil))
+        nil))
+      nil))
+    nil)
+   unfinished
+   ((exp2 def-decl "posnat" exp2 nil)
+    (rem const-decl "{r: mod(b) | EXISTS q: x = b * q + r}"
+         modulo_arithmetic nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (< const-decl "bool" reals nil)
+    (pred type-eq-decl nil defined_types nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (le_device def-decl "gpkvec" LEAdder nil)
+    (gpkcarry def-decl "gpk" gpkv nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (upto_induction formula-decl nil bounded_nat_inductions nil)
+    (O const-decl "gpk" adder_bit nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (concat formula-decl nil gpkv nil)
+    (rem_le formula-decl nil LEAdder nil)
+    (rem_def formula-decl nil modulo_arithmetic nil)
+    (rem_diff2 formula-decl nil modulo_arithmetic nil)
+    (- const-decl "[numfield -> numfield]" number_fields nil)
+    (rem_def2 formula-decl nil modulo_arithmetic nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (both_sides_times_pos_lt1 formula-decl nil real_props nil)
+    (both_sides_times_pos_le1 formula-decl nil real_props nil)
+    (exp2_sum formula-decl nil exp2 nil))
+   544202 11550 t shostak))
+ (le_device_prop_TCC1 0
+  (le_device_prop_TCC1-1 nil 3300517246 3300517737
+   ("" (subtype-tcc) nil nil) unfinished nil 13 10 nil shostak))
+ (le_device_prop_TCC2 0
+  (le_device_prop_TCC2-1 nil 3300517246 3300517738
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   480 470 nil shostak))
+ (le_device_prop_TCC3 0
+  (le_device_prop_TCC3-1 nil 3300517247 3300517738
+   ("" (subtype-tcc) nil nil) unfinished
+   ((N const-decl "posnat" LEAdder nil)) 32 30 nil shostak))
+ (le_device_prop 0
+  (le_device_prop-1 nil 3300519085 3300519235
+   ("" (skosimp*)
+    (("" (rewrite "le_invariant")
+      (("" (case "i!1=rem(N)(i!1)")
+        (("1" (expand "N") (("1" (assert) nil nil)) nil)
+         ("2" (hide 2)
+          (("2" (lemma "rem_mod")
+            (("2" (inst?) (("2" (assert) nil nil)) nil)) nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   unchecked
+   ((le_invariant formula-decl nil LEAdder nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N const-decl "posnat" LEAdder nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (L formal-const-decl "nat" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (rem_mod formula-decl nil modulo_arithmetic nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (mod nonempty-type-eq-decl nil euclidean_division nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (* const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (rem const-decl "{r: mod(b) | EXISTS q: x = b * q + r}"
+         modulo_arithmetic nil))
+   149457 2650 t shostak))
+ (gpk_device_TCC1 0
+  (gpk_device_TCC1-1 nil 3300442813 3300517738
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (< const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   201 190 nil shostak))
+ (le_carries_device_TCC1 0
+  (le_carries_device_TCC1-1 nil 3300517247 3300517738
+   ("" (subtype-tcc) nil nil) unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (<= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   213 190 nil shostak))
+ (le_adder_TCC1 0
+  (le_adder_TCC1-1 nil 3300517247 3300517738 ("" (subtype-tcc) nil nil)
+   unfinished
+   ((boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (>= const-decl "bool" reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (N const-decl "posnat" LEAdder nil))
+   431 420 nil shostak))
+ (gpk_device_correct 0
+  (gpk_device_correct-1 nil 3300519695 3300519971
+   ("" (skosimp*)
+    (("" (apply-extensionality)
+      (("" (hide 2)
+        (("" (expand "gpk_device")
+          (("" (expand "ai2ngpkv")
+            (("" (lift-if)
+              (("" (split)
+                (("1" (grind) nil nil) ("2" (grind) nil nil)) nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   proved
+   ((number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N const-decl "posnat" LEAdder nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (gpk type-decl nil adder_bit nil)
+    (ai2ngpkv const-decl "ngpk" gpkv nil)
+    (n2gpk const-decl "gpk" gpkv nil)
+    (ngpkvec type-eq-decl nil gpkv nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (gpk_device const-decl "gpkvec" LEAdder nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (bit2ngpk const-decl "ngpk" adder_bit nil)
+    (bit2gpk const-decl "gpk" adder_bit nil)
+    (b2n const-decl "nbit" bit nil)
+    (n2gpk const-decl "gpk" adder_bit nil))
+   275578 5270 t shostak))
+ (le_carries_device_correct 0
+  (le_carries_device_correct-1 nil 3300517330 3300529451
+   ("" (expand "carries_device_correct")
+    (("" (skosimp*)
+      (("" (expand "le_carries_device")
+        (("" (lift-if)
+          (("" (split)
+            (("1" (rewrite "gpk_device_correct")
+              (("1" (rewrite "le_device_prop")
+                (("1" (rewrite "gpkcarry_ai") nil nil)) nil))
+              nil)
+             ("2" (case "n!1=N")
+              (("1" (replace -1)
+                (("1" (assert)
+                  (("1" (hide -1)
+                    (("1" (rewrite "le_device_prop")
+                      (("1" (rewrite "gpk_device_correct")
+                        (("1" (rewrite "carry")
+                          (("1" (rewrite "gpkcarry_ai") nil nil)) nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil)
+               ("2" (assert) nil nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   proved
+   ((carries_device_correct const-decl "bool" generic_adder nil)
+    (le_carries_device const-decl "bit" LEAdder nil)
+    (le_device_prop formula-decl nil LEAdder nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (< const-decl "bool" reals nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (<= const-decl "bool" reals nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (gpk type-decl nil adder_bit nil)
+    (gpkvec type-eq-decl nil gpkv nil)
+    (ngpk type-eq-decl nil adder_bit nil)
+    (ngpkvec type-eq-decl nil gpkv nil)
+    (n2gpk const-decl "gpk" gpkv nil)
+    (ai2ngpkv const-decl "ngpk" gpkv nil)
+    (gpkcarry_ai formula-decl nil gpkv nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (bit type-eq-decl nil bit nil) (bvec type-eq-decl nil bv nil)
+    (N const-decl "posnat" LEAdder nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (gpk_device_correct formula-decl nil LEAdder nil)
+    (carry def-decl "bit" generic_adder nil)
+    (gpk_device const-decl "gpkvec" LEAdder nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (= const-decl "[T, T -> boolean]" equalities nil))
+   9469081 8870 t shostak))
+ (le_adder_correct 0
+  (le_adder_correct-1 nil 3300529459 3300529577
+   ("" (lemma "generic_correct")
+    (("" (rewrite "le_adder")
+      (("" (inst?)
+        (("1" (split)
+          (("1" (propax) nil nil)
+           ("2" (hide 2)
+            (("2" (rewrite "le_carries_device_correct") nil nil)) nil))
+          nil)
+         ("2" (hide 2) (("2" (grind) nil nil)) nil))
+        nil))
+      nil))
+    nil)
+   proved
+   ((le_adder const-decl "adder_device" LEAdder nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (le_carries_device_correct formula-decl nil LEAdder nil)
+    (le_carries_device const-decl "bit" LEAdder nil)
+    (upto nonempty-type-eq-decl nil naturalnumbers nil)
+    (carries_device type-eq-decl nil generic_adder nil)
+    (carries type-eq-decl nil generic_adder nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (bvec type-eq-decl nil bv nil) (bit type-eq-decl nil bit nil)
+    (adder_input type-eq-decl nil adder_def nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (IFF const-decl "[bool, bool -> bool]" booleans nil)
+    (<= const-decl "bool" reals nil) (< const-decl "bool" reals nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (generic_correct formula-decl nil generic_adder nil)
+    (number nonempty-type-decl nil numbers nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (>= const-decl "bool" reals nil)
+    (nonneg_int nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (posnat nonempty-type-eq-decl nil integers nil)
+    (N const-decl "posnat" LEAdder nil))
+   117964 2530 t shostak)))
+

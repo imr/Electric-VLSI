@@ -1,0 +1,400 @@
+% The "adder.pvs" specifies logically what N-bit adder should do.
+% It specifies adder correctness behaviour.
+%
+% It also proivides two sets of logic equations and proves that
+% they satisfy the specification.
+% These equations resemble two know techniques to implement adder:
+% 1) Simple ripple carry adder;
+% 2) Ladner-Fischer adder.
+
+% Theory adder_def specifies behavior of N-bit adder.
+% N is parameter of the theory. It is positive natural number.
+adder_def [N:posnat]: THEORY
+BEGIN
+
+  % Type adder_device represents possible adders implementations.
+  % adder_device is a function from record type adder_input to
+  % record type adder_output.
+
+  % Record type "adder_input" contains inputs of adder. They are two bit vectors
+  % "a" and "b" of size N which, and bit "ci" - arguments and carry-in/
+  adder_input: TYPE  = [# a: bvec[N], b: bvec[N], ci: bit #]
+  % Record type "adder_output" contains outputs of adder.
+  % They are bitvector "s" with sum and bit "co" with carry-out.
+  adder_output: TYPE = [# co: bit, s: bvec[N] #]
+  % Function type "adder_device" maps "adder_input" to "adder_output".
+  adder_device: TYPE = [adder_input -> adder_output]
+
+  % Predicate of adder correctness
+
+  % Auxillary function "ao2nat" treats adder output as natural number. It uses
+  % library function bv2nat which maps bitvector to natural number.
+  ao2nat(ao: adder_output): nat = ao`co*exp2(N) + bv2nat(ao`s)
+  % Predicate "adder_device_correct" defines specification of adder_device 
+  % adder_device "dev" is correct adder, if it map each adder input "ai" to
+  % such adder output so that output values is equal to sum of input arguments and "carry-in"/
+  adder_device_correct(dev: adder_device): bool = FORALL (ai: adder_input): ao2nat(dev(ai)) = bv2nat(ai`a) + bv2nat(ai`b) + ai`ci
+
+END adder_def
+
+
+
+
+
+% Theory adder_bit contains facts about 1-bit addition.
+% It alse defines type "gpk" with operations which represent
+% properties of "generate-propagate-kill" technique of adder
+% implementation
+adder_bit: THEORY
+BEGIN
+  % Type "ngpk" contains possible values of sum of two bits.
+  % Its values are natural numbers below "3".
+  ngpk: TYPE = below(3)
+
+  % Variable definititon of PVS is not like Java variables.
+  % It simply says that identifier "n" in below declarations
+  % has type "ngpk".
+  n: VAR ngpk
+  % It follows from above declarations that possible values of
+  % type "ngpk" are {0,1,2}. It stated in this lemma. All lemmas
+  % are proved with PVS type-checker.
+  ngpk_inclusive: LEMMA n = 0 OR n = 1 OR n = 2
+
+  % Another view at sum of two-bits is type "gpk". It is enumeration
+  % type with possible values "k", "p", "g". This type is one-to-one
+  % mapped to type "ngpk" by bijective function "n2gpk".
+  gpk: TYPE = { k, p, g }
+  % We define a map from integer below 3 to "gpk" values.
+  n2gpk(n): gpk = COND
+                    n = 0 -> k,
+                    n = 1 -> p,
+                    n = 2 -> g
+                  ENDCOND
+
+  % The properies of "n2gpk" follow from definition
+  k_0: LEMMA n2gpk(n) = k IMPLIES n = 0
+  p_1: LEMMA n2gpk(n) = p IMPLIES n = 1
+  g_2: LEMMA n2gpk(n) = g IMPLIES n = 2
+
+  % Lemma states that n2gpk is bijection - one-to-one map.
+  bijection: LEMMA bijective?(n2gpk)
+
+  % Declare types of ident in below definitions
+  a, b, ci: VAR bit
+
+  % Functions which maps two bits to their sum in mumerical and "gpk" forms.
+  bit2ngpk(a, b): ngpk = a + b
+  bit2gpk(a, b): gpk = n2gpk(bit2ngpk(a, b))
+
+  % Functions which maps sum of "ngpk" and carry-in bit to 2-bit number
+  co(n, ci): bit = n + ci >= 2
+  sbit(n, ci): bit = LET s: below(4) = n + ci
+                     IN n2b(IF s >= 2 THEN s - 2 ELSE s ENDIF)
+
+  % We can prove that function "co" can be described by the table
+  co_table: LEMMA co(n,ci) =
+    TABLE n,        ci
+%           ------------------
+           |[ FALSE | TRUE  ]|
+%       ----------------------
+        | 0 | FALSE | FALSE ||
+%       ----------------------
+        | 1 | FALSE | TRUE  ||
+%       ----------------------
+        | 2 | TRUE  | TRUE  ||
+%       ----------------------
+    ENDTABLE
+
+  % We can prove that function "sbit" can be described by the table
+  sbit_table: LEMMA sbit(n,ci) =
+    TABLE n,        ci
+%           ------------------
+           |[ FALSE | TRUE  ]|
+%       ----------------------
+        | 0 | FALSE | TRUE  ||
+%       ----------------------
+        | 1 | TRUE  | FALSE ||
+%       ----------------------
+        | 2 | FALSE | TRUE  ||
+%       ----------------------
+    ENDTABLE
+
+  % This lemma says that "co" and "sbit" represent two-bit sum
+  co_sbit2: LEMMA n + ci = 2*co(n, ci) + sbit(n, ci)
+
+  % We define also 3-bit form of "co" and "sbit".
+  co(a, b, ci): bit = co(bit2ngpk(a, b), ci)
+  sbit(a, b, ci): bit = sbit(bit2ngpk(a, b), ci)
+  co_sbit3: LEMMA a + b + ci = 2*co(a, b, ci) + sbit(a, b, ci)
+
+  % These lemmas suggests implementations of "sbit" and "co" as
+  % boolean functions.
+  sbit_bool: LEMMA sbit(a, b, ci) = a XOR b XOR ci
+  co_bool: LEMMA co(a, b, ci) = (a&b OR a&ci OR b&ci)
+
+  % We define infix operation on two "gpk" values. Informally it
+  % is concatenation. Left higher bit or bit range has value, which
+  % is described by "msb" and adjacent lower bit or bit range has
+  % value, which is described by "lsb". The entire range is described
+  % by "msb o lsb".
+  msb, lsb: VAR gpk
+  o(msb, lsb): gpk =
+  CASES msb OF
+    k: k,
+    p: lsb,
+    g: g
+  ENDCASES
+
+  x, y, z: VAR gpk
+
+  % Operator "o" is assotiative and value "p" acts like zero element.
+  left_p: LEMMA p o x = x
+  right_p: LEMMA x o p = x
+  both_p: LEMMA x o y = p IMPLIES x = p AND y = p
+  assoc: LEMMA (x o y) o z = x o (y o z)
+
+END adder_bit
+
+
+
+
+
+% Theory "generic-adder[N]" introduces definition of "carry".
+% Then it suggests generic implementation of adder, parameterized
+% by method of evaluation of "carries" and proves correctnes of its
+% implementation provided by correctness of "carries" evaluation.
+generic_adder [N:posnat]: THEORY
+BEGIN
+  % This theory imports prevous two. This clause binds generic in
+  % import of "adder_def" to expression "N".
+  IMPORTING adder_def[N], adder_bit
+
+  ai: VAR adder_input
+  n: VAR upto(N)
+  i: VAR below(N)
+
+  % The function "ai2nat" defines n-bit partial sum of numbers at adder_input "ai".
+  ai2nat(n,ai): nat = bv2nat_rec(n,ai`a) + bv2nat_rec(n,ai`b) + ai`ci
+
+  % Lemma gives bound on partial sum.
+  adder_output_range: LEMMA ai2nat(n,ai) < exp2(n+1)
+
+  % Lets recursively define n-th carry. The recursive definition containes measure expression "n",
+  % which decreases at each recursive call. This proves that function is total - it can't recurse infinitely.
+  carry(n,ai): RECURSIVE bit = IF n = 0 THEN ai`ci ELSE co(ai`a(n-1), ai`b(n-1), carry(n-1,ai)) ENDIF MEASURE n
+
+  % We define sum bit in such a way.
+  sum(ai): bvec[N] = LAMBDA i: sbit(ai`a(i), ai`b(i), carry(i,ai))
+
+  % From above definitions it follows that defines "sum" and "carry" are
+  % actually equal to partial sum of input arguments.
+  sum_invariant: LEMMA ai2nat(n,ai) = bv2nat_rec(n,sum(ai)) + carry(n,ai)*exp2(n)
+
+  % Lemma says that definition of carry is equivalent to another definition in
+  % terms of partial sum.
+  carry_prop: LEMMA carry(n,ai) IFF ai2nat(n,ai) >= exp2(n)
+
+
+  % Carries device specification
+
+  % Type "carries" is a bitvector of carries.
+  carries: TYPE = bvec[N+1]
+
+  % Type "carries_device" is a map from "adder_input" to "carries" vector.
+  % It represents subdevice for calcualing carries.
+  % Carries device should calcualte correct values of "carries".
+  carries_device: TYPE = [adder_input -> carries]
+  cdev: VAR carries_device
+  carries_device_correct(cdev): bool = FORALL ai, n: cdev(ai)(n) = carry(n,ai)
+
+
+  % Generic adder schematics
+
+  % Xor device returns bitvector of xors of inputs/
+  xor_device(ai): bvec[N] = ai`a XOR ai`b
+  % Output device generaties sum and carry-out by xors and carries
+  output_device(xors: bvec[N], c: carries): adder_output = (# co := c(N), s := xors XOR c^(N-1,0) #)
+  % Generic adder has three connected block: xor_device, output_device and carries_device.
+  % Carries_device block can be varied in different instantiations of generic adder
+  generic_adder(cdev: carries_device): adder_device = LAMBDA ai: output_device(xor_device(ai), cdev(ai))
+
+
+  % Generic adder correctness
+  % Lemma says that the above schematics with correct "carries_device" is a correct adder.
+  generic_correct: LEMMA carries_device_correct(cdev) IMPLIES adder_device_correct(generic_adder(cdev))
+END generic_adder
+
+
+
+
+
+% Theory "ripple adder" suggests simplest implementation of adder. Carries are implemented
+% by simple chain.
+ripple_adder [N:posnat]: THEORY
+BEGIN
+  IMPORTING adder_def[N], generic_adder[N]
+
+  % Ripple adder schematics
+
+  % We define logic device for carry-chain bit
+  ripple_carry_bit_device(a: bit, b: bit, ci: bit): bit = (a AND b) OR ((a XOR b) AND ci)
+  % Recursive definition of carry-chain. n-th bit is a function of (n-1)-th bit.
+  ripple_carries_device(ai: adder_input)(n: upto(N)): RECURSIVE bit =
+    IF n = 0 THEN
+      ai`ci
+    ELSE
+      ripple_carry_bit_device(ai`a(n-1), ai`b(n-1), ripple_carries_device(ai)(n-1))
+    ENDIF
+  MEASURE n
+
+  % Ripple adder is a generic adder with ripple carry chain
+  ripple_adder: adder_device = generic_adder(ripple_carries_device)
+
+
+
+  % Ripple adder correctness
+
+  % Ripple carry chain is correct
+  ripple_carries_device_correct: LEMMA carries_device_correct(ripple_carries_device)
+  % Hence ripple adder is correct
+  ripple_adder_correct: LEMMA adder_device_correct(ripple_adder)
+
+END ripple_adder
+
+
+
+
+
+% Theory gpkv defines vector of gpk values. It declares also some properties
+% used by tree calculation of carries.
+gpkv [N:posnat]: THEORY
+BEGIN
+  IMPORTING adder_def[N], adder_bit, generic_adder[N]
+
+  gpkvec : TYPE = [below(N) -> gpk]
+  v: VAR gpkvec
+  i: VAR below(N)
+
+  low, mid, high: VAR upto(N)
+  % Function "gpkcarry"  converts gpk subvector to single gpk value by "o" operator.
+  gpkcarry(high, low, v): RECURSIVE gpk
+      = IF low >= high THEN p ELSE  v(high-1) o gpkcarry(high-1, low, v) ENDIF
+  MEASURE high
+
+  % This property follows from associativity of "o". It will be used to prove correctness
+  % of tree calculation of carries.
+  concat: LEMMA high >= mid & mid >= low IMPLIES gpkcarry(high, low, v) = gpkcarry(high, mid, v) o gpkcarry(mid, low, v) 
+  % If gpkcarry of subvector converts to gpk value "p", then this subvector consists of all "p".
+  gpkcarry_p: LEMMA gpkcarry(high, low, v) = p IMPLIES FORALL (i: nat) : high > i & i >= low IMPLIES v(i) = p
+
+  ngpkvec : TYPE = [below(N) -> ngpk]
+
+  nv: VAR ngpkvec
+  % partial sum of vector of bitwise sums
+  sum(high, nv): RECURSIVE nat
+      = IF high = 0 THEN 0 ELSE nv(high-1)*exp2(high-1) + sum(high-1, nv) ENDIF
+  MEASURE high
+
+  % Lemma states bound on parial sum.
+  sum_limit: LEMMA sum(high, nv) <= exp2(high + 1) - 2
+
+  % This function "ngpk" maps vector of "ngpk" to vector of "gpk" using bitwise function "ngpk".
+  n2gpk(nv)(i): gpk = n2gpk(nv(i))
+        
+  % Lemma states that n-th gpkcarry discriminates value of n-th partial sum
+  gpkcarry_sum: LEMMA gpkcarry(high, 0, n2gpk(nv)) =
+     LET s = sum(high, nv), ones = exp2(high) - 1 IN
+       COND
+          s < ones -> k,
+          s = ones -> p,
+          s > ones -> g
+       ENDCOND
+
+  even_sum: LEMMA high > 0 & nv(0) /= 1 IMPLIES gpkcarry(high, 0, n2gpk(nv)) /= p
+
+  ai: VAR adder_input
+
+  % This function creates vector of "ngpk" from bitwise sums and carry-in.
+  % Carry-in is considered as bit which is lower that lowest-bit.
+  ai2ngpkv(ai)(i): ngpk = IF i > 0 THEN ai`a(i-1) + ai`b(i-1) ELSE 2 * ai`ci ENDIF
+
+  % Lemma says that we can compute sum of adder_input arguments from vector returned by
+  % above function
+  sum_ai: LEMMA ai2nat(i, ai) * 2 = sum(i+1, ai2ngpkv(ai))
+  % Lemma states that we can compute caries using gpkcarries
+  gpkcarry_ai : LEMMA carry(i, ai) = (gpkcarry(i + 1, 0, n2gpk(ai2ngpkv(ai))) = g)
+
+END gpkv
+
+
+
+
+
+% Theory "LEAdder" defines a Ladner-Fischer adder. Its width is power of 2 ( N = 2^L ).
+LEAdder [L:nat]: THEORY
+BEGIN
+  N: posnat = exp2(L)
+
+  IMPORTING adder_def[N], adder_bit, generic_adder[N], gpkv[N]
+
+  ai: VAR adder_input
+  v, v1: VAR gpkvec
+  i: VAR below(N)
+  l: VAR upto(L)
+
+  % This function suggests tree computation of carries.
+  % It computes layer-by-layer
+  % Each l-th layer has N inputs and N outputs.
+  % Half of the inputs are simply translated to outputs.
+  % Other outputs are obtained by "o" operator.
+  le_device(l)(v): RECURSIVE gpkvec =
+    IF l = 0 THEN v
+    ELSE
+      LET v1 = le_device(l-1)(v)
+      IN
+        LAMBDA i:
+          LET
+            ll: posnat = exp2(l),
+            r: mod(ll) = rem(ll)(i)
+          IN
+            IF r >= exp2(l-1) THEN
+              v1(i) o v1(i - r + exp2(l-1) - 1)
+            ELSE
+              v1(i)
+            ENDIF
+    ENDIF
+  MEASURE l
+
+  rem_le: LEMMA FORALL (b: posnat, i: nat): rem(b)(i) <= i
+  % Lemma says that results of Ladner-Fischer layers can be computed from
+  % certain subvector of input "gpk" vector by "o" operator.
+  le_invariant: LEMMA le_device(l)(v)(i) = LET r: nat = rem(exp2(l))(i) IN gpkcarry(i+1, i-r, v)
+  % So last layers computes subvectors with zero lower index.
+  le_device_prop: LEMMA le_device(L)(v)(i) = gpkcarry(i+1, 0, v)
+
+
+  % Ladner-Fischer adder schematics
+
+  % This device calculates initial "gpk" vector from adder input
+  gpk_device(ai): gpkvec = LAMBDA i: IF i = 0 THEN (IF ai`ci THEN g ELSE k ENDIF) ELSE bit2gpk(ai`a(i-1), ai`b(i-1)) ENDIF
+  % The Ladner-Fisher adder device consists of "gpk_device", layers
+  % of "le_device" and simple schematics for calcualtion higher carry bit.
+  le_carries_device(ai: adder_input)(n: upto(N)): bit =
+    LET v = le_device(L)(gpk_device(ai))
+    IN
+      IF n < N THEN v(n)=g ELSE co(ai`a(N-1), ai`b(N-1),v(N-1)=g) ENDIF
+
+  % Ladner-Fisher  adder is a generic adder with tree computation of carries
+  le_adder: adder_device = generic_adder(le_carries_device)
+
+
+  % Ladner-Fischer adder correctness
+
+  % Lemma says what calculates gpk_device
+  gpk_device_correct: LEMMA gpk_device(ai) = n2gpk(ai2ngpkv(ai))
+  % Tree computation of carry is correct 
+  le_carries_device_correct: LEMMA carries_device_correct(le_carries_device)
+  % Ladner-Fischer adder is correct
+  le_adder_correct: LEMMA adder_device_correct(le_adder)
+
+END LEAdder
