@@ -221,14 +221,16 @@ public class Quick
 	 * If "count" is nonzero, only check that many instances (in "nodesToCheck") and set the
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * If "justArea" is TRUE, only check in the selected area.
+     * @return the number of errors found
 	 */
-	public static void checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
+	public static int checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
 	{
 		Quick q = new Quick();
-		q.doCheck(cell, count, geomsToCheck, validity, justArea);
+		return q.doCheck(cell, count, geomsToCheck, validity, justArea);
 	}
 
-	private void doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
+    // returns the number of errors found
+	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, boolean justArea)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -360,6 +362,7 @@ public class Quick
 		// now do the DRC
 		haveGoodDRCDate = false;
 		errorLogger = null;
+        int errorsFound = 0;
 		if (count == 0)
 		{
 			// just do full DRC here
@@ -377,20 +380,25 @@ public class Quick
 			{
 				// not a quiet DRC, so it must be incremental
 				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
-				errorLoggerIncremental.clearAllErrors();
+				errorLoggerIncremental.clearErrors(cell);
 				errorLogger = errorLoggerIncremental;
+                errorsFound = errorLoggerIncremental.getNumErrors();
 			}
 
 			checkTheseGeometrics(cell, count, geomsToCheck, validity);
 		}
 
-		if (errorLogger != null) errorLogger.termLogging(true);
+		if (errorLogger != null) {
+            errorLogger.termLogging(true);
+            errorsFound = errorLogger.getNumErrors() - errorsFound;
+        }
 
 		if (haveGoodDRCDate && count == 0)
 		{
 			// some cells were sucessfully checked: save that information in the database
 			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
 		}
+        return errorsFound;
 	}
 
 	/**

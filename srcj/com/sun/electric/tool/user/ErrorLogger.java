@@ -444,7 +444,12 @@ public class ErrorLogger implements ActionListener {
 	/**
 	 * Method to remove all logged errors from this errorlog.
 	 */
-	public synchronized void clearAllErrors() { allErrors.clear(); }
+	public synchronized void clearAllErrors() {
+        allErrors.clear();
+        trueNumErrors = 0;
+        limitExceeded = false;
+        currentErrorNumber = -1;
+    }
 
     /** Get the current logger */
     public static ErrorLogger getCurrent() {
@@ -465,6 +470,8 @@ public class ErrorLogger implements ActionListener {
             if (log.cell != cell) trimmedErrors.add(log);
         }
         allErrors = trimmedErrors;
+        trueNumErrors = allErrors.size();
+        currentErrorNumber = allErrors.size()-1;
     }
 
     /** Delete this logger */

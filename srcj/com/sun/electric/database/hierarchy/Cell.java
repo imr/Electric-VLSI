@@ -1185,9 +1185,10 @@ public class Cell extends NodeProto implements Comparable
 	 * Method to return an Iterator over all NodeInst objects in this Cell.
 	 * @return an Iterator over all NodeInst objects in this Cell.
 	 */
-	public Iterator getNodes()
+	public synchronized Iterator getNodes()
 	{
-		return nodes.iterator();
+        ArrayList nodesCopy = new ArrayList(nodes);
+		return nodesCopy.iterator();
 	}
 
 	/**
@@ -1213,9 +1214,10 @@ public class Cell extends NodeProto implements Comparable
 	 * Method to return an Iterator over all NodeUsage objects in this Cell.
 	 * @return an Iterator over all NodeUsage objects in this Cell.
 	 */
-	public Iterator getUsagesIn()
+	public synchronized Iterator getUsagesIn()
 	{
-		return usagesIn.values().iterator();
+        Map usagesCopy = new HashMap(usagesIn);
+		return usagesCopy.values().iterator();
 	}
 
 	/**
@@ -1356,9 +1358,10 @@ public class Cell extends NodeProto implements Comparable
 	 * Method to return an Iterator over all ArcInst objects in this Cell.
 	 * @return an Iterator over all ArcInst objects in this Cell.
 	 */
-	public Iterator getArcs()
+	public synchronized Iterator getArcs()
 	{
-		return arcs.iterator();
+        ArrayList arcsCopy = new ArrayList(arcs);
+		return arcsCopy.iterator();
 	}
 
 	/**

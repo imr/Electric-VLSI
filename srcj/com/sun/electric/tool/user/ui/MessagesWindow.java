@@ -174,6 +174,7 @@ public class MessagesWindow
 
 	protected void appendString(String str)
 	{
+        if (str.equals("")) return;
 		synchronized (buffer)
 		{
 			if (printWriter != null)

@@ -319,6 +319,9 @@ public class DRC extends Listener
 				cellsToCheck.remove(cellToCheck);
 		}
 
+        // don't check if cell not in database anymore
+        if (cellToCheck != null && !cellToCheck.isLinked()) return;
+
 		// if there is a cell to check, do it
 		if (cellSet != null)
 		{
@@ -347,12 +350,11 @@ public class DRC extends Listener
 		{
 			incrementalRunning = true;
 			long startTime = System.currentTimeMillis();
-			Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, false);
+			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, false);
 			long endTime = System.currentTimeMillis();
-			int errorCount = ErrorLogger.getCurrent().numErrors();
-			if (errorCount > 0)
+			if (errorsFound > 0)
 			{
-				System.out.println("Incremental DRC found " + errorCount + " errors");
+				System.out.println("Incremental DRC found " + errorsFound + " errors in cell "+cell.describe());
 			}
 			incrementalRunning = false;
 			doIncrementalDRCTask();
@@ -489,10 +491,9 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			Quick.checkDesignRules(cell, 0, null, null, justArea);
+			int errorsFound = Quick.checkDesignRules(cell, 0, null, null, justArea);
 			long endTime = System.currentTimeMillis();
-			int errorcount = ErrorLogger.getCurrent().numErrors();
-			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+			System.out.println(errorsFound + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
 		}
 	}

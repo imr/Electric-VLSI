@@ -1175,6 +1175,16 @@ public class User extends Listener
 	 */
 	public static void setErrorLimit(int limit) { cacheErrorLimit.setInt(limit); }
 
+    private static Pref cacheMaxUndoHistory = Pref.makeIntPref("MaxUndoHistory", User.tool.prefs, 40);
+    /**
+     * Method to get the maximum number of undos retained in memory
+     */
+    public static int getMaxUndoHistory() { return cacheMaxUndoHistory.getInt(); }
+    /**
+     * Method to set the maximum number of undos retained in memory
+     */
+    public static void setMaxUndoHistory(int n) { cacheMaxUndoHistory.setInt(n); }
+
 	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", User.tool.prefs, 1000);
 	/**
 	 * Method to tell the maximum memory to use for Electric, in megatybes.

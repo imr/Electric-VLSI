@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -965,7 +966,7 @@ public class Undo
 	private static boolean doNextChangeQuietly = false;
 	private static boolean doChangesQuietly = false;
 	private static ChangeBatch currentBatch = null;
-	private static int maximumBatches = 20;
+	private static int maximumBatches = User.getMaxUndoHistory();
 	private static int overallBatchNumber = 0;
 	private static List doneList = new ArrayList();
 	private static List undoneList = new ArrayList();
@@ -1698,7 +1699,7 @@ public class Undo
 	 * If not positive, the list size is not changed.
 	 * @return the former size of the history list.
 	 */
-	public static int historyListSize(int newSize)
+	public static int setHistoryListSize(int newSize)
 	{
 		if (newSize <= 0) return maximumBatches;
 

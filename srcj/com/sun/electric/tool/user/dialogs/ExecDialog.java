@@ -74,10 +74,10 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
             try {
                 Rectangle r = area.modelToView(area.getDocument().getLength());
                 area.scrollRectToVisible(r);
+                updateScheduled = false;
             } catch (javax.swing.text.BadLocationException e) {
                 e.printStackTrace(System.out);
             }
-            updateScheduled = false;
         }
 
     }

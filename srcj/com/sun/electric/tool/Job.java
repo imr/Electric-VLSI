@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Toolkit;
 import java.awt.geom.Point2D;
@@ -40,9 +41,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.List;
-import javax.swing.JPopupMenu;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -365,7 +364,12 @@ public abstract class Job implements ActionListener, Runnable {
 			doIt();
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
-			e.printStackTrace(System.out);
+            endTime = System.currentTimeMillis();
+            String [] msg = {"Exception Caught!!!",
+                             "Job \""+jobName+"\" generated the following Exception (see Messages Window):",
+                             e.toString() };
+            e.printStackTrace(System.out);
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception in Job "+jobName, JOptionPane.ERROR_MESSAGE);
 		} finally {
 			if (jobType == Type.EXAMINE)
 			{
@@ -374,11 +378,11 @@ public abstract class Job implements ActionListener, Runnable {
 				changingJob = null;
 				Library.clearChangeLocks();
 			}
+            endTime = System.currentTimeMillis();
 		}
         if (DEBUG) System.out.println(jobType+" Job: "+jobName +" finished");
 
 		finished = true;                        // is this redundant with Thread.isAlive()?
-        endTime = System.currentTimeMillis();
 //        Job.removeJob(this);
         WindowFrame.wantToRedoJobTree();
 

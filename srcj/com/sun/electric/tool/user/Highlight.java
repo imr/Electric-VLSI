@@ -551,7 +551,10 @@ public class Highlight
 	 * Method to return an Iterator over the highlighted objects.
 	 * @return an Iterator over the highlighted objects.
 	 */
-	public static Iterator getHighlights() { return highlightList.iterator(); }
+	public static synchronized Iterator getHighlights() {
+        ArrayList highlightsCopy = new ArrayList(highlightList);
+        return highlightsCopy.iterator();
+    }
 
 	/**
 	 * Method to load a list of Highlights into the highlighting.

@@ -641,7 +641,10 @@ public class EditWindow extends JPanel
 		public boolean doIt()
 		{
 			// do the hard work of re-rendering the image
+            long start = System.currentTimeMillis();
 			offscreen.drawImage(bounds);
+            long end = System.currentTimeMillis();
+            //System.out.println("Rerender time "+TextUtils.getElapsedTime(end-start));
 
 			// see if anything else is queued
 			synchronized(redrawThese)
