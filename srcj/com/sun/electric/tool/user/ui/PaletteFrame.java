@@ -84,6 +84,7 @@ import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.ImageIcon;
 import javax.swing.event.PopupMenuListener;
 
 /**
@@ -120,6 +121,7 @@ public class PaletteFrame
 			palette.jif.setSize(frameSize);
 			palette.jif.setLocation(0, 0);
 			palette.jif.setAutoscrolls(true);
+			palette.jif.setFrameIcon(new ImageIcon(palette.getClass().getResource("IconElectric.gif")));
 		} else
 		{
 			palette.jf = new JFrame("Components");
@@ -160,6 +162,25 @@ public class PaletteFrame
 	}
 
 	public PalettePanel getPanel() { return panel; }
+
+	/**
+	 * Method to automatically switch to the proper technology for a Cell.
+	 * @param cell the cell being displayed.
+	 * If technology auto-switching is on, make sure the right technology is displayed
+	 * for the Cell.
+	 */
+	public static void autoTechnologySwitch(Cell cell)
+	{
+		Technology tech = cell.getTechnology();
+		if (tech != null && tech != Technology.getCurrent())
+		{
+			if (User.isAutoTechnologySwitch())
+			{
+				tech.setCurrent();
+				TopLevel.getPaletteFrame().loadForTechnology();
+			}
+		}
+	}
 
 	public void loadForTechnology()
 	{

@@ -677,7 +677,7 @@ public class Clipboard
 	 * Method to queue the creation of an export from port "pp" of node "ni".
 	 * The port is being copied from an original port "origpp".  Returns true on error.
 	 */
-	private static void createQueuedExports(List queuedExports)
+	public static void createQueuedExports(List queuedExports)
 	{
 		/* sort the ports by their original name */
 		Collections.sort(queuedExports, new ExportNameCaseInsensitive());

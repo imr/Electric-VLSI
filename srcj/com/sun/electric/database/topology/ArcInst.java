@@ -138,7 +138,7 @@ public class ArcInst extends Geometric
 			if (type.isRigid()) ai.setRigid();
 			if (type.isFixedAngle()) ai.setFixedAngle();
 			if (type.isSlidable()) ai.setSlidable();
-			if (type.isExtended()) ai.setExtended();
+			if (type.isExtended()) ai.setExtended(); else ai.clearExtended();
 			if (type.isNegated()) ai.setNegated();
 			if (type.isDirectional()) ai.setDirectional();
 		}

@@ -82,9 +82,7 @@ public class User extends Tool
 
 		// initialize the display
 		TopLevel.Initialize();
-		PaletteFrame pf = TopLevel.getPaletteFrame();
-
-		pf.loadForTechnology();
+		TopLevel.getPaletteFrame().loadForTechnology();
 	}
 
 	/**
@@ -603,6 +601,184 @@ public class User extends Tool
 	 * @param dist the default alignment of object edges to the grid.
 	 */
 	public static void setEdgeAlignmentToGrid(float dist) { tool.prefs.putFloat("EdgeAlignmentToGrid", dist);   flushOptions(); }
+
+	/****************************** TEXT PREFERENCES ******************************/
+
+	private static boolean textVisibilityInited = false;
+	private static boolean textVisibilityNode;
+	private static boolean textVisibilityArc;
+	private static boolean textVisibilityPort;
+	private static boolean textVisibilityExport;
+	private static boolean textVisibilityAnnotation;
+	private static boolean textVisibilityInstance;
+	private static boolean textVisibilityCell;
+
+	private static void initializeTextSettings()
+	{
+		if (textVisibilityInited) return;
+		textVisibilityNode = tool.prefs.getBoolean("TextVisibilityNode", true);
+		textVisibilityArc = tool.prefs.getBoolean("TextVisibilityArc", true);
+		textVisibilityPort = tool.prefs.getBoolean("TextVisibilityPort", true);
+		textVisibilityExport = tool.prefs.getBoolean("TextVisibilityExport", true);
+		textVisibilityAnnotation = tool.prefs.getBoolean("TextVisibilityAnnotation", true);
+		textVisibilityInstance = tool.prefs.getBoolean("TextVisibilityInstance", true);
+		textVisibilityCell = tool.prefs.getBoolean("TextVisibilityCell", true);
+		textVisibilityInited = true;
+	}
+
+	/**
+	 * Method to tell whether to draw text that resides on nodes.
+	 * This text includes the node name and any parameters or attributes on it.
+	 * The default is "true".
+	 * @return true if the system should draw text that resides on nodes.
+	 */
+	public static boolean isTextVisibilityOnNode()
+	{
+		initializeTextSettings();
+		return textVisibilityNode;
+	}
+	/**
+	 * Method to set whether to draw text that resides on nodes.
+	 * This text includes the node name and any parameters or attributes on it.
+	 * @param on true if the system should draw text that resides on nodes.
+	 */
+	public static void setTextVisibilityOnNode(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityNode", textVisibilityNode = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw text that resides on arcs.
+	 * This text includes the arc name and any parameters or attributes on it.
+	 * The default is "true".
+	 * @return true if the system should draw text that resides on arcs.
+	 */
+	public static boolean isTextVisibilityOnArc()
+	{
+		initializeTextSettings();
+		return textVisibilityArc;
+	}
+	/**
+	 * Method to set whether to draw text that resides on arcs.
+	 * This text includes the arc name and any parameters or attributes on it.
+	 * @param on true if the system should draw text that resides on arcs.
+	 */
+	public static void setTextVisibilityOnArc(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityArc", textVisibilityArc = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw text that resides on ports.
+	 * This text includes the port name and any parameters or attributes on it.
+	 * The default is "true".
+	 * @return true if the system should draw text that resides on ports.
+	 */
+	public static boolean isTextVisibilityOnPort()
+	{
+		initializeTextSettings();
+		return textVisibilityPort;
+	}
+	/**
+	 * Method to set whether to draw text that resides on ports.
+	 * This text includes the port name and any parameters or attributes on it.
+	 * @param on true if the system should draw text that resides on ports.
+	 */
+	public static void setTextVisibilityOnPort(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityPort", textVisibilityPort = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw text that resides on exports.
+	 * This text includes the export name and any parameters or attributes on it.
+	 * The default is "true".
+	 * @return true if the system should draw text that resides on exports.
+	 */
+	public static boolean isTextVisibilityOnExport()
+	{
+		initializeTextSettings();
+		return textVisibilityExport;
+	}
+	/**
+	 * Method to set whether to draw text that resides on exports.
+	 * This text includes the export name and any parameters or attributes on it.
+	 * @param on true if the system should draw text that resides on exports.
+	 */
+	public static void setTextVisibilityOnExport(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityExport", textVisibilityExport = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw text annotation text.
+	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
+	 * In implementation, they are displayable Variables on Generic:invisible-pin nodes.
+	 * The default is "true".
+	 * @return true if the system should draw annotation text.
+	 */
+	public static boolean isTextVisibilityOnAnnotation()
+	{
+		initializeTextSettings();
+		return textVisibilityAnnotation;
+	}
+	/**
+	 * Method to set whether to draw annotation text.
+	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
+	 * In implementation, they are displayable Variables on Generic:invisible-pin nodes.
+	 * @param on true if the system should draw annotation text.
+	 */
+	public static void setTextVisibilityOnAnnotation(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityAnnotation", textVisibilityAnnotation = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw the name of on cell instances.
+	 * The default is "true".
+	 * @return true if the system should draw the name of on cell instances.
+	 */
+	public static boolean isTextVisibilityOnInstance()
+	{
+		initializeTextSettings();
+		return textVisibilityInstance;
+	}
+	/**
+	 * Method to set whether to draw the name of on cell instances.
+	 * @param on true if the system should draw the name of on cell instances.
+	 */
+	public static void setTextVisibilityOnInstance(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityInstance", textVisibilityInstance = on);
+		flushOptions();
+	}
+
+	/**
+	 * Method to tell whether to draw text that resides on the cell.
+	 * This includes the current cell's parameters or attributes (for example, spice templates).
+	 * The default is "true".
+	 * @return true if the system should draw text that resides on the cell.
+	 */
+	public static boolean isTextVisibilityOnCell()
+	{
+		initializeTextSettings();
+		return textVisibilityCell;
+	}
+	/**
+	 * Method to set whether to draw text that resides on the cell.
+	 * This includes the current cell's parameters or attributes (for example, spice templates).
+	 * @param on true if the system should draw text that resides on cthe cell.
+	 */
+	public static void setTextVisibilityOnCell(boolean on)
+	{
+		tool.prefs.putBoolean("TextVisibilityCell", textVisibilityCell = on);
+		flushOptions();
+	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 

@@ -38,14 +38,15 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.JInternalFrame;
 
 /**
  * a console for the Java side of Electric.  Used because the standard
@@ -78,6 +79,7 @@ public class MessagesWindow
 			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
 			jf = jInternalFrame;
 			contentFrame = jInternalFrame.getContentPane();
+			jInternalFrame.setFrameIcon(new ImageIcon(getClass().getResource("IconElectric.gif")));
 		} else
 		{
 			JFrame jFrame = new JFrame("Electric Messages");

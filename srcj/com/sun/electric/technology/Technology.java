@@ -48,6 +48,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.drc.DRC;
 
@@ -810,6 +811,7 @@ public class Technology extends ElectricObject
 		boolean addArrow = false;
 		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
 		int numDisplayable = ai.numDisplayableVariables(true);
+		if (wnd == null) numDisplayable = 0;
 		int maxPolys = primLayers.length + numDisplayable;
 		if (addArrow) maxPolys++;
 		Poly [] polys = new Poly[maxPolys];
@@ -861,8 +863,11 @@ public class Technology extends ElectricObject
 		}
 		
 		// add in the displayable variables
-		Rectangle2D rect = ai.getBounds();
-		ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
+		if (numDisplayable > 0)
+		{
+			Rectangle2D rect = ai.getBounds();
+			ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
+		}
 
 		return polys;
 	}
@@ -2057,7 +2062,8 @@ public class Technology extends ElectricObject
 	 */
 	public static Technology whatTechnology(NodeProto cell)
 	{
-		return whatTechnology(cell, null, 0, 0, null, 0, 0);
+		Technology tech = whatTechnology(cell, null, 0, 0, null, 0, 0);
+		return tech;
 	}
 
 	/**

@@ -58,6 +58,7 @@ import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -273,6 +274,7 @@ public class Cell extends NodeProto
 
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+	public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
 
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
@@ -847,6 +849,49 @@ public class Cell extends NodeProto
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
 	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
+
+	/**
+	 * Method to get the characteristic spacing for this Cell.
+	 * The characteristic spacing is used by the Array command to space these cells sensibly.
+	 * @return a dimension that is the characteristic spacing for this cell.
+	 * Returns null if there is no spacing defined.
+	 */
+	public Dimension getCharacteristicSpacing()
+	{
+		Variable var = getVar(CHARACTERISTIC_SPACING);
+		if (var != null)
+		{
+			Object obj = var.getObject();
+			if (obj instanceof Integer[])
+			{
+				Integer [] iSpac = (Integer [])obj;
+				Dimension spacing = new Dimension();
+				spacing.setSize(iSpac[0].intValue(), iSpac[1].intValue());
+				return spacing;
+			} else if (obj instanceof Double[])
+			{
+				Double [] dSpac = (Double [])obj;
+				Dimension spacing = new Dimension();
+				spacing.setSize(dSpac[0].doubleValue(), dSpac[1].doubleValue());
+				return spacing;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Method to set the characteristic spacing for this Cell.
+	 * The characteristic spacing is used by the Array command to space these cells sensibly.
+	 * @param x the characteristic width.
+	 * @param y the characteristic height.
+	 */
+	public void setCharacteristicSpacing(double x, double y)
+	{
+		Double [] newVals = new Double[2];
+		newVals[0] = new Double(x);
+		newVals[1] = new Double(y);
+		newVar(CHARACTERISTIC_SPACING, newVals);
+	}
 
 	/**
 	 * Method to indicate that the bounds of this Cell are incorrect because

@@ -60,22 +60,26 @@ import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.dialogs.About;
-import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.ToolOptions;
-import com.sun.electric.tool.user.dialogs.EditOptions;
-import com.sun.electric.tool.user.dialogs.EditKeyBindings;
-import com.sun.electric.tool.user.dialogs.IOOptions;
-import com.sun.electric.tool.user.dialogs.CrossLibCopy;
-import com.sun.electric.tool.user.dialogs.NewExport;
-import com.sun.electric.tool.user.dialogs.ViewControl;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellOptions;
+import com.sun.electric.tool.user.dialogs.CellParameters;
+import com.sun.electric.tool.user.dialogs.Change;
+import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.EditOptions;
+import com.sun.electric.tool.user.dialogs.EditKeyBindings;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.IOOptions;
+import com.sun.electric.tool.user.dialogs.LayerVisibility;
+import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.dialogs.ToolOptions;
+import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
@@ -242,6 +246,11 @@ public final class UserMenuCommands
 		if (ad == 0.5) moveHalf.setSelected(true); else
 			moveQuarter.setSelected(true);
 
+		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arrayCommand(); } });
+		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { changeCommand(); } });
+
 		Menu modeSubMenuSelect = Menu.createMenu("Select");
         modeSubMenu.add(modeSubMenuSelect);
         ButtonGroup selectGroup = new ButtonGroup();
@@ -306,6 +315,8 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
         specListSubMenu.addMenuItem("List Cell Usage", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
+		cellMenu.addMenuItem("Cell Parameters...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
 
 		cellMenu.addSeparator();
 
@@ -382,6 +393,11 @@ public final class UserMenuCommands
 
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
+
+		windowMenu.addSeparator();
+
+		windowMenu.addMenuItem("Layer Visibility...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
 
 		/****************************** THE TOOL MENU ******************************/
 
@@ -738,6 +754,8 @@ public final class UserMenuCommands
 
 		public void doIt()
 		{
+			Highlight.clear();
+			Highlight.finished();
 			if (!Undo.undoABatch())
 				System.out.println("Undo failed!");
 		}
@@ -756,6 +774,8 @@ public final class UserMenuCommands
 
 		public void doIt()
 		{
+			Highlight.clear();
+			Highlight.finished();
 			if (!Undo.redoABatch())
 				System.out.println("Redo failed!");
 		}
@@ -882,8 +902,7 @@ public final class UserMenuCommands
 	 */
 	public static void ioOptionsCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		IOOptions dialog = new IOOptions(jf, true);
+ 		IOOptions dialog = new IOOptions(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -892,8 +911,7 @@ public final class UserMenuCommands
 	 */
 	public static void editOptionsCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		EditOptions dialog = new EditOptions(jf, true);
+ 		EditOptions dialog = new EditOptions(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -902,8 +920,7 @@ public final class UserMenuCommands
 	 */
 	public static void toolOptionsCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		ToolOptions dialog = new ToolOptions(jf, true);
+ 		ToolOptions dialog = new ToolOptions(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
     
@@ -912,8 +929,7 @@ public final class UserMenuCommands
      */
     public static void keyBindingsCommand()
     {
-        JFrame jf = TopLevel.getCurrentJFrame();
-        EditKeyBindings dialog = new EditKeyBindings(jf, true);
+        EditKeyBindings dialog = new EditKeyBindings(TopLevel.getCurrentJFrame(), true);
         dialog.show();
     }
 
@@ -994,12 +1010,33 @@ public final class UserMenuCommands
         if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
     }
 
+	/**
+	 * This method implements the command to duplicate the selected objects in an arrayed layout.
+	 */
+    public static void arrayCommand()
+	{
+		Array dialog = new Array(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
+
+	/**
+	 * This method implements the command to change the ProtoType of the currently selected object.
+	 */
+    public static void changeCommand()
+	{
+		Change dialog = new Change(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
+
     public static void setSelectModeCommand(String mode)
     {
         if (mode.equals("Area")) ToolBar.selectAreaCommand();
         if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
     }
 
+	/**
+	 * This method implements the command to highlight all objects in the current Cell.
+	 */
 	public static void selectAllCommand()
 	{
 		Cell curCell = Library.needCurCell();
@@ -1021,12 +1058,20 @@ public final class UserMenuCommands
 		Highlight.finished();
     }
 
+	/**
+	 * This method implements the command to show the next logged error.
+	 * The error log lists the results of the latest command (DRC, NCC, etc.)
+	 */
 	public static void showNextErrorCommand()
 	{
 		String msg = ErrorLog.reportNextError();
 		System.out.println(msg);
 	}
 
+	/**
+	 * This method implements the command to show the last logged error.
+	 * The error log lists the results of the latest command (DRC, NCC, etc.)
+	 */
 	public static void showPrevErrorCommand()
 	{
 		String msg = ErrorLog.reportPrevError();
@@ -1040,8 +1085,7 @@ public final class UserMenuCommands
 	 */
 	public static void cellControlCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		CellOptions dialog = new CellOptions(jf, true);
+ 		CellOptions dialog = new CellOptions(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -1050,8 +1094,7 @@ public final class UserMenuCommands
      */
     public static void newCellCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		NewCell dialog = new NewCell(jf, true);
+ 		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
     }
 
@@ -1108,8 +1151,7 @@ public final class UserMenuCommands
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 
-		JFrame jf = TopLevel.getCurrentJFrame();
-		String newName = JOptionPane.showInputDialog(jf, "Name of duplicated cell",
+		String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Name of duplicated cell",
 			curCell.getProtoName() + "NEW");
 		if (newName == null) return;
 		CircuitChanges.duplicateCell(curCell, newName);
@@ -1121,6 +1163,15 @@ public final class UserMenuCommands
 	public static void deleteOldCellVersionsCommand()
 	{
 		CircuitChanges.deleteUnusedOldVersions();
+	}
+
+	/**
+	 * This method implements the command to do cell parameters.
+	 */
+	public static void cellParametersCommand()
+	{
+ 		CellParameters dialog = new CellParameters(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
 	}
 
 	/**
@@ -1190,8 +1241,7 @@ public final class UserMenuCommands
 	 */
 	public static void newExportCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		NewExport dialog = new NewExport(jf, true);
+ 		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -1202,8 +1252,7 @@ public final class UserMenuCommands
 	 */
 	public static void viewControlCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		ViewControl dialog = new ViewControl(jf, true);
+ 		ViewControl dialog = new ViewControl(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -1270,8 +1319,7 @@ public final class UserMenuCommands
 		String [] viewNames = new String[views.size()];
 		for(int i=0; i<views.size(); i++)
 			viewNames[i] = ((View)views.get(i)).getFullName();
-		JFrame jf = TopLevel.getCurrentJFrame();
-		Object newName = JOptionPane.showInputDialog(jf, "Which associated view do you want to see?",
+		Object newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Which associated view do you want to see?",
 			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, curCell.getView().getFullName());
 		if (newName == null) return;
 		String newViewName = (String)newName;
@@ -1340,6 +1388,15 @@ public final class UserMenuCommands
 		{
 			wnd.setGrid(!wnd.getGrid());
 		}
+	}
+
+    /**
+	 * This method implements the command to control Layer visibility.
+	 */
+	public static void layerVisibilityCommand()
+	{
+ 		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
 	}
 
 	// ---------------------- THE TOOLS MENU -----------------
@@ -1438,8 +1495,7 @@ public final class UserMenuCommands
 
 	public static void aboutCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
-		About dialog = new About(jf, true);
+		About dialog = new About(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 

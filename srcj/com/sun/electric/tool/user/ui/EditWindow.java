@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -214,6 +215,11 @@ public class EditWindow extends JPanel
 				wf.setTitle("***NONE***");
 			} else
 			{
+				if (wf == WindowFrame.getCurrentWindowFrame())
+				{
+					// if auto-switching technology, do it
+					PaletteFrame.autoTechnologySwitch(cell);
+				}
 				wf.setTitle(cell.describe());
 				if (cell.getView().isTextView())
 				{
@@ -366,7 +372,7 @@ public class EditWindow extends JPanel
 		}
 
 		// show cell variables if at the top level
-		if (topLevel)
+		if (topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
 			int numPolys = cell.numDisplayableVariables(true);
@@ -414,10 +420,13 @@ public class EditWindow extends JPanel
 				g2.setColor(Color.black);
 				g2.setStroke(solidLine);
 				g2.draw(poly);
-				bounds = poly.getBounds2D();
-				TextDescriptor descript = ni.getProtoTextDescriptor();
-				drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
-					Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
+				if (User.isTextVisibilityOnInstance())
+				{
+					bounds = poly.getBounds2D();
+					TextDescriptor descript = ni.getProtoTextDescriptor();
+					drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
+						Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
+				}
 
 				// show the ports that are not further exported or connected
 				FlagSet fs = PortProto.getFlagSet(1);
@@ -454,43 +463,55 @@ public class EditWindow extends JPanel
 					} else
 					{
 						// draw port as text
-						descript = portPoly.getTextDescriptor();
-						Poly.Type type = descript.getPos().getPolyType();
-						String portName = pp.getProtoName();
-						if (portDisplayLevel == 1)
+						if (User.isTextVisibilityOnPort())
 						{
-							// use shorter port name
-							portName = pp.getShortProtoName();
+							TextDescriptor descript = portPoly.getTextDescriptor();
+							Poly.Type type = descript.getPos().getPolyType();
+							String portName = pp.getProtoName();
+							if (portDisplayLevel == 1)
+							{
+								// use shorter port name
+								portName = pp.getShortProtoName();
+							}
+							drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
+								descript, portName, Color.red);
 						}
-						drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
-							descript, portName, Color.red);
 					}
 				}
 				fs.freeFlagSet();
 			}
 
 			// draw any displayable variables on the instance
-			int numPolys = ni.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			Rectangle2D rect = ni.getBounds();
-			ni.addDisplayableVariables(rect, polys, 0, this, true);
-			if (drawPolys(g2, polys, localTrans))
-				System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
+			if (User.isTextVisibilityOnNode())
+			{
+				int numPolys = ni.numDisplayableVariables(true);
+				Poly [] polys = new Poly[numPolys];
+				Rectangle2D rect = ni.getBounds();
+				ni.addDisplayableVariables(rect, polys, 0, this, true);
+				if (drawPolys(g2, polys, localTrans))
+					System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
+			}
 		} else
 		{
 			// primitive
 			if (topLevel || !ni.isVisInside())
 			{
+				EditWindow wnd = this;
 				PrimitiveNode prim = (PrimitiveNode)np;
+				if (!User.isTextVisibilityOnNode()) wnd = null;
+				if (prim == Generic.tech.invisiblePinNode)
+				{
+					if (!User.isTextVisibilityOnAnnotation()) wnd = null;
+				}
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, this);
+				Poly [] polys = tech.getShapeOfNode(ni, wnd);
 				if (drawPolys(g2, polys, localTrans))
 					System.out.println("... while displaying node "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
 		}
 
 		// draw any exports from the node
-		if (topLevel)
+		if (topLevel && User.isTextVisibilityOnExport())
 		{
 			int exportDisplayLevel = User.getExportDisplayLevel();
 			Iterator it = ni.getExports();
@@ -539,7 +560,9 @@ public class EditWindow extends JPanel
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShapeOfArc(ai, this);
+		EditWindow wnd = this;
+		if (!User.isTextVisibilityOnArc()) wnd = null;
+		Poly [] polys = tech.getShapeOfArc(ai, wnd);
 		if (drawPolys(g2, polys, trans))
 			System.out.println("... while displaying arc "+ai.describe() + " in cell " + ai.getParent().describe());
 	}
@@ -560,19 +583,20 @@ public class EditWindow extends JPanel
 				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
 				return true;
 			}
-			poly.transform(trans);
+			Layer layer = poly.getLayer();
 
 			// set the color
-			Color color;
-			Layer layer = poly.getLayer();
-			if (layer == null) color = Color.black; else
+			Color color = Color.black;
+			if (layer != null)
 			{
+				if (!layer.isVisible()) continue;
 				EGraphics graphics = layer.getGraphics();
 				color = graphics.getColor();
 			}
 			g2.setPaint(color);
 
 			// now draw it
+			poly.transform(trans);
 			Poly.Type style = poly.getStyle();
 			if (style == Poly.Type.FILLED)
 			{

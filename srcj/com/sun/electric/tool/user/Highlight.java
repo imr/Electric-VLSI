@@ -370,7 +370,7 @@ public class Highlight
 	}
 
 	/**
-	 * Method to return an List of all highlighted ElectricObjects.
+	 * Method to return a List of all highlighted ElectricObjects.
 	 * @param wantNodes true if NodeInsts should be included in the list.
 	 * @param wantArcs true if ArcInsts should be included in the list.
 	 * @return a list with the highlighted ElectricObjects.
@@ -1088,25 +1088,28 @@ public class Highlight
 		if (findText && wnd != null)
 		{
 			// start by examining all text on this Cell
-			Poly [] polys = cell.getAllText(findSpecial, wnd);
-			if (polys != null)
+			if (User.isTextVisibilityOnCell())
 			{
-				for(int i=0; i<polys.length; i++)
+				Poly [] polys = cell.getAllText(findSpecial, wnd);
+				if (polys != null)
 				{
-					Poly poly = polys[i];
-					poly.setExactTextBounds(wnd);
-					if (areaMustEnclose)
+					for(int i=0; i<polys.length; i++)
 					{
-						if (!poly.isInside(bounds)) continue;
-					} else
-					{
-						if (poly.polyDistance(bounds) >= directHitDist) continue;
+						Poly poly = polys[i];
+						poly.setExactTextBounds(wnd);
+						if (areaMustEnclose)
+						{
+							if (!poly.isInside(bounds)) continue;
+						} else
+						{
+							if (poly.polyDistance(bounds) >= directHitDist) continue;
+						}
+						Highlight h = new Highlight(Type.TEXT);
+						h.setElectricObject(cell);
+						h.setCell(cell);
+						h.setVar(poly.getVariable());
+						list.add(h);
 					}
-					Highlight h = new Highlight(Type.TEXT);
-					h.setElectricObject(cell);
-					h.setCell(cell);
-					h.setVar(poly.getVariable());
-					list.add(h);
 				}
 			}
 
@@ -1115,7 +1118,8 @@ public class Highlight
 			{
 				NodeInst ni = (NodeInst)it.next();
 				AffineTransform trans = ni.rotateOut();
-				polys = ni.getAllText(findSpecial, wnd);
+				EditWindow subWnd = wnd;
+				Poly [] polys = ni.getAllText(findSpecial, wnd);
 				if (polys == null) continue;
 				for(int i=0; i<polys.length; i++)
 				{
@@ -1158,25 +1162,28 @@ public class Highlight
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				polys = ai.getAllText(findSpecial, wnd);
-				if (polys == null) continue;
-				for(int i=0; i<polys.length; i++)
+				if (User.isTextVisibilityOnArc())
 				{
-					Poly poly = polys[i];
-					poly.setExactTextBounds(wnd);
-					if (areaMustEnclose)
+					Poly [] polys = ai.getAllText(findSpecial, wnd);
+					if (polys == null) continue;
+					for(int i=0; i<polys.length; i++)
 					{
-						if (!poly.isInside(bounds)) continue;
-					} else
-					{
-						if (poly.polyDistance(bounds) >= directHitDist) continue;
+						Poly poly = polys[i];
+						poly.setExactTextBounds(wnd);
+						if (areaMustEnclose)
+						{
+							if (!poly.isInside(bounds)) continue;
+						} else
+						{
+							if (poly.polyDistance(bounds) >= directHitDist) continue;
+						}
+						Highlight h = new Highlight(Type.TEXT);
+						h.setElectricObject(ai);
+						h.setCell(cell);
+						h.setVar(poly.getVariable());
+						h.setName(poly.getName());
+						list.add(h);
 					}
-					Highlight h = new Highlight(Type.TEXT);
-					h.setElectricObject(ai);
-					h.setCell(cell);
-					h.setVar(poly.getVariable());
-					h.setName(poly.getName());
-					list.add(h);
 				}
 			}
 		}

@@ -77,11 +77,10 @@ public final class UserInitial
 			WindowFrame window1 = WindowFrame.createEditWindow(null);
         }
 
-                
         // run script
         if (beanShellScript != null) EvalJavaBsh.tool.runScript(beanShellScript);
 	}
-    
+
     /** check if command line option 'option' present in 
      * command line args. If present, return true and remove if from the list.
      * Otherwise, return false.
@@ -96,7 +95,7 @@ public final class UserInitial
         }
         return false;
     }
-    
+
     /** get command line option for 'option'. Returns null if 
      * no such 'option'.  If found, remove it from the list.
      */
@@ -115,7 +114,7 @@ public final class UserInitial
         }
         return null;
     }
-    
+
     /** open any libraries specified on the command line.  This method should be 
      * called after any valid options have been parsed out
      */
@@ -134,7 +133,7 @@ public final class UserInitial
         }
         return openedALib;
     }
-    
+
 	/**
 	 * Class to init all technologies.
 	 */
@@ -153,12 +152,11 @@ public final class UserInitial
 
 			// initialize all of the tools
 			Tool.initAllTools();
-			
+
 			// initialize the constraint system
 			Layout con = Layout.getConstraint();
 			Constraint.setCurrent(con);
 		}
 	}
-    
-    
+
 }

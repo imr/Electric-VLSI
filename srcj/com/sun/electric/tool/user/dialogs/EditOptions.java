@@ -1282,8 +1282,7 @@ public class EditOptions extends javax.swing.JDialog
 
 			if (redrawPalette)
 			{
-				PaletteFrame pf = TopLevel.getPaletteFrame();
-				pf.loadForTechnology();
+				TopLevel.getPaletteFrame().loadForTechnology();
 			}
 			if (redrawWindows)
 			{
@@ -1994,8 +1993,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         newArc.add(arcProtoList, gridBagConstraints);
 
         jLabel5.setText("For Arc:");

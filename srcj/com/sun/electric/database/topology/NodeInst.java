@@ -940,17 +940,30 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
-		boolean easyAnnotation = User.isEasySelectionOfAnnotationText();
 		int nodeNameText = 0;
 		if (protoType instanceof Cell && !isExpanded()) nodeNameText = 1;
-		int dispVars = 0;
-		if (easyAnnotation) dispVars = numDisplayableVariables(false);
-		int numExports = getNumExports();
+		if (!User.isTextVisibilityOnInstance()) nodeNameText = 0;
+		if (!User.isEasySelectionOfAnnotationText()) nodeNameText = 0;
+		int dispVars = numDisplayableVariables(false);
+		int numExports = 0;
 		int numExportVariables = 0;
-		for(Iterator it = getExports(); it.hasNext(); )
+		if (User.isTextVisibilityOnExport())
 		{
-			Export pp = (Export)it.next();
-			numExportVariables += pp.numDisplayableVariables(false);
+			numExports = getNumExports();
+			for(Iterator it = getExports(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				numExportVariables += pp.numDisplayableVariables(false);
+			}
+		}
+		if (protoType == Generic.tech.invisiblePinNode &&
+			!User.isTextVisibilityOnAnnotation())
+		{
+			nodeNameText = dispVars = numExports = numExportVariables = 0;
+		}
+		if (!User.isTextVisibilityOnNode())
+		{
+			nodeNameText = dispVars = numExports = numExportVariables = 0;
 		}
 		int totalText = nodeNameText + dispVars + numExports + numExportVariables;
 		if (totalText == 0) return null;
@@ -958,7 +971,7 @@ public class NodeInst extends Geometric implements Nodable
 		int start = 0;
 
 		// add in the cell name if appropriate
-		if (easyAnnotation && (nodeNameText != 0))
+		if (nodeNameText != 0)
 		{
 			double cX = getTrueCenterX();
 			double cY = getTrueCenterY();
@@ -977,22 +990,25 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// add in the exports
-		for(Iterator it = getExports(); it.hasNext(); )
+		if (numExports > 0)
 		{
-			Export pp = (Export)it.next();
-			polys[start] = pp.getNamePoly();
-			start++;
+			for(Iterator it = getExports(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				polys[start] = pp.getNamePoly();
+				start++;
 
-			// add in variables on the exports
-			Poly poly = pp.getOriginalPort().getPoly();
-			int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
-			for(int i=0; i<numadded; i++)
-				polys[start+i].setPort(pp);
-			start += numadded;
+				// add in variables on the exports
+				Poly poly = pp.getOriginalPort().getPoly();
+				int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
+				for(int i=0; i<numadded; i++)
+					polys[start+i].setPort(pp);
+				start += numadded;
+			}
 		}
 
 		// add in the displayable variables
-		if (easyAnnotation) addDisplayableVariables(getBounds(), polys, start, wnd, false);
+		if (dispVars > 0) addDisplayableVariables(getBounds(), polys, start, wnd, false);
 		return polys;
 	}
 

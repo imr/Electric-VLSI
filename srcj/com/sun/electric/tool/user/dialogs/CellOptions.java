@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
 
+import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -93,6 +94,7 @@ public class CellOptions extends javax.swing.JDialog
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
@@ -109,21 +111,11 @@ public class CellOptions extends javax.swing.JDialog
 				ov.useTechEditorChanged = false;
 				ov.defExpandedChanged = false;
 				ov.characteristicChanged = false;
-				Variable var = cell.getVar("FACET_characteristic_spacing");
-				if (var != null)
+				Dimension spacing = cell.getCharacteristicSpacing();
+				if (spacing != null)
 				{
-					Object obj = var.getObject();
-					if (obj instanceof Integer[])
-					{
-						Integer [] iSpac = (Integer [])obj;
-						ov.charX = iSpac[0].intValue();
-						ov.charY = iSpac[1].intValue();
-					} else if (obj instanceof Double[])
-					{
-						Double [] dSpac = (Double [])obj;
-						ov.charX = dSpac[0].doubleValue();
-						ov.charY = dSpac[1].doubleValue();
-					}
+					ov.charX = spacing.getWidth();
+					ov.charY = spacing.getHeight();
 				}
 				origValues.put(cell, ov);
 			}
@@ -977,10 +969,7 @@ public class CellOptions extends javax.swing.JDialog
 					}
 					if (ov.characteristicChanged)
 					{
-						Double [] newVals = new Double[2];
-						newVals[0] = new Double(ov.charX);
-						newVals[1] = new Double(ov.charY);
-						cell.newVar("FACET_characteristic_spacing", newVals);
+						cell.setCharacteristicSpacing(ov.charX, ov.charY);
 					}
 				}
 			}

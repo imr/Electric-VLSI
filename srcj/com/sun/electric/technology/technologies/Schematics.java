@@ -307,6 +307,7 @@ public class Schematics extends Technology
 		bus_arc.setFunction(PrimitiveArc.Function.BUS);
 		bus_arc.setFixedAngle();
 		bus_arc.clearSlidable();
+		bus_arc.clearExtended();
 		bus_arc.setAngleIncrement(45);
 
 
@@ -353,7 +354,7 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(NodeProto.Function.PIN);
 		busPinNode.setSquare();
-		busPinNode.setWipeOn1or2();
+//		busPinNode.setWipeOn1or2();
 
 		/** wire con */
 		Technology.NodeLayer letterJ;
@@ -1329,9 +1330,10 @@ public class Schematics extends Technology
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1340,7 +1342,6 @@ public class Schematics extends Technology
 		if (ni.isWiped()) return null;
 
 		PrimitiveNode np = (PrimitiveNode)prototype;
-		Technology.NodeLayer [] primLayers = np.getLayers();
 		if (np == wirePinNode)
 		{
 			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
@@ -1517,7 +1518,7 @@ public class Schematics extends Technology
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
 			}
 		}
-		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
 	}
 
 	/**

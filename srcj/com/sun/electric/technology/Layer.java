@@ -207,6 +207,7 @@ public class Layer
 	private double thickness, height;
 	private double resistance, capacitance, edgeCapacitance;
 	private Layer nonPseudoLayer;
+	private boolean visible;
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -214,6 +215,7 @@ public class Layer
 		this.tech = tech;
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
+		this.visible = true;
 	}
 
 	/**
@@ -322,6 +324,18 @@ public class Layer
 	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
 	 */
 	public void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
+
+	/**
+	 * Method to tell whether this Layer is visible.
+	 * @return true if this Layer is visible.
+	 */
+	public boolean isVisible() { return visible; }
+
+	/**
+	 * Method to set whether this Layer is visible.
+	 * @param visible true if this Layer is to be visible.
+	 */
+	public void setVisible(boolean visible) { this.visible = visible; }
 
 	/**
 	 * Method to set the 3D height and thickness of this Layer.

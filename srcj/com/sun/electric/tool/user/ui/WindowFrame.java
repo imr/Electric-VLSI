@@ -65,7 +65,6 @@ import javax.swing.event.InternalFrameEvent;
  */
 public class WindowFrame
 {
-
 	/** This frame has a circuit editing window. */		public static final int DISPWINDOW = 0;
 	/** This frame has a text editing window */			public static final int TEXTWINDOW = 1;
 	/** This frame has a waveform editing window */		public static final int WAVEFORMWINDOW = 2;
@@ -112,6 +111,7 @@ public class WindowFrame
 			frame.jif.setSize(frameSize);
 			frame.jif.setLocation(windowOffset+150, windowOffset);
 			frame.jif.setAutoscrolls(true);
+			frame.jif.setFrameIcon(new ImageIcon(frame.getClass().getResource("IconElectric.gif")));
 		} else
 		{
 			frame.jf = new TopLevel("Electric - " + cellDescription, frameSize, frame);
@@ -232,16 +232,7 @@ public class WindowFrame
 				cell.getLibrary().setCurCell(cell);
 
 				// if auto-switching technology, do it
-				Technology tech = cell.getTechnology();
-				if (tech != null && tech != Technology.getCurrent())
-				{
-					if (User.isAutoTechnologySwitch())
-					{
-						tech.setCurrent();
-						PaletteFrame pf = TopLevel.getPaletteFrame();
-						pf.loadForTechnology();
-					}
-				}
+				PaletteFrame.autoTechnologySwitch(cell);
 			}
 		}
 	}

@@ -421,9 +421,10 @@ public class Artwork extends Technology
 	 * This makes no sense for Artwork primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Artwork primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -440,7 +441,6 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				if (np == circleNode) polys[0].setStyle(Poly.Type.OPENED); else
 					polys[0].setStyle(Poly.Type.OPENEDT3);
-				Technology.NodeLayer [] primLayers = np.getLayers();
 				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(primLayer.getLayer());
 				return polys;
@@ -461,7 +461,6 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				if (np == circleNode) polys[0].setStyle(Poly.Type.CIRCLEARC); else
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
-				Technology.NodeLayer [] primLayers = np.getLayers();
 				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(primLayer.getLayer());
 				return polys;
@@ -477,13 +476,12 @@ public class Artwork extends Technology
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
 				polys[0].setStyle(Poly.Type.OPENED);
-				Technology.NodeLayer [] primLayers = np.getLayers();
 				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(primLayer.getLayer());
 				return polys;
 			}
 		}
-		return super.getShapeOfNode(ni, wnd, electrical, reasonable);
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
 	}
 
 	/**
