@@ -216,9 +216,9 @@ public class WaveformWindow implements WindowContent
 		/** the button to toggle bus display (digital). */		private JButton toggleBusSignals;
 		/** the signal name button (digital). */				private JButton digitalSignalButton;
 		/** displayed range along horozintal axis */			private double minTime, maxTime;
-		/** low vertical axis for this trace (analog) */		private double analogLowValue;
-		/** high vertical axis for this trace (analog) */		private double analogHighValue;
-		/** vertical range for this trace (analog) */			private double analogRange;
+		/** low value displayed in this panel (analog) */		private double analogLowValue;
+		/** high value displayed in this panel (analog) */		private double analogHighValue;
+		/** vertical range displayed in this panel (analog) */	private double analogRange;
 		/** the size of the window (in pixels) */				private Dimension sz;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
@@ -767,9 +767,8 @@ public class WaveformWindow implements WindowContent
 					Signal ws = (Signal)it.next();
 					if (ws.sSig instanceof Simulation.SimAnalogSignal)
 					{
-						// draw analog trace
-						Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
-						Rectangle2D bounds = as.getBounds();
+						// grid on analog trace
+						Rectangle2D bounds = ws.sSig.getBounds();
 						if (first)
 						{
 							lowYData = bounds.getMinY();
@@ -1989,9 +1988,9 @@ public class WaveformWindow implements WindowContent
 			if (isAnalog)
 			{
 				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
-				Point2D rangePt = as.getRangeOfValues();
-				double lowValue = rangePt.getX();
-				double highValue = rangePt.getY();
+				Rectangle2D rangeBounds = as.getBounds();
+				double lowValue = rangeBounds.getMinY();
+				double highValue = rangeBounds.getMaxY();
 				double range = highValue - lowValue;
 				if (range == 0) range = 2;
 				double rangeExtra = range / 10;
@@ -2945,7 +2944,7 @@ public class WaveformWindow implements WindowContent
 		mainTimePanel = new TimeTickPanel(null, this);
 		mainTimePanel.setToolTipText("One time scale applies to all signals when time is locked");
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 10;       gbc.gridy = 1;
+		gbc.gridx = 10;      gbc.gridy = 1;
 		gbc.gridwidth = 3;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -3389,9 +3388,9 @@ public class WaveformWindow implements WindowContent
 				if (isAnalog)
 				{
 					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
-					Point2D rangePt = as.getRangeOfValues();
-					double lowValue = rangePt.getX();
-					double highValue = rangePt.getY();
+					Rectangle2D rangeBounds = as.getBounds();
+					double lowValue = rangeBounds.getMinY();
+					double highValue = rangeBounds.getMaxY();
 					double range = highValue - lowValue;
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;
@@ -3557,7 +3556,6 @@ public class WaveformWindow implements WindowContent
 		// if no cell in the window, stop now
 		Cell cell = sd.getCell();
 		if (cell == null) return nets;
-//		Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{

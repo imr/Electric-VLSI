@@ -125,7 +125,7 @@ public class Artwork extends Technology
 		/** Solid arc */
 		solidArc = PrimitiveArc.newInstance(this, "Solid", 0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENED)
+			new Technology.ArcLayer(G_lay, 0, Poly.Type.FILLED)
 		});
 		solidArc.setFunction(PrimitiveArc.Function.NONELEC);
 		solidArc.setFactoryFixedAngle(false);

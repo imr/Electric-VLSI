@@ -848,7 +848,23 @@ public class Highlight
 					}
                 }
 
-				// highlight objects that are electrically connected to this object
+                // if this is a port on an "example icon", show the equivalent port in the cell
+                if (ni.isIconOfParent())
+                {
+                	// find export in parent
+                	Export equiv = (Export)cell.findPortProto(pp.getName());
+                	if (equiv != null)
+                	{
+                		PortInst ePi = equiv.getOriginalPort();
+                		Poly ePoly = ePi.getPoly();
+	            		Point2D [] linePoints = new Point2D[2];
+	            		linePoints[0] = new Point2D.Double(ePoly.getCenterX(), ePoly.getCenterY());
+	            		linePoints[1] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+	            		drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, null);
+                	}
+                }
+
+                // highlight objects that are electrically connected to this object
                 // unless specified not to. HighlightConnected is set to false by addNetwork when
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
@@ -934,8 +950,11 @@ public class Highlight
     public String describe() {
         StringBuffer desc = new StringBuffer();
         desc.append(type);
-        desc.append(" in cell ");
-        desc.append(cell.describe());
+        if (cell != null)
+        {
+	        desc.append(" in cell ");
+	        desc.append(cell.describe());
+        }
         desc.append(": ");
         if (type == Type.MESSAGE){
             desc.append(", ");

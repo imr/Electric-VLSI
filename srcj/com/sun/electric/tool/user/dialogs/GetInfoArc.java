@@ -200,7 +200,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
         // populate arc color combo box (only for Artwork technology)
         int [] colorIndices = EGraphics.getColorIndices();
-        arcColorComboBox.addItem("DEFAULT FONT");
+        arcColorComboBox.addItem("DEFAULT COLOR");
         for (int i=0; i<colorIndices.length; i++) {
             String str = EGraphics.getColorIndexName(colorIndices[i]);
             arcColorComboBox.addItem(str);

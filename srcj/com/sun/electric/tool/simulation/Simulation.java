@@ -311,6 +311,8 @@ public class Simulation extends Tool
 		private String signalContext;
 		private SimData sd;
 		private boolean useCommonTime;
+		protected Rectangle2D bounds;
+		private boolean boundsCurrent;
 		private double [] time;
 		private List bussedSignals;
 		public List tempList;		// used only in the Verilog reader
@@ -323,6 +325,7 @@ public class Simulation extends Tool
 		{
 			this.sd = sd;
 			useCommonTime = true;
+			boundsCurrent = false;
 			if (sd != null) sd.signals.add(this);
 		}
 
@@ -477,103 +480,19 @@ public class Simulation extends Tool
 		 * Method to compute the time and value bounds of this simulation signal.
 		 * @return a Rectangle2D that has time bounds in the X part and
 		 * value bounds in the Y part.
+		 * For digital signals, the Y part is simply 0 to 1.
 		 */
 		public Rectangle2D getBounds()
 		{
-			// determine extent of the data
-			double lowTime=0, highTime=0, lowValue=0, highValue=0;
-			boolean first = true;
-			if (this instanceof SimAnalogSignal)
+			if (!boundsCurrent)
 			{
-				SimAnalogSignal as = (SimAnalogSignal)this;
-				if (as.isBasic())
-				{
-					for(int i=0; i<as.values.length; i++)
-					{
-						double time = 0;
-						time = as.getTime(i);
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-							lowValue = highValue = as.values[i];
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-							if (as.values[i] < lowValue) lowValue = as.values[i];
-							if (as.values[i] > highValue) highValue = as.values[i];
-						}
-					}
-				} else if (as.isSweep())
-				{
-					for(int s=0; s<as.sweepValues.length; s++)
-					{
-						for(int i=0; i<as.sweepValues[s].length; i++)
-						{
-							double time = 0;
-							time = as.getTime(i, s);
-							double value = as.sweepValues[s][i];
-							if (first)
-							{
-								first = false;
-								lowTime = highTime = time;
-								lowValue = highValue = value;
-							} else
-							{
-								if (time < lowTime) lowTime = time;
-								if (time > highTime) highTime = time;
-								if (value < lowValue) lowValue = value;
-								if (value > highValue) highValue = value;
-							}
-						}
-					}
-				} else if (as.isInterval())
-				{
-					for(int i=0; i<as.values.length; i++)
-					{
-						double time = 0;
-						time = as.getTime(i);
-						double lowVal = as.values[i];
-						double highVal = as.values[i];
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-							lowValue = lowVal;
-							highValue = highVal;
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-							if (lowVal < lowValue) lowValue = lowVal;
-							if (highVal > highValue) highValue = highVal;
-						}
-					}
-				}
-			} else if (this instanceof SimDigitalSignal)
-			{
-				SimDigitalSignal ds = (SimDigitalSignal)this;
-				if (ds.state != null)
-				{
-					for(int i=0; i<ds.state.length; i++)
-					{
-						double time = 0;
-						time = ds.getTime(i);
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-						}
-					}
-				}
+				calcBounds();
+				boundsCurrent = true;
 			}
-			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
+			return bounds;
 		}
+
+		protected void calcBounds() {}
 	}
 
 	/**
@@ -581,14 +500,14 @@ public class Simulation extends Tool
 	 */
 	public static class SimAnalogSignal extends SimSignal
 	{
-		/** a simple analog signal */			private static final int BASICSIGNAL = 0;
-		/** a swept analog analog signal */		private static final int SWEEPSIGNAL = 1;
+		/** a simple analog signal */			private static final int BASICSIGNAL    = 0;
+		/** a swept analog analog signal */		private static final int SWEEPSIGNAL    = 1;
 		/** an interval analog signal */		private static final int INTERVALSIGNAL = 2;
 
+		private int signalType;
 		private double [] values;
 		private double [][] sweepValues;
 		private double [] highIntervalValues;
-		private int signalType;
 
 		/**
 		 * Constructor for an analog signal.
@@ -777,8 +696,9 @@ public class Simulation extends Tool
 		}
 
 		/**
-		 * Method to return the number of events in this signal.
+		 * Method to return the number of events in one sweep of this signal.
 		 * This is the number of events along the horizontal axis, usually "time".
+		 * The method only works for sweep signals.
 		 * @param sweep the sweep number to query.
 		 * @return the number of events in this signal.
 		 */
@@ -821,57 +741,78 @@ public class Simulation extends Tool
 		public boolean isInterval() { return signalType == INTERVALSIGNAL; }
 
 		/**
-		 * Method to compute the low and high range of values on this signal.
-		 * @return a Point2D where X is the low value and Y is the high value.
+		 * Method to compute the low and high range of time and value on this signal.
+		 * The result is stored in the "bounds" field variable.
 		 */
-		public Point2D getRangeOfValues()
+		protected void calcBounds()
 		{
-			double lowValue = 0, highValue = 0;
-			switch (signalType)
+			// determine extent of the data
+			double lowTime=0, highTime=0, lowValue=0, highValue=0;
+			boolean first = true;
+			if (isBasic())
 			{
-				case BASICSIGNAL:
-					for(int i=0; i<getNumEvents(); i++)
+				for(int i=0; i<values.length; i++)
+				{
+					double time = getTime(i);
+					double value = values[i];
+					if (first)
 					{
-						double val = getValue(i);
-						if (i == 0) lowValue = highValue = val; else
-						{
-							if (val < lowValue) lowValue = val;
-							if (val > highValue) highValue = val;
-						}
+						first = false;
+						lowTime = highTime = time;
+						lowValue = highValue = value;
+					} else
+					{
+						if (time < lowTime) lowTime = time;
+						if (time > highTime) highTime = time;
+						if (value < lowValue) lowValue = value;
+						if (value > highValue) highValue = value;
 					}
-					break;
-				case SWEEPSIGNAL:
-					for(int s=0; s<getNumSweeps(); s++)
+				}
+			} else if (isSweep())
+			{
+				for(int s=0; s<sweepValues.length; s++)
+				{
+					for(int i=0; i<sweepValues[s].length; i++)
 					{
-						for(int i=0; i<getNumEvents(); i++)
+						double time = getTime(i, s);
+						double value = sweepValues[s][i];
+						if (first)
 						{
-							double val = getSweepValue(s, i);
-							if (s == 0 && i == 0) lowValue = highValue = val; else
-							{
-								if (val < lowValue) lowValue = val;
-								if (val > highValue) highValue = val;
-							}
-						}
-					}
-					break;
-				case INTERVALSIGNAL:
-					for(int i=0; i<getNumEvents(); i++)
-					{
-						double lowVal = getIntervalLowValue(i);
-						double highVal = getIntervalHighValue(i);
-						if (i == 0)
-						{
-							lowValue = lowVal;
-							highValue = highVal;
+							first = false;
+							lowTime = highTime = time;
+							lowValue = highValue = value;
 						} else
 						{
-							if (lowVal < lowValue) lowValue = lowVal;
-							if (highVal > highValue) highValue = highVal;
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+							if (value < lowValue) lowValue = value;
+							if (value > highValue) highValue = value;
 						}
 					}
-					break;
+				}
+			} else if (isInterval())
+			{
+				for(int i=0; i<values.length; i++)
+				{
+					double time = getTime(i);
+					double lowVal = values[i];
+					double highVal = values[i];
+					if (first)
+					{
+						first = false;
+						lowTime = highTime = time;
+						lowValue = lowVal;
+						highValue = highVal;
+					} else
+					{
+						if (time < lowTime) lowTime = time;
+						if (time > highTime) highTime = time;
+						if (lowVal < lowValue) lowValue = lowVal;
+						if (highVal > highValue) highValue = highVal;
+					}
+				}
 			}
-			return new Point2D.Double(lowValue, highValue);
+			bounds = new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
 		}
 	}
 
@@ -927,6 +868,33 @@ public class Simulation extends Tool
 		 * @return the number of events in this signal.
 		 */
 		public int getNumEvents() { return state.length; }
+
+		/**
+		 * Method to compute the low and high range of time value on this signal.
+		 * The result is stored in the "bounds" field variable.
+		 */
+		protected void calcBounds()
+		{
+			boolean first = true;
+			double lowTime = 0, highTime = 0;
+			if (state != null)
+			{
+				for(int i=0; i<state.length; i++)
+				{
+					double time = getTime(i);
+					if (first)
+					{
+						first = false;
+						lowTime = highTime = time;
+					} else
+					{
+						if (time < lowTime) lowTime = time;
+						if (time > highTime) highTime = time;
+					}
+				}
+			}
+			bounds = new Rectangle2D.Double(lowTime, 0, highTime-lowTime, 1);
+		}
 	}
 
 	/**

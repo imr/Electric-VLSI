@@ -1135,6 +1135,7 @@ public class PostScript extends Output
 	{
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
+		if (td == null) return;
 		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
 		Rectangle2D bounds = poly.getBounds2D();
 

@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+BUG: (02/01/05, SMR) Artwork solid arcs are drawn in outline form when made thick.
+FIX: In "Artwork.java", change the solid arc to have type FILLED.
+
+BUG: (02/01/05, SMR) Very tiny schematics may crash PostScript output.
+FIX: In PostScript.psText(), quit if text descriptor is null.
+
+BUG: (02/01/05, SMR) Numbers are displayed with too many digits (Bug #183)
+FIX: In "TextUtils.makeUnits()", call "formatDouble" with 1 parameter to force 3 digits precision.
+
+IMP: (02/01/05, SMR) Highlighting a port on an "example icon" shows the equivalent export in the cell (Bug #142).
+
 IMP: (01/31/05, GVG) First version of sweep algorithm connected to ERC Well
 
 IMP: (01/31/05, SMR) Waveform window draws grid dimmer and in the background.  Horizontal grid lines

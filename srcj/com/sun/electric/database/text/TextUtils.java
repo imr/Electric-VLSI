@@ -347,11 +347,9 @@ public class TextUtils
 	}
 
 	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
-	private static SimpleDateFormat simpleDateFormatPST = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
-	static { simpleDateFormatPST.setTimeZone(TimeZone.getTimeZone("PST")); }
 
 	/**
-	 * Method to convert a Date to a String using Locale TimeZone.
+	 * Method to convert a Date to a String using local TimeZone.
 	 * @param date the date to format.
 	 * @return the string representation of the date.
 	 */
@@ -360,15 +358,19 @@ public class TextUtils
 		return simpleDateFormat.format(date);
 	}
 
-	/**
-	 * Method to convert a Date to a String using PST TimeZone.
-	 * @param date the date to format.
-	 * @return the string representation of the date.
-	 */
-	public static String formatDatePST(Date date)
-	{
-		return simpleDateFormatPST.format(date);
-	}
+	// SMR removed this method because the initialization of the "PST" timezone only works in the USA
+
+//	private static SimpleDateFormat simpleDateFormatPST = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
+//	static { simpleDateFormatPST.setTimeZone(TimeZone.getTimeZone("PST")); }
+//	/**
+//	 * Method to convert a Date to a String using PST TimeZone.
+//	 * @param date the date to format.
+//	 * @return the string representation of the date.
+//	 */
+//	public static String formatDatePST(Date date)
+//	{
+//		return simpleDateFormatPST.format(date);
+//	}
 
 	/**
 	 * Method to convert an integer to a string that is left-padded with spaces
@@ -694,26 +696,27 @@ public class TextUtils
 	 */
 	public static String makeUnits(double value, TextDescriptor.Unit units)
 	{
-		if (units == TextDescriptor.Unit.RESISTANCE)
+		if (units == TextDescriptor.Unit.NONE)
 		{
-			return displayedUnits(value, units, User.getResistanceUnits());
-		} else if (units == TextDescriptor.Unit.CAPACITANCE)
-		{
-			return displayedUnits(value, units, User.getCapacitanceUnits());
-		} else if (units == TextDescriptor.Unit.INDUCTANCE)
-		{
-			return displayedUnits(value, units, User.getInductanceUnits());
-		} else if (units == TextDescriptor.Unit.CURRENT)
-		{
-			return displayedUnits(value, units, User.getAmperageUnits());
-		} else if (units == TextDescriptor.Unit.VOLTAGE)
-		{
-			return displayedUnits(value, units, User.getVoltageUnits());
-		} else if (units == TextDescriptor.Unit.TIME)
-		{
-			return displayedUnits(value, units, User.getTimeUnits());
+			// SMR removed the 2nd parameter to show only 3 digits
+//			return formatDouble(value, 0);
+			return formatDouble(value);
 		}
-		return formatDouble(value, 0);
+		if (units == TextDescriptor.Unit.RESISTANCE)
+			return displayedUnits(value, units, User.getResistanceUnits());
+		if (units == TextDescriptor.Unit.CAPACITANCE)
+			return displayedUnits(value, units, User.getCapacitanceUnits());
+		if (units == TextDescriptor.Unit.INDUCTANCE)
+			return displayedUnits(value, units, User.getInductanceUnits());
+		if (units == TextDescriptor.Unit.CURRENT)
+			return displayedUnits(value, units, User.getAmperageUnits());
+		if (units == TextDescriptor.Unit.VOLTAGE)
+			return displayedUnits(value, units, User.getVoltageUnits());
+		if (units == TextDescriptor.Unit.TIME)
+			return displayedUnits(value, units, User.getTimeUnits());
+
+		// shouldn't get here
+		return "?";
 	}
 
     /**

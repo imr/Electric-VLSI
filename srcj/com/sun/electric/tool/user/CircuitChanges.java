@@ -5216,8 +5216,8 @@ public class CircuitChanges
 	{
 		// if it isn't a string, just return its address
 		Object obj = var.getObject();
-		if (obj instanceof Object[]) return obj;
-		if (!var.isCode() && !(obj instanceof String)) return obj;
+		if (!(obj instanceof String)) return obj;
+		if (var.isCode()) return obj;
 
 		String str = (String)obj;
 		int plusPlusPos = str.indexOf("++");
