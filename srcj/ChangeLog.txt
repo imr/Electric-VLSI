@@ -4,6 +4,12 @@ FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns
 
 ************************* Version 8.01h: *********************************
 
+BUG: (8/18/04, SMR) DRC crashes when run on icons.
+FIX: Use Schematic DRC for Icons, not layout DRC.
+
+BUG: (8/18/04, SMR) Artwork arcs are fixed-angle by default.
+FIX: In "technology.technologies.Artwork", made all arcs not-fixed-angle.
+
 BUG: (8/18/04, SMR) Reading ELIB files with cell-centers that are not at the origin places geometry badly.
 FIX: In "tool.io.input.ELIB.realizeNode()" must offset the anchor values by (xoff,yoff).
 

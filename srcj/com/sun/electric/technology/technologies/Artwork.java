@@ -122,6 +122,7 @@ public class Artwork extends Technology
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENED)
 		});
 		solidArc.setFunction(PrimitiveArc.Function.NONELEC);
+		solidArc.setFactoryFixedAngle(false);
 		solidArc.setWipable();
 		solidArc.setFactoryAngleIncrement(0);
 
@@ -131,6 +132,7 @@ public class Artwork extends Technology
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT1)
 		});
 		dottedArc.setFunction(PrimitiveArc.Function.NONELEC);
+		dottedArc.setFactoryFixedAngle(false);
 		dottedArc.setWipable();
 		dottedArc.setFactoryAngleIncrement(0);
 
@@ -140,6 +142,7 @@ public class Artwork extends Technology
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT2)
 		});
 		dashedArc.setFunction(PrimitiveArc.Function.NONELEC);
+		dashedArc.setFactoryFixedAngle(false);
 		dashedArc.setWipable();
 		dashedArc.setFactoryAngleIncrement(0);
 
@@ -149,6 +152,7 @@ public class Artwork extends Technology
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT3)
 		});
 		thickerArc.setFunction(PrimitiveArc.Function.NONELEC);
+		thickerArc.setFactoryFixedAngle(false);
 		thickerArc.setWipable();
 		thickerArc.setFactoryAngleIncrement(0);
 

@@ -136,6 +136,7 @@ public class Generic extends Technology
 		{
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
 		});
+		unrouted_arc.setFactoryFixedAngle(false);
 		unrouted_arc.setFunction(PrimitiveArc.Function.UNROUTED);
 		unrouted_arc.setFactoryAngleIncrement(0);
 

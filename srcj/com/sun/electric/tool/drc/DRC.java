@@ -38,6 +38,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
@@ -801,7 +802,8 @@ public class DRC extends Listener
 		Cell curCell = WindowFrame.needCurCell();
 
 		if (curCell == null) return;
-		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
+		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech ||
+			curCell.getView() == View.ICON || curCell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
 			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, null);
@@ -824,7 +826,8 @@ public class DRC extends Listener
 
         Cell curCell = wnd.getCell();
 		if (curCell == null) return;
-		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
+		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech ||
+			curCell.getView() == View.ICON || curCell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
 			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, bounds);
