@@ -611,10 +611,6 @@ public class ERCWellCheck
 						int layerType = getWellLayerType(layer);
 						// Only interested in well/select regions
 						if (!isERCLayerRelated(layer)) continue;
-						//if (getWellLayerType(layer) == ERCPSEUDO) continue;
-						//if (layerType != ERCPWell && layerType != ERCNWell && !wellSubsContact)
-						//if (layerType != ERCPWell && layerType != ERCNWell && !wellSubsContact)
-						//	continue;
 						poly.transform(trans);
 						Object newElem = poly;
 

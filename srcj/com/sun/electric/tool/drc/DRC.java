@@ -147,15 +147,12 @@ public class DRC extends Listener
 				cellsToCheck.remove(cellToCheck);
 		}
 
-        if (cellToCheck != null)
-        {
-            // don't check if cell not in database anymore
-	        if (!cellToCheck.isLinked()) return;
-	        // Handling clipboard case (one type of hidden libraries
-	        if (cellToCheck.getLibrary().isHidden()) return;
-        }
+		if (cellToCheck == null) return; // nothing to do
 
-		if (cellToCheck == null && cellSet != null) System.out.println("Check this condition in DRC.doIncrementalDRCTask");
+		// don't check if cell not in database anymore
+		if (!cellToCheck.isLinked()) return;
+		// Handling clipboard case (one type of hidden libraries
+		if (cellToCheck.getLibrary().isHidden()) return;
 
 		// if there is a cell to check, do it
 		if (cellSet != null)
