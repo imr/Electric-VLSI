@@ -414,20 +414,20 @@ public class OutputBinary extends Output
 		writeNameSpace();
 
 		// write the library variables
-		writeVariables(lib);
+		writeVariables(lib, 0);
 
 		// write the tool variables
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
-			writeVariables(tool);
+			writeVariables(tool, 0);
 		}
 
 		// write the variables on technologies
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			writeVariables(tech);
+			writeVariables(tech, 0);
 		}
 
 		// write the arcproto variables
@@ -437,7 +437,7 @@ public class OutputBinary extends Output
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				PrimitiveArc ap = (PrimitiveArc)ait.next();
-				writeVariables(ap);
+				writeVariables(ap, 0);
 			}
 		}
 
@@ -448,7 +448,7 @@ public class OutputBinary extends Output
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				writeVariables(np);
+				writeVariables(np, 0);
 			}
 		}
 
@@ -462,7 +462,7 @@ public class OutputBinary extends Output
 				for(Iterator pit = np.getPorts(); pit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pit.next();
-					writeVariables(pp);
+					writeVariables(pp, 0);
 				}
 			}
 		}
@@ -473,7 +473,7 @@ public class OutputBinary extends Output
 		{
 			View view = (View)it.next();
 			writeBigInteger(view.getTempInt());
-			writeVariables(view);
+			writeVariables(view, 0);
 		}
 
 		// write all of the cells in this library
@@ -580,9 +580,10 @@ public class OutputBinary extends Output
 			{
 				// write the connecting subnodeinst for this portproto
 				int i = -1;
-				if (pp.getOriginalNode() != null)
+				PortInst pi = pp.getOriginalPort();
+				if (pi != null)
 				{
-					i = pp.getOriginalNode().getTempInt();
+					i = pi.getNodeInst().getTempInt();
 				} else
 				{
 					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subnode");
@@ -591,9 +592,9 @@ public class OutputBinary extends Output
 
 				// write the portproto index in the subnodeinst
 				i = -1;
-				if (pp.getOriginalNode() != null && pp.getOriginalPort() != null)
+				if (pi != null)
 				{
-					i = pp.getOriginalPort().getPortProto().getTempInt();
+					i = pi.getPortProto().getTempInt();
 				} else
 				{
 					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subport");
@@ -615,7 +616,7 @@ public class OutputBinary extends Output
 				writeBigInteger(pp.lowLevelGetUserbits());
 
 				// write variable information
-				writeVariables(pp);
+				writeVariables(pp, 0);
 			}
 		}
 
@@ -626,7 +627,7 @@ public class OutputBinary extends Output
 			writeBigInteger(cell.lowLevelGetUserbits());
 
 			// write variable information
-			writeVariables(cell);
+			writeVariables(cell, 0);
 		}
 	}
 
@@ -647,7 +648,7 @@ public class OutputBinary extends Output
 		writeBigInteger(highX);
 		writeBigInteger(highY);
 		int transpose = 0;
-		if (ni.getXSize() < 0 || ni.getYSize() < 0) transpose = 1;
+		if (ni.isTransposed()) transpose = 1;
 		writeBigInteger(transpose);
 		int rotation = (int)(ni.getAngle() * 1800 / Math.PI);
 		writeBigInteger(rotation);
@@ -694,7 +695,7 @@ public class OutputBinary extends Output
 		writeBigInteger(ni.lowLevelGetUserbits());
 
 		// write variable information
-		writeVariables(ni);
+		writeVariables(ni,  tech.getScale());
 	}
 
 	void writeArcInst(ArcInst ai)
@@ -727,7 +728,7 @@ public class OutputBinary extends Output
 		writeBigInteger(userBits);
 
 		// write variable information
-		writeVariables(ai);
+		writeVariables(ai, 0);
 	}
 
 	/**
@@ -737,7 +738,7 @@ public class OutputBinary extends Output
 	{
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTime(date);
-		return creation.getTimeInMillis();
+		return creation.getTimeInMillis() / 1000;
 	}
 
 	// --------------------------------- VARIABLES ---------------------------------
@@ -819,7 +820,7 @@ public class OutputBinary extends Output
 	 * routine to write a set of object variables.  returns negative upon error and
 	 * otherwise returns the number of variables write
 	 */
-	int writeVariables(ElectricObject obj)
+	int writeVariables(ElectricObject obj, double scale)
 		throws IOException
 	{
 		int count = 0;
@@ -832,9 +833,10 @@ public class OutputBinary extends Output
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			if (!var.isDontSave()) continue;
+			if (var.isDontSave()) continue;
 			Variable.Name vn = var.getName();
-			writeSmallInteger((short)vn.getIndex());
+			short index = (short)vn.getIndex();
+			writeSmallInteger(index);
 
 			// create the "type" field
 			Object varObj = var.getObject();
@@ -858,14 +860,27 @@ public class OutputBinary extends Output
 			{
 				int len = ((Object[])varObj).length;
 				writeBigInteger(len);
-				for(int i=0; i<len; i++)
+
+				// special case for "trace" on a node: scale the values
+				if (vn.getName().equals("trace"))
 				{
-					Object oneObj = ((Object[])varObj)[i];
-					putOutVar(oneObj);
+					Integer [] outline = (Integer[])varObj;
+					for(int i=0; i<len; i++)
+					{
+						int oneVal = outline[i].intValue();
+						writeBigInteger((int)(oneVal*scale));
+					}
+				} else
+				{
+					for(int i=0; i<len; i++)
+					{
+						Object oneObj = ((Object[])varObj)[i];
+						putOutVar(oneObj);
+					}
 				}
 			} else
 			{
-				putOutVar(obj);
+				putOutVar(varObj);
 			}
 		}
 		return(count);

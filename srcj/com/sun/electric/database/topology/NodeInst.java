@@ -326,7 +326,7 @@ public class NodeInst extends Geometric
 //			e.delete();
 			PortInst newPort = newInst.findPortInst(portNm);
 			if (newPort == null) System.out.println("NodeInst.moveExports: can't find port: " + portNm + " on new inst");
-			Export.newInstance(parent, newInst, newPort, expNm);
+			Export.newInstance(parent, newPort, expNm);
 		}
 	}
 
@@ -561,6 +561,14 @@ public class NodeInst extends Geometric
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Routine to tell whether this NodeInst is transposed.
+	 * Transformed nodes have a negative size factor.
+	 * Graphically, they are transposed about the diagonal.
+	 * @return true if this NodeInst is transposed.
+	 */
+	public boolean isTransposed() { return sX < 0 || sY < 0; }
 
 	/**
 	 * Routine to return a transformation that moves up the hierarchy.

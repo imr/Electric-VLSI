@@ -34,11 +34,11 @@ import java.awt.geom.AffineTransform;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the
- * PortProto that got exported, and the NodeInst for that port.
+ * PortInst that got exported, which identifies a NodeInst and a PortProto on that NodeInst.
  * <P>
  * An Export takes a PortInst on a NodeInst and makes it available as a PortInst
  * on instances of this NodeInst, farther up the hierarchy.
- * An Export therefore sits on the NodeInst that is its source and also on the Cell
+ * An Export therefore belongs to the NodeInst that is its source and also to the Cell
  * that the NodeInst belongs to.
  * The data structures look like this:
  * <P>
@@ -47,8 +47,7 @@ import java.awt.geom.AffineTransform;
 public class Export extends PortProto
 {
 	// -------------------------- private data ---------------------------
-	/** the PortProto that the exported port belongs to */	private PortInst originalPort;
-	/** the NodeInst that the exported port belongs to */	private NodeInst originalNode;
+	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 
 	// -------------------- protected and private methods --------------
 
@@ -93,7 +92,7 @@ public class Export extends PortProto
 	 * @param originalPort the port on that node.
 	 * @return true on error.
 	 */
-	public boolean lowLevelPopulate(NodeInst originalNode, PortInst originalPort)
+	public boolean lowLevelPopulate(PortInst originalPort)
 	{
 		// initialize this object
 		if (originalPort == null)
@@ -101,13 +100,8 @@ public class Export extends PortProto
 			System.out.println("Null port on Export " + protoName + " in cell " + parent.describe());
 			return true;
 		}
-		if (originalNode == null)
-		{
-			System.out.println("Null node on Export " + protoName + " in cell " + parent.describe());
-			return true;
-		}
 		this.originalPort = originalPort;
-		this.originalNode = originalNode;
+		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
 		
 		this.userBits = originalPort.getPortProto().lowLevelGetUserbits();
@@ -123,11 +117,11 @@ public class Export extends PortProto
 	 * It may not have unprintable characters, spaces, or tabs in it.
 	 * @return the newly created Export.
 	 */
-	public static Export newInstance(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
+	public static Export newInstance(Cell parent, PortInst originalPort, String protoName)
 	{
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;
-		if (pp.lowLevelPopulate(originalNode, originalPort)) return null;
+		if (pp.lowLevelPopulate(originalPort)) return null;
 		return pp;
 	}	
 
@@ -136,6 +130,7 @@ public class Export extends PortProto
 	 */
 	public void remove()
 	{
+		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
 		super.remove();
 	}
@@ -150,7 +145,7 @@ public class Export extends PortProto
 	 * Routine to return the NodeInst inside of the cell that is the origin of this Export.
 	 * @return the NodeInst inside of the cell that is the origin of this Export.
 	 */
-	public NodeInst getOriginalNode() { return originalNode; }
+//	public NodeInst getOriginalNode() { return originalNode; }
 
 	/**
 	 * Routine to return a Poly that describes the shape of this Export on a particular NodeInst.
@@ -166,6 +161,7 @@ if (originalPort == null)
 	System.out.println("Null originalPort on Export " + protoName + " in cell " + parent.describe());
 	return null;
 }
+		NodeInst originalNode = originalPort.getNodeInst();
 		Poly poly = originalPort.getPortProto().getPoly(originalNode);
 		if (poly == null) return null;
 		AffineTransform af = ni.transformOut();
@@ -182,7 +178,6 @@ if (originalPort == null)
 		System.out.println(" Original: " + originalPort);
 		System.out.println(" Base: " + getBasePort());
 		System.out.println(" Cell: " + parent.describe());
-		System.out.println(" Instance: " + originalNode.describe());
 		super.getInfo();
 	}
 

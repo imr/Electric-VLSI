@@ -1096,7 +1096,7 @@ public class InputBinary extends Input
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
-			if (pp.lowLevelPopulate(subNodeInst, pi)) return;
+			if (pp.lowLevelPopulate(pi)) return;
 		}
 
 		// finish initializing the ArcInsts in the cell

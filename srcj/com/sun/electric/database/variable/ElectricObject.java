@@ -216,7 +216,7 @@ public class ElectricObject
 	{
 		if (vars == null)
 			return (new ArrayList()).iterator();
-		return vars.entrySet().iterator();
+		return vars.values().iterator();
 	}
 
 	/**

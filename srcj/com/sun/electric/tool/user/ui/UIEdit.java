@@ -417,7 +417,7 @@ public class UIEdit extends JPanel
 				if (startAngle < endAngle) startAngle += 360;
 				startAngle = 360 - startAngle;
 				endAngle = 360 - endAngle;
-				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, endAngle, startAngle - endAngle);
+				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, startAngle, endAngle - startAngle);
 				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
 			{

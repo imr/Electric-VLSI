@@ -152,9 +152,9 @@ public final class UserInitial
 		polyArc2.setFixedAngle();
 
 		// export the two pins
-		Export m1Export = Export.newInstance(myCell, metal12Via, m1m2Port, "in");
+		Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
 		m1Export.setCharacteristic(PortProto.Characteristic.IN);
-		Export p1Export = Export.newInstance(myCell, poly1Pin, p1Port, "out");
+		Export p1Export = Export.newInstance(myCell, p1Port, "out");
 		p1Export.setCharacteristic(PortProto.Characteristic.OUT);
 		System.out.println("Created cell " + myCell.describe());
 

@@ -446,8 +446,8 @@ public class Artwork extends Technology
 				double cY = ni.getCenterY();
 				double dist = ni.getXSize() / 2;
 				pointList[0] = new Point2D.Double(cX, cY);
-				pointList[1] = new Point2D.Double(cX + Math.cos(angles[0])*dist, cY + Math.sin(angles[0])*dist);
-				pointList[2] = new Point2D.Double(cX + Math.cos(angles[0]+angles[1])*dist, cY + Math.sin(angles[0]+angles[1])*dist);
+				pointList[1] = new Point2D.Double(cX + Math.cos(angles[0]+angles[1])*dist, cY + Math.sin(angles[0]+angles[1])*dist);
+				pointList[2] = new Point2D.Double(cX + Math.cos(angles[0])*dist, cY + Math.sin(angles[0])*dist);
 				polys[0] = new Poly(pointList);
 				if (np == c_node) polys[0].setStyle(Poly.Type.CIRCLEARC); else
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);

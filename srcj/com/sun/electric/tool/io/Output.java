@@ -34,7 +34,7 @@ public class Output
 	DataOutputStream dataOutputStream;
 
 	/**
-	 * Function is a typesafe enum class that describes the types of files that can be read.
+	 * Function is a typesafe enum class that describes the types of files that can be written.
 	 */
 	public static class ExportType
 	{
@@ -66,11 +66,7 @@ public class Output
 	public boolean WriteLib(Library lib) { return true; }
 
 	/**
-	 * Routine to read disk file "fileName" which is of type "type".
-	 * The file is read into library "lib".  If "lib" is null, one is created.
-	 * Also, if "lib" is null, this is an entry-level library read.
-	 * If "lib" is not null, this is a recursive read caused by a cross-library
-	 * reference from inside another library.
+	 * Routine to write Library "lib" with type "type".
 	 */
 	public static boolean WriteLibrary(Library lib, ExportType type)
 	{
