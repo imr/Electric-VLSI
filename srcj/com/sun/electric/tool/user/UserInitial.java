@@ -80,6 +80,7 @@ public final class UserInitial
 		protected InitTechnologies()
 		{
 			super("Init technologies", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
 		}
 
 		public void doIt()
@@ -96,6 +97,7 @@ public final class UserInitial
 		protected MakeFakeCircuitry()
 		{
 			super("Make fake circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
 		}
 
 		public void doIt()

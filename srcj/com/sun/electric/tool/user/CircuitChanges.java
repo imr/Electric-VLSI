@@ -66,7 +66,11 @@ public class CircuitChanges
 
 	protected static class DeleteSelected extends Job
 	{
-		protected DeleteSelected() { super("Delete", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+		protected DeleteSelected()
+		{
+			super("Delete", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
 
 		public void doIt()
 		{
@@ -112,6 +116,7 @@ public class CircuitChanges
 		{
 			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dx = dx;   this.dy = dy;
+			this.startJob();
 		}
 
 		public void doIt()

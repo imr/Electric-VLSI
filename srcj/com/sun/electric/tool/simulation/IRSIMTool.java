@@ -98,6 +98,7 @@ public class IRSIMTool extends Tool {
             this.cell = cell;
             this.context = context;
             this.wnd = wnd;
+			this.startJob();
         }            
         
         public void doIt() {

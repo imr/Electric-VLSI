@@ -147,7 +147,11 @@ public class Clipboard
 
 	protected static class CopyObjects extends Job
 	{
-		protected CopyObjects() { super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+		protected CopyObjects()
+		{
+			super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
 
 		public void doIt()
 		{
@@ -182,7 +186,11 @@ public class Clipboard
 
 	protected static class CutObjects extends Job
 	{
-		protected CutObjects() { super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+		protected CutObjects()
+		{
+			super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
 
 		public void doIt()
 		{
@@ -220,7 +228,11 @@ public class Clipboard
 
 	protected static class PasteObjects extends Job
 	{
-		protected PasteObjects() { super("Paste", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+		protected PasteObjects()
+		{
+			super("Paste", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
 
 		public void doIt()
 		{

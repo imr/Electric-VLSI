@@ -150,6 +150,7 @@ class WiringListener
 			super("Wiring", User.tool, Job.Type.CHANGE, wl.getCellBeingWired(), null, Job.Priority.USER);
 			this.wpList = wpList;
 			this.wl = wl;
+			this.startJob();
 		}
 
 		public void doIt()

@@ -262,13 +262,18 @@ public abstract class Job implements ActionListener, Runnable {
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
         myNode = new DefaultMutableTreeNode(this);
-        
+	}
+	
+	public void startJob()
+	{        
         databaseChangesThread.addJob(this);
 
 		// should figure out when to start the job properly...for now, just start it
 		//Thread t = new Thread(this, jobName);
 		//t.start();
     }
+	
+
 	//--------------------------ABSTRACT METHODS--------------------------
     
     /** This is the main work method.  This method should
@@ -457,13 +462,13 @@ public abstract class Job implements ActionListener, Runnable {
         int seconds = (int)milliseconds/1000;
         if (seconds < 0) seconds = 0;
         int days = seconds/86400;
-        buf.append(days+" days : ");
+        if (days > 0) buf.append(days+" days : ");
         seconds = seconds - (days*86400);
         int hours = seconds/3600;
-        buf.append(hours+" hrs : ");
+        if (hours > 0) buf.append(hours+" hrs : ");
         seconds = seconds - (hours*3600);
         int minutes = seconds/60;
-        buf.append(minutes+" mins : ");
+        if (minutes > 0) buf.append(minutes+" mins : ");
         seconds = seconds - (minutes*60);
         buf.append(seconds+" secs");
         return buf.toString();

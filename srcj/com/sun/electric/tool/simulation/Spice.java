@@ -109,6 +109,7 @@ public class Spice
 		{
 			super("Write Spice Deck", Simulation.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.fileName = fileName;
+			this.startJob();
 		}
 
 		public void doIt()

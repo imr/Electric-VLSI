@@ -146,6 +146,9 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
 		editMenu.addMenuItem("Tool Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
+		editMenu.addSeparator();
+		editMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
 
 		// setup the Cell menu
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
@@ -180,10 +183,6 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplayCommand(); } });
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
-
-		// setup the Technology menu
-		Menu technologyMenu = Menu.createMenu("Technology", 'H');
-		menuBar.add(technologyMenu);
 
 		// setup the Tool menu
 		Menu toolMenu = Menu.createMenu("Tool", 'T');
@@ -229,14 +228,6 @@ public final class UserMenuCommands
 		menuBar.add(helpMenu);
 		helpMenu.addMenuItem("About Electric...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
-
-		// setup Steve's test menu
-		Menu steveMenu = Menu.createMenu("Steve", 'S');
-		menuBar.add(steveMenu);
-		steveMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
-		steveMenu.addMenuItem("Show R-Tree", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showRTreeCommand(); } });
 
 		// setup Russell's test menu
 //		Menu russMenu = Menu.createMenu("Russell", 'R');
@@ -296,10 +287,12 @@ public final class UserMenuCommands
 	protected static class ReadBinaryLibrary extends Job
 	{
 		String fileName;
+
 		protected ReadBinaryLibrary(String fileName)
 		{
 			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileName = fileName;
+			this.startJob();
 		}
 
 		public void doIt()
@@ -339,6 +332,7 @@ public final class UserMenuCommands
 		{
 			super("Read Text Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileName = fileName;
+			this.startJob();
 		}
 
 		public void doIt()
@@ -411,6 +405,7 @@ public final class UserMenuCommands
 		protected UndoCommand()
 		{
 			super("Undo", User.tool, Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
+			this.startJob();
 		}
 
 		public void doIt()
@@ -428,6 +423,7 @@ public final class UserMenuCommands
 		protected RedoCommand()
 		{
 			super("Redo", User.tool, Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
+			this.startJob();
 		}
 
 		public void doIt()
@@ -577,6 +573,96 @@ public final class UserMenuCommands
 		JFrame jf = TopLevel.getCurrentJFrame();
  		ToolOptions dialog = new ToolOptions(jf, true);
 		dialog.show();
+	}
+
+	public static void getInfoCommand()
+	{
+		if (Highlight.getNumHighlights() == 0)
+		{
+			// information about the cell
+			Cell c = Library.getCurrent().getCurCell();
+			c.getInfo();
+		} else
+		{
+			// information about the selected items
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() == Highlight.Type.GEOM)
+				{
+					Geometric geom = h.getGeom();
+					geom.getInfo();
+				} else if (h.getType() == Highlight.Type.TEXT)
+				{
+					if (h.getVar() != null)
+					{
+						String trueName = h.getVar().getReadableName();
+						if (h.getGeom() != null)
+						{
+							if (h.getPort() != null)
+							{
+								System.out.println("TEXT: " + trueName + " on export '" + h.getPort().getProtoName() + "'");
+							} else
+							{
+								if (h.getGeom() instanceof NodeInst)
+								{
+									NodeInst ni = (NodeInst)h.getGeom();
+									if (ni.getProto() == Generic.tech.invisiblePinNode)
+									{
+										String varName = h.getVar().getKey().getName();
+										if (varName.equals("ART_message"))
+										{
+											System.out.println("TEXT: Nonlayout text");
+											continue;
+										}
+										if (varName.equals("VERILOG_code"))
+										{
+											System.out.println("TEXT: Verilog Code");
+											continue;
+										}
+										if (varName.equals("VERILOG_declaration"))
+										{
+											System.out.println("TEXT: Verilog declaration");
+											continue;
+										}
+										if (varName.equals("SIM_spice_card"))
+										{
+											System.out.println("TEXT: SPICE card");
+											continue;
+										}
+									}
+								}
+								System.out.println("TEXT: " + trueName + " on geometry " + h.getGeom().describe());
+							}
+						} else
+						{
+							System.out.println("TEXT: " + trueName + " on cell " + h.getCell().describe());
+						}
+					} else
+					{
+						if (h.getPort() != null)
+						{
+							System.out.println("TEXT: Export '" + h.getPort().getProtoName() + "'");
+						} else
+						{
+							if (h.getGeom() != null)
+							{
+								System.out.println("TEXT: Cell instance name " + h.getGeom().describe());
+							} else
+							{
+								System.out.println("TEXT: UNKNOWN");
+							}
+						}
+					}
+				} else if (h.getType() == Highlight.Type.BBOX)
+				{
+					System.out.println("*** Area selected");
+				} else if (h.getType() == Highlight.Type.LINE)
+				{
+					System.out.println("*** Line selected");
+				}
+			}
+		}
 	}
 
 	// ---------------------- THE CELL MENU -----------------
@@ -759,114 +845,14 @@ public final class UserMenuCommands
 		dialog.show();
 	}
 
-    // ---------------------- THE STEVE MENU -----------------
-
-	public static void getInfoCommand()
-	{
-		if (Highlight.getNumHighlights() == 0)
-		{
-			// information about the cell
-			Cell c = Library.getCurrent().getCurCell();
-			c.getInfo();
-		} else
-		{
-			// information about the selected items
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() == Highlight.Type.GEOM)
-				{
-					Geometric geom = h.getGeom();
-					geom.getInfo();
-				} else if (h.getType() == Highlight.Type.TEXT)
-				{
-					if (h.getVar() != null)
-					{
-						String trueName = h.getVar().getReadableName();
-						if (h.getGeom() != null)
-						{
-							if (h.getPort() != null)
-							{
-								System.out.println("TEXT: " + trueName + " on export '" + h.getPort().getProtoName() + "'");
-							} else
-							{
-								if (h.getGeom() instanceof NodeInst)
-								{
-									NodeInst ni = (NodeInst)h.getGeom();
-									if (ni.getProto() == Generic.tech.invisiblePinNode)
-									{
-										String varName = h.getVar().getKey().getName();
-										if (varName.equals("ART_message"))
-										{
-											System.out.println("TEXT: Nonlayout text");
-											continue;
-										}
-										if (varName.equals("VERILOG_code"))
-										{
-											System.out.println("TEXT: Verilog Code");
-											continue;
-										}
-										if (varName.equals("VERILOG_declaration"))
-										{
-											System.out.println("TEXT: Verilog declaration");
-											continue;
-										}
-										if (varName.equals("SIM_spice_card"))
-										{
-											System.out.println("TEXT: SPICE card");
-											continue;
-										}
-									}
-								}
-								System.out.println("TEXT: " + trueName + " on geometry " + h.getGeom().describe());
-							}
-						} else
-						{
-							System.out.println("TEXT: " + trueName + " on cell " + h.getCell().describe());
-						}
-					} else
-					{
-						if (h.getPort() != null)
-						{
-							System.out.println("TEXT: Export '" + h.getPort().getProtoName() + "'");
-						} else
-						{
-							if (h.getGeom() != null)
-							{
-								System.out.println("TEXT: Cell instance name " + h.getGeom().describe());
-							} else
-							{
-								System.out.println("TEXT: UNKNOWN");
-							}
-						}
-					}
-				} else if (h.getType() == Highlight.Type.BBOX)
-				{
-					System.out.println("*** Area selected");
-				} else if (h.getType() == Highlight.Type.LINE)
-				{
-					System.out.println("*** Line selected");
-				}
-			}
-		}
-	}
-// * <LI>TEXT: text is selected.  Fills in "cell", "bounds", and "textStyle".  Also:
-// *   <UL>
-// *   <LI>For variable on NodeInst or ArcInst, fills in "var" and "geom".
-// *   <LI>For variable on a Port, fills in "var", "geom", and "port".
-// *   <LI>For Export name, fills in "geom" and "port".
-// *   <LI>For variable on Cell, fills in "var".
-// *   <LI>For a Cell instance name, fills in "geom".
-// *   </UL>
-
-	public static void showRTreeCommand()
-	{
-		Library curLib = Library.getCurrent();
-		Cell curCell = curLib.getCurCell();
-		System.out.println("Current cell is " + curCell.describe());
-		if (curCell == null) return;
-		curCell.getRTree().printRTree(0);
-	}
+//	public static void showRTreeCommand()
+//	{
+//		Library curLib = Library.getCurrent();
+//		Cell curCell = curLib.getCurCell();
+//		System.out.println("Current cell is " + curCell.describe());
+//		if (curCell == null) return;
+//		curCell.getRTree().printRTree(0);
+//	}
 
 	// ---------------------- THE DIMA MENU -----------------
 
@@ -943,7 +929,7 @@ public final class UserMenuCommands
             }
         }
     }
-    
+
     public static void evalVarsOnObject() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         if (Highlight.getNumHighlights() == 0) {
@@ -963,12 +949,11 @@ public final class UserMenuCommands
             }
         }
     }
-    
+
     public static void openP4libCommand() {
 		ReadBinaryLibrary job = new ReadBinaryLibrary("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //        oThread.start();
     }
-    
-    
+
 }

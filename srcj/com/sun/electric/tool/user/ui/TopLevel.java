@@ -307,7 +307,10 @@ class WindowsEvents extends WindowAdapter
 	
 	public void windowClosing(WindowEvent e)
 	{
-		if (TopLevel.isMDIMode()) return;
+		if (TopLevel.isMDIMode())
+		{
+			UserMenuCommands.quitCommand();
+		}
 		for(Iterator it = TopLevel.getWindows(); it.hasNext(); )
 		{
 			TopLevel tl = (TopLevel)it.next();
