@@ -195,7 +195,7 @@ public class ZoomAndPanListener
      */
     public static void panX(WindowFrame wf, int ticks) {
 
-		if (wf.getContent() instanceof EditWindow.CircuitPart)
+		if (wf.getContent() instanceof EditWindow)
 		{
 			Cell cell = wf.getContent().getCell();
 			if (cell == null) return;
@@ -223,7 +223,7 @@ public class ZoomAndPanListener
      */
     public static void panY(WindowFrame wf, int ticks) {
 
-		if (wf.getContent() instanceof EditWindow.CircuitPart)
+		if (wf.getContent() instanceof EditWindow)
 		{
 	        Cell cell = wf.getContent().getCell();
 	        if (cell == null) return;
