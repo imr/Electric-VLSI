@@ -220,6 +220,25 @@ public class KeyBindingManager {
 */
 
     /**
+     * Says whether or not KeyBindingManager will bind to this key event
+     * @param e the KeyEvent
+     * @return true if the KeyBindingManager can bind to this event
+     */
+    public static boolean validKeyEvent(KeyEvent e) {
+
+        // only look at key pressed events
+        if ((e.getID() != KeyEvent.KEY_PRESSED) && (e.getID() != KeyEvent.KEY_TYPED)) return false;
+
+        // ignore modifier only events (CTRL, SHIFT etc just by themselves)
+        if (e.getKeyCode() == KeyEvent.VK_CONTROL) return false;
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
+        if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
+        if (e.getKeyCode() == KeyEvent.VK_META) return false;
+
+        return true;
+    }
+
+    /**
      * Process a KeyEvent by finding what actionListeners should be
      * activated as a result of the event.  The keyBindingManager keeps
      * one stroke of history so that two-stroke events can be distinguished.
@@ -230,13 +249,8 @@ public class KeyBindingManager {
 
         if (DEBUG) System.out.println("got event (consumed="+e.isConsumed()+") "+e);
 
-        // only look at key pressed events
-        if ((e.getID() != KeyEvent.KEY_PRESSED) && (e.getID() != KeyEvent.KEY_TYPED)) return false;
-        // ignore modifier only events (CTRL, SHIFT etc just by themselves)
-        if (e.getKeyCode() == KeyEvent.VK_CONTROL) return false;
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
-        if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
-        if (e.getKeyCode() == KeyEvent.VK_META) return false;
+        // see if this is a valid key event
+        if (!validKeyEvent(e)) return false;
 
         // get KeyStroke
         KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);

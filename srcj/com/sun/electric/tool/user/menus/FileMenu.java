@@ -87,11 +87,11 @@ public class FileMenu {
 
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
-		fileMenu.addMenuItem("Save Library", KeyStroke.getKeyStroke('S', buckyBit),
+		fileMenu.addMenuItem("Save Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
-		fileMenu.addMenuItem("Save Library as...",null,
+		fileMenu.addMenuItem("Save Library as...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
-		fileMenu.addMenuItem("Save All Libraries",null,
+		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
 
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");

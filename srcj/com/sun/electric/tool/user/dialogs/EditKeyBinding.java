@@ -34,6 +34,7 @@ import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.awt.*;
 
 /**
  *
@@ -278,6 +279,7 @@ public class EditKeyBinding extends EDialog {
      * @param evt the KeyEvent
      */
     private void stroke2InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke2InputKeyPressed
+        if (!KeyBindingManager.validKeyEvent(evt)) return;
         key2 = KeyStroke.getKeyStrokeForEvent(evt);
         stroke2Input.setText(KeyStrokePair.keyStrokeToString(key2));
         updateConflicts();
@@ -300,6 +302,7 @@ public class EditKeyBinding extends EDialog {
      * @param evt the KeyEvent
      */
     private void stroke1InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke1InputKeyPressed
+        if (!KeyBindingManager.validKeyEvent(evt)) return;
         key1 = KeyStroke.getKeyStrokeForEvent(evt);
         stroke1Input.setText(KeyStrokePair.keyStrokeToString(key1));
         updateConflicts();

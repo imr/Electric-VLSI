@@ -25,7 +25,9 @@ package com.sun.electric.tool.user.ui;
 
 import javax.swing.*;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import java.awt.*;
 
 /**
@@ -104,6 +106,8 @@ public class KeyStrokePair {
         if (key == null) return "";
         String mods = KeyEvent.getKeyModifiersText(key.getModifiers());
         String id = KeyEvent.getKeyText(key.getKeyCode());
+        // change key to lower case, unless the shift modifier was pressed
+        //if ((key.getModifiers() & InputEvent.SHIFT_DOWN_MASK) == 0) id = id.toLowerCase();
         if (mods.equals("")) return id;
 
         mods = mods.replace('+', ' ');

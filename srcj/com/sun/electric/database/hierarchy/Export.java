@@ -153,6 +153,19 @@ public class Export extends PortProto
 
 		// handle change control, constraint, and broadcast
 		Undo.renameObject(this, oldName);
+
+        // rename associated export in icon, if any
+        Cell cell = originalPort.getNodeInst().getParent();
+        Cell iconCell = cell.iconView();
+        if ((iconCell != null) && (iconCell != cell)) {
+            for (Iterator it = iconCell.getPorts(); it.hasNext(); ) {
+                Export pp = (Export)it.next();
+                if (pp.getName().equals(oldName.toString())) {
+                    pp.rename(newName);
+                    break;
+                }
+            }
+        }
 	}
 
 	/**
