@@ -229,15 +229,17 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
     private void addNetworkPolys(HierarchyEnumerator.CellInfo info) {
         Netlist netlist = info.getNetlist();
 
-        // find network in this cell that corresponds to global id
-        Network localNet = null;
+        // find all local networks in this cell that corresponds to global id
         for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
             Network aNet = (Network)it.next();
             if (info.getNetID(aNet) == netID) {
-                localNet = aNet;
-                break;
+                addNetworkPolys(aNet, info);
             }
         }
+    }
+
+    private void addNetworkPolys(Network localNet, HierarchyEnumerator.CellInfo info) {
+        Netlist netlist = info.getNetlist();
 
         // no local net that matches with global network
         if (localNet == null) return;
