@@ -23,11 +23,13 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.Main;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.Point;
+
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -43,6 +45,8 @@ public class Progress
     private JTextArea taskOutput;
 	private JFrame jf;
 	private JInternalFrame jif;
+	private static int xPos = 300;
+	private static int yPos = 300;
 
 	/**
 	 * The constructor displays the progress dialog.
@@ -54,12 +58,12 @@ public class Progress
 		{
 			jif = new JInternalFrame(title);
 			jif.setSize(300, 80);
-			jif.setLocation(300, 300);
+			jif.setLocation(xPos, yPos);
 		} else
 		{
 			jf = new JFrame(title);
 			jf.setSize(300, 80);
-			jf.setLocation(300, 300);
+			jf.setLocation(xPos, yPos);
 		}
 
 		progressBar = new JProgressBar(0, 100);
@@ -76,18 +80,43 @@ public class Progress
 		panel.add(progressBar, BorderLayout.CENTER);
 		panel.add(taskOutput, BorderLayout.SOUTH);
 
-		if(TopLevel.isMDIMode())
+		if (TopLevel.isMDIMode())
 		{
 			jif.getContentPane().add(panel);
             TopLevel.addToDesktop(jif);
-			//jif.show();
-			//jif.moveToFront();
+//            jif.addInternalFrameListener(new InternalFrameEvents(jif));
 		} else
 		{
 			jf.getContentPane().add(panel);
 			if (!Main.BATCHMODE) jf.show();
 		}
 	}
+
+	/**
+	 * This class handles deactivation of the progress dialog and forces it back to the top.
+	 */
+//	private static class InternalFrameEvents implements javax.swing.event.InternalFrameListener
+//	{
+//		private JInternalFrame jif;
+//
+//		InternalFrameEvents(JInternalFrame jif)
+//		{
+//			super();
+//			this.jif = jif;
+//		}
+//
+//		public void internalFrameActivated(InternalFrameEvent e) {}
+//		public void internalFrameClosed(InternalFrameEvent e) {}
+//		public void internalFrameClosing(InternalFrameEvent e) {}
+//		public void internalFrameDeiconified(InternalFrameEvent e) {}
+//		public void internalFrameIconified(InternalFrameEvent e) {}
+//		public void internalFrameOpened(InternalFrameEvent e) {}
+//		public void internalFrameDeactivated(InternalFrameEvent e)
+//		{
+//			jif.toFront();
+//			jif.show();
+//		}
+//	}
 
 	/**
 	 * Method to terminate the progress dialog.
@@ -98,9 +127,15 @@ public class Progress
 
 		if (TopLevel.isMDIMode())
 		{
+			Point pt = jif.getLocation();
+			xPos = pt.x;
+			yPos = pt.y;
 			jif.dispose();
 		} else
 		{
+			Point pt = jf.getLocation();
+			xPos = pt.x;
+			yPos = pt.y;
 			jf.dispose();
 		}		
 	}

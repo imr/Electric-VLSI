@@ -59,6 +59,7 @@ public class OpenFile
 		/** Describes ECAD files.*/				public static final Type ECAD         = new Type("ECAD", new String[] {"enl"}, "ECAD File (enl)");
 		/** Describes EDIF files.*/				public static final Type EDIF         = new Type("EDIF", new String[] {"edif"}, "EDIF File (edif)");
 		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
+		/** Describes Encapsulated PS files. */	public static final Type EPS          = new Type("Encapsulated PostScript", new String[] {"eps"}, "Encapsulated PostScript (eps)");
 		/** Describes ESIM/RNL output. */		public static final Type ESIM         = new Type("ESIM", new String[] {"sim"}, "ESIM File (sim)");
 		/** Describes FastHenry files.*/		public static final Type FASTHENRY    = new Type("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 		/** Describes GDS files. */				public static final Type GDS          = new Type("GDS", new String[] {"gds"}, "GDS File (gds)");

@@ -3330,8 +3330,10 @@ public class CircuitChanges
 			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
 			if (cell.getLibrary().findNodeProto(newCellName) != null)
 			{
-				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Cell " + newCellName + " already exists.  Make this a new version?");
-				if (response == JOptionPane.NO_OPTION) return false;
+				int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Cell " + newCellName + " already exists.  Make this a new version?", "Confirm duplication",
+					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
+				if (response != 0) return false;
 			}
 			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {

@@ -669,6 +669,7 @@ public class FileMenu {
         if (type == OpenFile.Type.POSTSCRIPT)
         {
             if (PostScript.syncAll()) return;
+            if (IOTool.isPrintEncapsulated()) type = OpenFile.Type.EPS;
         }
         EditWindow wnd = EditWindow.needCurrent();
 
@@ -946,7 +947,7 @@ public class FileMenu {
     /**
      * Class to quit Electric in a new thread.
      */
-    private static class QuitJob extends Job
+    public static class QuitJob extends Job
     {
         public QuitJob()
         {

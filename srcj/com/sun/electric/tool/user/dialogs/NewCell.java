@@ -53,6 +53,7 @@ public class NewCell extends EDialog
 {
 	private JList viewList;
 	private DefaultListModel viewModel;
+	private static boolean makeWindow = false;
 
 	/** Creates new form New Cell */
 	public NewCell(java.awt.Frame parent, boolean modal)
@@ -93,6 +94,7 @@ public class NewCell extends EDialog
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) library.setSelectedIndex(curIndex);
 
+		newWindow.setSelected(makeWindow);
 		cellName.grabFocus();
 		finishInitialization();
 	}
@@ -260,7 +262,7 @@ public class NewCell extends EDialog
 		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
 		String libName = (String)library.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
-		boolean makeWindow = newWindow.isSelected();
+		makeWindow = newWindow.isSelected();
 
 		// create the cell
 		CreateCell job = new CreateCell(lib, name, makeWindow);
@@ -271,6 +273,7 @@ public class NewCell extends EDialog
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+		makeWindow = newWindow.isSelected();
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog

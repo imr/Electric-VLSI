@@ -75,6 +75,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private String lastSelectedCell = null;
     private String lastFilter = "";
     private static Pattern lastPattern = null;
+    private static boolean confirmDelete = true;
 
 
     private DoAction action;
@@ -425,8 +426,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             doAction.setText("Apply Rename");
         }
         else if (action == DoAction.deleteCell) {
-            boolean confirm = true;
-            confirmDeletions = new JCheckBox("Confirm Deletions", confirm);
+            confirmDeletions = new JCheckBox("Confirm Deletions", confirmDelete);
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
             gridBagConstraints.gridy = 0;
@@ -514,8 +514,12 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         }
         prefs.put(action+prefFilter, lastFilter);
 
-        if (action == DoAction.editCell) {
+        if (action == DoAction.editCell)
+        {
             prefs.putBoolean(prefEditInNewWindow, editInNewWindow.isSelected());
+        } else if (action == DoAction.deleteCell)
+        {
+        	confirmDelete = confirmDeletions.isSelected();
         }
         setVisible(false);
         Undo.removeDatabaseChangeListener(this);
@@ -566,13 +570,13 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             closeDialog(null);                     // we have performed the action
 
         } else if (action == DoAction.deleteCell) {
-            boolean confirm = confirmDeletions.isSelected();
+        	confirmDelete = confirmDeletions.isSelected();
 
             List cells = getSelectedCells();
             String lastDeleted = null;
             for (Iterator it = cells.iterator(); it.hasNext(); ) {
                 Cell cell = (Cell)it.next();
-                if (CircuitChanges.deleteCell(cell, confirm)) {
+                if (CircuitChanges.deleteCell(cell, confirmDelete)) {
                     lastDeleted = cell.noLibDescribe();
                 }
             }
@@ -628,6 +632,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private void setCell(Cell cell) {
         // clear filter
         cellFilter.setText("");
+
+        if (cell == null) return;
         // this will make cell selected on update of list
         lastSelectedCell = cell.noLibDescribe();
 

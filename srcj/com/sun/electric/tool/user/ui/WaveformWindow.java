@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -755,11 +756,8 @@ public class WaveformWindow implements WindowContent
 							if (time >= displayedXLow)
 							{
 								if (time > ss.high) break;
-								if ((i % 2) == 0)
-								{
-									int x = scaleTimeToX(time);
-									g.drawLine(x, 0, x, hei);
-								}
+								int x = scaleTimeToX(time);
+								g.drawLine(x, 0, x, hei);
 							}
 							time += ss.separation;
 						}
@@ -774,6 +772,7 @@ public class WaveformWindow implements WindowContent
 				{
 					double value = ss.low;
 					g.setFont(waveWindowFont);
+					Graphics2D g2 = (Graphics2D)g;
 					for(int i=0; ; i++)
 					{
 						if (value >= displayedLow)
@@ -783,13 +782,9 @@ public class WaveformWindow implements WindowContent
 							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
 							if (waveWindow.showGrid)
 							{
-								if ((i % 2) == 0)
-								{
-									Graphics2D g2 = (Graphics2D)g;
-									g2.setStroke(Highlight.dottedLine);
-									g.drawLine(VERTLABELWIDTH, y, wid, y);
-									g2.setStroke(Highlight.solidLine);
-								}
+								g2.setStroke(Highlight.dottedLine);
+								g.drawLine(VERTLABELWIDTH, y, wid, y);
+								g2.setStroke(Highlight.solidLine);
 							}
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
@@ -1357,6 +1352,11 @@ public class WaveformWindow implements WindowContent
 			// set this to be the selected panel
 			makeSelectedPanel();
 
+			if (evt.getClickCount() == 2 && evt.getX() < VERTLABELWIDTH)
+			{
+				WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minTime, maxTime, waveWindow, this);
+				return;
+			}
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
 			if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
@@ -3436,6 +3436,35 @@ public class WaveformWindow implements WindowContent
 	{
 		this.minTime = minTime;
 		this.maxTime = maxTime;
+	}
+
+	/**
+	 * Method to set the zoom extents for this waveform window.
+	 * @param lowVert the low value of the vertical axis (for the given panel only).
+	 * @param highVert the high value of the vertical axis (for the given panel only).
+	 * @param lowHoriz the low value of the horizontal (time) axis (for the given panel only unless time is locked).
+	 * @param highHoriz the high value of the horizontal (time) axis (for the given panel only unless time is locked).
+	 * @param thePanel the panel being zoomed.
+	 */
+	public void setZoomExtents(double lowVert, double highVert, double lowHoriz, double highHoriz, Panel thePanel)
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			boolean changed = false;
+			if (wp == thePanel)
+			{
+				wp.setValueRange(lowVert, highVert);
+				changed = true;
+			}
+			if (timeLocked || wp == thePanel)
+			{
+				wp.minTime = lowHoriz;
+				wp.maxTime = highHoriz;
+				changed = true;
+			}
+			if (changed) wp.repaintWithTime();
+		}
 	}
 
 	private void redrawAllPanels()

@@ -260,21 +260,21 @@ public class PostScript extends Output
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
 		// write PostScript header
-		if (epsFormat) printWriter.print("%%!PS-Adobe-2.0 EPSF-2.0\n"); else
-			printWriter.print("%%!PS-Adobe-1.0\n");
-		printWriter.print("%%%%Title: " + cell.describe() + "\n");
+		if (epsFormat) printWriter.print("%!PS-Adobe-2.0 EPSF-2.0\n"); else
+			printWriter.print("%!PS-Adobe-1.0\n");
+		printWriter.print("%%Title: " + cell.describe() + "\n");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			printWriter.print("%%%%Creator: Electric VLSI Design System version " + Version.getVersion() + "\n");
+			printWriter.print("%%Creator: Electric VLSI Design System version " + Version.getVersion() + "\n");
 			Date now = new Date();
-			printWriter.print("%%%%CreationDate: " + TextUtils.formatDate(now) + "\n");
+			printWriter.print("%%CreationDate: " + TextUtils.formatDate(now) + "\n");
 		} else
 		{
-			printWriter.print("%%%%Creator: Electric VLSI Design System\n");
+			printWriter.print("%%Creator: Electric VLSI Design System\n");
 		}
-		if (epsFormat) printWriter.print("%%%%Pages: 0\n"); else
-			printWriter.print("%%%%Pages: 1\n");
-		emitCopyright("%% ", "");
+		if (epsFormat) printWriter.print("%%Pages: 0\n"); else
+			printWriter.print("%%Pages: 1\n");
+		emitCopyright("% ", "");
 
 		// transform to PostScript units
 		double bblx = printBounds.getMinX();
@@ -314,28 +314,28 @@ public class PostScript extends Output
 		 * Increase the size of the bbox by one "pixel" to
 		 * prevent the edges from being obscured by some drawing tools
 		 */
-		printWriter.print("%%%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1) + "\n");
-		printWriter.print("%%%%DocumentFonts: Times-Roman\n");
-		printWriter.print("%%%%EndComments\n");
+		printWriter.print("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1) + "\n");
+		printWriter.print("%%DocumentFonts: Times-Roman\n");
+		printWriter.print("%%EndComments\n");
 
 		// PostScript: add some debugging info
 		if (cell != null)
 		{
 			Rectangle2D bounds = cell.getBounds();
-			printWriter.print("%% cell dimensions: " + bounds.getWidth() + " wide x " + bounds.getHeight() + " high (database units)\n");
-			printWriter.print("%% origin: " + bounds.getMinX() + " " + bounds.getMinY() + "\n");
+			printWriter.print("% cell dimensions: " + bounds.getWidth() + " wide x " + bounds.getHeight() + " high (database units)\n");
+			printWriter.print("% origin: " + bounds.getMinX() + " " + bounds.getMinY() + "\n");
 		}
 
 		// disclaimers
 		if (epsFormat)
 		{
-			printWriter.print("%% The EPS header should declare a private dictionary.\n");
+			printWriter.print("% The EPS header should declare a private dictionary.\n");
 		} else
 		{
-			printWriter.print("%% The non-EPS header does not claim conformance to Adobe-2.0\n");
-			printWriter.print("%% because the structure may not be exactly correct.\n");
+			printWriter.print("% The non-EPS header does not claim conformance to Adobe-2.0\n");
+			printWriter.print("% because the structure may not be exactly correct.\n");
 		}
-		printWriter.print("%%\n");
+		printWriter.print("%\n");
 
 		// set the page size if this is a plotter
 		if (usePlotter)
@@ -441,7 +441,7 @@ public class PostScript extends Output
 		}
 
 		printWriter.print("showpage\n");
-		printWriter.print("%%%%Trailer\n");
+		printWriter.print("%%Trailer\n");
 	}
 
 	/**

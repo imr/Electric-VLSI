@@ -324,7 +324,7 @@ public class Output
 		} else if (type == OpenFile.Type.PAL)
 		{
 			PAL.writePALFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.POSTSCRIPT)
+		} else if (type == OpenFile.Type.POSTSCRIPT || type == OpenFile.Type.EPS)
 		{
 			PostScript.writePostScriptFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.RSIM)
