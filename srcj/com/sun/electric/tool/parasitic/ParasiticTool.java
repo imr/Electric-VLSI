@@ -29,6 +29,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -293,7 +294,7 @@ public class ParasiticTool extends Tool{
             System.out.println("Extracting Parasitic for '" + cell.libDescribe() +
                     "' network '" + net.describe() + "'");
             Rectangle2D bounds = new Rectangle2D.Double();
-            double maxDistance = 20;
+            double maxDistance = getMaxDistance();
             List polyToCheckList = new ArrayList();
 
             // Selecting arcs attached to this network
@@ -358,4 +359,17 @@ public class ParasiticTool extends Tool{
             return true;
         }
     }
+
+    /** PREFERENCES */
+    private static Pref cacheMaxDistance = Pref.makeDoublePref("MaximumDistance", ParasiticTool.tool.prefs, 20);
+	/**
+	 * Method to get maximum dstance for searching window
+	 * @return double representing the preference
+	 */
+	public static double getMaxDistance() { return cacheMaxDistance.getDouble(); }
+	/**
+	 * Method to set maximum distance to use during searching window
+	 * @param value to set
+	 */
+	public static void setMaxDistance(double value) { cacheMaxDistance.setDouble(value); }
 }

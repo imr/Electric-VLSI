@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.tool.parasitic.ParasiticTool;
+
 import javax.swing.*;
 
 /**
@@ -30,7 +32,7 @@ import javax.swing.*;
  * @author  Gilda Garreton
  */
 public class ParasiticTab extends PreferencePanel {
-    
+
     /** Creates new form ParasiticTab */
     public ParasiticTab(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -40,6 +42,24 @@ public class ParasiticTab extends PreferencePanel {
 	public JPanel getPanel() { return parasiticPanel; }
 
 	public String getName() { return "Parasitic"; }
+
+    /**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the Routing tab.
+	 */
+	public void init()
+	{
+        maxDistValue.setText(Double.toString(ParasiticTool.getMaxDistance()));
+    }
+
+    /**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the Routing tab.
+	 */
+	public void term()
+	{
+        ParasiticTool.setMaxDistance(Double.parseDouble(maxDistValue.getText()));
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
