@@ -315,10 +315,10 @@ public class Attributes2 extends javax.swing.JDialog
 
         name.setEditable(true);
         value.setEditable(true);
-        deleteButton.setEnabled(true);
-        updateButton.setEnabled(true);
-        renameButton.setEnabled(true);
-        newButton.setEnabled(true);
+        //deleteButton.setEnabled(true);
+        //updateButton.setEnabled(true);
+        //renameButton.setEnabled(true);
+        //newButton.setEnabled(true);
 
         // show all attributes on the selected object
         updateList();
@@ -476,7 +476,10 @@ public class Attributes2 extends javax.swing.JDialog
         // set the evaluation field
         if (var.isCode()) {
             Object eval = VarContext.globalContext.evalVar(var);
-            evaluation.setText(eval.toString());
+            if (eval == null)
+                evaluation.setText("");
+            else
+                evaluation.setText(eval.toString());
         } else {
             evaluation.setText("");
         }
@@ -1003,7 +1006,7 @@ public class Attributes2 extends javax.swing.JDialog
         textPanel.applyChanges();
         attrPanel.applyChanges();
         // generate Job to update this dialog once changes have completed
-        UpdateDialog job2 = new UpdateDialog();
+        //UpdateDialog job2 = new UpdateDialog();
 
     }//GEN-LAST:event_updateButtonActionPerformed
 

@@ -228,12 +228,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialBoxedHeight = -1.0;
         boolean ownerIsNodeInst = false;
         if (owner instanceof NodeInst) ownerIsNodeInst = true;
-        if ((td.getPos() == TextDescriptor.Position.BOXED) && ownerIsNodeInst) {
-            NodeInst ni2 = (NodeInst)owner;
-            initialBoxedWidth = ni2.getXSize();
-            initialBoxedHeight = ni2.getYSize();
-            boxedWidth.setEnabled(true); boxedWidth.setText(Double.toString(ni2.getXSize()));
-            boxedHeight.setEnabled(true); boxedHeight.setText(Double.toString(ni2.getYSize()));
+        if (ownerIsNodeInst) {
             // make sure BOXED option is part of pull down menu
             boolean found = false;
             for (int i=0; i<textAnchor.getModel().getSize(); i++) {
@@ -245,9 +240,13 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (!found) {
                 textAnchor.addItem(TextDescriptor.Position.BOXED);
             }
-            // offset means nothing if boxed, so disable it
-            xOffset.setEnabled(false);
-            yOffset.setEnabled(false);
+            // set current boxed width and height, even if disabled
+            // later call to textAnchorItemStateChanged(null) will set enabled/disabled state
+            NodeInst ni2 = (NodeInst)owner;
+            initialBoxedWidth = ni2.getXSize();
+            initialBoxedHeight = ni2.getYSize();
+            boxedWidth.setText(Double.toString(ni2.getXSize()));
+            boxedHeight.setText(Double.toString(ni2.getYSize()));
         }
         if (!ownerIsNodeInst) {
             // The TextDescriptor cannot be set to boxed, so remove it from the list

@@ -35,7 +35,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.dialogs.ToolTips.ToolTip;
+import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -258,10 +258,10 @@ public final class Main
 			sw.removeNotify();
 
             // pop up the tool tips window
-            Preferences prefs = Preferences.userNodeForPackage(ToolTip.class);
-            boolean showToolTips = prefs.getBoolean(ToolTip.showOnStartUp, true);
-            if (showToolTips) {
-                ToolTip tip = new ToolTip(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
+            Preferences prefs = Preferences.userNodeForPackage(HelpViewer.class);
+            boolean showTips = prefs.getBoolean(HelpViewer.showOnStartUp, true);
+            if (showTips) {
+                HelpViewer tip = new HelpViewer(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
                 tip.show();
             }
 		}

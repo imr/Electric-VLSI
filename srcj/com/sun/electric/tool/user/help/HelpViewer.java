@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ToolTip.java
+ * File: HelpViewer.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 
-package com.sun.electric.tool.user.dialogs.ToolTips;
+package com.sun.electric.tool.user.help;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -66,13 +66,13 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
  * <p>Ex: "Mouse Interface" --> mouse_interface.html
  *
  */
-public class ToolTip extends javax.swing.JDialog {
+public class HelpViewer extends javax.swing.JDialog {
 
-    private static Preferences prefs = Preferences.userNodeForPackage(ToolTip.class);
+    private static Preferences prefs = Preferences.userNodeForPackage(HelpViewer.class);
     public static final String showOnStartUp = "ShowOnStartUp";
 
     private static Random rand = new Random(10943048109348l);
-    public static final String [] allToolTips = {
+    public static final String [] allTips = {
         "Mouse Interface", "Getting Started", "Library Directory Management"
     };
 
@@ -81,22 +81,22 @@ public class ToolTip extends javax.swing.JDialog {
     private JPanel controlPanel;
     private JScrollPane scrollPane;
     private JEditorPane editorPane;
-    private JCheckBox enableToolTipCheckBox;
+    private JCheckBox enableTipCheckBox;
     private JLabel label;
-    private JButton nextToolTip;
-    private JButton prevToolTip;
+    private JButton nextTip;
+    private JButton prevTip;
     private JButton closeButton;
-    private JComboBox toolTips;
+    private JComboBox tips;
 
     /**
      * Create a new Tool Tip dialog.
      * @param parent
      * @param modal
-     * @param tooltip A String naming the tool tip file. If null, random tip chosen.
+     * @param tip A String naming the tool tip file. If null, random tip chosen.
      */
-    public ToolTip(java.awt.Frame parent, boolean modal, String tooltip) {
+    public HelpViewer(java.awt.Frame parent, boolean modal, String tip) {
         super(parent, modal);
-        setTitle("Tool Tips!");
+        setTitle("Help!");
         init();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension labelSize = getSize();
@@ -104,7 +104,7 @@ public class ToolTip extends javax.swing.JDialog {
             screenSize.height/2 - (labelSize.height/2));
         currentTip = -1;
         // look for tooltip
-        loadToolTip(tooltip);
+        loadTip(tip);
     }
 
     /**
@@ -117,39 +117,39 @@ public class ToolTip extends javax.swing.JDialog {
      * Resources in a package. You *must* know the name of the resource
      * beforehand.
      *
-     * @param toolTipName the Tool Tip name
+     * @param tipName the Tool Tip name
      * @return a converted name of the file, with .html appended.
      */
-    public String toolTipNameToFileName(String toolTipName) {
+    public String tipNameToFileName(String tipName) {
         // replace white space with _
-        toolTipName = toolTipName.replaceAll("\\s", "_");
-        toolTipName = toolTipName.toLowerCase();
-        return toolTipName + ".html";
+        tipName = tipName.replaceAll("\\s", "_");
+        tipName = tipName.toLowerCase();
+        return tipName + ".html";
     }
 
     /**
      * Load the tool tip.  Returns true on sucess, false otherwise
      */
-    private void loadToolTip(String tooltip) {
+    private void loadTip(String tip) {
         // if url null, get random one
-        List list = Arrays.asList(allToolTips);
-        int i = list.indexOf(tooltip);
+        List list = Arrays.asList(allTips);
+        int i = list.indexOf(tip);
         if (i == -1) {
-            i = rand.nextInt() % allToolTips.length;
+            i = rand.nextInt() % allTips.length;
             i = Math.abs(i);
         }
-        loadToolTip(i);
+        loadTip(i);
     }
 
-    private void loadToolTip(int i) {
+    private void loadTip(int i) {
         if (i == currentTip) return;
-        URL url = ToolTip.class.getResource(toolTipNameToFileName(allToolTips[i]));
+        URL url = HelpViewer.class.getResource("helphtml/"+tipNameToFileName(allTips[i]));
         try {
             editorPane.setPage(url);
             currentTip = i;
-            toolTips.setSelectedIndex(i);
+            tips.setSelectedIndex(i);
         } catch (IOException e) {
-            System.out.println("Tool tip "+allToolTips[i]+" not found");
+            System.out.println("Tool tip "+allTips[i]+" not found");
         }
     }
 
@@ -198,15 +198,15 @@ public class ToolTip extends javax.swing.JDialog {
         getContentPane().add(label, gridBagConstraints);
 
         // set up combo list of all tool tips
-        toolTips = new JComboBox(allToolTips);
+        tips = new JComboBox(allTips);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(toolTips, gridBagConstraints);
-        toolTips.addItemListener(new ItemListener()
+        getContentPane().add(tips, gridBagConstraints);
+        tips.addItemListener(new ItemListener()
         {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 toolTipsItemStateChanged(evt);
@@ -234,41 +234,41 @@ public class ToolTip extends javax.swing.JDialog {
         getContentPane().add(scrollPane, gridBagConstraints);
 
         // set up check box
-        enableToolTipCheckBox = new JCheckBox("Show ToolTips on start up (Tool Tips can be accessed from Help Menu)");
+        enableTipCheckBox = new JCheckBox("Show Tips on start up (Help Tips can be accessed from Help Menu)");
         boolean selected = prefs.getBoolean(showOnStartUp, true);
-        enableToolTipCheckBox.setSelected(selected);
+        enableTipCheckBox.setSelected(selected);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(enableToolTipCheckBox, gridBagConstraints);
+        getContentPane().add(enableTipCheckBox, gridBagConstraints);
 
         // set up control buttons
         controlPanel = new JPanel(new GridBagLayout());
-        prevToolTip = new JButton("Previous Tip");
+        prevTip = new JButton("Previous Tip");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        controlPanel.add(prevToolTip, gridBagConstraints);
-        prevToolTip.addActionListener(new ActionListener() {
+        controlPanel.add(prevTip, gridBagConstraints);
+        prevTip.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 prevToolTipActionPerformed(evt);
             }
         });
-        nextToolTip = new JButton("Next Tip");
+        nextTip = new JButton("Next Tip");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        controlPanel.add(nextToolTip, gridBagConstraints);
-        nextToolTip.addActionListener(new ActionListener() {
+        controlPanel.add(nextTip, gridBagConstraints);
+        nextTip.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nextToolTipActionPerformed(evt);
             }
@@ -308,19 +308,19 @@ public class ToolTip extends javax.swing.JDialog {
     }
 
     private void toolTipsItemStateChanged(java.awt.event.ItemEvent evt) {
-        loadToolTip(toolTips.getSelectedIndex());
+        loadTip(tips.getSelectedIndex());
     }
 
     private void prevToolTipActionPerformed(ActionEvent evt) {
-        int i = toolTips.getSelectedIndex();
+        int i = tips.getSelectedIndex();
         if (i == 0) return;
-        toolTips.setSelectedIndex(i-1);
+        tips.setSelectedIndex(i-1);
     }
 
     private void nextToolTipActionPerformed(ActionEvent evt) {
-        int i = toolTips.getSelectedIndex();
-        if (i == (allToolTips.length-1)) return;
-        toolTips.setSelectedIndex(i+1);
+        int i = tips.getSelectedIndex();
+        if (i == (allTips.length-1)) return;
+        tips.setSelectedIndex(i+1);
     }
 
     private void closeButtonActionPerformed(ActionEvent evt) {
@@ -328,7 +328,7 @@ public class ToolTip extends javax.swing.JDialog {
     }
 
     private void closeDialog(java.awt.event.WindowEvent evt) {
-        prefs.putBoolean(showOnStartUp, enableToolTipCheckBox.isSelected());
+        prefs.putBoolean(showOnStartUp, enableTipCheckBox.isSelected());
         setVisible(false);
         dispose();
     }

@@ -58,7 +58,7 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.IRSIMTool;
 import com.sun.electric.tool.user.dialogs.*;
-import com.sun.electric.tool.user.dialogs.ToolTips.ToolTip;
+import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.MenuBar;
 import com.sun.electric.tool.user.ui.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.MenuBar.MenuItem;
@@ -282,6 +282,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
 		cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
+            if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
+            if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
         }
 		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
@@ -289,10 +291,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.zoomCommand(); } });
 		cursorOutline = modeSubMenuEdit.addRadioButton(ToolBar.cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.outlineEditCommand(); } });
-        if (ToolBar.secondaryInputModes) {
-		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
-		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
-        }
 		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true);
 		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true);
 	    if (cm == ToolBar.CursorMode.OUTLINE) cursorOutline.setSelected(true);
@@ -685,7 +683,7 @@ public final class MenuCommands
 			helpMenu.addMenuItem("About Electric...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
-        helpMenu.addMenuItem("Tool Tips", null,
+        helpMenu.addMenuItem("Help Index", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry", null,
@@ -2196,7 +2194,7 @@ public final class MenuCommands
 
     public static void toolTipsCommand()
     {
-        ToolTip dialog = new ToolTip(TopLevel.getCurrentJFrame(), false, null);
+        HelpViewer dialog = new HelpViewer(TopLevel.getCurrentJFrame(), false, null);
         dialog.show();
     }
 

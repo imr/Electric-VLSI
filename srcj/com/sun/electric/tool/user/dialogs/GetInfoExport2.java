@@ -67,8 +67,12 @@ public class GetInfoExport2 extends javax.swing.JDialog
 	{
 		if (theDialog == null)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
-			theDialog = new GetInfoExport2(jf, false);
+            if (TopLevel.isMDIMode()) {
+			    JFrame jf = TopLevel.getCurrentJFrame();
+                theDialog = new GetInfoExport2(jf, false);
+            } else {
+                theDialog = new GetInfoExport2(null, false);
+            }
 		}
 		theDialog.show();
 	}

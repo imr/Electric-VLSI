@@ -70,8 +70,12 @@ public class GetInfoText2 extends javax.swing.JDialog
     {
         if (theDialog == null)
         {
-            JFrame jf = TopLevel.getCurrentJFrame();
-            theDialog = new GetInfoText2(null, false);
+            if (TopLevel.isMDIMode()) {
+                JFrame jf = TopLevel.getCurrentJFrame();
+                theDialog = new GetInfoText2(jf, false);
+            } else {
+                theDialog = new GetInfoText2(null, false);
+            }
         }
         theDialog.show();
     }
