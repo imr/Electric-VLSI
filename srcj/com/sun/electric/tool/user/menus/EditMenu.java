@@ -449,7 +449,12 @@ public class EditMenu {
 					}
 				} else if (h.getType() == Highlight.Type.TEXT)
 				{
-					if (eobj instanceof Export) exportCount++; else
+					if (eobj instanceof Export) {
+                        if (h.getVar() != null)
+                            textCount++;
+                        else
+                            exportCount++;
+                    } else
 						textCount++;
 				} else if (h.getType() == Highlight.Type.BBOX)
 				{
