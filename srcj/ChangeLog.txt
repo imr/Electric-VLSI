@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+IMP: (11/10/04, DN) Better diagnostic in JELIB reader when point doesn't fit a port.
+
 ************************* Version 8.01am: *********************************
 
 IMP/MAN: (11/9/04, GVG) Two new toggles in DRC tab to ignore hierarchical/poly-select conditions.

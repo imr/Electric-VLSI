@@ -848,15 +848,23 @@ public class LibraryContents
 			}
 
 			// primitives use the name match
-			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode) return pi;
+// 			NodeProto np = ni.getProto();
+// 			if (np instanceof PrimitiveNode) return pi;
 
 			// make sure the port can handle the position
 			Point2D headPt = new Point2D.Double(xPos, yPos);
 			if (pi != null)
 			{
 				Poly poly = pi.getPoly();
-				if (!poly.isInside(headPt)) pi = null;
+				if (!poly.isInside(headPt))
+				{
+					NodeProto np = ni.getProto();
+					ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+						pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+					log.addPoint(headPt.getX(), headPt.getY(), cell);
+					if (np instanceof Export)
+						pi = null;
+				}
 			}
 			if (pi != null) return pi;
 
@@ -1760,15 +1768,23 @@ public class LibraryContents
 		}
 
 		// primitives use the name match
-		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode) return pi;
+//		NodeProto np = ni.getProto();
+//		if (np instanceof PrimitiveNode) return pi;
 
 		// make sure the port can handle the position
 		Point2D headPt = new Point2D.Double(xPos, yPos);
 		if (pi != null)
 		{
 			Poly poly = pi.getPoly();
-			if (!poly.isInside(headPt)) pi = null;
+			if (!poly.isInside(headPt))
+			{
+				NodeProto np = ni.getProto();
+				ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+					pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+				log.addPoint(headPt.getX(), headPt.getY(), cell);
+				if (np instanceof Export)
+					pi = null;
+			}
 		}
 		if (pi != null) return pi;
 
