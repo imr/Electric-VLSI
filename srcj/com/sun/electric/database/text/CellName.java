@@ -39,26 +39,24 @@ import com.sun.electric.database.hierarchy.View;
  */
 public class CellName
 {
-	/** the name */		private String name;
-	/** the view */		private View   view;
-	/** the version */	private int    version;
+	/** the name */		private final String name;
+	/** the view */		private final View   view;
+	/** the version */	private final int    version;
 
 	/**
 	 * Constructs a <CODE>CellName</CODE> (cannot be called).
 	 */
-	private CellName() {}
+	private CellName(String name, View view, int version) {
+        this.name = name;
+        this.view = view;
+        this.version = version;
+    }
 
 	/**
 	 * Method to return the name part of a parsed Cell name.
 	 * @return the name part of a parsed Cell name.
 	 */
 	public String getName() { return name; }
-
-	/**
-	 * Method to set the name part of a parsed Cell name.
-	 * @param name the new name part of a parsed Cell name.
-	 */
-	public void setName(String name) { this.name = name; }
 
 	/**
 	 * Method to return the view part of a parsed Cell name.
@@ -71,12 +69,6 @@ public class CellName
 	 * @return the version part of a parsed Cell name.
 	 */
 	public int getVersion() { return version; }
-
-	/**
-	 * Method to set the version part of a parsed Cell name.
-	 * @param version the new version part of a parsed Cell name.
-	 */
-	public void setVersion(int version) { this.version = version; }
 
 	/**
 	 * Method to build the full cell name.
@@ -95,15 +87,14 @@ public class CellName
 	public static CellName parseName(String name)
 	{
 		// figure out the view and version of the cell
-		CellName n = new CellName();
-		n.view = View.UNKNOWN;
+		View view = View.UNKNOWN;
 		int openCurly = name.indexOf('{');
 		int closeCurly = name.lastIndexOf('}');
 		if (openCurly != -1 && closeCurly != -1)
 		{
 			String viewName = name.substring(openCurly+1, closeCurly);
-			n.view = View.findView(viewName);
-			if (n.view == null)
+			view = View.findView(viewName);
+			if (view == null)
 			{
 				System.out.println("Unknown view: " + viewName);
 				return null;
@@ -111,7 +102,7 @@ public class CellName
 		}
 
 		// figure out the version
-		n.version = 0;
+		int version = 0;
 		int semiColon = name.indexOf(';');
 		if (semiColon != -1)
 		{
@@ -120,16 +111,16 @@ public class CellName
 				versionString = name.substring(semiColon+1);
 			try
 			{
-				n.version = Integer.parseInt(versionString);
+				version = Integer.parseInt(versionString);
 			}
 			catch (NumberFormatException e)
 			{
 				System.out.println(versionString + "is not a valid cell version number");
 				return null;
 			}
-			if (n.version <= 0)
+			if (version <= 0)
 			{
-				System.out.println("Cell versions must be positive, this is " + n.version);
+				System.out.println("Cell versions must be positive, this is " + version);
 				return null;
 			}
 		}
@@ -138,7 +129,24 @@ public class CellName
 		if (semiColon == -1) semiColon = name.length();
 		if (openCurly == -1) openCurly = name.length();
 		int nameEnd = Math.min(semiColon, openCurly);
-		n.name = name.substring(0, nameEnd);
+		name = name.substring(0, nameEnd);
+        CellName n = new CellName(name, view, version);
 		return n;
 	}
+
+    /**
+     * Create a CellName from the given name, view, and version.
+     * Any view or version information that is part of the name
+     * is stripped away and ignored, and the arguments for view and version
+     * are used instead.
+     * @param name the name of the cell
+     * @param view the view
+     * @param version the version
+     * @return a CellName object for the given name, view, and version
+     */
+    public static CellName newName(String name, View view, int version) {
+        CellName n = parseName(name);
+        CellName nn = new CellName(n.getName(), view, version);
+        return nn;
+    }
 }

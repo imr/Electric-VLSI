@@ -897,7 +897,8 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelVer()
 	{
-		curCellName.setVersion(TextUtils.atoi(keyWord));
+        curCellName = CellName.newName(curCellName.getName(), curCellName.getView(), TextUtils.atoi(keyWord));
+		//curCellName.setVersion(TextUtils.atoi(keyWord));
 	}
 
 	/**
@@ -1022,7 +1023,8 @@ public class ReadableDump extends LibraryFiles
 				" in library " + elibName + "...creating dummy version");
 
 			// rename the cell
-			curCellName.setName(curCellName.getName() + "FROM" + elibName);
+			//curCellName.setName(curCellName.getName() + "FROM" + elibName);
+            curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName);
 			finishCellInitialization();
 
 			// schedule the cell to have two nodes (cell center and big "X")
