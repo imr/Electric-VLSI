@@ -1837,7 +1837,7 @@ public class FloatingDecimal{
      * See BigDecimal for roundingMode constants.
      */
     public double doubleValue(int roundingMode) {
-	return floatingValue(roundingMode, true);
+	return Double.longBitsToDouble(bitValue(roundingMode, true));
     }
 
     /*
@@ -1846,10 +1846,15 @@ public class FloatingDecimal{
      * See BigDecimal for roundingMode constants.
      */
     public float floatValue(int roundingMode) {
-	return (float)floatingValue(roundingMode, false);
+	return Float.intBitsToFloat((int)bitValue(roundingMode, false));
     }
 
-    private double floatingValue(int roundingMode, boolean doublePrecision) {
+    /*
+     * Take a FloatingDecimal, which we presumably just scanned in,
+     * and find out bits of its value, as a double or a float, rounding according to "roundingMode".
+     * See BigDecimal for roundingMode constants.
+     */
+    private long bitValue(int roundingMode, boolean doublePrecision) {
 	boolean roundHalf;
 	boolean roundUp = false;
 	switch (roundingMode) {
@@ -1891,9 +1896,13 @@ public class FloatingDecimal{
 
 	// First, check for NaN and Infinity values 
 	if(digits == notANumber)
-	    return Double.NaN;
-	if(digits == infinity)
-	    return isNegative?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
+	    return doublePrecision ? Double.doubleToLongBits(Double.NaN) : Float.floatToIntBits(Float.NaN);
+	if(digits == infinity) {
+	    if (doublePrecision)
+		return isNegative ? (signMask|expMask) : expMask;
+	    else
+		return isNegative ? (singleSignMask|singleExpMask) : singleExpMask;
+	}
 
 	// Convert "digits" to "bits".
 	int pentExp = decExponent - nDigits;
@@ -1912,7 +1921,8 @@ public class FloatingDecimal{
 	}
 	if (nDigits <= intDecimalDigits) { // All "digits" fit in "iValue".
 	    if (iValue == 0)
-		return isNegative?-0.0:+0.0;
+		// +0.0 or -0.0
+		return !isNegative ? 0 : doublePrecision ? signMask : singleSignMask;
 	    binExp = bitLen(iValue);
 	    lBits = ((long)iValue) << (64 - binExp);
 	    wBits = 1;
@@ -1932,12 +1942,6 @@ public class FloatingDecimal{
 		lBits = lBits << (64 - binExp);
 		wBits = (lBits&LONG_MASK) != 0 ? 2 : 1;
 	    } else { // "digits" are longer.
-// 		if ( decExponent > maxDecimalExponent+1 ) { // Protect code below from overflows
-// 		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
-// 			throw new ArithmeticException("Rounding necessary");
-// 		    return isNegative?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
-// 		}
-
 		// Gather all "digits" into "bBits".
 		bBits = new FDBigInt(lBits, digits, iDigits, nDigits);
 		int n = bBits.nWords - 1;
@@ -2039,72 +2043,76 @@ public class FloatingDecimal{
 	 */
 	boolean highBit = (sumH & signMask) != 0;
 	int ieeeExp = threshExp - (highBit ? 1 : 2);
-	long ieeeBits;
+	long ieeeBits = 0;
 	long threshBits;
 	int threshShift;
 	if (doublePrecision) {
+	    if (isNegative)
+		ieeeBits = signMask;
 	    if (ieeeExp > -expBias) {
 		if (ieeeExp > expBias) {
 		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
 			throw new ArithmeticException("Rounding necessary");
-		    double res = (roundHalf || roundUp ? Double.POSITIVE_INFINITY : Double.MAX_VALUE);
-		    return isNegative?-res:res;
+		    // Double.POSITIVE_INFINTIY or Double.MAX_VALUE
+		    return ieeeBits | (roundHalf || roundUp ? expMask : expMask - 1);
+		} else {
+		    threshShift = (highBit ? 62 - expShift : 61 - expShift);
+		    threshBits = sumH >>> threshShift;
+		    threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		    if (!roundHalf && ieeeExp == expBias && (threshBits & (1L << (expShift + 2))) != 0) {
+			assert threshBits == (1L << (expShift + 2));
+			threshBits -= 2;
+		    }
+		    ieeeBits |= (((long)(ieeeExp + (expBias - 1))) << expShift) + (threshBits >> 1);
 		}
-		threshShift = (highBit ? 62 - expShift : 61 - expShift);
-		threshBits = sumH >>> threshShift;
-		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
-		if (!roundHalf && ieeeExp == expBias && (threshBits & (1L << (expShift + 2))) != 0) {
-		    assert threshBits == (1L << (expShift + 2));
-		    threshBits -= 2;
-		}
-		ieeeBits = (((long)(ieeeExp + (expBias - 1))) << expShift) + (threshBits >> 1);
 	    } else {
 		threshShift = (64 - expBias - expShift) - threshExp;
 		if (threshShift >= (roundHalf ? 64 : 63)) {
 		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
 			throw new ArithmeticException("Rounding necessary");
-		    double res = (roundHalf || !roundUp ? 0.0 : Double.MIN_VALUE);
-		    return isNegative?-res:res;
+		    // 0 or Double.MIN_VALUE
+		    return (roundHalf || !roundUp ? ieeeBits : ieeeBits | 1);
+		} else {
+		    assert threshShift < (roundHalf ? 64 : 63);
+		    threshBits = sumH >>> threshShift;
+		    threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		    ieeeBits |= threshBits >> 1;
 		}
-		assert threshShift < (roundHalf ? 64 : 63);
-		threshBits = sumH >>> threshShift;
-		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
-		ieeeBits = threshBits >> 1;
 	    }
-	    if (isNegative)
-		ieeeBits |= signMask;
 	} else {
+	    if (isNegative)
+		ieeeBits = singleSignMask;
 	    if (ieeeExp > - singleExpBias) {
 		if (ieeeExp > singleExpBias) {
 		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
 			throw new ArithmeticException("Rounding necessary");
-		    double res = (roundHalf || roundUp ? Float.POSITIVE_INFINITY : Float.MAX_VALUE);
-		    return isNegative?-res:res;
+		    // Float.POSITIVE_INFINTIY or Float.MAX_VALUE
+		    return ieeeBits | (roundHalf || roundUp ? singleExpMask : singleExpMask - 1);
+		} else {
+		    threshShift = (highBit ? 62 - singleExpShift : 61 - singleExpShift);
+		    threshBits = sumH >>> threshShift;
+		    threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		    if (!roundHalf && ieeeExp == singleExpBias && (threshBits & (1L << (singleExpShift + 2))) != 0) {
+			assert threshBits == (1L << (singleExpShift + 2));
+			threshBits -= 2;
+		    }
+		    ieeeBits |= ((ieeeExp + (singleExpBias - 1)) << singleExpShift) + (threshBits >> 1);
 		}
-		threshShift = (highBit ? 62 - singleExpShift : 61 - singleExpShift);
-		threshBits = sumH >>> threshShift;
-		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
-		if (!roundHalf && ieeeExp == singleExpBias && (threshBits & (1L << (singleExpShift + 2))) != 0) {
-		    assert threshBits == (1L << (singleExpShift + 2));
-		    threshBits -= 2;
-		}
-		ieeeBits = (((long)(ieeeExp + (singleExpBias - 1))) << singleExpShift) + (threshBits >> 1);
 	    } else {
 		threshShift = (64 - singleExpBias - singleExpShift) - threshExp;
 		if (threshShift >= (roundHalf ? 64 : 63)) {
 		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
 			throw new ArithmeticException("Rounding necessary");
-		    double res = (roundHalf || !roundUp ? 0.0 : Float.MIN_VALUE);
-		    return isNegative?-res:res;
+		    // 0 or Float.MIN_VALUE
+		    return (roundHalf || !roundUp ? ieeeBits : ieeeBits | 1);
+		} else {
+		    assert threshShift < (roundHalf ? 64 : 63);
+		    threshBits = sumH >>> threshShift;
+		    threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		    ieeeBits |= threshBits >> 1;
 		}
-		assert threshShift < (roundHalf ? 64 : 63);
-		threshBits = sumH >>> threshShift;
-		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
-		ieeeBits = threshBits >> 1;
 	    }
-	    if (isNegative)
-		ieeeBits |= singleSignMask&LONG_MASK;
-	    assert (ieeeBits >>> 32) == 0;
+	    assert ieeeBits == (int)ieeeBits;
 	}
 	assert (1L << Math.max(62 - threshShift, 0)) <= threshBits && threshBits <= (1L << (64 - threshShift));
 	sumH -= threshBits << threshShift;
@@ -2188,7 +2196,7 @@ public class FloatingDecimal{
 	    if (!roundUp && diff < 0)
 		ieeeBits--;
 	}
-	return doublePrecision ? Double.longBitsToDouble(ieeeBits) : (double)Float.intBitsToFloat((int)ieeeBits);
+	return ieeeBits;
     }
 
     /*

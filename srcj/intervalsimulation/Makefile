@@ -55,10 +55,17 @@ floating: Floating.class
 	java -classpath $(JARLOC):. Floating
 
 floats: TestFloatingDecimal.class
-	java -server -Xmx600m -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
+	java -client -Xmx600m -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
+#	java -server -Xmx600m -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
 
 floatp: TestFloatingDecimal.class
-	java -server -XX:+PrintCompilation -classpath $(JARLOC):. TestFloatingDecimal
+	java -server -Xmx600m -classpath $(JARLOC):. TestFloatingDecimal -p
+
+floatpc: TestFloatingDecimal.class
+	java -client -Xmx600m -classpath $(JARLOC):. TestFloatingDecimal -p
+
+strictfp: Strictfp.class
+	java -XX:+PrintCompilation -classpath $(JARLOC):. Strictfp
 
 clean:
 	rm -rf *.class
