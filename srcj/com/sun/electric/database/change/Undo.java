@@ -179,7 +179,7 @@ public class Undo
 		/**
 		 * Method to broadcast a change to all tools that are on.
 		 * @param firstchange true if this is the first change of a batch, so that a "startbatch" change must also be broadcast.
-		 * @param undoredo true if this is an undo/redo batch.
+		 * @param undoRedo true if this is an undo/redo batch.
 		 */
 		private void broadcast(boolean firstchange, boolean undoRedo)
 		{
@@ -559,7 +559,7 @@ public class Undo
 
 		/**
 		 * Method to examine a change and mark the appropriate libraries and cells as "dirty".
-		 * @param change the type of change being made.
+		 * @param type the type of change being made.
 		 * @param obj the object to which the change is applied.
 		 */
 		private static void setDirty(Type type, ElectricObject obj, Object o1)
@@ -1061,12 +1061,12 @@ public class Undo
 	{
 		if (currentBatch == null)
 		{
-			System.out.println("Recieved " + change + " change when no batch started");
+			System.out.println("Received " + change + " change when no batch started");
 			return null;
 		}
 		if (broadcasting != null)
 		{
-			System.out.println("Recieved " + change + " change during broadcast of " + broadcasting);
+			System.out.println("Received " + change + " change during broadcast of " + broadcasting);
 			return null;
 		}
 
