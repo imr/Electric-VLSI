@@ -534,7 +534,7 @@ public class ERCWellCheck
 
 					if (newAlgorithm)
 						newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-					thisMerge.add(layer, newElem);
+					thisMerge.add(layer, newElem, false);
 				}
 			}
 
@@ -614,7 +614,7 @@ public class ERCWellCheck
 
 						if (newAlgorithm)
 							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-						thisMerge.add(layer, newElem);
+						thisMerge.add(layer, newElem, false);
 					}
 				} else
 				{

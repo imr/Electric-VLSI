@@ -568,7 +568,7 @@ public class DebugMenus {
 					if (Main.getDebug() || func.isSubstrate())
 					{
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					}
 				}
 			}
@@ -603,7 +603,7 @@ public class DebugMenus {
 					{
 						poly.transform(transform);
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					}
 				}
 			}

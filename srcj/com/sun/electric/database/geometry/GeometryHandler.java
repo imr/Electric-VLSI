@@ -17,7 +17,7 @@ import java.util.Collection;
  */
 public interface GeometryHandler {
 	// To insert new element into handler
-	public void add(Object key, Object value);
+	public void add(Object key, Object value, boolean fasterAlgorithm);
 
 	// To add an entire GeometryHandler like collections
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans);

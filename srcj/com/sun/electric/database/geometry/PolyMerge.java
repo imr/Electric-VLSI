@@ -71,8 +71,9 @@ public class PolyMerge
 	 * Method to add a Poly to the merged collection.
 	 * @param key the layer that this Poly sits on.
 	 * @param value the Poly to merge.
+	 * @param fasterAlgorithm
 	 */
-	public void add(Object key, Object value)
+	public void add(Object key, Object value, boolean fasterAlgorithm)
 	{
 		Layer layer = (Layer)key;
 		Poly poly = (Poly)value;
