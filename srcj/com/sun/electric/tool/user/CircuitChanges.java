@@ -5161,6 +5161,9 @@ public class CircuitChanges
 
 			// make sure all old format library extensions are converted
 			String ext = TextUtils.getExtension(lib.getLibFile());
+            // I don't think this should change the file format: only "save as" should
+            // JKG 29 Oct 2004
+            /*
 			if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
 			{
 				if (ext.equals("elib"))
@@ -5170,7 +5173,7 @@ public class CircuitChanges
 					fullName = fullName.substring(0, len-4) + "jelib";
 					lib.setLibFile(TextUtils.makeURLToFile(fullName));
 				}
-			}
+			}*/
 
 			// do not mark readable dump files for saving
 			if (ext.equals("txt")) continue;

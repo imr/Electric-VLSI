@@ -770,8 +770,15 @@ public class ELIB extends Output
 
 		if (!thislib)
 		{
+            // TODO: remove this hack once a proper fix is made - JKG 28 Oct 2004
+            // this fixes the problem of elibs referencing jelibs, and
+            // (a) the two formats are not compatible (as of version 8.01af), and
+            // (b) you can't export to ELIB and revert back to an old version that
+            // doesn't understand jelib if you reference jelib files.
 			Library instlib = cell.getLibrary();
-			writeString(instlib.getLibFile().getPath());
+            String filePath = instlib.getLibFile().getPath();
+            //filePath = filePath.replaceAll("\\.jelib$", ".elib");
+			writeString(filePath);
 		}
 
 		// write the number of portprotos on this nodeproto

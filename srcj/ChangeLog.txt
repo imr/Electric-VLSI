@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ah: *********************************
 
+IMP/MAN (10/29/04, JKG) Open file dialog opens ELIB and JELIBS, removed ELIBS
+    from import/export, Added command under File to save all libraries as a
+    different format (ELIB or JELIB).
+
 BUG: (10/29/04, DN) Network tool when there layout instances in schematic cell.
 FIX: In NetSchem.internalConnection netCell added to reference subcell.
 

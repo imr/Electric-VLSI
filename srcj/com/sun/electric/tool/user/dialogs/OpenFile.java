@@ -33,6 +33,7 @@ import java.awt.FileDialog;
 //import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
@@ -84,7 +85,30 @@ public class OpenFile
 		/** Describes Verilog decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
 		/** Describes Verilog output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 
-		/** Describes default file format.*/	public static final Type DEFAULTLIB   = JELIB;
+		/** Describes default file format.*/	public static final Type DEFAULTLIB   = ELIB;
+
+        /** Valid Library formats */            public static final Type libraryTypes[] = {ELIB, JELIB};
+        private static String [] libraryTypesExt;
+        private static String libraryTypesExtReadable;
+        static {
+            ArrayList exts = new ArrayList();
+            for (int i=0; i<libraryTypes.length; i++) {
+                Type type = libraryTypes[i];
+                String [] typeExts = type.getExtensions();
+                for (int j=0; j<typeExts.length; j++) exts.add(typeExts[j]);
+            }
+            libraryTypesExt = new String[exts.size()];
+            StringBuffer buf = new StringBuffer("(");
+            for (int i=0; i<exts.size(); i++) {
+                libraryTypesExt[i] = (String)exts.get(i);
+                buf.append((String)exts.get(i));
+                buf.append(", ");
+            }
+            if (buf.length() > 2) buf.replace(buf.length()-2, buf.length(), ")");
+            libraryTypesExtReadable = buf.toString();
+        }
+
+        /** Valid library formats as a Type */  public static final Type LIBRARYFORMATS = new Type("LibraryFormtas", libraryTypesExt, "Library Formats "+libraryTypesExtReadable);
 
 		private final String name;
 		private final String [] extensions;

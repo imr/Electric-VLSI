@@ -103,6 +103,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
+        fileMenu.addMenuItem("Save All Libraries in format...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesInFormatCommand(); } });
 
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
 		fileMenu.add(exportSubMenu);
@@ -136,12 +138,12 @@ public class FileMenu {
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
-		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
-        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(OpenFile.Type.ELIB, false, false); } });
-		exportSubMenu.addMenuItem("Readable Dump...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
+//		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
+//        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(OpenFile.Type.ELIB, false, false); } });
+//		exportSubMenu.addMenuItem("Readable Dump...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
 
 		fileMenu.addSeparator();
 
@@ -214,13 +216,25 @@ public class FileMenu {
      */
     public static void openLibraryCommand()
     {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
+        String fileName = OpenFile.chooseInputFile(OpenFile.Type.LIBRARYFORMATS, null);
+        //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
         if (fileName != null)
         {
             // start a job to do the input
             URL fileURL = TextUtils.makeURLToFile(fileName);
-			ReadLibrary job = new ReadLibrary(fileURL, OpenFile.Type.DEFAULTLIB);
+            OpenFile.Type type = getLibraryFormat(fileName, OpenFile.Type.DEFAULTLIB);
+			ReadLibrary job = new ReadLibrary(fileURL, type);
         }
+    }
+
+    /** Get the type from the fileName, or if no valid Library type found, return defaultType.
+     */
+    private static OpenFile.Type getLibraryFormat(String fileName, OpenFile.Type defaultType) {
+        for (int i=0; i<OpenFile.Type.libraryTypes.length; i++) {
+            OpenFile.Type type = OpenFile.Type.libraryTypes[i];
+            if (fileName.endsWith("."+type.getExtensions()[0])) return type;
+        }
+        return defaultType;
     }
 
 	/**
@@ -269,9 +283,7 @@ public class FileMenu {
                 URL file = (URL)it.next();
                 OpenFile.Type defType = OpenFile.Type.DEFAULTLIB;
                 String fileName = file.getFile();
-                if (fileName.endsWith(".elib")) defType = OpenFile.Type.ELIB; else
-                    if (fileName.endsWith(".jelib")) defType = OpenFile.Type.JELIB; else
-                        if (fileName.endsWith(".txt")) defType = OpenFile.Type.READABLEDUMP;
+                defType = getLibraryFormat(fileName, defType);
                 if (openALibrary(file, defType)) success = true;
             }
             if (success) {
@@ -541,8 +553,31 @@ public class FileMenu {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            type = getLibraryFormat(lib.getLibFile().getFile(), type);
             if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType)) break;
         }
+    }
+
+    public static void saveAllLibrariesInFormatCommand() {
+        Object[] formats = {OpenFile.Type.ELIB, OpenFile.Type.JELIB, OpenFile.Type.READABLEDUMP};
+        Object format = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+                "Output file format for all libraries:", "Save All Libraries In Format...",
+                JOptionPane.PLAIN_MESSAGE,
+                null, formats, OpenFile.Type.DEFAULTLIB);
+        OpenFile.Type outType = (OpenFile.Type)format;
+        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = (Library)it.next();
+            if (lib.isHidden()) continue;
+            // set library file to new format
+            String fullName = lib.getLibFile().getFile();
+            //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
+            // match ".<word><endline>"
+            fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
+            lib.setLibFile(TextUtils.makeURLToFile(fullName));
+            lib.setChangedMajor();
+            lib.setChangedMinor();
+        }
+        saveAllLibrariesCommand(outType, false, false);
     }
 
     /**
