@@ -1059,26 +1059,26 @@ public class User extends Listener
         }
     }
 
-    private static Pref cache3DLightDirOne = Pref.makeStringPref("3DLightDirOne", User.tool.prefs, "1 0 0");
+    private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.tool.prefs, "(-10 0 -10)(10 0 -10)");
 	/**
 	 * Method to return the first light direction.
 	 * The default is the X axis.
 	 * @return the company name to use in schematic frames.
 	 */
-	public static String get3DLightDirOne() { return cache3DLightDirOne.getString(); }
+	public static String get3DLightDirs() { return cache3DLightDirs.getString(); }
 	/**
 	 * Method to set the first light direction.
      * It is stored as string
 	 * @param c the company name to use in schematic frames.
 	 */
-	public static void set3DLightDirOne(String c)
+	public static void set3DLightDirs(String c)
     {
-        cache3DLightDirOne.setString(c);
+        cache3DLightDirs.setString(c);
 
         try
         {
             Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
-            Method setMethod = j3DUtilsClass.getDeclaredMethod("setDirection", new Class[] {Object.class});
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setDirections", new Class[] {Object.class});
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setDirection: " + e.getMessage());

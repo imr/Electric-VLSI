@@ -51,7 +51,7 @@ public final class J3DUtils
     /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
     /** Ambiental light **/                 private static Color3fObservable ambientalColor;
     /** Directional light **/               private static Color3fObservable directionalColor;
-    /** Directional vector **/              private static Vector3fObservable light1; // = new Vector3f(-1.0f, -1.0f, -1.0f);
+    /** Directional vectors **/              private static Vector3fObservable[] lights = new Vector3fObservable[2]; // = new Vector3f(-1.0f, -1.0f, -1.0f);
 
     public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
@@ -90,10 +90,21 @@ public final class J3DUtils
         }
         public void update(Observable o, Object arg)
         {
-            if (arg != null && arg instanceof Vector3f)
+            if (arg != null)
             {
-                // change the direction
-                setDirection((Vector3f)arg);
+                if (arg instanceof Vector3f) // Change direction
+                {
+                    // change the direction
+                    setDirection((Vector3f)arg);
+                    return;
+                }
+
+                if (arg instanceof Color3f) // Change direction
+                {
+                    // change the direction
+                    setColor((Color3f)arg);
+                    return;
+                }
             }
         }
     }
@@ -139,35 +150,52 @@ public final class J3DUtils
      *
      *******************************************************************************************************/
 
-    public static boolean isValidDirection(String dir)
+    private static boolean isValidDirection(String dir)
     {
-        return !(dir.equals("") || dir.equals("0 0 0 "));
+        return !(dir.equals("") || dir.equals("0 0 0"));
     }
 
-    public static Vector3f transformIntoVector(String dir)
+    public static Vector3f[] transformIntoVectors(String dir)
     {
-        float[] values = new float[3];
-        StringTokenizer parse = new StringTokenizer(dir, " ", false);
-        int count = 0;
+        float[][] values = new float[2][3];
+        StringTokenizer parse = new StringTokenizer(dir, "()", false);
+        int pair = 0;
 
-        while (parse.hasMoreTokens() && count < 3)
+        while (parse.hasMoreTokens() && pair < 2)
         {
-            values[count++] = Float.parseFloat(parse.nextToken());
+            String vector = parse.nextToken();
+            StringTokenizer parseDir = new StringTokenizer(vector, " )", false);
+            int count = 0;
+            while (parseDir.hasMoreTokens() && count < 3)
+            {
+                String value = parseDir.nextToken();
+                values[pair][count++] = Float.parseFloat(value);
+            }
+            pair++;
         }
-        return (new Vector3f(values));
+        Vector3f[] vectors = new Vector3f[2];
+        for (int i = 0; i < 2; i++)
+        {
+            if (!(values[i][0] == 0 && values[i][1] == 0 && values[i][2] == 0))
+                vectors[i]= new Vector3f(values[i]);
+        }
+        return (vectors);
     }
 
     /**
      * Method to set direction in directional light
      * @param initValue
      */
-    public static void setDirection(Object initValue)
+    public static void setDirections(Object initValue)
     {
-        Vector3f dir = transformIntoVector(User.get3DLightDirOne());
-        if (light1 == null)
-            light1 = new Vector3fObservable(dir);
-        else if (initValue == null)
-            light1.setValue(dir); // it will notify observers
+        Vector3f[] dirs = transformIntoVectors(User.get3DLightDirs());
+        for (int i = 0; i < dirs.length; i++)
+        {
+            if (lights[i] == null)
+                lights[i] = new Vector3fObservable(dirs[i]);
+            else if (initValue == null)
+                lights[i].setValue(dirs[i]); // it will notify observers
+        }
     }
 
     /**
@@ -201,7 +229,7 @@ public final class J3DUtils
         // Checking if light colors are available
         setDirectionalColor(scene);
         setAmbientalColor(scene);
-        setDirection(scene);
+        setDirections(scene);
 
         AmbientLightObserver ambientalLight =  new AmbientLightObserver(ambientalColor.getValue());
         ambientalLight.setInfluencingBounds(infiniteBounds);
@@ -209,22 +237,31 @@ public final class J3DUtils
         ambientalLight.setCapability(AmbientLight.ALLOW_COLOR_WRITE);
         // adding observer
         ambientalColor.addObserver(ambientalLight);
-
-        DirectionalLightObserver directionalLight = new DirectionalLightObserver(directionalColor.getValue(), light1.getValue());
-        directionalLight.setInfluencingBounds(infiniteBounds);
-        // Allow to turn off light while the scene graph is live
-        directionalLight.setCapability(Light.ALLOW_STATE_WRITE);
-        directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_READ);
-        directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_WRITE);
-        directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_READ);
-        directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_WRITE);
-        // adding observers
-        light1.addObserver(directionalLight);
-        directionalColor.addObserver(directionalLight);
-
-        // Add lights to the env.
+        // Add ambiental light to the env.
         scene.addChild(ambientalLight);
-        objTrans.addChild(directionalLight);
+
+        for (int i = 0; i < lights.length; i++)
+        {
+            if (lights[i] == null || lights[i].getValue() == null ||
+                    (lights[i].getValue().x == 0 &&
+                    lights[i].getValue().y == 0 &&
+                    lights[i].getValue().z == 0)) continue; // invalid light
+            DirectionalLightObserver directionalLight = new DirectionalLightObserver(directionalColor.getValue(),
+                    lights[i].getValue());
+            directionalLight.setInfluencingBounds(infiniteBounds);
+            // Allow to turn off light while the scene graph is live
+            directionalLight.setCapability(Light.ALLOW_STATE_WRITE);
+            directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_READ);
+            directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_WRITE);
+            directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_READ);
+            directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_WRITE);
+            // adding observers
+            lights[i].addObserver(directionalLight);
+            directionalColor.addObserver(directionalLight);
+
+            // Add lights to the env.
+            objTrans.addChild(directionalLight);
+        }
     }
 
     public static void setViewPoint(SimpleUniverse u, Canvas3D canvas, BranchGroup scene, Rectangle2D cellBnd)

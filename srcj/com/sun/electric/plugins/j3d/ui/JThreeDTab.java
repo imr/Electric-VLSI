@@ -70,7 +70,6 @@ public class JThreeDTab extends ThreeDTab
 
 	private boolean initial3DTextChanging = false;
 	protected JList threeDLayerList;
-    private JTextField scaleField, rotXField, rotYField;
 	private DefaultListModel threeDLayerModel;
 	public HashMap threeDThicknessMap, threeDDistanceMap, transparencyMap;
 	private JThreeDSideView threeDSideView;
@@ -162,60 +161,9 @@ public class JThreeDTab extends ThreeDTab
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
-        // Z value
-        JLabel scaleLabel = new javax.swing.JLabel("Z Scale:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 6;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleLabel, gbc);
-
-        scaleField = new javax.swing.JTextField();
-        scaleField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 6;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleField, gbc);
         scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
-
-        // Default rotation X
-        JLabel rotXLabel = new javax.swing.JLabel("Rotation X:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 7;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotXLabel, gbc);
-
-        rotXField = new javax.swing.JTextField();
-        rotXField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotXField, gbc);
-        rotXField.setText(TextUtils.formatDouble(User.get3DRotX()));
-
-        // Default rotation Y
-        JLabel rotYLabel = new javax.swing.JLabel("Rotation Y:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 8;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotYLabel, gbc);
-
-        rotYField = new javax.swing.JTextField();
-        rotYField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 8;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotYField, gbc);
-        rotYField.setText(TextUtils.formatDouble(User.get3DRotY()));
+        xRotField.setText(TextUtils.formatDouble(User.get3DRotX()));
+        yRotField.setText(TextUtils.formatDouble(User.get3DRotY()));
 
 		threeDPerspective.setSelected(User.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
@@ -235,14 +183,27 @@ public class JThreeDTab extends ThreeDTab
         });
 
         // Light boxes
-        String light1 = User.get3DLightDirOne();
-        dirOneBox.setSelected(!(light1.equals("") || light1.equals("0 0 0 ")));
-        Vector3f dir = J3DUtils.transformIntoVector(light1);
-        xDirOneField.setText(String.valueOf(dir.x));
-        yDirOneField.setText(String.valueOf(dir.y));
-        zDirOneField.setText(String.valueOf(dir.z));
+        String lights = User.get3DLightDirs();
+        Vector3f[] dirs = J3DUtils.transformIntoVectors(lights);
+        dirOneBox.setSelected(dirs[0] != null);
+        if (dirOneBox.isSelected())
+        {
+            xDirOneField.setText(String.valueOf(dirs[0].x));
+            yDirOneField.setText(String.valueOf(dirs[0].y));
+            zDirOneField.setText(String.valueOf(dirs[0].z));
+        }
+        dirTwoBox.setSelected(dirs[1] != null);
+        if (dirTwoBox.isSelected())
+        {
+            xDirTwoField.setText(String.valueOf(dirs[1].x));
+            yDirTwoField.setText(String.valueOf(dirs[1].y));
+            zDirTwoField.setText(String.valueOf(dirs[1].z));
+        }
+
         // Setting the initial values
 		threeDValuesChanged(false);
+        dirOneBoxStateChanged(null);
+        dirTwoBoxStateChanged(null);
 	}
 
     /**
@@ -346,11 +307,11 @@ public class JThreeDTab extends ThreeDTab
             User.set3DFactor(currentValue);
         }
 
-        currentValue = TextUtils.atof(rotXField.getText());
+        currentValue = TextUtils.atof(xRotField.getText());
         if (currentValue != User.get3DRotX())
             User.set3DRotX(currentValue);
 
-        currentValue = TextUtils.atof(rotYField.getText());
+        currentValue = TextUtils.atof(yRotField.getText());
         if (currentValue != User.get3DRotY())
             User.set3DRotY(currentValue);
         currentValue = TextUtils.atof(threeDZoom.getText());
@@ -359,11 +320,21 @@ public class JThreeDTab extends ThreeDTab
         else if (currentValue != User.get3DOrigZoom())
             User.set3DOrigZoom(currentValue);
 
-        String dir = xDirOneField.getText() + " " +
+        StringBuffer dir = new StringBuffer();
+        if (dirOneBox.isSelected())
+            dir.append("(" + xDirOneField.getText() + " " +
                 yDirOneField.getText() + " " +
-                zDirOneField.getText();
-        if (!dir.equals(User.get3DLightDirOne()))
-            User.set3DLightDirOne(dir);
+                zDirOneField.getText() + ")");
+        else
+            dir.append("(0 0 0)");
+        if (dirTwoBox.isSelected())
+            dir.append("(" + xDirTwoField.getText() + " " +
+                yDirTwoField.getText() + " " +
+                zDirTwoField.getText() + ")");
+        else
+            dir.append("(0 0 0)");
+        if (!dir.equals(User.get3DLightDirs()))
+            User.set3DLightDirs(dir.toString());
 	}
 
 	/** This method is called from within the constructor to
@@ -408,6 +379,12 @@ public class JThreeDTab extends ThreeDTab
         xDirTwoField = new javax.swing.JTextField();
         yDirTwoField = new javax.swing.JTextField();
         zDirTwoField = new javax.swing.JTextField();
+        scaleLabel = new javax.swing.JLabel();
+        scaleField = new javax.swing.JTextField();
+        xRotLabel = new javax.swing.JLabel();
+        xRotField = new javax.swing.JTextField();
+        yRotLabel = new javax.swing.JLabel();
+        yRotField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -457,18 +434,22 @@ public class JThreeDTab extends ThreeDTab
         threeD.add(jLabel47, gridBagConstraints);
 
         threeDThickness.setColumns(6);
+        threeDThickness.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDThickness, gridBagConstraints);
 
         threeDHeight.setColumns(6);
+        threeDHeight.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDHeight, gridBagConstraints);
 
@@ -478,6 +459,8 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDPerspective, gridBagConstraints);
 
@@ -487,6 +470,7 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAntialiasing, gridBagConstraints);
 
@@ -499,10 +483,12 @@ public class JThreeDTab extends ThreeDTab
         threeD.add(jLabel48, gridBagConstraints);
 
         threeDZoom.setColumns(6);
+        threeDZoom.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDZoom, gridBagConstraints);
 
@@ -597,8 +583,8 @@ public class JThreeDTab extends ThreeDTab
         dirOnePanel.add(zDirOne, gridBagConstraints);
 
         xDirOneField.setText(null);
-        xDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
-        xDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        xDirOneField.setMinimumSize(new java.awt.Dimension(50, 21));
+        xDirOneField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -606,8 +592,8 @@ public class JThreeDTab extends ThreeDTab
         dirOnePanel.add(xDirOneField, gridBagConstraints);
 
         yDirOneField.setText(null);
-        yDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
-        yDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        yDirOneField.setMinimumSize(new java.awt.Dimension(50, 21));
+        yDirOneField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -616,8 +602,8 @@ public class JThreeDTab extends ThreeDTab
         dirOnePanel.add(yDirOneField, gridBagConstraints);
 
         zDirOneField.setText(null);
-        zDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
-        zDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        zDirOneField.setMinimumSize(new java.awt.Dimension(50, 21));
+        zDirOneField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -646,8 +632,8 @@ public class JThreeDTab extends ThreeDTab
         dirTwoPanel.add(zDirTwo, gridBagConstraints);
 
         xDirTwoField.setText(null);
-        xDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
-        xDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        xDirTwoField.setMinimumSize(new java.awt.Dimension(50, 21));
+        xDirTwoField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -655,8 +641,8 @@ public class JThreeDTab extends ThreeDTab
         dirTwoPanel.add(xDirTwoField, gridBagConstraints);
 
         yDirTwoField.setText(null);
-        yDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
-        yDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        yDirTwoField.setMinimumSize(new java.awt.Dimension(50, 21));
+        yDirTwoField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -665,8 +651,8 @@ public class JThreeDTab extends ThreeDTab
         dirTwoPanel.add(yDirTwoField, gridBagConstraints);
 
         zDirTwoField.setText(null);
-        zDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
-        zDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        zDirTwoField.setMinimumSize(new java.awt.Dimension(50, 21));
+        zDirTwoField.setPreferredSize(new java.awt.Dimension(50, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -685,6 +671,60 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(directionPanel, gridBagConstraints);
+
+        scaleLabel.setText("Z Scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(scaleLabel, gridBagConstraints);
+
+        scaleField.setColumns(6);
+        scaleField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(scaleField, gridBagConstraints);
+
+        xRotLabel.setText("Rotation X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(xRotLabel, gridBagConstraints);
+
+        xRotField.setColumns(6);
+        xRotField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(xRotField, gridBagConstraints);
+
+        yRotLabel.setText("Rotation Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(yRotLabel, gridBagConstraints);
+
+        yRotField.setColumns(6);
+        yRotField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(yRotField, gridBagConstraints);
 
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
@@ -716,6 +756,8 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
+    private javax.swing.JTextField scaleField;
+    private javax.swing.JLabel scaleLabel;
     private javax.swing.JSeparator separator;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
@@ -734,10 +776,14 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JTextField xDirOneField;
     private javax.swing.JLabel xDirTwo;
     private javax.swing.JTextField xDirTwoField;
+    private javax.swing.JTextField xRotField;
+    private javax.swing.JLabel xRotLabel;
     private javax.swing.JLabel yDirOne;
     private javax.swing.JTextField yDirOneField;
     private javax.swing.JLabel yDirTwo;
     private javax.swing.JTextField yDirTwoField;
+    private javax.swing.JTextField yRotField;
+    private javax.swing.JLabel yRotLabel;
     private javax.swing.JLabel zDirOne;
     private javax.swing.JTextField zDirOneField;
     private javax.swing.JLabel zDirTwo;

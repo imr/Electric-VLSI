@@ -153,13 +153,16 @@ public class WindowFrame extends Observable
 	 */
 	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D, boolean transPerNode)
 	{
-		WindowFrame frame = new WindowFrame();
+        // 3D view can only be triggered by EditWindow instances
+        if (!(view2D instanceof EditWindow)) return null;
 
 		if (view3DClass == null)
 		{
 			System.out.println("3D View plugin not available");
-			return frame; // error in class initialization or no plugin available
+			return null; // error in class initialization or no plugin available
 		}
+
+		WindowFrame frame = new WindowFrame();
 
 		try
 		{
