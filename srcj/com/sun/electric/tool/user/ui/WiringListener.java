@@ -300,7 +300,7 @@ public class WiringListener
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			Poly poly = ni.getShapeOfPort(pp, preferred, false);
+			Poly poly = ni.getShapeOfPort(pp, preferred, false, -1);
 			return new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 		}
 		if (obj instanceof WiringPlan)

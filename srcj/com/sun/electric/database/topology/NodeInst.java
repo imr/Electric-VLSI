@@ -1342,7 +1342,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly getShapeOfPort(PortProto thePort)
 	{
-		return getShapeOfPort(thePort, null, false);
+		return getShapeOfPort(thePort, null, false, -1);
 	}
 
 	/**
@@ -1352,13 +1352,16 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param selectPt if not null, it requests a new location on the port,
 	 * away from existing arcs, and close to this point.
 	 * This is useful for "area" ports such as the left side of AND and OR gates.
-     * @param compressPort this is an experimental flag that will reduce the *untransformed*
+     * @param forWiringTool this is an experimental flag that will reduce the *untransformed*
      * port width to zero if the primitive node's width is the default width. Likewise with
-     * the port height.
+     * the port height. It will also take into account the arc width of the connecting arc
+     * for contact cuts. These modifications are for the wiring tool.
+     * @param arcWidth of connecting arc, for the wiring tool if 'forWiringTool' is true.
+     * set to -1 to ignore.
 	 * @return a Poly that describes the location of the Export.
 	 * The Poly is transformed to account for rotation on this NodeInst.
 	 */
-	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt, boolean compressPort)
+	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt, boolean forWiringTool, double arcWidth)
 	{
 		NodeInst ni = this;
 		PortProto pp = thePort;
@@ -1379,7 +1382,7 @@ public class NodeInst extends Geometric implements Nodable
 
         // we only compress port if it is a rectangle
         Rectangle2D box = poly.getBox();
-        if (compressPort && (box != null)) {
+        if (forWiringTool && (box != null)) {
             if (ni.getXSize() == np.getDefWidth()) {
                 double x = poly.getCenterX();
                 box = new Rectangle2D.Double(x, box.getMinY(), 0, box.getHeight());
@@ -1387,6 +1390,20 @@ public class NodeInst extends Geometric implements Nodable
             if (ni.getYSize() == np.getDefHeight()) {
                 double y = poly.getCenterY();
                 box = new Rectangle2D.Double(box.getMinX(), y, box.getWidth(), 0);
+            }
+            if ((arcWidth != -1) && (np.getFunction() == NodeProto.Function.CONTACT)) {
+                // reduce the port size such that the connecting arc's width cannot extend
+                // beyond the width of the contact
+                double width = ni.getXSize();
+                double height = ni.getYSize();
+                double offsetX = 0.5*(width - box.getWidth() - arcWidth);
+                double offsetY = 0.5*(height - box.getHeight() - arcWidth);
+                if (offsetX < 0) {
+                    box = new Rectangle2D.Double(box.getX()+offsetX, box.getY(), box.getWidth()-2*offsetX, box.getHeight());
+                }
+                if (offsetY < 0) {
+                    box = new Rectangle2D.Double(box.getX(), box.getY()+offsetY, box.getWidth(), box.getHeight()-2*offsetY);
+                }
             }
             poly = new Poly(box);
         }

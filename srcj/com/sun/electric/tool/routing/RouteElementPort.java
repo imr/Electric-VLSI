@@ -1,0 +1,293 @@
+package com.sun.electric.tool.routing;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.Job;
+
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Iterator;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: root
+ * Date: Jul 19, 2004
+ * Time: 9:16:08 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public class RouteElementPort extends RouteElement {
+
+    // ---- New Port info ----
+    /** Node type to create */                      private NodeProto np;
+    /** Port on node to use */                      private PortProto portProto;
+    /** location to create Node */                  private Point2D location;
+    /** size aspect that is seen on screen */       private double width, height;
+    /** if this bisects an arc */                   private boolean isBisectArcPin;
+    /** newArcs connecting to this */               private List newArcs;
+
+    /** This contains the newly created instance, or the instance to delete */ private NodeInst nodeInst;
+    /** This contains the newly created portinst, or the existing port inst */ private PortInst portInst;
+
+    /**
+     * Private Constructor
+     * @param action the action this RouteElementAction will do.
+     */
+    private RouteElementPort(RouteElementAction action, Cell cell) { super(action, cell); }
+
+    /**
+     * Factory method for making a newNode RouteElement
+     * @param np Type of NodeInst to make
+     * @param location the location of the new NodeInst
+     * @param width the width of the new NodeInst
+     * @param height the height of the new NodeInst
+     */
+    public static RouteElementPort newNode(Cell cell, NodeProto np, PortProto newNodePort, Point2D location,
+                                       double width, double height) {
+        RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.newNode, cell);
+        e.np = np;
+        e.portProto = newNodePort;
+        e.location = location;
+        e.isBisectArcPin = false;
+        e.newArcs = new ArrayList();
+        e.setNodeSize(new Dimension2D.Double(width, height));
+        e.nodeInst = null;
+        e.portInst = null;
+        return e;
+    }
+
+    /**
+     * Factory method for making a deleteNode RouteElement
+     * @param nodeInstToDelete the nodeInst to delete
+     */
+    public static RouteElementPort deleteNode(NodeInst nodeInstToDelete) {
+        RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.deleteNode, nodeInstToDelete.getParent());
+        e.np = nodeInstToDelete.getProto();
+        e.portProto = null;
+        e.location = nodeInstToDelete.getTrueCenter();
+        e.isBisectArcPin = false;
+        e.newArcs = new ArrayList();
+        e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSize(), nodeInstToDelete.getYSize()));
+        e.nodeInst = nodeInstToDelete;
+        e.portInst = null;
+        return e;
+    }
+
+    /**
+     * Factory method for making a dummy RouteElement for an
+     * existing PortInst. This is usually use to demark the
+     * start and/or ends of the route, which exist before
+     * we start building the route.
+     * @param existingPortInst the already existing portInst to connect to
+     */
+    public static RouteElementPort existingPortInst(PortInst existingPortInst) {
+        RouteElementPort e = new RouteElementPort(RouteElement.RouteElementAction.existingPortInst, existingPortInst.getNodeInst().getParent());
+        NodeInst nodeInst = existingPortInst.getNodeInst();
+        e.np = nodeInst.getProto();
+        e.portProto = existingPortInst.getPortProto();
+        e.location = nodeInst.getTrueCenter();
+        e.isBisectArcPin = false;
+        e.newArcs = new ArrayList();
+        e.setNodeSize(new Dimension2D.Double(nodeInst.getXSize(), nodeInst.getYSize()));
+        e.nodeInst = nodeInst;
+        e.portInst = existingPortInst;
+        return e;
+    }
+
+    /**
+     * Get the PortProto for connecting to this RouteElementPort.
+     * This is not the same as getPortInst().getPortProto(),
+     * because if the action has not yet been done the PortInst
+     * returned by getPortInst() may have not yet been created.
+     * For a deleteNode, this will return null.
+     * @return a PortProto of port to connect to this RouteElement.
+     */
+    public PortProto getPortProto() { return portProto; }
+
+    /**
+     * Get Connecting Port on RouteElement.
+     * @return the PortInst, or null on error
+     */
+    public PortInst getPortInst() { return portInst; }
+
+    /** Returns location of newNode, existingPortInst, or deleteNode,
+     * or null otherwise */
+    public Point2D getLocation() { return location; }
+
+    /** Set true by Interactive router if pin used to bisect arc
+     * Router may want to remove this pin later if it places a
+     * connecting contact cut in the same position.
+     */
+    public void setBisectArcPin(boolean state) { isBisectArcPin = state; }
+
+    /** see setBisectArcPin */
+    public boolean isBisectArcPin() { return isBisectArcPin; }
+
+    /**
+     * Book-keeping: Adds a newArc RouteElement to a list to keep
+     * track of what newArc elements use this object as an end point.
+     * This must be a RouteElement of type newNode or existingPortInst.
+     * @param re the RouteElement to add.
+     */
+    public void addConnectingNewArc(RouteElementArc re) {
+        if (re.getAction() != RouteElementAction.newArc) return;
+        newArcs.add(re);
+    }
+
+    /**
+     * Reomve a newArc that connects to this newNode or existingPortInst.
+     * @param re the RouteElement to remove
+     */
+    public void removeConnectingNewArc(RouteElementArc re) {
+        if (re.getAction() != RouteElementAction.newArc) return;
+        newArcs.remove(re);
+    }
+
+    /**
+     * Get largest arc width of newArc RouteElements attached to this
+     * RouteElement.  If none present returns -1.
+     * <p>Note that these width values should have been pre-adjusted for
+     * the arc width offset, so these values have had the offset subtracted away.
+     */
+    public double getWidestConnectingArc(ArcProto ap) {
+        double width = -1;
+
+        if (getAction() == RouteElementAction.existingPortInst) {
+            // find all arcs of type ap connected to this
+            for (Iterator it = portInst.getConnections(); it.hasNext(); ) {
+                Connection conn = (Connection)it.next();
+                ArcInst arc = conn.getArc();
+                if (arc.getProto() == ap) {
+                    double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();
+                    if (newWidth > width) width = newWidth;
+                }
+            }
+        }
+
+        if (getAction() == RouteElementAction.newNode) {
+            if (newArcs == null) return -1;
+            for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
+                RouteElementArc re = (RouteElementArc)it.next();
+                if (re.getArcProto() == ap) {
+                    if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
+                }
+            }
+        }
+
+        return width;
+    }
+
+    /**
+     * Get an iterator over any newArc RouteElements connected to this
+     * newNode RouteElement.  Returns an iterator over an empty list
+     * if no new arcs.
+     */
+    public Iterator getNewArcs() {
+        ArrayList list = new ArrayList();
+        list.addAll(newArcs);
+        return list.iterator();
+    }
+
+    /**
+     * Get the size of a newNode, or the NodeInst an existingPortInst
+     * is attached to.
+     * @return the width,height of the node, or (-1, -1) if not a node
+     */
+    public Dimension2D.Double getNodeSize() {
+        return new Dimension2D.Double(width, height);
+    }
+
+    /**
+     * Set the size of a newNode.  Does not make it smaller
+     * than the default size if this is a PrimitiveNode.
+     * Does nothing for other RouteElements.
+     * @param size the new size
+     */
+    public void setNodeSize(Dimension2D size) {
+        SizeOffset so = np.getProtoSizeOffset();
+        double widthoffset = so.getLowXOffset() + so.getHighXOffset();
+        double heightoffset = so.getLowYOffset() + so.getHighYOffset();
+
+        double defWidth = np.getDefWidth() - widthoffset;       // this is width we see on the screen
+        double defHeight = np.getDefHeight() - heightoffset;    // this is height we see on the screen
+        if (size.getWidth() > defWidth) width = size.getWidth(); else width = defWidth;
+        if (size.getHeight() > defHeight) height = size.getHeight(); else height = defHeight;
+    }
+
+    /**
+     * Perform the action specified by RouteElementAction <i>action</i>.
+     * Note that this method performs database editing, and should only
+     * be called from within a Job.
+     * @return the object created, or null if deleted or nothing done.
+     */
+    public ElectricObject doAction() {
+
+        Job.checkChanging();
+
+        if (isDone()) return null;
+        ElectricObject returnObj = null;
+
+        if (getAction() == RouteElementAction.newNode) {
+            // create new Node
+            SizeOffset so = np.getProtoSizeOffset();
+            double widthso = width +  so.getLowXOffset() + so.getHighXOffset();
+            double heightso = height + so.getLowYOffset() + so.getHighYOffset();
+            nodeInst = NodeInst.makeInstance(np, location, widthso, heightso, 0, getCell(), null);
+            if (nodeInst == null) return null;
+            portInst = nodeInst.findPortInstFromProto(portProto);
+            returnObj = nodeInst;
+        }
+        if (getAction() == RouteElementAction.deleteNode) {
+            // delete existing arc
+            nodeInst.kill();
+        }
+        setDone();
+        return returnObj;
+    }
+
+    /**
+     * Adds RouteElement to highlights
+     */
+    public void addHighlightArea() {
+
+        if (!isShowHighlight()) return;
+
+        if (getAction() == RouteElementAction.newNode) {
+            // create box around new Node
+            Rectangle2D bounds = new Rectangle2D.Double(location.getX()-0.5*width,
+                    location.getY()-0.5*height, width, height);
+            Highlight.addArea(bounds, getCell());
+        }
+        if (getAction() == RouteElementAction.existingPortInst) {
+            Highlight.addElectricObject(portInst, getCell());
+        }
+    }
+
+    /** Return string decribing the RouteElement */
+    public String toString() {
+        if (getAction() == RouteElementAction.newNode) {
+            return "RouteElementPort newNode "+np+" size "+width+","+height+" at "+location;
+        }
+        else if (getAction() == RouteElementAction.deleteNode) {
+            return "RouteElementPort deleteNode "+nodeInst;
+        }
+        else if (getAction() == RouteElementAction.existingPortInst) {
+            return "RouteElementPort existingPortInst "+portInst;
+        }
+        return "RouteElement bad action";
+    }
+
+}

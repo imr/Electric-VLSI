@@ -37,8 +37,8 @@ import java.util.Collection;
 
 public class Route extends ArrayList {
 
-    private RouteElement routeStart;       // start of route
-    private RouteElement routeEnd;         // end of route
+    private RouteElementPort routeStart;       // start of route
+    private RouteElementPort routeEnd;         // end of route
 
     // ---------------------- Constructors ---------------------------
 
@@ -77,7 +77,7 @@ public class Route extends ArrayList {
 
 
     /** Sets the start of the Route */
-    public void setStart(RouteElement startRE) {
+    public void setStart(RouteElementPort startRE) {
         if (!contains(startRE)) {
             add(startRE);
             //System.out.println("Route.setStart Error: argument not part of list");
@@ -87,10 +87,10 @@ public class Route extends ArrayList {
     }
 
     /** Get the start of the Route */
-    public RouteElement getStart() { return routeStart; }
+    public RouteElementPort getStart() { return routeStart; }
 
     /** Sets the end of the Route */
-    public void setEnd(RouteElement endRE) {
+    public void setEnd(RouteElementPort endRE) {
         if (!contains(endRE)) {
             add(endRE);
             //System.out.println("Route.setEnd Error: argument not part of list");
@@ -100,14 +100,14 @@ public class Route extends ArrayList {
     }
 
     /** Get the end of the Route */
-    public RouteElement getEnd() { return routeEnd; }
+    public RouteElementPort getEnd() { return routeEnd; }
 
     /**
      * Reverse the Route. This just swaps and the start and end
      * RouteElements, because the order of the list does not matter.
      */
     public void reverseRoute() {
-        RouteElement re = routeStart;
+        RouteElementPort re = routeStart;
         routeStart = routeEnd;
         routeEnd = re;
     }

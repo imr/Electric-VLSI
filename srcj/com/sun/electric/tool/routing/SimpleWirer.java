@@ -54,14 +54,13 @@ public class SimpleWirer extends InteractiveRouter {
     public String toString() { return "SimpleWirer"; }
 
 
-    protected boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D clicked) {
+    protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
+                                Point2D startLoc, Point2D endLoc, Point2D clicked) {
 
-        RouteElement startRE = route.getEnd();
+        RouteElementPort startRE = route.getEnd();
 
         // first, find location of corner of L if routing will be an L shape
         Point2D cornerLoc = null;
-        Point2D startLoc = startRE.getLocation();
-        Point2D endLoc = endRE.getLocation();
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
             cornerLoc = endLoc;
@@ -103,7 +102,7 @@ public class SimpleWirer extends InteractiveRouter {
                     System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
                     return false;
                 }
-                vroute.buildRoute(route, cell, cornerLoc);
+                vroute.buildRoute(route, cell, startLoc, endLoc, cornerLoc);
                 return true;
             }
         }
@@ -133,7 +132,7 @@ public class SimpleWirer extends InteractiveRouter {
         // if either X or Y coords are the same, create a single arc
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            RouteElement arcRE = RouteElement.newArc(cell, useArc, width, startRE, endRE, null);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null);
             route.add(arcRE);
         } else {
             // otherwise, create new pin and two arcs for corner
@@ -142,10 +141,10 @@ public class SimpleWirer extends InteractiveRouter {
             SizeOffset so = pn.getProtoSizeOffset();
             double defwidth = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
             double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
-            RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), cornerLoc,
+            RouteElementPort pinRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     defwidth, defheight);
-            RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width, startRE, pinRE, null);
-            RouteElement arcRE2 = RouteElement.newArc(cell, useArc, width, pinRE, endRE, null);
+            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null);
+            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);
@@ -158,10 +157,10 @@ public class SimpleWirer extends InteractiveRouter {
      * Checks to see if re is a bisect arc pin, and if it can be replaced with replacement
      * @return true if re is replacable by replacement
      */
-    private boolean isElementReplacable(RouteElement re, RouteElement replacement) {
+    private boolean isElementReplacable(RouteElementPort re, RouteElementPort replacement) {
         if (!re.isBisectArcPin()) return false;
         // if replacement is an existing port inst, see if re's location lies within port
-        if (re.getLocation().equals(replacement.getConnPoint())) return true;
+        //if (re.getLocation().equals(replacement.getConnPoint())) return true;
         return false;
     }
 

@@ -57,8 +57,8 @@ import java.awt.geom.Point2D;
  * it the contact size and arc angle, and it does not connect to startRE or endRE.
  */
 public class VerticalRoute {
-    /** start of the route */                   private RouteElement startRE;
-    /** end of the route */                     private RouteElement endRE;
+    /** start of the route */                   private RouteElementPort startRE;
+    /** end of the route */                     private RouteElementPort endRE;
     /** list of arcs and nodes to make route */ private SpecifiedRoute specifiedRoute;
     /** list of all valid specified routes */   private List allSpecifiedRoutes;
     /** first arc (from startRE) */             private ArcProto startArc;
@@ -87,7 +87,7 @@ public class VerticalRoute {
      * @param startRE the start of the route
      * @param endRE the end of the route
      */
-    public VerticalRoute(RouteElement startRE, RouteElement endRE) {
+    public VerticalRoute(RouteElementPort startRE, RouteElementPort endRE) {
         this.startRE = startRE;
         this.endRE = endRE;
         specifiedRoute = null;
@@ -101,7 +101,7 @@ public class VerticalRoute {
      * @param startRE the start of the route
      * @param endArc and arc the end of the route will be able to connect to
      */
-    public VerticalRoute(RouteElement startRE, ArcProto endArc) {
+    public VerticalRoute(RouteElementPort startRE, ArcProto endArc) {
         this.startRE = startRE;
         this.endRE = null;
         specifiedRoute = null;
@@ -147,29 +147,17 @@ public class VerticalRoute {
         ArcProto [] startArcs = null;
         ArcProto [] endArcs = null;
         if (startRE != null) {
-            PortProto startPort = startRE.getPortProto();
-            if (startPort != null) {
-                startArcs = startPort.getBasePort().getConnections();
-                startObj = startPort;
-            } else {
-                startArcs = new ArcProto[1];
-                startArcs[0] = startRE.getArcProto();
-                startObj = startRE.getArcProto();
-            }
+            PortProto startPort = ((RouteElementPort)startRE).getPortProto();
+            startArcs = startPort.getBasePort().getConnections();
+            startObj = startPort;
         } else if (startArc != null) {
             startArcs = new ArcProto[1];
             startArcs[0] = startArc;
         }
         if (endRE != null) {
-            PortProto endPort = endRE.getPortProto();
-            if (endPort != null) {
-                endArcs = endPort.getBasePort().getConnections();
-                endObj = endPort;
-            } else {
-                endArcs = new ArcProto[1];
-                endArcs[0] = endRE.getArcProto();
-                endObj = endRE.getArcProto();
-            }
+            PortProto endPort = ((RouteElementPort)endRE).getPortProto();
+            endArcs = endPort.getBasePort().getConnections();
+            endObj = endPort;
         } else if (endArc != null) {
             endArcs = new ArcProto[1];
             endArcs[0] = endArc;
@@ -210,7 +198,7 @@ public class VerticalRoute {
      * @param cell the cell in which to create the vertical route
      * @param location where to create the route (database units)
      */
-    public void buildRoute(Route route, Cell cell, Point2D location) {
+    public void buildRoute(Route route, Cell cell, Point2D startLoc, Point2D endLoc, Point2D location) {
 
         if (specifiedRoute == null) {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
@@ -224,8 +212,10 @@ public class VerticalRoute {
         // set angle by start arc if it is vertical, otherwise angle is zero
         int arcAngle = 0;
         if (startRE != null) {
-            if (startRE.getLocation().getX() == location.getX() &&
-                startRE.getLocation().getY() != location.getY()) arcAngle = 900;
+//            if (startRE.getLocation().getX() == location.getX() &&
+//                startRE.getLocation().getY() != location.getY()) arcAngle = 900;
+            if (startLoc.getX() == location.getX() &&
+                startLoc.getY() != location.getY()) arcAngle = 900;
         }
 
         // create Route, using default contact size
@@ -241,7 +231,8 @@ public class VerticalRoute {
                 if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
             } else {
                 width = Router.getArcWidthToUse(startRE, startArc);
-                RouteElement arc1 = RouteElement.newArc(cell, startArc, width, startRE, vertRoute.getStart(), null);
+                RouteElement arc1 = RouteElementArc.newArc(cell, startArc, width, startRE, vertRoute.getStart(),
+                        startLoc, location, null);
                 route.add(arc1);
             }
         }
@@ -252,7 +243,8 @@ public class VerticalRoute {
                 if (route.getEnd() == endRE) route.setEnd(vertRoute.getEnd());
             } else {
                 width = Router.getArcWidthToUse(endRE, endArc);
-                RouteElement arc2 = RouteElement.newArc(cell, endArc, width, endRE, vertRoute.getEnd(), null);
+                RouteElement arc2 = RouteElementArc.newArc(cell, endArc, width, endRE, vertRoute.getEnd(),
+                        endLoc, location, null);
                 route.add(arc2);
             }
         }
@@ -261,7 +253,8 @@ public class VerticalRoute {
         Dimension2D size = Router.getContactSize(vertRoute.getStart(), vertRoute.getEnd());
         for (Iterator it = vertRoute.iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
-            re.setNodeSize(size);
+            if (re instanceof RouteElementPort)
+                ((RouteElementPort)re).setNodeSize(size);
             route.add(re);
         }
         route.setEnd(vertRoute.getEnd());
@@ -295,7 +288,7 @@ public class VerticalRoute {
 
         // pull off the first object, which will be a port, and create contact from that
         PrimitivePort pp = (PrimitivePort)specifiedRoute.remove(0);
-        RouteElement node = RouteElement.newNode(cell, pp.getParent(), pp,
+        RouteElementPort node = RouteElementPort.newNode(cell, pp.getParent(), pp,
                 location, contactSize.getWidth(), contactSize.getHeight());
         route.add(node);
         route.setStart(node);
@@ -307,14 +300,14 @@ public class VerticalRoute {
             PrimitivePort port = (PrimitivePort)it.next();
 
             // create node
-            RouteElement newNode = RouteElement.newNode(cell, port.getParent(), port,
+            RouteElementPort newNode = RouteElementPort.newNode(cell, port.getParent(), port,
                     location, contactSize.getWidth(), contactSize.getHeight());
             route.add(newNode);
             route.setEnd(newNode);
 
             // create arc
             double arcWidth = Router.getArcWidthToUse(node, ap);
-            RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, node, newNode, null);
+            RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location, null);
             arc.setArcAngle(arcAngle);
             route.add(arc);
 

@@ -71,17 +71,24 @@ public abstract class Router {
     // ------------------ Protected Abstract Router Methods -----------------
 
     /**
-     * Plan a route starting from startRE, and ending at endRE.
-     * Note that this method does add startRE and endRE to the
-     * returned list of RouteElements.
+     * Plan a route starting from the end of the passed in route, to
+     * the new end, "endRE".
+     */
+    /**
+     * Plan a route from startRE to endRE.
+     * startRE in this case will be route.getEndRE().  This builds upon whatever
+     * route is already in 'route'. 
      * @param route the list of RouteElements describing route to be modified
      * @param cell the cell in which to create the route
-     * @param endRE the RouteElement that will be the new end of the route
+     * @param endRE the RouteElementPort that will be the new end of the route
+     * @param startLoc the location to attach an arc to on startRE
+     * @param endLoc the location to attach an arc to on endRE
      * @param hint can be used as a hint to the router for determining route.
      *        Ignored if null
      * @return false on error, route should be ignored.
      */
-    protected abstract boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D hint);
+    protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
+                                         Point2D startLoc, Point2D endLoc, Point2D hint);
 
 
     // --------------------------- Public Methods ---------------------------
@@ -162,10 +169,10 @@ public abstract class Router {
             else
                 System.out.println(nodesCreated+" nodes created");
         }
-        RouteElement finalRE = route.getEnd();
+        RouteElementPort finalRE = route.getEnd();
         if (finalRE != null) {
             Highlight.clear();
-            PortInst pi = finalRE.getConnectingPort();
+            PortInst pi = finalRE.getPortInst();
             if (pi != null) {
                 Highlight.addElectricObject(pi, cell);
                 Highlight.finished();
@@ -188,7 +195,7 @@ public abstract class Router {
 
         /** Constructor */
         protected CreateRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router.toString(), User.tool, Job.Type.CHANGE, cell, null, Job.Priority.USER);
+            super(router.toString(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.route = route;
             this.verbose = verbose;
             this.cell = cell;
@@ -275,11 +282,12 @@ public abstract class Router {
         return null;
     }
 
-    protected static void replaceRouteElementArcPin(Route route, RouteElement bisectPinRE, RouteElement newPinRE) {
+    protected static void replaceRouteElementArcPin(Route route, RouteElementPort bisectPinRE, RouteElementPort newPinRE) {
         // go through route and update newArcs
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
-            e.replaceArcEnd(bisectPinRE, newPinRE);
+            if (e instanceof RouteElementArc)
+                ((RouteElementArc)e).replaceArcEnd(bisectPinRE, newPinRE);
         }
     }
 
@@ -293,8 +301,11 @@ public abstract class Router {
         // set all new arcs of that type to use that width
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement re = (RouteElement)it.next();
-            if (re.getArcProto() == ap)
-                re.setArcWidth(width);
+            if (re instanceof RouteElementArc) {
+                RouteElementArc reArc = (RouteElementArc)re;
+                if (reArc.getArcProto() == ap)
+                    reArc.setArcWidth(width);
+            }
         }
     }
 
@@ -360,11 +371,19 @@ public abstract class Router {
      */
     protected static double getArcWidthToUse(RouteElement re, ArcProto ap) {
         double width = ap.getDefaultWidth();
-        double connectedWidth = re.getWidestConnectingArc(ap);
-        if (re.getConnectingPort() != null) {
-            // check if prototype connection to export has larger wire
-            double width2 = getArcWidthToUse(re.getConnectingPort(), ap);
-            if (width2 > connectedWidth) connectedWidth = width2;
+        double connectedWidth = width;
+        if (re instanceof RouteElementPort) {
+            RouteElementPort rePort = (RouteElementPort)re;
+            connectedWidth = rePort.getWidestConnectingArc(ap);
+            if (rePort.getPortInst() != null) {
+                // check if prototype connection to export has larger wire
+                double width2 = getArcWidthToUse(rePort.getPortInst(), ap);
+                if (width2 > connectedWidth) connectedWidth = width2;
+            }
+        }
+        if (re instanceof RouteElementArc) {
+            RouteElementArc reArc = (RouteElementArc)re;
+            connectedWidth = reArc.getOffsetArcWidth();
         }
         if (width > connectedWidth) return width;
         else return connectedWidth;
@@ -390,12 +409,13 @@ public abstract class Router {
         double width = -1, height = -1;
 
         // if RE is an arc, use its arc width
-        if (re.getAction() == RouteElement.RouteElementAction.newArc) {
-            if (re.isNewArcVertical()) {
-                if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
+        if (re instanceof RouteElementArc) {
+            RouteElementArc reArc = (RouteElementArc)re;
+            if (reArc.isArcVertical()) {
+                if (reArc.getOffsetArcWidth() > width) width = reArc.getOffsetArcWidth();
             }
-            if (re.isNewArcHorizontal()) {
-                if (re.getOffsetArcWidth() > height) height = re.getOffsetArcWidth();
+            if (reArc.isArcHorizontal()) {
+                if (reArc.getOffsetArcWidth() > height) height = reArc.getOffsetArcWidth();
             }
         }
 
@@ -410,7 +430,8 @@ public abstract class Router {
 
         // if RE is an existingPortInst, use width of arcs connected to it.
         if (re.getAction() == RouteElement.RouteElementAction.existingPortInst) {
-            PortInst pi = re.getConnectingPort();
+            RouteElementPort rePort = (RouteElementPort)re;
+            PortInst pi = rePort.getPortInst();
             for (Iterator it = pi.getConnections(); it.hasNext(); ) {
                 Connection conn = (Connection)it.next();
                 ArcInst arc = conn.getArc();
@@ -431,8 +452,9 @@ public abstract class Router {
 
         // if RE is a new Node, check it's arcs
         if (re.getAction() == RouteElement.RouteElementAction.newNode) {
+            RouteElementPort rePort = (RouteElementPort)re;
             Dimension2D dim = null;
-            for (Iterator it = re.getNewArcs(); it.hasNext(); ) {
+            for (Iterator it = rePort.getNewArcs(); it.hasNext(); ) {
                 RouteElement newArcRE = (RouteElement)it.next();
                 Dimension2D d = getContactSize(newArcRE);
                 if (dim == null) dim = d;
