@@ -164,7 +164,7 @@ public class NccJob extends Job {
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
 	 */
 	public NccJob(int numWindows) {
-		super("Run NCC", User.tool, Job.Type.CHANGE, null, null, 
+		super("Run NCC", User.tool, Job.Type.EXAMINE, null, null, 
 		      Job.Priority.ANALYSIS);
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 
                         "numWindows must be 1 or 2");

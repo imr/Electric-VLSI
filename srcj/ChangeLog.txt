@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+BUG (9/14/04, RK) NCC assertion fails when designs being compared share a cell.
+
+BUG: (9/14/04, RK) NCC doesn't print Cell version number. 
+
 BUG: (9/13/04, SMR) Spice output gets indexed names wrong.
 FIX: In tool.io.output.Spice, do not use aggregated names (an interface option in tool.io.output.Topology).
 

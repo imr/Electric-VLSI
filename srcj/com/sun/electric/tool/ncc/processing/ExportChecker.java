@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -166,8 +168,7 @@ public class ExportChecker {
 		return match;
 	}
 
-	private SubcircuitInfo getInfoForReferenceCell(HierarchyInfo hierInfo) {	
-		Cell refCell = globals.getRootCells()[0];
+	private SubcircuitInfo getInfoForReferenceCell(Cell refCell, HierarchyInfo hierInfo) {	
 		SubcircuitInfo refInfo = hierInfo.getSubcircuitInfo(refCell);
 		
 		// If the reference Cell has already been compared to another Cell
@@ -342,10 +343,20 @@ public class ExportChecker {
 		if (hierInfo==null) return;
 
 		Cell[] rootCells = globals.getRootCells();
+		Cell refCell = globals.getRootCells()[0];
 
-		SubcircuitInfo refCellInfo = getInfoForReferenceCell(hierInfo);		
+		SubcircuitInfo refCellInfo = getInfoForReferenceCell(refCell, hierInfo);		
 		
+		// It is reasonable for two different designs to share some
+		// cells. It's also reasonable to compare the same schematic Cell 
+		// with two different VarContexts. When this happens, don't create 
+		// two SubcircuitInfo's for the same cell.
+		Set doneCells = new HashSet();
+		doneCells.add(refCell);
+	
 		for (int i=1; i<equivPortMaps.length; i++) {
+			if (doneCells.contains(rootCells[i])) continue;
+			doneCells.add(rootCells[i]);
 			Map exportNameToPortIndex = 
 				mapExportNameToPortIndex(refCellInfo, equivPortMaps[i]);
 			SubcircuitInfo subInf = 

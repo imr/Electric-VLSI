@@ -116,14 +116,8 @@ public class NccEngine {
 			// Useless so far
 			//expCheck.printExportTypeWarnings();
 			
-			EquivRecord root = globals.getRoot();
-			//StratCheck.doYourJob(root, globals);
-			//StratCount.doYourJob(root, globals);
-
 			SerialParallelMerge.doYourJob(globals);
-			//StratCheck.doYourJob(root, globals);
-			//StratCount.doYourJob(root, globals);
-			
+		
 			printWireComponentCounts();
 
 			boolean localOK = LocalPartitioning.doYourJob(globals); 

@@ -44,12 +44,13 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 public class NccUtils {
 	public static String fullName(Cell c) {
-		return c.getLibrary().getName() +
-			   ":"+
-			   c.getName()+
-			   "{"+
-			   c.getView().getAbbreviation()+
-			   "}";
+		return c.libDescribe();
+//		return c.getLibrary().getName() +
+//			   ":"+
+//			   c.getName()+
+//			   "{"+
+//			   c.getView().getAbbreviation()+
+//			   "}";
 	}
 	public static Cell[] findSchematicAndLayout(Cell cell) {
 		Cell.CellGroup group = cell.getCellGroup();
