@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
@@ -32,14 +33,13 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -591,8 +591,6 @@ public class PixelDrawing
 
 				// draw a tiny primitive by setting a single dot from each layer
 				Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
-//				int x = wnd.databaseToScreenX(ctrX);
-//				int y = wnd.databaseToScreenY(ctrY);
 				if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
 				{
 					drawTinyLayers(((PrimitiveNode)np).layerIterator(), scrPt.x, scrPt.y);
@@ -625,20 +623,16 @@ public class PixelDrawing
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
 			{
-				if (wnd.isInPlaceEdit())
+				List path = wnd.getInPlaceEditNodePath();
+				if (path != null)
 				{
-					List path = wnd.getInPlaceEditNodePath();
 					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
 					{
 						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
-						if (niOnPath == ni)
+						if (niOnPath.getProto() == subCell)
 						{
 							expanded = true;
-//							// this node is on the path: see if it is the real path
-//							for(int backIndex = pathIndex-1; backIndex >= 0; backIndex--)
-//							{
-//								NodeInst higherNI = (NodeInst)path.get(backIndex);
-//							}
+							break;
 						}
 					}
 				}
@@ -650,10 +644,7 @@ public class PixelDrawing
 				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
 
-				if (!wnd.isInPlaceEdit())
-				{
-					if (expandedCellCached(subCell, subTrans, expandBounds)) return;
-				}
+				if (expandedCellCached(subCell, subTrans, expandBounds)) return;
 
 				// just draw it directly
 				drawCell(subCell, expandBounds, subTrans, false);
@@ -769,8 +760,6 @@ public class PixelDrawing
 			Point2D ctr = ai.getTrueCenter();
 			trans.transform(ctr, ctr);
 			Point scrPt = wnd.databaseToScreen(ctr.getX(), ctr.getY());
-//			int x = wnd.databaseToScreenX(ctr.getX());
-//			int y = wnd.databaseToScreenY(ctr.getY());
 			if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
 			{
 				PrimitiveArc prim = (PrimitiveArc)ai.getProto();
@@ -925,7 +914,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform subTrans, Rectangle2D bounds)
+	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, Rectangle2D bounds)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -934,6 +923,7 @@ public class PixelDrawing
 		if (subCell.getView() == View.ICON) return false;
 
 		// find this cell-transformation combination in the global list of cached cells
+		AffineTransform subTrans = origTrans;
 		if (wnd.isInPlaceEdit())
 		{
 			AffineTransform newTrans = new AffineTransform(subTrans);
@@ -974,22 +964,23 @@ public class PixelDrawing
 		if (offscreen == null)
 		{
 			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
+			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
+
             Undo.removeDatabaseChangeListener(renderedCell);
 			renderedCell.setScreenSize(new Dimension(screenBounds.width, screenBounds.height));
 			renderedCell.setScale(wnd.getScale());
-
 			renderedCell.getOffscreen().clearImage(true);
 			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
-			subTrans.transform(cellCtr, cellCtr);
+			origTrans.transform(cellCtr, cellCtr);
 			renderedCell.setOffset(cellCtr);
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, false);
+			renderedCell.getOffscreen().drawCell(subCell, bounds, origTrans, false);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
 
-            // set wnd reference to null or it will not get garbage collected
+			// set wnd reference to null or it will not get garbage collected
             offscreen.wnd = null;
             renderedCell.finished();
 			offscreensCreated++;
@@ -1093,7 +1084,6 @@ public class PixelDrawing
 	 */
 	private void copyBits(PixelDrawing srcOffscreen, Rectangle screenBounds)
 	{
-		//PixelDrawing srcOffscreen = renderedCell.getOffscreen();
 		if (srcOffscreen == null) return;
 //		if (srcOffscreen.layerBitMaps == null)
 //		{
@@ -1325,10 +1315,6 @@ public class PixelDrawing
 				// convert coordinates
 				Point llPt = wnd.databaseToScreen(bounds.getMinX(), bounds.getMinY());
 				Point urPt = wnd.databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
-//				int lX = wnd.databaseToScreenX(bounds.getMinX());
-//				int hX = wnd.databaseToScreenX(bounds.getMaxX());
-//				int hY = wnd.databaseToScreenY(bounds.getMinY());
-//				int lY = wnd.databaseToScreenY(bounds.getMaxY());
 				int lX = Math.min(llPt.x, urPt.x);
 				int hX = Math.max(llPt.x, urPt.x);
 				int lY = Math.min(llPt.y, urPt.y);
@@ -2081,7 +2067,6 @@ public class PixelDrawing
 		// render the text
 		Raster ras = renderText(renderInfo);
         renderTextTime += (System.currentTimeMillis() - startTime);
-        //System.out.println("Rendered text: "+s);
 		if (ras == null) return;
 		Point pt = getTextCorner(ras.getWidth(), ras.getHeight(), style, rect, rotation);
 		int atX = pt.x;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01w: *********************************
 
+IMP: (9/23/04, SMR) PostScript output improved.
+
 IMP/MAN: (9/22/04, SMR) Waveform window has button to show vertex points.
 
 IMP/MAN: (9/22/04, SMR) Added "bipolar" and "pcb" technologies.

@@ -24,38 +24,38 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.text.Version;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+
 import javax.swing.JOptionPane;
 
 
@@ -168,7 +168,6 @@ public class PostScript extends Output
 		boolean usePlotter = IOTool.isPrintForPlotter();
 		plotDates = IOTool.isPlotDate();
 		boolean epsFormat = IOTool.isPrintEncapsulated();
-//		if (printit) epsFormat = false;
 
 		double pageWid = IOTool.getPrintWidth() * 75;
 		double pageHei = IOTool.getPrintHeight() * 75;
@@ -206,16 +205,7 @@ public class PostScript extends Output
 
 		// create the PostScript file
 //		Variable var = cell.getVar(POSTSCRIPT_FILENAME);
-//		if (printit)
-//		{
-//			estrcpy(file, x_("/tmp/ElectricPSOut.XXXXXX"));
-//			io_psout = xcreate(file, io_filetypeps|FILETYPETEMPFILE, 0, &truename);
-//			if (io_psout == NULL)
-//			{
-//				ttyputerr(_("Cannot write temporary file %s"), file);
-//				return;
-//			}
-//		} else if (synchronize != 0)
+//		if (synchronize != 0)
 //		{
 //			(void)esnprintf(file, 100, x_("%s"), synchronize);
 //			io_psout = xcreate(file, io_filetypeps, 0, &truename);
@@ -233,13 +223,7 @@ public class PostScript extends Output
 			System.out.println("Cannot do color merging yet");
 //			io_pscolorplot(np, epsFormat, useplotter, pagewid, pagehei, pagemarginps);
 //			xclose(io_psout);
-//			if (printit)
-//			{
-//				io_pssendfiletoprinter(file);
-//			} else
-//			{
-//				ttyputmsg(_("%s written"), truename);
-//			}
+//			ttyputmsg(_("%s written"), truename);
 //			return;
 		}
 
@@ -399,34 +383,6 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * Method to write a cell.
-	 */
-	private void scanCircuit()
-	{
-		PSVisitor visitor = makePSVisitor();
-		lastColor = -1;
-
-		if (psUseColor)
-		{
-			// color: plot layers in proper order
-			List layerList = Technology.getCurrent().getLayersSortedByHeight();
-			for(Iterator it = layerList.iterator(); it.hasNext(); )
-			{
-				Layer layer = (Layer)it.next();
-				currentLayer = layer.getIndex() + 1;
-				HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
-			}
-			currentLayer = 0;
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
-		} else
-		{
-			// gray-scale: just plot it once
-			currentLayer = -1;
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
-		}
-	}
-
-	/**
 	 * Method to clean-up writing a cell.
 	 */
 	private void done()
@@ -501,97 +457,167 @@ public class PostScript extends Output
 
 		printWriter.print("showpage\n");
 		printWriter.print("%%%%Trailer\n");
-
-		// print the PostScript if requested
-//		if (printit)
-//		{
-//			io_pssendfiletoprinter(file);
-//		}
 	}
 
-	/****************************** VISITOR SUBCLASS ******************************/
+	/****************************** TRAVERSING THE HIERARCHY ******************************/
 
-	private PSVisitor makePSVisitor()
+	/**
+	 * Method to write a the entire cell.
+	 */
+	private void scanCircuit()
 	{
-		PSVisitor visitor = new PSVisitor(this);
-		return visitor;
+		lastColor = -1;
+
+		if (psUseColor)
+		{
+			// color: plot layers in proper order
+			List layerList = Technology.getCurrent().getLayersSortedByHeight();
+			for(Iterator it = layerList.iterator(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				currentLayer = layer.getIndex() + 1;
+				recurseCircuitLevel(cell, DBMath.MATID, true);
+			}
+			currentLayer = 0;
+			recurseCircuitLevel(cell, DBMath.MATID, true);
+		} else
+		{
+			// gray-scale: just plot it once
+			currentLayer = -1;
+			recurseCircuitLevel(cell, DBMath.MATID, true);
+		}
 	}
 
-    private class PSVisitor extends HierarchyEnumerator.Visitor
-    {
-        /** PostScript object this Visitor is enumerating for */	private PostScript outPS;
-
-		public PSVisitor(PostScript outPS)
-        {
-            this.outPS = outPS;
-        }
-
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) 
-        {
-			AffineTransform xform = info.getTransformToRoot();
-
-			// write arcs
-    		for (Iterator it = info.getCell().getArcs(); it.hasNext();)
+	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel)
+	{
+		// write the cells
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			AffineTransform subRot = ni.rotateOut();
+			subRot.preConcatenate(trans);
+			NodeProto np = ni.getProto();
+			if (np instanceof PrimitiveNode)
 			{
-        		ArcInst ai = (ArcInst) it.next();
-				ArcProto ap = ai.getProto();
-				Technology tech = ap.getTechnology();
-				Poly [] polys = tech.getShapeOfArc(ai, outPS.wnd);
-				for (int i=0; i<polys.length; i++)
-				{
-					polys[i].transform(xform);
-					psPoly(polys[i]);
-				}
-            }
-             return true;
-        }
-
-        public void exitCell(HierarchyEnumerator.CellInfo info) 
-        {
-        }
-
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
-        {
-			AffineTransform xform = info.getTransformToRoot();
-			NodeInst ni = (NodeInst)no;
-            NodeProto np = no.getProto();
-            if (np instanceof PrimitiveNode)
-			{
-				AffineTransform trans = ni.rotateOut();
+				if (!topLevel && ni.isVisInside()) continue;
 				PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, outPS.wnd);
+				Poly [] polys = tech.getShapeOfNode(ni, wnd);
 				for (int i=0; i<polys.length; i++)
 				{
-					polys[i].transform(trans);
-					polys[i].transform(xform);
+					polys[i].transform(subRot);
 					psPoly(polys[i]);
 				}
-				return false;
-    		}
-
-			// a cell
-			if (!ni.isExpanded())
+			} else
 			{
-				Rectangle2D bounds = ni.getBounds();
-				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
-				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(xform);
-				poly.transform(localPureTrans);
-				poly.setStyle(Poly.Type.CLOSED);
-				poly.setLayer(blackLayer);
-				psPoly(poly);
+				// a cell
+				AffineTransform subTrans = ni.translateOut();
+				subTrans.preConcatenate(subRot);
+				if (!ni.isExpanded())
+				{
+					Rectangle2D bounds = ni.getBounds();
+					Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+					AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(subTrans);
+					poly.transform(localPureTrans);
+					poly.setStyle(Poly.Type.CLOSED);
+					poly.setLayer(blackLayer);
+					psPoly(poly);
+	
+					poly.setStyle(Poly.Type.TEXTBOX);
+					TextDescriptor td = TextDescriptor.getInstanceTextDescriptor(null);
+					td.setAbsSize(24);
+					poly.setTextDescriptor(td);
+					poly.setString(ni.getProto().describe());
+					psPoly(poly);
+				} else
+				{
+					recurseCircuitLevel((Cell)np, subTrans, false);
+				}
 
-				poly.setStyle(Poly.Type.TEXTBOX);
-				TextDescriptor td = TextDescriptor.getInstanceTextDescriptor(null);
-				td.setAbsSize(24);
-				poly.setTextDescriptor(td);
-				poly.setString(ni.getProto().describe());
-				psPoly(poly);
-				return false;
+				// draw any displayable variables on the instance
+				if (User.isTextVisibilityOnNode())
+				{
+					int numPolys = ni.numDisplayableVariables(true);
+					Poly [] polys = new Poly[numPolys];
+					Rectangle2D rect = ni.getBounds();
+					ni.addDisplayableVariables(rect, polys, 0, wnd, true);
+					for (int i=0; i<polys.length; i++)
+					{
+						polys[i].transform(subRot);
+						psPoly(polys[i]);
+					}
+				}
 			}
-            return true;
+
+			// draw any exports from the node
+			if (topLevel && User.isTextVisibilityOnExport())
+			{
+				int exportDisplayLevel = User.getExportDisplayLevel();
+				for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+				{
+					Export e = (Export)eIt.next();
+					Poly poly = e.getNamePoly();
+					if (exportDisplayLevel == 2)
+					{
+						// draw port as a cross
+						drawCross(poly.getCenterX(), poly.getCenterY(), false);
+					} else
+					{
+						// draw port as text
+						if (exportDisplayLevel == 1)
+						{
+							// use shorter port name
+							String portName = e.getShortName();
+							poly.setString(portName);
+						}
+						psPoly(poly);
+					}
+
+					// draw variables on the export
+					int numPolys = e.numDisplayableVariables(true);
+					if (numPolys > 0)
+					{
+						Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
+						Poly [] polys = new Poly[numPolys];
+						e.addDisplayableVariables(rect, polys, 0, wnd, true);
+						for (int i=0; i<polys.length; i++)
+						{
+							psPoly(polys[i]);
+						}
+					}
+				}
+			}
+		}
+
+		// write the arcs
+		for (Iterator it = cell.getArcs(); it.hasNext();)
+		{
+    		ArcInst ai = (ArcInst) it.next();
+			ArcProto ap = ai.getProto();
+			Technology tech = ap.getTechnology();
+			Poly [] polys = tech.getShapeOfArc(ai, wnd);
+			for (int i=0; i<polys.length; i++)
+			{
+				polys[i].transform(trans);
+				psPoly(polys[i]);
+			}
         }
-    }
+
+		// show cell variables if at the top level
+		if (topLevel && User.isTextVisibilityOnCell())
+		{
+			// show displayable variables on the instance
+			int numPolys = cell.numDisplayableVariables(true);
+			Poly [] polys = new Poly[numPolys];
+			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
+			for (int i=0; i<polys.length; i++)
+			{
+//				polys[i].transform(trans);
+				psPoly(polys[i]);
+			}
+		}
+	}
 
 	/****************************** EPS SYNCHRONIZATION ******************************/
 
@@ -604,36 +630,33 @@ public class PostScript extends Output
 	{
 		// see if there are synchronization links
 		boolean syncOther = false;
-//		if (!printit)
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
-			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			Library lib = (Library)lIt.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Library lib = (Library)lIt.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				Cell aCell = (Cell)cIt.next();
+				Variable var = aCell.getVar(IOTool.POSTSCRIPT_FILENAME);
+				if (var != null)
 				{
-					Cell aCell = (Cell)cIt.next();
-					Variable var = aCell.getVar(IOTool.POSTSCRIPT_FILENAME);
-					if (var != null)
+					String fileName = (String)var.getObject();
+					if (fileName.trim().length() > 0)
 					{
-						String fileName = (String)var.getObject();
-						if (fileName.trim().length() > 0)
-						{
-							syncOther = true;
-							break;
-						}
+						syncOther = true;
+						break;
 					}
 				}
-				if (syncOther) break;
 			}
-			if (syncOther)
-			{
-				String [] options = {"Yes", "No"};
-				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-					"Would you like to synchronize all PostScript drawings?",
-					"Synchronize EPS files", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-					null, options, options[1]);
-				if (ret == 1) syncOther = false;
-			}
+			if (syncOther) break;
+		}
+		if (syncOther)
+		{
+			String [] options = {"Yes", "No"};
+			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				"Would you like to synchronize all PostScript drawings?",
+				"Synchronize EPS files", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+				null, options, options[1]);
+			if (ret == 1) syncOther = false;
 		}
 		if (syncOther)
 		{
@@ -692,7 +715,6 @@ public class PostScript extends Output
 		{
 			tech = layer.getTechnology();
 			index = layer.getIndex();
-//			if (poly->desc->bits == LAYERN || poly->desc->col == ALLOFF) return;
 			if (!layer.isVisible()) return;
 			gra = layer.getGraphics();
 			col = gra.getColor();
@@ -787,8 +809,7 @@ public class PostScript extends Output
 		{
 			double x = poly.getCenterX();
 			double y = poly.getCenterY();
-			psLine(new Point2D.Double(x-5, y), new Point2D.Double(x+5, y), 0);
-			psLine(new Point2D.Double(x, y+5), new Point2D.Double(x, y-5), 0);
+			drawCross(x, y, type == Poly.Type.BIGCROSS);
 			return;
 		}
 		if (type == Poly.Type.CROSSED)
@@ -822,16 +843,34 @@ public class PostScript extends Output
 		psText(poly, tech);
 	}
 
-	/* draw a dot */
-	void psDot(Point2D pt)
+	/**
+	 * draw a cross.
+	 * @param x
+	 * @param y
+	 * @param bigCross
+	 */
+	private void drawCross(double x, double y, boolean bigCross)
+	{
+		double amount = 0.25;
+		if (bigCross) amount = 0.5;
+		psLine(new Point2D.Double(x-amount, y), new Point2D.Double(x+amount, y), 0);
+		psLine(new Point2D.Double(x, y+amount), new Point2D.Double(x, y-amount), 0);
+	}
+
+	/**
+	 * draw a dot
+	 */
+	private void psDot(Point2D pt)
 	{
 		Point2D ps = psXform(pt);
 		putPSHeader(HEADERDOT);
 		printWriter.print(ps.getX() + " " + ps.getY() + " Putdot\n");
 	}
 
-	/* draw a line */
-	void psLine(Point2D from, Point2D to, int pattern)
+	/**
+	 * draw a line
+	 */
+	private void psLine(Point2D from, Point2D to, int pattern)
 	{
 		Point2D pt1 = psXform(from);
 		Point2D pt2 = psXform(to);
@@ -860,8 +899,10 @@ public class PostScript extends Output
 		}
 	}
 
-	/* draw an arc of a circle */
-	void psArc(Point2D center, Point2D pt1, Point2D pt2)
+	/**
+	 * draw an arc of a circle
+	 */
+	private void psArc(Point2D center, Point2D pt1, Point2D pt2)
 	{
 		Point2D pc = psXform(center);
 		Point2D ps1 = psXform(pt1);
@@ -873,8 +914,10 @@ public class PostScript extends Output
 			startAngle + " " + endAngle + " arc stroke\n");
 	}
 
-	/* draw a circle (unfilled) */
-	void psCircle(Point2D center, Point2D pt)
+	/**
+	 * draw a circle (unfilled)
+	 */
+	private void psCircle(Point2D center, Point2D pt)
 	{
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
@@ -882,8 +925,10 @@ public class PostScript extends Output
 		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " 0 360 arc stroke\n");
 	}
 
-	/* draw a filled circle */
-	void psDisc(Point2D center, Point2D pt)
+	/**
+	 * draw a filled circle
+	 */
+	private void psDisc(Point2D center, Point2D pt)
 	{
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
@@ -969,12 +1014,14 @@ public class PostScript extends Output
 
 	String defaultFontName = null;
 
-	/* draw text */
-	void psText(Poly poly, Technology tech)
+	/**
+	 * draw text
+	 */
+	private void psText(Poly poly, Technology tech)
 	{
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
-		int size = (int)(td.getTrueSize(wnd) * PSSCALE);
+		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size
@@ -1139,19 +1186,19 @@ public class PostScript extends Output
 
 	/****************************** SUPPORT ******************************/
 
-	String [] headerDot =
+	private String [] headerDot =
 	{
 		"/Putdot {",				// print dot at stack pos
 		"    newpath moveto 0 0 rlineto stroke} def"
 	};
 
-	String [] headerLine =
+	private String [] headerLine =
 	{
 		"/Drawline {",				// draw line on stack
 		"    newpath moveto lineto stroke} def"
 	};
 
-	String [] headerPolygon =
+	private String [] headerPolygon =
 	{
 		"/Polygon {",				// put array into path
 		"    aload",
@@ -1163,7 +1210,7 @@ public class PostScript extends Output
 		"} def"
 	};
 
-	String [] headerFilledPolygon =
+	private String [] headerFilledPolygon =
 	{
 		"/BuildCharDict 10 dict def",	// ref Making a User Defined (PostScript Cookbook)
 
@@ -1216,7 +1263,7 @@ public class PostScript extends Output
 		"} def"
 	};
 
-	String [] headerString =
+	private String [] headerString =
 	{
 		/*
 		* Code to do super and subscripts:
@@ -1450,7 +1497,7 @@ public class PostScript extends Output
 		}
 	}
 
-	char psPattern(EGraphics col)
+	private char psPattern(EGraphics col)
 	{
 		// see if this graphics has been seen already
 		Integer index = (Integer)patternsEmitted.get(col);

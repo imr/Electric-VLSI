@@ -25,13 +25,13 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -49,8 +49,8 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -94,7 +94,13 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -183,7 +189,7 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconVCRToEnd = Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif");
 	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
 	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
-	public static Cursor dragTimeCursor = ToolBar.readCursor("CursorDragTime.gif", 8, 8);
+	private static final Cursor dragTimeCursor = ToolBar.readCursor("CursorDragTime.gif", 8, 8);
 
 	/**
 	 * This class defines a single panel of Signals with an associated list of signal names.
@@ -1289,7 +1295,9 @@ public class WaveformWindow implements WindowContent
 			}
 		}
 
-		// the MouseListener events
+		/**
+		 * the MouseListener events
+		 */
 		public void mousePressed(MouseEvent evt)
 		{
             requestFocus();
@@ -1316,7 +1324,9 @@ public class WaveformWindow implements WindowContent
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}
 
-		// the MouseMotionListener events
+		/**
+		 * the MouseMotionListener events
+		 */
 		public void mouseMoved(MouseEvent evt)
 		{
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
@@ -1332,10 +1342,14 @@ public class WaveformWindow implements WindowContent
 					mouseDraggedSelect(evt);
 		}
 
-		// the MouseWheelListener events
+		/**
+		 * the MouseWheelListener events
+		 */
 		public void mouseWheelMoved(MouseWheelEvent evt) {}
 
-		// the KeyListener events
+		/**
+		 * the KeyListener events
+		 */
 		public void keyPressed(KeyEvent evt)
 		{
 			waveWindow.vcrClickStop();
@@ -3053,9 +3067,7 @@ public class WaveformWindow implements WindowContent
 
 	private static JNetwork findNetwork(Netlist netlist, String name)
 	{
-		/*
-		 * Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
-		 */
+		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
@@ -3104,7 +3116,6 @@ public class WaveformWindow implements WindowContent
 		{
 			JNetwork net = (JNetwork)it.next();
             String netName = WaveformWindow.getSpiceNetName(context, net);
-			//String netName = context + net.describe();
 			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
@@ -3390,7 +3401,7 @@ public class WaveformWindow implements WindowContent
 		return s + "e" + i2;
 	}
 
-	/*
+	/**
 	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
 	 * @param time floating point value to be converted to engineering notation.
 	 * @param precpower decimal power of necessary time precision.
@@ -3753,7 +3764,6 @@ public class WaveformWindow implements WindowContent
 				{
 					wp.minTime = minTime;
 					wp.maxTime = maxTime;
-//					wp.repaintWithTime();
 				}
 			}
 		} else
