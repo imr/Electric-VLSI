@@ -465,8 +465,8 @@ public abstract class Job implements ActionListener, Runnable {
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
         ActivityLogger.logJobStarted(jobName, jobType, upCell, savedHighlights, savedHighlightsOffset);
 		try {
+            if (jobType != Type.EXAMINE) changingJob = this;
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
-			if (jobType != Type.EXAMINE) changingJob = this;
 			doIt();
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
