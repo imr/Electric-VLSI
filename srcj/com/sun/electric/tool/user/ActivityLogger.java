@@ -59,7 +59,7 @@ public class ActivityLogger {
      * Call to close output writer and warn user if any exceptions were logged.
      */
     public static synchronized void finished() {
-        out.close();
+        if (out != null) out.close();
         if (exceptionLogged) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String []
             { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
