@@ -871,6 +871,9 @@ public class ClickZoomWireListener
 				Highlight.setHighlightOffset(0, 0);
 				wnd.repaint();
 			}
+            else if (chr == KeyEvent.VK_CONTROL) {
+
+            }
 			// wiring popup cloud selection
 			/*
 			if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
@@ -890,7 +893,17 @@ public class ClickZoomWireListener
     }
 
     public void keyReleased(KeyEvent evt) {
-        //To change body of implemented methods use File | Settings | File Templates.
+
+        int chr = evt.getKeyCode();
+		if (evt.getSource() instanceof EditWindow)
+		{
+			EditWindow wnd = (EditWindow)evt.getSource();
+			Cell cell = wnd.getCell();
+			if (cell == null) return;
+            if (chr == KeyEvent.VK_CONTROL) {
+
+            }
+        }
     }
 
     public void keyTyped(KeyEvent evt) {
