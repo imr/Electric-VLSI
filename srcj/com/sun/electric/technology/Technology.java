@@ -1111,7 +1111,7 @@ public class Technology extends ElectricObject
 		{
 			width = 0;
 			for(int i=1; i<trace.length; i++)
-				width += trace[i-1].distance(trace[1]);
+				width += trace[i-1].distance(trace[i]);
 			height = 2;
 			double serpentineLength = ni.getSerpentineTransistorLength();
 			if (serpentineLength > 0) height = serpentineLength;
