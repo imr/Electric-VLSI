@@ -189,7 +189,11 @@ Tools
   Mimic Stitching                    =chap08-05-03
   Maze Routing                       =chap08-05-04
   River Routing                      =chap08-05-05
- Network Consistency Checking (NCC)  =chap08-06
+ Network Consistency Checking (NCC)
+  NCC Overview                       =chap08-06-01
+  NCC Commands                       =chap08-06-02
+  NCC Preferences                    =chap08-06-03
+  NCC Annotations                    =chap08-06-04
  Generation
   Pad Frame Generation               =chap08-07-01
   Other Generators                   =chap08-07-02

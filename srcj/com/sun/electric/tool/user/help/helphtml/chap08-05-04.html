@@ -3,9 +3,9 @@
 <!-- COMMAND Tool/Routing/Maze Route -->
 
 The maze router replaces unrouted arcs with actual geometry.
-To run it, use <B>Maze Route</B> command (in menu <B>Tool / Routing</B>).
+To run it, use the <B>Maze Route</B> command (in menu <B>Tool / Routing</B>).
 If networks are selected when the command is issued, those networks are routed.
-If no networks are selected, the all unrouted ares are routed.
+If no networks are selected, the all unrouted arcs in the current cell are routed.
 <P>
 Note that maze routing is done one wire at a time, and may fail if no path can be found.
 Therefore it may be preferable to route the unrouted wires one-at-a-time in order to better control the process.
@@ -14,8 +14,8 @@ Note also that maze routing constructs an array which is the size of the circuit
 and searches the array for a routing path.
 Therefore, long wires will use large amounts of memory and time.
 <P>
-For an example of maze routing, open the library file "samples.txt" and edit the cell "tool-RoutingMaze"
-(you can read the library with the <B>Readable Dump</B> subcommand of the <B>Import</B> command of the <B>File</B> menu).
+For an example of maze routing, open the Samples library and edit the cell "tool-RoutingMaze"
+(you can read the library with the <B>Load Samples Library</B> command, in menu <B>Help</B>).
 This cell has a number of unrouted wires that can be routed.
 
 <!-- TRAILER -->

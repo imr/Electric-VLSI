@@ -35,7 +35,7 @@ statement is aligned with the previous pad according to the alignment factor.
 A <I>gap</I> can be given in the placement that spreads the two pads by the specified distance.
 For example, the statement:
 <CENTER><CODE>place padIn gap=100</CODE></CENTER>
-requests that the "padIn" pad be placed so that its input port is 100 lambda units away from the previous pad's output port.
+requests that the "padIn" pad be placed so that its input port is 100 units away from the previous pad's output port.
 <P>
 If a core cell has been given, you can also indicate wiring between the pads and the core ports.
 This is done by having one or more <I>port associations</I> in the <CODE>place</CODE> statements.
@@ -60,7 +60,7 @@ Suppose a text file is created with with this content,
 and read with the <B>Pad Frame Generator</B> command (in menu <B>Tool / Generation</B>).
 <P>
 <CENTER><TABLE>
-<TR><TD><CODE>; specify the library with the pads&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
+<TR><TD><CODE>; specify the library with the pads&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
 <TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
 <TR><TD></TD>                                                      <TD><CODE>place PAD_gnd{lay} gnd_in=gnd</CODE></TD></TR>
 <TR><TD><CODE>; create a cell called "padframe"</CODE></TD>        <TD><CODE>place PAD_vdd{lay} m1m2=vdd</CODE></TD></TR>
@@ -92,7 +92,7 @@ The power and ground pads connect to the "vdd" and "gnd" ports.
 <P>
 Note that the generator places pad instances, but does not wire them to each other.
 In order to create a uniform ring of power and ground between the pads,
-you can use the Auto-router or the Mimic-router (see <A HREF="chap09-05.html#chap09-05">Section 9-5</A>).
+you can use the Auto-router or the Mimic-router (see <A HREF="chap08-05-01.html#chap08-05-01">Section 8-5-1</A>).
 </TD></TR></TABLE>
 <P>
 <TABLE><TR><TD>

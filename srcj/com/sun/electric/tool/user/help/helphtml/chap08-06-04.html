@@ -1,0 +1,171 @@
+<!-- HEADER 8-6-4: NCC Annotations -->
+
+
+For certain situations NCC cannot figure out that two cells are
+equivalent unless the designer supplies extra information. The
+designer supplies this extra information by adding NCC annotations to
+layout and/or schematic cells. NCC annotation's are represented by
+attributes placed on cells
+(see <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A>).
+The attribute's name is
+<i>NCC</i>. The attribute's value is one or more lines. Each line
+contains a separate NCC annotation. Thus, although a Cell can have at
+most one attribute named <i>NCC</i>, that attribute can contain any
+number of NCC annotations.
+<BR>
+
+<h3>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i> </h3>
+
+Layout cells sometimes contain multiple exports that are supposed to
+be connected by the parent cell. For example, a layout cell, A{lay},
+might export vdd, vdd_1, vdd_2, and vdd3. The designer expects the
+cell that instantiates A{lay} will connect all the vdd exports to a
+single net: vdd. However, because the corresponding schematic cell
+usually only contains a single export, vdd, the NCC of the schematic
+and layout cells fails. This situation is most common for the power
+and ground networks, although it occasionally arises for signal
+networks such as <i>clock</i> or <i>precharge</i>.
+</p>
+<p>
+NCC allows the designer to add the annotation:
+exportsConnectedByParent to the cell to inform NCC which exports will
+be connected by the parent. The keyword is followed by a list of
+strings and/or regular expressions. A string matches an export name
+exactly, for example: vdd. Thus A{lay} can contain the NCC annotation:
+</p>
+<p style=padding-left:10px>
+exportsConnectedByParent vdd vdd_1 vdd_2
+</p>
+<p>
+Alternatively, the designer can use regular expressions. Regular
+expressions begin and end with the character: '/'. Thus A{lay} can
+contain the NCC annotation:
+</p>
+<p style=padding-left:10px>
+exportsConnectedByParent vdd /vdd_[0-9]+/
+</p>
+<p>
+When NCC compares a cell with an <i> exportsConnectedByParent </i>
+annotation it performs the comparison as if those exports were
+connected. It is safe for NCC to believe this annotation because NCC
+also checks the assertion. When NCC encounters an instance of a cell
+with an <i> exportsConnectedByParent </i> annotation NCC reports an
+error whenever that assertion isn't satisfied.
+</p>
+<BR>
+
+<h3>skipNCC <i>&lt;comment&gt;</i> </h3>
+
+<P>
+The skipNCC annotation should be added to a cell, say B, when:
+<ul>
+<li>
+B{sch} and B{lay} won't pass either flat or hierarchical NCC and
+</li>
+<li>
+you want any hierarchical NCC of the parents of B to flatten the one
+level of hierarchy: cell B.
+</li>
+</ul>
+If cell B has a skipNCC annotation, then a hierarchical comparison
+won't check B and will simply flatten through the one level of
+hierarchy: B.  
+<p>
+All the characters following the keyword to the end of the
+line serve as a comment. This is useful for documenting why this
+annotation was necessary. When you ask NCC to compare every cell in
+the design, NCC will tell you which cells it is skipping and why.  For
+example, if cell B includes the NCC annotation: 
+</p>
+<p style=padding-left:10px>
+skipNCC layout is missing ground connection
+</p>
+<p>
+then NCC will print:
+<p style=padding-left:10px>
+ Skipping NCC of A because layout is missing ground connection. 
+</p>
+<p>
+A common reason for needing this annotation is an unfortunate
+situation: the
+exports of B{sch} and B{lay} don't match. A skipNCC on B prevents NCC
+from reporting export mismatches because 1) cell B is not checked by
+itself and 2) when a parent of cell B is checked, B's exports are
+discarded when NCC flattens through cell B. Although not always
+possible, it's better to fix export mismatches, because fixing them
+will yield clearer mismatch diagnostics when there is a problem.
+</p>
+<BR>
+
+<h3>flattenInstances <i>&lt;string or regular expression&gt;</i> ... </h3>
+<P>
+Hierarchical NCCs do not require a perfect match between the schematic
+and layout hierarchies. Instead, hierarchical NCC uses heuristics to
+determine which cell instances must be flattened and which can be
+compared hierarchically. The heuristic sometimes make mistakes. When
+that happens, the flattenInstances annotation can guide the heuristic.
+</p>
+<p>
+The list of strings and/or regular expressions are used to match
+instance names within the cell. Those cell instances that match are
+always flattened.  
+</p>
+<BR>
+
+<h3>notSubcircuit <i>&lt;comment&gt;</i>  </h3>
+
+<P>
+The designer should add the notSubcircuit annotation to a cell, say B,
+if:
+<ul>
+<li>
+B{sch} and B{lay} will pass NCC when compared separately but
+</li>
+<li>
+hierarchical NCC of a parent of B should not treat B as a hierarchical
+element but should, instead, flatten through B.
+</li>
+</ul>
+One reason for using this annotation is to correct errors made by the
+heuristic that determines which cells to flatten and which to compare
+hierarchically.  For example, suppose that the schematics instantiate
+cell B{sch} 1000 times and the layout instantiates cell B{lay} 500
+times.  In principle one could use the <i>flattenInstances</i>
+annotation to inform NCC which instances to keep and which to
+flatten. However sometimes that's more work than it's worth and it's
+better to add a single <i>notSubcircuit</i> annotation to cell B{sch}
+or B{lay} to tell NCC to never treat B as a hierarchical entity.
+<p>
+When hierarchical NCC encounters a notSubcircuit annotation it prints
+a message that includes the comment in a manner similar to skipNCC.
+</p>
+<p>
+The notSubcircuit annotation only affects hierarchical NCCs, it is
+ignored by flat NCCs. 
+</p>
+<BR>
+
+<h3>joinGroup <i>&lt;cell name&gt;</i> </h3> 
+<p>
+The designer should add a joinGroup annotation to, say, cell B if NCC
+should behave as if cell B belonged to a different cell group and that
+cell group is in a different library. The cell group to move B to is
+that cell group that contains <i>&lt;cell name&gt;</i>. That
+specification should be fully qualified: library:cell{view}.
+<p>
+Memberships in cell groups is important when NCC performs
+hierarchical comparisons because NCC assumes that cells in the same
+cell group are supposed to be topologically identical. Membership of
+two cells in the same cell group is one criteria NCC uses to decide
+that it should treat them as hierarchical entities and it should
+compare them separately.
+</p>
+<p>
+Occasionally it is impractical to place the layout and schematic views
+of a cell in the same cell group.  For example when layout is
+automatically generated from hand drawn schematics it may be better to
+place the layout in a different library than the schematics.
+</p>
+
+<!-- TRAILER -->
+

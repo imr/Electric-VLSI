@@ -53,15 +53,16 @@ You can right-click on a sweep and choose to include or exclude it from the disp
 You can also request that a sweep signal be highlighted.
 Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
 <P>
-If the layout or schematics cell that produced the verilog is being displayed in another window,
-and the currently selected network in that window is found in the Verilog output,
+If the layout or schematics cell that produced the Spice is being displayed in another window,
+and the currently selected network in that window is found in the Spice output,
 then that output can be added to the waveform window with
 the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
-The command <B>Add to Waveform in Current Panel</B> overlaies the signal on top of others in the currently selected waveform panel.
+The command <B>Add to Waveform in Current Panel</B> overlays the signal on top of others in the currently selected waveform panel.
 <P>
 The order of signals in the waveform window is saved in the original cell
 so that subsequent simulations will show the same signals.
 
+<BR>
 <H3>Time Control</H3>
 <P>
 Two vertical cursors appear in the window, called "main" and "extension"
@@ -84,6 +85,7 @@ To zoom out, hold the shift key and click in the center of the desired area.
 <P>
 <TABLE><TR><TD>
 You can control the horizontal and vertical range precisely by double-clicking in the vertical scale area.
+The dialog lets you type exact values into the ranges.
 </TD><TD><CENTER><IMG SRC="fig09-13.png" ALT="Figure 9.13"></CENTER></TD></TR></TABLE>
 <P>
 The different panels in the waveform window are locked in time: they all show the same range of time,
@@ -110,6 +112,7 @@ These window functions apply to the digital simulation windows:
 <LI><B>"Measure" tool in tool bar</B> for measuring time.</LI>
 </UL>
 
+<BR>
 <H3>Other Controls</H3>
 <P>
 At the top of the waveform window, above the signal names, are many useful controls.
@@ -118,7 +121,7 @@ Here are the remaining buttons:
 <UL>
 <LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
 Rereads the simultion output file and updates the display.
-If the simulator is re-run, and the output file is different, then this button shows the new date.
+If the simulation has been re-run, and the output file is different, then this button shows the new data.
 </LI>
 
 <LI><B>"Show Vertices"</B>&nbsp;<IMG SRC="fig09-19.png" ALT="Figure 9.19">&nbsp;&nbsp;

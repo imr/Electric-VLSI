@@ -48,10 +48,10 @@
           <SubComponents>
             <Component class="javax.swing.JRadioButton" name="hierAll">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Hierarchical Comparison"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="operationGroup"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Hierarchical Comparison"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hierAllActionPerformed"/>
@@ -64,10 +64,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="flatTop">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Flat Comparison"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="operationGroup"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Flat Comparison"/>
                 <Property name="actionCommand" type="java.lang.String" value="Flat NCC"/>
               </Properties>
               <Constraints>
@@ -78,10 +78,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="listAnn">
               <Properties>
+                <Property name="text" type="java.lang.String" value="List NCC annotations"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="operationGroup"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="List NCC annotations"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -131,7 +131,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel76">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Absolute size tolerance (lambda):"/>
+                <Property name="text" type="java.lang.String" value="Absolute size tolerance (units):"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -179,7 +179,7 @@
           <SubComponents>
             <Component class="javax.swing.JCheckBox" name="haltAfterFindingFirstMismatchedCell">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Halt after finding the first mismatched Cell"/>
+                <Property name="text" type="java.lang.String" value="Halt after finding the first mismatched cell"/>
                 <Property name="actionCommand" type="java.lang.String" value="Halt on First Mismatched Cell"/>
                 <Property name="horizontalTextPosition" type="int" value="10"/>
               </Properties>
