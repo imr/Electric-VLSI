@@ -234,8 +234,8 @@ public final class UserMenuCommands
 		// setup Russell's test menu
 		Menu russMenu = Menu.createMenu("Russell", 'R');
 		menuBar.add(russMenu);
-		russMenu.addMenuItem("ivanFlat", new com.sun.electric.kao.IvanFlat());
-		russMenu.addMenuItem("layout flat", new com.sun.electric.kao.LayFlat());
+		russMenu.addMenuItem("ivanFlat", new com.sun.electric.tool.generator.layout.IvanFlat());
+		russMenu.addMenuItem("layout flat", new com.sun.electric.tool.generator.layout.LayFlat());
 		russMenu.addMenuItem("gate regression", new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			    new com.sun.electric.tool.generator.layout.GateRegression();
@@ -243,7 +243,7 @@ public final class UserMenuCommands
 		});
 		russMenu.addMenuItem("create corrupt library", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.kao.BadLibrary();
+				new com.sun.electric.tool.generator.layout.BadLibrary();
 			}
 		});
 		

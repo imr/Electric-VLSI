@@ -36,11 +36,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import com.sun.electric.tool.generator.layout.gates.*;
+import com.sun.electric.tool.generator.layout.*;
 
 /*
  * Regression test for gate generators
  */
-public class GateRegression extends Job {
+public class BadLibrary extends Job {
 	// specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
@@ -113,78 +114,32 @@ public class GateRegression extends Job {
 		Pms1.makePart(x, stdCell);
 		stdCell.setDoubleStrapGate(false);
 	}
-	private static void makeBad(StdCellParams stdCell) {
-		Cell c = null;
-		// This one causes soe to crash
-		//c = InvCTLn.makePart(1, stdCell);
-		
-		// This one (and many others) gives soe check and repair errors
-		c = Inv.makePart(1, stdCell);
-	}
-
-	private static void allSizes(StdCellParams stdCell) {
-		double maxSz = 10;
-		for (double d=0.1; d<maxSz; d*=10) {
-			for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
-				aPass(x, stdCell);
-			} 
-		}
-	}
 
 	public void doIt() {
-		System.out.println("begin execution of Gates");
+		System.out.println("begin execution of BadLibrary");
 
-		boolean nfsWedged = true;
 		String homeDir;
 		if (!osIsWindows()) {
-			homeDir = "/home/rkao/";
-		} else if (nfsWedged) {
-			homeDir = "c:/a1/kao/Sun/";
-		} else {
-			homeDir = "x:/";
-		}
+			System.out.println("This command must be run under windows");
+			return;
+		} 
+
+		homeDir = "c:/";
 
 		Library scratchLib = 
 		  LayoutLib.openLibForModify("scratch", homeDir+"scratch");
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
-//		stdCell.enableNCC(
-//			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 
-//		// a normal run
-		//allSizes(stdCell);
 		aPass(20, stdCell);
-//		makeBad(stdCell);
 
-//		// test the ability to move ground bus
-//		stdCell.setGndY(stdCell.getGndY() - 7);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//		stdCell.setGndY(stdCell.getGndY() + 7);
-//
-//		// test different PMOS to NMOS heights
-//		stdCell.setNmosWellHeight(50);
-//		stdCell.setPmosWellHeight(100);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//
-//		stdCell.setNmosWellHeight(100);
-//		stdCell.setPmosWellHeight(50);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//		stdCell.setNmosWellHeight(70);
-//		stdCell.setPmosWellHeight(70);
-
-		Cell gallery = Gallery.makeGallery(scratchLib);
-//		DrcRings.addDrcRings(gallery, FILTER);
-		
 		LayoutLib.writeLibrary(scratchLib);
 
 		System.out.println("done.");
 	}
-	public GateRegression() {
+	public BadLibrary() {
 		super("Run Gate regression", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();

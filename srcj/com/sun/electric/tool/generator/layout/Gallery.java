@@ -1,0 +1,193 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Gallery.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.generator.layout;
+import java.io.*;
+import java.util.*;
+import java.awt.geom.*;
+
+import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.prototype.*;
+import com.sun.electric.database.topology.*;
+import com.sun.electric.database.network.*;
+import com.sun.electric.technology.*;
+
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.generator.layout.gates.*;
+import com.sun.electric.tool.generator.layout.*;
+
+public class Gallery {
+	static final double PAGE_WIDTH = 1000;
+	static final double HORIZONTAL_SPACE = 30;
+	static final double VERTICAL_SPACE = 30;
+	static final double TEXT_OFFSET_BELOW_CELL = 10;
+	private PrimitiveNode textPin;
+	private StdCellParams stdCell;
+	private Library lib;
+
+	private static void error(boolean pred, String msg) {
+		LayoutLib.error(pred, msg);
+	}
+	ArrayList readLayoutCells(Library lib) {
+		ArrayList cells = new ArrayList();
+		Iterator it = lib.getCells();
+		View layView = View.findView("layout");
+		while (it.hasNext()) {
+			Cell c = (Cell) it.next();
+			if (c.getView()==layView)  cells.add(c);
+		}
+		return cells;
+	}
+
+	void sortCellsByName(ArrayList facets) {
+		Collections.sort(facets, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				String n1 = ((Cell)o1).getProtoName();
+				String n2 = ((Cell)o2).getProtoName();
+				return n1.compareTo(n2);
+			}
+		});
+	}
+
+	void printCells(ArrayList facets) {
+		for (int i=0; i<facets.size(); i++) {
+			Cell p = (Cell) facets.get(i);
+			System.out.println(p.getProtoName());
+		}
+	}
+
+	ArrayList addOneInstOfEveryCell(ArrayList facets, Cell gallery) {
+		ArrayList insts = new ArrayList();
+		for (int i=0; i<facets.size(); i++) {
+			NodeInst ni = LayoutLib.newNodeInst((Cell)facets.get(i), 0, 0, 0,
+			                                    0, 0, gallery);
+			insts.add(ni);
+		}
+		return insts;
+	}
+
+	double width(NodeInst ni) {
+		return ni.getBounds().getWidth();
+	}
+
+	double height(NodeInst ni) {
+		return ni.getBounds().getHeight();
+	}
+
+	double getRow(ArrayList row, ListIterator it) {
+		double x = 0;
+		double rowHeight = 0;
+		while (it.hasNext()) {
+			NodeInst ni = (NodeInst) it.next();
+			// always add at least 1 part to each row
+			if (x!=0 && x+width(ni)>PAGE_WIDTH) {
+				it.previous();
+				break;
+			}
+			row.add(ni);
+			rowHeight = Math.max(rowHeight, height(ni));
+			x = x + width(ni) + HORIZONTAL_SPACE;
+		}
+		return rowHeight;
+	}
+
+	void placeRow(ArrayList row, double curTopY, Cell gallery) {
+		double curLeftX = 0;
+		//System.out.println("Row at: "+y);
+		for (int i=0; i<row.size(); i++) {
+			NodeInst ni = (NodeInst) row.get(i);
+			Rectangle2D r = ni.getBounds();
+//			System.out.println("Instance initial bounding box: "+r);
+//			System.out.println("Put instance at: ("+x+", "+(y-r.getY())+")");
+
+			ni.modifyInstance(curLeftX-r.getX(), curTopY-r.getY(), 0, 0, 0);
+
+			// label instance with text
+			double defSz = LayoutLib.DEF_SIZE;
+
+			NodeInst ti = 
+			  LayoutLib.newNodeInst(textPin, defSz, defSz, curLeftX+width(ni)/2, 
+			                        curTopY-TEXT_OFFSET_BELOW_CELL, 0, gallery);
+			ti.setExpanded();
+//			String partNm = ni.getProto().getProtoName();
+//			System.out.println("Cell: "+partNm+" has width: "+width(ni));
+			//ti.setVar("ART_message", partNm);
+			//String s = (String) ni.getVar("ART_message");
+			//System.out.println("placeRow: NodeInst Width: "+width(ni));
+			curLeftX = curLeftX + r.getWidth() + HORIZONTAL_SPACE;
+		}
+	}
+
+	void placeInstsOnPage(ArrayList insts, Cell gallery) {
+		double curTopY = 0;
+		for (ListIterator it=insts.listIterator(); it.hasNext();) {
+			ArrayList row = new ArrayList();
+			double rowHeight = getRow(row, it);
+			placeRow(row, curTopY, gallery);
+			curTopY = curTopY - rowHeight - VERTICAL_SPACE;
+		}
+	}
+
+	Gallery(Library lib) {
+		this.lib = lib;
+
+		Technology generic = Technology.findTechnology("generic");
+		error(generic == null, "No generic technology?");
+		textPin = generic.findNodeProto("Invisible-Pin");
+
+		stdCell = new StdCellParams(lib);
+	}
+
+	Cell makeGallery1() {
+		ArrayList cells = readLayoutCells(lib);
+		System.out.println("Gallery contains: " + cells.size() + " Cells");
+
+		sortCellsByName(cells);
+
+		Cell gallery = Cell.newInstance(lib, "gallery{lay}");
+		ArrayList insts = addOneInstOfEveryCell(cells, gallery);
+
+		placeInstsOnPage(insts, gallery);
+
+		return gallery;
+	}
+
+	/**
+	 * Create a new Cell named "gallery" in Library "lib".  Into
+	 * Gallery place one instance of every Cell in "lib".  Arrange
+	 * instances in rows sorted alphabetically by Cell name.
+	 */
+	public static Cell makeGallery(Library lib) {
+		Gallery galleryMaker = new Gallery(lib);
+		return galleryMaker.makeGallery1();
+	}
+
+	// generate Gallery for currently open library
+	public static void main(String[] args) {
+		Library lib = Library.getCurrent();
+		error(lib == null, "No currently open library?");
+		makeGallery(lib);
+
+		System.out.println("Done");
+	}
+}
