@@ -328,7 +328,15 @@ public class NetworkTool extends Listener
 
 	public void endBatch()
 	{
-		redoNetworkNumbering(false);
+		try {
+			redoNetworkNumbering(false);
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+			System.err.println("Full Network renumbering after crash.");
+			e.printStackTrace(System.out);
+			System.out.println("Full Network renumbering after crash.");
+			redoNetworkNumbering(true);
+		}
 		if (!debug) return;
 		System.out.println("NetworkTool.endBatch()");
 	}
