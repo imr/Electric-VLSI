@@ -51,7 +51,9 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.routing.Router;
+import com.sun.electric.tool.Job;
 
+import javax.swing.*;
 import java.util.*;
 import java.util.List;
 import java.awt.geom.Point2D;
@@ -363,7 +365,13 @@ public class Highlighter implements DatabaseChangeListener {
 		    if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
 
         // notify all listeners that highlights have changed (changes committed).
-        fireHighlightChanged();
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { fireHighlightChanged(); }
+            });
+        } else {
+            fireHighlightChanged();
+        }
 	}
 
     /**
