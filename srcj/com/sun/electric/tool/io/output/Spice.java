@@ -929,7 +929,12 @@ public class Spice extends Topology
                     infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
                     if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
 				}
-			}
+			} else {
+                if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String))
+                    infstr.append(" L="+size.getLength());
+                if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
+                    infstr.append(" W="+size.getWidth());
+            }
 
 			// make sure transistor is connected to nets
 			SpiceNet spNetGate = (SpiceNet)spiceNetMap.get(gateNet);
