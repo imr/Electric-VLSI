@@ -678,8 +678,9 @@ public class ToolMenu {
 	        JNetwork net = (JNetwork)it.next();
 	        System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
         }
+	    long startTime = System.currentTimeMillis();
         PolyQTree tree = new PolyQTree(cell.getBounds());
-	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK, null);
+	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK, null, nets);
 	    HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, visitor);
 
 		double totalWire = 0;
@@ -714,8 +715,9 @@ public class ToolMenu {
 			        + "\t half-perimeter " + TextUtils.formatDouble(perimeter)
 			        + "\t ratio " + TextUtils.formatDouble(layerArea/perimeter));
 		}
+	    long endTime = System.currentTimeMillis();
 	    if (totalWire > 0)
-		    System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda));
+		    System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda) + " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
 		// @TODO GVG lambda and ratio ==0 (when is the case?)
     }
@@ -951,6 +953,7 @@ public class ToolMenu {
             private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
             private final int function;
             private HashMap originalPolygons;
+	        private Set netSet; // For network type, rest is null
 
 	        /**
 	         * Determines if function of given layer is applicable for the corresponding operation
@@ -973,25 +976,55 @@ public class ToolMenu {
 				}
 	        }
 
-            public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func, HashMap original)
+            public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func, HashMap original, Set netSet)
             {
                 this.testCase = test;
                 this.tree = t;
                 this.deleteList = delList;
                 this.function = func;
 	            this.originalPolygons = original;
+	            this.netSet = netSet;
             }
             public void exitCell(HierarchyEnumerator.CellInfo info)
             {
             }
+
             public boolean enterCell(HierarchyEnumerator.CellInfo info)
             {
                 Cell curCell = info.getCell();
+	            Netlist netlist = info.getNetlist();
+	            // @TODO GVG put node checking into visitorNode
+
+	            // Checking if any network is found
+				boolean found = (netSet == null);
+				for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); ) {
+					JNetwork aNet = (JNetwork)it.next();
+					if (netSet.contains(aNet))
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found) return (false);
 
                 // Traversing arcs
                 for (Iterator it = curCell.getArcs(); it.hasNext(); )
                 {
                     ArcInst arc = (ArcInst)it.next();
+	                int width = netlist.getBusWidth(arc);
+					found = (netSet == null);
+
+					for (int i=0; !false && i<width; i++)
+					{
+						JNetwork oNet = netlist.getNetwork(arc, i);
+						if (netSet.contains(oNet))
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						continue; // skipping this arc
                     ArcProto arcType = arc.getProto();
                     Technology tech = arcType.getTechnology();
                     Poly[] polyList = tech.getShapeOfArc(arc);
@@ -1019,7 +1052,7 @@ public class ToolMenu {
 							}
 							map.put(pnode, pnode.clone());
 						}
-                        tree.add(layer, pnode);
+                        tree.add(layer, pnode, function==NETWORK);  // tmp fix
                     }
                 }
 
@@ -1030,7 +1063,20 @@ public class ToolMenu {
                 // This function should be moved to visitNodeInst
                 for (Iterator it = curCell.getNodes(); it.hasNext(); )
                 {
-                    NodeInst node = (NodeInst)it .next();
+                    NodeInst node = (NodeInst)it.next();
+
+	                found = (netSet == null);
+
+	                for(Iterator pIt = node.getPortInsts(); !found && pIt.hasNext(); )
+					{
+						PortInst pi = (PortInst)pIt.next();
+						PortProto subPP = pi.getPortProto();
+						JNetwork oNet = info.getNetlist().getNetwork(node, subPP, 0);
+		                if (netSet.contains(oNet))
+		                    found = true;
+					}
+					if (!found)
+						continue; // skipping this node
 
                     // Coverage implants are pure primitive nodes
                     // and they are ignored.
@@ -1073,7 +1119,6 @@ public class ToolMenu {
                             // Not sure if I need this for general merge polygons function
                             poly.transform(info.getTransformToRoot());
 
-                            //System.out.println("Node name"+ node.getName() + " layer " + layer.getName()+ " P " + poly.getBounds2D());
 
 	                        PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
 	                        if (function == IMPLANT)
@@ -1087,7 +1132,7 @@ public class ToolMenu {
 								}
 		                        map.put(pnode, pnode.clone());
 	                        }
-                            tree.add(layer, pnode);
+                            tree.add(layer, pnode, function==NETWORK);
                         }
                     }
                 }
@@ -1116,7 +1161,7 @@ public class ToolMenu {
         public boolean doIt()
         {
             // enumerate the hierarchy below here
-            LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons);
+            LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons, null);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
             switch (function)
@@ -1144,7 +1189,7 @@ public class ToolMenu {
                             System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
                         }
 
-                        System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda");
+                        System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
                     }
                     break;
                 case MERGE:

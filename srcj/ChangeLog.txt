@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01p: *********************************
 
+BUG: (9/16/04, GVG) Fix in geometry on network: wrong network selected
+
+IMP: (9/15/04, GVG) Check box in DRC Tab to disable area checking.
+
 IMP: (9/15/04, GVG) Improvement in List Geometry on Network
 
 IMP/MAN: (9/15/04, GVG) Adding option to disconnect DRC area checking
