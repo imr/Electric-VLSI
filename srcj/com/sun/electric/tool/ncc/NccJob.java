@@ -120,7 +120,6 @@ public class NccJob extends Job {
 		System.out.println((hierarchical ? "Hierarchical" : "Flat")+
                            " NCC starting");
 		NccOptions options = getOptionsFromNccConfigDialog();
-		options.verbose = true;
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
 
 		boolean ok;
