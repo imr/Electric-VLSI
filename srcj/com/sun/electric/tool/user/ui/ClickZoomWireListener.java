@@ -568,7 +568,9 @@ public class ClickZoomWireListener
                     Point2D center = new Point((int)(-screenDelta.getX() + wnd.getOffset().getX()),
                                                (int)(-screenDelta.getY() + wnd.getOffset().getY()));
                     if (moveDelta != null) Highlight.remove(moveDelta);
-                    moveDelta = Highlight.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")", new Point(0,0));
+                    Rectangle2D bounds = wnd.getDisplayedBounds();
+                    moveDelta = Highlight.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")",
+                            new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
 	                wnd.repaint();
 	            }
 	        }
