@@ -523,7 +523,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	{
 		try
 		{
-			long startTime = System.currentTimeMillis();
+			//long startTime = System.currentTimeMillis();
 			TreeSet libNames = new TreeSet(String.CASE_INSENSITIVE_ORDER);
 			for (Iterator it = libraries.entrySet().iterator(); it.hasNext(); )
 			{
@@ -535,9 +535,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 				libNames.add(libName);
 				lib.check();
 			}
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("**** Check Invariants took " + finalTime + " seconds");
+			//long endTime = System.currentTimeMillis();
+			//float finalTime = (endTime - startTime) / 1000F;
+			//System.out.println("**** Check Invariants took " + finalTime + " seconds");
 			return true;
 		} catch (Throwable e)
 		{

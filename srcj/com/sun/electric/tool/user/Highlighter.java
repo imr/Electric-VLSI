@@ -696,7 +696,14 @@ public class Highlighter implements DatabaseChangeListener {
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell != null)
 		{
-			Netlist netlist = cell.getUserNetlist();
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				String msg = "Selected networks are not ready";
+				System.out.println(msg);
+				ActivityLogger.logMessage(msg);
+				return nets;
+			}
 			for(Iterator it = getHighlights().iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();

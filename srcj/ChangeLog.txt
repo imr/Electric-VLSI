@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+BUG: (01/14/04, DN) Thunder and lightning when highlighted networks are not ready (Bug #155).
+FIX: In "Highlighter.getHighlightedNetworks" use "acwireUserNetlist" instead of "getUserNetlist".
+     Text message is printed when getUserNetlist is called in GUI thread.
+
 ************************* Version 8.02b: *********************************
 
 BUG: (01/14/04, GVG) Removing extra quotes in Launcher.java otherwise double click or java -jar electric.jar
