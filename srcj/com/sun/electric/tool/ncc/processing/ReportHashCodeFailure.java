@@ -56,6 +56,13 @@ public class ReportHashCodeFailure {
 			if (num>maxMismatches) {
 				prln("    Too many, I'm only printing "+maxMismatches+".");
 			}
+			if (partsOrWires==null) {
+				// The designs being compared have no Parts or no Wires.
+				// There's nothing to print.  Do a quick sanity check and 
+				// return.
+				error(num!=0, "non-zero mismatched objects but no objects!");
+				return;
+			}
 			doFor(partsOrWires);
 		}
 		// Constructor does everything
@@ -116,6 +123,14 @@ public class ReportHashCodeFailure {
 			if (num>maxMatches) {
 				prln("    Too many, I'm only printing "+maxMatches+".");
 			}
+			if (partsOrWires==null) {
+				// The designs being compared have no Parts or no Wires.
+				// There's nothing to print.  Do a quick sanity check and 
+				// return.
+				error(num!=0, "non-zero matched objects but no objects!");
+				return;
+			}
+			
 			doFor(partsOrWires);
 		}
 		// Constructor does everything

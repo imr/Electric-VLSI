@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
+BUG: (11/29/04, RK) Fix NCC crash when designs have no Parts or no Wires and a Hash Code partitioning mismatch is reported.
+
 IMP: (11/29/04, SMR) Improved name incrementing so that lists are all incremented
      (for example, "A,B" used to become "A,B_1" but now becomes "A_1,B_1").
 

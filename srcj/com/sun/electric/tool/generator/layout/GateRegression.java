@@ -22,19 +22,19 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
-import com.sun.electric.database.change.Undo;
-import java.util.Properties;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.gates.*;
-import com.sun.electric.tool.generator.layout.gates90nm.TSMC90Generator;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.plugins.tsmc90.TSMC90;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
-import com.sun.electric.plugins.tsmc90.TSMC90;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
+import com.sun.electric.tool.generator.layout.gates90nm.TSMC90Generator;
+import com.sun.electric.tool.io.output.CIF;
+import com.sun.electric.tool.user.User;
 
 /*
  * Regression test for gate generators
@@ -79,8 +79,10 @@ public class GateRegression extends Job {
         runRegression(technology);
         return true;
     }
-    // This is the programatic interface
-    public static void runRegression(Technology technology) {
+    /** Programatic interface to gate regressions.
+     * @param technology
+     * @return the number of errors detected */
+    public static int runRegression(Technology technology) {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib = 
@@ -134,9 +136,13 @@ public class GateRegression extends Job {
         Cell gallery = Gallery.makeGallery(scratchLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);
 
+        int numCifErrs = CIF.writeCIFFile(gallery, VarContext.globalContext, 
+        		                          "scratch.cif", 0.5);
         LayoutLib.writeLibrary(scratchLib);
 
         System.out.println("done.");
+
+        return numCifErrs;
 	}
 	public GateRegression(Technology tech) {
 		super("Run Gate regression", User.tool, Job.Type.CHANGE, 

@@ -79,39 +79,52 @@ public class CIF extends Geometry
 
     /** illegal characters in names (not really illegal but can cause problems) */
     private static final String badNameChars = ":{}/\\";
-
+    
     /**
 	 * Main entry point for CIF output.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
+	 * @return the number of errors detected
 	 */
-	public static void writeCIFFile(Cell cell, VarContext context, String filePath)
+	public static int writeCIFFile(Cell cell, VarContext context, String filePath)
 	{
-		CIF out = new CIF();
-		if (out.openTextOutputStream(filePath)) return;
+		// initialize preferences
+		double minAllowedResolution = 0;
+		if (IOTool.isCIFOutCheckResolution())
+			minAllowedResolution = IOTool.getCIFOutResolution();
+		return writeCIFFile(cell, context, filePath, minAllowedResolution);
+	}
+    /**
+	 * User Interface independent entry point for CIF output.
+	 * @param cell the top-level cell to write.
+	 * @param filePath the name of the file to create.
+	 * @return the number of errors detected
+	 */
+	public static int writeCIFFile(Cell cell, VarContext context, String filePath,
+			                       double minAllowedResolution)
+	{
+		CIF out = new CIF(minAllowedResolution);
+		if (out.openTextOutputStream(filePath)) return 1;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, context, visitor)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.writeCell(cell, context, visitor)) return 1;
+		if (out.closeTextOutputStream()) return 1;
 		System.out.println(filePath + " written");
 		if (out.errorLogger.getNumErrors() != 0)
 			System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
 		out.errorLogger.termLogging(true);
+		return out.errorLogger.getNumErrors();
 	}
 
 	/**
 	 * Creates a new instance of CIF
 	 */
-	CIF()
+	CIF(double minAllowedResolution)
 	{
+		this.minAllowedResolution = minAllowedResolution;
 		cellNumbers = new HashMap();
 
 		// scale is in centimicrons, technology scale is in nanometers
 		scaleFactor = Technology.getCurrent().getScale() / 10;
-
-		// initialize preferences
-		minAllowedResolution = 0;
-		if (IOTool.isCIFOutCheckResolution())
-			minAllowedResolution = IOTool.getCIFOutResolution();
 
         errorLogger = ErrorLogger.newInstance("CIF resolution");
 	}
