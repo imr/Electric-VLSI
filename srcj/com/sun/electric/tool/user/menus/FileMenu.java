@@ -608,11 +608,14 @@ public class FileMenu {
     {
         Cell printCell = WindowFrame.needCurCell();
         if (printCell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        VarContext context = wnd.getVarContext();
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName("Cell "+printCell.describe());
         ElectricPrinter ep = new ElectricPrinter();
-        ep.setPrintCell(printCell);
+        ep.setPrintCell(printCell, context);
         pj.setPrintable(ep);
 
         // see if a default printer should be mentioned
@@ -678,9 +681,13 @@ public class FileMenu {
     private static class ElectricPrinter implements Printable
     {
         private Cell printCell;
+        private VarContext context;
         private Image img = null;
 
-        public void setPrintCell(Cell printCell) { this.printCell = printCell; }
+        public void setPrintCell(Cell printCell, VarContext context) {
+            this.printCell = printCell;
+            this.context = context;
+        }
 
         public int print(Graphics g, PageFormat pageFormat, int page)
             throws java.awt.print.PrinterException
@@ -694,7 +701,7 @@ public class FileMenu {
                 int iw = (int)pageFormat.getImageableWidth();
                 int ih = (int)pageFormat.getImageableHeight();
                 w.setScreenSize(new Dimension(iw, ih));
-                w.setCell(printCell, VarContext.globalContext);
+                w.setCell(printCell, context);
                 PixelDrawing offscreen = w.getOffscreen();
                 offscreen.setBackgroundColor(Color.WHITE);
                 offscreen.drawImage(null);

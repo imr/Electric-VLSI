@@ -634,7 +634,7 @@ public class Clipboard
 			newNi.clearShortened();
 			newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
-			newNi.copyVars(ni);
+			newNi.copyVarsFrom(ni);
 			ni.setTempObj(newNi);
 //			us_dupnode = newNi;
 
@@ -682,7 +682,7 @@ public class Clipboard
 					return;
 				}
 				newAr.copyStateBits(ai);
-				newAr.copyVars(ai);
+				newAr.copyVarsFrom(ai);
 				newAr.setNameTextDescriptor(ai.getNameTextDescriptor());
 				ai.setTempObj(newAr);
 			}
@@ -804,14 +804,24 @@ public class Clipboard
 	 */
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
+        // always replace with a new object.
+        // otherwise, can't undo lowLevelSetUserBits at end of this method.
+        //
 		// if they do not have the same type, replace one with the other
-		if (destNode.getProto() != srcNode.getProto())
-		{
+		//if (destNode.getProto() != srcNode.getProto())
+		//{
 			destNode = CircuitChanges.replaceNodeInst(destNode, srcNode.getProto(), true, false);
             destNode.clearExpanded();
             if (srcNode.isExpanded()) destNode.setExpanded();
-			return destNode;
-		}
+
+            if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
+                if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
+                    Technology tech = srcNode.getProto().getTechnology();
+                    tech.setPrimitiveFunction(destNode, srcNode.getFunction());
+                }
+            }
+		//	return destNode;
+		//}
 
 		// make the sizes the same if they are primitives
 		if (destNode.getProto() instanceof PrimitiveNode)
@@ -843,8 +853,9 @@ public class Clipboard
 			}
 		}
 
+
 		// make sure all variables are on the node
-		destNode.copyVars(srcNode);
+		destNode.copyVarsFrom(srcNode);
 
 		// copy any special user bits
 		destNode.lowLevelSetUserbits(srcNode.lowLevelGetUserbits());

@@ -942,7 +942,7 @@ public class Change extends EDialog implements HighlightListener
 				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, ai.getHead().getLocation(),
 					pi1, ai.getTail().getLocation(), null);
 				if (newAi == null) return;
-				newAi.copyVars(ai);
+				newAi.copyVarsFrom(ai);
 				newAi.clearBit(marked);
 			}
 

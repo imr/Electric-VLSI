@@ -1096,7 +1096,7 @@ public class Layout extends Constraints
 			System.out.println("Problem creating jog arcs");
 			return;
 		}
-		ar2.copyVars(ai);
+		ar2.copyVarsFrom(ai);
 		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
 		ar1.setChangeClock(changeClock + arctyp);
 		ar2.setChangeClock(changeClock + arctyp);

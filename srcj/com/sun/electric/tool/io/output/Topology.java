@@ -369,6 +369,7 @@ public abstract class Topology extends Output
 			}
 
 			// save it in the map of signals
+            //System.out.println("Adding signal "+cs.name+" on net "+net);
 			cni.cellSignals.put(net, cs);
 		}
 
@@ -570,6 +571,7 @@ public abstract class Topology extends Output
 		{
 			CellSignal cs = (CellSignal)cellSignalArray.get(i);
 
+            //System.out.println("aggregating signal "+cs.name);
 			CellAggregateSignal cas = new CellAggregateSignal();
 			cas.name = unIndexedName(cs.name);
 			cas.pp = cs.pp;
@@ -581,6 +583,7 @@ public abstract class Topology extends Output
 			if (cs.name.equals(cas.name))
 			{
 				// single wire: set range to show that
+                //System.out.println("   ...single signal");
 				cas.low = 1;
 				cas.high = 0;
 				cas.signals = new CellSignal[1];
@@ -610,6 +613,7 @@ public abstract class Topology extends Output
 				for(int j=start; j<=i; j++)
 				{
 					CellSignal csEnd = (CellSignal)cellSignalArray.get(j);
+                    //System.out.println("  ...added signal "+csEnd.name+ " at "+(j-start));
 					cas.signals[j-start] = csEnd;
 				}
 			}

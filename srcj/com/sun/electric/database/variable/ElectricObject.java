@@ -150,6 +150,7 @@ public class ElectricObject
             if ((vars != null) && (vars.get(var.getKey()) != null)) continue;
             // otherwise make copy of default var locally
             Variable newVar = newVar(var.getKey(), var.getObject());
+            System.out.println("Reinhering var "+var.getKey().getName());
             if (newVar == null) continue;
             newVar.setTextDescriptor(var.getTextDescriptor());
             newVar.copyFlags(var);
@@ -634,12 +635,13 @@ public class ElectricObject
 	 * Method to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
 	 */
-	public void copyVars(ElectricObject other)
+	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
 		for(Iterator it = other.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
+            System.out.println("Copying var "+var.getKey().getName()+", new value is "+var.getObject());
             Variable newVar = this.newVar(var.getKey(), var.getObject());
 			if (newVar != null)
 			{

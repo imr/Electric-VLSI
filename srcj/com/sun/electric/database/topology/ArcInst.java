@@ -335,7 +335,7 @@ public class ArcInst extends Geometric
 		}
 
 		// copy all variables on the arcinst
-		newar.copyVars(this);
+		newar.copyVarsFrom(this);
 		newar.setNameTextDescriptor(getNameTextDescriptor());
 
 		// now delete the original nodeinst
@@ -1044,12 +1044,12 @@ public class ArcInst extends Geometric
     /**
      * Copies all properties (variables, constraints, name, and textdescriptor)
      * from 'fraomAi' to this arcinst. This is basically the same as calling
-     * copyVars(), copyConstraints(), and setTextDescriptor().
+     * copyVarsFrom(), copyConstraints(), and setTextDescriptor().
      * @param fromAi the arc from which to copy all arc properties
      */
     public void copyProperties(ArcInst fromAi) {
         if (fromAi == null) return;
-        copyVars(fromAi);
+        copyVarsFrom(fromAi);
         copyConstraints(fromAi);
         setName(fromAi.getName());
         setNameTextDescriptor(fromAi.getNameTextDescriptor());

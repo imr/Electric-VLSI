@@ -580,7 +580,7 @@ public class Cell extends NodeProto implements Comparable
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeInst toNi = (NodeInst)ni.getTempObj();
-			toNi.copyVars(ni);
+			toNi.copyVarsFrom(ni);
 
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
             // then change the name from the old to the new
@@ -630,7 +630,7 @@ public class Cell extends NodeProto implements Comparable
 
 			// copy arcinst variables
 			toAi.setNameTextDescriptor(ai.getNameTextDescriptor());
-			toAi.copyVars(ai);
+			toAi.copyVarsFrom(ai);
 
 			// copy miscellaneous information
 			toAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
@@ -655,7 +655,7 @@ public class Cell extends NodeProto implements Comparable
 			if (ppt == null) return null;
 
 			// copy portproto variables
-			ppt.copyVars(pp);
+			ppt.copyVarsFrom(pp);
 
 			// copy miscellaneous information
 			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
@@ -663,7 +663,7 @@ public class Cell extends NodeProto implements Comparable
 		}
 
 		// copy cell variables
-		newCell.copyVars(fromCell);
+		newCell.copyVarsFrom(fromCell);
 
 		// reset (copy) date information
 		newCell.lowLevelSetCreationDate(fromCell.getCreationDate());

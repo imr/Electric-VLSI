@@ -581,7 +581,7 @@ public class NodeInst extends Geometric implements Nodable
 				newAi.getHead().setNegated(ai.getHead().isNegated());
 				newAi.getTail().setNegated(ai.getTail().isNegated());
 			}
-			newAi.copyVars(ai);
+			newAi.copyVarsFrom(ai);
 			ai.kill();
 			newAi.setName(ai.getName());
 		}
@@ -604,7 +604,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// copy all variables on the nodeinst
-		newNi.copyVars(this);
+		newNi.copyVarsFrom(this);
 		newNi.setNameTextDescriptor(getNameTextDescriptor());
 		newNi.setProtoTextDescriptor(getProtoTextDescriptor());
 		newNi.lowLevelSetUserbits(lowLevelGetUserbits());

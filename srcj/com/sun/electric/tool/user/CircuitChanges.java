@@ -70,15 +70,7 @@ import com.sun.electric.tool.user.menus.MenuCommands;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.swing.JOptionPane;
 
@@ -2306,7 +2298,7 @@ public class CircuitChanges
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
-				newNi.copyVars(ni);
+				newNi.copyVarsFrom(ni);
 				newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 	
 				// make ports where this nodeinst has them
@@ -2319,7 +2311,7 @@ public class CircuitChanges
 					{
 						newPp.setCharacteristic(pp.getCharacteristic());
 						newPp.setTextDescriptor(pp.getTextDescriptor());
-						newPp.copyVars(pp);
+						newPp.copyVarsFrom(pp);
 					}
 				}
 			}
@@ -2430,7 +2422,7 @@ public class CircuitChanges
 			newNodes.put(ni, newNi);
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
-			newNi.copyVars(ni);
+			newNi.copyVarsFrom(ni);
 		}
 
 		// make a list of arcs to extract
@@ -3429,7 +3421,7 @@ public class CircuitChanges
 					return false;
 				}
 				npp.setTextDescriptor(pp.getTextDescriptor());
-				npp.copyVars(pp);
+				npp.copyVarsFrom(pp);
 				npp.setCharacteristic(pp.getCharacteristic());
 				newPortMap.put(pp, npp);
 			}
@@ -3802,7 +3794,7 @@ public class CircuitChanges
 			if (pp.isAlwaysDrawn()) port.setAlwaysDrawn(); else
 				port.clearAlwaysDrawn();
 			port.setCharacteristic(pp.getCharacteristic());
-			port.copyVars(pp);
+			port.copyVarsFrom(pp);
 		}
 
 		// add lead if requested
@@ -4611,8 +4603,8 @@ public class CircuitChanges
                     newAi.setName(ra.arcName);
                     newAi.setNameTextDescriptor(ra.arcNameTD);
                 }
-                newAi.copyVars(ra.reconAr[0]);
-                newAi.copyVars(ra.reconAr[1]);
+                newAi.copyVarsFrom(ra.reconAr[0]);
+                newAi.copyVarsFrom(ra.reconAr[1]);
                 newArcs.add(newAi);
             }
 			return newArcs;
@@ -5085,32 +5077,59 @@ public class CircuitChanges
 
 	private static class PossibleVariables
 	{
-		Variable.Key varKey;
-		PrimitiveNode pn;
+        private static HashMap posVarsMap = new HashMap();
 
-		private PossibleVariables(String varName, PrimitiveNode pn)
+        private static void add(String varName, PrimitiveNode pn) {
+            List varKeys = (List)posVarsMap.get(pn);
+            if (varKeys == null) {
+                varKeys = new ArrayList();
+                posVarsMap.put(pn, varKeys);
+            }
+            Variable.Key key = ElectricObject.newKey(varName);
+            if (!varKeys.contains(key)) varKeys.add(key);
+        }
+
+		static
 		{
-			this.varKey = ElectricObject.newKey(varName);
-			this.pn = pn;
+			add("ATTR_length",       Schematics.tech.transistorNode);
+			add("ATTR_length",       Schematics.tech.transistor4Node);
+			add("ATTR_width",        Schematics.tech.transistorNode);
+			add("ATTR_width",        Schematics.tech.transistor4Node);
+			add("ATTR_area",         Schematics.tech.transistorNode);
+			add("ATTR_area",         Schematics.tech.transistor4Node);
+			add("SIM_spice_model",   Schematics.tech.sourceNode);
+			add("SIM_spice_model",   Schematics.tech.transistorNode);
+			add("SIM_spice_model",   Schematics.tech.transistor4Node);
+			add("SCHEM_meter_type",  Schematics.tech.meterNode);
+			add("SCHEM_diode",       Schematics.tech.diodeNode);
+			add("SCHEM_capacitance", Schematics.tech.capacitorNode);
+			add("SCHEM_resistance",  Schematics.tech.resistorNode);
+			add("SCHEM_inductance",  Schematics.tech.inductorNode);
+			add("SCHEM_function",    Schematics.tech.bboxNode);
 		}
-		public static final PossibleVariables [] list = new PossibleVariables []
-		{
-			new PossibleVariables("ATTR_length",       Schematics.tech.transistorNode),
-			new PossibleVariables("ATTR_length",       Schematics.tech.transistor4Node),
-			new PossibleVariables("ATTR_width",        Schematics.tech.transistorNode),
-			new PossibleVariables("ATTR_width",        Schematics.tech.transistor4Node),
-			new PossibleVariables("ATTR_area",         Schematics.tech.transistorNode),
-			new PossibleVariables("ATTR_area",         Schematics.tech.transistor4Node),
-			new PossibleVariables("SIM_spice_model",   Schematics.tech.sourceNode),
-			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistorNode),
-			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistor4Node),
-			new PossibleVariables("SCHEM_meter_type",  Schematics.tech.meterNode),
-			new PossibleVariables("SCHEM_diode",       Schematics.tech.diodeNode),
-			new PossibleVariables("SCHEM_capacitance", Schematics.tech.capacitorNode),
-			new PossibleVariables("SCHEM_resistance",  Schematics.tech.resistorNode),
-			new PossibleVariables("SCHEM_inductance",  Schematics.tech.inductorNode),
-			new PossibleVariables("SCHEM_function",    Schematics.tech.bboxNode)
-		};
+
+        /**
+         * Get an iterator over valid Variable Keys for the primitive node
+         * @param pn
+         * @return
+         */
+        public Iterator getPossibleVarKeys(PrimitiveNode pn) {
+            List varKeys = (List)posVarsMap.get(pn);
+            if (varKeys == null)
+                varKeys = new ArrayList();
+            return varKeys.iterator();
+        }
+
+        /**
+         * Returns True if a valid key for the primitive node
+         * @param pn
+         * @return
+         */
+        public static boolean validKey(Variable.Key key, PrimitiveNode pn) {
+            List varKeys = (List)posVarsMap.get(pn);
+            if (varKeys == null) return false;
+            return varKeys.contains(key);
+        }
 	}
 
 	/**
@@ -5127,16 +5146,15 @@ public class CircuitChanges
 			if (newNp instanceof PrimitiveNode)
 			{
 				// remove variables that make no sense
-				for(int i=0; i<PossibleVariables.list.length; i++)
-				{
-					if (newNi.getProto() == PossibleVariables.list[i].pn) continue;
-					Variable var = newNi.getVar(PossibleVariables.list[i].varKey);
-					if (var != null)
-						newNi.delVar(PossibleVariables.list[i].varKey);
-				}
+                for (Iterator it = newNi.getVariables(); it.hasNext(); ) {
+                    Variable var = (Variable)it.next();
+                    if (!PossibleVariables.validKey(var.getKey(), (PrimitiveNode)newNp)) {
+                        newNi.delVar(var.getKey());
+                    }
+                }
 			} else
 			{
-				// remove parameters that don't exist on the new object
+				// remove parameters that don't exist on the new object d
 /*				Cell newCell = (Cell)newNp;
 				List varList = new ArrayList();
 				for(Iterator it = newNi.getVariables(); it.hasNext(); )
