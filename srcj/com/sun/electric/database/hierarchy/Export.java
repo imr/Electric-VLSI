@@ -728,7 +728,7 @@ public class Export extends ElectricObject implements PortProto
 //		/* don't report errors for global ports not on icons */
 //		if (epp == null)
 //		{
-//			if (otherCell.getView() != View.ICON || !pp.isBodyOnly())
+//			if (!otherCell.isIcon() || !pp.isBodyOnly())
 //				System.out.println("Warning: no port in cell %s corresponding to port %s in cell %s"),
 //					describenodeproto(otherCell), pp->protoname, describenodeproto(thisCell));
 //		}
@@ -785,7 +785,7 @@ public class Export extends ElectricObject implements PortProto
 		recursivelyChangeAllPorts();
 
 		// look at associated cells and change their ports
-		if (parent.getView() == View.ICON)
+		if (parent.isIcon())
 		{
 			// changed an export on an icon: find contents and change it there
 			Cell onp = parent.contentsView();

@@ -37,7 +37,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
@@ -275,6 +274,13 @@ public class Undo
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyCell((Cell)obj, a1, a2, a3, a4);
+				}
+			} else if (type == Type.CELLGROUPMOD)
+			{
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				{
+					Listener listener = (Listener)it.next();
+					listener.modifyCellGroup((Cell)obj, (Cell.CellGroup)o1);
 				}
 			} else if (type == Type.VARIABLENEW)
 			{
@@ -746,6 +752,12 @@ public class Undo
 				Cell cell = (Cell)obj;
 				return "Cell " + cell.describe() + " modified (was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + ")";
 			}
+			if (type == Type.CELLGROUPMOD)
+			{
+				Cell cell = (Cell)obj;
+				Cell.CellGroup group = (Cell.CellGroup)o1;
+				return "Cell " + cell.describe() + " moved to group";
+			}
 			if (type == Type.OBJECTNEW)
 			{
 				return "Created new object " + obj;
@@ -846,7 +858,7 @@ public class Undo
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
 				{
 					export++;
-				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD)
+				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD || ch.getType() == Type.CELLGROUPMOD)
 				{
 					cell++;
 				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
@@ -881,19 +893,19 @@ public class Undo
 							export++;
 						else
 							variable++;
-					} else if (ch.obj instanceof Technology)
-					{
-						boolean varFound = false;
-						for (Iterator it = ch.obj.getVariables(); it.hasNext();)
-						{
-							Variable var = (Variable)it.next();
-							if (var.getTextDescriptor() == td)
-								varFound = true;
-						}
-						if (varFound)
-							variable++;
-						else
-							object++;
+// 					} else if (ch.obj instanceof Technology)
+// 					{
+// 						boolean varFound = false;
+// 						for (Iterator it = ch.obj.getVariables(); it.hasNext();)
+// 						{
+// 							Variable var = (Variable)it.next();
+// 							if (var.getTextDescriptor() == td)
+// 								varFound = true;
+// 						}
+// 						if (varFound)
+// 							variable++;
+// 						else
+// 							object++;
 					} else
 					{
 						variable++;

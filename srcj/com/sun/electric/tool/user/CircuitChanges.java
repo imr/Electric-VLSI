@@ -2070,7 +2070,7 @@ public class CircuitChanges
 					// ignore associated cells for now
 					Cell trueCell = graphMainView(cell);
 					if (trueCell != null &&
-						(cell.getNumUsagesIn() == 0 || cell.getView() == View.ICON ||
+						(cell.getNumUsagesIn() == 0 || cell.isIcon() ||
 							cell.getView() == View.LAYOUTSKEL))
 					{
 						cgn.depth = -1;
@@ -2136,7 +2136,7 @@ public class CircuitChanges
 						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
 						if (cgn.depth != -1) continue;
 
-						if (cell.getNumUsagesIn() != 0 && cell.getView() != View.ICON &&
+						if (cell.getNumUsagesIn() != 0 && !cell.isIcon() &&
 							cell.getView() != View.LAYOUTSKEL) continue;
 						Cell trueCell = graphMainView(cell);
 						if (trueCell == null) continue;
@@ -2285,12 +2285,14 @@ public class CircuitChanges
 	private static Cell graphMainView(Cell cell)
 	{
 		// first check to see if there is a schematics link
-		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
-			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
-		}
+		Cell mainSchem = cell.getCellGroup().getMainSchematics();
+		if (mainSchem != null) return mainSchem;
+// 		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+// 		{
+// 			Cell cellInGroup = (Cell)it.next();
+// 			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
+// 			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
+// 		}
 
 		// now check to see if there is any layout link
 		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
@@ -4155,7 +4157,7 @@ public class CircuitChanges
 				for(Iterator it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
-					if (np.getView() != View.ICON) continue;
+					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
 					if (inDestLib(np, toLib)) continue;
@@ -4183,7 +4185,7 @@ public class CircuitChanges
 				for(Iterator it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
-					if (np.getView() == View.ICON) continue;
+					if (np.isIcon()) continue;
 
 					// see if the cell is already there
 					if (inDestLib(np, toLib)) continue;

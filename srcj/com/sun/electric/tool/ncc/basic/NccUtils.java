@@ -51,12 +51,18 @@ public class NccUtils {
 	public static String fullName(Cell c) {return c.libDescribe();}
 	public static Cell[] findSchematicAndLayout(Cell cell) {
 		Cell.CellGroup group = cell.getCellGroup();
-		Cell layout=null, schematic=null;
+		Cell layout=null;
+		Cell schematic = group.getMainSchematics();
 		for (Iterator it=group.getCells(); it.hasNext();) {
 			Cell c = (Cell) it.next();
-			if (c.getView()==View.SCHEMATIC)   schematic=c;
-			else if (c.getView()==View.LAYOUT) layout=c;
+			if (c.getView()==View.LAYOUT) layout=c;
 		}
+//		Cell layout=null, schematic=null;
+// 		for (Iterator it=group.getCells(); it.hasNext();) {
+// 			Cell c = (Cell) it.next();
+//			if (c.getView()==View.SCHEMATIC)   schematic=c;
+// 			else if (c.getView()==View.LAYOUT) layout=c;
+// 		}
 		if (schematic!=null && layout!=null)  return new Cell[] {schematic, layout};
 		else return null;
 	}

@@ -76,7 +76,7 @@ public class Schematic
 		cell.setBit(cellsCheckedBit);
 
 		// ignore if not a schematic
-		if (cell.getView() != View.SCHEMATIC && cell.getTechnology() != Schematics.tech)
+		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech)
 			return;
 
 		// recursively check contents

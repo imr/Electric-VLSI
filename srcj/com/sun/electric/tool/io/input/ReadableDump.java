@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -1545,13 +1546,14 @@ public class ReadableDump extends LibraryFiles
 		throws IOException
 	{
 		ElectricObject naddr = null;
+		Object obj = null;
 		switch (varPos)
 		{
 			case INVTOOL:				// keyword applies to tools
-				naddr = curTool;
+				obj = curTool;
 				break;
 			case INVTECHNOLOGY:			// keyword applies to technologies
-				naddr = curTech;
+				obj = curTech;
 				break;
 			case INVLIBRARY:			// keyword applies to library
 				naddr = lib;
@@ -1754,6 +1756,19 @@ public class ReadableDump extends LibraryFiles
 				// handle updating of technology caches
 //				if (naddr instanceof Technology)
 //					changedtechnologyvariable(key);
+			} else if (obj != null && topLevelLibrary) {
+				if (value instanceof Integer ||
+					value instanceof Double ||
+					value instanceof Float ||
+					value instanceof String)
+				{
+					// change "meaning option"
+					Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
+					if (meaning != null)
+						Pref.changedMeaningVariable(meaning, value);
+					else if (obj instanceof Technology)
+						((Technology)obj).convertOldVariable(varName, value);
+				}
 			}
 		}
 		if (varPos == INVLIBRARY)

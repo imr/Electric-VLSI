@@ -1465,28 +1465,28 @@ public class DebugMenus {
 
 		public boolean doIt()
 		{
-			System.out.println("Technology variables.");
-			for (Iterator tit = Technology.getTechnologies(); tit.hasNext();)
-			{
-				Technology tech = (Technology)tit.next();
-				System.out.println(tech + ":");
-				for (Iterator vit = tech.getVariables(); vit.hasNext();)
-				{
-					Variable var = (Variable)vit.next();
-					System.out.println("tech has " + var);
-				}
-			}
-			System.out.println("Tool variables.");
-			for (Iterator tit = Tool.getTools(); tit.hasNext();)
-			{
-				Tool tool = (Tool)tit.next();
-				System.out.println(tool + ":");
-				for (Iterator vit = tool.getVariables(); vit.hasNext();)
-				{
-					Variable var = (Variable)vit.next();
-					System.out.println("tool has " + var);
-				}
-			}
+// 			System.out.println("Technology variables.");
+// 			for (Iterator tit = Technology.getTechnologies(); tit.hasNext();)
+// 			{
+// 				Technology tech = (Technology)tit.next();
+// 				System.out.println(tech + ":");
+// 				for (Iterator vit = tech.getVariables(); vit.hasNext();)
+// 				{
+// 					Variable var = (Variable)vit.next();
+// 					System.out.println("tech has " + var);
+// 				}
+// 			}
+// 			System.out.println("Tool variables.");
+// 			for (Iterator tit = Tool.getTools(); tit.hasNext();)
+// 			{
+// 				Tool tool = (Tool)tit.next();
+// 				System.out.println(tool + ":");
+// 				for (Iterator vit = tool.getVariables(); vit.hasNext();)
+// 				{
+// 					Variable var = (Variable)vit.next();
+// 					System.out.println("tool has " + var);
+// 				}
+// 			}
 			return true;
 		}
 	}

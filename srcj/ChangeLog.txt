@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ad: *********************************
 
+BUG: (10/25/04, DN) Network errors after moving a cell into another group.
+FIX: Add method "modifyCellGroup" to interface "database.changes.Change".
+
+IMP: (10/25/04, DN) Explorer context menu allows only newest versions of schematic cells to be
+     main schematics.
+
 IMP: (10/23/04, GVG) Cleaning TechPalette and putting in default position last PrimitiveNode selected
 
 ************************* Version 8.01ac: *********************************

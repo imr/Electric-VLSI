@@ -120,6 +120,12 @@ public class Listener extends Tool implements Changes
 	 */
 	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY) {}
 	/**
+	 * Method to announce a move of a Cell int CellGroup.
+	 * @param cell the cell that was moved.
+	 * @param oCellGroup the old CellGroup of the Cell.
+	 */
+	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup) {}
+	/**
 	 * Method to handle a change to a TextDescriptor.
 	 * @param obj the ElectricObject on which the TextDescriptor resides.
 	 * @param descript the TextDescriptor that changed.

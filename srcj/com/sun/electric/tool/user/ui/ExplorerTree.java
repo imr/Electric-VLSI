@@ -221,7 +221,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell cell = (Cell)eit.next();
 
 				// ignore icons and text views
-				if (cell.getView() == View.ICON) continue;
+				if (cell.isIcon()) continue;
 				if (cell.getView().isTextView()) continue;
 
 				for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
@@ -254,7 +254,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			Cell subCell = (Cell)ni.getProto();
-			if (subCell.getView() == View.ICON)
+			if (subCell.isIcon())
 			{
 				if (ni.isIconOfParent()) continue;
 				subCell = subCell.contentsView();
@@ -366,7 +366,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		if (nodeInfo instanceof Cell)
 		{
 			Cell cell = (Cell)nodeInfo;
-			if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
+			if (cell.isSchematic())
 			{
 				Cell.CellGroup group = cell.getCellGroup();
 				Cell mainSchematic = group.getMainSchematics();
@@ -374,8 +374,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				for(Iterator gIt = group.getCells(); gIt.hasNext(); )
 				{
 					Cell cellInGroup = (Cell)gIt.next();
-					if (cellInGroup.getView() == View.SCHEMATIC ||
-						cellInGroup.getView().isMultiPageView()) numSchematics++;
+					if (cellInGroup.isSchematic()) numSchematics++;
 				}
 				if (numSchematics > 1 && cell == mainSchematic)
 					return cell.noLibDescribe() + " **";
@@ -513,7 +512,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
-				if (cell.getView() == View.ICON)
+				if (cell.isIcon())
 				{
 					if (iconViewIcon == null)
 						iconViewIcon = Resources.getResource(getClass(), "IconViewIcon.gif");
@@ -529,7 +528,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						iconViewOldLayout = Resources.getResource(getClass(), "IconViewOldLayout.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewLayout); else
 						setIcon(iconViewOldLayout);
-				} else if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
+				} else if (cell.isSchematic())
 				{
 					if (iconViewSchematics == null)
 						iconViewSchematics = Resources.getResource(getClass(), "IconViewSchematics.gif");
@@ -821,9 +820,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
                 menu.addSeparator();
 
-                menuItem = new JMenuItem("Make This the Main Schematic");
-                menu.add(menuItem);
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
+				if (cell.isSchematic() && cell.getNewestVersion() == cell &&
+					cell.getCellGroup().getMainSchematics() != cell)
+				{
+					menuItem = new JMenuItem("Make This the Main Schematic");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
+				}
 
                 menuItem = new JMenuItem("Change Cell Group...");
                 menu.add(menuItem);

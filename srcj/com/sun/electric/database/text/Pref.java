@@ -71,7 +71,7 @@ public class Pref
 	 */
 	public static class Meaning
 	{
-		private ElectricObject eObj;
+		private Object ownerObj;
 		private Variable.Key key;
 		private boolean valid;
 		private Object desiredValue;
@@ -82,14 +82,14 @@ public class Pref
 
 		/**
 		 * Constructor for Meaning options to attach them to an object in the database.
-		 * @param eObj the ElectricObject in the database that this Meaning attaches to.
+		 * @param ownerObj the Object in the database that this Meaning attaches to.
 		 * @param pref the Pref object for storing the option value.
 		 * @param location the user-command that can affect this Meaning option.
 		 * @param description the description of this Meaning option.
 		 */
-		Meaning(ElectricObject eObj, Pref pref, String location, String description)
+		Meaning(Object ownerObj, Pref pref, String location, String description)
 		{
-			this.eObj = eObj;
+			this.ownerObj = ownerObj;
 			key = ElectricObject.newKey(pref.name);
 			this.pref = pref;
 			this.location = location;
@@ -110,10 +110,10 @@ public class Pref
 		public Variable.Key getKey() { return key; }
 
 		/**
-		 * Method to return the ElectricObject associated with this Meaning option.
-		 * @return the ElectricObject associated with this Meaning option.
+		 * Method to return the owner Object associated with this Meaning option.
+		 * @return the owner Object associated with this Meaning option.
 		 */
-		public ElectricObject getElectricObject() { return eObj; }
+		public Object getOwnerObject() { return ownerObj; }
 
 		/**
 		 * Method to return the user-command that can affect this Meaning option.
@@ -194,7 +194,7 @@ public class Pref
 	protected Object      factoryObj;
 
 	private static List allPrefs = new ArrayList();
-	private static Set meaningVariablesThatChanged;
+	private static Map meaningVariablesThatChanged;
 
 	/**
 	 * The constructor for the Pref.
@@ -572,21 +572,21 @@ public class Pref
 
 	/**
 	 * Method to make this Pref a "meaning" option.
-	 * Meaning options are attached to objects in the Electric database,
+	 * Meaning options are attached to Technology and Tool objects,
 	 * and are saved with libraries.
-	 * @param eObj the ElectricObject to attach this Pref to.
+	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @return a Meaning object, now associated with this Pref object, that
 	 * gives the option meaning.
 	 */
-	public Meaning attachToObject(ElectricObject eObj, String location, String description)
+	public Meaning attachToObject(Object ownerObj, String location, String description)
 	{
 		if (meaning == null)
 		{
-			meaning = new Meaning(eObj, this, location, description);
+			meaning = new Meaning(ownerObj, this, location, description);
 		} else {
-			System.out.println("Meaning " + name + " already attached to " + eObj);
+			System.out.println("Meaning " + name + " already attached to " + ownerObj);
 		}
  //       List list = (List)meaningPrefs.get(this.name);
  //       if (list == null) { list = new ArrayList(); }
@@ -597,11 +597,11 @@ public class Pref
 	/**
 	 * Method to find the Meaning object associated with a given part of the
 	 * Electric database.
-	 * @param eObj the ElectricObject on which to find a Meaning object.
+	 * @param ownerObj the Object on which to find a Meaning object.
 	 * @param name the name of the desired Meaning object.
 	 * @return the Meaning object on that part of the database.
 	 */
-	public static Meaning getMeaningVariable(ElectricObject eObj, String name)
+	public static Meaning getMeaningVariable(Object ownerObj, String name)
 	{
 /*
         List list = (List)meaningPrefs.get(name);
@@ -615,7 +615,7 @@ public class Pref
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
-			if (pref.meaning.eObj != eObj) continue;
+			if (pref.meaning.ownerObj != ownerObj) continue;
 			if (pref.name.equals(name))
 			{
 				return pref.meaning;
@@ -627,19 +627,19 @@ public class Pref
 	/**
 	 * Method to get a list of "meaning" options assiciatiated with the given
 	 * owner object or list of all "meaning" options, if object in not given
-	 * @param obj owner object, or null
+	 * @param ownerObj owner object, or null
 	 * @return a list of "meaning" option
 	 */
-	public static List getMeaningVariables(Object obj)
+	public static List getMeaningVariables(Object ownerObj)
 	{
 		ArrayList prefs = new ArrayList();
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
-			if (obj != null && pref.meaning.eObj != obj) continue;
+			if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
 			if (pref.cachedObj.equals(pref.factoryObj)) continue;
-//System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.eObj);
+//System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.ownerObj);
 //System.out.println("   Current value="+pref.cachedObj+" factory value=" + pref.factoryObj);
 			prefs.add(pref);
 		}
@@ -677,7 +677,7 @@ public class Pref
 	 */
 	public static void initMeaningVariableGathering()
 	{
-		meaningVariablesThatChanged = new HashSet();
+		meaningVariablesThatChanged = new HashMap();
 	}
 
 	/**
@@ -686,9 +686,9 @@ public class Pref
 	 * must be reconciled with existing values.
 	 * @param meaning the Meaning option that was altered.
 	 */
-	public static void changedMeaningVariable(Meaning meaning)
+	public static void changedMeaningVariable(Meaning meaning, Object value)
 	{
-		meaningVariablesThatChanged.add(meaning);
+		meaningVariablesThatChanged.put(meaning, value);
 	}
 
 	/**
@@ -705,17 +705,16 @@ public class Pref
 			pref.meaning.marked = false;
 		}
 		List meaningsToReconcile = new ArrayList();
-		for(Iterator it = meaningVariablesThatChanged.iterator(); it.hasNext(); )
+		for(Iterator it = meaningVariablesThatChanged.entrySet().iterator(); it.hasNext(); )
 		{
-			Meaning meaning = (Meaning)it.next();
+			Map.Entry entry = (Map.Entry)it.next();
+			Meaning meaning = (Meaning)entry.getKey();
+			Object value = entry.getValue();
 			meaning.marked = true;
-			Variable var = meaning.eObj.getVar(meaning.pref.name);
-			if (var == null) continue;
-			Object obj = var.getObject();
-			if (DBMath.objectsReallyEqual(obj, meaning.pref.cachedObj)) continue;
-			meaning.setDesiredValue(obj);
+			if (DBMath.objectsReallyEqual(value, meaning.pref.cachedObj)) continue;
+			meaning.setDesiredValue(value);
 			if (!meaning.isValidOption()) continue;
-//System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.eObj+" is "+obj+" but is cached as "+meaning.pref.cachedObj);
+//System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.ownerObj+" is "+value+" but is cached as "+meaning.pref.cachedObj);
 			meaningsToReconcile.add(meaning);
 		}
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )

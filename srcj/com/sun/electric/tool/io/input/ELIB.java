@@ -753,8 +753,9 @@ public class ELIB extends LibraryFiles
 				Pref.Meaning meaning = Pref.getMeaningVariable(tech, varName);
 				if (meaning != null)
 				{
-					Variable var = tech.newVar(varName, new Double(lambda/2));
-					Pref.changedMeaningVariable(meaning);
+					Pref.changedMeaningVariable(meaning, new Double(lambda/2));
+// 					Variable var = tech.newVar(varName, new Double(lambda/2));
+// 					Pref.changedMeaningVariable(meaning);
 				}
 			}
 		}
@@ -779,8 +780,9 @@ public class ELIB extends LibraryFiles
 			Tool tool = toolList[i];
 			if (tool == null) ignoreVariables(); else
 			{
-				if (readVariables(tool, -1) < 0) return true;
-				Input.fixVariableFont(tool);
+				if (readMeaningPrefs(tool) < 0) return true;
+// 				if (readVariables(tool, -1) < 0) return true;
+// 				Input.fixVariableFont(tool);
 			}
 		}
 
@@ -790,10 +792,11 @@ public class ELIB extends LibraryFiles
 			Technology tech = techList[i];
 			if (tech == null) ignoreVariables(); else
 			{
-				int j = readVariables(tech, -1);
+				int j = readMeaningPrefs(tech);
+// 				int j = readVariables(tech, -1);
 				if (j < 0) return true;
 				if (j > 0) getTechList(i);
-				Input.fixVariableFont(tech);
+// 				Input.fixVariableFont(tech);
 			}
 		}
 
@@ -934,16 +937,16 @@ public class ELIB extends LibraryFiles
 
 		// now that external cells are resolved, fix all variables that may have used them
 		fixExternalVariables(lib);
-		for(int i=0; i<toolCount; i++)
-		{
-			Tool tool = toolList[i];
-			fixExternalVariables(tool);
-		}
-		for(int i=0; i<techCount; i++)
-		{
-			Technology tech = techList[i];
-			fixExternalVariables(tech);
-		}
+// 		for(int i=0; i<toolCount; i++)
+// 		{
+// 			Tool tool = toolList[i];
+// 			fixExternalVariables(tool);
+// 		}
+// 		for(int i=0; i<techCount; i++)
+// 		{
+// 			Technology tech = techList[i];
+// 			fixExternalVariables(tech);
+// 		}
 // 		for(int i=0; i<arcProtoCount; i++)
 // 		{
 // 			PrimitiveArc ap = arcProtoList[i];
@@ -2168,8 +2171,8 @@ public class ELIB extends LibraryFiles
 
             // create an artwork "Crossed box" to define the cell size
             Technology tech = MoCMOS.tech;
-            if (v == View.ICON) tech = Artwork.tech; else
-                if (v == View.SCHEMATIC) tech = Schematics.tech;
+            if (c.isIcon()) tech = Artwork.tech; else
+                if (c.isSchematic()) tech = Schematics.tech;
             double lambda = techScale[tech.getIndex()];
             int cX = (lowX + highX) / 2;
             int cY = (lowY + highY) / 2;
@@ -2591,15 +2594,15 @@ public class ELIB extends LibraryFiles
 			if (obj.isDeprecatedVariable(varKey)) continue;
 
 			// see if the variable is a "meaning option"
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varKey.getName());
-			if (meaning != null)
-			{
-				// ignore these when not from top library
-				if (!topLevelLibrary) continue;
+// 			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varKey.getName());
+// 			if (meaning != null)
+// 			{
+// 				// ignore these when not from top library
+// 				if (!topLevelLibrary) continue;
 
-				// accumulate this for later
-				Pref.changedMeaningVariable(meaning);
-			}
+// 				// accumulate this for later
+// 				Pref.changedMeaningVariable(meaning);
+// 			}
 
 			// set the variable
 			Variable var = obj.newVar(varKey, newAddr);
@@ -2626,6 +2629,92 @@ public class ELIB extends LibraryFiles
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
 		readVariables(ni, -1);
+	}
+
+	/**
+	 * Method to read a set of meaning preferences onto a given object.
+	 * @param obj the object onto which the meaning preferences will be stored.
+	 */
+	private int readMeaningPrefs(Object obj)
+		throws IOException
+	{
+		int count = readBigInteger();
+		for(int i=0; i<count; i++)
+		{
+			short key = readSmallInteger();
+			int newtype = readBigInteger();
+
+			// version 9 and later reads text description on displayable variables
+			if (magic <= ELIBConstants.MAGIC9)
+			{
+				if (alwaysTextDescriptors)
+				{
+					readBigInteger();
+					readBigInteger();
+				} else
+				{
+					if ((newtype&ELIBConstants.VDISPLAY) != 0)
+					{
+						if (convertTextDescriptors)
+						{
+							readBigInteger();
+						} else
+						{
+							readBigInteger();
+							readBigInteger();
+						}
+					}
+				}
+			}
+			if ((newtype&ELIBConstants.VISARRAY) != 0)
+			{
+				int len = readBigInteger();
+				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
+				{
+					for(int j=0; j<len; j += 2)
+					{
+						readBigInteger();
+						readBigInteger();
+					}
+				} else
+				{
+					for(int j=0; j<len; j++)
+					{
+						getInVar(newtype);
+					}
+					
+				}
+				continue;
+			}
+			Object value = getInVar(newtype);
+			if (value == null)
+			{
+				System.out.println("Error reading variable type " + newtype);
+				return -1;
+			}
+			// copy this variable into database
+			if (key < 0 || key >= nameCount)
+			{
+				System.out.println("Bad variable index (" + key + ", limit is " + nameCount + ") on " + obj + " object");
+				return -1;
+			}
+
+			if (!(value instanceof Integer ||
+				  value instanceof Float ||
+				  value instanceof Double ||
+				  value instanceof String))
+				continue;
+			if (!topLevelLibrary) continue;
+
+			// change "meaning option"
+			String varName = varKeys.getKey(key).getName();
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
+			if (meaning != null)
+				Pref.changedMeaningVariable(meaning, value);
+			else if (obj instanceof Technology)
+				((Technology)obj).convertOldVariable(varName, value);
+		}
+		return count;
 	}
 
 	/**

@@ -291,8 +291,10 @@ public class JELIB extends LibraryFiles
 					continue;
 				}
 
-				// get additional variables starting at position 1
-				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
+				// get additional meaning preferences starting at position 1
+				if (topLevelLibrary)
+					addMeaningPrefs(tool, pieces, 1, filePath, lineReader.getLineNumber());
+//				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -333,8 +335,10 @@ public class JELIB extends LibraryFiles
 				}
 				curPrim = null;
 
-				// get additional variables starting at position 1
-				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
+				// get additional meaning preferences  starting at position 1
+				if (topLevelLibrary)
+					addMeaningPrefs(curTech, pieces, 1, filePath, lineReader.getLineNumber());
+//				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -441,7 +445,8 @@ public class JELIB extends LibraryFiles
 					}
 					if (i == 0)
 					{
-						if (cell.getView() == View.SCHEMATIC) cell.getCellGroup().setMainSchematics(cell);
+						if (cell.isSchematic() && cell.getNewestVersion() == cell)
+							cell.getCellGroup().setMainSchematics(cell);
 					}
 				}
 				continue;
@@ -468,6 +473,13 @@ public class JELIB extends LibraryFiles
 				{
 					Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
 						lowerCaseName + "' that are not in the same group", null, -1);
+
+					// Join groups with like-names cells
+// 					for (Iterator cit = group.getCells(); cit.hasNext(); )
+// 					{
+// 						Cell cellInGroup = (Cell)cit.next();
+// 						cellInGroup.setCellGroup(groupOfName);
+// 					}
 				}
 			}
 		}
@@ -1147,15 +1159,99 @@ public class JELIB extends LibraryFiles
 			}
 
 			// see if the variable is a "meaning option"
-			if (topLevelLibrary)
-			{
-				Pref.Meaning meaning = Pref.getMeaningVariable(eObj, varName);
-				if (meaning != null) Pref.changedMeaningVariable(meaning);
-			}
+// 			if (topLevelLibrary)
+// 			{
+// 				Pref.Meaning meaning = Pref.getMeaningVariable(eObj, varName);
+// 				if (meaning != null) Pref.changedMeaningVariable(meaning);
+// 			}
 
 			// add in extra information
 			TextDescriptor td = newVar.getTextDescriptor();
 			loadTextDescriptor(td, newVar, varBits, fileName, lineNumber);
+		}
+	}
+
+	/**
+	 * Method to add meaning preferences to an ElectricObject from a List of strings.
+	 * @param obj the Object to augment with meaning preferences.
+	 * @param pieces the array of Strings that described the Object.
+	 * @param position the index in the array of strings where meaning variable descriptions begin.
+	 * @param fileName the name of the file that this came from (for error reporting).
+	 * @param lineNumber the line number in the file that this came from (for error reporting).
+	 */
+	private void addMeaningPrefs(Object obj, List pieces, int position, String fileName, int lineNumber)
+	{
+		int total = pieces.size();
+		for(int i=position; i<total; i++)
+		{
+			String piece = (String)pieces.get(i);
+			int openPos = 0;
+			for(; openPos < piece.length(); openPos++)
+			{
+				char chr = piece.charAt(openPos);
+				if (chr == '^') { openPos++;   continue; }
+				if (chr == '(') break;
+			}
+			if (openPos >= piece.length())
+			{
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+					", Badly formed meaning preference (no open parenthesis): " + piece, null, -1);
+				continue;
+			}
+			String varName = piece.substring(0, openPos);
+			int closePos = piece.indexOf(')', openPos);
+			if (closePos < 0)
+			{
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+					", Badly formed meaning preference (no close parenthesis): " + piece, null, -1);
+				continue;
+			}
+			int objectPos = closePos + 1;
+			if (objectPos >= piece.length())
+			{
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+					", Meaning preference type missing: " + piece, null, -1);
+				continue;
+			}
+			char varType = piece.charAt(objectPos++);
+			switch (varType)
+			{
+				case 'D': // Double
+				case 'F': // Float
+				case 'G': // Long
+				case 'I': // Integer
+				case 'S': // String
+					break; // break from switch
+				default:
+					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+						", Meaning preference type invalid: " + piece, null, -1);
+					continue; // continue loop
+			}
+			if (objectPos >= piece.length())
+			{
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+					", Meaning preference value missing: " + piece, null, -1);
+				continue;
+			}
+			if (piece.charAt(objectPos) == '[')
+			{
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+					", Meaning preference has array value: " + piece, null, -1);
+				continue;
+			}
+			// a scalar Variable
+			Object value = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
+
+			// change "meaning option"
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
+			if (meaning != null)
+			{
+				Pref.changedMeaningVariable(meaning, value);
+			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(varName, value)))
+			{
+// 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 					", Meaning preference unknown: " + piece, null, -1);
+			}
 		}
 	}
 

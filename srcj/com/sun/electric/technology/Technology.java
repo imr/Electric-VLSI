@@ -99,7 +99,7 @@ import java.util.prefs.Preferences;
  * </UL>
  * @author Steven M. Rubin
  */
-public class Technology extends ElectricObject
+public class Technology
 {
 
     /**
@@ -324,7 +324,8 @@ public class Technology extends ElectricObject
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new TextDescriptor(layer.getTechnology());
+			descriptor = new TextDescriptor(null);
+//			descriptor = new TextDescriptor(layer.getTechnology());
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
@@ -350,7 +351,8 @@ public class Technology extends ElectricObject
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new TextDescriptor(layer.getTechnology());
+			descriptor = new TextDescriptor(null);
+//			descriptor = new TextDescriptor(layer.getTechnology());
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -721,24 +723,15 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Method to determine whether a Variable key on this object is deprecated.
-	 * Deprecated Variable keys are those that were used in old versions of Electric,
-	 * but are no longer valid.
-	 * @param key the key of the Variable.
-	 * @return true if the Variable key is deprecated.
+	 * Method to convert any old-style variable information to the new options.
+	 * May be overrideen in subclasses.
+	 * @param varName name of variable
+	 * @param value value of variable
+	 * @return true if variable was converted
 	 */
-	public boolean isDeprecatedVariable(Variable.Key key)
+	public boolean convertOldVariable(String varName, Object value)
 	{
-		return Pref.getMeaningVariable(this, key.getName()) == null;
-	}
-
-    /**
-     * Returns true if this Technology is completely linked into database.
-	 * This means that technology is in Technology&#46;technologies 
-     */
-	public boolean isActuallyLinked()
-	{
-		return techIndex < technologies.size() && technologies.get(techIndex) == this;
+		return false;
 	}
 
 	/****************************** LAYERS ******************************/
@@ -2745,7 +2738,7 @@ public class Technology extends ElectricObject
 				if (np instanceof Cell)
 				{
 					Cell subCell = (Cell)np;
-					if (subCell.getView() == View.ICON)
+					if (subCell.isIcon())
 						nodeTech = Schematics.tech;
 				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
@@ -2760,7 +2753,7 @@ public class Technology extends ElectricObject
 				if (np instanceof Cell)
 				{
 					Cell subCell = (Cell)np;
-					if (subCell.getView() == View.ICON)
+					if (subCell.isIcon())
 						nodeTech = Schematics.tech;
 				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
@@ -2814,7 +2807,7 @@ public class Technology extends ElectricObject
 		}
 
 		Technology retTech = null;
-		if (cell.getView() == View.ICON)
+		if (cell.isIcon())
 		{
 			// in icons, if there is any artwork, use it
 			if (useCount[Artwork.tech.getIndex()] > 0) return(Artwork.tech);
@@ -2824,7 +2817,7 @@ public class Technology extends ElectricObject
 
 			// use artwork as a default
 			retTech = Artwork.tech;
-		} else if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
+		} else if (cell.isSchematic())
 		{
 			// in schematic, if there are any schematic components, use it
 			if (useCount[Schematics.tech.getIndex()] > 0) return(Schematics.tech);
@@ -2902,7 +2895,7 @@ public class Technology extends ElectricObject
 //			if (np instanceof Cell)
 //			{
 //				Cell subCell = (Cell)np;
-//				if (subCell.getView() == View.ICON)
+//				if (subCell.isIcon())
 //					nodeTech = Schematics.tech;
 //			}
 //System.out.println("  has node "+np.describe()+" which is technology "+nodeTech);
@@ -2917,7 +2910,7 @@ public class Technology extends ElectricObject
 //			if (np instanceof Cell)
 //			{
 //				Cell subCell = (Cell)np;
-//				if (subCell.getView() == View.ICON)
+//				if (subCell.isIcon())
 //					nodeTech = Schematics.tech;
 //			}
 //			System.out.println("  has nodeinst "+ni.describe()+" which is technology "+nodeTech);

@@ -57,14 +57,16 @@ public class NccJob extends Job {
 	private boolean isSchemOrLay(CellContext cc) {
 		Cell c = cc.cell;
 		View v = c.getView();
-		boolean ok = v==View.SCHEMATIC || v==View.LAYOUT;
+		boolean ok = c.isSchematic() || v==View.LAYOUT;
+// 		boolean ok = v==View.SCHEMATIC || v==View.LAYOUT;
 		if (!ok) System.out.println("Cell: "+NccUtils.fullName(c)+
 									" isn't schematic or layout");
 		return ok;
 	}
 
 	private boolean isSchem(CellContext cc) {
-		return cc.cell.getView()==View.SCHEMATIC;
+		return cc.cell.isSchematic();
+// 		return cc.cell.getView()==View.SCHEMATIC;
 	}
 	private void prln(String s) {System.out.println(s);}
 

@@ -124,8 +124,8 @@ public class L extends Output
 		// write the cell header
 		printWriter.println("");
 		if (cell.getView() == View.LAYOUT) printWriter.print("LAYOUT ");
-		if (cell.getView() == View.SCHEMATIC) printWriter.print("SCHEMATIC ");
-		if (cell.getView() == View.ICON) printWriter.print("ICON ");
+		if (cell.isSchematic()) printWriter.print("SCHEMATIC ");
+		if (cell.isIcon()) printWriter.print("ICON ");
 		if (cell.getView() == View.LAYOUTSKEL) printWriter.print("BBOX ");
 		printWriter.println("CELL " + getLegalName(cell.getName()) + " ( )\n{");
 

@@ -138,7 +138,7 @@ public class NetworkTool extends Listener
 			{
 				Cell c = (Cell)cit.next();
 				if (getNetCell(c) != null) continue;
-				if (c.isIcon() || c.isSchematicView())
+				if (c.isIcon() || c.isSchematic())
 					new NetSchem(c);
 				else
 					new NetCell(c);
@@ -363,6 +363,22 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.modifyCell("+cell+","+oLX+","+oHX+","+oLY+","+oHY+")");
 	}
 
+	/**
+	 * Method to announce a move of a Cell int CellGroup.
+	 * @param cell the cell that was moved.
+	 * @param oCellGroup the old CellGroup of the Cell.
+	 */
+	public void modifyCellGroup(Cell cell, Cell.CellGroup oCellGroup)
+	{
+		invalidate();
+		if (cell.isIcon() || cell.isSchematic()) {
+			NetSchem.updateCellGroup(oCellGroup);
+			NetSchem.updateCellGroup(cell.getCellGroup());
+		}
+		if (!debug) return;
+		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
+	}
+
 	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
 	{
 		if (!debug) return;
@@ -375,7 +391,7 @@ public class NetworkTool extends Listener
 		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
-			if (cell.isIcon() || cell.isSchematicView())
+			if (cell.isIcon() || cell.isSchematic())
 				new NetSchem(cell);
 			else
 				new NetCell(cell);
@@ -395,7 +411,7 @@ public class NetworkTool extends Listener
 		if (obj instanceof Cell)
 		{
 			setCell(cell, null);
-			if (cell.isIcon() || cell.isSchematicView())
+			if (cell.isIcon() || cell.isSchematic())
 				NetSchem.updateCellGroup(cell.getCellGroup());
 		} else {
 			if (cell != null) getNetCell(cell).setNetworksDirty();
@@ -417,7 +433,9 @@ public class NetworkTool extends Listener
 	{
 		invalidate();
 		Cell cell = obj.whichCell();
-		if (obj instanceof Geometric)
+		if (obj instanceof Export) {
+			exportsChanged(cell);
+		} else if (obj instanceof Geometric)
 		{
 			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}

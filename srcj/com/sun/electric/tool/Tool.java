@@ -47,7 +47,7 @@ import java.util.prefs.Preferences;
  * variables that keep track of the currently selected object, and other
  * useful information.
  */
-public class Tool extends ElectricObject
+public class Tool
 {
 	// The name of this tool
 	private String toolName;
@@ -127,15 +127,6 @@ public class Tool extends ElectricObject
 				return t;
 		}
 		return null;
-	}
-
-    /**
-     * Returns true if this Tool is completely linked into database.
-	 * This means that this Tool is contained in Tool&#46;tools
-     */
-	public boolean isActuallyLinked()
-	{
-		return tools.contains(this);
 	}
 
 	/**
@@ -285,28 +276,6 @@ public class Tool extends ElectricObject
 	 * @return true if this Tool does synthesis.
 	 */
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
-
-	/**
-	 * Method to determine whether a variable key on Tool is deprecated.
-	 * Deprecated variable keys are those that were used in old versions of Electric,
-	 * but are no longer valid.
-	 * @param key the key of the variable.
-	 * @return true if the variable key is deprecated.
-	 */
-	public boolean isDeprecatedVariable(Variable.Key key)
-	{
-		return Pref.getMeaningVariable(this, key.getName()) == null;
-// 		String name = key.getName();
-// 		if (name.equals("NET_auto_name") ||
-// 			name.equals("NET_use_port_names") ||
-// 			name.equals("NET_compare_hierarchy") ||
-// 			name.equals("D") ||
-// 			name.equals("USER_alignment_obj") ||
-// 			name.equals("USER_alignment_edge") ||
-// 			name.equals("s") ||
-// 			name.equals("DRC_pointout")) return true;
-// 		return super.isDeprecatedVariable(key);
-	}
 
 	/**
 	 * Returns a printable version of this Tool.

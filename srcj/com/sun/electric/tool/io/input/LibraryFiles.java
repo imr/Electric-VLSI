@@ -418,16 +418,16 @@ public class LibraryFiles extends Input
 		}
 
 		// adjust for old library conversion
-		convertOldLibraries();
+//		convertOldLibraries();
         // clean up init (free LibraryFiles for garbage collection)
         libsBeingRead.clear();
 	}
 
-	private static void convertOldLibraries()
-	{
-		// see if the MOSIS CMOS technology now has old-style state information
-		MoCMOS.tech.convertOldState();
-	}
+// 	private static void convertOldLibraries()
+// 	{
+// 		// see if the MOSIS CMOS technology now has old-style state information
+// 		MoCMOS.tech.convertOldState();
+// 	}
 
 	protected LibraryFiles getReaderForLib(Library lib) {
         for (Iterator it = libsBeingRead.iterator(); it.hasNext(); ) {

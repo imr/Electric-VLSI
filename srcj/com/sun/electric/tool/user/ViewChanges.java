@@ -357,7 +357,7 @@ public class ViewChanges
 		{
 			Library lib = curCell.getLibrary();
 
-			if (!curCell.isSchematicView())
+			if (!curCell.isSchematic())
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"The current cell must be a schematic in order to generate an icon",

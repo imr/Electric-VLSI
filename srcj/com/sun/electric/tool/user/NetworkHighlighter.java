@@ -94,7 +94,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         }
 
         // do not go below depth 0 for schematics
-        if (cell.getView() == View.SCHEMATIC) {
+        if (cell.isSchematic()) {
             if (currentDepth > 0) return false;
         }
 

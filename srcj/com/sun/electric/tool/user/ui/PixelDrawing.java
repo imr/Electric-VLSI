@@ -916,7 +916,7 @@ public class PixelDrawing
 		if (expandedCells == null) return false;
 
 		// do not cache icons: they can be redrawn each time
-		if (subCell.getView() == View.ICON) return false;
+		if (subCell.isIcon()) return false;
 
 		// find this cell-transformation combination in the global list of cached cells
 		AffineTransform subTrans = origTrans;

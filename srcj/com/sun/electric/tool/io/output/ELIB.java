@@ -250,15 +250,15 @@ public class ELIB extends Output
 		// scan for all cross-library references
 		varNames = new HashMap();
 		findXLibVariables(lib);
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
-		{
-			Tool tool = (Tool)it.next();
-			findXLibVariables(tool);
-		}
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			findXLibVariables(tech);
+// 		for(Iterator it = Tool.getTools(); it.hasNext(); )
+// 		{
+// 			Tool tool = (Tool)it.next();
+// 			findXLibVariables(tool);
+// 		}
+// 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+// 		{
+// 			Technology tech = (Technology)it.next();
+// 			findXLibVariables(tech);
 // 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 // 			{
 // 				ArcProto ap = (ArcProto)ait.next();
@@ -274,7 +274,7 @@ public class ELIB extends Output
 // 					findXLibVariables(pp);
 // 				}
 // 			}
-		}
+// 		}
 // 		for(Iterator it = View.getViews(); it.hasNext(); )
 // 		{
 // 			View view = (View)it.next();

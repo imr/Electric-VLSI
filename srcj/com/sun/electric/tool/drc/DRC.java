@@ -266,8 +266,8 @@ public class DRC extends Listener
 		}
 
 		if (curCell == null) return;
-		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech ||
-			curCell.getView() == View.ICON || curCell.getTechnology() == Artwork.tech)
+		if (curCell.isSchematic() || curCell.getTechnology() == Schematics.tech ||
+			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
 			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, bounds);

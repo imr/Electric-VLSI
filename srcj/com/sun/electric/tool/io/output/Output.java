@@ -385,10 +385,10 @@ public class Output
 				updateFontUsage(pp.getTextDescriptor(), fontFound);
 			}
 		}
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			checkFontUsage(tech, fontFound);
+// 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+// 		{
+// 			Technology tech = (Technology)it.next();
+// 			checkFontUsage(tech, fontFound);
 // 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
 // 				PrimitiveNode np = (PrimitiveNode)nIt.next();
@@ -404,12 +404,12 @@ public class Output
 // 				PrimitiveArc ap = (PrimitiveArc)aIt.next();
 // 				checkFontUsage(ap, fontFound);
 // 			}
-		}
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
-		{
-			Tool tool = (Tool)it.next();
-			checkFontUsage(tool, fontFound);
-		}
+// 		}
+// 		for(Iterator it = Tool.getTools(); it.hasNext(); )
+// 		{
+// 			Tool tool = (Tool)it.next();
+// 			checkFontUsage(tool, fontFound);
+// 		}
 // 		for(Iterator it = View.getViews(); it.hasNext(); )
 // 		{
 // 			View view = (View)it.next();

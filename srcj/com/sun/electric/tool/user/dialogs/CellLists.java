@@ -933,7 +933,7 @@ public class CellLists extends EDialog
 						} else
 						{
 							// no icon: reject if this has instances
-							if (cell.getView() == View.ICON)
+							if (cell.isIcon())
 							{
 								// this is an icon: reject if instances are not examples
 								boolean found = false;
@@ -982,7 +982,7 @@ public class CellLists extends EDialog
 						Cell cell = (Cell)cIt.next();
 						if (cell.getView() != v)
 						{
-							if (cell.getView() == View.ICON)
+							if (cell.isIcon())
 							{
 								if (alsoIconViews.isSelected()) continue;
 							}

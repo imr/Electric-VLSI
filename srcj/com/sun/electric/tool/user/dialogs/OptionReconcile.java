@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.variable.Variable;
+//import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
@@ -115,7 +115,7 @@ public class OptionReconcile extends EDialog
 		{
 			Pref.Meaning meaning = (Pref.Meaning)it.next();
 			Pref pref = meaning.getPref();
-			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
+//			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
 			Object obj = meaning.getDesiredValue();
 			if (obj.equals(pref.getValue())) continue;
 
@@ -258,7 +258,7 @@ public class OptionReconcile extends EDialog
 				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
 				Pref pref = meaning.getPref();
 
-				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
+//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
 				Object obj = meaning.getDesiredValue();
 
 				// set the option

@@ -198,7 +198,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			for (Iterator it = getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (c.isSchematicView())
+				if (c.isSchematic())
 				{
                     // get latest version
 					mainSchematic = c.getNewestVersion();
@@ -215,7 +215,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 */
 		public void setMainSchematics(Cell cell)
 		{
+			if (getMainSchematics() == cell) return;
+			if (!(cell.isSchematic() && cell.getNewestVersion() == cell))
+			{
+				System.out.println("Cell " + cell + ": cannot be main schematics");
+				return;
+			}
 			mainSchematic = cell;
+			Undo.modifyCellGroup(cell, this); // Notify network tool
 		}
 
         /**
@@ -229,7 +236,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 * Returns a printable version of this CellGroup.
 		 * @return a printable version of this CellGroup.
 		 */
-		public String toString() { return "CELLGROUP"; }
+		public String toString() { return "CellGroup " + getName(); }
 
         /**
          * Returns a string representing the name of the cell group
@@ -552,7 +559,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				if (!maySubstitute)
 				{
 					// force substitution for documentation icons
-					if (niProto.getView() == View.ICON)
+					if (niProto.isIcon())
 					{
 						if (niProto.isIconOf(fromCell)) maySubstitute = true;
 					}
@@ -639,7 +646,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
             // then change the name from the old to the new
-            if (newCell.getView() == View.ICON) {
+            if (newCell.isIcon()) {
                 Variable var = toNi.getVar(Schematics.SCHEM_FUNCTION);
                 if (var != null) {
                     String name = (String)var.getObject();
@@ -2593,7 +2600,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
         // special case: allow instance of icon inside of the contents for illustration
         if (toInstantiate.isIconOf(parent)) {
-            if (toInstantiate.getView() == View.ICON && parent.getView() != View.ICON)
+            if (toInstantiate.isIcon() && !parent.isIcon())
                 return false;
         }
 
@@ -2621,7 +2628,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	private boolean getIsAChildOf(Cell parent, Map checkedParents)
 	{
         // if parent is an icon view, also check contents view
-        if (parent.getView() == View.ICON) {
+        if (parent.isIcon()) {
             Cell c = parent.contentsView();
             if (c != null && c != parent) {
                 if (getIsAChildOf(c, checkedParents)) return true;
@@ -2695,7 +2702,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				{
 					if (((Cell)niProto).isIconOf(child))
 					{
-						if (child.getView() != View.ICON) continue;
+						if (!child.isIcon()) continue;
 					}
 				}
 
@@ -2892,8 +2899,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
-	 * Method to determine whether this NodeProto  is an icon Cell.
-	 * @return true if this NodeProto is an icon  Cell.
+	 * Method to determine whether this Cell is an icon Cell.
+	 * @return true if this Cell is an icon  Cell.
 	 */
 	public boolean isIcon() { return view == View.ICON; }
 
@@ -2904,7 +2911,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean isIconOf(Cell cell)
 	{
-		return view == View.ICON && cellGroup == cell.cellGroup;
+		return view == View.ICON && cellGroup == cell.cellGroup && cell.isSchematic();
 	}
 
 	/**
@@ -2912,6 +2919,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @return true if this Cell is part of multi-part icon.
 	 */
 	public boolean isMultiPartIcon() { return false; }
+
+	/**
+	 * Method to return true if this Cell is a schematic Cell.
+	 * @return true if this Cell is a schematic Cell.
+	 */
+	public boolean isSchematic()
+	{
+		if (getView() == View.SCHEMATIC) return true;
+		if (getView().isMultiPageView()) return true; // isn't it deprecated
+		return false;
+	}
 
 	/**
 	 * Method to find the contents Cell associated with this Cell.
@@ -2922,15 +2940,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public Cell contentsView()
 	{
 		// can only consider contents if this cell is an icon
-		if (getView() != View.ICON && getView() != View.LAYOUTSKEL)
+		if (!isIcon() && getView() != View.LAYOUTSKEL)
 			return null;
 
 		// first check to see if there is a schematics link
 		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
-			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
+			if (cellInGroup.isSchematic()) return cellInGroup;
 		}
 
 		// now check to see if there is any layout link
@@ -2959,13 +2976,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public Cell iconView()
 	{
 		// can only get icon view if this is a schematic
-		if (!isSchematicView()) return null;
+		if (!isSchematic()) return null;
 
 		// now look for views
 		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.ICON) return cellInGroup;
+			if (cellInGroup.isIcon()) return cellInGroup;
 		}
 
 		return null;
@@ -2990,17 +3007,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		return null;
-	}
-
-	/**
-	 * Method to return true if this Cell is a schematic view.
-	 * @return true if this Cell is a schematic view.
-	 */
-	public boolean isSchematicView()
-	{
-		if (getView() == View.SCHEMATIC ||
-			getView().isMultiPageView()) return true;
-		return false;
 	}
 
 	/****************************** NETWORKS ******************************/
@@ -3382,11 +3388,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 // 			NodeUsage nu = (NodeUsage)it.next();
 // 			nu.getParent().setChangeLock();
 // 		}
-// 		if (!isSchematicView()) return;
+// 		if (!isSchematic()) return;
 // 		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
 // 		{
 // 			Cell cell = (Cell)it.next();
-// 			if (cell.view == View.ICON) cell.setChangeLock();
+// 			if (cell.isIcon()) cell.setChangeLock();
 // 		}
 	}
 
@@ -3538,7 +3544,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public Cell getEquivalent()
 	{
-		return view == View.ICON ? cellGroup.getMainSchematics() : this;
+		return isIcon() ? cellGroup.getMainSchematics() : this;
 	}
 
 	/** Sanity check method used by Geometric.checkobj. */

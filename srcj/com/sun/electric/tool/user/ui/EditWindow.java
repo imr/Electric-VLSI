@@ -2219,7 +2219,7 @@ public class EditWindow extends JPanel
 			}
 
 			// no parent - if icon, go to sch view
-			if (cell.getView() == View.ICON)
+			if (cell.isIcon())
 			{
 				Cell schCell = cell.getEquivalent();
 				if (schCell != null)
@@ -2238,7 +2238,7 @@ public class EditWindow extends JPanel
                 if (parent.getLibrary().isHidden()) continue;
 				found.add(parent);
 			}
-			if (cell.getView() == View.SCHEMATIC)
+			if (cell.isSchematic())
 			{
 				Cell iconView = cell.iconView();
 				if (iconView != null)

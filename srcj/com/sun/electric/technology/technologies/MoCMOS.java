@@ -3423,43 +3423,43 @@ public class MoCMOS extends Technology
 		MOSRules newRules = (MOSRules)newDRCRules;
 
 		// update variables on the technology
-		Variable var = newVar(DRCRules.WIDE_LIMIT, newRules.wideLimit);
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES, newRules.conList);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES, newRules.unConList);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_RULE, newRules.unConListRules);
-		if (var != null) var.setDontSave();
+// 		Variable var = newVar(DRCRules.WIDE_LIMIT, newRules.wideLimit);
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES, newRules.conList);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES, newRules.unConList);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_RULE, newRules.unConListRules);
+// 		if (var != null) var.setDontSave();
 
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_WIDE, newRules.conListWide);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_WIDE_RULE, newRules.conListWideRules);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_WIDE, newRules.unConListWide);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, newRules.unConListWideRules);
-		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_WIDE, newRules.conListWide);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_WIDE_RULE, newRules.conListWideRules);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_WIDE, newRules.unConListWide);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, newRules.unConListWideRules);
+// 		if (var != null) var.setDontSave();
 
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_MULTI, newRules.conListMulti);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_MULTI_RULE, newRules.conListMultiRules);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_MULTI, newRules.unConListMulti);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, newRules.unConListMultiRules);
-		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_MULTI, newRules.conListMulti);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_CONNECTED_DISTANCES_MULTI_RULE, newRules.conListMultiRules);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_MULTI, newRules.unConListMulti);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, newRules.unConListMultiRules);
+// 		if (var != null) var.setDontSave();
 
-		var = newVar(DRCRules.MIN_EDGE_DISTANCES, newRules.edgeList);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_EDGE_DISTANCES_RULE, newRules.edgeListRules);
-		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_EDGE_DISTANCES, newRules.edgeList);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_EDGE_DISTANCES_RULE, newRules.edgeListRules);
+// 		if (var != null) var.setDontSave();
 
-		var = newVar(DRCRules.MIN_WIDTH, newRules.minWidth);
-		if (var != null) var.setDontSave();
-		var = newVar(DRCRules.MIN_WIDTH_RULE, newRules.minWidthRules);
-		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_WIDTH, newRules.minWidth);
+// 		if (var != null) var.setDontSave();
+// 		var = newVar(DRCRules.MIN_WIDTH_RULE, newRules.minWidthRules);
+// 		if (var != null) var.setDontSave();
 
 		// update per-node information
 		int j = 0;
@@ -3823,16 +3823,21 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to convert any old-style state information to the new options.
 	 */
-	public void convertOldState()
+	/**
+	 * Method to convert any old-style variable information to the new options.
+	 * May be overrideen in subclasses.
+	 * @param varName name of variable
+	 * @param value value of variable
+	 * @return true if variable was converted
+	 */
+	public boolean convertOldVariable(String varName, Object value)
 	{
-		Variable var = getVar(TECH_LAST_STATE);
-		if (var == null) return;
-		int oldBits = ((Integer)var.getObject()).intValue();
-		delVar(TECH_LAST_STATE);
+		if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return false;
+		if (!(value instanceof Integer)) return false;
+		int oldBits = ((Integer)value).intValue();
 
 		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
-		newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
-		Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
+		Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning(), new Integer(oldNoStackedVias?1:0));
 
 		int numMetals = 0;
 		switch (oldBits&MOCMOSMETALS)
@@ -3843,8 +3848,7 @@ public class MoCMOS extends Technology
 			case MOCMOS5METAL: numMetals = 5;   break;
 			case MOCMOS6METAL: numMetals = 6;   break;
 		}
-		newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
-		Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
+		Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning(), new Integer(numMetals));
 
 		int ruleSet = 0;
 		switch (oldBits&MOCMOSRULESET)
@@ -3853,16 +3857,14 @@ public class MoCMOS extends Technology
 			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
 			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
 		}
-		newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
-		Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
+		Pref.changedMeaningVariable(cacheRuleSet.getMeaning(), new Integer(ruleSet));
 
 		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
-		newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
-		Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
+		Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning(), new Integer(alternateContactRules?1:0));
 
 		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
-		newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
-		Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
+		Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning(), new Integer(secondPoly?1:0));
+		return true;
 	}
 
 /******************** NODE DESCRIPTION (GRAPHICAL) ********************/

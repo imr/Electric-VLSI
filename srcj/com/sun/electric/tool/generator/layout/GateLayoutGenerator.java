@@ -138,8 +138,7 @@ public class GateLayoutGenerator extends Job {
 				               "want to generate gate layouts.");
 			return false;		
 		}
-		View view = cell.getView();
-		if (view!=View.SCHEMATIC) {
+		if (!cell.isSchematic()) {
 			System.out.println("The current cell isn't a schematic. This " +
 				               "command only works on schematics.");
 			return false;

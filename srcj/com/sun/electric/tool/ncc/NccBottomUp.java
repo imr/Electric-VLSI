@@ -130,7 +130,8 @@ public class NccBottomUp {
 	private CellContext selectAndRemoveReferenceCellContext(List cellCtxts) {
 		for (Iterator it=cellCtxts.iterator(); it.hasNext();) {
 			CellContext cc = (CellContext) it.next();
-			if (cc.cell.getView()==View.SCHEMATIC) {
+			if (cc.cell.isSchematic()) {
+//			if (cc.cell.getView()==View.SCHEMATIC) {
 				it.remove();
 				return cc;
 			}

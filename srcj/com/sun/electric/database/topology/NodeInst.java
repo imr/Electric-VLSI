@@ -853,7 +853,7 @@ public class NodeInst extends Geometric implements Nodable
     public ElectricObject getVarDefaultOwner() {
         if (getProto() instanceof Cell) {
             Cell proto = (Cell)getProto();
-            if (proto.getView() == View.ICON) {
+            if (proto.isIcon()) {
                 // schematic has default vars
                 Cell sch = proto.getCellGroup().getMainSchematics();
                 if (sch != null) {

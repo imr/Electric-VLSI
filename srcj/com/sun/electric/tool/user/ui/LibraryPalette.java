@@ -167,7 +167,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
                 // single click
                 // place cell at location
                 // ignore schematics for now
-                if (cell.getView() == View.SCHEMATIC) return;
+                if (cell.isSchematic()) return;
                 lastPlaceNodeListener = PaletteFrame.placeInstance(cell, this, false);
             }
         }

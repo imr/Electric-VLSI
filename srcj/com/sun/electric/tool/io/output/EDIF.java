@@ -254,7 +254,7 @@ public class EDIF extends Topology
 				blockClose("port");
 			}
 		}
-		if (IOTool.isEDIFUseSchematicView() && cell.getView() == View.ICON)
+		if (IOTool.isEDIFUseSchematicView() && cell.isIcon())
 		{
 			// output the icon
 			writeSymbol(cell);
@@ -309,7 +309,7 @@ public class EDIF extends Topology
 				blockClose("viewRef");
 			} else
 			{
-//				if (((Cell)ni.getProto()).getView() == View.ICON &&
+//				if (((Cell)ni.getProto()).isIcon() &&
 //					((Cell)ni.getProto()).contentsView() == null)
 //				{
 //					// this node came from an external schematic library
@@ -656,7 +656,7 @@ public class EDIF extends Topology
 	private int searchHierarchy(Cell cell, HashMap useMap)
 	{
 		// do not search this cell if it is an icon
-		if (cell.getView() == View.ICON) return 0;
+		if (cell.isIcon()) return 0;
 
 		// keep a count of the total number of primitives encountered
 		int primcount = 0;
