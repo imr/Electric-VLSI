@@ -147,18 +147,21 @@ public class ElectricObject
         debugGetParameterRecurse++;
 
         Variable.Key key = findKey(name);
-        if (key == null) return null;
+        if (key == null) { debugGetParameterRecurse--; return null; }
         Variable var = getVar(key, null);
         if (var != null)
-            if (var.getTextDescriptor().isParam())
+            if (var.getTextDescriptor().isParam()) {
+                debugGetParameterRecurse--;
                 return var;
+            }
         // look on default var owner
         ElectricObject defOwner = getVarDefaultOwner();
-        if (defOwner == null) return null;
-        if (defOwner == this) return null;
+        if (defOwner == null) { debugGetParameterRecurse--; return null; }
+        if (defOwner == this) { debugGetParameterRecurse--; return null; }
 
+        Variable var2 = defOwner.getParameter(name);
         debugGetParameterRecurse--;
-        return defOwner.getParameter(name);
+        return var2;
     }
 
     private static int debugGetParametersRecurse = 0;
@@ -181,8 +184,8 @@ public class ElectricObject
         }
         // look on default var owner
         ElectricObject defOwner = getVarDefaultOwner();
-        if (defOwner == null) return keysToVars.values().iterator();
-        if (defOwner == this) return keysToVars.values().iterator();
+        if (defOwner == null) { debugGetParametersRecurse--; return keysToVars.values().iterator(); }
+        if (defOwner == this) { debugGetParametersRecurse--; return keysToVars.values().iterator(); }
         for (Iterator it = defOwner.getParameters(); it.hasNext(); ) {
             Variable v = (Variable)it.next();
             if (keysToVars.get(v.getKey()) == null)
