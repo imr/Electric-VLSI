@@ -47,30 +47,27 @@ import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
+import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
+import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
+import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickCanvas;
 
 import javax.media.j3d.*;
-import javax.vecmath.Point3d;
-import javax.vecmath.Color3f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
-import java.awt.GraphicsConfiguration;
+import javax.vecmath.*;
 
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Point;
+import java.awt.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -86,7 +83,7 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
-    private OrbitBehavior orbit;
+    //private OrbitBehavior orbit;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
 	/** the cell that is in the window */					private Cell cell;
@@ -175,27 +172,53 @@ public class View3DWindow extends JPanel
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
-		u = new SimpleUniverse(canvas);
+		u = new SimpleUniverse(canvas, 4);
 
         // This will move the ViewPlatform back a bit so the
         // objects in the scene can be viewed.
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 
-		orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
-		orbit.setSchedulingBounds(infiniteBounds);
+        MouseTranslate translate = new MouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
+        translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().
+                        getTransformGroup(2));
+        translate.setSchedulingBounds(infiniteBounds);
+        translate.setFactor(0.1); // default 0.02
+        BranchGroup translateBG = new BranchGroup();
+        translateBG.addChild(translate);
+        viewingPlatform.addChild(translateBG);
 
-		/** step A **/
-		Point3d center = new Point3d(0, 0, 0);
+        MouseZoom zoom = new MouseZoom(canvas, MouseZoom.INVERT_INPUT);
+        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().
+                  getTransformGroup(1));
+        zoom.setSchedulingBounds(infiniteBounds);
+        zoom.setFactor(0.7);    // default 0.4
+        BranchGroup zoomBG = new BranchGroup();
+        zoomBG.addChild(zoom);
+        viewingPlatform.addChild(zoomBG);
 
-		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
+        MouseRotate rotate = new MouseRotate(MouseRotate.INVERT_INPUT);
+        rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().
+                       getTransformGroup(0));
+        BranchGroup rotateBG = new BranchGroup();
+        rotateBG.addChild(rotate);
+        viewingPlatform.addChild(rotateBG);
+        rotate.setSchedulingBounds(infiniteBounds);
 
-		orbit.setRotationCenter(center);
-		orbit.setMinRadius(0);
-		orbit.setZoomFactor(10);
-		orbit.setTransFactors(10, 10);
-        orbit.setProportionalZoom(true);
+//		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
+//		orbit.setSchedulingBounds(infiniteBounds);
+//
+//		/** step A **/
+//		Point3d center = new Point3d(0, 0, 0);
+//
+//		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
+//
+//		orbit.setRotationCenter(center);
+//		orbit.setMinRadius(0);
+//		orbit.setZoomFactor(10);
+//		orbit.setTransFactors(10, 10);
+//        orbit.setProportionalZoom(true);
 
-		viewingPlatform.setViewPlatformBehavior(orbit);
+//    	viewingPlatform.setViewPlatformBehavior(orbit);
 
 		// This will move the ViewPlatform back a bit so the
         // objects in the scene can be viewed.
@@ -426,7 +449,9 @@ public class View3DWindow extends JPanel
 			list.add(addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
 		}
 		else
+        {
 			list = addPolys(tech.getShapeOfNode(no, null, true, true), no.rotateOut(), objTrans);
+        }
 		electricObjectMap.put(no, list);
 	}
 
