@@ -116,7 +116,7 @@ public class JThreeDSideView extends JPanel
 
         //translate.setView(-10, -50);
         J3DUtils.setViewPoint(u, canvas, scene, new Rectangle2D.Double(0, 0, 10, 20));
-        rotate.setRotation(1.57, -0.5, 0);
+        rotate.setRotation(-1.57, 0.5, 0);
         zoom.setZoom(0.5);
     }
 

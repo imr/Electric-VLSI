@@ -18,6 +18,7 @@ public class JMouseRotate extends MouseRotate
 
     public void setRotation(double angleX, double angleY, double angleZ)
     {
+        // Rotations are in the opposite direction
         transformX.rotX(-1*angleX);
         transformY.rotY(-1*angleY);
         transformZ.rotZ(-1*angleZ);
