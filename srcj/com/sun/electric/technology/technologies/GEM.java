@@ -31,6 +31,11 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -41,8 +46,12 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.utils.MOSRules;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Temporal Specification Facility (from Lansky) Technology.
@@ -50,6 +59,16 @@ import java.awt.Color;
 public class GEM extends Technology
 {
 	/** the Temporal Specification Facility (from Lansky) Technology object. */	public static final GEM tech = new GEM();
+
+	/** Variable key for GEM element name. */		public static final Variable.Key ELEMENT_NAME = ElectricObject.newKey("GEM_element");
+	/** Variable key for GEM event 1. */			public static final Variable.Key EVENT_1 = ElectricObject.newKey("GEM_event1");
+	/** Variable key for GEM event 2. */			public static final Variable.Key EVENT_2 = ElectricObject.newKey("GEM_event2");
+	/** Variable key for GEM event 3. */			public static final Variable.Key EVENT_3 = ElectricObject.newKey("GEM_event3");
+	/** Variable key for GEM event 4. */			public static final Variable.Key EVENT_4 = ElectricObject.newKey("GEM_event4");
+
+	private Layer E_lay;
+	private Technology.TechPoint [] box_7;
+	private PrimitiveNode e_node;
 
 	// -------------------- private and protected methods ------------------------
 	private GEM()
@@ -63,7 +82,7 @@ public class GEM extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** E layer */
-		Layer E_lay = Layer.newInstance(this, "Element",
+		E_lay = Layer.newInstance(this, "Element",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -164,31 +183,11 @@ public class GEM extends Technology
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
-		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7)),
-		};
-		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(4)),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(4)),
-		};
-		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(3)),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(5)),
-		};
-		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6)),
-		};
-		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(5)),
-			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
-		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
 		};
-		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
+		box_7 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 		};
@@ -286,26 +285,21 @@ public class GEM extends Technology
 		fp_node.setArcsShrink();
 
 		/** Element */
-		PrimitiveNode e_node = PrimitiveNode.newInstance("Element", this, 8, 8, null,
+		e_node = PrimitiveNode.newInstance("Element", this, 8, 8, null,
 			new Technology.NodeLayer []
 			{
-//				new Technology.NodeLayer(E_lay, -1, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, box_5),
-//				new Technology.NodeLayer(E_lay, -1, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, box_4),
-//				new Technology.NodeLayer(E_lay, -1, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, box_3),
-//				new Technology.NodeLayer(E_lay, -1, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, box_2),
-//				new Technology.NodeLayer(E_lay, -1, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, box_1),
 				new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7)
 			});
 		e_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, e_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "port1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(2), EdgeV.fromBottom(4.5), EdgeH.fromRight(6), EdgeV.fromTop(3.5)),
+					EdgeH.fromLeft(2), EdgeV.fromCenter(0.5), EdgeH.fromLeft(2), EdgeV.fromCenter(0.5)),
 				PrimitivePort.newInstance(this, e_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "port2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(2), EdgeV.fromBottom(3.5), EdgeH.fromRight(6), EdgeV.fromTop(4.5)),
+					EdgeH.fromLeft(2), EdgeV.fromCenter(-0.5), EdgeH.fromLeft(2), EdgeV.fromCenter(-0.5)),
 				PrimitivePort.newInstance(this, e_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "port3", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(2), EdgeV.fromBottom(2.5), EdgeH.fromRight(6), EdgeV.fromTop(5.5)),
+					EdgeH.fromLeft(2), EdgeV.fromCenter(-1.5), EdgeH.fromLeft(2), EdgeV.fromCenter(-1.5)),
 				PrimitivePort.newInstance(this, e_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "port4", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(2), EdgeV.fromBottom(1.5), EdgeH.fromRight(6), EdgeV.fromTop(6.5))
+					EdgeH.fromLeft(2), EdgeV.fromCenter(-2.5), EdgeH.fromLeft(2), EdgeV.fromCenter(-2.5))
 			});
 		e_node.setFunction(PrimitiveNode.Function.UNKNOWN);
 
@@ -321,7 +315,68 @@ public class GEM extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		g_node.setFunction(PrimitiveNode.Function.UNKNOWN);
-
-		// The pure layer nodes
 	};
+
+	//**************************************** METHODS ****************************************
+
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	{
+		if (ni.getProto() == e_node)
+		{
+			Technology.NodeLayer [] eventLayers = new Technology.NodeLayer[6];
+			eventLayers[0] = new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7);
+
+			String title = "";
+			Variable varTitle = ni.getVar(ELEMENT_NAME);
+			if (varTitle != null) title = varTitle.getPureValue(-1, -1);
+			eventLayers[1] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
+			eventLayers[1].setMessage(title);
+
+			String event1 = "";
+			Variable varEvent1 = ni.getVar(EVENT_1);
+			if (varEvent1 != null) event1 = varEvent1.getPureValue(-1, -1);
+			eventLayers[2] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(0.5))});
+			eventLayers[2].setMessage(event1);
+
+			String event2 = "";
+			Variable varEvent2 = ni.getVar(EVENT_2);
+			if (varEvent2 != null) event2 = varEvent2.getPureValue(-1, -1);
+			eventLayers[3] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-0.5))});
+			eventLayers[3].setMessage(event2);
+
+			String event3 = "";
+			Variable varEvent3 = ni.getVar(EVENT_3);
+			if (varEvent3 != null) event3 = varEvent3.getPureValue(-1, -1);
+			eventLayers[4] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-1.5))});
+			eventLayers[4].setMessage(event3);
+
+			String event4 = "";
+			Variable varEvent4 = ni.getVar(EVENT_4);
+			if (varEvent4 != null) event4 = varEvent4.getPureValue(-1, -1);
+			eventLayers[5] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-2.5))});
+			eventLayers[5].setMessage(event4);
+
+			primLayers = eventLayers;
+		}
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
+	}
 }

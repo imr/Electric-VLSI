@@ -69,7 +69,7 @@ public class OpenFile
 		/** Describes Pads files. */			public static final Type PADS         = new Type("Pads", new String[] {"asc"}, "Pads File (asc)");
 		/** Describes PAL files. */				public static final Type PAL          = new Type("PAL", new String[] {"pal"}, "PAL File (pal)");
 		/** Describes PostScript files. */		public static final Type POSTSCRIPT   = new Type("PostScript", new String[] {"ps"}, "PostScript (ps)");
-		/** Describes PSpice standard output.*/	public static final Type PSPICEOUT    = new Type("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output FIle (spo)");
+		/** Describes PSpice standard output.*/	public static final Type PSPICEOUT    = new Type("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output File (spo)");
 		/** Describes Raw Spice output. */		public static final Type RAWSPICEOUT  = new Type("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
 		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
@@ -77,7 +77,8 @@ public class OpenFile
 		/** Describes Silos decks.*/			public static final Type SILOS        = new Type("Silos", new String[] {"sil"}, "Silos Deck (sil)");
 		/** Describes Skill decks.*/			public static final Type SKILL        = new Type("Skill", new String[] {"il"}, "Skill Deck (il)");
 		/** Describes Spice decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
-		/** Describes Spice standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
+		/** Describes Spice standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output File (spo)");
+		/** Describes Sue files.*/				public static final Type SUE          = new Type("Sue", new String[] {"sue"}, "Sue File (sue)");
 		/** Describes Tegas files. */			public static final Type TEGAS        = new Type("Tegas", new String[] {"tdl"}, "Tegas File (tdl)");
 		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
 		/** Describes Verilog decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");

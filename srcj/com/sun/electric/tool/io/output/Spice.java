@@ -1272,7 +1272,7 @@ public class Spice extends Topology
 		String headerFile = Simulation.getSpiceHeaderCardInfo();
 		if (headerFile.length() > 0)
 		{
-           if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
+			if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
