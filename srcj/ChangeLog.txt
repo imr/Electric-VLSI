@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02f: *********************************
+
 ************************* Version 8.02e: *********************************
 
 IMP/MAN: (01/28/05, GVG) Adding exhaustive checking option in DRC (mostly for regression purposes)

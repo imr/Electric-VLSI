@@ -119,7 +119,7 @@ public class LayoutLib {
 		Library lib = Library.findLibrary(libName);
 		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
 		if (lib==null) {
-			lib = Input.readLibrary(libFileURL, type/*OpenFile.Type.ELIB*/);
+			lib = Input.readLibrary(libFileURL, type);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
