@@ -14,7 +14,7 @@ import java.util.*;
 
 class ExprEval {
 
-    private LinkedList el = new LinkedList();
+    private LinkedList<Expr> el = new LinkedList<Expr>();
     private boolean printDetailed = false;
     boolean hasBoth = false;
 

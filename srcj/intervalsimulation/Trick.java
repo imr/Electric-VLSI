@@ -399,7 +399,7 @@ public class Trick {
 		Linear.printM("ej=", ej);
     }
 
-    static LinkedList sl = new LinkedList();
+    static LinkedList<Segment> sl = new LinkedList<Segment>();
 
     private static void makeList()
     {

@@ -1,14 +1,14 @@
 BEANSHELLLOC = ../lib/java/bsh-1.2b3.jar
 JARLOC = Jama-1.0.1.jar:ia_math.jar
 JAVACOMPILER = javac
-JAVAFLAGS = -classpath $(BEANSHELLLOC):$(JARLOC)
+JAVAFLAGS = -classpath $(BEANSHELLLOC):$(JARLOC) -source 1.5
 
 JAVAPURESRC = \
 	IntervalMatrix.java \
 	RawWriter.java \
-	Trick.java \
 	IntervalExp.java \
 	ExprEval.java \
+	Trick.java \
 	Diode.java \
 	Hermite.java
 
@@ -16,10 +16,14 @@ JAVAPURESRC = \
 JAVA_SRCS = $(JAVAPURESRC)
 JAVA_OBJS = $(JAVA_SRCS:%.java=%.class)
 
+.SUFFIXES: .java .class
+.java.class:
+	$(JAVACOMPILER) $(JAVAFLAGS) $<
+
 all: isim.jar
 
 isim.jar: $(JAVA_SRCS)
-	javac $(JAVAFLAGS) $(JAVA_SRCS)
+	$(JAVACOMPILER) $(JAVAFLAGS) $(JAVA_SRCS)
 	jar -cf isim.jar $(JAVA_OBJS)
 
 tests: wrapping trick diode hermite
@@ -36,5 +40,9 @@ diode: isim.jar
 hermite: isim.jar
 	java -classpath .:$(BEANSHELLLOC):$(JARLOC):isim.jar Hermite
 
+ulp: Ulp.class
+	java  -server -XX:+PrintCompilation  -classpath . Ulp
+	java  -client -XX:+PrintCompilation  -classpath . Ulp
+
 clean:
-	rm -rf $(JAVA_OBJS) *.class
+	rm -rf *.class
