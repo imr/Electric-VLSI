@@ -203,7 +203,6 @@ public class ChangeCurrentLib extends EDialog
 		if (lib != null && lib != Library.getCurrent())
 		{
 			lib.setCurrent();
-			//WindowFrame.wantToRedoLibraryTree();
 			EditWindow.repaintAll();
 		}
 		closeDialog(null);
