@@ -126,6 +126,7 @@ public abstract class Router {
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             if (e.getAction() == RouteElement.RouteElementAction.newNode) {
+                if (e.isDone()) continue;
                 e.doAction();
                 nodesCreated++;
             }
@@ -134,8 +135,9 @@ public abstract class Router {
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.doAction();
-            if (e.getAction() == RouteElement.RouteElementAction.newArc)
+            if (e.getAction() == RouteElement.RouteElementAction.newArc) {
                 arcsCreated++;
+            }
         }
         if (verbose) {
             if (arcsCreated == 1)

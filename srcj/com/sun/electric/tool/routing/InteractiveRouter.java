@@ -82,7 +82,8 @@ public abstract class InteractiveRouter extends Router {
     public String toString() { return "Interactive Router"; }
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute);
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute,
+                                boolean contactsOnEndObject);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -275,7 +276,7 @@ public abstract class InteractiveRouter extends Router {
         PortInst existingEndPort = null;
 
         // favor contact cuts on arcs
-        boolean reverseRoute = false;
+        boolean contactsOnEndObject = true;
 
         // plan start of route
         if (startObj instanceof PortInst) {
@@ -286,7 +287,7 @@ public abstract class InteractiveRouter extends Router {
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
             startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint);
-            reverseRoute = true;
+            contactsOnEndObject = false;
         }
         if (startRE == null) {
             if (startObj != badStartObject)
@@ -307,7 +308,7 @@ public abstract class InteractiveRouter extends Router {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
                 endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint);
-                reverseRoute = false;
+                contactsOnEndObject = true;
             }
             if (endRE == null) {
                 if (endObj != badEndObject)
@@ -341,18 +342,6 @@ public abstract class InteractiveRouter extends Router {
                     pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset());
         }
 
-        // favors arcs for location of contact cuts
-        if (reverseRoute) {
-            // swap RE's
-            RouteElementPort re = startRE;
-            startRE = endRE;
-            endRE = re;
-            // swap connecting points
-            Point2D p = startPoint;
-            startPoint = endPoint;
-            endPoint = p;
-        }
-
         // special check: if both are existing port insts and are same port, do nothing
         if ((existingEndPort != null) && (existingEndPort == existingStartPort)) return new Route();
 
@@ -363,9 +352,9 @@ public abstract class InteractiveRouter extends Router {
         //route.add(endRE); route.setEnd(endRE);
 
         // Tell Router to route between startRE and endRE
-        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, vroute))
+        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, vroute, contactsOnEndObject)) {
             return route;
-        else
+        } else
             return new Route();             // error, return empty route
     }
 

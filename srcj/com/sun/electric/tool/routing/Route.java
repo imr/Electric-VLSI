@@ -24,9 +24,7 @@
 
 package com.sun.electric.tool.routing;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Specifies a route to be created.  Note that the order if items
@@ -40,6 +38,7 @@ public class Route extends ArrayList {
 
     private RouteElementPort routeStart;       // start of route
     private RouteElementPort routeEnd;         // end of route
+    private boolean routeReversed;             // if the route has been reversed
 
     // ---------------------- Constructors ---------------------------
 
@@ -48,6 +47,7 @@ public class Route extends ArrayList {
         super();
         routeStart = null;
         routeEnd = null;
+        routeReversed = false;
     }
 
     /** Constructs a route containing the elements of the passed route,
@@ -65,14 +65,6 @@ public class Route extends ArrayList {
             routeEnd = null;
         }
     }
-
-    /** Constructs an empty route with the specified initial capacity */
-    public Route(int initialCapacity) {
-        super(initialCapacity);
-        routeStart = null;
-        routeEnd = null;
-    }
-
 
     // ------------------------------- Route Methods -----------------------------------
 
@@ -111,7 +103,11 @@ public class Route extends ArrayList {
         RouteElementPort re = routeStart;
         routeStart = routeEnd;
         routeEnd = re;
+        routeReversed = !routeReversed;
     }
+
+    /** True if the route is reversed, false if it is not reversed */
+    public boolean isRouteReversed() { return routeReversed; }
 
     /**
      * Attempts to replace the bisectPin by replacement. Returns true

@@ -1398,7 +1398,7 @@ public class NodeInst extends Geometric implements Nodable
                 double offsetX = 0.5*(width - box.getWidth() - arcWidth);
                 double offsetY = 0.5*(height - box.getHeight() - arcWidth);
                 if (offsetX < 0) {
-                    box = new Rectangle2D.Double(box.getX()+offsetX, box.getY(), box.getWidth()-2*offsetX, box.getHeight());
+                    box = new Rectangle2D.Double(box.getX()-offsetX, box.getY(), box.getWidth()+2*offsetX, box.getHeight());
                 }
                 if (offsetY < 0) {
                     box = new Rectangle2D.Double(box.getX(), box.getY()-offsetY, box.getWidth(), box.getHeight()+2*offsetY);

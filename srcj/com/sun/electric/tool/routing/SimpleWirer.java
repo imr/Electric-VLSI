@@ -53,7 +53,8 @@ public class SimpleWirer extends InteractiveRouter {
 
 
     protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute) {
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute,
+                                boolean contactsOnEndObj) {
 
         RouteElementPort startRE = route.getEnd();
 
@@ -61,7 +62,10 @@ public class SimpleWirer extends InteractiveRouter {
         Point2D cornerLoc = null;
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            cornerLoc = endLoc;
+            if (contactsOnEndObj)
+                cornerLoc = endLoc;
+            else
+                cornerLoc = startLoc;
         } else {
             Point2D pin1 = new Point2D.Double(startLoc.getX(), endLoc.getY());
             Point2D pin2 = new Point2D.Double(endLoc.getX(), startLoc.getY());
@@ -94,6 +98,8 @@ public class SimpleWirer extends InteractiveRouter {
             if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
                 useArc = Generic.tech.universal_arc;
             else {
+                route.add(endRE);
+                route.setEnd(endRE);
                 vroute.buildRoute(route, cell, startRE, endRE, startLoc, endLoc, cornerLoc);
                 return true;
             }
