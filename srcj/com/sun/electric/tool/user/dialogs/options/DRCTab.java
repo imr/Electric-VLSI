@@ -51,6 +51,7 @@ public class DRCTab extends PreferencePanel
 	private boolean initialDRCOneErrorPerCell;
 	private boolean initialDRCUseMultipleThreads;
 	private boolean initialDRCIgnoreCenterCuts;
+    private boolean initialDRCIgnoreArea;
 	private int initialDRCNumberOfThreads;
 	private boolean requestedDRCClearDates;
 
@@ -74,6 +75,9 @@ public class DRCTab extends PreferencePanel
 
 		initialDRCIgnoreCenterCuts = DRC.isIgnoreCenterCuts();
 		drcIgnoreCenterCuts.setSelected(initialDRCIgnoreCenterCuts);
+
+        initialDRCIgnoreArea = DRC.isIgnoreAreaChecking();
+		drcIgnoreArea.setSelected(initialDRCIgnoreArea);
 
 		requestedDRCClearDates = false;
 		drcClearValidDates.addActionListener(new ActionListener()
@@ -117,6 +121,10 @@ public class DRCTab extends PreferencePanel
 		if (currentIgnoreCenterCuts != initialDRCIgnoreCenterCuts)
 			DRC.setIgnoreCenterCuts(currentIgnoreCenterCuts);
 
+        boolean currentIgnoreAreaChecking = drcIgnoreArea.isSelected();
+		if (currentIgnoreAreaChecking != initialDRCIgnoreArea)
+			DRC.setIgnoreAreaChecking(currentIgnoreAreaChecking);
+
 		if (requestedDRCClearDates) DRC.resetDRCDates();
 	}
 
@@ -139,6 +147,7 @@ public class DRCTab extends PreferencePanel
         jLabel33 = new javax.swing.JLabel();
         drcNumberOfThreads = new javax.swing.JTextField();
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
+        drcIgnoreArea = new javax.swing.JCheckBox();
         jPanel6 = new javax.swing.JPanel();
         drcEditRulesDeck = new javax.swing.JButton();
 
@@ -234,6 +243,15 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreCenterCuts, gridBagConstraints);
 
+        drcIgnoreArea.setText("Ignore area checking");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel5.add(drcIgnoreArea, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -274,6 +292,7 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JPanel drc;
     private javax.swing.JButton drcClearValidDates;
     private javax.swing.JButton drcEditRulesDeck;
+    private javax.swing.JCheckBox drcIgnoreArea;
     private javax.swing.JCheckBox drcIgnoreCenterCuts;
     private javax.swing.JCheckBox drcIncrementalOn;
     private javax.swing.JTextField drcNumberOfThreads;

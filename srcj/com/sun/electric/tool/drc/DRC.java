@@ -668,6 +668,20 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
 
+    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", DRC.tool.prefs, false);
+    static { cacheIgnoreAreaChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores area checking"); }
+	/**
+	 * Method to tell whether DRC should ignore minimum/enclosed area checking.
+	 * The default is "true".
+	 * @return true if DRC should ignore minimum/enclosed area checking.
+	 */
+	public static boolean isIgnoreAreaChecking() { return cacheIgnoreAreaChecking.getBoolean(); }
+	/**
+	 * Method to set whether DRC should ignore minimum/enclosed area checking.
+	 * @param on true if DRC should ignore minimum/enclosed area checking.
+	 */
+	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
+
 	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 	/**
 	 * Method to tell the date of the last successful DRC of a given Cell.

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01p: *********************************
 
+IMP: (9/15/04, GVG) Improvement in List Geometry on Network
+
+IMP/MAN: (9/15/04, GVG) Adding option to disconnect DRC area checking
 
 ************************* Version 8.01o: *********************************
 

@@ -259,7 +259,7 @@ public class Quick
 	    minAreaLayerMap.clear();
 	    enclosedAreaLayerMap.clear();
 	    // No incremental neither per Cell
-	    if (!onlyFirstError)
+	    if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
 	    {
 		    for(Iterator it = tech.getLayers(); it.hasNext(); )
 			{
@@ -583,7 +583,7 @@ public class Quick
 			return false;
 
 		// Check the area first but only when is not incremental
-		if (!onlyFirstError)
+		if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
 			checkMinArea(ni);
 
 		// get all of the polygons on this node
