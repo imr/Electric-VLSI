@@ -112,6 +112,7 @@ public class EditWindow extends JPanel
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** the cell that is in the window */					private Cell cell;
+	/** the page number (for multipage schematics) */		private int pageNumber;
 	/** true if doing in-place display */					private boolean inPlaceDisplay;
 	/** transform from screen to cell (in-place only) */	private AffineTransform intoCell;
 	/** transform from cell to screen (in-place only) */	private AffineTransform outofCell;
@@ -157,6 +158,7 @@ public class EditWindow extends JPanel
     private EditWindow(Cell cell, WindowFrame wf)
 	{
         this.cell = cell;
+        this.pageNumber = 0;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
@@ -404,6 +406,26 @@ public class EditWindow extends JPanel
 	public Cell getCell() { return cell; }
 
 	/**
+	 * Method to set the page number that is shown in this window.
+	 * Only applies to multi-page schematics.
+	 * @param pageNumber the page number that is shown in this window (0-based).
+	 */
+	public void setMultiPageNumber(int pageNumber)
+	{
+		if (this.pageNumber == pageNumber) return;
+		this.pageNumber = pageNumber;
+		setWindowTitle();
+		fillScreen();
+	}
+
+	/**
+	 * Method to return the page number that is shown in this window.
+	 * Only applies to multi-page schematics.
+	 * @return the page number that is shown in this window (0-based).
+	 */
+	public int getMultiPageNumber() { return pageNumber; }
+
+	/**
 	 * Method to tell whether this EditWindow is displaying a cell "in-place".
 	 * In-place display implies that the user has descended into a lower-level
 	 * cell while requesting that the upper-level remain displayed.
@@ -492,6 +514,7 @@ public class EditWindow extends JPanel
 
 		// set new values
 		this.cell = cell;
+		this.pageNumber = 0;
 		this.cellVarContext = context;
         if (cell != null) {
             Library lib = cell.getLibrary();
@@ -534,7 +557,7 @@ public class EditWindow extends JPanel
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		wf.setTitle(wf.composeTitle(cell, ""));
+		wf.setTitle(wf.composeTitle(cell, "", pageNumber));
 	}
 
 	/**
@@ -1078,7 +1101,7 @@ public class EditWindow extends JPanel
 		 */
 		public DisplayedFrame(Cell cell, Graphics g, EditWindow wnd)
 		{
-			super(cell);
+			super(cell, wnd.pageNumber);
 			this.g = g;
 			this.wnd = wnd;
 		}
@@ -1592,10 +1615,10 @@ public class EditWindow extends JPanel
 	 */
 	private static class ReplaceTextJob extends Job
 	{
-		EditWindow wnd;
-		String replace;
+		private EditWindow wnd;
+		private String replace;
 
-		public ReplaceTextJob(EditWindow wnd, String replace)
+		private ReplaceTextJob(EditWindow wnd, String replace)
 		{
 			super("Replace Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
@@ -2127,6 +2150,11 @@ public class EditWindow extends JPanel
                 if (frameFactor == 0)
                 {
                     cellBounds = frameBounds;
+                    if (wnd.cell.isMultiPage())
+                    {
+                    	double offY = this.pageNumber * Cell.FrameDescription.MULTIPAGESEPARATION;
+                    	cellBounds.setRect(cellBounds.getMinX(), cellBounds.getMinY() + offY, cellBounds.getWidth(), cellBounds.getHeight());
+                    }
                 } else
                 {
                     if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)

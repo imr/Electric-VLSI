@@ -346,7 +346,7 @@ public class View3DWindow extends JPanel
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		wf.setTitle(wf.composeTitle(cell, "3D View: "));
+		wf.setTitle(wf.composeTitle(cell, "3D View: ", 0));
 	}
 
 	/**

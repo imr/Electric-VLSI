@@ -249,7 +249,7 @@ public class TextWindow
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		wf.setTitle(wf.composeTitle(cell, ""));
+		wf.setTitle(wf.composeTitle(cell, "", 0));
 	}
 
 	/**

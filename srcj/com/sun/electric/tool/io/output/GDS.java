@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.text.TextUtils;
@@ -137,6 +138,11 @@ public class GDS extends Geometry
 	 */
 	public static void writeGDSFile(Cell cell, VarContext context, String filePath)
 	{
+		if (cell.getView() != View.LAYOUT)
+		{
+			System.out.println("Can only write GDS for layout cells");
+			return;
+		}
 		GDS out = new GDS();
 		if (out.openBinaryOutputStream(filePath)) return;
 		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));

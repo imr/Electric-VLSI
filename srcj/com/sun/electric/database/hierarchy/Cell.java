@@ -370,11 +370,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
 	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
 
-	/** set if instances should be expanded */						private static final int WANTNEXPAND =          02;
-	/** set if everything in cell is locked */						private static final int NPLOCKED =       04000000;
-	/** set if instances in cell are locked */						private static final int NPILOCKED =     010000000;
-	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY = 020000000;
-	/** set if cell is from a technology-library */					private static final int TECEDITCELL =   040000000;
+	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
+	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
+	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
+	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
+	/** set if cell is from a technology-library */					private static final int TECEDITCELL   =    040000000;
+	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
 
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -1361,6 +1362,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public static class FrameDescription
 	{
+		public static final double MULTIPAGESEPARATION = 1000;
+
 		private static final double FRAMESCALE = 18.0;
 		private static final double HASCHXSIZE = ( 8.5  * FRAMESCALE);
 		private static final double HASCHYSIZE = ( 5.5  * FRAMESCALE);
@@ -1385,14 +1388,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		private List textSize;
 		private List textBox;
 		private List textMessage;
+		private int pageNo;
 
 		/**
 		 * Constructor for cell frame descriptions.
 		 * @param cell the Cell that is having a frame drawn.
 		 */
-		public FrameDescription(Cell cell)
+		public FrameDescription(Cell cell, int pageNo)
 		{
 			this.cell = cell;
+			this.pageNo = pageNo;
 			lineFromEnd = new ArrayList();
 			lineToEnd = new ArrayList();
 			textPoint = new ArrayList();
@@ -1433,15 +1438,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 */
 		public void renderFrame()
 		{
+			double offY = 0;
+			if (cell.isMultiPage())
+			{
+				offY = pageNo * MULTIPAGESEPARATION;
+			}
 			for(int i=0; i<lineFromEnd.size(); i++)
 			{
 				Point2D from = (Point2D)lineFromEnd.get(i);
 				Point2D to = (Point2D)lineToEnd.get(i);
+				if (offY != 0)
+				{
+					from = new Point2D.Double(from.getX(), from.getY() + offY);
+					to = new Point2D.Double(to.getX(), to.getY() + offY);
+				}
 				showFrameLine(from, to);
 			}
 			for(int i=0; i<textPoint.size(); i++)
 			{
 				Point2D at = (Point2D)textPoint.get(i);
+				if (offY != 0)
+					at = new Point2D.Double(at.getX(), at.getY() + offY);
 				double size = ((Double)textSize.get(i)).doubleValue();
 				Point2D box = (Point2D)textBox.get(i);
 				double width = box.getX();
@@ -1626,7 +1643,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				addLine(point0, point1);
 
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe());
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe() + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
 
 				String projectName = User.getFrameProjectName();
 				Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
@@ -3010,6 +3027,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
+	 * Method to return the number of pages in this multi-page Cell.
+	 * @return the number of different pages.
+	 */
+	public int getNumMultiPages()
+	{
+		if (!isMultiPage()) return 1;
+		Rectangle2D bounds = getBounds();
+		int numPages = (int)(bounds.getHeight() / FrameDescription.MULTIPAGESEPARATION) + 1;
+		return numPages;
+	}
+
+	/**
 	 * Method to find the contents Cell associated with this Cell.
 	 * This only makes sense if the current Cell is an icon or skeleton Cell.
 	 * @return the contents Cell associated with this Cell.
@@ -3310,6 +3339,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
+	/**
+	 * Method to set the multi-page capability of this Cell.
+	 * Multipage cells (usually schematics) must have cell frames to isolate the different
+	 * areas of the cell that are different pages.
+	 * @param multi true to make this cell multi-page.
+	 */
+	public void setMultiPage(boolean multi)
+	{
+		checkChanging();
+		if (multi) userBits |= MULTIPAGE; else
+			userBits &= ~MULTIPAGE;
+	}
+
+	/**
+	 * Method to tell if this Cell is a multi-page drawing.
+	 * Multipage cells (usually schematics) must have cell frames to isolate the different
+	 * areas of the cell that are different pages.
+	 * @return true if this Cell is a multi-page drawing.
+	 */
+	public boolean isMultiPage() { return (userBits & MULTIPAGE) != 0; }
+	
     /**
      * Returns true if this Cell is completely linked into database.
 	 * This means there is path to this Cell through lists:

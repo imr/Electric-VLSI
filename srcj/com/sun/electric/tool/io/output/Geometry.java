@@ -216,6 +216,7 @@ public abstract class Geometry extends Output
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) 
         {
+        	if (curHierDepth > maxHierDepth) return false;
 			outGeomStack[curHierDepth] = cellGeom;
 			Cell cell = info.getCell();
             if (cellGeoms.containsKey(cell)) return false;    // already processed this Cell

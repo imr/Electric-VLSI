@@ -102,6 +102,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static ImageIcon iconViewOldIcon = null;
 	private static ImageIcon iconViewLayout = null;
 	private static ImageIcon iconViewOldLayout = null;
+	private static ImageIcon iconViewMultiPageSchematics = null;
 	private static ImageIcon iconViewSchematics = null;
 	private static ImageIcon iconViewOldSchematics = null;
 	private static ImageIcon iconViewMisc = null;
@@ -116,6 +117,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		public CellAndCount(Cell cell, int count) { this.cell = cell;   this.count = count; }
 		public Cell getCell() { return cell; }
 		public int getCount() { return count; }
+	}
+
+	private static class MultiPageCell
+	{
+		private Cell cell;
+		private int pageNo;
 	}
 
 	/**
@@ -210,7 +217,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
 	{
-        HashMap addedCells = new HashMap();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
@@ -224,6 +230,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (cell.isIcon()) continue;
 				if (cell.getView().isTextView()) continue;
 
+		        HashSet addedCells = new HashSet();
 				for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
 				{
 					Cell cellVersion = (Cell)vIt.next();
@@ -231,10 +238,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (insts.hasNext()) continue;
 
 					// no children: add this as root node
-                    if (addedCells.get(cellVersion) != null) continue;          // prevent duplicate entries
+                    if (addedCells.contains(cellVersion)) continue;          // prevent duplicate entries
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellVersion);
 					libTree.add(cellTree);
-                    addedCells.put(cellVersion, cellVersion);
+                    addedCells.add(cellVersion);
 					createHierarchicalExplorerTree(cellVersion, cellTree);
 				}
 			}
@@ -311,18 +318,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				}
 				if (numNewCells == 1)
 				{
-					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
-					libTree.add(cellTree);
-					if (cell.getNumVersions() > 1)
-					{
-						for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
-						{
-							Cell oldVersion = (Cell)vIt.next();
-							if (oldVersion == cell) continue;
-							DefaultMutableTreeNode oldCellTree = new DefaultMutableTreeNode(oldVersion);
-							cellTree.add(oldCellTree);
-						}
-					}
+					addCellAndAllVersions(cell, libTree);
 					continue;
 				}
 
@@ -337,24 +333,53 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						groupTree = new DefaultMutableTreeNode(group);
 					}
-					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellInGroup);
-					groupTree.add(cellTree);
 					cellsSeen.add(cellInGroup);
-					if (cellInGroup.getNumVersions() > 1)
-					{
-						for(Iterator vIt = cellInGroup.getVersions(); vIt.hasNext(); )
-						{
-							Cell oldVersion = (Cell)vIt.next();
-							if (oldVersion == cellInGroup) continue;
-							DefaultMutableTreeNode oldCellTree = new DefaultMutableTreeNode(oldVersion);
-							cellTree.add(oldCellTree);
-						}
-					}
+					addCellAndAllVersions(cellInGroup, groupTree);
 				}
 				if (groupTree != null)
 					libTree.add(groupTree);
 			}
 			libraryExplorerTree.add(libTree);
+		}
+	}
+
+	private static void addCellAndAllVersions(Cell cell, DefaultMutableTreeNode libTree)
+	{
+		DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
+		libTree.add(cellTree);
+		if (cell.isMultiPage())
+		{
+			int pageCount = cell.getNumMultiPages();
+			for(int i=0; i<pageCount; i++)
+			{
+				MultiPageCell mpc = new MultiPageCell();
+				mpc.cell = cell;
+				mpc.pageNo = i;
+				DefaultMutableTreeNode pageTree = new DefaultMutableTreeNode(mpc);
+				cellTree.add(pageTree);
+			}
+		}
+		if (cell.getNumVersions() > 1)
+		{
+			for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+			{
+				Cell oldVersion = (Cell)vIt.next();
+				if (oldVersion == cell) continue;
+				DefaultMutableTreeNode oldCellTree = new DefaultMutableTreeNode(oldVersion);
+				cellTree.add(oldCellTree);
+				if (oldVersion.isMultiPage())
+				{
+					int pageCount = oldVersion.getNumMultiPages();
+					for(int i=0; i<pageCount; i++)
+					{
+						MultiPageCell mpc = new MultiPageCell();
+						mpc.cell = oldVersion;
+						mpc.pageNo = i;
+						DefaultMutableTreeNode pageTree = new DefaultMutableTreeNode(mpc);
+						oldCellTree.add(pageTree);
+					}
+				}
+			}
 		}
 	}
 
@@ -379,6 +404,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return cell.noLibDescribe() + " **";
 			}
 			return cell.noLibDescribe();
+		}
+		if (nodeInfo instanceof MultiPageCell)
+		{
+			MultiPageCell mpc = (MultiPageCell)nodeInfo;
+			return mpc.cell.noLibDescribe() + " Page " + (mpc.pageNo+1);
 		}
 		if (nodeInfo instanceof Library)
 		{
@@ -553,6 +583,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						setIcon(iconViewOldMisc);
 				}
 			}
+			if (nodeInfo instanceof MultiPageCell)
+			{
+				if (iconViewMultiPageSchematics == null)
+					iconViewMultiPageSchematics = Resources.getResource(getClass(), "IconViewMultiPageSchematics.gif");
+				setIcon(iconViewMultiPageSchematics);
+			}
 			if (nodeInfo instanceof Cell.CellGroup)
 			{
 				if (iconGroup == null)
@@ -664,6 +700,18 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					Cell cell = (Cell)currentSelectedObject;
 					wf.setCellWindow(cell);
+					return;
+				}
+				if (currentSelectedObject instanceof MultiPageCell)
+				{
+					MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+					Cell cell = mpc.cell;
+					wf.setCellWindow(cell);
+					if (wf.getContent() instanceof EditWindow)
+					{
+						EditWindow wnd = (EditWindow)wf.getContent();
+						wnd.setMultiPageNumber(mpc.pageNo);
+					}
 					return;
 				}
 

@@ -865,7 +865,7 @@ public class WindowFrame
 	 * @param cell
 	 * @param prefix
 	 */
-	public String composeTitle(Cell cell, String prefix)
+	public String composeTitle(Cell cell, String prefix, int pageNo)
 	{
 		// StringBuffer should be more efficient
 		StringBuffer title = new StringBuffer();
@@ -874,6 +874,10 @@ public class WindowFrame
 		{
 			title.append(prefix + cell.libDescribe());
 
+			if (cell.isMultiPage())
+			{
+				title.append(" - Page " + (pageNo+1));
+			}
 			if (cell.getLibrary() != Library.getCurrent())
 				title.append(" - Current library: " + Library.getCurrent().getName());
 		}

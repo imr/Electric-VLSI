@@ -24,12 +24,15 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,6 +65,14 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }});
         cellMenu.addMenuItem("Delete Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
+        MenuBar.Menu multiPageSubMenu = new MenuBar.Menu("Multi-Page Cells");
+        cellMenu.add(multiPageSubMenu);
+        multiPageSubMenu.addMenuItem("Make Cell Multi-Page", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { makeMultiPageCell(); }});
+        multiPageSubMenu.addMenuItem("Create New Page", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
+        multiPageSubMenu.addMenuItem("Edit Next Page", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { editNextMultiPage(); }});
 
         cellMenu.addSeparator();
 
@@ -161,6 +172,84 @@ public class CellMenu {
     {
         CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), false, action);
         dialog.setVisible(true);
+    }
+
+    /**
+     * This method implements the command to make the current cell a multi-page schematic.
+     */
+    public static void makeMultiPageCell()
+    {
+    	Cell cell = WindowFrame.needCurCell();
+    	if (cell == null) return;
+    	if (cell.getView() != View.SCHEMATIC)
+    	{
+    		System.out.println("Only Schematic cells can be made multi-page");
+    		return;
+    	}
+    	Dimension d = new Dimension(0,0);
+    	if (Cell.FrameDescription.getCellFrameInfo(cell, d) != 0)
+    	{
+       		System.out.println("Must turn on cell frames before making the cell multi-page");
+    		return;
+    	}
+
+		SetMultiPageJob job = new SetMultiPageJob(cell);
+    }
+
+    private static class SetMultiPageJob extends Job
+	{
+		private Cell cell;
+
+		private SetMultiPageJob(Cell cell)
+		{
+			super("Make Cell be Multi-Page", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+	    	cell.setMultiPage(true);
+	    	System.out.println("Cell " + cell.describe() + " is now a multi-page schematic");
+			return true;
+		}
+	}
+
+    /**
+     * This method implements the command to create a new page in a multi-page schematic.
+     */
+    public static void createNewMultiPage()
+    {
+    	EditWindow wnd = EditWindow.needCurrent();
+    	if (wnd == null) return;
+    	Cell cell = WindowFrame.needCurCell();
+    	if (cell == null) return;
+    	if (!cell.isMultiPage())
+    	{
+    		System.out.println("First turn this cell into a multi-page schematic");
+    		return;
+    	}
+    	int numPages = cell.getNumMultiPages();
+    	wnd.setMultiPageNumber(numPages);
+    }
+
+    /**
+     * This method implements the command to edit the next page in a multi-page schematic.
+     */
+    public static void editNextMultiPage()
+    {
+    	EditWindow wnd = EditWindow.needCurrent();
+    	if (wnd == null) return;
+    	Cell cell = WindowFrame.needCurCell();
+    	if (cell == null) return;
+    	if (!cell.isMultiPage())
+    	{
+    		System.out.println("First turn this cell into a multi-page schematic");
+    		return;
+    	}
+    	int curPage = wnd.getMultiPageNumber();
+    	int numPages = cell.getNumMultiPages();
+    	wnd.setMultiPageNumber((curPage+1) % numPages);
     }
 
     /**

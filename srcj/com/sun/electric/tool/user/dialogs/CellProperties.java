@@ -65,6 +65,7 @@ public class CellProperties extends EDialog
         Pref defExpanded;
         Pref charX, charY;
         Pref frameSize;
+        Pref multiPage;
         Pref designerName;
         Pref technologyName;
 
@@ -93,6 +94,10 @@ public class CellProperties extends EDialog
             Variable var = cell.getVar(User.FRAME_SIZE, String.class);
             if (var != null) fSize = (String)var.getObject();
             frameSize = Pref.makeStringPref(null, null, fSize);
+
+            // remember multi-page setting
+            boolean mp = cell.isMultiPage();
+            multiPage = Pref.makeBooleanPref(null, null, mp);
 
             // remember the designer name
             String dName = "";
@@ -277,6 +282,7 @@ public class CellProperties extends EDialog
 					if (chr == 'n') frameTitleBox.setSelected(false);
 			}
 		}
+		frameMultiPage.setSelected(pcv.multiPage.getBoolean());
 
 		changing = false;
 	}
@@ -340,6 +346,7 @@ public class CellProperties extends EDialog
 		{
 			if (frameTitleBox.isSelected()) currentFrameSize = "x";
 		}
+		pcv.multiPage.setBoolean(frameMultiPage.isSelected());
 		pcv.frameSize.setString(currentFrameSize);
 	}
 
@@ -386,6 +393,7 @@ public class CellProperties extends EDialog
         frameTitleBox = new javax.swing.JCheckBox();
         jLabel18 = new javax.swing.JLabel();
         frameDesigner = new javax.swing.JTextField();
+        frameMultiPage = new javax.swing.JCheckBox();
         jLabel5 = new javax.swing.JLabel();
         whichTechnology = new javax.swing.JComboBox();
 
@@ -810,7 +818,6 @@ public class CellProperties extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(frameTitleBox, gridBagConstraints);
@@ -833,6 +840,21 @@ public class CellProperties extends EDialog
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         jPanel1.add(frameDesigner, gridBagConstraints);
+
+        frameMultiPage.setText("Multi-Page");
+        frameMultiPage.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                frameMultiPageActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(frameMultiPage, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 9;
@@ -867,6 +889,11 @@ public class CellProperties extends EDialog
 
         pack();
     }//GEN-END:initComponents
+
+	private void frameMultiPageActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_frameMultiPageActionPerformed
+	{//GEN-HEADEREND:event_frameMultiPageActionPerformed
+		frameInfoChanged();
+	}//GEN-LAST:event_frameMultiPageActionPerformed
 
 	private void whichTechnologyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_whichTechnologyActionPerformed
 	{//GEN-HEADEREND:event_whichTechnologyActionPerformed
@@ -1114,6 +1141,10 @@ public class CellProperties extends EDialog
 				{
 					cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
                 }
+				if (pcv.multiPage.getBoolean() != pcv.multiPage.getBooleanFactoryValue())
+				{
+					cell.setMultiPage(pcv.multiPage.getBoolean());
+                }
 				if (!pcv.technologyName.getString().equals(pcv.technologyName.getFactoryValue()))
 				{
 					Technology tech = Technology.findTechnology(pcv.technologyName.getString());
@@ -1146,6 +1177,7 @@ public class CellProperties extends EDialog
     private javax.swing.ButtonGroup expansion;
     private javax.swing.JTextField frameDesigner;
     private javax.swing.JRadioButton frameLandscape;
+    private javax.swing.JCheckBox frameMultiPage;
     private javax.swing.ButtonGroup frameOrientation;
     private javax.swing.JRadioButton framePortrait;
     private javax.swing.JComboBox frameSize;

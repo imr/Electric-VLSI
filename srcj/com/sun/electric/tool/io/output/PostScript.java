@@ -459,7 +459,7 @@ public class PostScript extends Output
 		 */
 		public PostScriptFrame(Cell cell, PostScript writer)
 		{
-			super(cell);
+			super(cell, 0);
 			this.writer = writer;
 		}
 

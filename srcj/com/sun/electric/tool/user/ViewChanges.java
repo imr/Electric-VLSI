@@ -986,7 +986,7 @@ public class ViewChanges
 	/****************************** CONVERT TO ALTERNATE LAYOUT ******************************/
 
 	/**
-	 * Method to converts the current Cell into a schematic.
+	 * Method to converts the current Cell into a layout in a given technology.
 	 */
 	public static void makeLayoutView()
 	{
@@ -1074,7 +1074,7 @@ public class ViewChanges
 			}
 
 			// create the cell and fill it with parts
-			Cell newCell = makeNewCell(newCellName, nView, oldCell);
+			Cell newCell = makeNewCell(newCellName, View.LAYOUT, oldCell);
 			if (newCell == null) return null;
 			makeLayoutParts(oldCell, newCell, oldTech, newTech, nView, convertedCells);
 

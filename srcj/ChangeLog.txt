@@ -4,8 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aq: *********************************
 
+BUG: (11/11/04, SMR) "Make Alternate Layout View" produces Schematic cells.
+FIX: In "ViewChanges.makeLayoutCells()", use layout when creating new cells.
+
+BUG: (11/22/04, SMR) GDS output crashes when given a schematic.
+FIX: Disallow non-layout views from being written in GDS.
+
 BUG: (11/22/04, GVG) ERC shouldn't complain for not finding N/P well contacts if there are no P/N well
-regions in cell
+     regions in cell
 FIX: While checking well areas, remember if P/N regions exist.
 
 IMP: (11/22/04, GVG) Ports for pure primitive nodes will grown in size as the nodes.
@@ -19,9 +25,9 @@ IMP: (11/22/04, SMR) Display improved: "Peek" is faster; Panning the display is 
 BUG: (11/22/04, SMR) R-Trees may fail if too many objects are on top of each other.
 FIX: In Geometric.RTNode.addToRTNode(), make sure the two seed nodes (oldN and newN) are different.
 
-IMP: (11/21/04, GVG) 3D modifications: (a) Extra polygons connecting poly and poly gates in transistors so gate oxide
-looks more real. (b) Adding active region beneath poly gate (electrical layers from getShapeOfNode don't provide such
-polygons).
+IMP: (11/21/04, GVG) 3D modifications: (a) Extra polygons connecting poly and poly gates in transistors
+     so gate oxide looks more real. (b) Adding active region beneath poly gate (electrical layers from
+     getShapeOfNode don't provide such polygons).
 
 IMP: (11/21/04, GVG) Orbit behavior replaced by 3 separate ones in 3D view. Better zoom and translation
 
@@ -49,7 +55,7 @@ BUG: (11/18/04, DN) Port moved always reported for ports of transistors rotated 
 FIX: ArcInst.stillInPort() tolerates distance to nearest grid point "0.01*sqrt(0.5)".
 
 IMP/MAN: (11/18/04, DN) Menu entry "File|CheckAndRepairLibraries" is splitted to two:
-  "File|CheckLibraries|Check" and "File|CheckLibraries|Repair".
+    "File|CheckLibraries|Check" and "File|CheckLibraries|Repair".
 
 BUG: (11/18/04, DN) CheckAndRepair may change database, but it isn't executed in the change thread.
 FIX: Class CircuitChanges.CheckAndRepairJob.
