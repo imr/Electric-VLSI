@@ -62,18 +62,9 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
-import com.sun.electric.tool.user.dialogs.ThreeView;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -83,6 +74,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.*;
 
@@ -765,8 +757,19 @@ public class DebugMenus {
 
     public static void threeViewCommand()
 	{
- 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
-		dialog.setVisible(true);
+        Class three3DViewDialog = Resources.get3DClass("ThreeView");
+
+        if (three3DViewDialog == null) return; // error in class initialization or not available
+
+        try
+        {
+            Method createDialog = three3DViewDialog.getDeclaredMethod("createThreeViewDialog",
+                    new Class[] {java.awt.Frame.class});
+            createDialog.invoke(three3DViewDialog, new Object[]{TopLevel.getCurrentJFrame()});
+        } catch (Exception e) {
+            System.out.println("Can't open 3D Dialog window: " + e.getMessage());
+            ActivityLogger.logException(e);
+        }
 	}
 
     public static void genFakeNodes()

@@ -34,8 +34,9 @@ public class Resources {
 	private static final String resourceLocation = "resources/";
 
 	// Location of valid 3D plugin
-	public static final String plugin3D = "com.sun.electric.plugins.j3d.View3DWindow";
+	private static final String plugin3D = "com.sun.electric.plugins.j3d";
 
+    public static String get3DPluginPath() {return plugin3D;}
 	/**
 	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
@@ -57,24 +58,31 @@ public class Resources {
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
 
+    public static Class get3DClass(String name)
+    {
+        Class threeDClass = null;
+		try
+        {
+            threeDClass = Class.forName(plugin3D+"."+name);
+
+        } catch (ClassNotFoundException e)
+        {
+            if (Main.getDebug()) System.out.println("Can't find class '" + name +
+                    "' from 3D plugin: " + e.getMessage());
+        } catch (Error e)
+        {
+            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
+        }
+		return (threeDClass);
+
+    }
+
 	/**
 	 * Method to obtain main 3D class.
 	 * @return the main 3D class.
 	 */
 	public static Class get3DMainClass()
 	{
-		Class view3DClass = null;
-		try
-        {
-            view3DClass = Class.forName(plugin3D);
-
-        } catch (ClassNotFoundException e)
-        {
-            if (Main.getDebug()) System.out.println("Can't find 3D View plugin: " + e.getMessage());
-        } catch (Error e)
-        {
-            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
-        }
-		return (view3DClass);
+		return get3DClass("View3DWindow");
 	}
 }

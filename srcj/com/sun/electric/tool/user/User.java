@@ -1244,6 +1244,32 @@ public class User extends Listener
 	 * @param value 3D scale factor to set.
 	 */
 	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
+
+    private static Pref cache3DRotX = Pref.makeDoublePref("RotX3D", User.tool.prefs, 0);
+	/**
+	 * Method to get default rotation along X value for the view
+	 * The default is 0 and values are in radiant
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static double get3DRotX() { return cache3DRotX.getDouble(); }
+	/**
+	 * Method to set default rotation angle along X. Values are in radiant
+	 * @param value angle on X
+	 */
+	public static void set3DRotX(double value) { cache3DRotX.setDouble(value); }
+
+    private static Pref cache3DRotY = Pref.makeDoublePref("RotY3D", User.tool.prefs, 0);
+	/**
+	 * Method to get default rotation along Y value for the view
+	 * The default is 0 and values are in radiant
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static double get3DRotY() { return cache3DRotY.getDouble(); }
+	/**
+	 * Method to set default rotation angle along Y. Values are in radiant
+	 * @param value angle on Y
+	 */
+	public static void set3DRotY(double value) { cache3DRotY.setDouble(value); }
     /**************************** End of 3D Display Preferences **************************************/
 
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);

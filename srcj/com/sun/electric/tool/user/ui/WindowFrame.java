@@ -149,6 +149,12 @@ public class WindowFrame
 		return frame;
 	}
 
+    /*****************************************************************************
+     *          3D Stuff                                                         *
+     *****************************************************************************/
+
+    public static Class get3DMainClass() { return view3DClass; }
+
 	/**
 	 * Method to create a new 3D view window on the screen for the given cell
 	 * @param cell the cell to display.
@@ -203,25 +209,6 @@ public class WindowFrame
 		return frame;
 	}
 
-    public void set3DCamera(Double x, Double y, Double z)
-    {
-        WindowContent content = getContent();
-
-		if (view3DClass == null) return; // error in class initialization or not available
-
-		try
-		{
-            Method setCamera = null;
-			if (setCamera == null)
-				setCamera = view3DClass.getDeclaredMethod("set3DCamera",
-                        new Class[] {WindowContent.class, Double.class, Double.class, Double.class});
-			setCamera.invoke(view3DClass, new Object[]{content, x, y, z});
-		} catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
-            ActivityLogger.logException(e);
-        }
-    }
-
 	/**
 	 * Method to access 3D view and highligh elements if view is available
 	 * @param view2D
@@ -240,6 +227,9 @@ public class WindowFrame
             ActivityLogger.logException(e);
         }
 	}
+    /*****************************************************************************
+     *          END OF 3D Stuff                                                  *
+     *****************************************************************************/
 
 	/**
 	 * Method to create a new waveform window on the screen given the simulation data.

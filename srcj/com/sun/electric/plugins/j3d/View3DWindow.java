@@ -78,10 +78,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.*;
 
-import com.sun.j3d.utils.behaviors.mouse.MouseBehavior;
-import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
-import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
-import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
+import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
@@ -113,23 +110,15 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
-	private MouseBehavior rotateB;
+	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
-	private OffScreenCanvas3D offScreenCanvas3D;
+	private Utils3D.OffScreenCanvas3D offScreenCanvas3D;
 
-    Alpha alpha = new Alpha (-1,
-           	Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
-			0,
-			0,
-			2500, // 25000
-			400,  // 4000
-			100,
-			2000,  //20000
-			5000,
-			50 );
+    // For demo cases
     KBRotPosScaleSplinePathInterpolator kbSplineInter;
     RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
+    JAlpha jAlpha;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -244,7 +233,7 @@ public class View3DWindow extends JPanel
         viewingPlatform.addChild(zoomBG);
 		zoomB = zoom;
 
-        MouseRotate rotate = new MouseRotate(MouseRotate.INVERT_INPUT);
+        JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
         rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(0));
         BranchGroup rotateBG = new BranchGroup();
         rotateBG.addChild(rotate);
@@ -298,9 +287,11 @@ public class View3DWindow extends JPanel
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
 		Transform3D proj = new Transform3D();
+        Rectangle2D bnd = cell.getBounds();
 
-		proj.ortho(cell.getBounds().getMinX(), cell.getBounds().getMaxX(),
-		        cell.getBounds().getMinY(), cell.getBounds().getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
+        //translateB.setView(bnd.getWidth(), 0);
+        rotateB.setRotation(User.get3DRotX(), User.get3DRotY());
+		proj.ortho(bnd.getMinX(), bnd.getMinX(), bnd.getMinY(), bnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
 
@@ -437,6 +428,11 @@ public class View3DWindow extends JPanel
 		else
 		    translateB.panning(0, mult*ticks);
 	}
+
+    public void setViewAndZoom(double x, double y, double zoom)
+    {
+        translateB.setView(x, y);
+    }
 
 	/**
 	 * Method to zoom out by a factor of 2 plus mouse pre-defined factor
@@ -1090,31 +1086,6 @@ public class View3DWindow extends JPanel
 		}
 	}
 
-    /**
-     * Method to set view point of the camera and move to this point
-     * by interpolator
-     * @param content
-     * @param x
-     * @param y
-     * @param z
-     */
-    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
-    {
-        if (!(content instanceof View3DWindow)) return;
-        View3DWindow wnd = (View3DWindow)content;
-
-        if (x== null)
-        {
-            boolean state = wnd.kbSplineInter.getEnable();
-            wnd.kbSplineInter.setEnable(!state);
-        }
-        else
-        {
-            boolean state = wnd.tcbSplineInter.getEnable();
-            wnd.tcbSplineInter.setEnable(!state);
-        }
-    }
-
 	/**
 	 * Method to print window using offscreen canvas
 	 * @param ep Image observer plus printable object
@@ -1131,7 +1102,7 @@ public class View3DWindow extends JPanel
 			// Create the off-screen Canvas3D object
 			if (offScreenCanvas3D == null)
 			{
-				offScreenCanvas3D = new OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
+				offScreenCanvas3D = new Utils3D.OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
 				// attach the offscreen canvas to the view
 				u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
 				// Set the off-screen size based on a scale3D factor times the
@@ -1394,24 +1365,26 @@ public class View3DWindow extends JPanel
 
 		public JMouseTranslate(Component c, int flags) {super(c, flags);}
 
-		void panning(int dx, int dy)
-		{
+        void setView(double x, double y)
+        {
 			transformGroup.getTransform(currXform);
-
-		    extraTrans.x = dx*getXFactor();
-		    extraTrans.y = -dy*getYFactor();
-
+		    extraTrans.x = x;
+		    extraTrans.y = -y;
 		    transformX.set(extraTrans);
 
 		    if (invert) {
-			currXform.mul(currXform, transformX);
+			    currXform.mul(currXform, transformX);
 		    } else {
-			currXform.mul(transformX, currXform);
+			    currXform.mul(transformX, currXform);
 		    }
 
 		    transformGroup.setTransform(currXform);
-
 		    transformChanged( currXform );
+        }
+
+		void panning(int dx, int dy)
+		{
+            setView(dx*getXFactor(), -dy*getYFactor());
 		}
 	}
 
@@ -1423,6 +1396,7 @@ public class View3DWindow extends JPanel
 		//Vector3d extraTrans = new Vector3d();
 
 		public JMouseZoom(Component c, int flags) {super(c, flags);}
+
 
 		void zoomInOut(boolean out)
 		{
@@ -1463,8 +1437,49 @@ public class View3DWindow extends JPanel
 		}
     }
 
-	//*** To navigate cells
-		// Extra functions to check area
+    /**
+	 * Extending original rotation class to allow rotation not from original behavior
+	 */
+	public class JMouseRotate extends MouseRotate
+    {
+        public JMouseRotate(int flags) {super(flags);}
+
+        public void setRotation(double angleX, double angleY)
+        {
+		    transformX.rotX(angleX);
+		    transformY.rotY(angleY);
+
+		    transformGroup.getTransform(currXform);
+
+		    Matrix4d mat = new Matrix4d();
+		    // Remember old matrix
+		    currXform.get(mat);
+
+		    // Translate to origin
+		    currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+		    if (invert) {
+			currXform.mul(currXform, transformX);
+			currXform.mul(currXform, transformY);
+		    } else {
+			currXform.mul(transformX, currXform);
+			currXform.mul(transformY, currXform);
+		    }
+
+		    // Set old translation back
+		    Vector3d translation = new
+			Vector3d(mat.m03, mat.m13, mat.m23);
+		    currXform.setTranslation(translation);
+
+		    // Update xform
+		    transformGroup.setTransform(currXform);
+
+		    transformChanged( currXform );
+        }
+    }
+
+    /*****************************************************************************
+     *          To navigate in tree and create 3D objects                           *
+     *****************************************************************************/
 	private class View3DEnumerator extends HierarchyEnumerator.Visitor
     {
 		public View3DEnumerator()
@@ -1505,71 +1520,35 @@ public class View3DWindow extends JPanel
 		}
     }
 
+    /*****************************************************************************
+     *          Demo Stuff                                                       *
+     *****************************************************************************/
     /**
-     * Class to create offscreen from canvas 3D
+     * Method to set view point of the camera and move to this point
+     * by interpolator
+     * @param mode 0 if KB spline, 1 if TCB spline
      */
-    private class OffScreenCanvas3D extends Canvas3D {
-        OffScreenCanvas3D(GraphicsConfiguration graphicsConfiguration,
-                  boolean offScreen) {
-            super(graphicsConfiguration, offScreen);
-        }
-
-        BufferedImage doRender(int width, int height)
-        {
-			BufferedImage bImage =
-				new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-			ImageComponent2D buffer =
-				new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
-
-			setOffScreenBuffer(buffer);
-			renderOffScreenBuffer();
-			waitForOffScreenRendering();
-			bImage = getOffScreenBuffer().getImage();
-
-			return bImage;
-        }
-
-        public void postSwap() {
-        // No-op since we always wait for off-screen rendering to complete
-        }
-    }
-
-    // Setting Camera functions
-
-    private static class ThreeDDemoKnot
+    public void set3DCamera(int mode)
     {
-        float xValue;
-        float yValue;
-        float zValue;
-        float scale;
-        float heading; // Sets the camera's heading. This automatically modifies the target's position.
-        float pitch; // Sets the camera's pitch in degrees. This automatically modifies the target's position.
-        float bank; // Sets the camera's bank in degrees. The angle is relative to the horizon.
-        double rotZ;
-        double rotY;
-        double rotX;
-
-        public ThreeDDemoKnot(double xValue, double yValue, double zValue, double scale,
-                              double heading, double pitch, double bank,
-                              double rotX, double rotY, double rotZ)
-        {
-            this.xValue = (float)xValue;
-            this.yValue = (float)yValue;
-            this.zValue = (float)zValue;
-            this.scale = (float)scale;
-            this.heading = (float)heading;
-            this.pitch = (float)pitch;
-            this.bank = (float)bank;
-            this.rotZ = rotZ;
-            this.rotX = rotX;
-            this.rotY = rotY;
-        }
+//        if (mode == 0)
+//        {
+//            boolean state = kbSplineInter.getEnable();
+//            kbSplineInter.setEnable(!state);
+//        }
+//        else
+//        {
+//            boolean state = tcbSplineInter.getEnable();
+//            tcbSplineInter.setEnable(!state);
+//        }
     }
 
+    /**
+     * Method to create spline interpolator for demo mode
+     * @param infiniteBounds
+     */
     private void setInterpolator(BoundingSphere infiniteBounds)
     {
-        BranchGroup behaviorBranch = new BranchGroup();
+        //BranchGroup behaviorBranch = new BranchGroup();
         Transform3D yAxis = new Transform3D();
         List polys = new ArrayList();
 
@@ -1579,6 +1558,7 @@ public class View3DWindow extends JPanel
         Rectangle2D bounding = cell.getBounds();
         Vector3d translation = new Vector3d (bounding.getCenterX(), bounding.getCenterY(), zCenter);
         yAxis.setTranslation(translation);
+
         for (Iterator it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
@@ -1602,7 +1582,7 @@ public class View3DWindow extends JPanel
                 double rotY = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_ROTZ_VALUE");
                 double rotZ = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                ThreeDDemoKnot knot = new ThreeDDemoKnot(poly.getCenterX(), poly.getCenterY(),
+                Utils3D.ThreeDDemoKnot knot = new Utils3D.ThreeDDemoKnot(poly.getCenterX(), poly.getCenterY(),
                         zValue, scale, heading, pitch, bank, rotX, rotY, rotZ);
                 polys.add(knot);
             }
@@ -1610,166 +1590,41 @@ public class View3DWindow extends JPanel
 
         if (polys.size() == 0) return; // nothing to create
 
-        objTrans.getTransform(yAxis);
+        //objTrans.getTransform(yAxis);
         KBKeyFrame[] splineKeyFrames = new KBKeyFrame[polys.size()];
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)
         {
-            ThreeDDemoKnot knot = (ThreeDDemoKnot)polys.get(i);
-            splineKeyFrames[i] = getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
-            keyFrames[i] = getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            Utils3D.ThreeDDemoKnot knot = (Utils3D.ThreeDDemoKnot)polys.get(i);
+            splineKeyFrames[i] = Utils3D.getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            keyFrames[i] = Utils3D.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
-        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(alpha, objTrans,
+
+        Alpha alpha = new Alpha (-1,
+           	Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
+			0,
+			0,
+			2500, // 25000
+			400,  // 4000
+			100,
+			2000,  //20000
+			5000,
+			50 );
+        jAlpha = new JAlpha(alpha, true, 0.5f);
+        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(jAlpha, objTrans,
                                                   yAxis, splineKeyFrames);
         kbSplineInter.setSchedulingBounds(infiniteBounds);
-        behaviorBranch.addChild(kbSplineInter);
+        //behaviorBranch.addChild(kbSplineInter);
         kbSplineInter.setEnable(false);
 
-        tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(alpha, objTrans,
+        tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, objTrans,
                                                   yAxis, keyFrames);
         tcbSplineInter.setSchedulingBounds(infiniteBounds);
-        behaviorBranch.addChild(tcbSplineInter);
+        //behaviorBranch.addChild(tcbSplineInter);
         tcbSplineInter.setEnable(false);
 
-        objTrans.addChild(behaviorBranch);
-    }
-
-    /**
-     * Method to generate each individual frame key for the interporlation
-     * based on Poly information
-     * @param ratio
-     * @param knot
-     * @return
-     */
-    private static KBKeyFrame getNextKBKeyFrame(float ratio, ThreeDDemoKnot knot)
-    {
-        // Prepare spline keyframe data
-        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
-        Point3f point   = new Point3f (pos);            // position
-        Point3f scale   = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
-        KBKeyFrame key = new KBKeyFrame(ratio, 0, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
-        return key;
-    }
-
-    private static TCBKeyFrame getNextTCBKeyFrame(float ratio, ThreeDDemoKnot knot)
-    {
-        // Prepare spline keyframe data
-        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
-        Point3f point = new Point3f (pos);            // position
-        Quat4f quat = createQuaternionFromEuler(knot.rotX, knot.rotY, knot.rotZ);
-        Point3f scale = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
-        TCBKeyFrame key = new TCBKeyFrame(ratio, 0, point, quat, scale, 0.0f, 0.0f, 1.0f);
-        return key;
-    }
-
-    /**
-     * Convert an angular rotation about an axis to a Quaternion.
-     * From Selman's book
-     * @param axis
-     * @param angle
-     * @return
-     */
-	static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
-	{
-		double sin_a = Math.sin( angle / 2 );
-		double cos_a = Math.cos( angle / 2 );
-
-		// use a vector so we can call normalize
-		Vector4f q = new Vector4f( );
-
-		q.x = (float) (axis.x * sin_a);
-		q.y = (float) (axis.y * sin_a);
-		q.z = (float) (axis.z * sin_a);
-		q.w = (float) cos_a;
-
-		// It is necessary to normalise the quaternion
-		// in case any values are very close to zero.
-		q.normalize( );
-
-		// convert to a Quat4f and return
-		return new Quat4f( q );
-	}
-
-    /**
-     * Convert three rotations about the Euler axes to a Quaternion.
-     * From Selman's book
-     * @param angleX
-     * @param angleY
-     * @param angleZ
-     * @return
-     */ 
-	static Quat4f createQuaternionFromEuler( double angleX, double angleY, double angleZ )
-	{
-		// simply call createQuaternionFromAxisAndAngle
-		// for each axis and multiply the results
-		Quat4f qx = createQuaternionFromAxisAndAngle( new Vector3d( 1,0,0 ), angleX );
-		Quat4f qy = createQuaternionFromAxisAndAngle( new Vector3d( 0,1,0 ), angleY );
-		Quat4f qz = createQuaternionFromAxisAndAngle( new Vector3d( 0,0,1 ), angleZ );
-
-		// qx = qx * qy
-		qx.mul( qy );
-
-		// qx = qx * qz
-		qx.mul( qz );
-
-		return qx;
-	}
-
-    private static void setupSplineKeyFrames (KBKeyFrame[] splineKeyFrames) {
-
-    Vector3f           pos0 = new Vector3f(-5.0f, -5.0f, 0.0f);
-    Vector3f           pos1 = new Vector3f(-5.0f,  5.0f, 0.0f);
-    Vector3f           pos2 = new Vector3f( 0.0f,  5.0f, 0.0f);
-    Vector3f           pos3 = new Vector3f( 0.0f, -5.0f, 0.0f);
-    Vector3f           pos4 = new Vector3f( 5.0f, -5.0f, 0.0f);
-    Vector3f           pos5 = new Vector3f( 5.0f,  5.0f, 0.0f);
-      // Prepare spline keyframe data
-      Point3f p   = new Point3f (pos0);            // position
-      float head  = (float)Math.PI/2.0f;           // heading
-      float pitch = 0.0f;                          // pitch
-      float bank  = 0.0f;                          // bank
-      Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale3D
-      splineKeyFrames[0] =
-         new KBKeyFrame(0.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
-
-      p = new Point3f (pos1);
-      head  = 0.0f;                               // heading
-      pitch = 0.0f;                               // pitch
-      bank  = (float)-Math.PI/2.0f;               // bank
-      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale3D
-      splineKeyFrames[1] =
-         new KBKeyFrame(0.2f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
-
-      p = new Point3f (pos2);
-      head  = 0.0f;                               // heading
-      pitch = 0.0f;                               // pitch
-      bank  = 0.0f;                               // bank
-      s = new Point3f(0.7f, 0.7f, 0.7f);          // uniform scale3D
-      splineKeyFrames[2] =
-         new KBKeyFrame(0.4f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
-
-      p = new Point3f (pos3);
-      head  = (float)Math.PI/2.0f;                // heading
-      pitch = 0.0f;                               // pitch
-      bank  = (float)Math.PI/2.0f;                // bank
-      s = new Point3f(0.5f, 0.5f, 0.5f);          // uniform scale3D
-      splineKeyFrames[3] =
-         new KBKeyFrame(0.6f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
-
-      p = new Point3f (pos4);
-      head  = (float)-Math.PI/2.0f;               // heading
-      pitch = (float)-Math.PI/2.0f;               // pitch
-      bank  = (float)Math.PI/2.0f;                // bank
-      s = new Point3f(0.4f, 0.4f, 0.4f);          // uniform scale3D
-      splineKeyFrames[4] =
-         new KBKeyFrame(0.8f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
-
-      p = new Point3f (pos5);
-      head  = 0.0f;                               // heading
-      pitch = 0.0f;                               // pitch
-      bank  = 0.0f;                               // bank
-      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale3D
-      splineKeyFrames[5] =
-         new KBKeyFrame(1.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+        //objTrans.addChild(behaviorBranch);
+        objTrans.addChild(kbSplineInter);
+        objTrans.addChild(tcbSplineInter);
     }
 }
