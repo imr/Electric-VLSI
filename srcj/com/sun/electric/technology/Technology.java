@@ -56,6 +56,7 @@ import com.sun.electric.technology.technologies.RCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
@@ -616,8 +617,11 @@ public class Technology
             }
 		}
 
-		// set the current technology
-		MoCMOS.tech.setCurrent();
+		// set the current technology, given priority to user defined
+        Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
+        if (tech == null) tech = MoCMOS.tech;
+		//MoCMOS.tech.setCurrent();
+        tech.setCurrent();
 
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();

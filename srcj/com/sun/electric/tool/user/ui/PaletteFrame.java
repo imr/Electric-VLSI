@@ -228,6 +228,8 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
             if (tech == Generic.tech) continue;
             techSelector.addItem(tech.getTechName());
         }
+        // Getting default tech stored
+        //techSelector.setSelectedItem(User.getDefaultTechnology());
         techSelector.setSelectedItem(Technology.getCurrent().getTechName());
 
         PaletteControlListener l = new PaletteControlListener(this);
@@ -323,6 +325,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 	public void loadForTechnology()
 	{
 		Technology tech = Technology.getCurrent();
+        //Technology tech = Technology.findTechnology(User.getDefaultTechnology());
         Dimension size = techPalette.loadForTechnology(tech);
         if (techPalette.isVisible()) {
             setSize(size);

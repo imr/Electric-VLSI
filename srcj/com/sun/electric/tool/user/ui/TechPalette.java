@@ -135,9 +135,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	        list.add(makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "PJFET 4-port"));
 	        list.add(makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "NJFET 4-port"));
 	        inPalette.add(list);
-            //inPalette.add(makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, null));
 
-            //inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900, null));
 	        // 3-port transistors
 	        list = new ArrayList();
 	        list.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN"));
@@ -169,12 +167,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	        list.add(makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODE, 0, false, "Normal Diode"));
 	        list.add(makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODEZ, 0, false, "Zener Diode"));
             inPalette.add(list);
-            //inPalette.add(Schematics.tech.diodeNode);
 
 	        inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, null));
             inPalette.add(makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, null));
 
-            //inPalette.add(Schematics.tech.flipflopNode);
 	        // Flip Flop nodes
             list = new ArrayList();
             inPalette.add(list);
@@ -400,121 +396,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof List)
         {
-	        /*
-            if (obj == Schematics.tech.diodeNode)
-            {
-                JPopupMenu menu = new JPopupMenu("Diode");
-                menu.add(menuItem = new JMenuItem("Normal Diode"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Schematics.tech.diodeNode));
-                menu.add(menuItem = new JMenuItem("Zener Diode"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODEZ, 0, null)));
-                menu.show(panel, e.getX(), e.getY());
-                return;
-            }
-            */
-	        /*
-            if (obj == Schematics.tech.capacitorNode)
-            {
-                JPopupMenu menu = new JPopupMenu("Capacitor");
-                menu.add(menuItem = new JMenuItem("Normal Capacitor"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Schematics.tech.capacitorNode));
-                menu.add(menuItem = new JMenuItem("Electrolytic Capacitor"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.ECAPAC, 0, null)));
-                menu.show(panel, e.getX(), e.getY());
-                return;
-            }
-            */
-	        /*
-            if (obj == Schematics.tech.flipflopNode)
-            {
-                JPopupMenu menu = new JPopupMenu("Flip-flop");
-                menu.add(menuItem = new JMenuItem("R-S master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0, null)));
-                menu.add(menuItem = new JMenuItem("R-S positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0, null)));
-                menu.add(menuItem = new JMenuItem("R-S negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0, null)));
-                menu.addSeparator();
-                menu.add(menuItem = new JMenuItem("J-K master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0, null)));
-                menu.add(menuItem = new JMenuItem("J-K positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0, null)));
-                menu.add(menuItem = new JMenuItem("J-K negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0, null)));
-                menu.addSeparator();
-                menu.add(menuItem = new JMenuItem("D master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0, null)));
-                menu.add(menuItem = new JMenuItem("D positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0, null)));
-                menu.add(menuItem = new JMenuItem("D negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0, null)));
-                menu.addSeparator();
-                menu.add(menuItem = new JMenuItem("T master/slave"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0, null)));
-                menu.add(menuItem = new JMenuItem("T positive"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0, null)));
-                menu.add(menuItem = new JMenuItem("T negative"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTN, 0, null)));
-                menu.show(panel, e.getX(), e.getY());
-                return;
-            }
-            */
-	        /*
-            if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistor4Node)
-            {
-                JPopupMenu menu = new JPopupMenu("4-Port Transistors");
-                menu.add(menuItem = new JMenuItem("nMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, null)));
-                menu.add(menuItem = new JMenuItem("PMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, null)));
-                menu.add(menuItem = new JMenuItem("DMOS 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, null)));
-                menu.add(menuItem = new JMenuItem("NPN 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, null)));
-                menu.add(menuItem = new JMenuItem("PNP 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, null)));
-                menu.add(menuItem = new JMenuItem("DMES 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMES, 900, null)));
-                menu.add(menuItem = new JMenuItem("EMES 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4EMES, 900, null)));
-                menu.add(menuItem = new JMenuItem("PJFET 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, null)));
-                menu.add(menuItem = new JMenuItem("NJFET 4-port"));
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NJFET, 900, null)));
-                menu.show(panel, e.getX(), e.getY());
-                return;
-            }
-            */
-	        /*
-            if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistorNode)
-            {
-                NodeInst ni = (NodeInst)obj;
-                if (ni.getFunction() == PrimitiveNode.Function.TRAPNP)
-                {
-                    JPopupMenu menu = new JPopupMenu("3-Port Transistors");
-                    menu.add(menuItem = new JMenuItem("nMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, null)));
-                    menu.add(menuItem = new JMenuItem("PMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900, null)));
-                    menu.add(menuItem = new JMenuItem("DMOS"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMOS, 900, null)));
-                    menu.add(menuItem = new JMenuItem("NPN"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANPN, 900, null)));
-                    menu.add(menuItem = new JMenuItem("PNP"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900, null)));
-                    menu.add(menuItem = new JMenuItem("DMES"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMES, 900, null)));
-                    menu.add(menuItem = new JMenuItem("EMES"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAEMES, 900, null)));
-                    menu.add(menuItem = new JMenuItem("PJFET"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPJFET, 900, null)));
-                    menu.add(menuItem = new JMenuItem("NJFET"));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANJFET, 900, null)));
-                    menu.show(panel, e.getX(), e.getY());
-                    return;
-                }
-            }
-            */
             if (obj instanceof List)
             {
                 List list = (List)obj;

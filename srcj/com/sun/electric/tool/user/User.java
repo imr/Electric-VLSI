@@ -1066,6 +1066,19 @@ public class User extends Listener
 	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
+    private static Pref cacheDefaultTechnology = Pref.makeStringPref("DefaultTechnology", User.tool.prefs, "mocmos");
+	static { cacheDefaultTechnology.attachToObject(User.tool, "Technology/Technology tab", "Default Technology for editing"); }
+	/**
+	 * Method to get default technique in Tech Palette.
+	 * The default is "mocmos".
+	 * @return the default technology to use in Tech Palette
+	 */
+	public static String getDefaultTechnology() { return cacheDefaultTechnology.getString(); }
+	/**
+	 * Method to set default technique in Tech Palette.
+	 * @param t the default technology to use in Tech Palette.
+	 */
+	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
 	static { cacheSchematicTechnology.attachToObject(User.tool, "Technology/Technology tab", "Schematics use scale values from this technology"); }
