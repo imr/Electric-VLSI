@@ -63,9 +63,11 @@ public class LibraryFiles extends Input
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
 	/** a List of scaled Cells that got created */							protected List scaledCells;
 	/** a List of wrong-size Cells that got created */						protected List skewedCells;
-	/** The Electric version in the library file. */						protected int emajor, eminor, edetail;
+//	/** The Electric version in the library file. */						protected int emajor, eminor, edetail;
 	/** the Electric version in the library file. */						protected Version version;
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
+	/** true to scale lambda by 20 */										protected boolean scaleLambdaBy20;
+	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
 
 	protected static class NodeInstList
 	{

@@ -49,6 +49,7 @@ public class PrimitiveArc extends ArcProto
 	// ----------------------- private data -------------------------------
 
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
+	/** Full name */									private String fullName;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -57,7 +58,10 @@ public class PrimitiveArc extends ArcProto
 	 */
 	private PrimitiveArc(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
+		if (!Technology.jelibSafeName(protoName))
+			System.out.println("PrimitiveArc name " + protoName + " is not safe to write into JELIB");
 		this.protoName = protoName;
+		this.fullName = tech.getTechName() + ":" + protoName;
 		this.widthOffset = 0;
 		this.tech = tech;
 		this.layers = layers;
@@ -226,6 +230,13 @@ public class PrimitiveArc extends ArcProto
 		}
 		return null;
 	}
+
+	/**
+	 * Method to return the full name of this PrimitiveArc.
+	 * Full name has format "techName:primName"
+	 * @return the full name of this PrimitiveArc.
+	 */
+	public String getFullName() { return fullName; }
 
 	/**
 	 * Returns a printable version of this PrimitiveArc.

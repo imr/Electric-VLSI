@@ -251,36 +251,47 @@ public class ELIB extends LibraryFiles
 		if (magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
-		emajor = version.getMajor();
-		eminor = version.getMinor();
-		edetail = version.getDetail();
+// 		emajor = version.getMajor();
+// 		eminor = version.getMinor();
+// 		edetail = version.getDetail();
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
-		convertMosisCmosTechnologies = false;
-		if (emajor < 6 ||
-			(emajor == 6 && eminor < 3) ||
-			(emajor == 6 && eminor == 3 && edetail < 17))
-		{
-			convertMosisCmosTechnologies = true;
-		}
+		convertMosisCmosTechnologies = version.compareTo(Version.parseVersion("6.03q")) < 0;
+// 		convertMosisCmosTechnologies = false;
+// 		if (emajor < 6 ||
+// 			(emajor == 6 && eminor < 3) ||
+// 			(emajor == 6 && eminor == 3 && edetail < 17))
+// 		{
+// 			convertMosisCmosTechnologies = true;
+// 		}
 
 		// for versions before 6.04c, convert text descriptor values
-		convertTextDescriptors = false;
-		if (emajor < 6 ||
-			(emajor == 6 && eminor < 4) ||
-			(emajor == 6 && eminor == 4 && edetail < 3))
-		{
-			convertTextDescriptors = true;
-		}
+		convertTextDescriptors = version.compareTo(Version.parseVersion("6.04c")) < 0;
+// 		convertTextDescriptors = false;
+// 		if (emajor < 6 ||
+// 			(emajor == 6 && eminor < 4) ||
+// 			(emajor == 6 && eminor == 4 && edetail < 3))
+// 		{
+// 			convertTextDescriptors = true;
+// 		}
 
 		// for versions 6.05x and later, always have text descriptor values
-		alwaysTextDescriptors = true;
-		if (emajor < 6 ||
-			(emajor == 6 && eminor < 5) ||
-			(emajor == 6 && eminor == 5 && edetail < 24))
-		{
-			alwaysTextDescriptors = false;
-		}
+		alwaysTextDescriptors = version.compareTo(Version.parseVersion("6.05x")) >= 0;
+// 		alwaysTextDescriptors = true;
+// 		if (emajor < 6 ||
+// 			(emajor == 6 && eminor < 5) ||
+// 			(emajor == 6 && eminor == 5 && edetail < 24))
+// 		{
+// 			alwaysTextDescriptors = false;
+// 		}
+
+		// for Electric version 4 or earlier, scale lambda by 20
+		scaleLambdaBy20 = version.compareTo(Version.parseVersion("5")) < 0;
+// 		if (emajor <= 4) lambda *= 20;
+
+		// mirror bits
+		rotationMirrorBits = version.compareTo(Version.parseVersion("7.01")) >= 0;
+//		if (emajor > 7 || (emajor == 7 && eminor >= 1))
 
 		// get the newly created views (version 9 and later)
 		viewMapping = new HashMap();
@@ -743,7 +754,8 @@ public class ELIB extends LibraryFiles
 			Technology tech = techList[i];
 
 			// for Electric version 4 or earlier, scale lambda by 20
-			if (emajor <= 4) lambda *= 20;
+			if (scaleLambdaBy20) lambda *= 20;
+// 			if (emajor <= 4) lambda *= 20;
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
@@ -1624,7 +1636,8 @@ public class ELIB extends LibraryFiles
 		}
 
 		int rotation = nodeInstList.rotation[i];
-		if (emajor > 7 || (emajor == 7 && eminor >= 1))
+		if (rotationMirrorBits)
+// 		if (emajor > 7 || (emajor == 7 && eminor >= 1))
 		{
 			// new version: allow mirror bits
 			if ((nodeInstList.transpose[i]&1) != 0)

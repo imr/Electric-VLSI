@@ -2378,7 +2378,29 @@ public class Technology
 	 * Sets the name of this technology.
 	 * Technology names must be unique.
 	 */
-	protected void setTechName(String techName) { this.techName = techName; }
+	protected void setTechName(String techName)
+	{
+		if (!jelibSafeName(techName))
+			System.out.println("Technology name " + techName + " is not safe to write into JELIB");
+		this.techName = techName;
+	}
+
+	/**
+	 * Method checks that string is safe to write into JELIB file without
+	 * conversion.
+	 * @param str the string to check.
+	 * @return true if string is safe to write into JELIB file.
+	 */
+	static boolean jelibSafeName(String str)
+	{
+		for (int i = 0; i < str.length(); i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '\n' || ch == '|' || ch == '^' || ch == '"')
+				return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Returns the short name of this technology.

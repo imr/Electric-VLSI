@@ -402,7 +402,7 @@ public class ELIB extends Output
 		writeNodeProtoIndex(lib.getCurCell());
 
 		// write the version number
-		writeString(Version.getVersion());
+		writeString(Version.getVersion().toString());
 
 		// number the views and write nonstandard ones
 		viewMap = new HashMap();

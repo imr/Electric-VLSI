@@ -67,6 +67,8 @@ public class PrimitivePort implements PortProto
 		int portAngle, int portRange, int portTopology, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
 		this.parent = parent;
+		if (!Technology.jelibSafeName(protoName))
+			System.out.println("PrimitivePort name " + protoName + " is not safe to write into JELIB");
 		this.name = Name.findName(protoName);
 		setAngle(portAngle);
 		setAngleRange(portRange);

@@ -435,6 +435,7 @@ public class PrimitiveNode implements NodeProto
 	// --------------------- private data -----------------------------------
 	
 	/** The name of this PrimitiveNode. */			private String protoName;
+	/** The full name of this PrimitiveNode. */		private String fullName;
 	/** This PrimitiveNode's Technology. */			private Technology tech;
 	/** The function of this PrimitiveNode. */		private Function function;
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
@@ -462,7 +463,10 @@ public class PrimitiveNode implements NodeProto
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
+		if (!Technology.jelibSafeName(protoName))
+			System.out.println("PrimitiveNode name " + protoName + " is not safe to write inti JELIB");
 		this.protoName = protoName;
+		this.fullName = tech.getTechName() + ":" + protoName;
 		this.function = Function.UNKNOWN;
 
 		// things in this class
@@ -523,6 +527,13 @@ public class PrimitiveNode implements NodeProto
 	 * @return the name of this PrimitiveNode.
 	 */
 	public String getName() { return protoName; }
+
+	/**
+	 * Method to return the full name of this PrimitiveNode.
+	 * Full name has format "techName:primName"
+	 * @return the full name of this PrimitiveNode.
+	 */
+	public String getFullName() { return fullName; }
 
 	/**
 	 * Method to set the function of this PrimitiveNode.

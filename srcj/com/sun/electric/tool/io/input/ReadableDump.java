@@ -505,7 +505,8 @@ public class ReadableDump extends LibraryFiles
 			double height = (highY - lowY) / lambdaY;
 			int rotation = nil.rotation[j];
 
-			if (emajor > 7 || (emajor == 7 && eminor >= 1))
+			if (rotationMirrorBits)
+//			if (emajor > 7 || (emajor == 7 && eminor >= 1))
 			{
 				// new version: allow mirror bits
 				if ((nil.transpose[j]&1) != 0)
@@ -700,19 +701,29 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordVersn()
 	{
-		// for versions before 6.03q, convert MOSIS CMOS technology names
 		version = Version.parseVersion(keyWord);
-		emajor = version.getMajor();
-		eminor = version.getMinor();
-		edetail = version.getDetail();
-		convertMosisCmosTechnologies = false;
-		if (emajor < 6 ||
-			(emajor == 6 && eminor < 3) ||
-			(emajor == 6 && eminor == 3 && edetail < 17))
-		{
-			convertMosisCmosTechnologies = true;
-			System.out.println("   Converting MOSIS CMOS technologies (mocmossub => mocmos)");
-		}
+// 		emajor = version.getMajor();
+// 		eminor = version.getMinor();
+// 		edetail = version.getDetail();
+
+		// for versions before 6.03q, convert MOSIS CMOS technology names
+		convertMosisCmosTechnologies = version.compareTo(Version.parseVersion("6.03q")) < 0;
+// 		convertMosisCmosTechnologies = false;
+// 		if (emajor < 6 ||
+// 			(emajor == 6 && eminor < 3) ||
+// 			(emajor == 6 && eminor == 3 && edetail < 17))
+// 		{
+// 			convertMosisCmosTechnologies = true;
+// 			System.out.println("   Converting MOSIS CMOS technologies (mocmossub => mocmos)");
+// 		}
+
+		// for Electric version 4 or earlier, scale lambda by 20
+		scaleLambdaBy20 = version.compareTo(Version.parseVersion("5")) < 0;
+// 		if (emajor <= 4) lambda *= 20;
+
+		// mirror bits
+		rotationMirrorBits = version.compareTo(Version.parseVersion("7.01")) >= 0;
+//		if (emajor > 7 || (emajor == 7 && eminor >= 1))
 	}
 
 	/**
@@ -791,7 +802,8 @@ public class ReadableDump extends LibraryFiles
 		int lam = Integer.parseInt(keyWord);
 
 		// for version 4.0 and earlier, scale lambda by 20
-		if (emajor <= 4) lam *= 20;
+		if (scaleLambdaBy20) lam *= 20;
+// 		if (emajor <= 4) lam *= 20;
 		lambdaValues[bitCount-1] = lam;
 	}
 

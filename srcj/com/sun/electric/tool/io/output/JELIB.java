@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -63,6 +64,8 @@ import java.util.List;
  */
 public class JELIB extends Output
 {
+	private static final boolean NEWREVISION = false;
+
 	private HashMap abbreviationMap;
 	private List externalLibs;
 	private List externalCells;
@@ -110,7 +113,7 @@ public class JELIB extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			StringBuffer abbr = (StringBuffer)abbreviationMap.get(cell);
+			String abbr = (String)abbreviationMap.get(cell);
 			if (abbr == null) traverseAndGatherNames(cell, lib);
 		}
 
@@ -330,18 +333,51 @@ public class JELIB extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (np instanceof Cell) printWriter.print("I"); else
-					printWriter.print("N");
-				StringBuffer nodeTypeName = (StringBuffer)abbreviationMap.get(np);
-				printWriter.print(nodeTypeName.toString());
+				if (NEWREVISION)
+				{
+					if (np instanceof Cell)
+					{
+						printWriter.print("I" + (String)abbreviationMap.get(np));
+					} else {
+						PrimitiveNode prim = (PrimitiveNode)np;
+						if (cell.getTechnology() == prim.getTechnology())
+							printWriter.print("N" + prim.getName());
+						else
+							printWriter.print("N" + prim.getFullName());
+					}
+				} else
+				{
+					if (np instanceof Cell) printWriter.print("I"); else
+						printWriter.print("N");
+					String nodeTypeName = (String)abbreviationMap.get(np);
+					printWriter.print(nodeTypeName);
+				}
 				printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getNameTextDescriptor()));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror(), 0));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror(), 0));
-				printWriter.print("|" + ni.getAngle());
+				if (NEWREVISION)
+				{
+					if (np instanceof PrimitiveNode)
+					{
+						printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
+						printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
+					}
+					printWriter.print('|');
+					if (ni.isXMirrored()) printWriter.print('X');
+					if (ni.isYMirrored()) printWriter.print('Y');
+					int angle = ni.getAngle() % 3600;
+					if (angle == 900 || angle == -2700) printWriter.print("R");
+					else if (angle == 1800 || angle == -1800) printWriter.print("RR");
+					else if (angle == 2700 || angle == -900) printWriter.print("RRR");
+					else printWriter.print(angle);
+				} else
+				{
+					printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror(), 0));
+					printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror(), 0));
+					printWriter.print("|" + ni.getAngle());
+				}
 				StringBuffer nodeBits = new StringBuffer();
 				if (ni.isHardSelect()) nodeBits.append("A");
 				if (ni.isExpanded()) nodeBits.append("E");
@@ -351,11 +387,22 @@ public class JELIB extends Output
 				if (ni.isWiped()) nodeBits.append("W");
 				int ts = ni.getTechSpecific();
 				if (ts != 0) nodeBits.append(ts);
-				printWriter.print("|" + nodeBits.toString() + "|");
-				if (np instanceof Cell)
+				if (NEWREVISION)
 				{
-					String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
-					printWriter.print(tdString);
+					printWriter.print("|" + nodeBits.toString());
+					if (np instanceof Cell)
+					{
+						String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
+						printWriter.print("|" + tdString);
+					}
+				} else
+				{
+					printWriter.print("|" + nodeBits.toString() + "|");
+					if (np instanceof Cell)
+					{
+						String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
+						printWriter.print(tdString);
+					}
 				}
 				writeVars(ni, cell);
 				printWriter.print("\n");
@@ -369,8 +416,16 @@ public class JELIB extends Output
 			for(Iterator it = sortedArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				ArcProto ap = ai.getProto();
-				printWriter.print("A" + convertString(ap.getTechnology().getTechName()) + ":" + convertString(ap.getName()));
+				PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+				if (NEWREVISION)
+				{
+					if (cell.getTechnology() == ap.getTechnology())
+						printWriter.print("A" + ap.getName());
+					else
+						printWriter.print("A" + ap.getFullName());
+				} else {
+					printWriter.print("A" + convertString(ap.getTechnology().getTechName()) + ":" + convertString(ap.getName()));
+				}
 				printWriter.print("|" + convertString(ai.getName()) + "|");
 				if (!ai.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ai.getNameTextDescriptor()));
@@ -509,15 +564,15 @@ public class JELIB extends Output
 				if (ni.getProto() instanceof Cell)
 				{
 					Cell subCell = (Cell)ni.getProto();
-					StringBuffer abbr = (StringBuffer)abbreviationMap.get(subCell);
+					String abbr = (String)abbreviationMap.get(subCell);
 					if (abbr == null) traverseAndGatherNames(subCell, lib);
-				} else
+				} else if (!NEWREVISION)
 				{
 					PrimitiveNode np = (PrimitiveNode)ni.getProto();
-					StringBuffer abbr = (StringBuffer)abbreviationMap.get(np);
+					String abbr = (String)abbreviationMap.get(np);
 					if (abbr == null)
 					{
-						abbreviationMap.put(np, new StringBuffer(convertString(np.getTechnology().getTechName()) + ":" + convertString(np.getName())));
+						abbreviationMap.put(np, convertString(np.getTechnology().getTechName()) + ":" + convertString(np.getName()));
 					}
 				}
 			}
@@ -540,15 +595,18 @@ public class JELIB extends Output
 
 		// add this cell to the list
 		StringBuffer sb = new StringBuffer();
-		sb.append(convertString(cell.getLibrary().getName()));
-		sb.append(":");
+		if (cellLib != lib || !NEWREVISION)
+		{
+			sb.append(convertString(cell.getLibrary().getName()));
+			sb.append(":");
+		}
 		sb.append(convertString(cell.getName()));
 		sb.append(";");
 		sb.append(cell.getVersion());
 		sb.append("{");
 		sb.append(convertString(cell.getView().getAbbreviation()));
 		sb.append("}");
-		abbreviationMap.put(cell, sb);
+		abbreviationMap.put(cell, sb.toString());
 	}
 
 	/**

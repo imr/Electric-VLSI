@@ -55,14 +55,80 @@ public class Version
 	private static final String CURRENT = "8.01ad";
     private static final String ROOTARNAME = "electric";
 
-	private int major;
-	private int minor;
-	private int details;
+	private final String version;
+	private final int major;
+	private final int minor;
+	private final int details;
+
+	private static final Version current = new Version(CURRENT);
 
 	/**
 	 * Constructs a <CODE>Version</CODE> (cannot be called).
+	 * Routine to parse the version of Electric in "version" into three fields:
+	 * the major version number, minor version, and a detail version number.
+	 * The detail version number can be letters.  If it is omitted, it is
+	 * assumed to be 999.  If it is a number, it is beyond 1000.  For example:
+	 *    "8"         major=8, minor=0, detail=0       (boundary between 7 and 8)
+	 *    "8.00"      major=8, minor=0, detail=999     (a Release)
+	 *    "8.01a"     major=8, minor=1, detail=1       (a Prerelease)
+	 *    "8.01z"     major=8, minor=1, detail=26      (a Prerelease)
+	 *    "8.01aa"    major=8, minor=1, detail=27      (a Prerelease)
+	 *    "8.01az"    major=8, minor=1, detail=52      (a Prerelease)
+	 *    "8.01ba"    major=8, minor=1, detail=53      (a Prerelease)
+	 *    "8.01"      major=8, minor=1, detail=999     (a Release)
+	 *    "8.01.1"    major=8, minor=1, detail=1001    (a PostRelease, update)
 	 */
-	private Version() {}
+	private Version(String version)
+	{
+		int major = 0;
+		int minor = 0;
+		int details = 0;
+
+		/* parse the version fields */
+		int dot = version.indexOf('.');
+		if (dot == -1)
+		{
+			// no "." in the string: version should be a pure number
+			major = Integer.parseInt(version);
+		} else
+		{
+			// found the "." so parse the major version number (to the left of the ".")
+			String majorString = version.substring(0, dot);
+			String restOfString = version.substring(dot+1);
+			major = Integer.parseInt(majorString);
+
+			int letters;
+			for(letters = 0; letters < restOfString.length(); letters++)
+				if (!Character.isDigit(restOfString.charAt(letters))) break;
+			String minorString = restOfString.substring(0, letters);
+			minor = Integer.parseInt(minorString);
+			restOfString = restOfString.substring(letters);
+		
+			// see what else follows the minor version number
+			if (restOfString.length() == 0)
+			{
+				details = 999;
+			} else if (restOfString.charAt(0) == '.')
+			{
+				details = 1000 + Integer.parseInt(restOfString.substring(1));
+			} else
+			{
+				while (restOfString.length() > 0 &&
+					   Character.isLetter(restOfString.charAt(0)))
+				{
+					details = (details * 26) + Character.toLowerCase(restOfString.charAt(0)) - 'a' + 1;
+					restOfString = restOfString.substring(1);
+				}
+				if (restOfString.length() > 0)
+					throw new NumberFormatException(version);
+			}
+		}
+
+		this.version = version;
+		this.major = major;
+		this.minor = minor;
+		this.details = details;
+	}
 
 	/**
 	 * Method to return author information
@@ -105,7 +171,7 @@ public class Version
 	 * Method to return the current Electric version.
 	 * @return the current Electric version.
 	 */
-	public static String getVersion() { return CURRENT; }
+	public static Version getVersion() { return current; }
 
     /**
      * Method to return build date of main jar file
@@ -157,6 +223,68 @@ public class Version
 	 */
 	public int getDetail() { return details; }
 
+    /**
+     * Returns a hash code for this <code>Version</code>.
+     * @return  a hash code value for this Version.
+	 */
+    public int hashCode() {
+		return major*1000000 + major*10000 + details;
+    }
+
+    /**
+     * Compares this Version object to the specified object.  The result is
+     * <code>true</code> if and only if the argument is not
+     * <code>null</code> and is an <code>Version</code> object that
+     * contains the same <code>major</code>, <code>minor</code> and <code>details</code> as this Version.
+     *
+     * @param   obj   the object to compare with.
+     * @return  <code>true</code> if the objects are the same;
+     *          <code>false</code> otherwise.
+     */
+    public boolean equals(Object obj) {
+		if (obj instanceof Version) {
+			Version v = (Version)obj;
+			return major == v.major && minor == v.minor && details == v.details;
+		}
+		return false;
+    }
+
+    /**
+     * Compares two <code>Version</code> objects numerically.
+     *
+     * @param   anotherInteger   the <code>Integer</code> to be compared.
+     * @return	the value <code>0</code> if this <code>Integer</code> is
+     * 		equal to the argument <code>Integer</code>; a value less than
+     * 		<code>0</code> if this <code>Integer</code> is numerically less
+     * 		than the argument <code>Integer</code>; and a value greater 
+     * 		than <code>0</code> if this <code>Integer</code> is numerically
+     * 		 greater than the argument <code>Integer</code> (signed
+     * 		 comparison).
+     * @since   1.2
+     */
+    public int compareTo(Object o) {
+		Version v = (Version)o;
+
+		if (major < v.major) return -1;
+		if (major > v.major) return 1;
+
+		if (minor < v.minor) return -1;
+		if (minor > v.minor) return 1;
+
+		if (details < v.details) return -1;
+		if (details > v.details) return 1;
+		
+		return 0;
+    }
+
+    /**
+     * Returns a <code>String</code> object representing this Version.
+     * @return  a string representation of this Version
+     */
+    public String toString() {
+		return version;
+    }
+
 	/**
 	 * Method to parse the specified Version number and return a Version object.
 	 * @param version the version of Electric.
@@ -164,49 +292,11 @@ public class Version
 	 */
 	public static Version parseVersion(String version)
 	{
-		// create an object to hold the version results
-		Version v = new Version();
-
-		/* parse the version fields */
-		int dot = version.indexOf('.');
-		if (dot == -1)
-		{
-			// no "." in the string: version should be a pure number
-			v.major = Integer.parseInt(version);
-			v.minor = v.details = 0;
-			return v;
-		}
-
-		// found the "." so parse the major version number (to the left of the ".")
-		String majorString = version.substring(0, dot);
-		String restOfString = version.substring(dot+1);
-		v.major = Integer.parseInt(majorString);
-
-		int letters;
-		for(letters = 0; letters < restOfString.length(); letters++)
-			if (!Character.isDigit(restOfString.charAt(letters))) break;
-		String minorString = restOfString.substring(0, letters);
-		v.minor = Integer.parseInt(minorString);
-		restOfString = restOfString.substring(letters);
-		
-		// see what else follows the minor version number
-		if (restOfString.length() == 0)
-		{
-			v.details = 0;
-			return v;
-		}
-		if (restOfString.charAt(0) == '.')
-		{
-			v.details = Integer.parseInt(restOfString.substring(1));
-		} else
-		{
-			v.details = 0;
-			while (restOfString.length() > 0 &&
-				Character.isLetter(restOfString.charAt(0)))
-			{
-				v.details = (v.details * 26) + Character.toLowerCase(restOfString.charAt(0)) - 'a' + 1;
-				restOfString = restOfString.substring(1);
-			}
+		Version v = null;
+		try {
+			v = new Version(version);
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid version string " + version);
 		}
 		return v;
 	}
