@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/23/04, GVG) ExportCommand crashed if cell is null (no Bugzilla #)
+FIX: return was added to the code
+
 IMP: (03/22/05, SMR) Improvements to IRSIM command files (wildcards, vectors, individual stimuli removal)
 
 IMP: (03/21/05, GVG) First version of resistance calculation

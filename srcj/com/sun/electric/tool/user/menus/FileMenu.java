@@ -715,6 +715,7 @@ public class FileMenu {
         if (cell == null)
         {
             System.out.println("No cell in this window");
+            return;
         }
         VarContext context = (wnd instanceof EditWindow) ? ((EditWindow)wnd).getVarContext() : null;
 
