@@ -4,6 +4,12 @@ IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
 
 ************************* Version 8.01l: *********************************
 
+FIX: (9/8/04, JKG) Fixes to logical effort algorithms: mfactors on uncached
+     alg, cap values on both algs, made compatible with diffn/diffp of old style gates
+
+FIX: (9/8/04, JKG) CellGroup changes now in Undo system; explorer tree
+     redraws on change; cell group dialog sorts groups list
+
 IMP: (9/2/04, SMR) Small text is now drawn "greek" and is selectable.
 
 BUG: (9/2/04, SMR) Port text is not the right size.

@@ -46,6 +46,7 @@ import java.awt.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.List;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.
@@ -72,10 +73,11 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
     /** Sizer */                                private LESizer sizer;
     /** Job we are part of */                   private Job job;
     /** Where to direct output */               private PrintStream out;
-    /** Mapping between NodeInst and Instance */private HashMap instancesMap;
+    /** Mapping between NodeInst and Instance */private List instancesMap;
 
     /** True if we got aborted */               private boolean aborted;
     /** for logging errors */                   private ErrorLogger errorLogger;
+    /** record definition errors so no multiple warnings */ private HashMap lePortError;
 
     private static final boolean DEBUG = false;
 
@@ -95,7 +97,8 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         allInstances = new HashMap();
 
         this.job = job;
-        this.instancesMap = new HashMap();
+        this.instancesMap = new ArrayList();
+        this.lePortError = new HashMap();
         this.out = new PrintStream((OutputStream)System.out);
 
         errorLogger = null;
@@ -369,9 +372,8 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
 		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
-            var = pp.getVar("ATTR_le");
             // Note default 'le' value should be one
-            float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
+            float le = getLE(ni, type, pp, info);
             String netName = info.getUniqueNetName(info.getNetID(netlist.getNetwork(ni,pp,0)), ".");
             Pin.Dir dir = Pin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
@@ -413,19 +415,60 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             }
         }
         // set mfactor
+        float parentM = ((LECellInfo)info).getMFactor();
+        inst.setMfactor(parentM);
         var = ni.getVar("ATTR_M");
         if (var != null) {
             // set mfactor
-            int m = VarContext.objectToInt(info.getContext().evalVar(var), 1);
-            inst.setMfactor(m * ((LECellInfo)info).getMFactor());
+            float m = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
+            m = m * parentM;
+            inst.setMfactor(m);
         }
 
         if (DEBUG) {
             if (wire) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
             else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type+", X="+leX);
         }
-        instancesMap.put(ni, inst);
+        instancesMap.add(inst);
         return false;
+    }
+
+    private float getLE(Nodable ni, Instance.Type type, PortProto pp, HierarchyEnumerator.CellInfo info) {
+        Variable var = pp.getVar("ATTR_le");
+        boolean leFound = false;
+        // Note default 'le' value should be one
+        float le = 1.0f;
+        if (var != null) {
+            leFound = true;
+            le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
+        } else if ((pp.getCharacteristic() == PortProto.Characteristic.OUT) &&
+                (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER)) {
+            // if this is an Sizeable gate's output, look for diffn and diffp
+            float diff = 0;
+            var = pp.getVar("ATTR_diffn");
+            if (var != null) {
+                diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
+                leFound = true;
+            }
+            var = pp.getVar("ATTR_diffp");
+            if (var != null) {
+                diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
+                leFound = true;
+            }
+            le = diff/3.0f;
+        }
+        if (!leFound && (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER)) {
+            Cell cell = (Cell)ni.getProto();
+            Export exp = cell.findExport(pp.getName());
+            if (exp != null && lePortError.get(exp) == null) {
+                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = errorLogger.logError(msg, cell, 0);
+                log.addExport(exp, true, cell, info.getContext().push(ni));
+                lePortError.put(exp, exp);
+            }
+        }
+        return le;
     }
 
     private Variable getVar(Nodable no, String name) {
@@ -540,7 +583,16 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         if (no instanceof NodeInst) {
             no = Netlist.getNodableFor((NodeInst)no, 0);
         }
-        Instance inst = (Instance)instancesMap.get(no);
+        Instance inst = null;
+        for (Iterator it = instancesMap.iterator(); it.hasNext(); ) {
+            Instance instance = (Instance)it.next();
+            if (instance.getNodable() == no) {
+                if (instance.getContext().getInstPath(".").equals(context.getInstPath("."))) {
+                    inst = instance;
+                    break;
+                }
+            }
+        }
         if (inst == null) return false;                 // failed
 
         MessagesWindow msgs = TopLevel.getMessagesWindow();

@@ -71,6 +71,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
     /** True if we got aborted */               private boolean aborted;
     /** for logging errors */                   private ErrorLogger errorLogger;
+    /** record definition errors so no multiple warnings */ private HashMap lePortError;
 
     private static final boolean DEBUG = false;
     private static final boolean DISABLE_CACHING = false;
@@ -108,6 +109,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         this.sizableLENodables = new ArrayList();
         this.allLENodables = new ArrayList();
         this.nodablesDefinitions = new HashMap();
+        this.lePortError = new HashMap();
         this.out = new PrintStream((OutputStream)System.out);
 
         errorLogger = null;
@@ -525,10 +527,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
-            var = pp.getVar(ATTR_le);
             // Note: default 'le' value should be one
-            float le = 1.0f;
-            if (var != null) le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
+            float le = getLE(ni, type, pp, info);
             JNetwork jnet = netlist.getNetwork(ni, pp, 0);
             LEPin.Dir dir = LEPin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
@@ -555,6 +555,44 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         return lenodable;
     }
 
+    private float getLE(Nodable ni, LENodable.Type type, PortProto pp, HierarchyEnumerator.CellInfo info) {
+        Variable var = pp.getVar("ATTR_le");
+        boolean leFound = false;
+        // Note default 'le' value should be one
+        float le = 1.0f;
+        if (var != null) {
+            leFound = true;
+            le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
+        } else if ((pp.getCharacteristic() == PortProto.Characteristic.OUT) &&
+                (type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER)) {
+            // if this is an Sizeable gate's output, look for diffn and diffp
+            float diff = 0;
+            var = pp.getVar("ATTR_diffn");
+            if (var != null) {
+                diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
+                leFound = true;
+            }
+            var = pp.getVar("ATTR_diffp");
+            if (var != null) {
+                diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
+                leFound = true;
+            }
+            le = diff/3.0f;
+        }
+        if (!leFound && (type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER)) {
+            Cell cell = (Cell)ni.getProto();
+            Export exp = cell.findExport(pp.getName());
+            if (exp != null && lePortError.get(exp) == null) {
+                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = errorLogger.logError(msg, cell, 0);
+                log.addExport(exp, true, cell, info.getContext().push(ni));
+                lePortError.put(exp, exp);
+            }
+        }
+        return le;
+    }
+
     // =============================== Statistics ==================================
 
 
@@ -576,9 +614,9 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             totalsize += leno.leX;
         }
         System.out.println("Number of LEGATEs: "+numLEGates);
-        System.out.println("Number of Wires: "+numLEWires);
+        //System.out.println("Number of Wires: "+numLEWires);
         System.out.println("Total size of all LEGATEs: "+instsize);
-        System.out.println("Total size of all instances (sized and loads): "+totalsize);
+        //System.out.println("Total size of all instances (sized and loads): "+totalsize);
     }
 
     public boolean printResults(Nodable no, VarContext context) {
