@@ -36,6 +36,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Locale;
 
 /**
  * This class is a collection of text utilities.
@@ -210,7 +211,7 @@ public class TextUtils
 	public static String formatDoublePostFix(double v)
 	{
 		if (numberFormatPostFix == null) {
-            numberFormatPostFix = NumberFormat.getInstance();
+            numberFormatPostFix = NumberFormat.getInstance(Locale.US);
             try {
                 DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);
@@ -268,7 +269,7 @@ public class TextUtils
 	public static String formatDouble(double v, int numFractions)
 	{
 		if (numberFormatSpecific == null) {
-            numberFormatSpecific = NumberFormat.getInstance();
+            numberFormatSpecific = NumberFormat.getInstance(Locale.US);
             try {
                 DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);

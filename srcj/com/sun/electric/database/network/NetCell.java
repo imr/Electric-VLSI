@@ -601,6 +601,16 @@ class NetCell
 			if (network.hasNames()) continue;
 			network.addName(ai.getName(), false);
 		}
+		for (int i = 0; i < cell.getNumNodes(); i++) {
+			NodeInst ni = cell.getNode(i);
+			for (int j = 0; j < ni.getProto().getNumPorts(); j++) {
+				int drawn = drawns[ni_pi[i] + j];
+				if (drawn < 0) continue;
+				JNetwork network  = userNetlist.getNetworkByMap(drawn);
+				if (network.hasNames()) continue;
+				network.addName(ni.getName() + "@" + ni.getProto().getPort(j).getName(), false);
+			}
+		}
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);
