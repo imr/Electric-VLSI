@@ -404,7 +404,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      * Call when done with this Object. Cleans up references to this object.
      */
     public void finished() {
-        if (!TopLevel.isMDIMode())
+        if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
             frame.getContent().getHighlighter().removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
     }
