@@ -75,6 +75,8 @@ public class Spread extends EDialog
 		spreadUp.setSelected(true);
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -221,7 +223,7 @@ public class Spread extends EDialog
 	/**
 	 * Class to create a cell in a new thread.
 	 */
-	protected static class SpreadJob extends Job
+	private static class SpreadJob extends Job
 	{
 		Spread dialog;
 

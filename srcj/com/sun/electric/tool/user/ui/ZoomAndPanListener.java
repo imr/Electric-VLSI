@@ -115,7 +115,7 @@ public class ZoomAndPanListener
 				Point2D pt = wnd.getOffset();
 				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
 					pt.getY() + (newY - lastY) / scale));
-				wnd.repaintContents();
+				wnd.repaintContents(null);
 			}
 			lastX = newX;
 			lastY = newY;
@@ -147,7 +147,7 @@ public class ZoomAndPanListener
 				wnd.setScale(wnd.getScale() * 0.5);
 				Point2D offset = new Point2D.Double((minSelX+maxSelX)/2, (minSelY+maxSelY)/2);
 				wnd.setOffset(offset);
-				wnd.repaintContents();
+				wnd.repaintContents(null);
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
 			} else
 			{
@@ -180,7 +180,7 @@ public class ZoomAndPanListener
 		// get the current window
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
-		wnd.repaintContents();
+		wnd.repaintContents(null);
 	}
 
     // --------------------------- Pan Commands -------------------------------
@@ -206,7 +206,7 @@ public class ZoomAndPanListener
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
 	        wnd.setOffset(newOffset);
-	        wnd.repaintContents();
+	        wnd.repaintContents(null);
 		}
     }
 
@@ -229,7 +229,7 @@ public class ZoomAndPanListener
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 	        wnd.setOffset(newOffset);
-	        wnd.repaintContents();
+	        wnd.repaintContents(null);
 		}
     }
 

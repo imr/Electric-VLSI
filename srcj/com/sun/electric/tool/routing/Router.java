@@ -121,7 +121,7 @@ public abstract class Router {
      * Job to create the route.
      * Highlights the end of the Route after it creates it.
      */
-    protected static class CreateRouteJob extends Job {
+    private static class CreateRouteJob extends Job {
 
         /** route to build */                       private Route route;
         /** print message on what was done */       private boolean verbose;

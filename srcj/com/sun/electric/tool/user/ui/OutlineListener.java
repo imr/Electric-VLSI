@@ -73,13 +73,13 @@ class OutlineListener
 		}
 
 		high.setPoint(0);
-		if (wnd != null) wnd.repaintContents();
+		if (wnd != null) wnd.repaintContents(null);
 	}
 
 	/**
 	 * Class to initialize the points on an outline node that has no points.
 	 */
-	protected static class InitializePoints extends Job
+	private static class InitializePoints extends Job
 	{
 		OutlineListener listener;
 		NodeInst ni;
@@ -104,7 +104,7 @@ class OutlineListener
 			ni.newVar(NodeInst.TRACE, points);
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();
-			if (wnd != null) wnd.repaintContents();
+			if (wnd != null) wnd.repaintContents(null);
 			return true;
 		}
 	}
@@ -245,7 +245,7 @@ class OutlineListener
 			Highlight.setHighlightOffset(0, 0);
 
 			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY);
-			wnd.repaintContents();
+			wnd.repaintContents(null);
 		}
 	}
 
@@ -375,7 +375,7 @@ class OutlineListener
 	/**
 	 * Class to change the points on an outline node.
 	 */
-	protected static class SetPoints extends Job
+	private static class SetPoints extends Job
 	{
 		OutlineListener listener;
 		Point2D [] newPoints;

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: MoveBy.java
+ * File: ArtworkLook.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -23,31 +23,126 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.GridBagConstraints;
 
 /**
- * Class to handle the "Move By" dialog.
+ * Class to handle the "Artwork Look" dialog.
  */
-public class MoveBy extends EDialog
+public class ArtworkLook extends EDialog
 {
-	public static void showMoveByDialog()
+	public static void showArtworkLookDialog()
 	{
-		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame(), true);
+		// see if there is a piece of artwork selected]
+		Highlight h = Highlight.getOneHighlight();
+		if (h == null) return;
+		if (h.getType() != Highlight.Type.EOBJ)
+		{
+			System.out.println("Must select a single artwork node or arc");
+			return;
+		}
+		ElectricObject eObj = h.getElectricObject();
+		if (eObj instanceof PortInst)
+		{
+			eObj = ((PortInst)eObj).getNodeInst();
+		}
+		boolean foundArt = false;
+		if (eObj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)eObj;
+			if (ni.getProto() instanceof PrimitiveNode &&
+				ni.getProto().getTechnology() == Artwork.tech)
+					foundArt = true;
+		} else if (eObj instanceof ArcInst)
+		{
+			ArcInst ai = (ArcInst)eObj;
+			if (ai.getProto().getTechnology() == Artwork.tech) foundArt = true;
+		}
+		if (!foundArt)
+		{
+			System.out.println("Selected object must be from the Artwork technology");
+			return;
+		}
+		ArtworkLook dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), true, eObj);
 		dialog.show();
 	}
 
-	/** Creates new form Move By */
-	public MoveBy(java.awt.Frame parent, boolean modal)
+	ColorPatternPanel.Info li;
+	ElectricObject eObj;
+
+	/** Creates new form ArtworkLook */
+	public ArtworkLook(java.awt.Frame parent, boolean modal, ElectricObject eObj)
 	{
 		super(parent, modal);
 		initComponents();
+		this.eObj = eObj;
         getRootPane().setDefaultButton(ok);
+
+		// make the color/pattern panel
+		ColorPatternPanel colorPatternPanel = new ColorPatternPanel(false);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 0;
+		gbc.gridwidth = 2;  gbc.gridheight = 1;
+		gbc.weightx = 1;    gbc.weighty = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		getContentPane().add(colorPatternPanel, gbc);
+		pack();
+
+		EGraphics graphics = Artwork.makeGraphics(eObj);
+		if (graphics == null)
+		{
+			graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,1,
+				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
+		}
+		li = new ColorPatternPanel.Info(graphics);
+		colorPatternPanel.setColorPattern(li);
 	}
 
 	protected void escapePressed() { cancel(null); }
+
+	private void applyDialog()
+	{
+		if (li.updateGraphics())
+		{
+			ApplyChanges job = new ApplyChanges(this);
+		}
+	}
+
+	/**
+	 * Class to update graphics on an artwork node or arc.
+	 */
+	private static class ApplyChanges extends Job
+	{
+		ArtworkLook dialog;
+
+		protected ApplyChanges(ArtworkLook dialog)
+		{
+			super("Update Edit Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			Artwork.setGraphics(dialog.li.graphics, dialog.eObj);
+			return true;
+		}
+	}
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -60,14 +155,10 @@ public class MoveBy extends EDialog
 
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        dX = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        dY = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Move By Amount");
+        setTitle("Appearance of Artwork");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -88,10 +179,9 @@ public class MoveBy extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -104,47 +194,11 @@ public class MoveBy extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
-
-        jLabel1.setText("dX:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel1, gridBagConstraints);
-
-        dX.setColumns(8);
-        dX.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(dX, gridBagConstraints);
-
-        jLabel2.setText("dY:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel2, gridBagConstraints);
-
-        dY.setColumns(8);
-        dY.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(dY, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -156,12 +210,7 @@ public class MoveBy extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		// create the cell
-
-		double dx = TextUtils.atof(dX.getText());
-		double dy = TextUtils.atof(dY.getText());
-		CircuitChanges.manyMove(dx, dy);
-
+		applyDialog();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 
@@ -174,10 +223,6 @@ public class MoveBy extends EDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
-    private javax.swing.JTextField dX;
-    private javax.swing.JTextField dY;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JButton ok;
     // End of variables declaration//GEN-END:variables
 }

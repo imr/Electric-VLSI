@@ -60,9 +60,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
 
-/*
+/**
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
- *
+ * <P>
  * The "quick" DRC works as follows:
  *    It first examines every primitive node and arc in the cell
  *        For each layer on these objects, it examines everything surrounding it, even in subcells
@@ -76,13 +76,13 @@ import java.util.Date;
  *                The other instance is hierarchically examined to locate primitives in the area of consideration
  *            For each layer on each primitive object found in the other instance,
  *                Examine the contents of the first instance for interactions about that layer
- *
+ * <P>
  * Since Electric understands connectivity, it uses this information to determine whether two layers
  * are connected or not.  However, if such global connectivity is propagated in the standard Electric
  * way (placing numbers on exports, descending into the cell, and pulling the numbers onto local networks)
  * then it is not possible to decompose the DRC for multiple processors, since two different processors
  * may want to write global network information on the same local networks at once.
- *
+ * <P>
  * To solve this problem, the "quick" DRC determines how many instances of each cell exist.  For every
  * network in every cell, an array is built that is as large as the number of instances of that cell.
  * This array contains the global network number for that each instance of the cell.  The algorithm for
@@ -102,7 +102,7 @@ public class Quick
 	private static final int BADLAYERERROR      = 5;
 	private static final int LAYERSURROUNDERROR = 6;
 
-	/*
+	/**
 	 * The CheckInst object is associated with every cell instance in the library.
 	 * It helps determine network information on a global scale.
 	 * It takes a "global-index" parameter, inherited from above (intially zero).
@@ -120,7 +120,7 @@ public class Quick
 	private static HashMap checkInsts = null;
 
 
-	/*
+	/**
 	 * The CheckProto object is placed on every cell and is used only temporarily
 	 * to number the instances.
 	 */
@@ -210,7 +210,7 @@ public class Quick
 	private static HashMap layersInterNodes = null;
 	private static HashMap layersInterArcs = null;
 
-	/*
+	/**
 	 * This is the entry point for DRC.
 	 *
 	 * Method to do a hierarchical DRC check on cell "cell".
@@ -354,7 +354,7 @@ public class Quick
 		{
 			// just do standard DRC here
 //			if (!dr_quickparalleldrc) begintraversehierarchy();
-			checkThisCell(cell, 0, bounds, justArea);
+			checkThisCell(cell, 0, bounds);
 //			if (!dr_quickparalleldrc) endtraversehierarchy();
 
 			// sort the errors by layer
@@ -377,7 +377,7 @@ public class Quick
 	/**
 	 * Class to save good DRC dates in a new thread.
 	 */
-	protected static class SaveDRCDates extends Job
+	private static class SaveDRCDates extends Job
 	{
 		HashMap goodDRCDate;
 
@@ -402,11 +402,11 @@ public class Quick
 
 	/*************************** QUICK DRC CELL EXAMINATION ***************************/
 
-	/*
+	/**
 	 * Method to check the contents of cell "cell" with global network index "globalIndex".
 	 * Returns positive if errors are found, zero if no errors are found, negative on internal error.
 	 */
-	private static int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds, boolean justArea)
+	private static int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
@@ -421,14 +421,12 @@ public class Quick
 
 			// ignore if not in the area
 			Rectangle2D subBounds = bounds;
-			if (justArea)
+			if (subBounds != null)
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
-
 				AffineTransform trans = ni.rotateIn();
 				AffineTransform xTrnI = ni.translateIn();
 				trans.preConcatenate(xTrnI);
-//				transmult(xrot, xtrn, trans);
 				subBounds = new Rectangle2D.Double();
 				subBounds.setRect(bounds);
 				EMath.transformRect(subBounds, trans);
@@ -441,7 +439,7 @@ public class Quick
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 //			if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
-			int retval = checkThisCell((Cell)np, localIndex, subBounds, justArea);
+			int retval = checkThisCell((Cell)np, localIndex, subBounds);
 //			if (!dr_quickparalleldrc) uphierarchy();
 			if (retval < 0) return(-1);
 			if (retval > 0) allSubCellsStillOK = false;
@@ -473,6 +471,10 @@ public class Quick
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+			if (bounds != null)
+			{
+				if (!ni.getBounds().intersects(bounds)) continue;
+			}
 			boolean ret = false;
 			if (ni.getProto() instanceof Cell)
 			{
@@ -490,6 +492,10 @@ public class Quick
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
+			if (bounds != null)
+			{
+				if (!ai.getBounds().intersects(bounds)) continue;
+			}
 			if (checkArcInst(cp, ai, globalIndex))
 			{
 				totalErrorsFound++;
@@ -512,10 +518,8 @@ public class Quick
 		return totalErrorsFound;
 	}
 
-	/*
-	 * Method to check the design rules about nodeinst "ni".  Only check those
-	 * other objects whose geom pointers are greater than this one (i.e. only
-	 * check any pair of objects once).
+	/**
+	 * Method to check the design rules about nodeinst "ni".
 	 * Returns true if an error was found.
 	 */
 	private static boolean checkNodeInst(NodeInst ni, int globalIndex)
@@ -606,7 +610,7 @@ public class Quick
 		return errorsFound;
 	}
 
-	/*
+	/**
 	 * Method to check the design rules about arcinst "ai".
 	 * Returns true if errors were found.
 	 */
@@ -656,7 +660,7 @@ public class Quick
 		return errorsFound;
 	}
 
-	/*
+	/**
 	 * Method to check the design rules about cell instance "ni".  Only check other
 	 * instances, and only check the parts of each that are within striking range.
 	 * Returns true if an error was found.
@@ -696,13 +700,11 @@ public class Quick
 			AffineTransform downTrans = ni.rotateIn();
 			AffineTransform tTransI = ni.translateIn();
 			downTrans.preConcatenate(tTransI);
-//			transmult(rTransI, tTransI, downTrans);
 			EMath.transformRect(subBounds, downTrans);
 
 			AffineTransform upTrans = ni.translateOut();
 			AffineTransform rTrans = ni.rotateOut();
 			upTrans.preConcatenate(rTrans);
-//			transmult(tTrans, rTrans, upTrans);
 
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -716,7 +718,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to recursively examine the area "bounds" in cell "cell" with global index "globalIndex".
 	 * The objects that are found are transformed by "uptrans" to be in the space of a top-level cell.
 	 * They are then compared with objects in "oNi" (which is in that top-level cell),
@@ -741,15 +743,12 @@ public class Quick
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
-//					transmult(rTransI, tTransI, trans);
 					EMath.transformRect(subBounds, rTransI);
 
 					AffineTransform subUpTrans = ni.translateOut();
 					AffineTransform rTrans = ni.rotateOut();
 					subUpTrans.preConcatenate(rTrans);
 					subUpTrans.preConcatenate(upTrans);
-//					transmult(tTrans, rTrans, trans);
-//					transmult(trans, upTrans, subUpTrans);
 
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -762,7 +761,6 @@ public class Quick
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-//					transmult(rtrans, uptrans, trans);
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -821,7 +819,7 @@ public class Quick
 		return errorsFound;
 	}
 
-	/*
+	/**
 	 * Method to examine polygon "poly" layer "layer" network "net" technology "tech" geometry "geom"
 	 * which is in cell "cell" and has global index "globalIndex".
 	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex". 
@@ -839,14 +837,12 @@ public class Quick
 		AffineTransform downTrans = oNi.rotateIn();
 		AffineTransform tTransI = oNi.translateIn();
 		downTrans.preConcatenate(tTransI);
-//		transmult(rTransI, tTransI, downtrans);
 		EMath.transformRect(bounds, downTrans);
 		double minSize = poly.getMinSize();
 
 		AffineTransform upTrans = oNi.translateOut();
 		AffineTransform rTrans = oNi.rotateOut();
 		upTrans.preConcatenate(rTrans);
-//		transmult(tTrans, rtrans, upTrans);
 
 		CheckInst ci = (CheckInst)checkInsts.get(oNi);
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -873,7 +869,7 @@ public class Quick
 		return retval;
 	}
 
-	/*
+	/**
 	 * Method to examine a polygon to see if it has any errors with its surrounding area.
 	 * The polygon is "poly" on layer "layer" on network "net" from technology "tech" from object "geom".
 	 * Checking looks in cell "cell" global index "globalIndex".
@@ -905,7 +901,7 @@ public class Quick
 			cell, globalIndex, EMath.MATID, minSize, baseMulti, true);
 	}
 
-	/*
+	/**
 	 * Method to recursively examine a polygon to see if it has any errors with its surrounding area.
 	 * The polygon is "poly" on layer "layer" from technology "tech" on network "net" from object "geom"
 	 * which is associated with global index "globalIndex".
@@ -946,7 +942,6 @@ public class Quick
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
-//					transmult(rTransI, ttrans, temptrans);
 					Rectangle2D subBound = new Rectangle2D.Double();
 					subBound.setRect(bounds);
 					EMath.transformRect(subBound, rTransI);
@@ -958,8 +953,6 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					subTrans.preConcatenate(rTrans);
 					subTrans.preConcatenate(topTrans);
-//					transmult(ttrans, rtrans, temptrans);
-//					transmult(temptrans, topTrans, subtrans);
 
 					// compute localIndex
 //					if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
@@ -981,7 +974,6 @@ public class Quick
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(topTrans);
-//					transmult(rtrans, topTrans, subtrans);
 
 					// get the shape of each nodeinst layer
 					Poly [] subPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
@@ -1119,7 +1111,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to compare:
 	 *    polygon "poly1" layer "layer1" network "net1" object "geom1"
 	 * with:
@@ -1396,7 +1388,7 @@ public class Quick
 
 	/*************************** QUICK DRC SEE IF INSTANCES CAUSE ERRORS ***************************/
 
-	/*
+	/**
 	 * Method to examine, in cell "cell", the "count" instances in "nodesToCheck".
 	 * If they are DRC clean, set the associated entry in "validity" to TRUE.
 	 */
@@ -1458,13 +1450,11 @@ public class Quick
 				AffineTransform downTrans = ni.rotateIn();
 				AffineTransform tTransI = ni.translateIn();
 				downTrans.preConcatenate(tTransI);
-//				transmult(rtrans, ttrans, downTrans);
 				EMath.transformRect(subBounds, downTrans);
 
 				AffineTransform upTrans = ni.translateOut();
 				AffineTransform rTrans = ni.rotateOut();
 				upTrans.preConcatenate(rTrans);
-//				transmult(ttrans, rtrans, upTrans);
 
 				CheckInst ci = (CheckInst)checkInsts.get(ni);
 				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -1481,7 +1471,7 @@ public class Quick
 		}
 	}
 
-	/*
+	/**
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
@@ -1548,13 +1538,11 @@ public class Quick
 			AffineTransform tempTrans = ni.rotateIn();
 			AffineTransform tTransI = ni.translateIn();
 			tempTrans.preConcatenate(tTransI);
-//			transmult(rtrans, ttrans, temptrans);
 			EMath.transformRect(subBounds, tempTrans);
 
 			AffineTransform subTrans = ni.translateOut();
 			AffineTransform rTrans = ni.rotateOut();
 			subTrans.preConcatenate(rTrans);
-//			transmult(ttrans, rtrans, subTrans);
 
 			// see if this polygon has errors in the cell
 			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex,
@@ -1566,7 +1554,7 @@ public class Quick
 
 	/*************************** QUICK DRC CACHE OF INSTANCE INTERACTIONS ***************************/
 
-	/*
+	/**
 	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
 	 * return TRUE.  If not found, add to the list and return FALSE.
 	 */
@@ -1620,7 +1608,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to remove all instance interaction information.
 	 */
 	private static void clearInstanceCache()
@@ -1628,7 +1616,7 @@ public class Quick
 		instanceInteractionList.clear();
 	}
 
-	/*
+	/**
 	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
 	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
 	 */ 
@@ -1648,7 +1636,7 @@ public class Quick
 
 	/************************* QUICK DRC HIERARCHICAL NETWORK BUILDING *************************/
 
-	/*
+	/**
 	 * Method to recursively examine the hierarchy below cell "cell" and create
 	 * CheckProto and CheckInst objects on every cell instance.
 	 */
@@ -1696,7 +1684,7 @@ public class Quick
 		return cp;
 	}
 
-	/*
+	/**
 	 * Method to return CheckProto of a Cell.
 	 * @param cell Cell to get its CheckProto.
 	 * @return CheckProto of a Cell.
@@ -1706,7 +1694,7 @@ public class Quick
 		return (CheckProto) checkProtos.get(cell);
 	}
 
-	/*
+	/**
 	 * Method to recursively examine the hierarchy below cell "cell" and fill in the
 	 * CheckInst objects on every cell instance.  Uses the CheckProto objects
 	 * to keep track of cell usage.
@@ -1816,7 +1804,7 @@ public class Quick
 
 	/*********************************** QUICK DRC SUPPORT ***********************************/
 
-	/*
+	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
 	 * in the vicinity are checked to be sure it is indeed an error.  Returns true
@@ -1968,7 +1956,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to tell whether the objects at geometry modules "geom1" and "geom2"
 	 * touch directly (that is, an arcinst connected to a nodeinst).  The method
 	 * returns true if they touch
@@ -1994,7 +1982,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to find two points between polygons "poly1" and "poly2" that can be used to test
 	 * for notches.  The points are returned in (xf1,yf1) and (xf2,yf2).  Returns zero if no
 	 * points exist in the gap between the polygons (becuase they don't have common facing edges).
@@ -2107,7 +2095,7 @@ public class Quick
 		return 1;
 	}
 
-	/*
+	/**
 	 * Method to explore the points (xf1,yf1) and (xf2,yf2) to see if there is
 	 * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
 	 * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
@@ -2137,7 +2125,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
 	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
@@ -2158,7 +2146,6 @@ public class Quick
 					AffineTransform rotI = ni.rotateIn();
 					AffineTransform transI = ni.translateIn();
 					rotI.preConcatenate(transI);
-//					transmult(rotI, transI, bound);
 					Rectangle2D newBounds = new Rectangle2D.Double();
 					newBounds.setRect(bounds);
 					EMath.transformRect(newBounds, rotI);
@@ -2168,8 +2155,6 @@ public class Quick
 					AffineTransform rot = ni.rotateOut();
 					trans.preConcatenate(rot);
 					trans.preConcatenate(moreTrans);
-//					transmult(trans, rot, bound);
-//					transmult(bound, moreTrans, trans);
 					if (lookForLayer((Cell)ni.getProto(), layer, trans, newBounds,
 						pt1, pt2, pt3, pointsFound))
 							return true;
@@ -2177,7 +2162,6 @@ public class Quick
 				}
 				AffineTransform bound = ni.rotateOut();
 				bound.preConcatenate(moreTrans);
-//				transmult(rot, moreTrans, bound);
 				Technology tech = ni.getProto().getTechnology();
 				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
 				int tot = layerLookPolyList.length;
@@ -2212,7 +2196,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to see if the two boxes are active elements, connected to opposite
 	 * sides of a field-effect transistor that resides inside of the box area.
 	 * Returns true if so.
@@ -2314,7 +2298,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
 	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
@@ -2361,7 +2345,7 @@ public class Quick
 		return -1;
 	}
 
-	/*
+	/**
 	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
 	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
@@ -2436,7 +2420,7 @@ public class Quick
 		return 0;
 	}
 
-	/*
+	/**
 	 * Method to crop the box on layer "nLayer", electrical index "nNet"
 	 * and bounds (lx-hx, ly-hy) against the nodeinst "ni".  The geometry in nodeinst "ni"
 	 * that is being checked runs from (nlx-nhx, nly-nhy).  Only those layers
@@ -2515,7 +2499,7 @@ public class Quick
 		return allgone;
 	}
 
-	/*
+	/**
 	 * Method to crop away any part of layer "lay" of arcinst "ai" that coincides
 	 * with a similar layer on a connecting nodeinst.  The bounds of the arcinst
 	 * are in the reference parameters (lx-hx, ly-hy).  Returns false
@@ -2568,7 +2552,7 @@ public class Quick
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to see if polygons in "pList" (describing arc "ai") should be cropped against a
 	 * connecting transistor.  Crops the polygon if so.
 	 */
@@ -2696,7 +2680,7 @@ public class Quick
 		}
 	}
 
-	/*
+	/**
 	 * Method to determine the minimum distance between "layer1" and "layer2" in technology
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
@@ -2725,7 +2709,7 @@ public class Quick
 		return rule;
 	}
 
-	/*
+	/**
 	 * Method to return the network number for port "pp" on node "ni", given that the node is
 	 * in a cell with global index "globalIndex".
 	 */
@@ -2734,7 +2718,6 @@ public class Quick
 		if (pp == null) return -1;
 
 		// see if there is an arc connected
-//		PortInst pi = ni.findPortInstFromProto(pp);
 		JNetwork net = netlist.getNetwork(ni, pp, 0);
 		Integer [] nets = (Integer [])networkLists.get(net);
 		if (nets == null) return -1;
@@ -2743,7 +2726,7 @@ public class Quick
 
 	/***************** LAYER INTERACTIONS ******************/
 
-	/*
+	/**
 	 * Method to build the internal data structures that tell which layers interact with
 	 * which primitive nodes in technology "tech".
 	 */
@@ -2801,7 +2784,7 @@ public class Quick
 		}
 	}
 
-	/*
+	/**
 	 * Method to determine whether layer "layer" interacts in any way with a node of type "np".
 	 * If not, returns FALSE.
 	 */
@@ -2815,7 +2798,7 @@ public class Quick
 		return validLayers[layer.getIndex()];
 	}
 
-	/*
+	/**
 	 * Method to determine whether layer "layer" interacts in any way with an arc of type "ap".
 	 * If not, returns FALSE.
 	 */
@@ -2829,7 +2812,7 @@ public class Quick
 		return validLayers[layer.getIndex()];
 	}
 
-	/*
+	/**
 	 * Method to recursively scan cell "cell" (transformed with "trans") searching
 	 * for DRC Exclusion nodes.  Each node is added to the global list "exclusionList".
 	 */
@@ -2869,7 +2852,6 @@ public class Quick
 				AffineTransform tTrans = ni.translateOut();
 				AffineTransform rTrans = ni.rotateOut();
 				tTrans.preConcatenate(rTrans);
-//				transmult(transt, transr, transtemp);
 				accumulateExclusion((Cell)np, tTrans);
 			}
 		}
@@ -3004,7 +2986,7 @@ public class Quick
 			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
 		}
-		if (rule != null) errorMessage += " [rule " + rule + "]";
+		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
 
 		ErrorLog err = ErrorLog.logError(errorMessage, cell, sortLayer);
 		boolean showGeom = true;

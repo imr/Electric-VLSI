@@ -55,6 +55,8 @@ import java.awt.geom.Point2D;
 import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -250,13 +252,13 @@ public class Schematics extends Technology
 
 		/** arc layer */
 		arc_lay = Layer.newInstance(this, "Arc",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,255,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
 		bus_lay = Layer.newInstance(this, "Bus",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -276,13 +278,13 @@ public class Schematics extends Technology
 
 		/** node layer */
 		node_lay = Layer.newInstance(this, "Node",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		text_lay = Layer.newInstance(this, "Text",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
@@ -1363,6 +1365,7 @@ public class Schematics extends Technology
 		if (!(prototype instanceof PrimitiveNode)) return null;
 
 		PrimitiveNode np = (PrimitiveNode)prototype;
+		boolean extraBlobs = false;
 		if (np == wirePinNode)
 		{
 			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
@@ -1467,6 +1470,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == transistorNode)
 		{
+			extraBlobs = true;
 			int tranBits = ni.getTechSpecific();
 			switch (tranBits)
 			{
@@ -1482,6 +1486,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == twoportNode)
 		{
+			extraBlobs = true;
 			int tranBits = ni.getTechSpecific();
 			switch (tranBits)
 			{
@@ -1493,6 +1498,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == diodeNode)
 		{
+			extraBlobs = true;
 			int diodeBits = ni.getTechSpecific();
 			switch (diodeBits)
 			{
@@ -1501,6 +1507,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == capacitorNode)
 		{
+			extraBlobs = true;
 			int capacitorBits = ni.getTechSpecific();
 			switch (capacitorBits)
 			{
@@ -1509,6 +1516,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == switchNode)
 		{
+			extraBlobs = true;
 			int numLayers = 3;
 			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1; 
 			Technology.NodeLayer [] switchLayers = new Technology.NodeLayer[numLayers];
@@ -1525,6 +1533,7 @@ public class Schematics extends Technology
 			primLayers = switchLayers;
 		} else if (np == transistor4Node)
 		{
+			extraBlobs = true;
 			int tranBits = ni.getTechSpecific();
 			switch (tranBits)
 			{
@@ -1537,6 +1546,51 @@ public class Schematics extends Technology
 				case TRANPJFET: primLayers = tran4LayersPJFET;  break;
 				case TRANDMES:  primLayers = tran4LayersDMES;   break;
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
+			}
+		} else if (np == offpageNode || np == powerNode || np == groundNode || np == sourceNode || np == resistorNode ||
+			np == inductorNode || np == meterNode || np == wellNode || np == substrateNode)
+		{
+			extraBlobs = true;
+		}
+
+		// check for extra blobs (on nodes that can handle it)
+		if (extraBlobs)
+		{
+			// make a list of extra blobs that need to be drawn
+			List extraBlobList = null;
+			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			{
+				PortInst pi = (PortInst)it.next();
+				int arcs = 0;
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					if (con.getPortInst() == pi) arcs++;
+				}
+				if (arcs > 1)
+				{
+					if (extraBlobList == null) extraBlobList = new ArrayList();
+					extraBlobList.add(pi);
+				}
+			}
+			if (extraBlobList != null)
+			{
+				// must add extra blobs to this node
+				double blobSize = wirePinNode.getDefWidth() / 2;
+				Technology.NodeLayer [] blobLayers = new Technology.NodeLayer[primLayers.length + extraBlobList.size()];
+				int fill = 0;
+				for(int i=0; i<primLayers.length; i++)
+					blobLayers[fill++] = primLayers[i];
+				for(Iterator it = extraBlobList.iterator(); it.hasNext(); )
+				{
+					PortInst pi = (PortInst)it.next();
+					PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+					EdgeH xEdge = new EdgeH(pp.getLeft().getMultiplier(), pp.getLeft().getAdder() + blobSize);
+					blobLayers[fill++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+						new Technology.TechPoint(pp.getLeft(), pp.getTop()),
+						new Technology.TechPoint(xEdge, pp.getTop())});
+				}
+				primLayers = blobLayers;
 			}
 		}
 		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
@@ -2059,128 +2113,6 @@ public class Schematics extends Technology
 //	x_(""), x_(""),												/* well/substrate */
 //	x_(""), x_(""), x_("")										/* twoport/4-port/global */
 //};
-
-/******************** METHODS ********************/
-
-//void sch_setmode(INTBIG count, CHAR *par[])
-//{
-//	if (namesamen(pp, x_("disable-differential-ports"), l) == 0)
-//	{
-//		if (sch_anddiffports != NOPORTPROTO)
-//		{
-//			ttyputerr(M_("Differential ports are already disabled"));
-//			return;
-//		}
-//		sch_anddiffports = sch_andprim->firstportproto->nextportproto->nextportproto;
-//		sch_andprim->firstportproto->nextportproto->nextportproto = NOPORTPROTO;
-//
-//		sch_ordiffports = sch_orprim->firstportproto->nextportproto->nextportproto;
-//		sch_orprim->firstportproto->nextportproto->nextportproto = NOPORTPROTO;
-//
-//		sch_xordiffports = sch_xorprim->firstportproto->nextportproto->nextportproto;
-//		sch_xorprim->firstportproto->nextportproto->nextportproto = NOPORTPROTO;
-//		net_redoprim();
-//		return;
-//	}
-//	if (namesamen(pp, x_("enable-differential-ports"), l) == 0)
-//	{
-//		if (sch_anddiffports == NOPORTPROTO)
-//		{
-//			ttyputerr(M_("Differential ports are already enabled"));
-//			return;
-//		}
-//		sch_andprim->firstportproto->nextportproto->nextportproto = sch_anddiffports;
-//		sch_orprim->firstportproto->nextportproto->nextportproto = sch_ordiffports;
-//		sch_xorprim->firstportproto->nextportproto->nextportproto = sch_xordiffports;
-//		sch_anddiffports = sch_ordiffports = sch_xordiffports = NOPORTPROTO;
-//		net_redoprim();
-//		return;
-//	}
-//	ttyputbadusage(x_("technology tell schematic"));
-//}
-
-//INTBIG sch_nodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, SCHPOLYLOOP *schpl)
-//{
-//	REGISTER INTBIG total, pindex, buscon, nonbuscon, hei, arcs, i, implicitcon;
-//	INTBIG depth;
-//	NODEINST **nilist, *upni;
-//	REGISTER PORTARCINST *pi;
-//	REGISTER PORTEXPINST *pe;
-//	REGISTER PORTPROTO *pp;
-//
-//	/* get the default number of polygons and list of layers */
-//	pindex = ni->proto->primindex;
-//	total = sch_nodeprotos[pindex-1]->layercount;
-//	schpl->layerlist = sch_nodeprotos[pindex-1]->layerlist;
-//
-//	schpl->extrasteinerpoint = total;
-//	switch (pindex)
-//	{
-//		case NSWITCH:
-//		case NOFFPAGE:
-//		case NPWR:
-//		case NGND:
-//		case NSOURCE:
-//		case NTRANSISTOR:
-//		case NRESISTOR:
-//		case NCAPACITOR:
-//		case NDIODE:
-//		case NINDUCTOR:
-//		case NMETER:
-//		case NWELL:
-//		case NSUBSTRATE:
-//		case NTWOPORT:
-//		case NTRANSISTOR4:
-//			for(i=0; i<sch_nodeprotos[pindex-1]->portcount; i++)
-//			{
-//				pp = sch_nodeprotos[pindex-1]->portlist[i].addr;
-//				arcs = 0;
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//					if (pi->proto == pp) arcs++;
-//				if (arcs > 1)
-//				{
-//					schpl->extrasteinerport[total - schpl->extrasteinerpoint] = &sch_nodeprotos[pindex-1]->portlist[i];
-//					total++;
-//				}
-//			}
-//			break;
-//	}
-//
-//	/* add in displayable variables */
-//	pl->realpolys = total;
-//	total += tech_displayablenvars(ni, pl->curwindowpart, pl);
-//	if (reasonable != 0) *reasonable = total;
-//	return(total);
-//}
-
-//void sch_shapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl, SCHPOLYLOOP *schpl)
-//{
-//	if (box >= schpl->extrasteinerpoint)
-//	{
-//		/* handle extra steiner points */
-//		tp = schpl->extrasteinerport[box - schpl->extrasteinerpoint];
-//		if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//		poly->xv[0] = (getrange(ni->lowx, ni->highx, tp->lowxmul, tp->lowxsum, lambda) +
-//			getrange(ni->lowx, ni->highx, tp->highxmul, tp->highxsum, lambda)) / 2;
-//		poly->yv[0] = (getrange(ni->lowy, ni->highy, tp->lowymul, tp->lowysum, lambda) +
-//			getrange(ni->lowy, ni->highy, tp->highymul, tp->highysum, lambda)) / 2;
-//		poly->xv[1] = poly->xv[0] + sch_wirepinsizex/2;
-//		poly->yv[1] = poly->yv[0];
-//		poly->count = 2;
-//		poly->style = DISC;
-//		poly->layer = arc_lay;
-//		poly->tech = sch_tech;
-//		poly->desc = sch_layers[poly->layer];
-//		return;
-//	}
-//
-//	lay = &schpl->layerlist[box];
-//	tech_fillpoly(poly, lay, ni, lambda, FILLED);
-//	TDCLEAR(poly->textdescript);
-//	TDSETSIZE(poly->textdescript, lay->portnum);
-//	poly->tech = sch_tech;
-//	poly->desc = sch_layers[poly->layer];
-//}
 
 //void sch_nodesizeoffset(NODEINST *ni, INTBIG *lx, INTBIG *ly, INTBIG *hx, INTBIG *hy)
 //{

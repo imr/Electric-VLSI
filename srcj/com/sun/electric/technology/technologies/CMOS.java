@@ -38,6 +38,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.tool.drc.DRC;
 
 import java.awt.Color;
 
@@ -47,6 +48,8 @@ import java.awt.Color;
 public class CMOS extends Technology
 {
 	/** the Complementary MOS (old, N-Well, from Griswold) Technology object. */	public static final CMOS tech = new CMOS();
+	private static final double XX = -1;
+	private double [] unConDist;
 
 	// -------------------- private and protected methods ------------------------
 	private CMOS()
@@ -70,7 +73,7 @@ public class CMOS extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -90,7 +93,7 @@ public class CMOS extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -110,7 +113,7 @@ public class CMOS extends Technology
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -130,7 +133,7 @@ public class CMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -150,17 +153,17 @@ public class CMOS extends Technology
 
 		/** CC layer */
 		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,130,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** OC layer */
 		Layer OC_lay = Layer.newInstance(this, "Ohmic-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,130,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -180,7 +183,7 @@ public class CMOS extends Technology
 
 		/** O layer */
 		Layer O_lay = Layer.newInstance(this, "Overglass",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
 						0x3636,   //   XX XX   XX XX 
@@ -200,12 +203,12 @@ public class CMOS extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -225,7 +228,7 @@ public class CMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -245,7 +248,7 @@ public class CMOS extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -265,7 +268,7 @@ public class CMOS extends Technology
 
 		/** PP0 layer */
 		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -285,7 +288,7 @@ public class CMOS extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -366,6 +369,33 @@ public class CMOS extends Technology
 		PD_lay.setFactoryGDSLayer("");		// Pseudo-Diffusion
 		PP0_lay.setFactoryGDSLayer("");		// Pseudo-P+
 		PPW_lay.setFactoryGDSLayer("");		// Pseudo-P-Well
+
+		//******************** DESIGN RULES ********************
+
+		unConDist = new double[]
+		{
+			//            M  P  D  P  C  O  W  O  T  M  P  D  P  W
+			//            e  o  i     u  c  e  v  r  e  o  i  P  e
+			//            t  l  f     t  u  l  e  a  t  l  f     l
+			//            a  y  f        t  l  r  n  a  y  f     l
+			//            l                    g  s  l  P  P     P
+			//                                 l     P            
+			/* Metal  */  3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* Poly   */     2, 1, 2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* Diff   */        3, 2,XX, 5,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* P      */           2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* Cut    */             XX,XX,XX,XX, 2,XX,XX,XX,XX,XX,
+			/* Ocut   */                XX,XX,XX, 2,XX,XX,XX,XX,XX,
+			/* Well   */                    2,XX,XX,XX,XX,XX,XX,XX,
+			/* Overgl */                      XX,XX,XX,XX,XX,XX,XX,
+			/* Trans  */                         XX,XX,XX,XX,XX,XX,
+			/* MetalP */                            XX,XX,XX,XX,XX,
+			/* PolyP  */                               XX,XX,XX,XX,
+			/* DiffP  */                                  XX,XX,XX,
+			/* PP     */                                     XX,XX,
+			/* WellP  */                                        XX
+		};
+		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 
@@ -828,4 +858,13 @@ public class CMOS extends Technology
 		PW_lay.setPureLayerNode(wn_node);		// P-Well
 		O_lay.setPureLayerNode(on_node);		// Overglass
 	};
+
+	/**
+	 * Method to return the "factory "design rules for this Technology.
+	 * @return the design rules for this Technology.
+	 */
+	public DRC.Rules getFactoryDesignRules()
+	{
+		return DRC.makeSimpleRules(this, null, unConDist);
+	}
 }

@@ -313,7 +313,7 @@ public class Tool extends ElectricObject
 	/**
 	 * Class for scheduling a wiring task.
 	 */
-	protected static class SetVarJob extends Job
+	private static class SetVarJob extends Job
 	{
 		ElectricObject obj;
 		Variable.Key key;

@@ -203,6 +203,8 @@ public class Change extends EDialog
 		reload();
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 	private void whatToChangeChanged(ActionEvent evt)
 	{
 		JRadioButton src = (JRadioButton)evt.getSource();
@@ -340,7 +342,7 @@ public class Change extends EDialog
 	/**
 	 * Class to change the node/arc type in a new thread.
 	 */
-	protected static class ChangeObject extends Job
+	private static class ChangeObject extends Job
 	{
 		Change dialog;
 

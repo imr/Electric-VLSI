@@ -26,9 +26,16 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -888,6 +895,118 @@ public class TextDescriptor
 
 		// handle change control, constraint, and broadcast
 		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1);
+	}
+
+	/**
+	 * Method to set "smart text placement" on this TextDescriptor.
+	 * Smart text placement puts the anchor point in a sensible location
+	 * for NodeInsts and ArcInsts.
+	 */
+	public void setSmartPlacement()
+	{
+		if (!(owner instanceof Export)) return;
+
+		// handle smart text placement relative to attached object
+		int smartVertical = User.getSmartVerticalPlacement();
+		int smartHorizontal = User.getSmartHorizontalPlacement();
+		if (smartVertical == 0 && smartHorizontal == 0) return;
+
+		// figure out location of object relative to environment
+		double dx = 0, dy = 0;
+		Export pp = (Export)owner;
+		PortInst pi = pp.getOriginalPort();
+		NodeInst ni = pi.getNodeInst();
+		Rectangle2D nodeBounds = ni.getBounds();
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			if (con.getPortInst() == pi)
+			{
+				ArcInst ai = con.getArc();
+				Rectangle2D arcBounds = ai.getBounds();
+				dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
+				dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
+			}
+		}
+
+		// first move placement horizontally
+		boolean goleft = false, goright = false, goup = false, godown = false;
+		if (smartHorizontal == 1)
+		{
+			// place label inside (towards center)
+			if (dx > 0) goright = true; else
+				if (dx < 0) goleft = true;
+		} else if (smartHorizontal == 2)
+		{
+			// place label outside (away from center)
+			if (dx > 0) goleft = true; else
+				if (dx < 0) goright = true;
+		}
+
+		// next move placement vertically
+		if (smartVertical == 1)
+		{
+			// place label inside (towards center)
+			if (dy > 0) goup = true; else
+				if (dy < 0) godown = true;
+		} else if (smartVertical == 2)
+		{
+			// place label outside (away from center)
+			if (dy > 0) godown = true; else
+				if (dy < 0) goup = true;
+		}
+		if (goleft)
+		{
+			if (getPos() == Position.CENT || getPos() == Position.RIGHT || getPos() == Position.LEFT)
+			{
+				setPos(Position.LEFT);
+			} else if (getPos() == Position.UP || getPos() == Position.UPRIGHT || getPos() == Position.UPLEFT)
+			{
+				setPos(Position.UPLEFT);
+			} else if (getPos() == Position.DOWN || getPos() == Position.DOWNRIGHT || getPos() == Position.DOWNLEFT)
+			{
+				setPos(Position.DOWNLEFT);
+			}
+		}
+		if (goright)
+		{
+			if (getPos() == Position.CENT || getPos() == Position.RIGHT || getPos() == Position.LEFT)
+			{
+				setPos(Position.RIGHT);
+			} else if (getPos() == Position.UP || getPos() == Position.UPRIGHT || getPos() == Position.UPLEFT)
+			{
+				setPos(Position.UPRIGHT);
+			} else if (getPos() == Position.DOWN || getPos() == Position.DOWNRIGHT || getPos() == Position.DOWNLEFT)
+			{
+				setPos(Position.DOWNRIGHT);
+			}
+		}
+		if (goup)
+		{
+			if (getPos() == Position.CENT || getPos() == Position.UP || getPos() == Position.DOWN)
+			{
+				setPos(Position.UP);
+			} else if (getPos() == Position.RIGHT || getPos() == Position.UPRIGHT || getPos() == Position.DOWNRIGHT)
+			{
+				setPos(Position.UPRIGHT);
+			} else if (getPos() == Position.LEFT || getPos() == Position.UPLEFT || getPos() == Position.DOWNLEFT)
+			{
+				setPos(Position.UPLEFT);
+			}
+		}
+		if (godown)
+		{
+			if (getPos() == Position.CENT || getPos() == Position.UP || getPos() == Position.DOWN)
+			{
+				setPos(Position.DOWN);
+			} else if (getPos() == Position.RIGHT || getPos() == Position.UPRIGHT || getPos() == Position.DOWNRIGHT)
+			{
+				setPos(Position.DOWNRIGHT);
+			} else if (getPos() == Position.LEFT || getPos() == Position.UPLEFT || getPos() == Position.DOWNLEFT)
+			{
+				setPos(Position.DOWNLEFT);
+			}
+		}
 	}
 
 	/**

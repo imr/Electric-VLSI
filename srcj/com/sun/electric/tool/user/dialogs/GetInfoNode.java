@@ -186,6 +186,8 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
 		loadNodeInfo();
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	static class AttValPair
 	{
 		Variable.Key key;
@@ -296,19 +298,17 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-		SizeOffset so = Technology.getSizeOffset(ni);
-		initialXSize = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-		if (ni.isXMirrored()) initialXSize = -initialXSize;
-		initialYSize = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-		if (ni.isYMirrored()) initialYSize = -initialYSize;
+		initialXSize = ni.getXSizeWithMirror();
+		initialYSize = ni.getYSizeWithMirror();
 		initialRotation = ni.getAngle();
 
 		type.setText(np.describe());
 		name.setText(initialName);
 		xPos.setText(Double.toString(initialXPos));
 		yPos.setText(Double.toString(initialYPos));
-		xSize.setText(Double.toString(Math.abs(initialXSize)));
-		ySize.setText(Double.toString(Math.abs(initialYSize)));
+		SizeOffset so = Technology.getSizeOffset(ni);
+		xSize.setText(Double.toString(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+		ySize.setText(Double.toString(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
 		rotation.setText(Double.toString(initialRotation / 10.0));
 		mirrorX.setSelected(initialXSize < 0);
 		mirrorY.setSelected(initialYSize < 0);
@@ -572,13 +572,13 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
 		if (np instanceof PrimitiveNode && np.getTechnology() == Artwork.tech)
 		{
 			popupLabel.setText("Color:");
-			int [] colors = EGraphics.getColors();
+			int [] colors = EGraphics.getColorIndices();
 			for(int i=0; i<colors.length; i++)
-				popup.addItem(EGraphics.getColorName(colors[i]));
+				popup.addItem(EGraphics.getColorIndexName(colors[i]));
 			int index = EGraphics.BLACK;
 			Variable var = ni.getVar(Artwork.ART_COLOR);
 			if (var != null) index = ((Integer)var.getObject()).intValue();
-			initialPopupEntry = EGraphics.getColorName(index);
+			initialPopupEntry = EGraphics.getColorIndexName(index);
 			popup.setSelectedItem(initialPopupEntry);
 			popup.setEnabled(true);
 		}
@@ -762,7 +762,7 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
 		}
 	}
 
-	protected static class ChangeNode extends Job
+	private static class ChangeNode extends Job
 	{
 		NodeInst ni;
 		GetInfoNode dialog;
@@ -1024,11 +1024,12 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
 				}
 			}
 
+			SizeOffset so = Technology.getSizeOffset(ni);
 			double currentXPos = Double.parseDouble(dialog.xPos.getText());
 			double currentYPos = Double.parseDouble(dialog.yPos.getText());
-			double currentXSize = Double.parseDouble(dialog.xSize.getText());
+			double currentXSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowXOffset() + so.getHighXOffset();
 			if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-			double currentYSize = Double.parseDouble(dialog.ySize.getText());
+			double currentYSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowYOffset() + so.getHighYOffset();
 			if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
 			int currentRotation = (int)(Double.parseDouble(dialog.rotation.getText()) * 10);
 			if (!EMath.doublesEqual(currentXPos, dialog.initialXPos) ||
@@ -1144,7 +1145,7 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
@@ -1299,7 +1300,7 @@ public class GetInfoNode extends JDialog implements HighlightListener, DatabaseC
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);

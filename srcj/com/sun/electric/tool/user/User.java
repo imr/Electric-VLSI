@@ -176,7 +176,7 @@ public class User extends Listener
 			if (winCell == cell)
 			{
 				EditWindow wnd = (EditWindow)content;
-				wnd.repaintContents();
+				wnd.repaintContents(null);
 			}
 		}
 
@@ -600,19 +600,6 @@ public class User extends Listener
 	 */
 	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
 
-	private static Pref cacheEdgeAlignmentToGrid = Pref.makeDoublePref("EdgeAlignmentToGrid", User.tool.prefs, 0);
-	/**
-	 * Method to return the default alignment of object edges to the grid.
-	 * The default is 0, meaning that no alignment is to be done.
-	 * @return true the default alignment of object edges to the grid.
-	 */
-	public static double getEdgeAlignmentToGrid() { return cacheEdgeAlignmentToGrid.getDouble(); }
-	/**
-	 * Method to set the default alignment of object edges to the grid.
-	 * @param dist the default alignment of object edges to the grid.
-	 */
-	public static void setEdgeAlignmentToGrid(double dist) { cacheEdgeAlignmentToGrid.setDouble(dist); }
-
 	/****************************** TEXT PREFERENCES ******************************/
 
 	private static Pref cacheTextVisibilityNode = Pref.makeBooleanPref("TextVisibilityNode", User.tool.prefs, true);
@@ -716,9 +703,39 @@ public class User extends Listener
 	/**
 	 * Method to set whether to draw text that resides on the cell.
 	 * This includes the current cell's parameters or attributes (for example, spice templates).
-	 * @param on true if the system should draw text that resides on cthe cell.
+	 * @param on true if the system should draw text that resides on the cell.
 	 */
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
+
+	private static Pref cacheSmartVerticalPlacement = Pref.makeIntPref("TextSmartVerticalPlacement", User.tool.prefs, 0);
+	/**
+	 * Method to tell what type of "smart" vertical text placement should be done.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * The default is "0".
+	 * @return the type of "smart" vertical text placement to be done.
+	 */
+	public static int getSmartVerticalPlacement() { return cacheSmartVerticalPlacement.getInt(); }
+	/**
+	 * Method to set the type of "smart" vertical text placement to be done.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * @param s the type of "smart" vertical text placement to be done.
+	 */
+	public static void setSmartVerticalPlacement(int s) { cacheSmartVerticalPlacement.setInt(s); }
+
+	private static Pref cacheSmartHorizontalPlacement = Pref.makeIntPref("TextSmartHorizontalPlacement", User.tool.prefs, 0);
+	/**
+	 * Method to tell what type of "smart" horizontal text placement should be done.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * The default is "0".
+	 * @return the type of "smart" horizontal text placement to be done.
+	 */
+	public static int getSmartHorizontalPlacement() { return cacheSmartHorizontalPlacement.getInt(); }
+	/**
+	 * Method to set the type of "smart" horizontal text placement to be done.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * @param s the type of "smart" horizontal text placement to be done.
+	 */
+	public static void setSmartHorizontalPlacement(int s) { cacheSmartHorizontalPlacement.setInt(s); }
 
 	private static Pref cacheDefaultFont = Pref.makeStringPref("DefaultFont", User.tool.prefs, "SansSerif");
 	/**
@@ -962,6 +979,23 @@ public class User extends Listener
 	 * @param on true if the system should include the date and Electric version in output files.
 	 */
 	public static void setIncludeDateAndVersionInOutput(boolean on) { cacheIncludeDateAndVersionInOutput.setBoolean(on); }
+
+	private static Pref cacheShowCursorCoordinatesInStatus = Pref.makeBooleanPref("ShowCursorCoordinatesInStatus", User.tool.prefs, false);
+	/**
+	 * Method to tell whether to display the cursor coordinates in the status bar.
+	 * The default is "false".
+	 * @return true if the system should display the cursor coordinates in the status bar
+	 */
+	public static boolean isShowCursorCoordinatesInStatus() { return cacheShowCursorCoordinatesInStatus.getBoolean(); }
+	/**
+	 * Method to set whether to display the cursor coordinates in the status bar
+	 * @param on true if the system should display the cursor coordinates in the status bar
+	 */
+	public static void setShowCursorCoordinatesInStatus(boolean on)
+	{
+		cacheShowCursorCoordinatesInStatus.setBoolean(on);
+		StatusBar.setShowCoordinates(on);
+	}
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", User.tool.prefs, true);
 	/**

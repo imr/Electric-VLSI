@@ -98,7 +98,7 @@ public class ERCWellCheck
 			job = new WellCheck(curCell);
 	}
 
-	protected static class WellCheckNew extends Job
+	private static class WellCheckNew extends Job
 	{
 		Cell cell;
 
@@ -426,7 +426,8 @@ public class ERCWellCheck
 			return true;
 		}
 	}
-	protected static class WellCheck extends Job
+
+	private static class WellCheck extends Job
 	{
 		Cell cell;
 

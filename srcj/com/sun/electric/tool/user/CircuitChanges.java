@@ -233,7 +233,7 @@ public class CircuitChanges
 				ArcInst ai = (ArcInst)geom;
 				ai.setBit(markObj);
 			}
-			us_spreadrotateconnection(theNi, markObj);
+			spreadRotateConnection(theNi, markObj);
 
 			// now make sure that it is all connected
 			List niList = new ArrayList();
@@ -265,6 +265,7 @@ public class CircuitChanges
 					if (ai == null) break;
 					ai.setRigid();
 					aiList.add(ai);
+					spreadRotateConnection(ni, markObj);
 				}
 			}
 
@@ -284,11 +285,10 @@ public class CircuitChanges
 				{
 					// mirror horizontally (flip Y)
 					double sY = theNi.getYSizeWithMirror();
-					System.out.println("Mirroring: size was "+sY+" so transformation is by "+(-sY-sY));
 					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
 				} else
 				{
-					// mirror horizontally (flip X)
+					// mirror vertically (flip X)
 					double sX = theNi.getXSizeWithMirror();
 					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
 				}
@@ -321,7 +321,7 @@ public class CircuitChanges
 	 * Helper method for rotation to mark selected nodes that need not be
 	 * connected with an invisible arc.
 	 */
-	private static void us_spreadrotateconnection(NodeInst theNi, FlagSet markObj)
+	private static void spreadRotateConnection(NodeInst theNi, FlagSet markObj)
 	{
 		for(Iterator it = theNi.getConnections(); it.hasNext(); )
 		{
@@ -333,7 +333,7 @@ public class CircuitChanges
 			NodeInst ni = other.getPortInst().getNodeInst();
 			if (ni.isBit(markObj)) continue;
 			ni.setBit(markObj);
-			us_spreadrotateconnection(ni, markObj);
+			spreadRotateConnection(ni, markObj);
 		}
 	}
 
@@ -2146,7 +2146,7 @@ public class CircuitChanges
 			for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				if (us_cleanupcell(cell, false)) cleaned = true;
+				if (cleanupCell(cell, false)) cleaned = true;
 			}
 			if (!cleaned) System.out.println("Nothing to clean");
 		} else
@@ -2154,7 +2154,7 @@ public class CircuitChanges
 			// just cleanup the current cell
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return;
-			us_cleanupcell(cell, true);
+			cleanupCell(cell, true);
 		}
 		Highlight.finished();
 	}
@@ -2170,7 +2170,7 @@ public class CircuitChanges
 	 *   resize oversized pins that don't have oversized arcs on them
 	 * Returns true if changes are made.
 	 */
-	private static boolean us_cleanupcell(Cell cell, boolean justThis)
+	private static boolean cleanupCell(Cell cell, boolean justThis)
 	{
 		// look for unused pins that can be deleted
 		List pinsToRemove = new ArrayList();
@@ -3921,7 +3921,7 @@ public class CircuitChanges
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(cell, toLib)) continue;
+					if (inDestLib(cell, toLib)) continue;
 
 					// copy subcell if not already there
 					Cell oNp = copyRecursively(cell, cell.getProtoName(), toLib, cell.getView(),
@@ -3953,7 +3953,7 @@ public class CircuitChanges
 					if (np.getView() != View.ICON) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(np, toLib)) continue;
+					if (inDestLib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
 //					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
@@ -3981,7 +3981,7 @@ public class CircuitChanges
 					if (np.getView() == View.ICON) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(np, toLib)) continue;
+					if (inDestLib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
 //					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
@@ -4107,7 +4107,7 @@ public class CircuitChanges
 	/*
 	 * Method to return true if a cell like "np" exists in library "lib".
 	 */
-	private static boolean us_indestlib(Cell np, Library lib)
+	private static boolean inDestLib(Cell np, Library lib)
 	{
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
@@ -4126,9 +4126,82 @@ public class CircuitChanges
 	private static FlagSet expandFlagBit;
 
 	/**
+	 * This method implements the command to expand the selected cells by 1 level down.
+	 */
+	public static void expandOneLevelDownCommand()
+	{
+		DoExpandCommands(false, 1);
+	}
+
+	/**
+	 * This method implements the command to expand the selected cells all the way to the bottom of the hierarchy.
+	 */
+	public static void expandFullCommand()
+	{
+		DoExpandCommands(false, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * This method implements the command to expand the selected cells by a given number of levels from the top.
+	 */
+	public static void expandSpecificCommand()
+	{
+		Object obj = JOptionPane.showInputDialog("Number of levels to expand", "1");
+		int levels = TextUtils.atoi((String)obj);
+
+		DoExpandCommands(false, levels);
+	}
+
+	/**
+	 * This method implements the command to unexpand the selected cells by 1 level up.
+	 */
+	public static void unexpandOneLevelUpCommand()
+	{
+		DoExpandCommands(true, 1);
+	}
+
+	/**
+	 * This method implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
+	 */
+	public static void unexpandFullCommand()
+	{
+		DoExpandCommands(true, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * This method implements the command to unexpand the selected cells by a given number of levels from the bottom.
+	 */
+	public static void unexpandSpecificCommand()
+	{
+		Object obj = JOptionPane.showInputDialog("Number of levels to unexpand", "1");
+		int levels = TextUtils.atoi((String)obj);
+
+		DoExpandCommands(true, levels);
+	}
+
+	public static void peekCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+		if (bounds == null)
+		{
+			System.out.println("Must define an area in which to display");
+			return;
+		}
+		wnd.repaintContents(bounds);
+	}
+
+	private static void DoExpandCommands(boolean unExpand, int amount)
+	{
+		List list = Highlight.getHighlighted(true, false);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, unExpand, amount);
+	}
+
+	/**
 	 * Class to read a library in a new thread.
 	 */
-	protected static class ExpandUnExpand extends Job
+	private static class ExpandUnExpand extends Job
 	{
 		List list;
 		boolean unExpand;

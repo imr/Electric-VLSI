@@ -96,6 +96,8 @@ public class NewCell extends EDialog
 		cellName.grabFocus();
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -275,7 +277,7 @@ public class NewCell extends EDialog
 	/**
 	 * Class to create a cell in a new thread.
 	 */
-	protected static class CreateCell extends Job
+	private static class CreateCell extends Job
 	{
 		Library lib;
 		String cellName;

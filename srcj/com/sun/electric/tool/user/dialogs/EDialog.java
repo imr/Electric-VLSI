@@ -26,10 +26,15 @@ package com.sun.electric.tool.user.dialogs;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.awt.Frame;
-import java.util.HashMap;
-import javax.swing.JDialog;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import javax.swing.JDialog;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+import javax.swing.JComponent;
 
 /**
  * Superclass for all dialogs that handles remembering the last location.
@@ -49,7 +54,17 @@ public class EDialog extends JDialog
 		if (pt == null) pt = new Point(100, 50);
 		setLocation(pt.x, pt.y);
 		addComponentListener(new MoveComponentListener());
+
+		final String CANCEL_DIALOG = "cancel-dialog";
+		KeyStroke accel = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(accel, CANCEL_DIALOG);
+		getRootPane().getActionMap().put(CANCEL_DIALOG, new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent event) { escapePressed(); }
+		});
 	}
+
+	protected void escapePressed() {}
 
 	private static class MoveComponentListener implements ComponentListener
 	{

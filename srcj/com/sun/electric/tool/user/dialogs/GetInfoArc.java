@@ -116,6 +116,8 @@ public class GetInfoArc extends JDialog implements HighlightListener, DatabaseCh
         Undo.addDatabaseChangeListener(this);
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	private void loadArcInfo()
 	{
 		// must have a single node selected
@@ -704,7 +706,7 @@ public class GetInfoArc extends JDialog implements HighlightListener, DatabaseCh
 		//dispose();
 	}//GEN-LAST:event_closeDialog
 
-	protected static class ChangeArc extends Job
+	private static class ChangeArc extends Job
 	{
 		ArcInst ai;
 		GetInfoArc dialog;

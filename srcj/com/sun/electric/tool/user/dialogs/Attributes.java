@@ -201,6 +201,8 @@ public class Attributes extends JDialog implements HighlightListener, DatabaseCh
         loadAttributesInfo();
     }
 
+//	protected void escapePressed() { cancel(null); }
+
     /**
      * Set whether Attributes dialog shows attributes only
      * or all variables. Showing all variables is useful for debug.

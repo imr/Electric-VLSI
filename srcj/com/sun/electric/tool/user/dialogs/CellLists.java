@@ -124,6 +124,8 @@ public class CellLists extends EDialog
 		}
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 	private static String makeCellLine(Cell cell, int maxlen)
 	{
 		String line = cell.noLibDescribe();

@@ -55,7 +55,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -111,7 +110,6 @@ public class ELIB extends LibraryFiles
 	/** the number of primitive PortProtos in the file */					private int primPortProtoCount;
 	/** list of all Primitive PortProtos in the library */					private PrimitivePort [] primPortProtoList;
 	/** list of all Primitive-PortProto-related errors in the library */	private String [] primPortProtoError;
-	/** true if old MOSIS CMOS technologies appear in the library */		private boolean convertMosisCmosTechnologies;
 	/** the most popular layout technology */								private Technology layoutTech;
 
 	// the cell information
@@ -240,8 +238,7 @@ public class ELIB extends LibraryFiles
 			(emajor == 6 && eminor < 3) ||
 			(emajor == 6 && eminor == 3 && edetail < 17))
 		{
-//			if ((asktech(mocmossub_tech, x_("get-state"))&MOCMOSSUBNOCONV) == 0)
-				convertMosisCmosTechnologies = true;
+			convertMosisCmosTechnologies = true;
 		}
 
 		// for versions before 6.04c, convert text descriptor values
@@ -517,23 +514,13 @@ public class ELIB extends LibraryFiles
 		{
 			// get the technology
 			String name = readString();
-			Technology tech = null;
-			if (convertMosisCmosTechnologies)
-			{
-				if (name.equals("mocmossub")) tech = Technology.findTechnology("mocmos"); else
-					if (name.equals("mocmos")) tech = Technology.findTechnology("mocmosold");
-			}
-			if (tech == null) tech = Technology.findTechnology(name);
+			Technology tech = findTechnologyName(name);
 			boolean imosconv = false;
-			if (tech == null && name.equals("imos"))
+			if (name.equals("imos"))
 			{
-				tech = Technology.findTechnology("mocmos");
-				if (tech != null) imosconv = true;
+				tech = MoCMOS.tech;
+				imosconv = true;
 			}
-			if (tech == null && name.equals("logic"))
-				tech = Technology.findTechnology("schematic");
-			if (tech == null && (name.equals("epic8c") || name.equals("epic7c")))
-				tech = Technology.findTechnology("epic7s");
 			if (tech == null)
 			{
 				// cannot figure it out: just pick the first technology
@@ -1290,7 +1277,6 @@ public class ELIB extends LibraryFiles
 							PortInst pi = ni.findPortInst(thePortName);
 							if (pi != null)
 							{
-//System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 								Variable var = pi.newVar(varName, origVar.getObject());
 								if (var != null)
 								{
@@ -1856,126 +1842,10 @@ public class ELIB extends LibraryFiles
 		int lowY = readBigInteger();
 		int highY = readBigInteger();
 
-		// get the path to the library file
-		File libFile = new File(readString());
+		// get the external library
+		Library elib = readExternalLibraryFromFilename(readString());
 
-		// see if this library is already read in
-		String libFileName = libFile.getName();
-		String libFilePath = libFile.getParent();
-		
-		// special case if the library path came from a different computer system and still has separators
-		int backSlashPos = libFileName.lastIndexOf('\\');
-		int colonPos = libFileName.lastIndexOf(':');
-		int slashPos = libFileName.lastIndexOf('/');
-		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
-		if (charPos >= 0)
-		{
-			libFileName = libFileName.substring(charPos+1);
-			libFilePath = "";
-		}
-		OpenFile.Type importType = OpenFile.Type.ELIB;
-		String libName = libFileName;
-		if (libName.endsWith(".elib"))
-		{
-			libName = libName.substring(0, libName.length()-5);
-		} else if (libName.endsWith(".txt"))
-		{
-			libName = libName.substring(0, libName.length()-4);
-			importType = OpenFile.Type.READABLEDUMP;
-		} else
-		{
-			// no recognizable extension, add one to the file name
-			libFileName += ".elib";
-		}
-		Library elib = Library.findLibrary(libName);
-		if (elib == null)
-		{
-			// library does not exist: see if file is in the same directory as the main file
-			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
-            StringBuffer errmsg = new StringBuffer();
-			InputStream externalStream = TextUtils.getURLStream(externalURL, errmsg);
-			if (externalStream == null)
-			{
-				// try secondary library file locations
-				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
-				{
-					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
-					externalStream = TextUtils.getURLStream(externalURL, errmsg);
-					if (externalStream != null) break;
-				}
-				if (externalStream == null)
-				{
-					// try the exact path specified in the reference
-					externalURL = TextUtils.makeURLToFile(libFile.getPath());
-					externalStream = TextUtils.getURLStream(externalURL, errmsg);
-					if (externalStream == null)
-					{
-						// try the Electric library area
-						externalURL = LibFile.getLibFile(libFileName);
-						externalStream = TextUtils.getURLStream(externalURL, errmsg);
-					}
-				}
-			}
-			if (externalStream == null)
-			{
-				System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
-                System.out.print(errmsg.toString());
-                String pt = null;
-                while (true) {
-                    // continue to ask the user where the library is until they hit "cancel"
-				    String description = "Reference library '" + libFileName + "'";
-				    pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
-                    if (pt == null) {
-                        // user cancelled, break
-                        break;
-                    }
-                    // see if user chose a file we can read
-                    externalURL = TextUtils.makeURLToFile(pt);
-                    if (externalURL != null) {
-                        externalStream = TextUtils.getURLStream(externalURL, null);
-                        if (externalStream != null) {
-                            // good pt, opened it, get out of here
-                            break;
-                        }
-                    }
-                }
-			}
-			if (externalStream != null)
-			{
-				System.out.println("Reading referenced library " + externalURL.getFile());
-				elib = Library.newInstance(libName, externalURL);
-			} else
-			{
-				System.out.println("Error: cannot find referenced library " + libFile.getPath());
-				elib = null;
-			}
-			if (elib == null)
-                return true;
-
-			// read the external library
-			String oldNote = progress.getNote();
-			if (progress != null)
-			{
-				progress.setProgress(0);
-				progress.setNote("Reading referenced library " + libName + "...");
-			}
-
-			elib = readALibrary(externalURL, externalStream, elib, importType);
-            // JKG TODO: when referenced library returns null, how to abort cleanly?
-			// GVG TODO: It should at least not allow to continue with reading
-			// Put back elib == null return 06/01/04
-            if (elib == null)  
-	            return true;
-//			if (failed) elib->userbits |= UNWANTEDLIB; else
-//			{
-//				// queue this library for announcement through change control
-//				io_queuereadlibraryannouncement(elib);
-//			}
-			progress.setProgress((int)(byteCount * 100 / fileLength));
-			progress.setNote(oldNote);
-		}
-
-		// read the portproto names on this nodeproto
+ 		// read the portproto names on this nodeproto
 		int portCount = readBigInteger();
 		String [] localPortNames = new String[portCount];
 		for(int j=0; j<portCount; j++)

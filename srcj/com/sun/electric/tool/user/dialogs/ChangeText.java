@@ -179,6 +179,8 @@ public class ChangeText extends EDialog
 		});
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	/**
 	 * Method to scan for all relevant text.
 	 * This looks at the top part of the dialog to figure out which text is relevant.

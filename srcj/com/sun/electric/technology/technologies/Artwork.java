@@ -42,6 +42,7 @@ import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 
@@ -53,6 +54,7 @@ public class Artwork extends Technology
 	/** key of Variable holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
 	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
 	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = ElectricObject.newKey("ART_color");
+	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = ElectricObject.newKey("ART_pattern");
 
 	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
 
@@ -99,7 +101,7 @@ public class Artwork extends Technology
 
 		/** Graphics layer */
 		G_lay = Layer.newInstance(this, "Graphics",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
@@ -432,7 +434,7 @@ public class Artwork extends Technology
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		layerOverride = getGraphics(ni);
+		layerOverride = getProperLayer(ni);
 
 		if (np == circleNode || np == thickCircleNode)
 		{
@@ -516,7 +518,7 @@ public class Artwork extends Technology
 	 * @param pp the PrimitivePort on that NodeInst that is being described.
 	 * @return a Poly object that describes this PrimitivePort graphically.
 	 */
-	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
+	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np == pinNode || np == arrowNode)
@@ -537,7 +539,7 @@ public class Artwork extends Technology
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
 	{
-		layerOverride = getGraphics(ai);
+		layerOverride = getProperLayer(ai);
 		return super.getShapeOfArc(ai, wnd, layerOverride);
 	}
 
@@ -714,67 +716,127 @@ public class Artwork extends Technology
 		return points;
 	}
 
-	private static HashMap allLayers = new HashMap();
-
 	/**
-	 * Method to find examine the ElectricObject and prepare for any Graphics found there.
-	 * @param obj the object with graphics specifications.
+	 * Method to return the Layer to use for an Artwork ElectricObject.
+	 * If there are individualized color and pattern Variables on the ElectricObject,
+	 * they are used to construct a new Layer (with a new EGraphics that captures
+	 * the color and pattern).
+	 * @param eObj the ElectricObject with individualized color and pattern information.
+	 * @return a Layer that has the color and pattern.
 	 */
-	private Layer getGraphics(ElectricObject obj)
+	private Layer getProperLayer(ElectricObject eObj)
 	{
-		// get the color information
-		Variable var = obj.getVar(ART_COLOR, Integer.class);
-		EGraphics graphics = G_lay.getGraphics();
-		if (var == null)
-		{
-			graphics.setColorIndex(EGraphics.BLACK);
-			return G_lay;
-		}
+		EGraphics graphics = makeGraphics(eObj);
+		if (graphics == null) return G_lay;
+		Layer thisLayer = Layer.newInstance(this, "Graphics", graphics);
+		return thisLayer;
+	}
+	
+	/**
+	 * Method to create an EGraphics for an ElectricObject with color and pattern Variables.
+	 * @param eObj the ElectricObject with graphics specifications.
+	 * @return a new EGraphics that has the color and pattern.
+	 */
+	public static EGraphics makeGraphics(ElectricObject eObj)
+	{
+		// get the color and pattern information
+		Variable colorVar = eObj.getVar(ART_COLOR, Integer.class);
+		Variable patternVar = eObj.getVar(ART_PATTERN);
+		if (colorVar == null && patternVar == null) return null;
 
-		Integer color = (Integer)var.getObject();
-		Layer thisLayer = (Layer)allLayers.get(color);
-		if (thisLayer != null) return thisLayer;
-
-		graphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 0.8,1,
+		// make a fake layer with graphics
+		EGraphics graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,1,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
-		graphics.setColorIndex(color.intValue());
-		thisLayer = Layer.newInstance(this, "Graphics", graphics);
-		allLayers.put(color, thisLayer);
-		return thisLayer;
 
-//		// get the stipple pattern information
-//		artpl->patternvar = getvalkey(addr, type, -1, art_patternkey);
-//		if (artpl->patternvar != NOVARIABLE)
-//		{
-//			len = getlength(artpl->patternvar);
-//			if ((len != 8 && len != 16) ||
-//				((artpl->patternvar->type&VTYPE) != VINTEGER && (artpl->patternvar->type&VTYPE) != VSHORT))
-//			{
-//				ttyputerr(_("'ART_pattern' must be a 16-member INTEGER or SHORT array"));
-//				artpl->patternvar = NOVARIABLE;
-//				return;
-//			}
-//
-//			sty = PATTERNED;
-//			if ((artpl->patternvar->type&VTYPE) == VINTEGER)
-//			{
-//				for(i=0; i<len; i++)
-//					art_st_lay.raster[i] = (UINTSML)(((INTBIG *)artpl->patternvar->addr)[i]);
-//			} else
-//			{
-//				for(i=0; i<len; i++)
-//					art_st_lay.raster[i] = ((INTSML *)artpl->patternvar->addr)[i];
-//				sty |= OUTLINEPAT;
-//			}
-//			if (len == 8)
-//			{
-//				for(i=0; i<8; i++) art_st_lay.raster[i+8] = art_st_lay.raster[i];
-//			}
-//
-//			// set the outline style (outlined if SHORT used)
-//			art_st_lay.colstyle = art_st_lay.bwstyle = (INTSML)sty;
-//		}
+		// set the color if specified
+		if (colorVar != null)
+		{
+			Integer color = (Integer)colorVar.getObject();
+			graphics.setColorIndex(color.intValue());
+		}
+
+		// set the stipple pattern if specified
+		if (patternVar != null)
+		{
+			int len = patternVar.getLength();
+			if (len != 8 && len != 16)
+			{
+				System.out.println("'ART_pattern' must be a 8 or 16-entries long");
+				return null;
+			}
+
+			graphics.setPatternedOnDisplay(true);
+			graphics.setPatternedOnPrinter(true);
+			int [] pattern = graphics.getPattern();
+			Object obj = patternVar.getObject();
+			if (obj instanceof Integer[])
+			{
+				Integer [] pat = (Integer [])obj;
+				for(int i=0; i<len; i++)
+					pattern[i] = pat[i].intValue();
+			} else if (obj instanceof Short[])
+			{
+				Short [] pat = (Short [])obj;
+				for(int i=0; i<len; i++)
+					pattern[i] = pat[i].shortValue();
+				graphics.setOutlinedOnDisplay(true);
+				graphics.setOutlinedOnPrinter(true);
+			}
+			if (len == 8)
+			{
+				for(int i=0; i<8; i++) pattern[i+8] = pattern[i];
+			}
+		}
+		return graphics;
+	}
+	
+	/**
+	 * Method to set Variables on an ElectricObject to capture information in an EGraphics.
+	 * @param graphics the EGraphics to store on the ElectricObject.
+	 * @param eObj the ElectricObject that will have new graphics information.
+	 */
+	public static void setGraphics(EGraphics graphics, ElectricObject eObj)
+	{
+		// see what is already on the object
+		Variable colorVar = eObj.getVar(ART_COLOR, Integer.class);
+		Variable patternVar = eObj.getVar(ART_PATTERN);
+
+		// set the color if specified
+		int transparent = graphics.getTransparentLayer();
+		Color newColor = graphics.getColor();
+		if (transparent == 0 && newColor == Color.BLACK)
+		{
+			if (colorVar != null) eObj.delVar(ART_COLOR);
+		} else
+		{
+			int index = 0;
+			if (transparent > 0) index = EGraphics.makeIndex(transparent); else
+				index = EGraphics.makeIndex(newColor);
+			eObj.newVar(ART_COLOR, new Integer(index));
+		}
+
+		// set the stipple pattern if specified
+		if (graphics.isPatternedOnDisplay())
+		{
+			int [] pattern = graphics.getPattern();
+			if (graphics.isOutlinedOnDisplay())
+			{
+				Short [] pat = new Short[16];
+				for(int i=0; i<16; i++)
+					pat[i] = new Short((short)pattern[i]);
+				eObj.newVar(ART_PATTERN, pat);
+			} else
+			{
+				Integer [] pat = new Integer[16];
+				for(int i=0; i<16; i++)
+					pat[i] = new Integer(pattern[i]);
+				eObj.newVar(ART_PATTERN, pat);
+			}
+		} else
+		{
+			if (patternVar != null) eObj.delVar(ART_PATTERN);
+		}
 	}
 
 	/**
@@ -786,7 +848,7 @@ public class Artwork extends Technology
 	{
 		if (name.equals("Message") || name.equals("Centered-Message") ||
 			name.equals("Left-Message") || name.equals("Right-Message"))
-				return (PrimitiveNode)NodeProto.findNodeProto("generic:Invisible-Pin");
+				return Generic.tech.invisiblePinNode;
 		if (name.equals("Opened-FarDotted-Polygon")) return openedThickerPolygonNode;
 		return null;
 	}
@@ -811,10 +873,16 @@ public class Artwork extends Technology
 	 * Method to tell whether arrow heads are filled-in.
 	 * @return true if arrow heads are filled-in.
 	 */
-	public static boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
+	public static boolean isFilledArrowHeads()
+	{
+		return cacheFillArrows.getBoolean();
+	}
 	/**
 	 * Method to set whether arrow heads are filled-in.
 	 * @param f true if arrow heads are filled-in.
 	 */
-	public static void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
+	public static void setFilledArrowHeads(boolean f)
+	{
+		cacheFillArrows.setBoolean(f);
+	}
 }

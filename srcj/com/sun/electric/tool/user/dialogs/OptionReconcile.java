@@ -216,7 +216,7 @@ public class OptionReconcile extends EDialog
 	/**
 	 * Class to apply changes to tool options in a new thread.
 	 */
-	protected static class DoReconciliation extends Job
+	private static class DoReconciliation extends Job
 	{
 		HashMap changedOptions;
 

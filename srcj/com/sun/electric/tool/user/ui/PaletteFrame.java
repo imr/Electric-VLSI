@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -192,6 +193,7 @@ public class PaletteFrame
 	 */
 	public static void autoTechnologySwitch(Cell cell)
 	{
+		if (cell.getView().isTextView()) return;
 		Technology tech = cell.getTechnology();
 		if (tech != null && tech != Technology.getCurrent())
 		{
@@ -624,7 +626,7 @@ public class PaletteFrame
 		/**
 		 * Class to read a Spice library in a new thread.
 		 */
-		protected static class ReadSpiceLibrary extends Job
+		private static class ReadSpiceLibrary extends Job
 		{
 			URL fileURL;
 			JPopupMenu cellMenu;
@@ -1183,7 +1185,7 @@ public class PaletteFrame
 	}
 
 	/** class that creates the node selected from the component menu */
-	protected static class PlaceNewNode extends Job
+	private static class PlaceNewNode extends Job
 	{
 		Object toDraw;
 		Point2D where;
@@ -1298,7 +1300,9 @@ public class PaletteFrame
 						var.setTextDescriptor(td);
 					}
 				}
-				Highlight.addElectricObject(newNi, cell);
+				ElectricObject eObj = newNi;
+				if (newNi.getNumPortInsts() > 0) eObj = (ElectricObject)newNi.getPortInsts().next();
+				Highlight.addElectricObject(eObj, cell);
 			}
 			Highlight.finished();
 			return true;

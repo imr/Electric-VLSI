@@ -219,7 +219,7 @@ public final class ExportChanges
 						arcList[a].setBit(arcMark);
 				}
 				infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
-				infstr = us_addpossiblearcconnections(infstr, arcMark);
+				infstr = addPossibleArcConnections(infstr, arcMark);
 			} else
 			{
 				m = j + 1;
@@ -283,7 +283,7 @@ public final class ExportChanges
 						infstr += pt1.substring(openPos+1, closePos);
 					}
 					infstr += "]' at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
-					infstr = us_addpossiblearcconnections(infstr, arcMark);
+					infstr = addPossibleArcConnections(infstr, arcMark);
 				} else
 				{
 					// isolated export
@@ -294,7 +294,7 @@ public final class ExportChanges
 					ArcProto [] arcList = pp.getBasePort().getConnections();
 					for(int a=0; a<arcList.length; a++)
 						arcList[a].setBit(arcMark);
-					infstr = us_addpossiblearcconnections(infstr, arcMark);
+					infstr = addPossibleArcConnections(infstr, arcMark);
 
 					// check for the export in the associated cell
 					if (wnp != null)
@@ -323,7 +323,7 @@ public final class ExportChanges
 	 * Helper routine to add all marked arc prototypes to the infinite string.
 	 * Marking is done by having the "temp1" field be nonzero.
 	 */
-	private static String us_addpossiblearcconnections(String infstr, FlagSet arcMark)
+	private static String addPossibleArcConnections(String infstr, FlagSet arcMark)
 	{
 		int i = 0;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
@@ -441,7 +441,7 @@ public final class ExportChanges
 		ReExport job = new ReExport(cell, null, true);
 	}
 
-	protected static class ReExport extends Job
+	private static class ReExport extends Job
 	{
 		Cell cell;
 		Rectangle2D bounds;
@@ -721,7 +721,7 @@ public final class ExportChanges
 		RenameExport job = new RenameExport(pp, response);
 	}
 
-	protected static class DeleteExports extends Job
+	private static class DeleteExports extends Job
 	{
 		List exportsToDelete;
 
@@ -751,7 +751,7 @@ public final class ExportChanges
 		}
 	}
 
-	protected static class MoveExport extends Job
+	private static class MoveExport extends Job
 	{
 		Export source;
 		PortInst dest;
@@ -774,7 +774,7 @@ public final class ExportChanges
 	/**
 	 * Class to rename a cell in a new thread.
 	 */
-	protected static class RenameExport extends Job
+	private static class RenameExport extends Job
 	{
 		Export pp;
 		String newName;

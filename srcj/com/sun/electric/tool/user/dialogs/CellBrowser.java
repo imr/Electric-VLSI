@@ -112,7 +112,9 @@ public class CellBrowser extends EDialog {
         initExtras();                           // set up an extra components
         pack();
     }
-    
+
+	protected void escapePressed() { cancelActionPerformed(null); }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

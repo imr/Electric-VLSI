@@ -143,6 +143,8 @@ public class GetInfoMulti extends JDialog implements HighlightListener, Database
 		loadMultiInfo();
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	private void loadMultiInfo()
 	{
 		// copy the selected objects to a private list and sort it
@@ -401,7 +403,7 @@ public class GetInfoMulti extends JDialog implements HighlightListener, Database
 	/**
 	 * This class implements database changes requested by the dialog.
 	 */
-	protected static class MultiChange extends Job
+	private static class MultiChange extends Job
 	{
 		GetInfoMulti dialog;
 

@@ -338,8 +338,8 @@ public class Undo
 				NodeInst ni = (NodeInst)obj;
 				double oldCX = ni.getAnchorCenterX();
 				double oldCY = ni.getAnchorCenterY();
-				double oldSX = ni.getXSize();
-				double oldSY = ni.getYSize();
+				double oldSX = ni.getXSizeWithMirror();
+				double oldSY = ni.getYSizeWithMirror();
 				int oldRot = ni.getAngle();
 
 				// change the node information
@@ -1138,10 +1138,8 @@ public class Undo
 		ch.setDoubles(oCX, oCY, oSX, oSY);
 		ch.i1 = oRot;
 		ni.setChange(ch);
-
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
-		//Constraint.getCurrent().modifyArcInst(ni, oCX, oCY, oSX, oSY, oRot);
 	}
 
 	/**
@@ -1160,10 +1158,8 @@ public class Undo
 		ch.setDoubles(oHX, oHY, oTX, oTY);
 		ch.a5 = oWid;
 		ai.setChange(ch);
-
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
-		//Constraint.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
 	}
 
 	/**

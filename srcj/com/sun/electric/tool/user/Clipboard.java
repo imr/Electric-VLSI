@@ -146,7 +146,7 @@ public class Clipboard
         CopyObjects job = new CopyObjects();
 	}
 
-	protected static class CopyObjects extends Job
+	private static class CopyObjects extends Job
 	{
 		protected CopyObjects()
 		{
@@ -188,7 +188,7 @@ public class Clipboard
         CutObjects job = new CutObjects();
 	}
 
-	protected static class CutObjects extends Job
+	private static class CutObjects extends Job
 	{
 		protected CutObjects()
 		{
@@ -233,7 +233,7 @@ public class Clipboard
         DuplicateObjects job = new DuplicateObjects();
     }
 
-    protected static class DuplicateObjects extends Job
+	private static class DuplicateObjects extends Job
     {
         protected DuplicateObjects()
         {
@@ -363,7 +363,7 @@ public class Clipboard
 		}
 	}
 
-	protected static class PasteArcToArc extends Job
+	private static class PasteArcToArc extends Job
 	{
 		ArcInst src, dst;
 
@@ -383,7 +383,7 @@ public class Clipboard
 		}
 	}
 
-	protected static class PasteNodeToNode extends Job
+	private static class PasteNodeToNode extends Job
 	{
 		NodeInst src, dst;
 
@@ -403,7 +403,7 @@ public class Clipboard
 		}
 	}
 
-	protected static class PasteObjects extends Job
+	private static class PasteObjects extends Job
 	{
 		List pasteList;
 		double dX, dY;

@@ -55,6 +55,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.GraphicsEnvironment;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -144,10 +145,12 @@ public class EditOptions extends EDialog
 		initTechnology();		// initialize the Technology Options panel
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	/**
 	 * Class to update primitive node information.
 	 */
-	protected static class OKUpdate extends Job
+	private static class OKUpdate extends Job
 	{
 		EditOptions dialog;
 
@@ -183,6 +186,7 @@ public class EditOptions extends EDialog
 	private boolean initialBeepAfterLongJobs;
 	private boolean initialClickSounds;
 	private boolean initialShowFileSelectionForNetlists;
+	private boolean initialShowCursorCoordinates;
 	private boolean initialIncludeDateAndVersion;
 	private int initialErrorLimit;
 	private long initialMaxMem;
@@ -201,6 +205,9 @@ public class EditOptions extends EDialog
 
 		initialShowFileSelectionForNetlists = User.isShowFileSelectionForNetlists();
 		generalShowFileDialog.setSelected(initialShowFileSelectionForNetlists);
+
+		initialShowCursorCoordinates = User.isShowCursorCoordinatesInStatus();
+		generalShowCursorCoordinates.setSelected(initialShowCursorCoordinates);
 
 		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
 		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
@@ -232,6 +239,10 @@ public class EditOptions extends EDialog
 		boolean curentShowFileSelectionForNetlists = generalShowFileDialog.isSelected();
 		if (curentShowFileSelectionForNetlists != initialShowFileSelectionForNetlists)
 			User.setShowFileSelectionForNetlists(curentShowFileSelectionForNetlists);
+
+		boolean currentShowCursorCoordinates = generalShowCursorCoordinates.isSelected();
+		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
+			User.setShowCursorCoordinatesInStatus(currentShowCursorCoordinates);
 
 		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
 		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
@@ -1058,8 +1069,8 @@ public class EditOptions extends EDialog
 	private double initialGridXSpacing, initialGridYSpacing;
 	private double initialGridDefXSpacing, initialGridDefYSpacing;
 	private int initialGridDefXBoldFrequency, initialGridDefYBoldFrequency;
-	private boolean initialGridAlignWithCircuitry, initialShowCursorCoordinates;
-	private double initialGridAlignment, initialGridEdgeAlignment;
+	private boolean initialGridAlignWithCircuitry;
+	private double initialGridAlignment;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1089,11 +1100,6 @@ public class EditOptions extends EDialog
 		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
 
 		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
-
-		// not yet
-		gridAlignEdges.setText(Double.toString(initialGridEdgeAlignment = User.getEdgeAlignmentToGrid()));
-		gridAlignEdges.setEnabled(false);
-		jLabel39.setEnabled(false);
 	}
 
 	/**
@@ -1130,40 +1136,15 @@ public class EditOptions extends EDialog
 		if (currentDefYBoldFrequency != initialGridDefYBoldFrequency)
 			User.setDefGridYBoldFrequency(currentDefYBoldFrequency);
 
-		boolean currentShowCursorCoordinates = gridShowCursorCoords.isSelected();
-		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
-			StatusBar.setShowCoordinates(currentShowCursorCoordinates);
-
 		double currentAlignment = TextUtils.atof(gridAlignCursor.getText());
 		if (currentAlignment != initialGridAlignment)
 			User.setAlignmentToGrid(currentAlignment);
-
-		double currentEdgeAlignment = TextUtils.atof(gridAlignEdges.getText());
-		if (currentEdgeAlignment != initialGridEdgeAlignment)
-			User.setEdgeAlignmentToGrid(currentEdgeAlignment);
 	}
 
 	//******************************** LAYERS ********************************
 
-	private JPanel layerPatternView, layerPatternIcon;
 	private HashMap layerMap;
-	private boolean layerChanging = false;
-	static class LayerInformation
-	{
-		EGraphics graphics;
-		int [] pattern;
-		boolean useStippleDisplay;
-		boolean outlinePatternDisplay;
-		boolean useStipplePrinter;
-		boolean outlinePatternPrinter;
-		int transparentLayer;
-		int red, green, blue;
-
-		LayerInformation()
-		{
-			pattern = new int[16];
-		}
-	}
+	private ColorPatternPanel colorPatternPanel;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1171,663 +1152,41 @@ public class EditOptions extends EDialog
 	 */
 	private void initLayers()
 	{
-		int [] colors = EGraphics.getTransparentColors();
-		layerColor.addItem("Not Transparent");
-		for(int i=0; i<colors.length; i++)
-			layerColor.addItem(EGraphics.getColorName(colors[i]));
-
 		Technology tech = Technology.getCurrent();
-
 		layerMap = new HashMap();
 		layerTechName.setText("For " + tech.getTechName() + " layer:");
 		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			layerName.addItem(layer.getName());
-			LayerInformation li = new LayerInformation();
-			EGraphics graphics = layer.getGraphics();
-			int [] pattern = graphics.getPattern();
-			for(int i=0; i<16; i++) li.pattern[i] = pattern[i];
-			li.useStippleDisplay = graphics.isPatternedOnDisplay();
-			li.outlinePatternDisplay = graphics.isOutlinePatternedOnDisplay();
-			li.useStipplePrinter = graphics.isPatternedOnPrinter();
-			li.outlinePatternPrinter = graphics.isOutlinePatternedOnPrinter();
-			li.transparentLayer = graphics.getTransparentLayer();
-			int color = graphics.getColor().getRGB();
-			li.red = (color >> 16) & 0xFF;
-			li.green = (color >> 8) & 0xFF;
-			li.blue = color & 0xFF;
+			ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
 			layerMap.put(layer, li);
 		}
 		layerName.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { layerSelected(); }
 		});
-		layerUseStipplePatternDisplay.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
-		});
-		layerOutlinePatternDisplay.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
-		});
-		layerUseStipplePatternPrinter.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
-		});
-		layerOutlinePatternPrinter.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
-		});
-		layerColor.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
-		});
-		layerRed.getDocument().addDocumentListener(new LayerColorDocumentListener());
-		layerGreen.getDocument().addDocumentListener(new LayerColorDocumentListener());
-		layerBlue.getDocument().addDocumentListener(new LayerColorDocumentListener());
 
-		layerPatternView = new LayerPatternView();
-		layerPatternView.setMaximumSize(new java.awt.Dimension(257, 257));
-		layerPatternView.setMinimumSize(new java.awt.Dimension(257, 257));
-		layerPatternView.setPreferredSize(new java.awt.Dimension(257, 257));
-		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 0;       gbc.gridy = 5;
-		gbc.gridwidth = 7;   gbc.gridheight = 1;
+		// make the color/pattern panel
+		colorPatternPanel = new ColorPatternPanel(true);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 1;
+		gbc.weightx = 1;    gbc.weighty = 1;
+		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-		layers.add(layerPatternView, gbc);
+		layers.add(colorPatternPanel, gbc);
+
+		// initial load of the panel
 		layerSelected();
-
-		layerPatternIcon = new LayerPatternChoices();
-		layerPatternIcon.setMaximumSize(new java.awt.Dimension(352, 16));
-		layerPatternIcon.setMinimumSize(new java.awt.Dimension(352, 16));
-		layerPatternIcon.setPreferredSize(new java.awt.Dimension(352, 16));
-		gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 7;
-		gbc.gridwidth = 7;   gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-		layers.add(layerPatternIcon, gbc);
-
-		// not yet
-		layerOutlinePatternDisplay.setEnabled(false);
-		layerOutlinePatternPrinter.setEnabled(false);
 	}
 
 	private void layerSelected()
 	{
-		layerChanging = true;
 		String name = (String)layerName.getSelectedItem();
 		Layer layer = Technology.getCurrent().findLayer(name);
-		LayerInformation li = (LayerInformation)layerMap.get(layer);
+		ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
 		if (li == null) return;
-		layerUseStipplePatternDisplay.setSelected(li.useStippleDisplay);
-		layerOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
-		layerUseStipplePatternPrinter.setSelected(li.useStipplePrinter);
-		layerOutlinePatternPrinter.setSelected(li.outlinePatternPrinter);
-		layerColor.setSelectedIndex(li.transparentLayer);
-		if (li.transparentLayer == 0)
-		{
-			// a pure color
-			layerRedLabel.setEnabled(true);
-			layerRed.setEnabled(true);
-			layerRed.setText(Integer.toString(li.red));
-			layerGreenLabel.setEnabled(true);
-			layerGreen.setEnabled(true);
-			layerGreen.setText(Integer.toString(li.green));
-			layerBlueLabel.setEnabled(true);
-			layerBlue.setEnabled(true);
-			layerBlue.setText(Integer.toString(li.blue));
-		} else
-		{
-			// a transparent color
-			layerRedLabel.setEnabled(false);
-			layerRed.setText("");
-			layerRed.setEnabled(false);
-			layerGreenLabel.setEnabled(false);
-			layerGreen.setText("");
-			layerGreen.setEnabled(false);
-			layerBlueLabel.setEnabled(false);
-			layerBlue.setText("");
-			layerBlue.setEnabled(false);
-		}
-		layerPatternView.repaint();
-		layerChanging = false;
-	}
-
-	private void layerInfoChanged()
-	{
-		if (layerChanging) return;
-		String name = (String)layerName.getSelectedItem();
-		Layer layer = Technology.getCurrent().findLayer(name);
-		LayerInformation li = (LayerInformation)layerMap.get(layer);
-		if (li == null) return;
-		li.useStippleDisplay = layerUseStipplePatternDisplay.isSelected();
-		li.outlinePatternDisplay = layerOutlinePatternDisplay.isSelected();
-		li.useStipplePrinter = layerUseStipplePatternPrinter.isSelected();
-		li.outlinePatternPrinter = layerOutlinePatternPrinter.isSelected();
-		li.transparentLayer = layerColor.getSelectedIndex();
-		boolean colorsEnabled = li.transparentLayer == 0;
-		layerRedLabel.setEnabled(colorsEnabled);
-		layerRed.setEnabled(colorsEnabled);
-		layerGreenLabel.setEnabled(colorsEnabled);
-		layerGreen.setEnabled(colorsEnabled);
-		layerBlueLabel.setEnabled(colorsEnabled);
-		layerBlue.setEnabled(colorsEnabled);
-		li.red = TextUtils.atoi(layerRed.getText());
-		li.green = TextUtils.atoi(layerGreen.getText());
-		li.blue = TextUtils.atoi(layerBlue.getText());
-	}
-
-	/**
-	 * Class to handle special changes to layer color options.
-	 */
-	private class LayerColorDocumentListener implements DocumentListener
-	{
-		LayerColorDocumentListener() {}
-
-		public void changedUpdate(DocumentEvent e) { layerInfoChanged(); }
-		public void insertUpdate(DocumentEvent e) { layerInfoChanged(); }
-		public void removeUpdate(DocumentEvent e) { layerInfoChanged(); }
-	}
-
-	private class LayerPatternView extends JPanel
-		implements MouseMotionListener, MouseListener
-	{
-		boolean newState;
-
-		LayerPatternView()
-		{
-			addMouseListener(this);
-			addMouseMotionListener(this);
-		}
-
-		/**
-		 * Method to repaint this LayerPatternView.
-		 */
-		public void paint(Graphics g)
-		{
-			Dimension dim = getSize();
-			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, dim.width, dim.height);
-			g.setColor(Color.BLACK);
-			for(int i=0; i<=256; i += 16)
-			{
-				g.drawLine(i, 0, i, 256);
-				g.drawLine(0, i, 256, i);
-			}
-
-			String name = (String)layerName.getSelectedItem();
-			Layer layer = Technology.getCurrent().findLayer(name);
-			LayerInformation li = (LayerInformation)layerMap.get(layer);
-			if (li == null) return;
-			for(int y=0; y<16; y++)
-			{
-				int bits = li.pattern[y];
-				for(int x=0; x<16; x++)
-				{
-					if ((bits & (1<<(15-x))) != 0)
-					{
-						g.fillRect(x*16, y*16, 16, 16);
-					}
-				}
-			}
-		}
-
-		// the MouseListener events
-		public void mousePressed(MouseEvent evt)
-		{
-			String name = (String)layerName.getSelectedItem();
-			Layer layer = Technology.getCurrent().findLayer(name);
-			LayerInformation li = (LayerInformation)layerMap.get(layer);
-			if (li == null) return;
-			int xIndex = evt.getX() / 16;
-			int yIndex = evt.getY() / 16;
-			int curWord = li.pattern[yIndex];
-			newState = (curWord & (1<<(15-xIndex))) == 0;
-			mouseDragged(evt);
-		}
-		public void mouseReleased(MouseEvent evt) {}
-		public void mouseClicked(MouseEvent evt) {}
-		public void mouseEntered(MouseEvent evt) {}
-		public void mouseExited(MouseEvent evt) {}
-
-		// the MouseMotionListener events
-		public void mouseMoved(MouseEvent evt) {}
-		public void mouseDragged(MouseEvent evt)
-		{
-			String name = (String)layerName.getSelectedItem();
-			Layer layer = Technology.getCurrent().findLayer(name);
-			LayerInformation li = (LayerInformation)layerMap.get(layer);
-			if (li == null) return;
-			int xIndex = evt.getX() / 16;
-			int yIndex = evt.getY() / 16;
-			int curWord = li.pattern[yIndex];
-			if ((curWord & (1<<(15-xIndex))) != 0)
-			{
-				if (newState) return;
-				curWord &= ~(1<<(15-xIndex));
-			} else
-			{
-				if (!newState) return;
-				curWord |= 1<<(15-xIndex);
-			}
-			li.pattern[yIndex] = curWord;
-			repaint();
-		}
-	}
-
-	private static final int [] preDefinedPatterns =
-	{
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
-		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
-		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
-		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
-		0x1111,  //    X   X   X   X
-
-		0x8888,  // X   X   X   X   
-		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
-		0x3333,  //   XX  XX  XX  XX
-		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
-		0x3333,  //   XX  XX  XX  XX
-		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
-		0x3333,  //   XX  XX  XX  XX
-		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
-		0x3333,  //   XX  XX  XX  XX
-		0x3333,  //   XX  XX  XX  XX
-
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
-
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-
-		0x6060,  //  XX      XX     
-		0x9090,  // X  X    X  X    
-		0x9090,  // X  X    X  X    
-		0x6060,  //  XX      XX     
-		0x0606,  //      XX      XX 
-		0x0909,  //     X  X    X  X
-		0x0909,  //     X  X    X  X
-		0x0606,  //      XX      XX 
-		0x6060,  //  XX      XX     
-		0x9090,  // X  X    X  X    
-		0x9090,  // X  X    X  X    
-		0x6060,  //  XX      XX     
-		0x0606,  //      XX      XX 
-		0x0909,  //     X  X    X  X
-		0x0909,  //     X  X    X  X
-		0x0606,  //      XX      XX 
-
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
-		0x1111,  //    X   X   X   X
-
-		0x1010,  //    X       X    
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
-		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0404,  //      X       X  
-		0x0808,  //     X       X   
-		0x1010,  //    X       X    
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
-		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0404,  //      X       X  
-		0x0808,  //     X       X   
-
-		0x0808,  //     X       X   
-		0x0404,  //      X       X  
-		0x0202,  //       X       X 
-		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x1010,  //    X       X    
-		0x0808,  //     X       X   
-		0x0404,  //      X       X  
-		0x0202,  //       X       X 
-		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x1010,  //    X       X    
-
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
-		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
-		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-
-		0x0000,  //                 
-		0x0303,  //       XX      XX
-		0x4848,  //  X  X    X  X   
-		0x0303,  //       XX      XX
-		0x0000,  //                 
-		0x3030,  //   XX      XX    
-		0x8484,  // X    X  X    X  
-		0x3030,  //   XX      XX    
-		0x0000,  //                 
-		0x0303,  //       XX      XX
-		0x4848,  //  X  X    X  X   
-		0x0303,  //       XX      XX
-		0x0000,  //                 
-		0x3030,  //   XX      XX    
-		0x8484,  // X    X  X    X  
-		0x3030,  //   XX      XX    
-
-		0x1C1C,  //    XXX     XXX  
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x3636,  //   XX XX   XX XX 
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x1C1C,  //    XXX     XXX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1C1C,  //    XXX     XXX  
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x3636,  //   XX XX   XX XX 
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x1C1C,  //    XXX     XXX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0xFFFF   // XXXXXXXXXXXXXXXX
-	};
-
-	private class LayerPatternChoices extends JPanel
-		implements MouseListener
-	{
-		LayerPatternChoices()
-		{
-			addMouseListener(this);
-		}
-
-		/**
-		 * Method to repaint this LayerPatternChoices.
-		 */
-		public void paint(Graphics g)
-		{
-			ImageIcon icon = new ImageIcon(getClass().getResource("IconLayerPatterns.gif"));
-			g.drawImage(icon.getImage(), 0, 0, null);
-		}
-
-		// the MouseListener events
-		public void mousePressed(MouseEvent evt)
-		{
-			int iconIndex = evt.getX() / 16;
-			String name = (String)layerName.getSelectedItem();
-			Layer layer = Technology.getCurrent().findLayer(name);
-			LayerInformation li = (LayerInformation)layerMap.get(layer);
-			if (li == null) return;
-			for(int i=0; i<16; i++)
-			{
-				li.pattern[i] = preDefinedPatterns[iconIndex*16+i];
-			}
-			layerPatternView.repaint();
-		}
-		public void mouseReleased(MouseEvent evt) {}
-		public void mouseClicked(MouseEvent evt) {}
-		public void mouseEntered(MouseEvent evt) {}
-		public void mouseExited(MouseEvent evt) {}
+		colorPatternPanel.setColorPattern(li);
 	}
 
 	/**
@@ -1841,49 +1200,8 @@ public class EditOptions extends EDialog
 		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			LayerInformation li = (LayerInformation)layerMap.get(layer);
-			if (li == null) continue;
-
-			EGraphics graphics = layer.getGraphics();
-			int [] pattern = graphics.getPattern();
-			boolean patternChanged = false;
-			for(int i=0; i<16; i++) if (li.pattern[i] != pattern[i]) patternChanged = true;
-			if (patternChanged)
-			{
-				graphics.setPattern(li.pattern);
-				changed = true;
-			}
-			if (li.useStippleDisplay != graphics.isPatternedOnDisplay())
-			{
-				graphics.setPatternedOnDisplay(li.useStippleDisplay);
-				changed = true;
-			}
-			if (li.outlinePatternDisplay != graphics.isOutlinePatternedOnDisplay())
-			{
-				graphics.setOutlinePatternedOnDisplay(li.outlinePatternDisplay);
-				changed = true;
-			}
-			if (li.useStipplePrinter != graphics.isPatternedOnPrinter())
-			{
-				graphics.setPatternedOnPrinter(li.useStipplePrinter);
-				changed = true;
-			}
-			if (li.outlinePatternPrinter != graphics.isOutlinePatternedOnPrinter())
-			{
-				graphics.setOutlinePatternedOnPrinter(li.outlinePatternPrinter);
-				changed = true;
-			}
-			int color = (li.red << 16) | (li.green << 8) | li.blue;
-			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
-			{
-				graphics.setColor(new Color(color));
-				changed = true;
-			}
-			if (li.transparentLayer != graphics.getTransparentLayer())
-			{
-				graphics.setTransparentLayer(li.transparentLayer);
-				changed = true;
-			}
+			ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
+			if (li.updateGraphics()) changed = true;
 		}
 		if (changed)
 		{
@@ -1897,7 +1215,7 @@ public class EditOptions extends EDialog
 	private Technology colorTech;
 	private JList colorLayerList;
 	private DefaultListModel colorLayerModel;
-	private HashMap colorMap;
+	private HashMap transAndSpecialMap;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1906,7 +1224,7 @@ public class EditOptions extends EDialog
 	private void initColors()
 	{
 		colorTech = Technology.getCurrent();
-		colorMap = new HashMap();
+		transAndSpecialMap = new HashMap();
 		colorLayerModel = new DefaultListModel();
 		colorLayerList = new JList(colorLayerModel);
 		colorLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1950,7 +1268,7 @@ public class EditOptions extends EDialog
 			StringBuffer layerNames = (StringBuffer)transparentLayers.get(layerNumber);
 			colorLayerModel.addElement("Transparent " + layerNumber.intValue() + ": " + layerNames.toString());
 			int color = currentMap[1 << (layerNumber.intValue()-1)].getRGB();
-			colorMap.put(layerNumber, new EMath.MutableInteger(color));
+			transAndSpecialMap.put(layerNumber, new EMath.MutableInteger(color));
 		}
 
 		// add the nontransparent layers
@@ -1962,40 +1280,42 @@ public class EditOptions extends EDialog
 			if (graphics.getTransparentLayer() > 0) continue;
 
 			colorLayerModel.addElement(layer.getName());
-			int color = layer.getGraphics().getColor().getRGB();
-			colorMap.put(layer, new EMath.MutableInteger(color));
+
+//			ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
+//			int color = layer.getGraphics().getColor().getRGB();
+//			colorMap.put(layer, new EMath.MutableInteger(color));
 		}
 
 		// add the special colors
 		int color = User.getColorBackground();
 		String name = "Special: BACKGROUND";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		color = User.getColorGrid();
 		name = "Special: GRID";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		color = User.getColorHighlight();
 		name = "Special: HIGHLIGHT";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		color = User.getColorPortHighlight();
 		name = "Special: PORT HIGHLIGHT";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		color = User.getColorText();
 		name = "Special: TEXT";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		color = User.getColorInstanceOutline();
 		name = "Special: INSTANCE OUTLINES";
 		colorLayerModel.addElement(name);
-		colorMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
 
 		// finish initialization
 		colorLayerList.setSelectedIndex(0);
@@ -2016,35 +1336,53 @@ public class EditOptions extends EDialog
 		}
 	}
 
-	private EMath.MutableInteger colorGetCurrent()
+	private Object colorGetCurrent()
 	{
 		String layerName = (String)colorLayerList.getSelectedValue();
 		if (layerName.startsWith("Transparent "))
 		{
 			int layerNumber = TextUtils.atoi(layerName.substring(12));
-			return (EMath.MutableInteger)colorMap.get(new Integer(layerNumber));
+			return (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
 		}
 		if (layerName.startsWith("Special: "))
 		{
-			return (EMath.MutableInteger)colorMap.get(layerName);
+			return (EMath.MutableInteger)transAndSpecialMap.get(layerName);
 		}
 		Layer layer = colorTech.findLayer(layerName);
 		if (layer == null) return null;
-		return (EMath.MutableInteger)colorMap.get(layer);
+		ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
+		return li;
+//		return (EMath.MutableInteger)colorMap.get(layer);
 	}
 
 	private void colorChanged()
 	{
-		EMath.MutableInteger color = colorGetCurrent();
-		if (color == null) return;
-		color.setValue(colorChooser.getColor().getRGB());
+		Object colorObj = colorGetCurrent();
+		if (colorObj == null) return;
+		if (colorObj instanceof EMath.MutableInteger)
+		{
+			((EMath.MutableInteger)colorObj).setValue(colorChooser.getColor().getRGB());
+		} else if (colorObj instanceof ColorPatternPanel.Info)
+		{
+			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
+			ci.red = colorChooser.getColor().getRed();
+			ci.green = colorChooser.getColor().getGreen();
+			ci.blue = colorChooser.getColor().getBlue();
+		}
 	}
 
 	private void colorClickedLayer()
 	{
-		EMath.MutableInteger color = colorGetCurrent();
-		if (color == null) return;
-		colorChooser.setColor(new Color(color.intValue()));
+		Object colorObj = colorGetCurrent();
+		if (colorObj == null) return;
+		if (colorObj instanceof EMath.MutableInteger)
+		{
+			colorChooser.setColor(new Color(((EMath.MutableInteger)colorObj).intValue()));
+		} else  if (colorObj instanceof ColorPatternPanel.Info)
+		{
+			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
+			colorChooser.setColor(new Color(ci.red, ci.green, ci.blue));
+		}
 	}
 
 	/**
@@ -2063,7 +1401,7 @@ public class EditOptions extends EDialog
 			if (layerName.startsWith("Transparent "))
 			{
 				int layerNumber = TextUtils.atoi(layerName.substring(12));
-				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(new Integer(layerNumber));
+				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
 				transparentLayerColors[layerNumber-1] = new Color(color.intValue());
 				int mapIndex = 1 << (layerNumber-1);
 				int origColor = currentMap[mapIndex].getRGB();
@@ -2074,7 +1412,7 @@ public class EditOptions extends EDialog
 				}
 			} else if (layerName.startsWith("Special: "))
 			{
-				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layerName);
+				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(layerName);
 				if (layerName.equals("Special: BACKGROUND"))
 				{
 					if (color.intValue() != User.getColorBackground())
@@ -2118,17 +1456,17 @@ public class EditOptions extends EDialog
 						colorChanged = true;
 					}
 				}
-			} else
-			{
-				Layer layer = colorTech.findLayer(layerName);
-				if (layer == null) continue;
-				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layer);
-				int origColor = layer.getGraphics().getColor().getRGB();
-				if (color.intValue() != origColor)
-				{
-					layer.getGraphics().setColor(new Color(color.intValue()));
-					colorChanged = true;
-				}
+//			} else
+//			{
+//				Layer layer = colorTech.findLayer(layerName);
+//				if (layer == null) continue;
+//				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layer);
+//				int origColor = layer.getGraphics().getColor().getRGB();
+//				if (color.intValue() != origColor)
+//				{
+//					layer.getGraphics().setColor(new Color(color.intValue()));
+//					colorChanged = true;
+//				}
 			}
 		}
 		if (mapChanged)
@@ -2159,6 +1497,8 @@ public class EditOptions extends EDialog
 	private String initialTextAnnotationFont;
 	private String initialTextInstanceFont;
 	private String initialTextCellFont;
+	private int initialTextSmartVertical;
+	private int initialTextSmartHorizontal;
 	private StringBuffer currentTextNodeFont;
 	private StringBuffer currentTextArcFont;
 	private StringBuffer currentTextExportFont;
@@ -2207,6 +1547,21 @@ public class EditOptions extends EDialog
 		currentTextAnnotationFont = new StringBuffer(TextDescriptor.getAnnotationTextDescriptorFont());
 		currentTextInstanceFont = new StringBuffer(TextDescriptor.getInstanceTextDescriptorFont());
 		currentTextCellFont = new StringBuffer(TextDescriptor.getCellTextDescriptorFont());
+
+		initialTextSmartVertical = User.getSmartVerticalPlacement();
+		switch (initialTextSmartVertical)
+		{
+			case 0: textSmartVerticalOff.setSelected(true);       break;
+			case 1: textSmartVerticalInside.setSelected(true);    break;
+			case 2: textSmartVerticalOutside.setSelected(true);   break;
+		}
+		initialTextSmartHorizontal = User.getSmartHorizontalPlacement();
+		switch (initialTextSmartVertical)
+		{
+			case 0: textSmartHorizontalOff.setSelected(true);       break;
+			case 1: textSmartHorizontalInside.setSelected(true);    break;
+			case 2: textSmartHorizontalOutside.setSelected(true);   break;
+		}
 
 		initialTextFontName = User.getDefaultFont();
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -2281,14 +1636,6 @@ public class EditOptions extends EDialog
 		});
 		textPointSize.getDocument().addDocumentListener(new TextSizeDocumentListener(this));
 		textUnitSize.getDocument().addDocumentListener(new TextSizeDocumentListener(this));
-
-		// not yet
-		textSmartVerticalOff.setEnabled(false);
-		textSmartVerticalInside.setEnabled(false);
-		textSmartVerticalOutside.setEnabled(false);
-		textSmartHorizontalOff.setEnabled(false);
-		textSmartHorizontalInside.setEnabled(false);
-		textSmartHorizontalOutside.setEnabled(false);
 	}
 
 	/**
@@ -2431,6 +1778,18 @@ public class EditOptions extends EDialog
 			TextDescriptor.setInstanceTextDescriptorFont(currentTextInstanceFont.toString());
 		if (!currentTextCellFont.toString().equals(initialTextCellFont))
 			TextDescriptor.setCellTextDescriptorFont(currentTextCellFont.toString());
+
+		int currentSmartVertical = 0;
+		if (textSmartVerticalInside.isSelected()) currentSmartVertical = 1; else
+			if (textSmartVerticalOutside.isSelected()) currentSmartVertical = 2;
+		if (currentSmartVertical != initialTextSmartVertical)
+			User.setSmartVerticalPlacement(currentSmartVertical);
+
+		int currentSmartHorizontal = 0;
+		if (textSmartHorizontalInside.isSelected()) currentSmartHorizontal = 1; else
+			if (textSmartHorizontalOutside.isSelected()) currentSmartHorizontal = 2;
+		if (currentSmartHorizontal != initialTextSmartHorizontal)
+			User.setSmartHorizontalPlacement(currentSmartHorizontal);
 	}
 
 	//******************************** 3D ********************************
@@ -2475,11 +1834,11 @@ public class EditOptions extends EDialog
 		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 
 		threeDSideView = new ThreeDSideView(this);
-		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 1;
 		gbc.gridwidth = 2;   gbc.gridheight = 4;
 		gbc.weightx = 0.5;   gbc.weighty = 1.0;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
+		gbc.fill = GridBagConstraints.BOTH;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
@@ -2702,7 +2061,6 @@ public class EditOptions extends EDialog
 	private boolean initialTechNoStackedVias;
 	private boolean initialTechAlternateContactRules;
 	private boolean initialTechSpecialTransistors;
-	private boolean initialTechStickFigures;
 	private boolean initialTechArtworkArrowsFilled;
 	private double initialTechNegatingBubbleSize;
 
@@ -2738,10 +2096,6 @@ public class EditOptions extends EDialog
 		initialTechSpecialTransistors = MoCMOS.isSpecialTransistors();
 		techMOCMOSShowSpecialTrans.setSelected(initialTechSpecialTransistors);
 
-		initialTechStickFigures = MoCMOS.isStickFigures();
-		if (initialTechStickFigures) techMOCMOSStickFigures.setSelected(true); else
-			techMOCMOSFullGeom.setSelected(true);
-
 		// Artwork
 		initialTechArtworkArrowsFilled = Artwork.isFilledArrowHeads();
 		techArtworkArrowsFilled.setSelected(initialTechArtworkArrowsFilled);
@@ -2757,10 +2111,6 @@ public class EditOptions extends EDialog
 
 		initialTechNegatingBubbleSize = Schematics.getNegatingBubbleSize();
 		techSchematicsNegatingSize.setText(Double.toString(initialTechNegatingBubbleSize));
-
-		// not yet
-		techMOCMOSFullGeom.setEnabled(false);
-		techMOCMOSStickFigures.setEnabled(false);
 	}
 
 	/**
@@ -2828,13 +2178,6 @@ public class EditOptions extends EDialog
 			redrawPalette = true;
 		}
 
-		boolean currentStickFigures = techMOCMOSStickFigures.isSelected();
-		if (currentStickFigures != initialTechStickFigures)
-		{
-			MoCMOS.setStickFigures(currentStickFigures);
-			redrawPalette = redrawWindows = true;
-		}
-
 		// Artwork
 		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
 		if (currentArrowsFilled != initialTechArtworkArrowsFilled)
@@ -2871,7 +2214,8 @@ public class EditOptions extends EDialog
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         newArcGroup = new javax.swing.ButtonGroup();
@@ -2900,6 +2244,7 @@ public class EditOptions extends EDialog
         jLabel61 = new javax.swing.JLabel();
         generalMemoryUsage = new javax.swing.JLabel();
         jLabel62 = new javax.swing.JLabel();
+        generalShowCursorCoordinates = new javax.swing.JCheckBox();
         newNode = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -3021,32 +2366,13 @@ public class EditOptions extends EDialog
         gridBoldVert = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        gridShowCursorCoords = new javax.swing.JCheckBox();
         alignPart = new javax.swing.JPanel();
         jLabel37 = new javax.swing.JLabel();
         gridAlignCursor = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
-        jLabel39 = new javax.swing.JLabel();
-        gridAlignEdges = new javax.swing.JTextField();
         layers = new javax.swing.JPanel();
-        jLabel40 = new javax.swing.JLabel();
-        layerColor = new javax.swing.JComboBox();
         layerName = new javax.swing.JComboBox();
-        layerUseStipplePatternDisplay = new javax.swing.JCheckBox();
-        layerOutlinePatternDisplay = new javax.swing.JCheckBox();
         layerTechName = new javax.swing.JLabel();
-        jLabel50 = new javax.swing.JLabel();
-        layerRedLabel = new javax.swing.JLabel();
-        layerRed = new javax.swing.JTextField();
-        layerGreenLabel = new javax.swing.JLabel();
-        layerGreen = new javax.swing.JTextField();
-        layerBlueLabel = new javax.swing.JLabel();
-        layerBlue = new javax.swing.JTextField();
-        jLabel67 = new javax.swing.JLabel();
-        jLabel51 = new javax.swing.JLabel();
-        jLabel65 = new javax.swing.JLabel();
-        layerUseStipplePatternPrinter = new javax.swing.JCheckBox();
-        layerOutlinePatternPrinter = new javax.swing.JCheckBox();
         colors = new javax.swing.JPanel();
         colorChooser = new javax.swing.JColorChooser();
         colorLayerPane = new javax.swing.JScrollPane();
@@ -3106,8 +2432,6 @@ public class EditOptions extends EDialog
         techMOCMOSDisallowStackedVias = new javax.swing.JCheckBox();
         techMOCMOSAlternateContactRules = new javax.swing.JCheckBox();
         techMOCMOSShowSpecialTrans = new javax.swing.JCheckBox();
-        techMOCMOSFullGeom = new javax.swing.JRadioButton();
-        techMOCMOSStickFigures = new javax.swing.JRadioButton();
         jPanel9 = new javax.swing.JPanel();
         techArtworkArrowsFilled = new javax.swing.JCheckBox();
         jPanel10 = new javax.swing.JPanel();
@@ -3122,8 +2446,10 @@ public class EditOptions extends EDialog
 
         setTitle("Edit Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -3160,7 +2486,7 @@ public class EditOptions extends EDialog
         generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -3169,7 +2495,7 @@ public class EditOptions extends EDialog
         jLabel46.setText("Maximum errors to report:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(jLabel46, gridBagConstraints);
@@ -3178,14 +2504,14 @@ public class EditOptions extends EDialog
         generalErrorLimit.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalErrorLimit, gridBagConstraints);
 
         jLabel53.setText("(0 for infinite)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel53, gridBagConstraints);
 
@@ -3236,10 +2562,19 @@ public class EditOptions extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(jPanel11, gridBagConstraints);
+
+        generalShowCursorCoordinates.setText("Show cursor coordinates in status bar");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        general.add(generalShowCursorCoordinates, gridBagConstraints);
 
         tabPane.addTab("General", general);
 
@@ -4262,13 +3597,6 @@ public class EditOptions extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         gridPart.add(jLabel13, gridBagConstraints);
 
-        gridShowCursorCoords.setText("Show cursor coordinates in the status bar");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridPart.add(gridShowCursorCoords, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -4299,28 +3627,10 @@ public class EditOptions extends EDialog
         jLabel38.setText("Values of zero will cause no alignment");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         alignPart.add(jLabel38, gridBagConstraints);
-
-        jLabel39.setText("Alignment of edges to grid:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        alignPart.add(jLabel39, gridBagConstraints);
-
-        gridAlignEdges.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignPart.add(gridAlignEdges, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -4332,158 +3642,21 @@ public class EditOptions extends EDialog
 
         layers.setLayout(new java.awt.GridBagLayout());
 
-        jLabel40.setText("Transparent layer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        layers.add(jLabel40, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerColor, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         layers.add(layerName, gridBagConstraints);
 
-        layerUseStipplePatternDisplay.setText("Use Stipple Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        layers.add(layerUseStipplePatternDisplay, gridBagConstraints);
-
-        layerOutlinePatternDisplay.setText("Outline Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        layers.add(layerOutlinePatternDisplay, gridBagConstraints);
-
         layerTechName.setText("For xxxxx layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         layers.add(layerTechName, gridBagConstraints);
-
-        jLabel50.setText("Click on a pattern below  to use it above::");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        layers.add(jLabel50, gridBagConstraints);
-
-        layerRedLabel.setText("Red:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerRedLabel, gridBagConstraints);
-
-        layerRed.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerRed, gridBagConstraints);
-
-        layerGreenLabel.setText("Green:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerGreenLabel, gridBagConstraints);
-
-        layerGreen.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerGreen, gridBagConstraints);
-
-        layerBlueLabel.setText("Blue:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerBlueLabel, gridBagConstraints);
-
-        layerBlue.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        layers.add(layerBlue, gridBagConstraints);
-
-        jLabel67.setText("Color:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        layers.add(jLabel67, gridBagConstraints);
-
-        jLabel51.setText("Display:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        layers.add(jLabel51, gridBagConstraints);
-
-        jLabel65.setText("Printer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
-        layers.add(jLabel65, gridBagConstraints);
-
-        layerUseStipplePatternPrinter.setText("Use Stipple Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
-        layers.add(layerUseStipplePatternPrinter, gridBagConstraints);
-
-        layerOutlinePatternPrinter.setText("Outline Pattern");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
-        layers.add(layerOutlinePatternPrinter, gridBagConstraints);
 
         tabPane.addTab("Layers", layers);
 
@@ -4499,8 +3672,8 @@ public class EditOptions extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         colors.add(colorLayerPane, gridBagConstraints);
 
         tabPane.addTab("Colors", colors);
@@ -4729,13 +3902,12 @@ public class EditOptions extends EDialog
 
         bottom.setLayout(new java.awt.GridBagLayout());
 
-        bottom.setBorder(new javax.swing.border.TitledBorder("Smart Text Placement"));
-        jLabel56.setText("Vertical Placement");
+        bottom.setBorder(new javax.swing.border.TitledBorder("Smart Placement of Export Text"));
+        jLabel56.setText("Vertical");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(jLabel56, gridBagConstraints);
 
@@ -4753,8 +3925,8 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         bottom.add(textSmartVerticalInside, gridBagConstraints);
 
         textSmartVerticalOutside.setText("Outside");
@@ -4766,12 +3938,11 @@ public class EditOptions extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(textSmartVerticalOutside, gridBagConstraints);
 
-        jLabel57.setText("Horizontal Placement");
+        jLabel57.setText("Horizontal");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(jLabel57, gridBagConstraints);
 
@@ -4789,8 +3960,8 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         bottom.add(textSmartHorizontalInside, gridBagConstraints);
 
         textSmartHorizontalOutside.setText("Outside");
@@ -4971,25 +4142,6 @@ public class EditOptions extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(techMOCMOSShowSpecialTrans, gridBagConstraints);
 
-        techMOCMOSFullGeom.setText("Full Geometry");
-        techMOCMOSSticks.add(techMOCMOSFullGeom);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSFullGeom, gridBagConstraints);
-
-        techMOCMOSStickFigures.setText("Stick Figures");
-        techMOCMOSSticks.add(techMOCMOSStickFigures);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSStickFigures, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -5065,8 +4217,10 @@ public class EditOptions extends EDialog
         getContentPane().add(tabPane, gridBagConstraints);
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        cancel.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 cancelActionPerformed(evt);
             }
         });
@@ -5079,8 +4233,10 @@ public class EditOptions extends EDialog
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        ok.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 okActionPerformed(evt);
             }
         });
@@ -5150,10 +4306,10 @@ public class EditOptions extends EDialog
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
     private javax.swing.JCheckBox generalPlayClickSounds;
+    private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JPanel grid;
     private javax.swing.JTextField gridAlignCursor;
-    private javax.swing.JTextField gridAlignEdges;
     private javax.swing.JTextField gridBoldHoriz;
     private javax.swing.JTextField gridBoldVert;
     private javax.swing.JTextField gridCurrentHoriz;
@@ -5161,7 +4317,6 @@ public class EditOptions extends EDialog
     private javax.swing.JTextField gridNewHoriz;
     private javax.swing.JTextField gridNewVert;
     private javax.swing.JPanel gridPart;
-    private javax.swing.JCheckBox gridShowCursorCoords;
     private javax.swing.JPanel icon;
     private javax.swing.JComboBox iconBidirPos;
     private javax.swing.JComboBox iconClockPos;
@@ -5212,9 +4367,7 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
-    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel40;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
@@ -5225,8 +4378,6 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel50;
-    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
@@ -5239,8 +4390,6 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
-    private javax.swing.JLabel jLabel65;
-    private javax.swing.JLabel jLabel67;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -5260,19 +4409,8 @@ public class EditOptions extends EDialog
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator9;
-    private javax.swing.JTextField layerBlue;
-    private javax.swing.JLabel layerBlueLabel;
-    private javax.swing.JComboBox layerColor;
-    private javax.swing.JTextField layerGreen;
-    private javax.swing.JLabel layerGreenLabel;
     private javax.swing.JComboBox layerName;
-    private javax.swing.JCheckBox layerOutlinePatternDisplay;
-    private javax.swing.JCheckBox layerOutlinePatternPrinter;
-    private javax.swing.JTextField layerRed;
-    private javax.swing.JLabel layerRedLabel;
     private javax.swing.JLabel layerTechName;
-    private javax.swing.JCheckBox layerUseStipplePatternDisplay;
-    private javax.swing.JCheckBox layerUseStipplePatternPrinter;
     private javax.swing.JPanel layers;
     private javax.swing.JPanel middle;
     private javax.swing.JPanel newArc;
@@ -5308,13 +4446,11 @@ public class EditOptions extends EDialog
     private javax.swing.JCheckBox techMOCMOSAlternateContactRules;
     private javax.swing.JRadioButton techMOCMOSDeepRules;
     private javax.swing.JCheckBox techMOCMOSDisallowStackedVias;
-    private javax.swing.JRadioButton techMOCMOSFullGeom;
     private javax.swing.JComboBox techMOCMOSMetalLayers;
     private javax.swing.ButtonGroup techMOCMOSRules;
     private javax.swing.JRadioButton techMOCMOSSCMOSRules;
     private javax.swing.JCheckBox techMOCMOSSecondPoly;
     private javax.swing.JCheckBox techMOCMOSShowSpecialTrans;
-    private javax.swing.JRadioButton techMOCMOSStickFigures;
     private javax.swing.ButtonGroup techMOCMOSSticks;
     private javax.swing.JRadioButton techMOCMOSSubmicronRules;
     private javax.swing.JTextField techSchematicsNegatingSize;

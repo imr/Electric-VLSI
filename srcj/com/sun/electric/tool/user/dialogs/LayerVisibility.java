@@ -97,6 +97,8 @@ public class LayerVisibility extends EDialog
 		technology.setSelectedItem(Technology.getCurrent().getTechName());
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	private void termDialog()
 	{
 		// update visibility

@@ -96,7 +96,7 @@ public class AutoStitch
 	/**
 	 * Class to change the node/arc type in a new thread.
 	 */
-	protected static class AutoStitchJob extends Job
+	private static class AutoStitchJob extends Job
 	{
 		List nodesToStitch;
 		FlagSet nodeMark;

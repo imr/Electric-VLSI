@@ -108,7 +108,7 @@ public class PadGenerator {
     }
 
 
-    public static class PadFrame extends Job {
+	private static class PadFrame extends Job {
         String filename;
         String padframename;                        // name of pad frame cell
         String corename;                            // core cell to stick in pad frame

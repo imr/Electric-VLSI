@@ -113,6 +113,8 @@ public class CrossLibCopy extends EDialog
 		useExistingSubcells.setSelected(lastUseExisting);
 	}
 
+	protected void escapePressed() { doneActionPerformed(null); }
+
 	private void leftListClick(java.awt.event.MouseEvent evt)
 	{
 		int index = listLeft.getSelectedIndex();

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.EditOptions;
 import com.sun.electric.tool.user.dialogs.IOOptions;
@@ -392,7 +393,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton expandButton = ToolBarButton.newInstance("Expand Cell Instances",
             new ImageIcon(toolbar.getClass().getResource("ButtonExpand.gif")));
 		expandButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.expandOneLevelDownCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); } });
 		expandButton.setToolTipText("Expand Cell Instances");
         expandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(expandButton);
@@ -401,7 +402,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton unExpandButton = ToolBarButton.newInstance("Unexpand Cell Instances",
             new ImageIcon(toolbar.getClass().getResource("ButtonUnexpand.gif")));
 		unExpandButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.unexpandOneLevelUpCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); } });
 		unExpandButton.setToolTipText("Unexpand Cell Instances");
         unExpandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(unExpandButton);

@@ -326,7 +326,7 @@ public class LETool extends Tool {
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
             }
-            wnd.repaintContents();
+            wnd.repaintContents(null);
 			return true;
        }
 

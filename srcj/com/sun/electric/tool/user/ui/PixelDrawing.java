@@ -229,9 +229,9 @@ public class PixelDrawing
 	/** list of cell expansions. */							private static HashMap expandedCells = null;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
+	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,1,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0, 1.0,1,
+	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 1.0,1,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     // ************************************* TOP LEVEL *************************************
@@ -284,9 +284,11 @@ public class PixelDrawing
 	/**
 	 * This is the entrypoint for rendering.
 	 * It displays a cell in this offscreen window.
+	 * @param bounds the area in the cell to expand fully.
+	 * If null, draw the cell normally; otherwise expand all the way in that area.
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	public void drawImage()
+	public void drawImage(Rectangle2D bounds)
 	{
 		Cell cell = wnd.getCell();
 		long startTime = 0;
@@ -322,7 +324,7 @@ public class PixelDrawing
 			countCell(cell, EMath.MATID);
 
 			// now render it all
-			drawCell(cell, EMath.MATID, true);
+			drawCell(cell, bounds, EMath.MATID, true);
 		}
 
 		// merge transparent image into opaque one
@@ -509,7 +511,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, AffineTransform prevTrans, boolean topLevel)
+	private void drawCell(Cell cell, Rectangle2D bounds, AffineTransform prevTrans, boolean topLevel)
 	{
 		// draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
@@ -520,7 +522,7 @@ public class PixelDrawing
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topLevel);
+			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, bounds);
 		}
 
 		// show cell variables if at the top level
@@ -540,7 +542,7 @@ public class PixelDrawing
 	 * @param trans the transformation of the NodeInst to the display.
 	 * @param topLevel true if this is the top-level of display (not in a subcell).
 	 */
-	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel)
+	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D bounds)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -581,17 +583,32 @@ public class PixelDrawing
 		{
 			// cell instance
 			Cell subCell = (Cell)np;
+			boolean expanded = ni.isExpanded();
+			if (bounds != null)
+			{
+				if (ni.getBounds().intersects(bounds))
+				{
+					expanded = true;
+					AffineTransform transRI = ni.rotateIn();
+					AffineTransform transTI = ni.translateIn();
+					transRI.preConcatenate(transTI);
+					Rectangle2D subBounds = new Rectangle2D.Double();
+					subBounds.setRect(bounds);
+					EMath.transformRect(subBounds, transRI);
+					bounds = subBounds;
+				}
+			}
 
 			// two ways to draw a cell instance
-			if (ni.isExpanded())
+			if (expanded)
 			{
 				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
 
-				if (expandedCellCached(subCell, subTrans)) return;
+				if (expandedCellCached(subCell, subTrans, bounds)) return;
 
 				// just draw it directly
-				drawCell(subCell, subTrans, false);
+				drawCell(subCell, bounds, subTrans, false);
 				showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
@@ -841,7 +858,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform subTrans)
+	private boolean expandedCellCached(Cell subCell, AffineTransform subTrans, Rectangle2D bounds)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -895,7 +912,7 @@ public class PixelDrawing
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, subTrans, true);
+			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, true);
 			offscreensCreated++;
 		}
 
@@ -1722,7 +1739,7 @@ public class PixelDrawing
 		for(int i=0; i<points.length; i++)
 		{
 			// draw the edge lines to make the polygon clean
-			if (pattern != null && desc.isOutlinePatternedOnDisplay())
+			if (pattern != null && desc.isOutlinedOnDisplay())
 				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, desc);
 
 			// compute the direction of this edge
@@ -2560,7 +2577,13 @@ public class PixelDrawing
 		{
 			col = desc.getColor().getRGB() & 0xFFFFFF;
 			if (desc.isPatternedOnDisplay())
+			{
 				pattern = desc.getPattern();
+				if (desc.isOutlinedOnDisplay())
+				{
+					drawCircle(center, edge, layerBitMap, desc);				
+				}
+			}
 		}
 
 		// set redraw area

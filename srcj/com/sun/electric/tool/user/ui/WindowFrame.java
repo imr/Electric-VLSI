@@ -539,10 +539,10 @@ public class WindowFrame
 	 */
 	public void finished()
 	{
-        //System.out.println(this.getClass()+" being disposed of");
         // remove references to this
         synchronized(windowList) {
-            if ((windowList.size() <= 1) && !TopLevel.isMDIMode())
+            if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&
+				TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
             {
                 MenuCommands.quitCommand();
                 //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),

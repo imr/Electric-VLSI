@@ -501,7 +501,7 @@ public class EditWindow extends JPanel
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setScreenSize(getSize());
-			repaintContents();
+			repaintContents(null);
 			return;
 		}
 
@@ -535,7 +535,7 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	public void fullRepaint() { repaintContents(); }
+	public void fullRepaint() { repaintContents(null); }
 
 	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
@@ -548,7 +548,7 @@ public class EditWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-			wnd.repaintContents();
+			wnd.repaintContents(null);
 		}
 	}
 
@@ -570,14 +570,12 @@ public class EditWindow extends JPanel
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 */
-	public void repaintContents()
+	public void repaintContents(Rectangle2D bounds)
 	{
 		// start rendering thread
 		if (offscreen == null) return;
 
 		// do the redraw in the main thread
-//		offscreen.drawImage();
-//		repaint();
         setScrollPosition();                        // redraw scroll bars
 
 		// do the redraw in a separate thread
@@ -591,29 +589,31 @@ public class EditWindow extends JPanel
 			}
 			runningNow = this;
 		}
-		RenderJob renderJob = new RenderJob(this, offscreen);
+		RenderJob renderJob = new RenderJob(this, offscreen, bounds);
 	}
 
 	/**
 	 * This class queues requests to rerender a window.
 	 */
-	protected static class RenderJob extends Job
+	private static class RenderJob extends Job
 	{
 		private EditWindow wnd;
 		private PixelDrawing offscreen;
+		private Rectangle2D bounds;
 
-		protected RenderJob(EditWindow wnd, PixelDrawing offscreen)
+		protected RenderJob(EditWindow wnd, PixelDrawing offscreen, Rectangle2D bounds)
 		{
 			super("Display", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.offscreen = offscreen;
+			this.bounds = bounds;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// do the hard work of re-rendering the image
-			offscreen.drawImage();
+			offscreen.drawImage(bounds);
 
 			// see if anything else is queued
 			synchronized(redrawThese)
@@ -622,7 +622,7 @@ public class EditWindow extends JPanel
 				{
 					runningNow = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen());
+					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
 					return true;
 				}
 				runningNow = null;
@@ -640,7 +640,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawNode(ni, EMath.MATID, true);
+		offscreen.drawNode(ni, EMath.MATID, true, null);
 		return offscreen.composite();
 	}
 
@@ -1549,7 +1549,7 @@ public class EditWindow extends JPanel
 		{
 			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
 			computeDatabaseBounds();
-			repaintContents();
+			repaintContents(null);
 		}
 	}
 
@@ -1579,7 +1579,7 @@ public class EditWindow extends JPanel
 		{
 			offy = yCenter - (yThumbPos - scrollBarResolution/2) / scaleFactor * yHeight;
 			computeDatabaseBounds();
-			repaintContents();
+			repaintContents(null);
 		}
 	}
 
@@ -1687,7 +1687,7 @@ public class EditWindow extends JPanel
         if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(newoffx, offy);
         setOffset(offset);
-        repaintContents();
+        repaintContents(null);
     }
 
     public void rightScrollChanged(int value)
@@ -1703,7 +1703,7 @@ public class EditWindow extends JPanel
         if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(offx, newoffy);
         setOffset(offset);
-        repaintContents();
+        repaintContents(null);
     }
 
 	private void setScreenBounds(Rectangle2D bounds)
@@ -1729,7 +1729,7 @@ public class EditWindow extends JPanel
 		setScreenBounds(bounds);
 		setScrollPosition();
 		computeDatabaseBounds();
-		repaintContents();
+		repaintContents(null);
 	}
 
 	/**
@@ -1785,14 +1785,14 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale / 2);
-		repaintContents();
+		repaintContents(null);
 	}
 
 	public void zoomInContents()
 	{
 		double scale = getScale();
 		setScale(scale * 2);
-		repaintContents();
+		repaintContents(null);
 	}
 
 	public void focusOnHighlighted()
@@ -2131,7 +2131,7 @@ public class EditWindow extends JPanel
         // point to new location *after* calling setCell, since setCell updates by current location
         cellHistoryLocation = location;
 
-        repaintContents();
+        repaintContents(null);
     }
 
     // ************************************* COORDINATES *************************************

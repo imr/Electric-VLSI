@@ -55,6 +55,12 @@ public class CellName
 	public String getName() { return name; }
 
 	/**
+	 * Method to set the name part of a parsed Cell name.
+	 * @param name the new name part of a parsed Cell name.
+	 */
+	public void setName(String name) { this.name = name; }
+
+	/**
 	 * Method to return the view part of a parsed Cell name.
 	 * @return the view part of a parsed Cell name.
 	 */
@@ -65,6 +71,21 @@ public class CellName
 	 * @return the version part of a parsed Cell name.
 	 */
 	public int getVersion() { return version; }
+
+	/**
+	 * Method to set the version part of a parsed Cell name.
+	 * @param version the new version part of a parsed Cell name.
+	 */
+	public void setVersion(int version) { this.version = version; }
+
+	/**
+	 * Method to build the full cell name.
+	 * @return the full cell name.
+	 */
+	public String toString()
+	{
+		return name + ";" + version + "{" + view.getAbbreviation() + "}";
+	}
 
 	/**
 	 * Method to parse the specified Cell name and return a CellName object.

@@ -38,9 +38,9 @@ public class EGraphics
 {
 	/** the Layer associated with this graphics. */			private Layer layer;
 	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
-	/** display: true to outline patterns */				private boolean displayOutlinePatterned;
+	/** display: true to outline patterns */				private boolean displayOutlined;
 	/** printer: true to use patterns; false for solid */	private boolean printPatterned;
-	/** printer: true to outline patterns */				private boolean printOutlinePatterned;
+	/** printer: true to outline patterns */				private boolean printOutlined;
 	/** transparent layer to use (0 for none) */			private int transparentLayer;
 	/** color to use */										private int red, green, blue;
 	/** opacity (0 to 1) of color */						private double opacity;
@@ -126,15 +126,14 @@ public class EGraphics
 	/** defines the 12th transparent layer. */				public static final int TRANSPARENT_12 = 12;
 
 	// drawing styles
-	/** choice between solid and patterned */				private final static int NATURE =     1;
-	/** Draw as a solid fill. */							public final static int SOLIDC =      0;
-	/** Draw as a stipple pattern. */						public final static int PATTERNED =   1;
-	/** Set to draw an outline around stipple pattern. */	public final static int OUTLINEPAT = 02;
+	/** Draw as a solid fill. */							public final static int SOLID      = 0;
+	/** Draw as a stipple pattern. */						public final static int PATTERNED  = 1;
+	/** Draw as a stipple pattern with an outline. */		public final static int OUTLINEPAT = 2;
 
 	/**
 	 * Method to create a graphics object.
-	 * @param displayMethod the way to show this EGraphics on a display (SOLIDC, PATTERNED, or OUTLINEPAT).
-	 * @param printMethod the way to show this EGraphics on paper (SOLIDC, PATTERNED, or OUTLINEPAT).
+	 * @param displayMethod the way to show this EGraphics on a display (SOLID, PATTERNED, or OUTLINEPAT).
+	 * @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, or OUTLINEPAT).
 	 * @param transparentLayer the transparent layer number (0 for none).
 	 * @param red the red component of this EGraphics.
 	 * @param green the green component of this EGraphics.
@@ -148,10 +147,10 @@ public class EGraphics
 		int red, int green, int blue, double opacity, int foreground, int[] pattern)
 	{
 		this.layer = null;
-		this.displayPatterned = (displayMethod & NATURE) == PATTERNED;
-		this.displayOutlinePatterned = (displayMethod & OUTLINEPAT) != 0;
-		this.printPatterned = (printMethod & NATURE) == PATTERNED;
-		this.printOutlinePatterned = (printMethod & OUTLINEPAT) != 0;
+		this.displayPatterned = (displayMethod != SOLID);
+		this.displayOutlined = (displayMethod == OUTLINEPAT);
+		this.printPatterned = (printMethod != SOLID);
+		this.printOutlined = (printMethod == OUTLINEPAT);
 		this.transparentLayer = transparentLayer;
 		this.red = red;
 		this.green = green;
@@ -197,8 +196,8 @@ public class EGraphics
 		usePatternDisplayMap.put(layer, usePatternDisplayPref);
 
 		Pref outlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
-			Technology.getTechnologyPreferences(), displayOutlinePatterned);
-		displayOutlinePatterned = outlinePatternDisplayPref.getBoolean();
+			Technology.getTechnologyPreferences(), displayOutlined);
+		displayOutlined = outlinePatternDisplayPref.getBoolean();
 		outlinePatternDisplayMap.put(layer, outlinePatternDisplayPref);
 
 		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
@@ -207,8 +206,8 @@ public class EGraphics
 		usePatternPrinterMap.put(layer, usePatternPrinterPref);
 
 		Pref outlinePatternPrinterPref = Pref.makeBooleanPref("OutlinePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
-			Technology.getTechnologyPreferences(), printOutlinePatterned);
-		printOutlinePatterned = outlinePatternPrinterPref.getBoolean();
+			Technology.getTechnologyPreferences(), printOutlined);
+		printOutlined = outlinePatternPrinterPref.getBoolean();
 		outlinePatternPrinterMap.put(layer, outlinePatternPrinterPref);
 
 		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layer.getName() + "In" + tech.getTechName(),
@@ -283,16 +282,16 @@ public class EGraphics
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @return true to dan outline around this pattern (on the display).
 	 */
-	public boolean isOutlinePatternedOnDisplay() { return displayOutlinePatterned; }
+	public boolean isOutlinedOnDisplay() { return displayOutlined; }
 
 	/**
 	 * Method to set whether this pattern has an outline around it on the display.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o true to draw this pattern with an outline around it.
 	 */
-	public void setOutlinePatternedOnDisplay(boolean o)
+	public void setOutlinedOnDisplay(boolean o)
 	{
-		displayOutlinePatterned = o;
+		displayOutlined = o;
 
 		if (layer != null)
 		{
@@ -331,16 +330,16 @@ public class EGraphics
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @return true to dan outline around this pattern (on the printer).
 	 */
-	public boolean isOutlinePatternedOnPrinter() { return printOutlinePatterned; }
+	public boolean isOutlinedOnPrinter() { return printOutlined; }
 
 	/**
 	 * Method to set whether this pattern has an outline around it on a printer.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o true to draw this pattern with an outline around it on a printer.
 	 */
-	public void setOutlinePatternedOnPrinter(boolean o)
+	public void setOutlinedOnPrinter(boolean o)
 	{
-		printOutlinePatterned = o;
+		printOutlined = o;
 
 		if (layer != null)
 		{
@@ -398,6 +397,28 @@ public class EGraphics
 	}
 
 	/**
+	 * Method to get the opacity of this EGraphics.
+	 * Opacity runs from 0 (transparent) to 1 (opaque).
+	 * @return the opacity of this EGraphics.
+	 */
+	public double getOpacity() { return opacity; }
+
+	/**
+	 * Method to set the opacity of this EGraphics.
+	 * Opacity runs from 0 (transparent) to 1 (opaque).
+	 * @param opacity the opacity of this EGraphics.
+	 */
+	public void setOpacity(double opacity) { this.opacity = opacity; }
+
+	/**
+	 * Method to get whether this EGraphics should be drawn in the foreground.
+	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The background is typically used by implant and well layers.
+	 * @return the whether this EGraphics should be drawn in the foreground.
+	 */
+	public boolean getForeground() { return foreground != 0; }
+
+	/**
 	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.
 	 */
@@ -418,7 +439,6 @@ public class EGraphics
 		red = color.getRed();
 		green = color.getGreen();
 		blue = color.getBlue();
-
 		if (layer != null)
 		{
 			Pref pref = (Pref)colorMap.get(layer);
@@ -430,6 +450,7 @@ public class EGraphics
 	 * Method to set the color index associated with this EGraphics.
 	 * Color indices are more general than colors, because they can handle
 	 * the old C-Electric color values as well as full color values.
+	 * Artwork nodes and arcs represent individualized color by using color indices.
 	 * @param color the color index to set.
 	 */
 	public void setColorIndex(int color)
@@ -481,34 +502,64 @@ public class EGraphics
 		}
 
 		// a transparent color
-		if ((color&LAYERT1) != 0) transparentLayer = 1; else
-		if ((color&LAYERT2) != 0) transparentLayer = 2; else
-		if ((color&LAYERT3) != 0) transparentLayer = 3; else
-		if ((color&LAYERT4) != 0) transparentLayer = 4; else
-		if ((color&LAYERT5) != 0) transparentLayer = 5; else
-		if ((color&LAYERT6) != 0) transparentLayer = 6; else
-		if ((color&LAYERT7) != 0) transparentLayer = 7; else
-		if ((color&LAYERT8) != 0) transparentLayer = 8; else
-		if ((color&LAYERT9) != 0) transparentLayer = 9; else
-		if ((color&LAYERT10) != 0) transparentLayer = 10; else
-		if ((color&LAYERT11) != 0) transparentLayer = 11; else
-		if ((color&LAYERT12) != 0) transparentLayer = 12;
+		if ((color&LAYERT1) != 0) transparentLayer = TRANSPARENT_1; else
+		if ((color&LAYERT2) != 0) transparentLayer = TRANSPARENT_2; else
+		if ((color&LAYERT3) != 0) transparentLayer = TRANSPARENT_3; else
+		if ((color&LAYERT4) != 0) transparentLayer = TRANSPARENT_4; else
+		if ((color&LAYERT5) != 0) transparentLayer = TRANSPARENT_5; else
+		if ((color&LAYERT6) != 0) transparentLayer = TRANSPARENT_6; else
+		if ((color&LAYERT7) != 0) transparentLayer = TRANSPARENT_7; else
+		if ((color&LAYERT8) != 0) transparentLayer = TRANSPARENT_8; else
+		if ((color&LAYERT9) != 0) transparentLayer = TRANSPARENT_9; else
+		if ((color&LAYERT10) != 0) transparentLayer = TRANSPARENT_10; else
+		if ((color&LAYERT11) != 0) transparentLayer = TRANSPARENT_11; else
+		if ((color&LAYERT12) != 0) transparentLayer = TRANSPARENT_12;
 	}
 
 	/**
-	 * Method to get the opacity of this EGraphics.
-	 * Opacity runs from 0 (transparent) to 1 (opaque).
-	 * @return the opacity of this EGraphics.
+	 * Method to convert a Color to a color index.
+	 * Color indices are more general than colors, because they can handle
+	 * the old C-Electric color values as well as full color values.
+	 * Artwork nodes and arcs represent individualized color by using color indices.
+	 * @param color a Color object
+	 * @return the color index that describes that color.
 	 */
-	public double getOpacity() { return opacity; }
+	public static int makeIndex(Color color)
+	{
+		int red =   color.getRed();
+		int green = color.getGreen();
+		int blue =  color.getBlue();
+		int index = (red << 24) | (green << 16) | (blue << 8) | FULLRGBBIT;
+		return index;
+	}
 
 	/**
-	 * Method to get whether this EGraphics should be drawn in the foreground.
-	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
-	 * The background is typically used by implant and well layers.
-	 * @return the whether this EGraphics should be drawn in the foreground.
+	 * Method to convert a transparent layer to a color index.
+	 * Color indices are more general than colors, because they can handle
+	 * the old C-Electric color values as well as full color values.
+	 * One of the extensions they also have is the ability to describe the transarent layers.
+	 * @param transparentLayer the transparent layer number.
+	 * @return the color index that describes that transparent layer.
 	 */
-	public boolean getForeground() { return foreground != 0; }
+	public static int makeIndex(int transparentLayer)
+	{
+		switch (transparentLayer)
+		{
+			case TRANSPARENT_1: return LAYERT1;
+			case TRANSPARENT_2: return LAYERT2;
+			case TRANSPARENT_3: return LAYERT3;
+			case TRANSPARENT_4: return LAYERT4;
+			case TRANSPARENT_5: return LAYERT5;
+			case TRANSPARENT_6: return LAYERT6;
+			case TRANSPARENT_7: return LAYERT7;
+			case TRANSPARENT_8: return LAYERT8;
+			case TRANSPARENT_9: return LAYERT9;
+			case TRANSPARENT_10: return LAYERT10;
+			case TRANSPARENT_11: return LAYERT11;
+			case TRANSPARENT_12: return LAYERT12;
+		}
+		return 0;
+	}
 
 	/**
 	 * Method to find the index of a color, given its name.
@@ -554,10 +605,12 @@ public class EGraphics
 
 	/**
 	 * Method to tell the name of the color with a given index.
+	 * Color indices are more general than colors, because they can handle
+	 * the old C-Electric color values as well as full color values.
 	 * @param color the color number.
 	 * @return the name of that color.
 	 */
-	public static String getColorName(int color)
+	public static String getColorIndexName(int color)
 	{
 		if ((color&FULLRGBBIT) != 0)
 		{
@@ -608,7 +661,7 @@ public class EGraphics
 	 * Method to return the array of colors.
 	 * @return an array of the possible colors.
 	 */
-	public static int [] getColors()
+	public static int [] getColorIndices()
 	{
 		return new int [] {WHITE, BLACK, RED, BLUE, GREEN, CYAN, MAGENTA, YELLOW,
 			GRAY, ORANGE, PURPLE, BROWN, LGRAY, DGRAY, LRED, DRED, LGREEN, DGREEN, LBLUE, DBLUE,
@@ -620,7 +673,7 @@ public class EGraphics
 	 * Method to return the array of transparent colors.
 	 * @return an array of the possible transparent colors.
 	 */
-	public static int [] getTransparentColors()
+	public static int [] getTransparentColorIndices()
 	{
 		return new int [] {LAYERT1, LAYERT2, LAYERT3, LAYERT4, LAYERT5, LAYERT6, LAYERT7, LAYERT8, LAYERT9,
 			LAYERT10, LAYERT11, LAYERT12};

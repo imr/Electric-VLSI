@@ -38,6 +38,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.tool.drc.DRC;
 
 import java.awt.Color;
 
@@ -47,6 +48,9 @@ import java.awt.Color;
 public class MoCMOSSub extends Technology
 {
 	/** the Complementary MOS (old, from MOSIS, Submicron, 2-6 metals [now 6], double poly, converts to newer MOCMOS) Technology object. */	public static final MoCMOSSub tech = new MoCMOSSub();
+
+	private static final double X = -1;
+	private double [] conDist, unConDist;
 
 	// -------------------- private and protected methods ------------------------
 	private MoCMOSSub()
@@ -70,7 +74,7 @@ public class MoCMOSSub extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -90,7 +94,7 @@ public class MoCMOSSub extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -110,7 +114,7 @@ public class MoCMOSSub extends Technology
 
 		/** M1 layer */
 		Layer M1_lay = Layer.newInstance(this, "Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -190,7 +194,7 @@ public class MoCMOSSub extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -230,7 +234,7 @@ public class MoCMOSSub extends Technology
 
 		/** PA layer */
 		Layer PA_lay = Layer.newInstance(this, "P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -250,7 +254,7 @@ public class MoCMOSSub extends Technology
 
 		/** NA layer */
 		Layer NA_lay = Layer.newInstance(this, "N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -350,37 +354,37 @@ public class MoCMOSSub extends Technology
 
 		/** PC layer */
 		Layer PC_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** AC layer */
 		Layer AC_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V layer */
 		Layer V_lay = Layer.newInstance(this, "Via1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V0 layer */
 		Layer V0_lay = Layer.newInstance(this, "Via2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V1 layer */
 		Layer V1_lay = Layer.newInstance(this, "Via3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V2 layer */
 		Layer V2_lay = Layer.newInstance(this, "Via4",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V3 layer */
 		Layer V3_lay = Layer.newInstance(this, "Via5",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P1 layer */
@@ -405,17 +409,17 @@ public class MoCMOSSub extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PC0 layer */
 		Layer PC0_lay = Layer.newInstance(this, "Poly-Cap",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PAW layer */
 		Layer PAW_lay = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -435,7 +439,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -455,7 +459,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -475,7 +479,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM1 layer */
 		Layer PM1_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -555,7 +559,7 @@ public class MoCMOSSub extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -595,7 +599,7 @@ public class MoCMOSSub extends Technology
 
 		/** PPA layer */
 		Layer PPA_lay = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -615,7 +619,7 @@ public class MoCMOSSub extends Technology
 
 		/** PNA layer */
 		Layer PNA_lay = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -715,7 +719,7 @@ public class MoCMOSSub extends Technology
 
 		/** PF layer */
 		Layer PF_lay = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 170,83,170,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 170,83,170,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
@@ -1008,6 +1012,106 @@ public class MoCMOSSub extends Technology
 			".TEMP 25.0"
 		};
 		setSpiceHeaderLevel2(headerLevel2);
+
+		//******************** DESIGN RULES ********************
+
+		unConDist = new double[]
+		{
+			//          M M M M M M P P P N S S W W P A V V V V V P T P P M M M M M M P P P N S S W W P
+			//          e e e e e e o o A A e e e e o c i i i i i a r C a e e e e e e o o A A e e e e a
+			//          t t t t t t l l c c l l l l l t a a a a a s a a c t t t t t t l l c c l l l l d
+			//          1 2 3 4 5 6 y y t t P N l l y C 1 2 3 4 5 s n p t 1 2 3 4 5 6 1 2 t t P N P N F
+			//                      1 2         P N C               s   W P P P P P P P P P P P P P P r
+			/* Met1  */ 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2  */   3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met3  */     3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met4  */       3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met5  */         3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met6  */           3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly1 */             3,X,1,1,X,X,X,X,X,2,X,X,X,X,X,X,X,X,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly2 */               3,1,1,X,X,X,X,3,X,X,X,X,X,X,X,X,X,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PAct  */                 3,3,X,X,X,X,2,X,X,X,X,X,X,X,X,X,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* NAct  */                   3,X,X,X,X,2,X,X,X,X,X,X,X,X,X,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelP  */                     2,0,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelN  */                       2,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellP */                        18,0,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellN */                          18,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PolyC */                             3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* ActC  */                               3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via1  */                                 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via2  */                                   3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via3  */                                     4,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via4  */                                       3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via5  */                                         3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Pass  */                                           X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Trans */                                             X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PCap  */                                               X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PactW */                                                 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met1P */                                                   X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2P */                                                     X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met3P */                                                       X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met4P */                                                         X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met5P */                                                           X,X,X,X,X,X,X,X,X,X,X,
+			/* Met6P */                                                             X,X,X,X,X,X,X,X,X,X,
+			/* Poly1P */                                                              X,X,X,X,X,X,X,X,X,
+			/* Poly2P */                                                                X,X,X,X,X,X,X,X,
+			/* PActP */                                                                   X,X,X,X,X,X,X,
+			/* NActP */                                                                     X,X,X,X,X,X,
+			/* SelPP */                                                                       X,X,X,X,X,
+			/* SelNP */                                                                         X,X,X,X,
+			/* WelPP */                                                                           X,X,X,
+			/* WelNP */                                                                             X,X,
+			/* PadFr */                                                                               X
+		};
+		conDist = new double[]
+		{
+			/*          M M M M M M P P P N S S W W P A V V V V V P T P P M M M M M M P P P N S S W W P */
+			/*          e e e e e e o o A A e e e e o c i i i i i a r C a e e e e e e o o A A e e e e a */
+			/*          t t t t t t l l c c l l l l l t a a a a a s a a c t t t t t t l l c c l l l l d */
+			/*          1 2 3 4 5 6 y y t t P N l l y C 1 2 3 4 5 s n p t 1 2 3 4 5 6 1 2 t t P N P N F */
+			/*                      1 2         P N C               s   W P P P P P P P P P P P P P P r */
+			/* Met1  */ 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2  */   3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met3  */     3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met4  */       3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met5  */         3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met6  */           3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly1 */             3,X,1,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly2 */               3,1,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PAct  */                 3,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* NAct  */                   3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelP  */                     X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelN  */                       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellP */                         6,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellN */                           6,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PolyC */                             3,3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* ActC  */                               3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via1  */                                 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via2  */                                   3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via3  */                                     4,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via4  */                                       3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via5  */                                         3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Pass  */                                           X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Trans */                                             X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PCap  */                                               X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PactW */                                                 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met1P */                                                   X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2P */                                                     X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met3P */                                                       X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met4P */                                                         X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met5P */                                                           X,X,X,X,X,X,X,X,X,X,X,
+			/* Met6P */                                                             X,X,X,X,X,X,X,X,X,X,
+			/* Poly1P */                                                              X,X,X,X,X,X,X,X,X,
+			/* Poly2P */                                                                X,X,X,X,X,X,X,X,
+			/* PActP */                                                                   X,X,X,X,X,X,X,
+			/* NActP */                                                                     X,X,X,X,X,X,
+			/* SelPP */                                                                       X,X,X,X,X,
+			/* SelNP */                                                                         X,X,X,X,
+			/* WelPP */                                                                           X,X,X,
+			/* WelNP */                                                                             X,X,
+			/* PadFr */                                                                               X
+		};
+		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 
@@ -2019,4 +2123,14 @@ public class MoCMOSSub extends Technology
 		PAW_lay.setPureLayerNode(pawn_node);		// P-Active-Well
 		PF_lay.setPureLayerNode(pn1_node);		// Pad-Frame
 	};
+
+
+	/**
+	 * Method to return the "factory "design rules for this Technology.
+	 * @return the design rules for this Technology.
+	 */
+	public DRC.Rules getFactoryDesignRules()
+	{
+		return DRC.makeSimpleRules(this, conDist, unConDist);
+	}
 }

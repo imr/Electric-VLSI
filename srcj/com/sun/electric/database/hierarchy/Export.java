@@ -90,6 +90,7 @@ public class Export extends PortProto
 		if (pp.lowLevelName(parent, protoName)) return null;
 		if (pp.lowLevelPopulate(portInst)) return null;
 		if (pp.lowLevelLink(null)) return null;
+		pp.getTextDescriptor().setSmartPlacement();
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(pp);

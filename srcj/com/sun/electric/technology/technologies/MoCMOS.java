@@ -576,7 +576,7 @@ public class MoCMOS extends Technology
 
 		/** metal-1 layer */
 		Layer metal1_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -596,7 +596,7 @@ public class MoCMOS extends Technology
 
 		/** metal-2 layer */
 		Layer metal2_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -616,7 +616,7 @@ public class MoCMOS extends Technology
 
 		/** metal-3 layer */
 		Layer metal3_lay = Layer.newInstance(this, "Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -656,7 +656,7 @@ public class MoCMOS extends Technology
 
 		/** metal-5 layer */
 		Layer metal5_lay = Layer.newInstance(this, "Metal-5",
-			new EGraphics(EGraphics.PATTERNED|EGraphics.OUTLINEPAT, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, 0, 255,190,6, 0.4,1,
+			new EGraphics(EGraphics.OUTLINEPAT, EGraphics.OUTLINEPAT, 0, 255,190,6, 0.4,1,
 			new int[] { 0x8888,   // X   X   X   X   
 						0x1111,   //    X   X   X   X
 						0x2222,   //   X   X   X   X 
@@ -696,7 +696,7 @@ public class MoCMOS extends Technology
 
 		/** poly layer */
 		poly1_lay = Layer.newInstance(this, "Polysilicon-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -736,7 +736,7 @@ public class MoCMOS extends Technology
 
 		/** P active layer */
 		Layer pActive_lay = Layer.newInstance(this, "P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -756,7 +756,7 @@ public class MoCMOS extends Technology
 
 		/** N active layer */
 		Layer nActive_lay = Layer.newInstance(this, "N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -856,37 +856,37 @@ public class MoCMOS extends Technology
 
 		/** poly cut layer */
 		Layer polyCut_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 100,100,100, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** active cut layer */
 		Layer activeCut_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 100,100,100, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via1 layer */
 		Layer via1_lay = Layer.newInstance(this, "Via1", 
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,180,180, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via2 layer */
 		Layer via2_lay = Layer.newInstance(this, "Via2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,180,180, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via3 layer */
 		Layer via3_lay = Layer.newInstance(this, "Via3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,180,180, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via4 layer */
 		Layer via4_lay = Layer.newInstance(this, "Via4",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,180,180, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** via5 layer */
 		Layer via5_lay = Layer.newInstance(this, "Via5",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 180,180,180, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** passivation layer */
@@ -911,7 +911,7 @@ public class MoCMOS extends Technology
 
 		/** poly/trans layer */
 		transistorPoly_lay = Layer.newInstance(this, "Transistor-Poly",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -931,12 +931,12 @@ public class MoCMOS extends Technology
 
 		/** poly cap layer */
 		Layer polyCap_lay = Layer.newInstance(this, "Poly-Cap",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P act well layer */
 		Layer pActiveWell_lay = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,0,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,0,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -976,7 +976,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal 1 */
 		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -996,7 +996,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal-2 */
 		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -1016,7 +1016,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal-3 */
 		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -1056,7 +1056,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal-5 */
 		Layer pseudoMetal5_lay = Layer.newInstance(this, "Pseudo-Metal-5",
-			new EGraphics(EGraphics.PATTERNED|EGraphics.OUTLINEPAT, EGraphics.PATTERNED|EGraphics.OUTLINEPAT, 0, 255,190,6, 0.4,1,
+			new EGraphics(EGraphics.OUTLINEPAT, EGraphics.OUTLINEPAT, 0, 255,190,6, 0.4,1,
 			new int[] { 0x8888,   // X   X   X   X   
 						0x1111,   //    X   X   X   X
 						0x2222,   //   X   X   X   X 
@@ -1096,7 +1096,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo poly layer */
 		Layer pseudoPoly1_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 1.0,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -1136,7 +1136,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo P active */
 		Layer pseudoPActive_lay = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -1156,7 +1156,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo N active */
 		Layer pseudoNActive_lay = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -1256,7 +1256,7 @@ public class MoCMOS extends Technology
 
 		/** pad frame */
 		Layer padFrame_lay = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 255,0,0, 1.0,0,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 255,0,0, 1.0,0,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
@@ -2769,20 +2769,18 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Method to set the design rules back to the "factory" state for the given options.
-	 */
-	public void factoryReset()
-	{
-	}
-
-	/**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
 	 */
 	private void setState()
 	{
 		// set rules
-		if (loadDRCtables()) return;
+		DRC.Rules rules = getFactoryDesignRules();
+		if (rules != null)
+		{
+			// set the rules on the technology
+			DRC.setRules(this, rules);
+		}
 
 		// handle special transistors
 		if (isSpecialTransistors())
@@ -2897,7 +2895,6 @@ public class MoCMOS extends Technology
 		if (isDisallowStackedVias()) description += ", stacked vias disallowed";
 		if (isAlternateActivePolyRules()) description += ", alternate contact rules";
 		if (isSpecialTransistors()) description += ", shows special transistors";
-		if (isStickFigures()) description += ", stick-figures";
 		return description + ")";
 	}
 
@@ -3095,57 +3092,16 @@ public class MoCMOS extends Technology
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/
 
 	/**
-	 * Method to remove all information in the design rule tables.
-	 * Returns true on error.
+	 * Method to build "factory" design rules, given the current technology settings.
+	 * @return the "factory" design rules for this Technology.
+	 * Returns null if there is an error loading the rules.
 	 */
-	private boolean loadDRCtables()
+	public DRC.Rules getFactoryDesignRules()
 	{
-		// allocate local copy of DRC tables
-		int maxLayers = getNumLayers();
-		int tot = (maxLayers * maxLayers + maxLayers) / 2;
-
-		Double [] conDist = new Double[tot];
-		String [] conDistRules = new String[tot];
-		Double [] unConDist = new Double[tot];
-		String [] unConDistRules = new String[tot];
-
-		Double [] conDistWide = new Double[tot];
-		String [] conDistWideRules = new String[tot];
-		Double [] unConDistWide = new Double[tot];
-		String [] unConDistWideRules = new String[tot];
-
-		Double [] conDistMulti = new Double[tot];
-		String [] conDistMultiRules = new String[tot];
-		Double [] unConDistMulti = new Double[tot];
-		String [] unConDistMultiRules = new String[tot];
-
-		Double [] edgeDist = new Double[tot];
-		String [] edgeDistRules = new String[tot];
-
-		Double [] minSize = new Double[maxLayers];
-		String [] minSizeRules = new String[maxLayers];
-
-		// clear all rules
-		for(int i=0; i<tot; i++)
-		{
-			conDist[i] = new Double(-1);         conDistRules[i] = "";
-			unConDist[i] = new Double(-1);       unConDistRules[i] = "";
-
-			conDistWide[i] = new Double(-1);     conDistWideRules[i] = "";
-			unConDistWide[i] = new Double(-1);   unConDistWideRules[i] = "";
-
-			conDistMulti[i] = new Double(-1);    conDistMultiRules[i] = "";
-			unConDistMulti[i] = new Double(-1);  unConDistMultiRules[i] = "";
-
-			edgeDist[i] = new Double(-1);        edgeDistRules[i] = "";
-		}
-		for(int i=0; i<maxLayers; i++)
-		{
-			minSize[i] = new Double(-1);         minSizeRules[i] = "";
-		}
+		DRC.Rules rules = new DRC.Rules(this);
 
 		// load the DRC tables from the explanation table
-		boolean errorfound = false;
+		rules.wideLimit = new Double(WIDELIMIT);
 		for(int pass=0; pass<2; pass++)
 		{
 			for(int i=0; i < theRules.length; i++)
@@ -3209,8 +3165,7 @@ public class MoCMOS extends Technology
 					if (lay1 == null)
 					{
 						System.out.println("Warning: no layer '" + theRules[i].layer1 + "' in mocmos technology");
-						errorfound = true;
-						break;
+						return null;
 					}
 					layert1 = lay1.getIndex();
 				}
@@ -3222,8 +3177,7 @@ public class MoCMOS extends Technology
 					if (lay2 == null)
 					{
 						System.out.println("Warning: no layer '" + theRules[i].layer2 + "' in mocmos technology");
-						errorfound = true;
-						break;
+						return null;
 					}
 					layert2 = lay2.getIndex();
 				}
@@ -3234,7 +3188,7 @@ public class MoCMOS extends Technology
 				{
 					if (layert1 > layert2) {int temp = layert1; layert1 = layert2;  layert2 = temp; }
 					index = (layert1+1) * (layert1/2) + (layert1&1) * ((layert1+1)/2);
-					index = layert2 + maxLayers * layert1 - index;
+					index = layert2 + rules.numLayers * layert1 - index;
 				}
 
 				// find the nodes and arcs associated with the rule
@@ -3248,8 +3202,7 @@ public class MoCMOS extends Technology
 						if (aty == null)
 						{
 							System.out.println("Warning: no arc '" + theRules[i].nodeName + "' in mocmos technology");
-							errorfound = true;
-							break;
+							return null;
 						}
 					} else
 					{
@@ -3257,8 +3210,7 @@ public class MoCMOS extends Technology
 						if (nty == null)
 						{
 							System.out.println("Warning: no node '" + theRules[i].nodeName + "' in mocmos technology");
-							errorfound = true;
-							break;
+							return null;
 						}
 					}
 				}
@@ -3297,16 +3249,15 @@ public class MoCMOS extends Technology
 				switch (theRules[i].ruleType)
 				{
 					case MINWID:
-						minSize[layert1] = new Double(distance);
-						minSizeRules[layert1] = rule;
+						rules.minWidth[layert1] = new Double(distance);
+						rules.minWidthRules[layert1] = rule;
 						setLayerMinWidth(theRules[i].layer1, distance);
 						break;
 					case NODSIZ:
-						int node=0;
-						setDefNodeSize(nty, node, distance, distance);
+						setDefNodeSize(nty, distance, distance, rules);
 						break;
 					case SURROUND:
-						setLayerSurroundLayer(nty, lay1, lay2, distance, minSize);
+						setLayerSurroundLayer(nty, lay1, lay2, distance, rules.minWidth);
 						break;
 					case ASURROUND:
 						setArcLayerSurroundLayer(aty, lay1, lay2, distance);
@@ -3326,34 +3277,34 @@ public class MoCMOS extends Technology
 						setTransistorActiveOverhang(distance);
 						break;
 					case SPACING:
-						conDist[index] = new Double(distance);
-						unConDist[index] = new Double(distance);
-						conDistRules[index] = rule;
-						unConDistRules[index] = rule;
+						rules.conList[index] = new Double(distance);
+						rules.unConList[index] = new Double(distance);
+						rules.conListRules[index] = rule;
+						rules.unConListRules[index] = rule;
 						break;
 					case SPACINGM:
-						conDistMulti[index] = new Double(distance);
-						unConDistMulti[index] = new Double(distance);
-						conDistMultiRules[index] = rule;
-						unConDistMultiRules[index] = rule;
+						rules.conListMulti[index] = new Double(distance);
+						rules.unConListMulti[index] = new Double(distance);
+						rules.conListMultiRules[index] = rule;
+						rules.unConListMultiRules[index] = rule;
 						break;
 					case SPACINGW:
-						conDistWide[index] = new Double(distance);
-						unConDistWide[index] = new Double(distance);
-						conDistWideRules[index] = rule;
-						unConDistWideRules[index] = rule;
+						rules.conListWide[index] = new Double(distance);
+						rules.unConListWide[index] = new Double(distance);
+						rules.conListWideRules[index] = rule;
+						rules.unConListWideRules[index] = rule;
 						break;
 					case SPACINGE:
-						edgeDist[index] = new Double(distance);
-						edgeDistRules[index] = rule;
+						rules.edgeList[index] = new Double(distance);
+						rules.edgeListRules[index] = rule;
 						break;
 					case CONSPA:
-						conDist[index] = new Double(distance);
-						conDistRules[index] = rule;
+						rules.conList[index] = new Double(distance);
+						rules.conListRules[index] = rule;
 						break;
 					case UCONSPA:
-						unConDist[index] = new Double(distance);
-						unConDistRules[index] = rule;
+						rules.unConList[index] = new Double(distance);
+						rules.unConListRules[index] = rule;
 						break;
 					case CUTSPA:
 						specValues = nty.getSpecialValues();
@@ -3370,54 +3321,7 @@ public class MoCMOS extends Technology
 				}
 			}
 		}
-		if (!errorfound)
-		{
-			// set the rules on the technology
-			Variable var = newVar(DRC.MIN_CONNECTED_DISTANCES, conDist);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, conDistRules);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES, unConDist);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, unConDistRules);
-			if (var != null) var.setDontSave();
-
-			var = newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, conDistWide);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, conDistWideRules);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, unConDistWide);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, unConDistWideRules);
-			if (var != null) var.setDontSave();
-			
-			var = newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, conDistMulti);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, conDistMultiRules);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, unConDistMulti);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, unConDistMultiRules);
-			if (var != null) var.setDontSave();
-
-			var = newVar(DRC.MIN_EDGE_DISTANCES, edgeDist);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_EDGE_DISTANCES_RULE, edgeDistRules);
-			if (var != null) var.setDontSave();
-
-			var = newVar(DRC.MIN_WIDTH, minSize);
-			if (var != null) var.setDontSave();
-			var = newVar(DRC.MIN_WIDTH_RULE, minSizeRules);
-			if (var != null) var.setDontSave();
-
-			var = newVar(DRC.WIDE_LIMIT, new Double(WIDELIMIT));
-			if (var != null) var.setDontSave();
-
-			// reset valid DRC dates
-			DRC.resetDRCDates();
-		}
-
-		return(errorfound);
+		return rules;
 	}
 
 	/**
@@ -3746,12 +3650,22 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	 */
-	private void setDefNodeSize(PrimitiveNode nty, int index, double wid, double hei)
+	private void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
 	{
 		SizeOffset so = nty.getSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
 		double yindent = (nty.getDefHeight() - hei) / 2;
 		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
+
+		int index = 0;
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (np == nty) break;
+			index++;
+		}
+		rules.minNodeSize[index*2] = new Double(wid);
+		rules.minNodeSize[index*2+1] = new Double(hei);
 	}
 
 	/******************** OVERRIDES ********************/
@@ -3809,19 +3723,6 @@ public class MoCMOS extends Technology
 			return pref;
 		}
 	}
-
-	private static Pref cacheDrawStickFigures = Pref.makeBooleanPref("MoCMOSDrawStickFigures", getTechnologyPreferences(), false);
-	/**
-	 * Method to determine whether this Technology is drawing stick figures.
-	 * @return true if the MOCMOS technology is drawing stick figures.
-	 * Returns false if it is drawing full geometry (the default).
-	 */
-	public static boolean isStickFigures() { return cacheDrawStickFigures.getBoolean(); }
-	/**
-	 * Method to set whether this Technology is drawing stick figures.
-	 * @param on true if the MOCMOS technology is to draw stick figures.
-	 */
-	public static void setStickFigures(boolean on) { cacheDrawStickFigures.setBoolean(on); }
 
 	private static Pref cacheUseSpecialTransistors = Pref.makeBooleanPref("MoCMOSUseSpecialTransistors", getTechnologyPreferences(), false);
 	/**
@@ -3945,11 +3846,8 @@ public class MoCMOS extends Technology
 		delVar(TECH_LAST_STATE);
 
 		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
-//		if (oldNoStackedVias != isDisallowStackedVias())
-		{
-			newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
-			Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
-		}
+		newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
+		Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
 
 		int numMetals = 0;
 		switch (oldBits&MOCMOSMETALS)
@@ -3960,11 +3858,8 @@ public class MoCMOS extends Technology
 			case MOCMOS5METAL: numMetals = 5;   break;
 			case MOCMOS6METAL: numMetals = 6;   break;
 		}
-//		if (numMetals != getNumMetal())
-		{
-			newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
-			Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
-		}
+		newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
+		Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
 
 		int ruleSet = 0;
 		switch (oldBits&MOCMOSRULESET)
@@ -3973,234 +3868,20 @@ public class MoCMOS extends Technology
 			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
 			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
 		}
-//		if (ruleSet != getRuleSet())
-		{
-			newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
-			Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
-		}
+		newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
+		Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
 
 		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
-//		if (alternateContactRules != isAlternateActivePolyRules())
-		{
-			newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
-			Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
-		}
+		newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
+		Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
 
 		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
-//		if (secondPoly != isSecondPolysilicon())
-		{
-			newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
-			Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
-		}
+		newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
+		Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
 	}
 
 /******************** NODE DESCRIPTION (GRAPHICAL) ********************/
 
-//INTBIG intnodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	REGISTER INTBIG pindex, count;
-//	TECH_NODES *thistn;
-//	REGISTER NODEPROTO *np;
-//
-//	np = ni->proto;
-//	pindex = np->primindex;
-//
-//	// non-stick-figures: standard components
-//	if ((state&MOCMOSSTICKFIGURE) == 0)
-//	{
-//		if (pindex == NSTRANSP || pindex == NSTRANSN)
-//			return(initializescalabletransistor(ni, reasonable, win, pl, mocpl));
-//		return(tech_nodepolys(ni, reasonable, win, pl));
-//	}
-//
-//	// stick figures: special cases for special primitives
-//	thistn = np->tech->nodeprotos[pindex-1];
-//	count = thistn->layercount;
-//	switch (pindex)
-//	{
-//		case NMETAL1P:
-//		case NMETAL2P:
-//		case NMETAL3P:
-//		case NMETAL4P:
-//		case NMETAL5P:
-//		case NMETAL6P:
-//		case NPOLY1P:
-//		case NPOLY2P:
-//		case NPACTP:
-//		case NNACTP:
-//		case NACTP:
-//			// pins disappear with one or two wires
-//			if (tech_pinusecount(ni, NOWINDOWPART)) count = 0;
-//			break;
-//		case NMETPACTC:
-//		case NMETNACTC:
-//		case NMETPOLY1C:
-//		case NMETPOLY2C:
-//		case NMETPOLY12C:
-//		case NVIA1:
-//		case NVIA2:
-//		case NVIA3:
-//		case NVIA4:
-//		case NVIA5:
-//		case NPWBUT:
-//		case NNWBUT:
-//			// contacts draw a box the size of the port
-//			count = 1;
-//			break;
-//		case NTRANSP:
-//		case NTRANSN:
-//			// prepare for possible serpentine transistor
-//			count = tech_inittrans(2, ni, pl);
-//			break;
-//	}
-//
-//	// add in displayable variables
-//	pl->realpolys = count;
-//	count += tech_displayablenvars(ni, pl->curwindowpart, pl);
-//	if (reasonable != 0) *reasonable = count;
-//	return(count);
-//}
-//
-//void intshapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	TECH_POLYGON *lay;
-//	REGISTER INTBIG pindex, lambda, cx, cy;
-//	REGISTER NODEPROTO *np;
-//	REGISTER TECH_NODES *thistn;
-//	REGISTER TECH_PORTS *portdata;
-//	static Graphics contactdesc = {LAYERO, BLACK, Graphics.SOLIDC, Graphics.SOLIDC,
-//		{0,0,0,0,0,0,0,0}, NOVARIABLE, 0};
-//
-//	lay = 0;
-//	if ((state&MOCMOSSTICKFIGURE) == 0)
-//	{
-//		// non-stick-figures: standard components
-//		np = ni->proto;
-//		pindex = np->primindex;
-//		if (pindex == NSTRANSP || pindex == NSTRANSN)
-//		{
-//			iteratescalabletransistor(ni, box, poly, pl, mocpl);
-//			return;
-//		}
-//
-//		tech_shapenodepoly(ni, box, poly, pl);
-//		return;
-//	}
-//
-//	// handle displayable variables
-//	if (box >= pl->realpolys)
-//	{
-//		(void)tech_filldisplayablenvar(ni, poly, pl->curwindowpart, 0, pl);
-//		return;
-//	}
-//
-//	np = ni->proto;
-//	pindex = np->primindex;
-//	thistn = tech->nodeprotos[pindex-1];
-//	lambda = lambdaofnode(ni);
-//	switch (pindex)
-//	{
-//		case NMETAL1P:
-//		case NMETAL2P:
-//		case NMETAL3P:
-//		case NMETAL4P:
-//		case NMETAL5P:
-//		case NMETAL6P:
-//		case NPOLY1P:
-//		case NPOLY2P:
-//		case NPACTP:
-//		case NNACTP:
-//		case NACTP:
-//			// pins disappear with one or two wires
-//			lay = &thistn->layerlist[box];
-//			poly->layer = polyCut_lay;
-//			if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//			cx = (ni->lowx + ni->highx) / 2;
-//			cy = (ni->lowy + ni->highy) / 2;
-//			poly->xv[0] = cx;   poly->yv[0] = cy;
-//			poly->xv[1] = cx;   poly->yv[1] = cy + lambda/2;
-//			poly->count = 2;
-//			poly->style = DISC;
-//			poly->desc = tech->layers[poly->layer];
-//			break;
-//		case NMETPACTC:
-//		case NMETNACTC:
-//		case NMETPOLY1C:
-//		case NMETPOLY2C:
-//		case NMETPOLY12C:
-//		case NVIA1:
-//		case NVIA2:
-//		case NVIA3:
-//		case NVIA4:
-//		case NVIA5:
-//		case NPWBUT:
-//		case NNWBUT:
-//			// contacts draw a box the size of the port
-//			lay = &thistn->layerlist[box];
-//			poly->layer = polyCut_lay;
-//			if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//			portdata = &thistn->portlist[0];
-//			subrange(ni->lowx, ni->highx, portdata->lowxmul, portdata->lowxsum,
-//				portdata->highxmul, portdata->highxsum, &poly->xv[0], &poly->xv[1], lambda);
-//			subrange(ni->lowy, ni->highy, portdata->lowymul, portdata->lowysum,
-//				portdata->highymul, portdata->highysum, &poly->yv[0], &poly->yv[1], lambda);
-//			poly->count = 2;
-//			poly->style = CLOSED;
-//			poly->desc = &contactdesc;
-//
-//			// code cannot be called by multiple procesors: uses globals
-//			NOT_REENTRANT;
-//
-//			switch (pindex)
-//			{
-//				case NMETPACTC:   contactdesc.bits = LAYERT1|LAYERT3;  contactdesc.col = COLORT1|COLORT3;   break;
-//				case NMETNACTC:   contactdesc.bits = LAYERT1|LAYERT3;  contactdesc.col = COLORT1|COLORT3;   break;
-//				case NMETPOLY1C:  contactdesc.bits = LAYERT1|LAYERT2;  contactdesc.col = COLORT1|COLORT2;   break;
-//				case NMETPOLY2C:  contactdesc.bits = LAYERO;           contactdesc.col = ORANGE;            break;
-//				case NMETPOLY12C: contactdesc.bits = LAYERO;           contactdesc.col = ORANGE;            break;
-//				case NVIA1:       contactdesc.bits = LAYERT1|LAYERT4;  contactdesc.col = COLORT1|COLORT4;   break;
-//				case NVIA2:       contactdesc.bits = LAYERT4|LAYERT5;  contactdesc.col = COLORT4|COLORT5;   break;
-//				case NVIA3:       contactdesc.bits = LAYERO;           contactdesc.col = LBLUE;             break;
-//				case NVIA4:       contactdesc.bits = LAYERO;           contactdesc.col = LRED;              break;
-//				case NVIA5:       contactdesc.bits = LAYERO;           contactdesc.col = CYAN;              break;
-//				case NPWBUT:      contactdesc.bits = LAYERO;           contactdesc.col = BROWN;             break;
-//				case NNWBUT:      contactdesc.bits = LAYERO;           contactdesc.col = YELLOW;            break;
-//			}
-//			break;
-//		case NTRANSP:
-//		case NTRANSN:
-//			// prepare for possible serpentine transistor
-//			lay = &thistn->gra[box].basics;
-//			poly->layer = lay->layernum;
-//			if (poly->layer == transistorPoly_lay)
-//			{
-//				ni->lowy += lambda;
-//				ni->highy -= lambda;
-//			} else
-//			{
-//				ni->lowx += lambda + lambda/2;
-//				ni->highx -= lambda + lambda/2;
-//			}
-//			tech_filltrans(poly, &lay, thistn->gra, ni, lambda, box, (TECH_PORTS *)0, pl);
-//			if (poly->layer == transistorPoly_lay)
-//			{
-//				ni->lowy -= lambda;
-//				ni->highy += lambda;
-//			} else
-//			{
-//				ni->lowx -= lambda + lambda/2;
-//				ni->highx += lambda + lambda/2;
-//			}
-//			poly->desc = tech->layers[poly->layer];
-//			break;
-//		default:
-//			lay = &thistn->layerlist[box];
-//			tech_fillpoly(poly, lay, ni, lambda, FILLED);
-//			poly->desc = tech->layers[poly->layer];
-//			break;
-//	}
-//}
-//
 //void nodesizeoffset(NODEINST *ni, INTBIG *lx, INTBIG *ly, INTBIG *hx, INTBIG *hy)
 //{
 //	REGISTER INTBIG pindex;
@@ -4268,77 +3949,6 @@ public class MoCMOS extends Technology
 //			}
 //			break;
 //	}
-//}
-
-///******************** ARC DESCRIPTION ********************/
-//
-//void intshapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	REGISTER INTBIG aindex;
-//	REGISTER INTBIG angle;
-//	REGISTER INTBIG x1,y1, x2,y2, i;
-//	REGISTER TECH_ARCLAY *thista;
-//	static Graphics intense = {LAYERO, RED, Graphics.SOLIDC, Graphics.SOLIDC,
-//		{0,0,0,0,0,0,0,0}, NOVARIABLE, 0};
-//
-//	// handle displayable variables
-//	if (box >= pl->realpolys)
-//	{
-//		(void)tech_filldisplayableavar(ai, poly, pl->curwindowpart, 0, pl);
-//		return;
-//	}
-//
-//	// initialize for the arc
-//	aindex = ai->proto->arcindex;
-//	thista = &arcprotos[aindex]->list[box];
-//	poly->layer = thista->lay;
-//	switch (ai->proto->arcindex)
-//	{
-//		case AMETAL1:
-//		case AMETAL2:
-//		case AMETAL3:
-//		case AMETAL4:
-//		case AMETAL5:
-//		case AMETAL6:
-//			intense.col = BLUE;
-//			break;
-//		case APOLY1:
-//		case APOLY2:
-//			intense.col = RED;
-//			break;
-//		case APACT:
-//		case ANACT:
-//		case AACT:
-//			intense.col = DGREEN;
-//			break;
-//	}
-//	if (mocpl->arrowbox < 0 || box == 0)
-//	{
-//		// simple arc
-//		poly->desc = tech->layers[poly->layer];
-//		makearcpoly(ai->length, ai->width-ai->proto->nominalwidth, ai, poly, thista->style);
-//		return;
-//	}
-//
-//	// prepare special information for directional arcs
-//	poly->desc = &intense;
-//	x1 = ai->end[0].xpos;   y1 = ai->end[0].ypos;
-//	x2 = ai->end[1].xpos;   y2 = ai->end[1].ypos;
-//	angle = ((ai->userbits&AANGLE) >> AANGLESH) * 10;
-//	if ((ai->userbits&REVERSEEND) != 0)
-//	{
-//		i = x1;   x1 = x2;   x2 = i;
-//		i = y1;   y1 = y2;   y2 = i;
-//		angle = (angle+1800) % 3600;
-//	}
-//
-//	// draw the directional arrow
-//	poly->style = VECTORS;
-//	poly->layer = -1;
-//	if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//	poly->count = 0;
-//	if ((ai->userbits&NOTEND1) == 0)
-//		tech_addheadarrow(poly, angle, x2, y2, lambdaofarc(ai));
 //}
 
 }

@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * Class to implement the layout-constraint system.
@@ -115,6 +116,9 @@ public class Layout extends Constraints
 		List changedCells = new ArrayList();
 		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
 			changedCells.add(it.next());
+
+		deletedArcs = new HashSet();
+
 		for(Iterator it = changedCells.iterator(); it.hasNext(); )
 		{
 			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
@@ -122,6 +126,8 @@ public class Layout extends Constraints
 			boolean forcedLook = cc.getForcedLook();
 			computeCell(cell, forcedLook);
 		}
+
+		deletedArcs = null;
 
 		// clear all change objects
 		Undo.ChangeBatch curBatch = Undo.getCurrentBatch();
@@ -233,6 +239,8 @@ public class Layout extends Constraints
 		}
 	}
 
+	private static HashSet deletedArcs;
+
 	/**
 	 * Method to handle a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
@@ -253,11 +261,15 @@ public class Layout extends Constraints
 		if (alterNodeInst(ni, dCX, dCY, dSX, dSY, dRot, false))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
+		deletedArcs = new HashSet();
+
 		// change the arcs on the nodeinst
 		boolean flipX = (oldSX * ni.getXSizeWithMirror()) < 0;
 		boolean flipY = (oldSY * ni.getYSizeWithMirror()) < 0;
 		if (modNodeArcs(ni, dRot, dSX, dSY, flipX, flipY))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
+
+		deletedArcs = null;
 	}
 
 	/**
@@ -288,6 +300,8 @@ public class Layout extends Constraints
 			flipY[i] = (oldSY * nis[i].getYSizeWithMirror()) < 0;
 		}
 
+		deletedArcs = new HashSet();
+
 		// change the arcs on the nodeinst
 		for(int i=0; i<nis.length; i++)
 		{
@@ -296,6 +310,8 @@ public class Layout extends Constraints
 		}
 		if (parent != null)
 			Undo.ChangeCell.forceHierarchicalAnalysis(parent);
+
+		deletedArcs = null;
 	}
 
 	/******************** NODE MODIFICATION CODE *************************/
@@ -408,7 +424,7 @@ public class Layout extends Constraints
 		for(Iterator it = interiorArcs.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-//			if ((ai->userbits&DEADA) != 0) continue;
+			if (deletedArcs.contains(ai)) continue;
 
 			// prepare transformation matrix
 			AffineTransform trans = NodeInst.pureRotate(dAngle, flipX, flipY);
@@ -473,7 +489,7 @@ public class Layout extends Constraints
 		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-//			if ((ai->userbits&DEADA) != 0) continue;
+			if (deletedArcs.contains(ai)) continue;
 			ai.clearRigidModified();
 			if (DEBUG) System.out.println("  Modifying Rigid arc "+ai.describe());
 
@@ -579,7 +595,7 @@ public class Layout extends Constraints
 		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-//			if ((ai->userbits&DEADA) != 0) continue;
+			if (deletedArcs.contains(ai)) continue;
 
 			// only want arcinst that was just explored
 			if (!ai.isRigidModified()) continue;
@@ -643,7 +659,7 @@ public class Layout extends Constraints
 		for(Iterator it = flexArcs.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-//			if ((ai->userbits&DEADA) != 0) continue;
+			if (deletedArcs.contains(ai)) continue;
 			if (DEBUG) System.out.println("  Modifying fixed-angle arc "+ai.describe());
 
 			// if flexible arcinst has been changed, verify its connectivity
@@ -1096,6 +1112,7 @@ public class Layout extends Constraints
 //			ai->width = ((CHANGE *)ai->changeaddr)->p5;
 //			determineangle(ai);
 //		}
+		deletedArcs.add(ai);
 		ai.kill();
 		String oldName = ai.getName();
 		if (oldName != null) ar2.setName(oldName);

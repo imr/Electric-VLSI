@@ -47,6 +47,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
@@ -681,6 +682,16 @@ public class Technology extends ElectricObject
 	public Iterator getLayers()
 	{
 		return layers.iterator();
+	}
+
+	/**
+	 * Returns a specific Layer number in this Technology.
+	 * @param index the index of the desired Layer.
+	 * @return the indexed Layer in this Technology.
+	 */
+	public Layer getLayer(int index)
+	{
+		return (Layer)layers.get(index);
 	}
 
 	/**
@@ -1961,7 +1972,13 @@ public class Technology extends ElectricObject
 					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
 				}
 				Poly portPoly = new Poly(pointList);
-				portPoly.setStyle(Poly.Type.FILLED);
+				if (ni.getFunction() == NodeProto.Function.NODE)
+				{
+					portPoly.setStyle(Poly.Type.FILLED);
+				} else
+				{
+					portPoly.setStyle(Poly.Type.OPENED);
+				}
 				portPoly.setTextDescriptor(pp.getTextDescriptor());
 				return portPoly;
 			}
@@ -2356,6 +2373,17 @@ public class Technology extends ElectricObject
 			map[i] = new Color(r, g, b);
 		}
 		setColorMap(map);
+	}
+
+	/**
+	 * Method to get the factory design rules.
+	 * Individual technologies subclass this to create their own rules.
+	 * @return the design rules for this Technology.
+	 * Returns null if there are no design rules in this Technology.
+	 */
+	public DRC.Rules getFactoryDesignRules()
+	{
+		return null;
 	}
 
 	/**

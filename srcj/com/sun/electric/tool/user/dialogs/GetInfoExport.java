@@ -221,7 +221,9 @@ public class GetInfoExport extends JDialog implements HighlightListener, Databas
 		loadExportInfo();
 	}
 
-	protected static class ChangeExport extends Job
+	protected void escapePressed() { cancelActionPerformed(null); }
+
+	private static class ChangeExport extends Job
 	{
 		Export pp;
         String newName;
@@ -316,10 +318,10 @@ public class GetInfoExport extends JDialog implements HighlightListener, Databas
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.weightx = 0.25;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.25;
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -348,10 +350,10 @@ public class GetInfoExport extends JDialog implements HighlightListener, Databas
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.weightx = 0.25;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.25;
         getContentPane().add(apply, gridBagConstraints);
 
         leftSide.setLayout(new java.awt.GridBagLayout());
@@ -450,10 +452,10 @@ public class GetInfoExport extends JDialog implements HighlightListener, Databas
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.weightx = 0.25;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.25;
         getContentPane().add(attributes, gridBagConstraints);
 
         pack();

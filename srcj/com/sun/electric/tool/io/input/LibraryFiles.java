@@ -28,12 +28,20 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
+import java.io.InputStream;
+import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,6 +63,7 @@ public class LibraryFiles extends Input
 	/** a List of wrong-size Cells that got created */						protected List skewedCells;
 	/** The Electric version in the library file. */						protected int emajor, eminor, edetail;
 	/** the Electric version in the library file. */						protected Version version;
+	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
 
 	protected static class NodeInstList
 	{
@@ -143,6 +152,151 @@ public class LibraryFiles extends Input
 			if (viewName.equals("netlist-als-format")) return View.NETLISTALS;
 		}
 		return null;
+	}
+
+	protected Technology findTechnologyName(String name)
+	{
+		Technology tech = null;
+		if (convertMosisCmosTechnologies)
+		{
+			if (name.equals("mocmossub")) tech = MoCMOS.tech; else
+				if (name.equals("mocmos")) tech = Technology.findTechnology("mocmosold");
+		}
+		if (tech == null) tech = Technology.findTechnology(name);
+		if (tech == null && name.equals("logic"))
+			tech = Schematics.tech;
+		if (tech == null && (name.equals("epic8c") || name.equals("epic7c")))
+			tech = Technology.findTechnology("epic7s");
+		return tech;
+	}
+
+	/**
+	 * Method to read an external library file, given its name as stored on disk.
+	 * Attempts to find the file in many different ways, including asking the user.
+	 * @param theFileName the full path to the file, as written to disk.
+	 * @return a Library that was read (null on error).
+	 */
+	protected Library readExternalLibraryFromFilename(String theFileName)
+	{
+		// get the path to the library file
+		File libFile = new File(theFileName);
+
+		// see if this library is already read in
+		String libFileName = libFile.getName();
+		String libFilePath = libFile.getParent();
+		
+		// special case if the library path came from a different computer system and still has separators
+		int backSlashPos = libFileName.lastIndexOf('\\');
+		int colonPos = libFileName.lastIndexOf(':');
+		int slashPos = libFileName.lastIndexOf('/');
+		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
+		if (charPos >= 0)
+		{
+			libFileName = libFileName.substring(charPos+1);
+			libFilePath = "";
+		}
+		OpenFile.Type importType = OpenFile.Type.ELIB;
+		String libName = libFileName;
+		if (libName.endsWith(".elib"))
+		{
+			libName = libName.substring(0, libName.length()-5);
+		} else if (libName.endsWith(".txt"))
+		{
+			libName = libName.substring(0, libName.length()-4);
+			importType = OpenFile.Type.READABLEDUMP;
+		} else
+		{
+			// no recognizable extension, add one to the file name
+			libFileName += ".elib";
+		}
+
+		// first try the pure library name with no path information
+		Library elib = Library.findLibrary(libName);
+		if (elib == null)
+		{
+			// library does not exist: see if file is in the same directory as the main file
+			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
+			StringBuffer errmsg = new StringBuffer();
+			InputStream externalStream = TextUtils.getURLStream(externalURL, errmsg);
+			if (externalStream == null)
+			{
+				// try secondary library file locations
+				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
+				{
+					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
+					externalStream = TextUtils.getURLStream(externalURL, errmsg);
+					if (externalStream != null) break;
+				}
+				if (externalStream == null)
+				{
+					// try the exact path specified in the reference
+					externalURL = TextUtils.makeURLToFile(libFile.getPath());
+					externalStream = TextUtils.getURLStream(externalURL, errmsg);
+					if (externalStream == null)
+					{
+						// try the Electric library area
+						externalURL = LibFile.getLibFile(libFileName);
+						externalStream = TextUtils.getURLStream(externalURL, errmsg);
+					}
+				}
+			}
+			if (externalStream == null)
+			{
+				System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
+				System.out.print(errmsg.toString());
+				String pt = null;
+				while (true) {
+					// continue to ask the user where the library is until they hit "cancel"
+					String description = "Reference library '" + libFileName + "'";
+					pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
+					if (pt == null) {
+						// user cancelled, break
+						break;
+					}
+					// see if user chose a file we can read
+					externalURL = TextUtils.makeURLToFile(pt);
+					if (externalURL != null) {
+						externalStream = TextUtils.getURLStream(externalURL, null);
+						if (externalStream != null) {
+							// good pt, opened it, get out of here
+							break;
+						}
+					}
+				}
+			}
+			if (externalStream != null)
+			{
+				System.out.println("Reading referenced library " + externalURL.getFile());
+				elib = Library.newInstance(libName, externalURL);
+			} else
+			{
+				System.out.println("Error: cannot find referenced library " + libFile.getPath());
+				elib = null;
+			}
+			if (elib == null) return null;
+
+			// read the external library
+			String oldNote = progress.getNote();
+			if (progress != null)
+			{
+				progress.setProgress(0);
+				progress.setNote("Reading referenced library " + libName + "...");
+			}
+
+			elib = readALibrary(externalURL, externalStream, elib, importType);
+			// JKG TODO: when referenced library returns null, how to abort cleanly?
+			// GVG TODO: It should at least not allow to continue with reading
+			// Put back elib == null return 06/01/04
+			if (elib == null) return null;
+//			if (failed) elib->userbits |= UNWANTEDLIB; else
+//			{
+//				// queue this library for announcement through change control
+//				io_queuereadlibraryannouncement(elib);
+//			}
+			progress.setProgress((int)(byteCount * 100 / fileLength));
+			progress.setNote(oldNote);
+		}
+		return elib;
 	}
 
 	public static void cleanupLibraryInput()

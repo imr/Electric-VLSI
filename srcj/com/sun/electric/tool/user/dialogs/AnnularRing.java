@@ -102,6 +102,8 @@ public class AnnularRing extends EDialog
 		numDegrees.setText(Integer.toString(lastDegrees));
     }
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	private void cacheValues()
 	{
 		lastInner = TextUtils.atof(innerRadius.getText());

@@ -707,10 +707,10 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		center.setLocation(EMath.smooth(getAnchorCenterX() + dX), EMath.smooth(getAnchorCenterY() + dY));
 
-		sX = EMath.smooth(this.sX + dXSize);
-		sY = EMath.smooth(this.sY + dYSize);
+		sX = EMath.smooth(sX + dXSize);
+		sY = EMath.smooth(sY + dYSize);
 
-		angle = (angle +dRot) % 3600;
+		angle = (angle + dRot) % 3600;
 
 		// fill in the Geometric fields
 		redoGeometric();
@@ -2131,7 +2131,7 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-					" x " + bounds.getHeight() + " ****REPAIRED****");
+					" x " + bounds.getHeight() + " (REPAIRED)");
 				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
 				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
 				errorCount++;

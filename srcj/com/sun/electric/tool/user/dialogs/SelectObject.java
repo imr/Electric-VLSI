@@ -116,6 +116,8 @@ public class SelectObject extends EDialog
 		buttonClicked();
 	}
 
+	protected void escapePressed() { closeDialog(null); }
+
 	private void listClicked()
 	{
 		String s = (String)list.getSelectedValue();

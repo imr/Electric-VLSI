@@ -88,6 +88,8 @@ public class CellParameters extends EDialog
 		reloadParamList();
 	}
 
+	protected void escapePressed() { done(null); }
+
 	private void reloadParamList()
 	{
 		paramListModel.clear();
@@ -130,7 +132,7 @@ public class CellParameters extends EDialog
 	/**
 	 * Class to delete a parameter in a new thread.
 	 */
-	protected static class DeleteParameter extends Job
+	private static class DeleteParameter extends Job
 	{
 		CellParameters dialog;
 
@@ -167,7 +169,7 @@ public class CellParameters extends EDialog
 	/**
 	 * Class to create a parameter in a new thread.
 	 */
-	protected static class CreateParameter extends Job
+	private static class CreateParameter extends Job
 	{
 		CellParameters dialog;
 

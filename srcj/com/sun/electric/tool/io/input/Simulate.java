@@ -312,7 +312,7 @@ public class Simulate extends Input
 	 * Class to read HSpice output in a new thread.
 	 * For a non-interactive script, use ReadHSpiceOutput job = new ReadHSpiceOutput(filename).
 	 */
-	protected static class ReadSimulationOutput extends Job
+	private static class ReadSimulationOutput extends Job
 	{
 		Simulate is;
 		URL fileURL;

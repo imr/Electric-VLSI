@@ -243,7 +243,7 @@ class ClickAndDragListener
 		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY);
-		wnd.repaintContents();
+		wnd.repaintContents(null);
 	}
 
 }

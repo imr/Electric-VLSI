@@ -226,7 +226,7 @@ public class MimicStitch
 	/**
 	 * Class to change the node/arc type in a new thread.
 	 */
-	protected static class MimicUnstitchJob extends Job
+	private static class MimicUnstitchJob extends Job
 	{
 		List arcKills;
 
@@ -257,7 +257,7 @@ public class MimicStitch
 	/**
 	 * Class to change the node/arc type in a new thread.
 	 */
-	protected static class MimicStitchJob extends Job
+	private static class MimicStitchJob extends Job
 	{
 		private Connection conn1, conn2;
 		private double oWidth;

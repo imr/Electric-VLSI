@@ -42,17 +42,24 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.InputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class reads files in readable-dump (.txt) format.
@@ -98,7 +105,6 @@ public class ReadableDump extends LibraryFiles
 	/** All data for NodeInsts in each Cell. */						private LibraryFiles.NodeInstList[] nodeInstList;
 	/** All data for ArcInsts in each Cell. */						private ArcInstList[] arcInstList;
 	/** All data for Exports in each Cell. */						private ExportList [] exportList;
-	/** True to convert old MOSIS CMOS technologies. */				private boolean convertMosisCMOSTechnologies;
 	/** The maximum characters in a keyword. */						private int keywordArrayLen;
 	/** An array of keyword data. */								private char [] keywordArray = null;
 	/** The current keyword from the file. */						private String keyWord;
@@ -107,7 +113,16 @@ public class ReadableDump extends LibraryFiles
 	/** All Technologies found in the file. */						private Technology [] techList;
 	/** The current Technology being processed. */					private Technology curTech;
 	/** The values of Lambda for each Technology. */				private int [] lambdaValues;
-	/** The name of the current Cell being processed. */			private CellName cellName;
+	/** The group number of the current Cell being processed. */	private int curCellGroup;
+	/** The CellName of the current Cell being processed. */		private CellName curCellName;
+	/** The creation date of the current Cell being processed. */	private int curCellCreationDate;
+	/** The revision date of the current Cell being processed. */	private int curCellRevisionDate;
+	/** The userbits of the current Cell being processed. */		private int curCellUserbits;
+	/** The low X bounds of the current Cell being processed. */	private int curCellLowX;
+	/** The high X bounds of the current Cell being processed. */	private int curCellHighX;
+	/** The low Y bounds of the current Cell being processed. */	private int curCellLowY;
+	/** The high Y bounds of the current Cell being processed. */	private int curCellHighY;
+	/** cells being processed from this or external libraries. */	private Cell [] allCellsArray;
 
 	// state of input (value of "textLevel")
 	/** Currently reading Library information. */		private static final int INLIB =         1;
@@ -173,105 +188,109 @@ public class ReadableDump extends LibraryFiles
 			switch (textLevel)
 			{
 				case INLIB:
-					if (thisKey.equals("****library:")) {     io_newlib();   break;   }
-					if (thisKey.equals("bits:")) {            io_libbit();   break;   }
-					if (thisKey.equals("lambda:")) {          io_lambda();   break;   }
-					if (thisKey.equals("version:")) {         io_versn();    break;   }
-					if (thisKey.equals("aids:")) {            io_libkno();   break;   }
-					if (thisKey.equals("aidname:")) {         io_libain();   break;   }
-					if (thisKey.equals("aidbits:")) {         io_libaib();   break;   }
-					if (thisKey.equals("userbits:")) {        io_libusb();   break;   }
-					if (thisKey.equals("techcount:")) {       io_libte();    break;   }
-					if (thisKey.equals("techname:")) {        io_libten();   break;   }
-					if (thisKey.equals("cellcount:")) {       io_libcc();    break;   }
-					if (thisKey.equals("maincell:")) {        io_libms();    break;   }
-					if (thisKey.equals("view:")) {            io_libvie();   break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
+					if (thisKey.equals("****library:")) {     keywordNewLib();   break;   }
+					if (thisKey.equals("bits:")) {            keywordLibBit();   break;   }
+					if (thisKey.equals("lambda:")) {          keywordLambda();   break;   }
+					if (thisKey.equals("version:")) {         keywordVersn();    break;   }
+					if (thisKey.equals("aids:")) {            keywordLibKno();   break;   }
+					if (thisKey.equals("aidname:")) {         keywordLibAiN();   break;   }
+					if (thisKey.equals("aidbits:")) {         keywordLibAiB();   break;   }
+					if (thisKey.equals("userbits:")) {        keywordLibUsb();   break;   }
+					if (thisKey.equals("techcount:")) {       keywordLibTe();    break;   }
+					if (thisKey.equals("techname:")) {        keywordLibTeN();   break;   }
+					if (thisKey.equals("cellcount:")) {       keywordLibCC();    break;   }
+					if (thisKey.equals("maincell:")) {        keywordLibMS();    break;   }
+					if (thisKey.equals("view:")) {            keywordLibVie();   break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
 					 break;
 				case INCELL:
-					if (thisKey.equals("bits:")) {            io_celbit();   break;   }
-					if (thisKey.equals("userbits:")) {        io_celusb();   break;   }
-					if (thisKey.equals("name:")) {            io_celnam();   break;   }
-					if (thisKey.equals("version:")) {         io_celver();   break;   }
-					if (thisKey.equals("creationdate:")) {    io_celcre();   break;   }
-					if (thisKey.equals("revisiondate:")) {    io_celrev();   break;   }
-					if (thisKey.equals("externallibrary:")) { io_celext();   break;   }
-					if (thisKey.equals("nodes:")) {           io_celnoc();   break;   }
-					if (thisKey.equals("arcs:")) {            io_celarc();   break;   }
-					if (thisKey.equals("porttypes:")) {       io_celptc();   break;   }
-					if (thisKey.equals("technology:")) {      io_tech();     break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
+					if (thisKey.equals("bits:")) {            keywordCelBit();   break;   }
+					if (thisKey.equals("userbits:")) {        keywordCelUsb();   break;   }
+					if (thisKey.equals("name:")) {            keywordCelNam();   break;   }
+					if (thisKey.equals("version:")) {         keywordCelVer();   break;   }
+					if (thisKey.equals("creationdate:")) {    keywordCelCre();   break;   }
+					if (thisKey.equals("revisiondate:")) {    keywordCelRev();   break;   }
+					if (thisKey.equals("externallibrary:")) { keywordCelExt();   break;   }
+					if (thisKey.equals("lowx:")) {            keywordCelLX();    break;   }
+					if (thisKey.equals("highx:")) {           keywordCelHX();    break;   }
+					if (thisKey.equals("lowy:")) {            keywordCelLY();    break;   }
+					if (thisKey.equals("highy:")) {           keywordCelHY();    break;   }
+					if (thisKey.equals("nodes:")) {           keywordCelNoC();   break;   }
+					if (thisKey.equals("arcs:")) {            keywordCelArC();   break;   }
+					if (thisKey.equals("porttypes:")) {       keywordCelPtC();   break;   }
+					if (thisKey.equals("technology:")) {      keywordTech();     break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
 					break;
 				case INPORTPROTO:
-					if (thisKey.equals("bits:")) {            io_ptbit();    break;   }
-					if (thisKey.equals("userbits:")) {        io_ptusb();    break;   }
-					if (thisKey.equals("subnode:")) {         io_ptsno();    break;   }
-					if (thisKey.equals("subport:")) {         io_ptspt();    break;   }
-					if (thisKey.equals("name:")) {            io_ptnam();    break;   }
-					if (thisKey.equals("descript:")) {        io_ptdes();    break;   }
-					if (thisKey.equals("aseen:")) {           io_ptkse();    break;   }
-					if (thisKey.equals("**porttype:")) {      io_newpt();    break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
+					if (thisKey.equals("bits:")) {            keywordPtBit();    break;   }
+					if (thisKey.equals("userbits:")) {        keywordPtUsb();    break;   }
+					if (thisKey.equals("subnode:")) {         keywordPtSNo();    break;   }
+					if (thisKey.equals("subport:")) {         keywordPtSPt();    break;   }
+					if (thisKey.equals("name:")) {            keywordPtNam();    break;   }
+					if (thisKey.equals("descript:")) {        keywordPtDes();    break;   }
+					if (thisKey.equals("aseen:")) {           keywordPtKse();    break;   }
+					if (thisKey.equals("**porttype:")) {      keywordNewPt();    break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
 					break;
 				case INNODEINST:
-					if (thisKey.equals("bits:")) {            io_nodbit();   break;   }
-					if (thisKey.equals("userbits:")) {        io_nodusb();   break;   }
-					if (thisKey.equals("type:")) {            io_nodtyp();   break;   }
-					if (thisKey.equals("lowx:")) {            io_nodlx();    break;   }
-					if (thisKey.equals("highx:")) {           io_nodhx();    break;   }
-					if (thisKey.equals("lowy:")) {            io_nodly();    break;   }
-					if (thisKey.equals("highy:")) {           io_nodhy();    break;   }
-					if (thisKey.equals("rotation:")) {        io_nodrot();   break;   }
-					if (thisKey.equals("transpose:")) {       io_nodtra();   break;   }
-					if (thisKey.equals("aseen:")) {           io_nodkse();   break;   }
-					if (thisKey.equals("name:")) {            io_nodnam();   break;   }
-					if (thisKey.equals("descript:")) {        io_noddes();   break;   }
-					if (thisKey.equals("*port:")) {           io_newpor();   break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("**porttype:")) {      io_newpt();    break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
-					if (thisKey.equals("ports:")) {           io_nodpoc();   break;   }
+					if (thisKey.equals("bits:")) {            keywordNodBit();   break;   }
+					if (thisKey.equals("userbits:")) {        keywordNodUsb();   break;   }
+					if (thisKey.equals("type:")) {            keywordNodTyp();   break;   }
+					if (thisKey.equals("lowx:")) {            keywordNodLX();    break;   }
+					if (thisKey.equals("highx:")) {           keywordNodHX();    break;   }
+					if (thisKey.equals("lowy:")) {            keywordNodLY();    break;   }
+					if (thisKey.equals("highy:")) {           keywordNodHY();    break;   }
+					if (thisKey.equals("rotation:")) {        keywordNodRot();   break;   }
+					if (thisKey.equals("transpose:")) {       keywordNodTra();   break;   }
+					if (thisKey.equals("aseen:")) {           keywordNodKse();   break;   }
+					if (thisKey.equals("name:")) {            keywordNodNam();   break;   }
+					if (thisKey.equals("descript:")) {        keywordNodDes();   break;   }
+					if (thisKey.equals("*port:")) {           keywordNewPor();   break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("**porttype:")) {      keywordNewPt();    break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
+					if (thisKey.equals("ports:")) {           keywordNodPoC();   break;   }
 					break;
 				case INPOR:
-					if (thisKey.equals("*port:")) {           io_newpor();   break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("**porttype:")) {      io_newpt();    break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
+					if (thisKey.equals("*port:")) {           keywordNewPor();   break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("**porttype:")) {      keywordNewPt();    break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
 					break;
 				case INARCINST:
-					if (thisKey.equals("bits:")) {            io_arcbit();   break;   }
-					if (thisKey.equals("userbits:")) {        io_arcusb();   break;   }
-					if (thisKey.equals("type:")) {            io_arctyp();   break;   }
-					if (thisKey.equals("width:")) {           io_arcwid();   break;   }
-					if (thisKey.equals("aseen:")) {           io_arckse();   break;   }
-					if (thisKey.equals("name:")) {            io_arcnam();   break;   }
-					if (thisKey.equals("*end:")) {            io_newend();   break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
+					if (thisKey.equals("bits:")) {            keywordArcBit();   break;   }
+					if (thisKey.equals("userbits:")) {        keywordArcUsb();   break;   }
+					if (thisKey.equals("type:")) {            keywordArcTyp();   break;   }
+					if (thisKey.equals("width:")) {           keywordArcWid();   break;   }
+					if (thisKey.equals("aseen:")) {           keywordArcKse();   break;   }
+					if (thisKey.equals("name:")) {            keywordArcNam();   break;   }
+					if (thisKey.equals("*end:")) {            keywordNewEnd();   break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
 					break;
 				case INARCEND:
-					if (thisKey.equals("node:")) {            io_endnod();   break;   }
-					if (thisKey.equals("nodeport:")) {        io_endpt();    break;   }
-					if (thisKey.equals("xpos:")) {            io_endxp();    break;   }
-					if (thisKey.equals("ypos:")) {            io_endyp();    break;   }
-					if (thisKey.equals("*end:")) {            io_newend();   break;   }
-					if (thisKey.equals("**arc:")) {           io_newar();    break;   }
-					if (thisKey.equals("**node:")) {          io_newno();    break;   }
-					if (thisKey.equals("variables:")) {       io_getvar();   break;   }
-					if (thisKey.equals("***cell:")) {         io_newcel();   break;   }
+					if (thisKey.equals("node:")) {            keywordEndNod();   break;   }
+					if (thisKey.equals("nodeport:")) {        keywordEndPt();    break;   }
+					if (thisKey.equals("xpos:")) {            keywordEndXP();    break;   }
+					if (thisKey.equals("ypos:")) {            keywordEndYP();    break;   }
+					if (thisKey.equals("*end:")) {            keywordNewEnd();   break;   }
+					if (thisKey.equals("**arc:")) {           keywordNewAr();    break;   }
+					if (thisKey.equals("**node:")) {          keywordNewNo();    break;   }
+					if (thisKey.equals("variables:")) {       keywordGetVar();   break;   }
+					if (thisKey.equals("***cell:")) {         keywordNewCel();   break;   }
 					break;
 			}
 		}
@@ -288,7 +307,7 @@ public class ReadableDump extends LibraryFiles
 //			{
 //				ttyputmsg(M_("Unusual!  Version %s library has no cellgroup information"), version);
 //			}
-//			io_buildcellgrouppointersfromnames(lib);
+//			buildcellgrouppointersfromnames(lib);
 //		} else if (lib->firstnodeproto != NONODEPROTO)
 //		{
 //			// convert numbers to cellgroup pointers
@@ -313,26 +332,8 @@ public class ReadableDump extends LibraryFiles
 //			}
 //		}
 
-		// warn if the MOSIS CMOS technologies were converted
-//		if (convertMosisCMOSTechnologies)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//					if (ni->proto->primindex != 0 && ni->proto->tech == mocmos_tech) break;
-//				if (ni != NONODEINST) break;
-//				for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//					if (ai->proto->tech == mocmos_tech) break;
-//				if (ai != NOARCINST) break;
-//			}
-//			if (np != NONODEPROTO)
-//				DiaMessageInDialog(
-//					_("Warning: library %s has older 'mocmossub' technology, converted to new 'mocmos'"),
-//						lib->libname);
-//		}
-
 		if (mainCell >= 0)
-			lib.setCurCell((Cell)nodeProtoList[mainCell]);
+			lib.setCurCell(allCellsArray[mainCell]);
 
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
@@ -677,7 +678,7 @@ public class ReadableDump extends LibraryFiles
 	 * a new library is introduced (keyword "****library")
 	 * This should be the first keyword in the file
 	 */
-	private void io_newlib()
+	private void keywordNewLib()
 	{
 		// set defaults
 		mainCell = -1;
@@ -689,29 +690,27 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the file's Electric version number (keyword "version")
 	 */
-	private void io_versn()
+	private void keywordVersn()
 	{
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		version = Version.parseVersion(keyWord);
 		emajor = version.getMajor();
 		eminor = version.getMinor();
 		edetail = version.getDetail();
-		convertMosisCMOSTechnologies = false;
-//		if (emajor < 6 ||
-//			(emajor == 6 && eminor < 3) ||
-//			(emajor == 6 && eminor == 3 && edetail < 17))
-//		{
-//			if ((asktech(mocmossub_tech, x_("get-state"))&MOCMOSSUBNOCONV) == 0)
-//				convertMosisCMOSTechnologies = true;
-//		}
-//		if (convertMosisCMOSTechnologies)
-//			ttyputmsg(x_("   Converting MOSIS CMOS technologies (mocmossub => mocmos)"));
+		convertMosisCmosTechnologies = false;
+		if (emajor < 6 ||
+			(emajor == 6 && eminor < 3) ||
+			(emajor == 6 && eminor == 3 && edetail < 17))
+		{
+			convertMosisCmosTechnologies = true;
+			System.out.println("   Converting MOSIS CMOS technologies (mocmossub => mocmos)");
+		}
 	}
 
 	/**
 	 * get the number of tools (keyword "aids")
 	 */
-	private void io_libkno()
+	private void keywordLibKno()
 	{
 		bitCount = 0;
 		toolList = new Tool[Integer.parseInt(keyWord)];
@@ -720,7 +719,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the name of the tool (keyword "aidname")
 	 */
-	private void io_libain()
+	private void keywordLibAiN()
 	{
 		curTool = Tool.findTool(keyWord);
 		toolList[bitCount++] = curTool;
@@ -729,7 +728,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of toolbits (keyword "aidbits")
 	 */
-	private void io_libaib()
+	private void keywordLibAiB()
 	{
 		bitCount = 0;
 	}
@@ -737,7 +736,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get tool information for the library (keyword "bits")
 	 */
-	private void io_libbit()
+	private void keywordLibBit()
 	{
 		if (bitCount == 0)
 			lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
@@ -747,7 +746,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of toolbits (keyword "userbits")
 	 */
-	private void io_libusb()
+	private void keywordLibUsb()
 	{
 		lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
 
@@ -758,7 +757,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of technologies (keyword "techcount")
 	 */
-	private void io_libte()
+	private void keywordLibTe()
 	{
 		varPos = INVTECHNOLOGY;
 		bitCount = 0;
@@ -770,7 +769,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the name of the technology (keyword "techname")
 	 */
-	private void io_libten()
+	private void keywordLibTeN()
 	{
 		curTech = Technology.findTechnology(keyWord);
 		techList[bitCount++] = curTech;
@@ -779,7 +778,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get lambda values for each technology in library (keyword "lambda")
 	 */
-	private void io_lambda()
+	private void keywordLambda()
 	{
 		int lam = Integer.parseInt(keyWord);
 
@@ -791,7 +790,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of cells in this library (keyword "cellcount")
 	 */
-	private void io_libcc()
+	private void keywordLibCC()
 	{
 		varPos = INVLIBRARY;
 
@@ -800,6 +799,7 @@ public class ReadableDump extends LibraryFiles
 
 		// allocate a list of node prototypes for this library
 		nodeProtoList = new Cell[nodeProtoCount];
+		allCellsArray = new Cell[nodeProtoCount];
 		cellLambda = new double[nodeProtoCount];
 		nodeProtoOffX = new double[nodeProtoCount];
 		nodeProtoOffY = new double[nodeProtoCount];
@@ -809,7 +809,7 @@ public class ReadableDump extends LibraryFiles
 
 		for(int i=0; i<nodeProtoCount; i++)
 		{
-			nodeProtoList[i] = Cell.lowLevelAllocate(lib);
+			allCellsArray[i] = nodeProtoList[i] = Cell.lowLevelAllocate(lib);
 			if (nodeProtoList[i] == null) break;
 		}
 	}
@@ -817,7 +817,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the main cell of this library (keyword "maincell")
 	 */
-	private void io_libms()
+	private void keywordLibMS()
 	{
 		mainCell = Integer.parseInt(keyWord);
 	}
@@ -825,7 +825,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get a view (keyword "view")
 	 */
-	private void io_libvie()
+	private void keywordLibVie()
 	{
 		int openCurly = keyWord.indexOf('{');
 		if (openCurly < 0)
@@ -864,19 +864,18 @@ public class ReadableDump extends LibraryFiles
 	}
 
 	// --------------------------------- CELL PARSING METHODS ---------------------------------
-
+	
 	/**
 	 * initialize for a new cell (keyword "***cell")
 	 */
-	private void io_newcel()
+	private void keywordNewCel()
 	{
 		curCellNumber = TextUtils.atoi(keyWord);
 		curNodeProto = nodeProtoList[curCellNumber];
 
-		int tempVal = -1;
+		curCellGroup = -1;
 		int slashPos = keyWord.indexOf('/');
-		if (slashPos >= 0) tempVal = TextUtils.atoi(keyWord.substring(slashPos+1));
-		curNodeProto.setTempInt(tempVal);
+		if (slashPos >= 0) curCellGroup = TextUtils.atoi(keyWord.substring(slashPos+1));
 		textLevel = INCELL;
 		varPos = INVNODEPROTO;
 	}
@@ -884,253 +883,209 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the name of the current cell (keyword "name")
 	 */
-	private void io_celnam()
+	private void keywordCelNam()
 	{
-		cellName = CellName.parseName(keyWord);
+		curCellName = CellName.parseName(keyWord);
 	}
 
 	/**
 	 * get the version of the current cell (keyword "version")
 	 */
-	void io_celver()
+	private void keywordCelVer()
 	{
-		curNodeProto.lowLevelPopulate(cellName.getName()+";"+keyWord+"{"+cellName.getView().getAbbreviation()+"}");
-		curNodeProto.lowLevelLink();
+		curCellName.setVersion(TextUtils.atoi(keyWord));
 	}
 
 	/**
 	 * get the creation date of the current cell (keyword "creationdate")
 	 */
-	private void io_celcre()
+	private void keywordCelCre()
 	{
-		curNodeProto.lowLevelSetCreationDate(ELIBConstants.secondsToDate(TextUtils.atoi(keyWord)));
+		curCellCreationDate = TextUtils.atoi(keyWord);
 	}
 
 	/**
 	 * get the revision date of the current cell (keyword "revisiondate")
 	 */
-	private void io_celrev()
+	private void keywordCelRev()
 	{
-		curNodeProto.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(TextUtils.atoi(keyWord)));
+		curCellRevisionDate = TextUtils.atoi(keyWord);
 	}
 
 	/**
-	 * get the external library file (keyword "externallibrary")
+	 * get the low X of the current cell (keyword "lowx")
 	 */
-	private void io_celext()
+	private void keywordCelLX()
 	{
-//		INTBIG len, filetype, filelen;
-//		REGISTER LIBRARY *elib;
-//		REGISTER CHAR *libname, *pt;
-//		CHAR *filename, *libfile, *oldline2, *libfilename, *libfilepath;
-//		FILE *io;
-//		REGISTER BOOLEAN failed;
-//		CHAR *cellname;
-//		REGISTER NODEPROTO *np, *onp;
-//		REGISTER NODEINST *ni;
-//		TXTINPUTDATA savetxtindata;
-//		REGISTER void *infstr;
-//
-//		// get the path to the library file
-//		libfile = keyWord;
-//		if (libfile[0] == '"')
-//		{
-//			libfile++;
-//			len = estrlen(libfile) - 1;
-//			if (libfile[len] == '"') libfile[len] = 0;
-//		}
-//
-//		// see if this library is already read in
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, skippath(libfile));
-//		libname = returninfstr(infstr);
-//		len = estrlen(libname);
-//		filelen = estrlen(libfile);
-//		if (len < filelen)
-//		{
-//			libfilename = &libfile[filelen-len-1];
-//			*libfilename++ = 0;
-//			libfilepath = libfile;
-//		} else
-//		{
-//			libfilename = libfile;
-//			libfilepath = x_("");
-//		}
-//
-//		filetype = io_filetypetlib;
-//		if (len > 5 && namesame(&libname[len-5], x_(".elib")) == 0)
-//		{
-//			libname[len-5] = 0;
-//			filetype = io_filetypeblib;
-//		} else
-//		{
-//			if (len > 4 && namesame(&libname[len-4], x_(".txt")) == 0) libname[len-4] = 0;
-//		}
-//		elib = getlibrary(libname);
-//		if (elib == NOLIBRARY)
-//		{
-//			// library does not exist: see if file is there
-//			io = xopen(libfilename, filetype, truepath(libfilepath), &filename);
-//			if (io == 0)
-//			{
-//				// try the library area
-//				io = xopen(libfilename, filetype, el_libdir, &filename);
-//			}
-//			if (io != 0)
-//			{
-//				xclose(io);
-//				ttyputmsg(_("Reading referenced library %s"), libname);
-//			} else
-//			{
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Reference library '%s'"), libname);
-//				pt = fileselect(returninfstr(infstr), filetype, x_(""));
-//				if (pt != 0)
-//				{
-//					estrcpy(libfile, pt);
-//					filename = libfile;
-//				}
-//			}
-//			elib = newlibrary(libname, filename);
-//			if (elib == NOLIBRARY) return;
-//
-//			// read the external library
-//			savetxtindata = io_txtindata;
-//			if (io_verbose < 0 && fileLength > 0 && io_inputprogressdialog != 0)
-//			{
-//				(void)allocstring(&oldline2, DiaGetTextProgress(io_inputprogressdialog), el_tempcluster);
-//			}
-//
-//			len = estrlen(libfilename);
-//			io_libinputrecursivedepth++;
-//			io_libinputreadmany++;
-//			if (len > 4 && namesame(&libfilename[len-4], x_(".txt")) == 0)
-//			{
-//				// ends in ".txt", presume text file
-//				failed = io_doreadtextlibrary(elib, FALSE);
-//			} else
-//			{
-//				// all other endings: presume binary file
-//				failed = io_doreadbinlibrary(elib, FALSE);
-//			}
-//			io_libinputrecursivedepth--;
-//			if (failed) elib->userbits |= UNWANTEDLIB; else
-//			{
-//				// queue this library for announcement through change control
-//				io_queuereadlibraryannouncement(elib);
-//			}
-//			io_txtindata = savetxtindata;
-//			if (io_verbose < 0 && fileLength > 0 && io_inputprogressdialog != 0)
-//			{
-//				DiaSetProgress(io_inputprogressdialog, filePosition, fileLength);
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Reading library %s"), lib->libname);
-//				DiaSetCaptionProgress(io_inputprogressdialog, returninfstr(infstr));
-//				DiaSetTextProgress(io_inputprogressdialog, oldline2);
-//				efree(oldline2);
-//			}
-//		}
-//
-//		// find this cell in the external library
-//		cellname = curNodeProto->protoname;
-//		for(np = elib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//		{
-//			if (namesame(np->protoname, cellname) != 0) continue;
-//			if (np->cellview != curNodeProto->cellview) continue;
-//			if (np->version != curNodeProto->version) continue;
-//			break;
-//		}
-//		if (np == NONODEPROTO)
-//		{
-//			// cell not found in library: issue warning
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, cellname);
-//			if (curNodeProto->cellview != el_unknownview)
-//			{
-//				addtoinfstr(infstr, '{');
-//				addstringtoinfstr(infstr, curNodeProto->cellview->sviewname);
-//				addtoinfstr(infstr, '}');
-//			}
-//			ttyputerr(_("Cannot find cell %s in library %s..creating dummy version"),
-//				returninfstr(infstr), elib->libname);
-//		} else
-//		{
-//			// cell found: make sure it is valid
-//			if (np->revisiondate != curNodeProto->revisiondate ||
-//				np->lowx != curNodeProto->lowx ||
-//				np->highx != curNodeProto->highx ||
-//				np->lowy != curNodeProto->lowy ||
-//				np->highy != curNodeProto->highy)
-//			{
-//				ttyputerr(_("Warning: cell %s in library %s has been modified"),
-//					describenodeproto(np), elib->libname);
-//				np = NONODEPROTO;
-//			}
-//		}
-//		if (np != NONODEPROTO)
-//		{
-//			// get rid of existing cell/cell and plug in the external reference
-//			onp = nodeProtoList[curCellNumber];
-//			db_retractnodeproto(onp);
-//			freenodeproto(onp);
-//			nodeProtoList[curCellNumber] = np;
-//		} else
-//		{
-//			// rename the cell
-//			np = curNodeProto;
-//			infstr = initinfstr();
-//			formatinfstr(infstr, x_("%sFROM%s"), cellname, elib->libname);
-//			db_retractnodeproto(np);
-//
-//			cellname = returninfstr(infstr);
-//			(void)allocstring(&np->protoname, cellname, lib->cluster);
-//			db_insertnodeproto(np);
-//
-//			// create an artwork "Crossed box" to define the cell size
-//			ni = allocnodeinst(lib->cluster);
-//			ni->proto = art_crossedboxprim;
-//			ni->parent = np;
-//			ni->nextnodeinst = np->firstnodeinst;
-//			np->firstnodeinst = ni;
-//			ni->lowx = np->lowx;   ni->highx = np->highx;
-//			ni->lowy = np->lowy;   ni->highy = np->highy;
-//			ni->geom = allocgeom(lib->cluster);
-//			ni->geom->entryisnode = TRUE;   ni->geom->entryaddr.ni = ni;
-//			linkgeom(ni->geom, np);
-//		}
+		curCellLowX = TextUtils.atoi(keyWord);
 	}
 
 	/**
-	 * get the default technology for objects in this cell (keyword "technology")
+	 * get the high X of the current cell (keyword "highx")
 	 */
-	private void io_tech()
+	private void keywordCelHX()
 	{
-		Technology tech = findThisTechnology(keyWord);
-		curNodeProto.setTechnology(tech);
+		curCellHighX = TextUtils.atoi(keyWord);
+	}
+
+	/**
+	 * get the low Y of the current cell (keyword "lowy")
+	 */
+	private void keywordCelLY()
+	{
+		curCellLowY = TextUtils.atoi(keyWord);
+	}
+
+	/**
+	 * get the high Y of the current cell (keyword "highy")
+	 */
+	private void keywordCelHY()
+	{
+		curCellHighY = TextUtils.atoi(keyWord);
 	}
 
 	/**
 	 * get tool information for current cell (keyword "bits")
 	 */
-	private void io_celbit()
+	private void keywordCelBit()
 	{
-		if (bitCount == 0) curNodeProto.lowLevelSetUserbits(TextUtils.atoi(keyWord));
-		bitCount++;
+		curCellUserbits = TextUtils.atoi(keyWord);
 	}
 
 	/**
 	 * get tool information for current cell (keyword "userbits")
 	 */
-	private void io_celusb()
+	private void keywordCelUsb()
 	{
-		curNodeProto.lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		curCellUserbits = TextUtils.atoi(keyWord);
+	}
+
+	/**
+	 * get the external library file (keyword "externallibrary")
+	 */
+	private void keywordCelExt()
+	{
+		// get the path to the library file
+		String withoutQuotes = keyWord;
+		if (withoutQuotes.charAt(0) == '"')
+		{
+			withoutQuotes = withoutQuotes.substring(1);
+			if (withoutQuotes.endsWith("\""))
+				withoutQuotes = withoutQuotes.substring(0, withoutQuotes.length()-1);
+		}
+
+		// get the library associated with that name
+		Library elib = readExternalLibraryFromFilename(withoutQuotes);
+
+		// find the requested cell in the external library
+		Cell cell = null;
+		if (elib != null)
+		{
+			// find this cell in the external library
+			cell = elib.findNodeProto(curCellName.toString());
+			if (cell != null)
+			{
+				// cell found: make sure it is valid
+				if (cell.getRevisionDate() != ELIBConstants.secondsToDate(curCellCreationDate))
+				{
+					System.out.println("Warning: cell " + cell.describe() + " in library " + elib.getLibName() +
+						" has been modified since its use in library " + lib.getLibName());
+				}
+			}
+		}
+
+		// see if a cell was found
+		if (cell != null)
+		{
+			// cell found in external library: remember the external reference
+			curNodeProto = cell;
+			allCellsArray[curCellNumber] = cell;
+			nodeProtoList[curCellNumber] = null;
+		} else
+		{
+			// cell not found in external library: figure out the library name
+			String elibName = null;
+			if (elib != null) elibName = elib.getLibName(); else
+			{
+				File libFile = new File(withoutQuotes);
+				elibName = libFile.getName();
+				int lastDotPos = elibName.lastIndexOf('.');
+				if (lastDotPos > 0) elibName = elibName.substring(0, lastDotPos);
+			}
+
+			// cell not found in library: issue warning
+			System.out.println("Cannot find cell " + curCellName.toString() +
+				" in library " + elibName + "...creating dummy version");
+
+			// rename the cell
+			curCellName.setName(curCellName.getName() + "FROM" + elibName);
+			finishCellInitialization();
+
+			// schedule the cell to have two nodes (cell center and big "X")
+			LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList();
+			nodeInstList[curCellNumber] = nil;
+			nil.theNode = new NodeInst[2];
+			nil.protoType = new NodeProto[2];
+			nil.name = new Name[2];
+			nil.lowX = new int[2];
+			nil.highX = new int[2];
+			nil.lowY = new int[2];
+			nil.highY = new int[2];
+			nil.rotation = new short[2];
+			nil.transpose = new int[2];
+
+			// create a cell-center node
+			nil.theNode[0] = NodeInst.lowLevelAllocate();
+			nil.protoType[0] = Generic.tech.cellCenterNode;
+			nil.name[0] = null;
+			nil.lowX[0] = 0;
+			nil.highX[0] = 0;
+			nil.lowY[0] = 0;
+			nil.highY[0] = 0;
+			nil.rotation[0] = 0;
+			nil.transpose[0] = 0;
+
+			// create an artwork "Crossed box" to define the cell size
+			nil.theNode[1] = NodeInst.lowLevelAllocate();
+			nil.protoType[1] = Artwork.tech.crossedBoxNode;
+			nil.name[1] = null;
+			nil.lowX[1] = curCellLowX;
+			nil.highX[1] = curCellHighX;
+			nil.lowY[1] = curCellLowY;
+			nil.highY[1] = curCellHighY;
+			nil.rotation[1] = 0;
+			nil.transpose[1] = 0;
+		}
+	}
+
+	private void finishCellInitialization()
+	{
+		curNodeProto.setTempInt(curCellGroup);
+		curNodeProto.lowLevelPopulate(curCellName.toString());
+		curNodeProto.lowLevelLink();
+		curNodeProto.lowLevelSetCreationDate(ELIBConstants.secondsToDate(curCellCreationDate));
+		curNodeProto.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(curCellRevisionDate));
+		curNodeProto.lowLevelSetUserbits(curCellUserbits);
+	}
+
+	/**
+	 * get the default technology for objects in this cell (keyword "technology")
+	 */
+	private void keywordTech()
+	{
+		Technology tech = findTechnologyName(keyWord);
+		curNodeProto.setTechnology(tech);
 	}
 
 	/**
 	 * get the number of node instances in the current cell (keyword "nodes")
 	 */
-	private void io_celnoc()
+	private void keywordCelNoC()
 	{
+		// this keyword indicates that the cell is NOT external, so establish it now
+		finishCellInitialization();
+
+		// handle the NodeInst count in the cell
 		int nodeInstCount = Integer.parseInt(keyWord);
 		if (nodeInstCount == 0) return;
 		LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList();
@@ -1153,7 +1108,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of arc instances in the current cell (keyword "arcs")
 	 */
-	private void io_celarc()
+	private void keywordCelArC()
 	{
 		int arcInstCount = Integer.parseInt(keyWord);
 		if (arcInstCount == 0) return;
@@ -1180,7 +1135,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the number of port prototypes in the current cell (keyword "porttypes")
 	 */
-	private void io_celptc()
+	private void keywordCelPtC()
 	{
 		int exportCount = Integer.parseInt(keyWord);
 		if (exportCount == 0) return;
@@ -1202,7 +1157,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * initialize for a new node instance (keyword "**node")
 	 */
-	private void io_newno()
+	private void keywordNewNo()
 	{
 		curNodeInstIndex = Integer.parseInt(keyWord);
 		textLevel = INNODEINST;
@@ -1212,13 +1167,13 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the type of the current nodeinst (keyword "type")
 	 */
-	private void io_nodtyp()
+	private void keywordNodTyp()
 	{
 		NodeProto curNodeInstProto = null;
 		int openSquare = keyWord.indexOf('[');
 		if (openSquare >= 0)
 		{
-			curNodeInstProto = nodeProtoList[TextUtils.atoi(keyWord, openSquare+1)];
+			curNodeInstProto = allCellsArray[TextUtils.atoi(keyWord, openSquare+1)];
 		} else
 		{
 			curNodeInstProto = NodeProto.findNodeProto(keyWord);
@@ -1254,22 +1209,22 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the bounding box information for the current node instance
 	 */
-	private void io_nodlx()
+	private void keywordNodLX()
 	{
 		nodeInstList[curCellNumber].lowX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
-	private void io_nodhx()
+	private void keywordNodHX()
 	{
 		nodeInstList[curCellNumber].highX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
-	private void io_nodly()
+	private void keywordNodLY()
 	{
 		nodeInstList[curCellNumber].lowY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
-	private void io_nodhy()
+	private void keywordNodHY()
 	{
 		nodeInstList[curCellNumber].highY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
@@ -1277,7 +1232,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the instance name of the current node instance (keyword "name")
 	 */
-	private void io_nodnam()
+	private void keywordNodNam()
 	{
 		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setName(keyWord);
 	}
@@ -1285,7 +1240,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the text descriptor of the current node instance (keyword "descript")
 	 */
-	private void io_noddes()
+	private void keywordNodDes()
 	{
 		int td0 = TextUtils.atoi(keyWord);
 		int td1 = 0;
@@ -1300,7 +1255,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the rotation for the current nodeinst (keyword "rotation");
 	 */
-	private void io_nodrot()
+	private void keywordNodRot()
 	{
 		nodeInstList[curCellNumber].rotation[curNodeInstIndex] = (short)Integer.parseInt(keyWord);
 	}
@@ -1308,7 +1263,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the transposition for the current nodeinst (keyword "transpose")
 	 */
-	private void io_nodtra()
+	private void keywordNodTra()
 	{
 		nodeInstList[curCellNumber].transpose[curNodeInstIndex] = Integer.parseInt(keyWord);
 	}
@@ -1316,7 +1271,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the tool seen bits for the current nodeinst (keyword "aseen")
 	 */
-	private void io_nodkse()
+	private void keywordNodKse()
 	{
 		bitCount = 0;
 	}
@@ -1324,12 +1279,12 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the port count for the current nodeinst (keyword "ports")
 	 */
-	private void io_nodpoc() {}
+	private void keywordNodPoC() {}
 
 	/**
 	 * get tool information for current nodeinst (keyword "bits")
 	 */
-	private void io_nodbit()
+	private void keywordNodBit()
 	{
 		if (bitCount == 0) nodeInstList[curCellNumber].theNode[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
@@ -1338,7 +1293,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get tool information for current nodeinst (keyword "userbits")
 	 */
-	private void io_nodusb()
+	private void keywordNodUsb()
 	{
 		nodeInstList[curCellNumber].theNode[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
@@ -1346,7 +1301,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * initialize for a new portinst on the current nodeinst (keyword "*port")
 	 */
-	private void io_newpor()
+	private void keywordNewPor()
 	{
 		textLevel = INPOR;
 	}
@@ -1356,7 +1311,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * initialize for a new arc instance (keyword "**arc")
 	 */
-	private void io_newar()
+	private void keywordNewAr()
 	{
 		curArcInstIndex = Integer.parseInt(keyWord);
 		textLevel = INARCINST;
@@ -1366,7 +1321,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the type of the current arc instance (keyword "type")
 	 */
-	private void io_arctyp()
+	private void keywordArcTyp()
 	{
 		ArcProto curArcInstProto = null;
 		curArcInstProto = ArcProto.findArcProto(keyWord);
@@ -1393,7 +1348,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the instance name of the current arc instance (keyword "name")
 	 */
-	private void io_arcnam()
+	private void keywordArcNam()
 	{
 		arcInstList[curCellNumber].arcList[curArcInstIndex].setName(keyWord);
 	}
@@ -1401,7 +1356,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the width of the current arc instance (keyword "width")
 	 */
-	private void io_arcwid()
+	private void keywordArcWid()
 	{
 		arcInstList[curCellNumber].arcWidth[curArcInstIndex] = TextUtils.atoi(keyWord);
 	}
@@ -1409,7 +1364,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * initialize for an end of the current arcinst (keyword "*end")
 	 */
-	private void io_newend()
+	private void keywordNewEnd()
 	{
 		curArcEnd = Integer.parseInt(keyWord);
 		textLevel = INARCEND;
@@ -1418,7 +1373,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the node at the current end of the current arcinst (keyword "node")
 	 */
-	private void io_endnod()
+	private void keywordEndNod()
 	{
 		int endIndex = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
@@ -1433,7 +1388,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the porttype at the current end of current arcinst (keyword "nodeport")
 	 */
-	private void io_endpt()
+	private void keywordEndPt()
 	{
 		if (curArcEnd == 0)
 		{
@@ -1447,7 +1402,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the coordinates of the current end of the current arcinst
 	 */
-	private void io_endxp()
+	private void keywordEndXP()
 	{
 		int x = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
@@ -1459,7 +1414,7 @@ public class ReadableDump extends LibraryFiles
 		}
 	}
 
-	private void io_endyp()
+	private void keywordEndYP()
 	{
 		int y = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
@@ -1474,7 +1429,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the tool information for the current arcinst (keyword "aseen")
 	 */
-	private void io_arckse()
+	private void keywordArcKse()
 	{
 		bitCount = 0;
 	}
@@ -1482,7 +1437,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get tool information for current arcinst (keyword "bits")
 	 */
-	private void io_arcbit()
+	private void keywordArcBit()
 	{
 		if (bitCount == 0) arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
@@ -1491,7 +1446,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get tool information for current arcinst (keyword "userbits")
 	 */
-	private void io_arcusb()
+	private void keywordArcUsb()
 	{
 		arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
@@ -1501,7 +1456,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * initialize for a new port prototype (keyword "**porttype")
 	 */
-	private void io_newpt()
+	private void keywordNewPt()
 	{
 		curExportIndex = Integer.parseInt(keyWord);
 		textLevel = INPORTPROTO;
@@ -1511,7 +1466,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the name for the current port prototype (keyword "name")
 	 */
-	private void io_ptnam()
+	private void keywordPtNam()
 	{
 		exportList[curCellNumber].exportName[curExportIndex] = keyWord;
 	}
@@ -1519,7 +1474,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the text descriptor for the current port prototype (keyword "descript")
 	 */
-	private void io_ptdes()
+	private void keywordPtDes()
 	{
 		int td0 = TextUtils.atoi(keyWord);
 		int td1 = 0;
@@ -1534,7 +1489,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the sub-nodeinst for the current port prototype (keyword "subnode")
 	 */
-	private void io_ptsno()
+	private void keywordPtSNo()
 	{
 		int index = Integer.parseInt(keyWord);
 		exportList[curCellNumber].exportSubNode[curExportIndex] = nodeInstList[curCellNumber].theNode[index];
@@ -1543,7 +1498,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the sub-portproto for the current port prototype (keyword "subport")
 	 */
-	private void io_ptspt()
+	private void keywordPtSPt()
 	{
 		exportList[curCellNumber].exportSubPort[curExportIndex] = keyWord;
 	}
@@ -1551,7 +1506,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the tool seen for the current port prototype (keyword "aseen")
 	 */
-	private void io_ptkse()
+	private void keywordPtKse()
 	{
 		bitCount = 0;
 	}
@@ -1559,7 +1514,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the tool data for the current port prototype (keyword "bits")
 	 */
-	private void io_ptbit()
+	private void keywordPtBit()
 	{
 		if (bitCount == 0) exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
@@ -1568,7 +1523,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get the tool data for the current port prototype (keyword "userbits")
 	 */
-	private void io_ptusb()
+	private void keywordPtUsb()
 	{
 		exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
@@ -1578,7 +1533,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * get variables on current object (keyword "variables")
 	 */
-	private void io_getvar()
+	private void keywordGetVar()
 		throws IOException
 	{
 		ElectricObject naddr = null;
@@ -1677,7 +1632,7 @@ public class ReadableDump extends LibraryFiles
 			Object value = null;
 			if ((type&ELIBConstants.VISARRAY) == 0)
 			{
-				value = io_decode(keyWord, type);
+				value = variableDecode(keyWord, type);
 			} else
 			{
 				if (keyWord.charAt(0) != '[')
@@ -1721,7 +1676,7 @@ public class ReadableDump extends LibraryFiles
 						return;
 					}
 					String entry = keyWord.substring(start, pos);
-					al.add(io_decode(entry, type));
+					al.add(variableDecode(entry, type));
 					if (keyWord.charAt(pos) == ']') break;
 					if (keyWord.charAt(pos) != ',')
 					{
@@ -1759,6 +1714,7 @@ public class ReadableDump extends LibraryFiles
 					}
 				}
 			}
+
 			// Geometric names are saved as variables.
 			if (value instanceof String)
 			{
@@ -1800,7 +1756,7 @@ public class ReadableDump extends LibraryFiles
 		Input.fixVariableFont(naddr);
 	}
 
-	private Object io_decode(String name, int type)
+	private Object variableDecode(String name, int type)
 	{
 		int thistype = type;
 		if ((thistype&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0) thistype = ELIBConstants.VSTRING;
@@ -1847,7 +1803,7 @@ public class ReadableDump extends LibraryFiles
 				{
 					// just an integer specification
 					int cindex = Integer.parseInt(name);
-					return nodeProtoList[cindex];
+					return allCellsArray[cindex];
 				} else
 				{
 					// parse primitive nodeproto name
@@ -1876,75 +1832,4 @@ public class ReadableDump extends LibraryFiles
 		}
 		return null;
 	}
-
-	// --------------------------------- CONVERSTION METHODS ---------------------------------
-
-	/**
-	 * Method to convert the technology name in "line" to a technology.
-	 * also handles conversion of the old technology name "logic"
-	 */
-	private Technology findThisTechnology(String line)
-	{
-		Technology tech = null;
-		if (convertMosisCMOSTechnologies)
-		{
-			if (line.equals("mocmossub")) tech = Technology.findTechnology("mocmos"); else
-				if (line.equals("mocmos")) tech = Technology.findTechnology("mocmosold");
-		}
-		if (tech == null) tech = Technology.findTechnology(line);
-		if (tech != null) return tech;
-		if (line.equals("logic")) tech = Technology.findTechnology("schematics");
-		return tech;
-	}
-
-	/**
-	 * helper method to parse a port prototype name "line" that should be
-	 * in node prototype "np".  The method returns NOPORTPROTO if it cannot
-	 * figure out what port this name refers to.
-	 */
-//	private PortProto io_getport(String line, NodeProto np)
-//	{
-//		PortProto pp = np.findPortProto(line);
-//		if (pp != null) return pp;
-//
-//		// convert special port names
-//		if (np instanceof PrimitiveNode)
-//		{
-//			PrimitiveNode pnp = (PrimitiveNode)np;
-//			pp = pnp.getTechnology().convertOldPortName(line, pnp);
-//			if (pp != null) return pp;
-//		}
-//
-//		// try to parse version 1 port names
-//		if (emajor == 1)
-//		{
-//			// see if database uses shortened name
-//			for(Iterator it = np.getPorts(); it.hasNext(); )
-//			{
-//				pp = (PortProto)it.next();
-//				String name = pp.getProtoName();
-//				if (line.startsWith(name)) return pp;
-//			}
-//
-//			// see if the port name ends in a digit, fake with that
-//			int len = line.length();
-//			if (len > 2 && line.charAt(len-2) == '-')
-//			{
-//				char chr = line.charAt(len-1);
-//				if (Character.isDigit(chr))
-//				{
-//					int i = (chr-'0'-1) / 3;
-//					for(Iterator it = np.getPorts(); it.hasNext(); )
-//					{
-//						pp = (PortProto)it.next();
-//						if (i-- == 0) return(pp);
-//					}
-//				}
-//			}
-//		}
-//
-//		// sorry, cannot figure out what port prototype this is
-//		return null;
-//	}
-
 }

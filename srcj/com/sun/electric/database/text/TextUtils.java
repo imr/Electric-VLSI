@@ -183,7 +183,8 @@ public class TextUtils
 	public static String formatDouble(double v)
 	{
 		if (numberFormat == null) numberFormat = NumberFormat.getInstance();
-		return numberFormat.format(v);
+		String result = numberFormat.format(v);
+		return result;
 	}
 
 	private static NumberFormat numberFormatSpecific = null;

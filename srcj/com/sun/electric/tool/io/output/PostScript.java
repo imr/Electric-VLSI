@@ -90,7 +90,7 @@ public class PostScript extends Output
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance(null, "black",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 100,100,100,1.0,1, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100,1.0,1, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 	/**
 	 * Main entry point for PostScript output.

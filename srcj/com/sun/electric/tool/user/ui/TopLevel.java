@@ -305,13 +305,6 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Method to return the WindowFrame associated with this top-level window.
-	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
-	 * @return the WindowFrame associated with this top-level window.
-	 */
-//	public WindowFrame getWindowFrame() { return wf; }
-
-	/**
 	 * Method to set the WindowFrame associated with this top-level window.
 	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
 	 * @param wf the WindowFrame to associatd with this.
@@ -391,5 +384,4 @@ public class TopLevel extends JFrame
             MenuCommands.quitCommand();
         }
 	}
-    
 }

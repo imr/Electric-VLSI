@@ -80,7 +80,7 @@ public class IRSIMTool extends Tool {
     
     //-----------------------------IRSIM Jobs-----------------------------------
 
-    public class NetlistCell extends Job
+	private class NetlistCell extends Job
     {
         /** progress */                         private String progress;
         /** cell to analyze */                  private Cell cell;

@@ -214,7 +214,7 @@ public final class MenuCommands
 
         fileMenu.addSeparator();
 
-		fileMenu.addMenuItem("Print...", KeyStroke.getKeyStroke('P', buckyBit),
+		fileMenu.addMenuItem("Print...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
@@ -450,9 +450,8 @@ public final class MenuCommands
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
-		m = specialSubMenu.addMenuItem("Artwork Appearance...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
-		m.setEnabled(false);
+		specialSubMenu.addMenuItem("Artwork Appearance...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
 
 		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -519,9 +518,6 @@ public final class MenuCommands
 
 		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-		m = cellMenu.addMenuItem("Down Hierarchy In Place", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-		m.setEnabled(false);
 		cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
@@ -560,22 +556,21 @@ public final class MenuCommands
 		Menu expandListSubMenu = new Menu("Expand Cell Instances");
 		cellMenu.add(expandListSubMenu);
 		expandListSubMenu.addMenuItem("One Level Down", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); }});
 		expandListSubMenu.addMenuItem("All the Way", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandFullCommand(); }});
 		expandListSubMenu.addMenuItem("Specified Amount", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
 		Menu unExpandListSubMenu = new Menu("Unexpand Cell Instances");
 		cellMenu.add(unExpandListSubMenu);
 		unExpandListSubMenu.addMenuItem("One Level Up", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); }});
 		unExpandListSubMenu.addMenuItem("All the Way", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandFullCommand(); }});
 		unExpandListSubMenu.addMenuItem("Specified Amount", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
-		m = cellMenu.addMenuItem("Look Inside Highlighted", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
-		m.setEnabled(false);
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandSpecificCommand(); }});
+		cellMenu.addMenuItem("Look Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.peekCommand(); }});
 
 		cellMenu.addSeparator();
 		cellMenu.addMenuItem("Package Into Cell...", null,
@@ -921,12 +916,6 @@ public final class MenuCommands
 
 		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
-		m = routingSubMenu.addMenuItem("Copy Routing Topology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
-		m = routingSubMenu.addMenuItem("Paste Routing Topology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
 
 		//------------------- Generation
 
@@ -1478,7 +1467,7 @@ public final class MenuCommands
 				w.setCell(printCell, VarContext.globalContext);
 				PixelDrawing offscreen = w.getOffscreen();
 				offscreen.setBackgroundColor(Color.WHITE);
-				offscreen.drawImage();
+				offscreen.drawImage(null);
 				img = offscreen.getImage();
 			}
 
@@ -2250,7 +2239,7 @@ public final class MenuCommands
 	 */
 	public static void cellControlCommand()
 	{
- 		CellOptions dialog = new CellOptions(TopLevel.getCurrentJFrame(), true);
+		CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 
@@ -2333,66 +2322,6 @@ public final class MenuCommands
 	{
  		CellParameters dialog = new CellParameters(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
-	}
-
-	/**
-	 * This method implements the command to expand the selected cells by 1 level down.
-	 */
-	public static void expandOneLevelDownCommand()
-	{
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, 1);
-	}
-
-	/**
-	 * This method implements the command to expand the selected cells all the way to the bottom of the hierarchy.
-	 */
-	public static void expandFullCommand()
-	{
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, Integer.MAX_VALUE);
-	}
-
-	/**
-	 * This method implements the command to expand the selected cells by a given number of levels from the top.
-	 */
-	public static void expandSpecificCommand()
-	{
-		Object obj = JOptionPane.showInputDialog("Number of levels to expand", "1");
-		int levels = TextUtils.atoi((String)obj);
-
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, levels);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells by 1 level up.
-	 */
-	public static void unexpandOneLevelUpCommand()
-	{
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, 1);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
-	 */
-	public static void unexpandFullCommand()
-	{
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, Integer.MAX_VALUE);
-	}
-
-	/**
-	 * This method implements the command to unexpand the selected cells by a given number of levels from the bottom.
-	 */
-	public static void unexpandSpecificCommand()
-	{
-		Object obj = JOptionPane.showInputDialog("Number of levels to unexpand", "1");
-		int levels = TextUtils.atoi((String)obj);
-
-		List list = Highlight.getHighlighted(true, false);
-		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, levels);
 	}
 
 	// ---------------------- THE VIEW MENU -----------------
@@ -2580,7 +2509,7 @@ public final class MenuCommands
 		double scaleY = wnd.getGridYSpacing() * sz.height / 5 / displayable.getHeight();
 		double scale = Math.min(scaleX, scaleY);
 		wnd.setScale(wnd.getScale() / scale);
-		wnd.repaintContents();
+		wnd.repaintContents(null);
 	}
 
 	/**
@@ -2610,7 +2539,7 @@ public final class MenuCommands
 			return;
 		}
 		wnd.setScale(other.getScale());
-		wnd.repaintContents();
+		wnd.repaintContents(null);
 	}
 
 	public static void focusOnHighlighted()

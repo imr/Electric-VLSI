@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Date;
 
 /**
@@ -122,6 +123,90 @@ public class DRC extends Tool
 		/** names of nodes */										public String [] nodeNames;
 		/** minimim node size in the technology */					public Double [] minNodeSize;
 		/** minimim node size rules */								public String [] minNodeSizeRules;
+
+		public Rules() {}
+
+		public Rules(Technology tech)
+		{
+			// compute sizes
+			numLayers = tech.getNumLayers();
+			numNodes = tech.getNumNodes();
+			uTSize = (numLayers * numLayers + numLayers) / 2;
+
+			// initialize the width limit
+			wideLimit = new Double(0);
+
+			// add names
+			techName = tech.getTechName();
+			layerNames = new String[numLayers];
+			int j = 0;
+			for(Iterator it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				layerNames[j++] = layer.getName();
+			}
+			nodeNames = new String[numNodes];
+			j = 0;
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				nodeNames[j++] = np.getProtoName();
+			}
+
+			// allocate tables
+			conList = new Double[uTSize];
+			conListRules = new String[uTSize];
+			unConList = new Double[uTSize];
+			unConListRules = new String[uTSize];
+	
+			conListWide = new Double[uTSize];
+			conListWideRules = new String[uTSize];
+			unConListWide = new Double[uTSize];
+			unConListWideRules = new String[uTSize];
+	
+			conListMulti = new Double[uTSize];
+			conListMultiRules = new String[uTSize];
+			unConListMulti = new Double[uTSize];
+			unConListMultiRules = new String[uTSize];
+	
+			edgeList = new Double[uTSize];
+			edgeListRules = new String[uTSize];
+	
+			minWidth = new Double[numLayers];
+			minWidthRules = new String[numLayers];
+	
+			// clear all tables
+			for(int i=0; i<uTSize; i++)
+			{
+				conList[i] = new Double(-1);         conListRules[i] = "";
+				unConList[i] = new Double(-1);       unConListRules[i] = "";
+	
+				conListWide[i] = new Double(-1);     conListWideRules[i] = "";
+				unConListWide[i] = new Double(-1);   unConListWideRules[i] = "";
+	
+				conListMulti[i] = new Double(-1);    conListMultiRules[i] = "";
+				unConListMulti[i] = new Double(-1);  unConListMultiRules[i] = "";
+	
+				edgeList[i] = new Double(-1);        edgeListRules[i] = "";
+			}
+			for(int i=0; i<numLayers; i++)
+			{
+				minWidth[i] = new Double(-1);        minWidthRules[i] = "";
+			}
+
+			// build node size tables
+			minNodeSize = new Double[numNodes*2];
+			minNodeSizeRules = new String[numNodes];
+			j = 0;
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				minNodeSize[j*2] = new Double(np.getMinWidth());
+				minNodeSize[j*2+1] = new Double(np.getMinHeight());
+				minNodeSizeRules[j] = np.getMinSizeRule();
+				j++;
+			}
+		}
 	}
 
 	public static class Rule
@@ -151,6 +236,7 @@ public class DRC extends Tool
 
 	/** Cached rules for a specific technology. */		private static Rules currentRules = null;
 	/** The Technology whose rules are cached. */		private static Technology currentTechnology = null;
+	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
 
 	/**
 	 * The constructor sets up the DRC tool.
@@ -204,7 +290,7 @@ public class DRC extends Tool
 		}
 	}
 
-	protected static class CheckLayoutHierarchically extends Job
+	private static class CheckLayoutHierarchically extends Job
 	{
 		Cell cell;
 		boolean justArea;
@@ -228,7 +314,7 @@ public class DRC extends Tool
 		}
 	}
 
-	protected static class CheckSchematicHierarchically extends Job
+	private static class CheckSchematicHierarchically extends Job
 	{
 		Cell cell;
 		boolean justArea;
@@ -252,14 +338,32 @@ public class DRC extends Tool
 		}
 	}
 
-	/****************************** DESIGN RULES ******************************/
+	/**
+	 * Method to delete all cached date information on all cells.
+	 */
+	public static void resetDRCDates()
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Variable var = cell.getVar(LAST_GOOD_DRC);
+				if (var == null) continue;
+				cell.delVar(LAST_GOOD_DRC);
+			}
+		}
+	}
+
+	/****************************** DESIGN RULE CONTROL ******************************/
 
 	/**
-	 * Method to build a Rules object that contains all of the design rules for a Technology.
+	 * Method to build a Rules object that contains the current design rules for a Technology.
 	 * The DRC dialogs use this to hold the values while editing them.
 	 * It also provides a cache for the design rule checker.
 	 * @param tech the Technology to examine.
-	 * @return a new Rules object with the design rules for this Technology.
+	 * @return a new Rules object with the design rules for the given Technology.
 	 */
 	public static Rules getRules(Technology tech)
 	{
@@ -268,13 +372,120 @@ public class DRC extends Tool
 	}
 
 	/**
-	 * Method to update the design rules.
-	 * @param newRules the new design rules.
+	 * Method to load a full set of design rules for a Technology.
+	 * Done at initialization and during factory reset.
+	 * @param tech the Technology to load.
+	 * @param newRules a complete design rules object.
 	 */
-	public static void modifyRules(Rules newRules)
+	public static void setRules(Technology tech, Rules newRules)
 	{
-		NewDRCRules job = new NewDRCRules(newRules);
+		// see if rule preferences for the technology exist yet
+		Pref override = getExistingDRCOverridePref(tech);
+		if (override == null)
+		{
+			// this is the first time rules are being loaded: add overrides
+			override = makeDRCOverridePref(tech);
+			applyDRCOverrides(override.getString(), newRules, tech);
+		} else
+		{
+			// this is an update of the rules
+
+			// stop now if no rules changed
+			Rules oldRules = buildRules(tech);
+			boolean same = sameDRCRules(tech, oldRules, newRules);
+			if (same) return;
+
+			// get factory design rules
+			Rules factoryRules = tech.getFactoryDesignRules();
+
+			// determine differences from the factory rules
+			StringBuffer changes = getRuleDifferences(tech, factoryRules, newRules);
+
+			// update the preference for the rule overrides
+			override.setString(changes.toString());
+		}
+
+		// update the cache so that it points to the new set
+		currentRules = newRules;
+
+		// update variables on the technology
+		Variable var = tech.newVar(WIDE_LIMIT, newRules.wideLimit);
+		var = tech.newVar(MIN_CONNECTED_DISTANCES, newRules.conList);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES, newRules.unConList);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES_RULE, newRules.unConListRules);
+		if (var != null) var.setDontSave();
+		
+		var = tech.newVar(MIN_CONNECTED_DISTANCES_WIDE, newRules.conListWide);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_CONNECTED_DISTANCES_WIDE_RULE, newRules.conListWideRules);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE, newRules.unConListWide);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE_RULE, newRules.unConListWideRules);
+		if (var != null) var.setDontSave();
+		
+		var = tech.newVar(MIN_CONNECTED_DISTANCES_MULTI, newRules.conListMulti);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_CONNECTED_DISTANCES_MULTI_RULE, newRules.conListMultiRules);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI, newRules.unConListMulti);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI_RULE, newRules.unConListMultiRules);
+		if (var != null) var.setDontSave();
+		
+		var = tech.newVar(MIN_EDGE_DISTANCES, newRules.edgeList);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_EDGE_DISTANCES_RULE, newRules.edgeListRules);
+		if (var != null) var.setDontSave();
+		
+		var = tech.newVar(MIN_WIDTH, newRules.minWidth);
+		if (var != null) var.setDontSave();
+		var = tech.newVar(MIN_WIDTH_RULE, newRules.minWidthRules);
+		if (var != null) var.setDontSave();
+
+		// update per-node information
+		int j = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			np.setMinSize(newRules.minNodeSize[j*2].doubleValue(), newRules.minNodeSize[j*2+1].doubleValue(),
+				newRules.minNodeSizeRules[j]);
+			j++;
+		}
 	}
+
+	/**
+	 * Method to create a set of Design Rules from some simple spacing arrays.
+	 * @param tech the Technology to load.
+	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
+	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
+	 * @return a set of design rules for the Technology.
+	 */
+	public static Rules makeSimpleRules(Technology tech, double [] conDist, double [] unConDist)
+	{
+		Rules rules = new Rules(tech);
+		if (conDist != null)
+		{
+			for(int i=0; i<conDist.length; i++)
+			{
+				rules.conList[i] = new Double(conDist[i]);
+			}
+		}
+		if (unConDist != null)
+		{
+			for(int i=0; i<unConDist.length; i++)
+			{
+				rules.unConList[i] = new Double(unConDist[i]);
+			}
+		}
+		return rules;
+	}
+
+	/****************************** INDIVIDUAL DESIGN RULES ******************************/
 
 	/**
 	 * Method to find the worst spacing distance in the design rules.
@@ -458,13 +669,26 @@ public class DRC extends Tool
  
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
 
+	private static Pref getExistingDRCOverridePref(Technology tech)
+	{
+		Pref pref = (Pref)prefDRCOverride.get(tech);
+		return pref;
+	}
+
+	private static Pref makeDRCOverridePref(Technology tech)
+	{
+		Pref pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), DRC.tool.prefs, "");
+		prefDRCOverride.put(tech, pref);
+		return pref;
+	}
+
 	/**
 	 * Method to cache the design rules for a given Technology.
 	 * @param tech the Technology to examine.
 	 */
 	private static void cacheDesignRules(Technology tech)
 	{
-		if (tech == currentTechnology) return;
+		if (currentRules != null && tech == currentTechnology) return;
 		currentTechnology = tech;
 		currentRules = buildRules(currentTechnology);
 	}
@@ -492,143 +716,187 @@ public class DRC extends Tool
 	 */
 	private static Rules buildRules(Technology tech)
 	{
+		if (tech == null) return null;
+
+		// make a Rules object
 		Rules rules = new Rules();
-		rules.techName = tech.getTechName();
 		rules.numLayers = tech.getNumLayers();
 		rules.uTSize = (rules.numLayers * rules.numLayers + rules.numLayers) / 2;
-		Variable var = tech.getVar(WIDE_LIMIT, Double.class);
-		if (var == null) rules.wideLimit = new Double(10); else
-			rules.wideLimit = (Double)var.getObject();
-		rules.layerNames = new String[rules.numLayers];
+		rules.numNodes = tech.getNumNodes();
 
-		int j=0;
+		// add in names
+		rules.techName = tech.getTechName();
+		rules.layerNames = new String[rules.numLayers];
+		int j = 0;
 		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			rules.layerNames[j++] = layer.getName();
 		}
+		rules.nodeNames = new String[rules.numNodes];
+		j = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			rules.nodeNames[j++] = np.getProtoName();
+		}
+
+		// put width-limit in
+		Variable var = tech.getVar(WIDE_LIMIT, Double.class);
+		if (var == null) rules.wideLimit = new Double(10); else
+			rules.wideLimit = (Double)var.getObject();
 
 		// minimum widths of each layer
 		Variable minWidthVar = tech.getVar(MIN_WIDTH, Double[].class);
-		if (minWidthVar != null) rules.minWidth = (Double[])minWidthVar.getObject(); else
+		rules.minWidth = new Double[rules.numLayers];
+		for(int i=0; i<rules.numLayers; i++)
 		{
-			rules.minWidth = new Double[rules.numLayers];
-			for(int i=0; i<rules.numLayers; i++) rules.minWidth[i] = new Double(-1);
+			double val = -1;
+			if (minWidthVar != null) val = ((Double [])minWidthVar.getObject())[i].doubleValue();
+			rules.minWidth[i] = new Double(val);
 		}
+		rules.minWidthRules = new String[rules.numLayers];
 		Variable minWidthRulesVar = tech.getVar(MIN_WIDTH_RULE, String[].class);
-		if (minWidthRulesVar != null) rules.minWidthRules = (String[])minWidthRulesVar.getObject(); else
+		for(int i=0; i<rules.numLayers; i++)
 		{
-			rules.minWidthRules = new String[rules.numLayers];
-			for(int i=0; i<rules.numLayers; i++) rules.minWidthRules[i] = "";
+			String val = "";
+			if (minWidthRulesVar != null) val = ((String [])minWidthRulesVar.getObject())[i];
+			rules.minWidthRules[i] = new String(val);
 		}
 
 		// for connected layers
 		Variable conListVar = tech.getVar(MIN_CONNECTED_DISTANCES, Double[].class);
-		if (conListVar != null) rules.conList = (Double[])conListVar.getObject(); else
+		rules.conList = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conList[i] = new Double(-1);
+			double val = -1;
+			if (conListVar != null) val = ((Double [])conListVar.getObject())[i].doubleValue();
+			rules.conList[i] = new Double(val);
 		}
+		rules.conListRules = new String[rules.uTSize];
 		Variable conListRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_RULE, String[].class);
-		if (conListRulesVar != null) rules.conListRules = (String[])conListRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListRules[i] = "";
+			String val = "";
+			if (conListRulesVar != null) val = ((String [])conListRulesVar.getObject())[i];
+			rules.conListRules[i] = new String(val);
 		}
 
 		// for unconnected layers
 		Variable unConListVar = tech.getVar(MIN_UNCONNECTED_DISTANCES, Double[].class);
-		if (unConListVar != null) rules.unConList = (Double[])unConListVar.getObject(); else
+		rules.unConList = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConList[i] = new Double(-1);
+			double val = -1;
+			if (unConListVar != null) val = ((Double [])unConListVar.getObject())[i].doubleValue();
+			rules.unConList[i] = new Double(val);
 		}
+		rules.unConListRules = new String[rules.uTSize];
 		Variable unConListRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_RULE, String[].class);
-		if (unConListRulesVar != null) rules.unConListRules = (String[])unConListRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListRules[i] = "";
+			String val = "";
+			if (unConListRulesVar != null) val = ((String [])unConListRulesVar.getObject())[i];
+			rules.unConListRules[i] = new String(val);
 		}
 
 		// for connected layers that are wide
 		Variable conListWideVar = tech.getVar(MIN_CONNECTED_DISTANCES_WIDE, Double[].class);
-		if (conListWideVar != null) rules.conListWide = (Double[])conListWideVar.getObject(); else
+		rules.conListWide = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conListWide = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListWide[i] = new Double(-1);
+			double val = -1;
+			if (conListWideVar != null) val = ((Double [])conListWideVar.getObject())[i].doubleValue();
+			rules.conListWide[i] = new Double(val);
 		}
+		rules.conListWideRules = new String[rules.uTSize];
 		Variable conListWideRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_WIDE_RULE, String[].class);
-		if (conListWideRulesVar != null) rules.conListWideRules = (String[])conListWideRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conListWideRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListWideRules[i] = "";
+			String val = "";
+			if (conListWideRulesVar != null) val = ((String [])conListWideRulesVar.getObject())[i];
+			rules.conListWideRules[i] = new String(val);
 		}
 
 		// for unconnected layers that are wide
 		Variable unConListWideVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_WIDE, Double[].class);
-		if (unConListWideVar != null) rules.unConListWide = (Double[])unConListWideVar.getObject(); else
+		rules.unConListWide = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConListWide = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListWide[i] = new Double(-1);
+			double val = -1;
+			if (unConListWideVar != null) val = ((Double [])unConListWideVar.getObject())[i].doubleValue();
+			rules.unConListWide[i] = new Double(val);
 		}
+		rules.unConListWideRules = new String[rules.uTSize];
 		Variable unConListWideRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_WIDE_RULE, String[].class);
-		if (unConListWideRulesVar != null) rules.unConListWideRules = (String[])unConListWideRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConListWideRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListWideRules[i] = "";
+			String val = "";
+			if (unConListWideRulesVar != null) val = ((String [])unConListWideRulesVar.getObject())[i];
+			rules.unConListWideRules[i] = new String(val);
 		}
 
 		// for connected layers that are multicut
 		Variable conListMultiVar = tech.getVar(MIN_CONNECTED_DISTANCES_MULTI, Double[].class);
-		if (conListMultiVar != null) rules.conListMulti = (Double[])conListMultiVar.getObject(); else
+		rules.conListMulti = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conListMulti = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListMulti[i] = new Double(-1);
+			double val = -1;
+			if (conListMultiVar != null) val = ((Double [])conListMultiVar.getObject())[i].doubleValue();
+			rules.conListMulti[i] = new Double(val);
 		}
+		rules.conListMultiRules = new String[rules.uTSize];
 		Variable conListMultiRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_MULTI_RULE, String[].class);
-		if (conListMultiRulesVar != null) rules.conListMultiRules = (String[])conListMultiRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.conListMultiRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListMultiRules[i] = "";
+			String val = "";
+			if (conListMultiRulesVar != null) val = ((String [])conListMultiRulesVar.getObject())[i];
+			rules.conListMultiRules[i] = new String(val);
 		}
 
 		// for unconnected layers that are multicut
 		Variable unConListMultiVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_MULTI, Double[].class);
-		if (unConListMultiVar != null) rules.unConListMulti = (Double[])unConListMultiVar.getObject(); else
+		rules.unConListMulti = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConListMulti = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListMulti[i] = new Double(-1);
+			double val = -1;
+			if (unConListMultiVar != null) val = ((Double [])unConListMultiVar.getObject())[i].doubleValue();
+			rules.unConListMulti[i] = new Double(val);
 		}
+		rules.unConListMultiRules = new String[rules.uTSize];
 		Variable unConListMultiRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_MULTI_RULE, String[].class);
-		if (unConListMultiRulesVar != null) rules.unConListMultiRules = (String[])unConListMultiRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.unConListMultiRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListMultiRules[i] = "";
+			String val = "";
+			if (unConListMultiRulesVar != null) val = ((String [])unConListMultiRulesVar.getObject())[i];
+			rules.unConListMultiRules[i] = new String(val);
 		}
 
 		// for edge distances between layers
 		Variable edgeListVar = tech.getVar(MIN_EDGE_DISTANCES, Double[].class);
-		if (edgeListVar != null) rules.edgeList = (Double[])edgeListVar.getObject(); else
+		rules.edgeList = new Double[rules.uTSize];
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.edgeList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.edgeList[i] = new Double(-1);
+			double val = -1;
+			if (edgeListVar != null) val = ((Double [])edgeListVar.getObject())[i].doubleValue();
+			rules.edgeList[i] = new Double(val);
 		}
+		rules.edgeListRules = new String[rules.uTSize];
 		Variable edgeListRulesVar = tech.getVar(MIN_EDGE_DISTANCES_RULE, String[].class);
-		if (edgeListRulesVar != null) rules.edgeListRules = (String[])edgeListRulesVar.getObject(); else
+		for(int i=0; i<rules.uTSize; i++)
 		{
-			rules.edgeListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.edgeListRules[i] = "";
+			String val = "";
+			if (edgeListRulesVar != null) val = ((String [])edgeListRulesVar.getObject())[i];
+			rules.edgeListRules[i] = new String(val);
 		}
 
-		rules.numNodes = tech.getNumNodes();
-		rules.nodeNames = new String[rules.numNodes];
+		// minimum node sizes
 		rules.minNodeSize = new Double[rules.numNodes*2];
 		rules.minNodeSizeRules = new String[rules.numNodes];
 		j = 0;
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			rules.nodeNames[j] = np.getProtoName();
 			rules.minNodeSize[j*2] = new Double(np.getMinWidth());
 			rules.minNodeSize[j*2+1] = new Double(np.getMinHeight());
 			rules.minNodeSizeRules[j] = np.getMinSizeRule();
@@ -637,105 +905,526 @@ public class DRC extends Tool
 		return rules;
 	}
 
+//	/**
+//	 * Class to update design rules.
+//	 */
+//	private static class NewDRCRules extends Job
+//	{
+//		Technology tech;
+//		Rules newRules;
+//
+//		protected NewDRCRules(Technology tech, Rules newRules)
+//		{
+//			super("Update Design Rules", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.tech = tech;
+//			this.newRules = newRules;
+//			startJob();
+//		}
+//
+//		public boolean doIt()
+//		{
+//			// see if any rules changed
+//			Rules oldRules = buildRules(tech);
+//			boolean changed = false;
+//			if (!newRules.wideLimit.equals(oldRules.wideLimit)) changed = true;
+//			for(int l1=0; l1<tech.getNumLayers(); l1++)
+//				for(int l2=0; l2<=l1; l2++)
+//			{
+//				int i = getIndex(tech, l2, l1);
+//				if (!newRules.conList[i].equals(oldRules.conList[i])) changed = true;
+//				if (!newRules.conListRules[i].equals(oldRules.conListRules[i])) changed = true;
+//				if (!newRules.unConList[i].equals(oldRules.unConList[i])) changed = true;
+//				if (!newRules.unConListRules[i].equals(oldRules.unConListRules[i])) changed = true;
+//
+//				if (!newRules.conListWide[i].equals(oldRules.conListWide[i])) changed = true;
+//				if (!newRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) changed = true;
+//				if (!newRules.unConListWide[i].equals(oldRules.unConListWide[i])) changed = true;
+//				if (!newRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) changed = true;
+//
+//				if (!newRules.conListMulti[i].equals(oldRules.conListMulti[i])) changed = true;
+//				if (!newRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) changed = true;
+//				if (!newRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) changed = true;
+//				if (!newRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) changed = true;
+//
+//				if (!newRules.edgeList[i].equals(oldRules.edgeList[i])) changed = true;
+//				if (!newRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) changed = true;
+//				if (changed) break;
+//			}
+//			for(int i=0; i<tech.getNumLayers(); i++)
+//			{
+//				if (!newRules.minWidth[i].equals(oldRules.minWidth[i])) changed = true;
+//				if (!newRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) changed = true;
+//			}
+//			int j = 0;
+//			for(Iterator it = tech.getNodes(); it.hasNext(); )
+//			{
+//				PrimitiveNode np = (PrimitiveNode)it.next();
+//				if (!newRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
+//					!newRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
+//					!newRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j])) changed = true;
+//				j++;
+//			}
+//
+//			// if any rules changed, do an update
+//			if (changed)
+//			{
+//				StringBuffer changes = new StringBuffer();
+//				tech.factoryResetDesignRules();
+//				Rules origRules = buildRules(tech);
+//
+//				if (!newRules.wideLimit.equals(origRules.wideLimit))
+//				{
+//					changes.append("w:"+newRules.wideLimit+";");
+//				}
+//
+//				for(int l1=0; l1<tech.getNumLayers(); l1++)
+//					for(int l2=0; l2<=l1; l2++)
+//				{
+//					int i = getIndex(tech, l2, l1);
+//					if (!newRules.conList[i].equals(origRules.conList[i]))
+//					{
+//						changes.append("c:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conList[i]+";");
+//					}
+//					if (!newRules.conListRules[i].equals(origRules.conListRules[i]))
+//					{
+//						changes.append("cr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListRules[i]+";");
+//					}
+//					if (!newRules.unConList[i].equals(origRules.unConList[i]))
+//					{
+//						changes.append("u:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConList[i]+";");
+//					}
+//					if (!newRules.unConListRules[i].equals(origRules.unConListRules[i]))
+//					{
+//						changes.append("ur:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListRules[i]+";");
+//					}
+//
+//					if (!newRules.conListWide[i].equals(origRules.conListWide[i]))
+//					{
+//						changes.append("cw:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListWide[i]+";");
+//					}
+//					if (!newRules.conListWideRules[i].equals(origRules.conListWideRules[i]))
+//					{
+//						changes.append("cwr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListWideRules[i]+";");
+//					}
+//					if (!newRules.unConListWide[i].equals(origRules.unConListWide[i]))
+//					{
+//						changes.append("uw:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListWide[i]+";");
+//					}
+//					if (!newRules.unConListWideRules[i].equals(origRules.unConListWideRules[i]))
+//					{
+//						changes.append("uwr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListWideRules[i]+";");
+//					}
+//
+//					if (!newRules.conListMulti[i].equals(origRules.conListMulti[i]))
+//					{
+//						changes.append("cm:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListMulti[i]+";");
+//					}
+//					if (!newRules.conListMultiRules[i].equals(origRules.conListMultiRules[i]))
+//					{
+//						changes.append("cmr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListMultiRules[i]+";");
+//					}
+//					if (!newRules.unConListMulti[i].equals(origRules.unConListMulti[i]))
+//					{
+//						changes.append("um:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListMulti[i]+";");
+//					}
+//					if (!newRules.unConListMultiRules[i].equals(origRules.unConListMultiRules[i]))
+//					{
+//						changes.append("umr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListMultiRules[i]+";");
+//					}
+//
+//					if (!newRules.edgeList[i].equals(origRules.edgeList[i]))
+//					{
+//						changes.append("e:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.edgeList[i]+";");
+//					}
+//					if (!newRules.edgeListRules[i].equals(origRules.edgeListRules[i]))
+//					{
+//						changes.append("er:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.edgeListRules[i]+";");
+//					}
+//				}
+//
+//				// update per-layer information
+//				for(int i=0; i<newRules.numLayers; i++)
+//				{
+//					if (!newRules.minWidth[i].equals(origRules.minWidth[i]))
+//					{
+//						changes.append("m:"+tech.getLayer(i).getName()+"="+newRules.minWidth[i]+";");
+//					}
+//					if (!newRules.minWidthRules[i].equals(origRules.minWidthRules[i]))
+//					{
+//						changes.append("mr:"+tech.getLayer(i).getName()+"="+newRules.minWidthRules[i]+";");
+//					}
+//				}
+//
+//				// update node min-width information
+//				j = 0;
+//				for(Iterator it = tech.getNodes(); it.hasNext(); )
+//				{
+//					PrimitiveNode np = (PrimitiveNode)it.next();
+//					if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
+//						!newRules.minNodeSize[j*2+1].equals(origRules.minNodeSize[j*2+1]))
+//					{
+//						changes.append("n:"+np.getProtoName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
+//					}
+//					if (!newRules.minNodeSizeRules[j].equals(origRules.minNodeSizeRules[j]))
+//					{
+//						changes.append("nr:"+np.getProtoName()+"="+newRules.minNodeSizeRules[j]+";");
+//					}
+//					j++;
+//				}
+//
+//				// update the preference for the rule overrides
+//				Pref pref = getExistingDRCOverridePref(tech);
+//				pref.setString(changes.toString());
+//
+//				// update variables on the technology
+//				loadFullRules(tech, newRules);
+//			}
+//
+////			// update per-node information
+////			int j = 0;
+////			for(Iterator it = tech.getNodes(); it.hasNext(); )
+////			{
+////				PrimitiveNode np = (PrimitiveNode)it.next();
+////				if (!newRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
+////					!newRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
+////					!newRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j]))
+////				{
+////					np.setMinSize(newRules.minNodeSize[j*2].doubleValue(),
+////						newRules.minNodeSize[j*2+1].doubleValue(),
+////							newRules.minNodeSizeRules[j]);
+////				}
+////				j++;
+////			}
+//
+//			return true;
+//		}
+//	}
+
 	/**
-	 * Class to update primitive node information.
+	 * Method to compare two rule sets to see if they are the same.
+	 * @param oldRules the first rule set.
+	 * @param newRules the second rules set.
+	 * @return true if they are the same.
 	 */
-	protected static class NewDRCRules extends Job
+	private static boolean sameDRCRules(Technology tech, Rules oldRules, Rules newRules)
 	{
-		Rules newRules;
-
-		protected NewDRCRules(Rules newRules)
+		if (oldRules.numLayers != newRules.numLayers) return false;
+		if (oldRules.numNodes != newRules.numNodes) return false;
+		if (!newRules.wideLimit.equals(oldRules.wideLimit)) return false;
+		for(int l1=0; l1<newRules.numLayers; l1++)
+			for(int l2=0; l2<=l1; l2++)
 		{
-			super("Update Design Rules", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.newRules = newRules;
-			startJob();
+			int i = getIndex(tech, l2, l1);
+			if (!newRules.conList[i].equals(oldRules.conList[i])) return false;
+			if (!newRules.conListRules[i].equals(oldRules.conListRules[i])) return false;
+			if (!newRules.unConList[i].equals(oldRules.unConList[i])) return false;
+			if (!newRules.unConListRules[i].equals(oldRules.unConListRules[i])) return false;
+
+			if (!newRules.conListWide[i].equals(oldRules.conListWide[i])) return false;
+			if (!newRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) return false;
+			if (!newRules.unConListWide[i].equals(oldRules.unConListWide[i])) return false;
+			if (!newRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) return false;
+
+			if (!newRules.conListMulti[i].equals(oldRules.conListMulti[i])) return false;
+			if (!newRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) return false;
+			if (!newRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) return false;
+			if (!newRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) return false;
+
+			if (!newRules.edgeList[i].equals(oldRules.edgeList[i])) return false;
+			if (!newRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) return false;
+		}
+		for(int i=0; i<newRules.numLayers; i++)
+		{
+			if (!newRules.minWidth[i].equals(oldRules.minWidth[i])) return false;
+			if (!newRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) return false;
+		}
+		int j = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (!newRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
+				!newRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
+				!newRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j])) return false;
+			j++;
+		}
+		return true;
+	}
+
+	/**
+	 * Method to compare a Rules set with the "factory" set and construct an override string.
+	 * @param tech the Technology with the design rules.
+	 * @param origRules the original "Factory" rules.
+	 * @param newRules the new Rules.
+	 * @return a StringBuffer that describes any overrides.  Returns "" if there are none.
+	 */
+	private static StringBuffer getRuleDifferences(Technology tech, Rules origRules, Rules newRules)
+	{
+		StringBuffer changes = new StringBuffer();
+
+		// include differences in the wide-rule limit
+		if (!newRules.wideLimit.equals(origRules.wideLimit))
+		{
+			changes.append("w:"+newRules.wideLimit+";");
 		}
 
-		public boolean doIt()
+		// include differences in layer spacings
+		for(int l1=0; l1<tech.getNumLayers(); l1++)
+			for(int l2=0; l2<=l1; l2++)
 		{
-			Technology tech = Technology.getCurrent();
-			Rules oldRules = buildRules(tech);
-
-			// update width-limit information
-			if (newRules.wideLimit != oldRules.wideLimit)
-				tech.newVar(WIDE_LIMIT, newRules.wideLimit);
-
-			// update layer-to-layer information
-			boolean conListChanged = false, conListRulesChanged = false;
-			boolean unConListChanged = false, unConListRulesChanged = false;
-			boolean conListWideChanged = false, conListWideRulesChanged = false;
-			boolean unConListWideChanged = false, unConListWideRulesChanged = false;
-			boolean conListMultiChanged = false, conListMultiRulesChanged = false;
-			boolean unConListMultiChanged = false, unConListMultiRulesChanged = false;
-			boolean edgeListChanged = false, edgeListRulesChanged = false;
-			for(int i=0; i<newRules.uTSize; i++)
+			int i = getIndex(tech, l2, l1);
+			if (!newRules.conList[i].equals(origRules.conList[i]))
 			{
-				if (!newRules.conList[i].equals(oldRules.conList[i])) conListChanged = true;
-				if (!newRules.conListRules[i].equals(oldRules.conListRules[i])) conListRulesChanged = true;
-				if (!newRules.unConList[i].equals(oldRules.unConList[i])) unConListChanged = true;
-				if (!newRules.unConListRules[i].equals(oldRules.unConListRules[i])) unConListRulesChanged = true;
-
-				if (!newRules.conListWide[i].equals(oldRules.conListWide[i])) conListWideChanged = true;
-				if (!newRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) conListWideRulesChanged = true;
-				if (!newRules.unConListWide[i].equals(oldRules.unConListWide[i])) unConListWideChanged = true;
-				if (!newRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) unConListWideRulesChanged = true;
-
-				if (!newRules.conListMulti[i].equals(oldRules.conListMulti[i])) conListMultiChanged = true;
-				if (!newRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) conListMultiRulesChanged = true;
-				if (!newRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) unConListMultiChanged = true;
-				if (!newRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) unConListMultiRulesChanged = true;
-
-				if (!newRules.edgeList[i].equals(oldRules.edgeList[i])) edgeListChanged = true;
-				if (!newRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) edgeListRulesChanged = true;
+				changes.append("c:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conList[i]+";");
 			}
-			if (conListChanged) tech.newVar(MIN_CONNECTED_DISTANCES, newRules.conList);
-			if (conListRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
-			if (unConListChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES, newRules.unConList);
-			if (unConListRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_RULE, newRules.unConListRules);
-
-			if (conListWideChanged) tech.newVar(MIN_CONNECTED_DISTANCES_WIDE, newRules.conListWide);
-			if (conListWideRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_WIDE_RULE, newRules.conListWideRules);
-			if (unConListWideChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE, newRules.unConListWide);
-			if (unConListWideRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE_RULE, newRules.unConListWideRules);
-
-			if (conListMultiChanged) tech.newVar(MIN_CONNECTED_DISTANCES_MULTI, newRules.conListMulti);
-			if (conListMultiRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_MULTI_RULE, newRules.conListMultiRules);
-			if (unConListMultiChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI, newRules.unConListMulti);
-			if (unConListMultiRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI_RULE, newRules.unConListMultiRules);
-
-			if (edgeListChanged) tech.newVar(MIN_EDGE_DISTANCES, newRules.edgeList);
-			if (edgeListRulesChanged) tech.newVar(MIN_EDGE_DISTANCES_RULE, newRules.edgeListRules);
-
-			// update per-layer information
-			boolean minWidthChanged = false, minWidthRulesChanged = false;
-			for(int i=0; i<newRules.numLayers; i++)
+			if (!newRules.conListRules[i].equals(origRules.conListRules[i]))
 			{
-				if (!newRules.minWidth[i].equals(oldRules.minWidth[i])) minWidthChanged = true;
-				if (!newRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) minWidthRulesChanged = true;
+				changes.append("cr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListRules[i]+";");
 			}
-			if (minWidthChanged) tech.newVar(MIN_WIDTH, newRules.minWidth);
-			if (minWidthRulesChanged) tech.newVar(MIN_WIDTH_RULE, newRules.minWidthRules);
-
-			// update per-node information
-			int j = 0;
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			if (!newRules.unConList[i].equals(origRules.unConList[i]))
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				if (!newRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
-					!newRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
-					!newRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j]))
+				changes.append("u:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConList[i]+";");
+			}
+			if (!newRules.unConListRules[i].equals(origRules.unConListRules[i]))
+			{
+				changes.append("ur:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListRules[i]+";");
+			}
+
+			if (!newRules.conListWide[i].equals(origRules.conListWide[i]))
+			{
+				changes.append("cw:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListWide[i]+";");
+			}
+			if (!newRules.conListWideRules[i].equals(origRules.conListWideRules[i]))
+			{
+				changes.append("cwr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListWideRules[i]+";");
+			}
+			if (!newRules.unConListWide[i].equals(origRules.unConListWide[i]))
+			{
+				changes.append("uw:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListWide[i]+";");
+			}
+			if (!newRules.unConListWideRules[i].equals(origRules.unConListWideRules[i]))
+			{
+				changes.append("uwr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListWideRules[i]+";");
+			}
+
+			if (!newRules.conListMulti[i].equals(origRules.conListMulti[i]))
+			{
+				changes.append("cm:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListMulti[i]+";");
+			}
+			if (!newRules.conListMultiRules[i].equals(origRules.conListMultiRules[i]))
+			{
+				changes.append("cmr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conListMultiRules[i]+";");
+			}
+			if (!newRules.unConListMulti[i].equals(origRules.unConListMulti[i]))
+			{
+				changes.append("um:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListMulti[i]+";");
+			}
+			if (!newRules.unConListMultiRules[i].equals(origRules.unConListMultiRules[i]))
+			{
+				changes.append("umr:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.unConListMultiRules[i]+";");
+			}
+
+			if (!newRules.edgeList[i].equals(origRules.edgeList[i]))
+			{
+				changes.append("e:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.edgeList[i]+";");
+			}
+			if (!newRules.edgeListRules[i].equals(origRules.edgeListRules[i]))
+			{
+				changes.append("er:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.edgeListRules[i]+";");
+			}
+		}
+
+		// include differences in minimum layer widths
+		for(int i=0; i<newRules.numLayers; i++)
+		{
+			if (!newRules.minWidth[i].equals(origRules.minWidth[i]))
+			{
+				changes.append("m:"+tech.getLayer(i).getName()+"="+newRules.minWidth[i]+";");
+			}
+			if (!newRules.minWidthRules[i].equals(origRules.minWidthRules[i]))
+			{
+				changes.append("mr:"+tech.getLayer(i).getName()+"="+newRules.minWidthRules[i]+";");
+			}
+		}
+
+		// include differences in minimum node sizes
+		int j = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
+				!newRules.minNodeSize[j*2+1].equals(origRules.minNodeSize[j*2+1]))
+			{
+				changes.append("n:"+np.getProtoName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
+			}
+			if (!newRules.minNodeSizeRules[j].equals(origRules.minNodeSizeRules[j]))
+			{
+				changes.append("nr:"+np.getProtoName()+"="+newRules.minNodeSizeRules[j]+";");
+			}
+			j++;
+		}
+		return changes;
+	}
+
+	/**
+	 * Method to apply overrides to a set of rules.
+	 * @param override the override string.
+	 * @param rules the Rules to modify.
+	 * @param tech the Technology in which these rules live.
+	 */
+	private static void applyDRCOverrides(String override, Rules rules, Technology tech)
+	{
+		int pos = 0;
+		int len = override.length();
+		while (pos < len)
+		{
+			int startKey = pos;
+			int endKey = override.indexOf(':', startKey);
+			if (endKey < 0) break;
+			String key = override.substring(startKey, endKey);
+			if (key.equals("c") || key.equals("cr") || key.equals("u") || key.equals("ur") ||
+				key.equals("cw") || key.equals("cwr") || key.equals("uw") || key.equals("uwr") ||
+				key.equals("cm") || key.equals("cmr") || key.equals("um") || key.equals("umr") ||
+				key.equals("e") || key.equals("er"))
+			{
+				startKey = endKey + 1;
+				Layer layer1 = getLayerFromOverride(override, startKey, '/', tech);
+				if (layer1 == null) break;
+				startKey = override.indexOf('/', startKey);
+				if (startKey < 0) break;
+				Layer layer2 = getLayerFromOverride(override, startKey+1, '=', tech);
+				if (layer2 == null) break;
+				startKey = override.indexOf('=', startKey);
+				if (startKey < 0) break;
+				endKey = override.indexOf(';', startKey);
+				if (endKey < 0) break;
+				String newValue = override.substring(startKey+1, endKey);
+				int index = getIndex(tech, layer1.getIndex(), layer2.getIndex());
+				if (key.equals("c"))
 				{
-					np.setMinSize(newRules.minNodeSize[j*2].doubleValue(),
-						newRules.minNodeSize[j*2+1].doubleValue(),
-							newRules.minNodeSizeRules[j]);
+					rules.conList[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("cr"))
+				{
+					rules.conListRules[index] = newValue;
+				} else if (key.equals("u"))
+				{
+					rules.unConList[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("ur"))
+				{
+					rules.unConListRules[index] = newValue;
+				} else if (key.equals("cw"))
+				{
+					rules.conListWide[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("cwr"))
+				{
+					rules.conListWideRules[index] = newValue;
+				} else if (key.equals("uw"))
+				{
+					rules.unConListWide[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("uwr"))
+				{
+					rules.unConListWideRules[index] = newValue;
+				} else if (key.equals("cm"))
+				{
+					rules.conListMulti[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("cmr"))
+				{
+					rules.conListMultiRules[index] = newValue;
+				} else if (key.equals("um"))
+				{
+					rules.unConListMulti[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("umr"))
+				{
+					rules.unConListMultiRules[index] = newValue;
+				} else if (key.equals("e"))
+				{
+					rules.edgeList[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("er"))
+				{
+					rules.edgeListRules[index] = newValue;
 				}
-				j++;
+				pos = endKey + 1;
+				continue;
 			}
-
-			// update the cache so that it points to the new set
-			currentRules = newRules;
-			return true;
+			if (key.equals("m") || key.equals("mr"))
+			{
+				startKey = endKey + 1;
+				Layer layer = getLayerFromOverride(override, startKey, '=', tech);
+				if (layer == null) break;
+				startKey = override.indexOf('=', startKey);
+				if (startKey < 0) break;
+				endKey = override.indexOf(';', startKey);
+				if (endKey < 0) break;
+				String newValue = override.substring(startKey+1, endKey);
+				int index = layer.getIndex();
+				if (key.equals("m"))
+				{
+					rules.minWidth[index] = new Double(TextUtils.atof(newValue));
+				} else if (key.equals("mr"))
+				{
+					rules.minWidthRules[index] = newValue;
+				}
+				pos = endKey + 1;
+				continue;
+			}
+			if (key.equals("n") || key.equals("nr"))
+			{
+				startKey = endKey + 1;
+				int endPos = override.indexOf('=', startKey);
+				if (endPos < 0) break;
+				String nodeName = override.substring(startKey, endPos);
+				PrimitiveNode np = tech.findNodeProto(nodeName);
+				if (np == null) break;
+				int index = 0;
+				for(Iterator it = tech.getNodes(); it.hasNext(); )
+				{
+					PrimitiveNode oNp = (PrimitiveNode)it.next();
+					if (oNp == np) break;
+					index++;
+				}
+				if (key.equals("n"))
+				{
+					startKey = override.indexOf('=', startKey);
+					if (startKey < 0) break;
+					endKey = override.indexOf('/', startKey);
+					if (endKey < 0) break;
+					String newValue1 = override.substring(startKey+1, endKey);
+					int otherEndKey = override.indexOf(';', startKey);
+					if (otherEndKey < 0) break;
+					String newValue2 = override.substring(endKey+1, otherEndKey);
+					rules.minNodeSize[index*2] = new Double(TextUtils.atof(newValue1));
+					rules.minNodeSize[index*2+1] = new Double(TextUtils.atof(newValue2));
+				} else if (key.equals("nr"))
+				{
+					startKey = override.indexOf('=', startKey);
+					if (startKey < 0) break;
+					endKey = override.indexOf(';', startKey);
+					if (endKey < 0) break;
+					String newValue = override.substring(startKey+1, endKey);
+					rules.minNodeSizeRules[index] = newValue;
+				}
+				pos = endKey + 1;
+				continue;
+			}
+			if (key.equals("w"))
+			{
+				startKey = endKey + 1;
+				endKey = override.indexOf(';', startKey);
+				if (endKey < 0) break;
+				String newValue = override.substring(startKey+1, endKey);
+				rules.wideLimit = new Double(TextUtils.atof(newValue));
+				pos = endKey + 1;
+				continue;
+			}
 		}
+	}
+
+	private static Layer getLayerFromOverride(String override, int startPos, char endChr, Technology tech)
+	{
+		int endPos = override.indexOf(endChr, startPos);
+		if (endPos < 0) return null;
+		String layerName = override.substring(startPos, endPos);
+		Layer layer = tech.findLayer(layerName);
+		return layer;
 	}
 
 	/****************************** OPTIONS ******************************/
@@ -837,22 +1526,5 @@ public class DRC extends Tool
 		dateArray[0] = new Integer((int)(iVal >> 32));
 		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
 		cell.newVar(DRC.LAST_GOOD_DRC, dateArray);
-	}
-	/**
-	 * Method to delete all cached date information on all cells.
-	 */
-	public static void resetDRCDates()
-	{
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				Variable var = cell.getVar(LAST_GOOD_DRC);
-				if (var == null) continue;
-				cell.delVar(LAST_GOOD_DRC);
-			}
-		}
 	}
 }

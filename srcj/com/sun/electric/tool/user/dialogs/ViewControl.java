@@ -63,6 +63,8 @@ public class ViewControl extends EDialog
 		loadViews();
 	}
 
+	protected void escapePressed() { done(null); }
+
 	private void viewListClick()
 	{
 		String viewLine = (String)list.getSelectedValue();
@@ -94,7 +96,7 @@ public class ViewControl extends EDialog
 	/**
 	 * Class to delete a View in a new thread.
 	 */
-	protected static class DeleteView extends Job
+	private static class DeleteView extends Job
 	{
 		View view;
 		ViewControl dialog;
@@ -118,7 +120,7 @@ public class ViewControl extends EDialog
 	/**
 	 * Class to create a View in a new thread.
 	 */
-	protected static class CreateView extends Job
+	private static class CreateView extends Job
 	{
 		String viewName;
 		String viewAbbr;

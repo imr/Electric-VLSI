@@ -114,6 +114,8 @@ public class IOOptions extends EDialog
 		initPrinting();		// initialize the Printing panel
 	}
 
+	protected void escapePressed() { CancelActionPerformed(null); }
+
 	//******************************** CIF ********************************
 
 	private boolean initialCIFOutputMimicsDisplay;

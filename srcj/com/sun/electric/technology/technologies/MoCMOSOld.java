@@ -38,6 +38,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.tool.drc.DRC;
 
 import java.awt.Color;
 
@@ -47,6 +48,9 @@ import java.awt.Color;
 public class MoCMOSOld extends Technology
 {
 	/** the Complementary MOS (old, from MOSIS, P-Well, double metal) Technology object. */	public static final MoCMOSOld tech = new MoCMOSOld();
+
+	private static final double X = -1;
+	private double [] conDist, unConDist;
 
 	// -------------------- private and protected methods ------------------------
 	private MoCMOSOld()
@@ -70,7 +74,7 @@ public class MoCMOSOld extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -90,7 +94,7 @@ public class MoCMOSOld extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -110,7 +114,7 @@ public class MoCMOSOld extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -130,7 +134,7 @@ public class MoCMOSOld extends Technology
 
 		/** SA layer */
 		Layer SA_lay = Layer.newInstance(this, "S-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -150,7 +154,7 @@ public class MoCMOSOld extends Technology
 
 		/** DA layer */
 		Layer DA_lay = Layer.newInstance(this, "D-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -210,7 +214,7 @@ public class MoCMOSOld extends Technology
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -230,7 +234,7 @@ public class MoCMOSOld extends Technology
 
 		/** NW layer */
 		Layer NW_lay = Layer.newInstance(this, "N-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -250,12 +254,12 @@ public class MoCMOSOld extends Technology
 
 		/** CC layer */
 		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V layer */
 		Layer V_lay = Layer.newInstance(this, "Via",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P0 layer */
@@ -280,22 +284,22 @@ public class MoCMOSOld extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PC layer */
 		Layer PC_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** AC layer */
 		Layer AC_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** SAW layer */
 		Layer SAW_lay = Layer.newInstance(this, "S-Active-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -315,7 +319,7 @@ public class MoCMOSOld extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -335,7 +339,7 @@ public class MoCMOSOld extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -355,7 +359,7 @@ public class MoCMOSOld extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -375,7 +379,7 @@ public class MoCMOSOld extends Technology
 
 		/** PSA layer */
 		Layer PSA_lay = Layer.newInstance(this, "Pseudo-S-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -395,7 +399,7 @@ public class MoCMOSOld extends Technology
 
 		/** PDA layer */
 		Layer PDA_lay = Layer.newInstance(this, "Pseudo-D-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -455,7 +459,7 @@ public class MoCMOSOld extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -475,7 +479,7 @@ public class MoCMOSOld extends Technology
 
 		/** PNW layer */
 		Layer PNW_lay = Layer.newInstance(this, "Pseudo-N-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -495,7 +499,7 @@ public class MoCMOSOld extends Technology
 
 		/** PF layer */
 		Layer PF_lay = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 224,57,192,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 224,57,192,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
@@ -676,6 +680,78 @@ public class MoCMOSOld extends Technology
 			".TEMP 25.0"
 		};
 		setSpiceHeaderLevel2(headerLevel2);
+
+		//******************** DESIGN RULES ********************
+
+		unConDist = new double[]
+		{
+			//          M M P S D S S W W C V P T P A S M M P S D S S W W P
+			//          e e o A A e e e e u i a r o c a e e o A A e e e e a
+			//          t t l c c l l l l t a s a l t c t t l c c l l l l d
+			//          1 2 y t t P N l l     s n y C t 1 2 y t t P N P N F
+			//                        P N       s C   W P P P P P P P P P r
+			/* Met1  */ 3,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2  */   4,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly  */     2,1,1,X,X,X,X,X,2,X,X,4,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SAct  */       3,3,X,X,4,X,X,2,X,X,X,5,X,X,X,X,X,X,X,X,X,X,X,
+			/* DAct  */         3,X,X,X,X,X,2,X,X,X,5,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelP  */           X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelN  */             X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellP */               X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellN */                 X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Cut   */                   2,2,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via   */                     2,X,2,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Pass  */                       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Trans */                         X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PolyC */                           X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* ActC  */                             X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SactW */                               X,X,X,X,X,X,X,X,X,X,X,
+			/* Met1P */                                 X,X,X,X,X,X,X,X,X,X,
+			/* Met2P */                                   X,X,X,X,X,X,X,X,X,
+			/* PolyP */                                     X,X,X,X,X,X,X,X,
+			/* SActP */                                       X,X,X,X,X,X,X,
+			/* DActP */                                         X,X,X,X,X,X,
+			/* SelPP */                                           X,X,X,X,X,
+			/* SelNP */                                             X,X,X,X,
+			/* WelPP */                                               X,X,X,
+			/* WelNP */                                                 X,X,
+			/* PadFr */                                                   X,
+		};
+		conDist = new double[]
+		{
+			//          M M P S D S S W W C V P T P A S M M P S D S S W W P
+			//          e e o A A e e e e u i a r o c a e e o A A e e e e a
+			//          t t l c c l l l l t a s a l t c t t l c c l l l l d
+			//          1 2 y t t P N l l     s n y C t 1 2 y t t P N P N F
+			//                        P N       s C   W P P P P P P P P P r
+			/* Met1  */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Met2  */   X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Poly  */     X,1,1,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SAct  */       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* DAct  */         X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelP  */           X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* SelN  */             X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellP */               X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* WellN */                 X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Cut   */                   X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Via   */                     2,X,X,2,2,X,X,X,X,X,X,X,X,X,X,X,
+			/* Pass  */                       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* Trans */                         X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* PolyC */                           2,X,X,X,X,X,X,X,X,X,X,X,X,
+			/* ActC  */                             2,X,X,X,X,X,X,X,X,X,X,X,
+			/* SactW */                               X,X,X,X,X,X,X,X,X,X,X,
+			/* Met1P */                                 X,X,X,X,X,X,X,X,X,X,
+			/* Met2P */                                   X,X,X,X,X,X,X,X,X,
+			/* PolyP */                                     X,X,X,X,X,X,X,X,
+			/* SActP */                                       X,X,X,X,X,X,X,
+			/* DActP */                                         X,X,X,X,X,X,
+			/* SelPP */                                           X,X,X,X,X,
+			/* SelNP */                                             X,X,X,X,
+			/* WelPP */                                               X,X,X,
+			/* WelNP */                                                 X,X,
+			/* PadFr */                                                   X,
+		};
+		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 
@@ -1269,4 +1345,13 @@ public class MoCMOSOld extends Technology
 		SAW_lay.setPureLayerNode(pwn_node);		// S-Active-Well
 		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
 	};
+
+	/**
+	 * Method to return the "factory "design rules for this Technology.
+	 * @return the design rules for this Technology.
+	 */
+	public DRC.Rules getFactoryDesignRules()
+	{
+		return DRC.makeSimpleRules(this, conDist, unConDist);
+	}
 }

@@ -201,7 +201,7 @@ public class TextWindow
 	/**
 	 * Class to save a cell's text in a new thread.
 	 */
-	protected static class SaveCellText extends Job
+	private static class SaveCellText extends Job
 	{
 		TextWindow tw;
 

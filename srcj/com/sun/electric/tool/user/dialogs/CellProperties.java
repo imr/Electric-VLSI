@@ -2,9 +2,9 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: CellOptions.java
+ * File: CellProperties.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,11 +58,10 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.text.BadLocationException;
 
-
 /**
- * Class to handle the "Cell Options" dialog.
+ * Class to handle the "Cell Properties" dialog.
  */
-public class CellOptions extends EDialog
+public class CellProperties extends EDialog
 {
 	private JList cellList;
 	private DefaultListModel cellListModel;
@@ -87,8 +86,8 @@ public class CellOptions extends EDialog
 		boolean characteristicChanged;
 	};
 
-	/** Creates new form Cell Options */
-	public CellOptions(java.awt.Frame parent, boolean modal)
+	/** Creates new form Cell Properties */
+	public CellProperties(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -148,10 +147,15 @@ public class CellOptions extends EDialog
 		charXSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, true));
 		charYSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, false));
 
-		confirmDelete.setSelected(true);
-
 		loadCellList();
+
+		// not yet
+		useTechEditor.setEnabled(false);
+		setUseTechEditor.setEnabled(false);
+		clearUseTechEditor.setEnabled(false);
 	}
+
+	protected void escapePressed() { cancel(null); }
 
 	private void loadCellList()
 	{
@@ -188,7 +192,6 @@ public class CellOptions extends EDialog
 		OldValues ov = (OldValues)origValues.get(cell);
 		if (ov != null)
 		{
-			cellName.setText(cell.getProtoName());
 			disallowModAnyInCell.setSelected(ov.disAllMod);
 			disallowModInstInCell.setSelected(ov.disInstMod);
 			partOfCellLib.setSelected(ov.inCellLib);
@@ -205,10 +208,10 @@ public class CellOptions extends EDialog
 	 */
 	private static class CharSpacingListener implements DocumentListener
 	{
-		CellOptions dialog;
+		CellProperties dialog;
 		boolean x;
 
-		CharSpacingListener(CellOptions dialog, boolean x)
+		CharSpacingListener(CellProperties dialog, boolean x)
 		{
 			this.dialog = dialog;
 			this.x = x;
@@ -261,7 +264,7 @@ public class CellOptions extends EDialog
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        libraryPopup = new javax.swing.JComboBox();
+        jLabel2 = new javax.swing.JLabel();
         cellPane = new javax.swing.JScrollPane();
         disallowModAnyInCell = new javax.swing.JCheckBox();
         setDisallowModAnyInCell = new javax.swing.JButton();
@@ -277,26 +280,21 @@ public class CellOptions extends EDialog
         clearUseTechEditor = new javax.swing.JButton();
         expandNewInstances = new javax.swing.JRadioButton();
         unexpandNewInstances = new javax.swing.JRadioButton();
-        jLabel2 = new javax.swing.JLabel();
-        charXSpacing = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        charYSpacing = new javax.swing.JTextField();
+        charXSpacing = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        editCell = new javax.swing.JButton();
-        cellName = new javax.swing.JTextField();
-        rename = new javax.swing.JButton();
-        delete = new javax.swing.JButton();
-        confirmDelete = new javax.swing.JCheckBox();
+        charYSpacing = new javax.swing.JTextField();
+        libraryPopup = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Cell Properties");
+        setTitle("New Cell");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosing(java.awt.event.WindowEvent evt)
             {
-				CellOptionsWindowClosing(evt);
+                closeDialog(evt);
             }
         });
 
@@ -310,7 +308,7 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
@@ -327,8 +325,8 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -338,25 +336,16 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
 
-        libraryPopup.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                libraryPopupActionPerformed(evt);
-            }
-        });
-
+        jLabel2.setText("Every cell:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(libraryPopup, gridBagConstraints);
+        getContentPane().add(jLabel2, gridBagConstraints);
 
         cellPane.setMinimumSize(new java.awt.Dimension(200, 250));
         cellPane.setPreferredSize(new java.awt.Dimension(200, 250));
@@ -383,14 +372,12 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(disallowModAnyInCell, gridBagConstraints);
 
         setDisallowModAnyInCell.setText("Set");
-        setDisallowModAnyInCell.setMinimumSize(new java.awt.Dimension(53, 20));
-        setDisallowModAnyInCell.setPreferredSize(new java.awt.Dimension(53, 20));
         setDisallowModAnyInCell.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -400,14 +387,12 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 2);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(setDisallowModAnyInCell, gridBagConstraints);
 
         clearDisallowModAnyInCell.setText("Clear");
-        clearDisallowModAnyInCell.setMinimumSize(new java.awt.Dimension(64, 20));
-        clearDisallowModAnyInCell.setPreferredSize(new java.awt.Dimension(64, 20));
         clearDisallowModAnyInCell.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -417,9 +402,9 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 2, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearDisallowModAnyInCell, gridBagConstraints);
 
         disallowModInstInCell.setText("Disallow modification of instances in this cell");
@@ -434,14 +419,12 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(disallowModInstInCell, gridBagConstraints);
 
         setDisallowModInstInCell.setText("Set");
-        setDisallowModInstInCell.setMinimumSize(new java.awt.Dimension(53, 20));
-        setDisallowModInstInCell.setPreferredSize(new java.awt.Dimension(53, 20));
         setDisallowModInstInCell.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -451,14 +434,11 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 2);
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(setDisallowModInstInCell, gridBagConstraints);
 
         clearDisallowModInstInCell.setText("Clear");
-        clearDisallowModInstInCell.setMinimumSize(new java.awt.Dimension(64, 20));
-        clearDisallowModInstInCell.setPreferredSize(new java.awt.Dimension(64, 20));
         clearDisallowModInstInCell.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -468,9 +448,9 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearDisallowModInstInCell, gridBagConstraints);
 
         partOfCellLib.setText("Part of a cell-library");
@@ -485,14 +465,12 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(partOfCellLib, gridBagConstraints);
 
         setPartOfCellLib.setText("Set");
-        setPartOfCellLib.setMinimumSize(new java.awt.Dimension(53, 20));
-        setPartOfCellLib.setPreferredSize(new java.awt.Dimension(53, 20));
         setPartOfCellLib.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -502,14 +480,12 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 2);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(setPartOfCellLib, gridBagConstraints);
 
         clearPartOfCellLib.setText("Clear");
-        clearPartOfCellLib.setMinimumSize(new java.awt.Dimension(64, 20));
-        clearPartOfCellLib.setPreferredSize(new java.awt.Dimension(64, 20));
         clearPartOfCellLib.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -519,9 +495,9 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearPartOfCellLib, gridBagConstraints);
 
         useTechEditor.setText("Use technology editor on this cell");
@@ -536,14 +512,12 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(useTechEditor, gridBagConstraints);
 
         setUseTechEditor.setText("Set");
-        setUseTechEditor.setMinimumSize(new java.awt.Dimension(53, 20));
-        setUseTechEditor.setPreferredSize(new java.awt.Dimension(53, 20));
         setUseTechEditor.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -553,14 +527,12 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 2);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(setUseTechEditor, gridBagConstraints);
 
         clearUseTechEditor.setText("Clear");
-        clearUseTechEditor.setMinimumSize(new java.awt.Dimension(64, 20));
-        clearUseTechEditor.setPreferredSize(new java.awt.Dimension(64, 20));
         clearUseTechEditor.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -570,9 +542,9 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearUseTechEditor, gridBagConstraints);
 
         expandNewInstances.setText("Expand new instances");
@@ -588,6 +560,7 @@ public class CellOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(expandNewInstances, gridBagConstraints);
@@ -603,164 +576,63 @@ public class CellOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(unexpandNewInstances, gridBagConstraints);
 
-        jLabel2.setText("Characteristic X Spacing:");
+        jLabel3.setText("Characteristic X Spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel2, gridBagConstraints);
-
-        charXSpacing.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(charXSpacing, gridBagConstraints);
-
-        jLabel3.setText("Characteristic Y Spacing:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel3, gridBagConstraints);
 
-        charYSpacing.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(charXSpacing, gridBagConstraints);
+
+        jLabel4.setText("Characteristic Y Spacing:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(jLabel4, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(charYSpacing, gridBagConstraints);
 
-        jLabel4.setText("Every cell:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        getContentPane().add(jLabel4, gridBagConstraints);
-
-        editCell.setText("Edit Cell");
-        editCell.addActionListener(new java.awt.event.ActionListener()
+        libraryPopup.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                editCellActionPerformed(evt);
+                libraryPopupActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(editCell, gridBagConstraints);
-
-        cellName.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(cellName, gridBagConstraints);
-
-        rename.setText("Rename Cell");
-        rename.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                renameActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(rename, gridBagConstraints);
-
-        delete.setText("Delete Cell");
-        delete.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                deleteActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(delete, gridBagConstraints);
-
-        confirmDelete.setText("Confirm Delete");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(confirmDelete, gridBagConstraints);
+        getContentPane().add(libraryPopup, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
-
-	private void renameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_renameActionPerformed
-	{//GEN-HEADEREND:event_renameActionPerformed
-		String libName = (String)libraryPopup.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		String cellStr = (String)cellList.getSelectedValue();
-		if (cellStr == null) return;
-		Cell cell = lib.findNodeProto(cellStr);
-		if (cell == null)
-		{
-			System.out.println("cannot find cell "+cellStr+" here");
-			return;
-		}
-		String newName = cellName.getText();
-		CircuitChanges.renameCellInJob(cell, newName);
-
-		loadCellList();
-		cellList.setSelectedValue(cell.noLibDescribe(), true);
-	}//GEN-LAST:event_renameActionPerformed
-
-	private void deleteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteActionPerformed
-	{
-		String libName = (String)libraryPopup.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		String cellName = (String)cellList.getSelectedValue();
-		if (cellName == null) return;
-		Cell cell = lib.findNodeProto(cellName);
-		boolean confirm = confirmDelete.isSelected();
-		if (CircuitChanges.deleteCell(cell, confirm))
-		{
-			// cell will be deleted: delete entry from list
-			int index = cellList.getSelectedIndex();
-			cellListModel.remove(index);
-//			loadCellList();
-		}
-	}
-
-	private void editCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editCellActionPerformed
-	{
-		String libName = (String)libraryPopup.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		String cellName = (String)cellList.getSelectedValue();
-		if (cellName == null) return;
-		Cell cell = lib.findNodeProto(cellName);
-		WindowFrame.createEditWindow(cell);
-		ok(null);
-	}
 
 	private void unexpandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unexpandNewInstancesActionPerformed
 	{//GEN-HEADEREND:event_unexpandNewInstancesActionPerformed
@@ -776,6 +648,11 @@ public class CellOptions extends EDialog
 		if (ov.defExpanded != expanded) ov.defExpandedChanged = true;
 		ov.defExpanded = expanded;
 	}//GEN-LAST:event_expandNewInstancesActionPerformed
+
+	private void libraryPopupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_libraryPopupActionPerformed
+	{//GEN-HEADEREND:event_libraryPopupActionPerformed
+		loadCellList();
+	}//GEN-LAST:event_libraryPopupActionPerformed
 
 	private void useTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_useTechEditorActionPerformed
 	{//GEN-HEADEREND:event_useTechEditorActionPerformed
@@ -817,10 +694,19 @@ public class CellOptions extends EDialog
 		ov.disAllMod = disallow;
 	}//GEN-LAST:event_disallowModAnyInCellActionPerformed
 
-	private void libraryPopupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_libraryPopupActionPerformed
-	{//GEN-HEADEREND:event_libraryPopupActionPerformed
-		loadCellList();
-	}//GEN-LAST:event_libraryPopupActionPerformed
+	private void clearUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearUseTechEditorActionPerformed
+	{//GEN-HEADEREND:event_clearUseTechEditorActionPerformed
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (ov.useTechEditor) ov.useTechEditorChanged = true;
+			ov.useTechEditor = false;
+		}
+		cellListClick();
+	}//GEN-LAST:event_clearUseTechEditorActionPerformed
 
 	private void setUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_setUseTechEditorActionPerformed
 	{//GEN-HEADEREND:event_setUseTechEditorActionPerformed
@@ -920,39 +806,25 @@ public class CellOptions extends EDialog
 		cellListClick();
 	}//GEN-LAST:event_setDisallowModAnyInCellActionPerformed
 
-	private void clearUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearUseTechEditorActionPerformed
-	{//GEN-HEADEREND:event_clearUseTechEditorActionPerformed
-		String libName = (String)libraryPopup.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (ov.useTechEditor) ov.useTechEditorChanged = true;
-			ov.useTechEditor = false;
-		}
-		cellListClick();
-	}//GEN-LAST:event_clearUseTechEditorActionPerformed
-
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
 	{//GEN-HEADEREND:event_cancel
-		CellOptionsWindowClosing(null);
+		closeDialog(null);
 	}//GEN-LAST:event_cancel
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		SetCellOptions job = new SetCellOptions(this);
-		CellOptionsWindowClosing(null);
+		closeDialog(null);
 	}//GEN-LAST:event_ok
 
 	/**
 	 * Class to set cell options.
 	 */
-	protected static class SetCellOptions extends Job
+	private static class SetCellOptions extends Job
 	{
-		CellOptions dialog;
+		CellProperties dialog;
 		
-		protected SetCellOptions(CellOptions dialog)
+		protected SetCellOptions(CellProperties dialog)
 		{
 			super("Change Cell Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
@@ -999,41 +871,38 @@ public class CellOptions extends EDialog
 	}
 
 	/** Closes the dialog */
-	private void CellOptionsWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
-    // Variables declaration - do not modify
-    private JButton cancel;
-    private JTextField cellName;
-    private JScrollPane cellPane;
-    private JTextField charXSpacing;
-    private JTextField charYSpacing;
-    private JButton clearDisallowModAnyInCell;
-    private JButton clearDisallowModInstInCell;
-    private JButton clearPartOfCellLib;
-    private JButton clearUseTechEditor;
-    private JCheckBox confirmDelete;
-    private JButton delete;
-    private JCheckBox disallowModAnyInCell;
-    private JCheckBox disallowModInstInCell;
-    private JButton editCell;
-    private JRadioButton expandNewInstances;
-    private ButtonGroup expansion;
-    private JLabel jLabel1;
-    private JLabel jLabel2;
-    private JLabel jLabel3;
-    private JLabel jLabel4;
-    private JComboBox libraryPopup;
-    private JButton ok;
-    private JCheckBox partOfCellLib;
-    private JButton rename;
-    private JButton setDisallowModAnyInCell;
-    private JButton setDisallowModInstInCell;
-    private JButton setPartOfCellLib;
-    private JButton setUseTechEditor;
-    private JRadioButton unexpandNewInstances;
-    private JCheckBox useTechEditor;
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cancel;
+    private javax.swing.JScrollPane cellPane;
+    private javax.swing.JTextField charXSpacing;
+    private javax.swing.JTextField charYSpacing;
+    private javax.swing.JButton clearDisallowModAnyInCell;
+    private javax.swing.JButton clearDisallowModInstInCell;
+    private javax.swing.JButton clearPartOfCellLib;
+    private javax.swing.JButton clearUseTechEditor;
+    private javax.swing.JCheckBox disallowModAnyInCell;
+    private javax.swing.JCheckBox disallowModInstInCell;
+    private javax.swing.JRadioButton expandNewInstances;
+    private javax.swing.ButtonGroup expansion;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JComboBox libraryPopup;
+    private javax.swing.JButton ok;
+    private javax.swing.JCheckBox partOfCellLib;
+    private javax.swing.JButton setDisallowModAnyInCell;
+    private javax.swing.JButton setDisallowModInstInCell;
+    private javax.swing.JButton setPartOfCellLib;
+    private javax.swing.JButton setUseTechEditor;
+    private javax.swing.JRadioButton unexpandNewInstances;
+    private javax.swing.JCheckBox useTechEditor;
+    // End of variables declaration//GEN-END:variables
+	
 }

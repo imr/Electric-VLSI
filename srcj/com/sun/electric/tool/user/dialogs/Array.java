@@ -271,6 +271,8 @@ public class Array extends EDialog
 		});
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 	private void newSpacingSelected()
 	{
 		double x = TextUtils.atof(xSpacing.getText());
@@ -332,7 +334,7 @@ public class Array extends EDialog
 	/**
 	 * Class to create an array in a new thread.
 	 */
-	protected static class ArrayStuff extends Job
+	private static class ArrayStuff extends Job
 	{
 		Array dialog;
 

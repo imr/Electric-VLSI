@@ -220,7 +220,7 @@ public class WiringListener
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 		RealizeWiring job = new RealizeWiring(curPath, cellBeingWired);
-		wnd.repaintContents();
+		wnd.repaintContents(null);
 	}
 
 	public static List makeConnection(NodeInst fromNi, PortProto fromPP, NodeInst toNi, PortProto toPP, Point2D pt,
@@ -425,7 +425,7 @@ public class WiringListener
 	/**
 	 * Class for scheduling a wiring task.
 	 */
-	protected static class RealizeWiring extends Job
+	private static class RealizeWiring extends Job
 	{
 		WiringPlan [] wpList;
 		Cell cell;

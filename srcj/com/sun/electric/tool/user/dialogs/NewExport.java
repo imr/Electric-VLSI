@@ -65,6 +65,8 @@ public class NewExport extends EDialog
 		exportName.grabFocus();
 	}
 
+	protected void escapePressed() { cancelActionPerformed(null); }
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -299,7 +301,7 @@ public class NewExport extends EDialog
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
-	protected static class MakeExport extends Job
+	private static class MakeExport extends Job
 	{
 		Cell cell;
 		PortInst pi;

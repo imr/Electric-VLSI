@@ -111,6 +111,8 @@ public class LayoutText extends EDialog
 		});
 	}
 
+	protected void escapePressed() { cancel(null); }
+
 	/**
 	 * Method called when a dialog field has changed, and the message area must be redisplayed.
 	 */
@@ -408,7 +410,7 @@ public class LayoutText extends EDialog
 	/**
 	 * Class to create a cell in a new thread.
 	 */
-	protected static class CreateLayoutText extends Job
+	private static class CreateLayoutText extends Job
 	{
 		LayoutText dialog;
 

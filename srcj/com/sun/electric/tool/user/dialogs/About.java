@@ -143,7 +143,9 @@ public class About extends EDialog
 			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(evt); }
 		});
 	}
-	
+
+	protected void escapePressed() { ok(null); }
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

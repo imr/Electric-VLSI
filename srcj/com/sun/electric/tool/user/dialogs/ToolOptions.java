@@ -52,6 +52,7 @@ import java.awt.event.MouseAdapter;
 import java.util.Iterator;
 import java.util.HashMap;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
 import javax.swing.event.DocumentEvent;
@@ -186,13 +187,6 @@ public class ToolOptions extends EDialog
 		curTech = Technology.getCurrent();
 		curLib = Library.getCurrent();
 
-		// factory reset not working yet
-		factoryReset.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { factoryResetActionPerformed(evt); }
-		});
-		factoryReset.setEnabled(false);
-
 		initDRC();				// initialize the DRC Options panel
 		initDesignRules();		// initialize the Design Rules panel
 		initSpice();			// initialize the SPICE Options panel
@@ -207,10 +201,12 @@ public class ToolOptions extends EDialog
 		initCompaction();		// initialize the Compaction Options panel
 	}
 
+	protected void escapePressed() { CancelButton(null); }
+
 	/**
 	 * Class to apply changes to tool options in a new thread.
 	 */
-	protected static class ApplyToolOptions extends Job
+	private static class ApplyToolOptions extends Job
 	{
 		ToolOptions dialog;
 
@@ -238,10 +234,6 @@ public class ToolOptions extends EDialog
 			dialog.closeDialog(null);
 			return true;
 		}
-	}
-
-	private void factoryResetActionPerformed(ActionEvent evt)
-	{
 	}
 
 	private void showLayersInTechnology(DefaultListModel model)
@@ -337,6 +329,7 @@ public class ToolOptions extends EDialog
 	private DefaultListModel designRulesFromModel, designRulesToModel;
 	private DRC.Rules drRules;
 	private boolean designRulesUpdating = false;
+	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
 
 	/**
@@ -437,10 +430,24 @@ public class ToolOptions extends EDialog
 			}
 		}
 
+		factoryReset.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { factoryResetDRCActionPerformed(evt); }
+		});
+
 		// load the dialog
 		drTechName.setText(drRules.techName);
 		designRulesSetupForLayersOrNodes();
 		designRulesGetSelectedLayerLoadDRCToList();
+	}
+
+	private void factoryResetDRCActionPerformed(ActionEvent evt)
+	{
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			"Are you sure you want to do a factory reset of these design rules?");
+		if (response != JOptionPane.YES_OPTION) return;
+		designRulesFactoryReset = true;
+		OKButton(null);
 	}
 
 	/**
@@ -787,7 +794,12 @@ public class ToolOptions extends EDialog
 	 */
 	private void termDesignRules()
 	{
-		DRC.modifyRules(drRules);
+		if (designRulesFactoryReset)
+		{
+			DRC.resetDRCDates();
+			drRules = Technology.getCurrent().getFactoryDesignRules();
+		}
+		DRC.setRules(Technology.getCurrent(), drRules);
 	}
 
 	//******************************** SPICE ********************************
@@ -2150,6 +2162,7 @@ public class ToolOptions extends EDialog
         drMultiConnectedRule = new javax.swing.JTextField();
         drMultiUnconnected = new javax.swing.JTextField();
         drMultiUnconnectedRule = new javax.swing.JTextField();
+        factoryReset = new javax.swing.JButton();
         spice = new javax.swing.JPanel();
         spice1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -2371,7 +2384,6 @@ public class ToolOptions extends EDialog
         jLabel78 = new javax.swing.JLabel();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
-        factoryReset = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -2561,7 +2573,7 @@ public class ToolOptions extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 10;
+        gridBagConstraints.gridheight = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -2833,6 +2845,13 @@ public class ToolOptions extends EDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drMultiUnconnectedRule, gridBagConstraints);
+
+        factoryReset.setText("Factory Reset");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridwidth = 3;
+        designRules.add(factoryReset, gridBagConstraints);
 
         tabPane.addTab("Design Rules", designRules);
 
@@ -3135,7 +3154,7 @@ public class ToolOptions extends EDialog
 
         spice5.setLayout(new java.awt.GridBagLayout());
 
-        spiceHeaderCardExtension.setColumns(1);
+        spiceHeaderCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -3212,7 +3231,7 @@ public class ToolOptions extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice5.add(spiceBrowseHeaderFile, gridBagConstraints);
 
-        spiceTrailerCardExtension.setColumns(1);
+        spiceTrailerCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -4626,20 +4645,12 @@ public class ToolOptions extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
-        getContentPane().add(ok, gridBagConstraints);
-
-        factoryReset.setText("Factory Reset");
-        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(factoryReset, gridBagConstraints);
+        getContentPane().add(ok, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
