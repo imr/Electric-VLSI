@@ -41,7 +41,7 @@ import java.util.Map;
 public class J3DViewDialog extends EDialog
 {
     private View3DWindow view3D = null;
-    private Job socketJob = null;
+    private J3DClientApp socketJob = null;
     private String hostname;
     private List knots = new ArrayList();
     private Map interMap;
@@ -137,9 +137,9 @@ public class J3DViewDialog extends EDialog
         yRotLabel = new javax.swing.JLabel();
         xRotField = new javax.swing.JTextField();
         xRotLabel = new javax.swing.JLabel();
-        zBox1 = new javax.swing.JCheckBox();
-        yBox1 = new javax.swing.JCheckBox();
-        xBox1 = new javax.swing.JCheckBox();
+        xRotBox = new javax.swing.JCheckBox();
+        yRotBox = new javax.swing.JCheckBox();
+        zRotBox = new javax.swing.JCheckBox();
         positionPanel = new javax.swing.JPanel();
         zLabelUnit = new javax.swing.JLabel();
         yLabelUnit = new javax.swing.JLabel();
@@ -227,7 +227,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(xRotLabelUnit, gridBagConstraints);
 
-        zRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        zRotPosField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
@@ -244,7 +244,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(zRotPosLabel, gridBagConstraints);
 
-        yRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        yRotPosField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -260,7 +260,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(yRotPosLabel, gridBagConstraints);
 
-        xRotPosField.setPreferredSize(new java.awt.Dimension(40, 21));
+        xRotPosField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -276,7 +276,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(xRotPosLabel, gridBagConstraints);
 
-        zRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        zRotField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -292,7 +292,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(zRotLabel, gridBagConstraints);
 
-        yRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        yRotField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -308,7 +308,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(yRotLabel, gridBagConstraints);
 
-        xRotField.setPreferredSize(new java.awt.Dimension(40, 21));
+        xRotField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -324,29 +324,30 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         rotationPanel.add(xRotLabel, gridBagConstraints);
 
-        zBox1.setSelected(true);
+        xRotBox.setSelected(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rotationPanel.add(zBox1, gridBagConstraints);
+        rotationPanel.add(xRotBox, gridBagConstraints);
 
-        yBox1.setSelected(true);
+        yRotBox.setSelected(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rotationPanel.add(yBox1, gridBagConstraints);
+        rotationPanel.add(yRotBox, gridBagConstraints);
 
-        xBox1.setSelected(true);
+        zRotBox.setSelected(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rotationPanel.add(xBox1, gridBagConstraints);
+        rotationPanel.add(zRotBox, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.gridheight = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(rotationPanel, gridBagConstraints);
 
@@ -377,6 +378,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         positionPanel.add(xLabelUnit, gridBagConstraints);
 
+        zField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -391,6 +393,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         positionPanel.add(zLabel, gridBagConstraints);
 
+        yField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -406,7 +409,7 @@ public class J3DViewDialog extends EDialog
         positionPanel.add(yLabel, gridBagConstraints);
 
         xField.setMinimumSize(new java.awt.Dimension(20, 21));
-        xField.setPreferredSize(new java.awt.Dimension(40, 21));
+        xField.setPreferredSize(new java.awt.Dimension(60, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -440,8 +443,8 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.gridheight = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(positionPanel, gridBagConstraints);
@@ -471,7 +474,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(separator, gridBagConstraints);
@@ -509,7 +512,7 @@ public class J3DViewDialog extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(separator1, gridBagConstraints);
@@ -601,17 +604,19 @@ public class J3DViewDialog extends EDialog
             connect.setText("Connect");
             enter.setEnabled(true);
             if (socketJob != null)
-            {
-                socketJob.abort();
-                socketJob.checkAbort();
-                socketJob.remove();
-            }
+                socketJob.killJob();
         }
     }//GEN-LAST:event_connectActionPerformed
 
     private void closeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeActionPerformed
         setVisible(false);
-		dispose();
+        dispose();
+        if (socketJob != null)
+        {
+            socketJob.abort();
+            socketJob.checkAbort();
+            socketJob.remove();
+        }
     }//GEN-LAST:event_closeActionPerformed
 
 	/** Closes the dialog */
@@ -620,6 +625,22 @@ public class J3DViewDialog extends EDialog
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
+
+    public String getToggleInfo()
+    {
+        int xBoxValue = (xBox.isSelected()) ? 1 : 0;
+        int yBoxValue = (yBox.isSelected()) ? 1 : 0;
+        int zBoxValue = (zBox.isSelected()) ? 1 : 0;
+        int xRotBoxValue = (xRotBox.isSelected()) ? 1 : 0;
+        int yRotBoxValue = (yRotBox.isSelected()) ? 1 : 0;
+        int zRotBoxValue = (zRotBox.isSelected()) ? 1 : 0;
+        return (String.valueOf(xBoxValue) + " " +
+                String.valueOf(yBoxValue) + " " +
+                String.valueOf(zBoxValue) + " " +
+                String.valueOf(xRotBoxValue) + " " +
+                String.valueOf(yRotBoxValue) + " " +
+                String.valueOf(zRotBoxValue));
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox auto;
@@ -636,10 +657,10 @@ public class J3DViewDialog extends EDialog
     private javax.swing.JSeparator separator1;
     private javax.swing.JSlider slider;
     private javax.swing.JCheckBox xBox;
-    private javax.swing.JCheckBox xBox1;
     private javax.swing.JTextField xField;
     private javax.swing.JLabel xLabel;
     private javax.swing.JLabel xLabelUnit;
+    private javax.swing.JCheckBox xRotBox;
     private javax.swing.JTextField xRotField;
     private javax.swing.JLabel xRotLabel;
     private javax.swing.JLabel xRotLabelUnit;
@@ -647,10 +668,10 @@ public class J3DViewDialog extends EDialog
     private javax.swing.JLabel xRotPosLabel;
     private javax.swing.JLabel xRotPosLabelUnit;
     private javax.swing.JCheckBox yBox;
-    private javax.swing.JCheckBox yBox1;
     private javax.swing.JTextField yField;
     private javax.swing.JLabel yLabel;
     private javax.swing.JLabel yLabelUnit;
+    private javax.swing.JCheckBox yRotBox;
     private javax.swing.JTextField yRotField;
     private javax.swing.JLabel yRotLabel;
     private javax.swing.JLabel yRotLabelUnit;
@@ -658,10 +679,10 @@ public class J3DViewDialog extends EDialog
     private javax.swing.JLabel yRotPosLabel;
     private javax.swing.JLabel yRotPosLabelUnit;
     private javax.swing.JCheckBox zBox;
-    private javax.swing.JCheckBox zBox1;
     private javax.swing.JTextField zField;
     private javax.swing.JLabel zLabel;
     private javax.swing.JLabel zLabelUnit;
+    private javax.swing.JCheckBox zRotBox;
     private javax.swing.JTextField zRotField;
     private javax.swing.JLabel zRotLabel;
     private javax.swing.JLabel zRotLabelUnit;

@@ -905,8 +905,8 @@ public class View3DWindow extends JPanel
     public J3DUtils.ThreeDDemoKnot moveAndRotate(double[] values)
     {
         Vector3d newPos = new Vector3d(values[0], values[1], values[2]);
-        Quat4f quaf = J3DUtils.createQuaternionFromEuler(values[3], values[4], values[5]);
-        Transform3D tmpTrans = new Transform3D();
+        double factor = 10;
+        Quat4f quaf = J3DUtils.createQuaternionFromEuler(factor*values[3], factor*values[4], factor*values[5]);
         Transform3D currXform = new Transform3D();
 
         for (Iterator it = cell.getNodes(); it.hasNext();)

@@ -1,4 +1,4 @@
-//package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d;
 
 import java.io.*;
 import java.net.DatagramSocket;

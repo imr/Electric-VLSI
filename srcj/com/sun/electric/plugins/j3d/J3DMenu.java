@@ -72,17 +72,6 @@ public class J3DMenu {
     public static void readDemoDataFromSocket()
     {
         J3DViewDialog.createThreeViewDialog(TopLevel.getCurrentJFrame(), "localhost");
-//        View3DWindow view3D = null;
-//        WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
-//        if (content instanceof View3DWindow)
-//            view3D = (View3DWindow)content;
-//        else
-//        {
-//            System.out.println("Current Window Frame is not a 3D View for Read Demo Data");
-//            return;
-//        }
-//        J3DClientApp job = new J3DClientApp(view3D, "mudd2");
-//        job.startJob();
     }
 
     public static void readDemoDataFromFile()

@@ -52,7 +52,7 @@ public class J3DClientApp extends Job
         String[] strings = new String[VALUES_PER_LINE]; // 12 is the max value including errors
         StringTokenizer parse = new StringTokenizer(line, " ", false);
 
-        while (parse.hasMoreTokens())
+        while (parse.hasMoreTokens() && count < VALUES_PER_LINE)
         {
             strings[count++] = parse.nextToken();
         }
@@ -71,6 +71,16 @@ public class J3DClientApp extends Job
         super("Socket Connection", null, Job.Type.EXAMINE, null, null, Job.Priority.ANALYSIS);
         this.dialog = dialog;
         this.hostname = hostname;
+    }
+
+    /**
+     * To kill this particular job
+     */
+    public void killJob()
+    {
+        abort();
+        checkAbort();
+        remove();
     }
 
     /**
@@ -95,7 +105,7 @@ public class J3DClientApp extends Job
             while (!finished)
             {
                 outBuffer = new byte[bufferLenght];
-                outBuffer = "request".getBytes();
+                outBuffer = dialog.getToggleInfo().getBytes();
                 outDatagram = new DatagramPacket(outBuffer, outBuffer.length, address, 2345);
                 socket.send(outDatagram);
                 System.out.println("Sent request to " + localHost + " at port 2345");
@@ -109,7 +119,10 @@ public class J3DClientApp extends Job
                 if (inData.equalsIgnoreCase("quit"))
                     finished = true;
                 else
+                {
                     dialog.socketAction(inData);
+                    finished = checkAbort();
+                }
             }
         } catch (IOException ex)
         {
