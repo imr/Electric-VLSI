@@ -430,7 +430,7 @@ public class Attributes extends EDialog
 		for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			if (!var.isDisplay()) continue;
+			//if (!var.isDisplay()) continue;
 			variables.add(var);
 		}
 		Collections.sort(variables, new VariableNameSort());
