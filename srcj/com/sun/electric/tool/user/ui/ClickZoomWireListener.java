@@ -63,7 +63,7 @@ public class ClickZoomWireListener
     private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
-    private static final boolean debug = true; /* for debugging */
+    private static final boolean debug = false; /* for debugging */
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 

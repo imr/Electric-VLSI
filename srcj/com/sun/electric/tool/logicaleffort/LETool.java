@@ -65,7 +65,7 @@ public class LETool extends Tool {
     /** LESizer object */                       private LESizer lesizer = null;
     /** if the tool has been paused */          private boolean paused = false;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** Creates a new instance of LETool */
     private LETool() {
