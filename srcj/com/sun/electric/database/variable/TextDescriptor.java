@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraint;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -397,13 +399,13 @@ public class TextDescriptor
 
 
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
-	/** the owner of the text descriptor */		private TextDescriptorOwner owner;
+	/** the owner of the text descriptor */		ElectricObject owner;
 
 	/**
 	 * The constructor simply creates a TextDescriptor with zero values filled-in.
 	 * @param owner owner of this TextDescriptor.
 	 */
-	public TextDescriptor(TextDescriptorOwner owner)
+	public TextDescriptor(ElectricObject owner)
 	{
 		this.owner = owner;
 		this.descriptor0 = this.descriptor1 = 0;
@@ -414,7 +416,7 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor another descriptor.
 	 */
-	public TextDescriptor(TextDescriptorOwner owner, TextDescriptor descriptor)
+	public TextDescriptor(ElectricObject owner, TextDescriptor descriptor)
 	{
 		this.owner = owner;
 		this.descriptor0 = descriptor.descriptor0;
@@ -427,7 +429,7 @@ public class TextDescriptor
 	 * @param descriptor0 lower work of text descriptor.
 	 * @param descriptor1 higher work of text descriptor.
 	 */
-	public TextDescriptor(TextDescriptorOwner owner, int descriptor0, int descriptor1)
+	public TextDescriptor(ElectricObject owner, int descriptor0, int descriptor1)
 	{
 		this.owner = owner;
 		this.descriptor0 = descriptor0;
@@ -439,11 +441,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Variable on a NodeInsts.
 	 */
-	public static TextDescriptor newNodeArcDescriptor(TextDescriptorOwner owner)
+	public static TextDescriptor newNodeArcDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner);
-		td.setRelSize(1);
-		return td;
+		return new TextDescriptor(owner, 0, 1 << (2 + TXTQGRIDSH + VTSIZESH));
+// 		TextDescriptor td = new TextDescriptor(owner);
+// 		td.setRelSize(1);
+// 		return td;
 	}
 
 	/**
@@ -451,11 +454,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on an Export.
 	 */
-	public static TextDescriptor newExportDescriptor(TextDescriptorOwner owner)
+	public static TextDescriptor newExportDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner);
-		td.setRelSize(2);
-		return td;
+		return new TextDescriptor(owner, 0, 2 << (2 + TXTQGRIDSH + VTSIZESH));
+// 		TextDescriptor td = new TextDescriptor(owner);
+// 		td.setRelSize(2);
+// 		return td;
 	}
 
 	/**
@@ -463,11 +467,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on Nonlayout text (on invisible pins)..
 	 */
-	public static TextDescriptor newNonLayoutDescriptor(TextDescriptorOwner owner)
+	public static TextDescriptor newNonLayoutDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner);
-		td.setRelSize(2);
-		return td;
+		return new TextDescriptor(owner, 0, 2 << (2 + TXTQGRIDSH + VTSIZESH));
+// 		TextDescriptor td = new TextDescriptor(owner);
+// 		td.setRelSize(2);
+// 		return td;
 	}
 
 	/**
@@ -476,11 +481,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Cell instance name.
 	 */
-	public static TextDescriptor newInstanceDescriptor(TextDescriptorOwner owner)
+	public static TextDescriptor newInstanceDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner);
-		td.setRelSize(4);
-		return td;
+		return new TextDescriptor(owner, 0, 4 << (2 + TXTQGRIDSH + VTSIZESH));
+// 		TextDescriptor td = new TextDescriptor(owner);
+// 		td.setRelSize(4);
+// 		return td;
 	}
 
 	/**
@@ -489,11 +495,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Variable on a Cells.
 	 */
-	public static TextDescriptor newCellDescriptor(TextDescriptorOwner owner)
+	public static TextDescriptor newCellDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner);
-		td.setRelSize(1);
-		return td;
+		return new TextDescriptor(owner, 0, 1 << (2 + TXTQGRIDSH + VTSIZESH));
+// 		TextDescriptor td = new TextDescriptor(owner);
+// 		td.setRelSize(1);
+// 		return td;
 	}
 
     /**
@@ -521,7 +528,14 @@ public class TextDescriptor
 	/**
 	 * Routine checks if text descriptor can be changed..
 	 */
-	private void checkChanging() { if (owner != null) owner.checkChanging(); }
+	private void checkChanging()
+	{
+		if (owner == null) return;
+		owner.checkChanging();
+
+		// handle change control, constraint, and broadcast
+		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1);
+	}
 
 	/**
 	 * Low-level routine to set the bits in the TextDescriptor.
@@ -533,12 +547,11 @@ public class TextDescriptor
 	 * @param descriptor0 the first word of the new TextDescriptor.
 	 * @param descriptor1 the second word of the new TextDescriptor.
 	 */
-// 	public void lowLevelSet(int descriptor0, int descriptor1)
-// 	{
-// 		checkChanging();
-// 		this.descriptor0 = descriptor0;
-// 		this.descriptor1 = descriptor1;
-// 	}
+	public void lowLevelSet(int descriptor0, int descriptor1)
+	{
+		this.descriptor0 = descriptor0;
+		this.descriptor1 = descriptor1;
+	}
 
 	/**
 	 * Routine to copy other TextDescriptor to this TextDescriptor.

@@ -29,7 +29,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.TextDescriptorOwner;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -43,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * Besides representing the geometry of these objects, it organizes them
  * into an R-tree, which is a spatial structure that enables fast searching.
  */
-public class Geometric extends ElectricObject implements TextDescriptorOwner
+public class Geometric extends ElectricObject
 {
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);

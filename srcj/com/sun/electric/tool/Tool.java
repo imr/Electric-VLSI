@@ -289,12 +289,13 @@ public class Tool extends ElectricObject implements Change
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
 	public void modifyExport(Export pp, PortInst oldPi) {}
 	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY) {}
-	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue) {}
+	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1) {}
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
 	public void newVariable(ElectricObject obj, Variable.Key key, int type) {}
 	public void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript) {}
+	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
 	public void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}
 	public void insertVariable(ElectricObject obj, Variable.Key key, int type, int index) {}
 	public void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}

@@ -302,7 +302,7 @@ public class ElectricObject
 			Variable newVar = this.setVar(key.getName(), obj);
 			if (newVar != null)
 			{
-				newVar.lowLevelSetFlags(flags);
+				newVar.copyFlags(var);
 				newVar.setDescriptor(td);
 			}
 		}
@@ -519,34 +519,6 @@ public class ElectricObject
 	{
 		return varKeys.keySet().size();
 	}
-
-//	/**
-//	 * Routine to indicate that changes are starting on this ElectricObjects.
-//	 */
-//	public void startChange()
-//	{
-//		checkChanging();
-//		// handle change control, constraint, and broadcast
-//		if (Undo.recordChange())
-//		{
-//			// tell all tools about this change
-//			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART);
-//		}
-//	}
-
-//	/**
-//	 * Routine to indicate that changes are ending on this ElectricObjects.
-//	 */
-//	public void endChange()
-//	{
-//		checkChanging();
-//		// handle change control, constraint, and broadcast
-//		if (Undo.recordChange())
-//		{
-//			// tell all tools about this change
-//			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
-//		}
-//	}
 
 	/**
 	 * Routine to set an index of this PortProto in NodeProto ports.

@@ -496,17 +496,6 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Remove this NodeProto.
-	 * Also deletes the ports associated with this NodeProto.
-	 */
-	public void kill()
-	{
-		checkChanging();
-		// kill ports
-//		removeAll(ports);
-	}
-
-	/**
 	 * Routine to determine whether this NodeProto contains a PortProto.
 	 * @param port the port being sought on this NodeProto.
 	 * @return true if the port is on this NodeProto.

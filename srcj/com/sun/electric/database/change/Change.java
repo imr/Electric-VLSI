@@ -52,12 +52,13 @@ public interface Change
 	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);
 	void modifyExport(Export pp, PortInst oldPi);
 	void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY);
-	void modifyTextDescript(ElectricObject obj, int key, Object oldValue);
+	void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1);
 
 	void newObject(ElectricObject obj);
 	void killObject(ElectricObject obj);
 	void newVariable(ElectricObject obj, Variable.Key key, int type);
 	void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript);
+	void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags);
 	void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);
 	void insertVariable(ElectricObject obj, Variable.Key key, int type, int index);
 	void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);

@@ -77,6 +77,7 @@ public class Undo
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
 		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
+		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMODFLAGS = new Type("VariableModFlags");
 		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMOD = new Type("VariableMod");
 		/** Describes the insertion of an entry in an arrayed Variable. */	public static final Type VARIABLEINSERT = new Type("VariableInsert");
 		/** Describes the deletion of an entry in an arrayed Variable. */	public static final Type VARIABLEDELETE = new Type("VariableDelete");
@@ -207,6 +208,13 @@ public class Undo
 					Tool tool = (Tool)it.next();
 //					if (tool.isOn()) (*el_tools[i].killvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, descript);
 				}
+			} else if (type == Type.VARIABLEMODFLAGS)
+			{
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+					if (tool.isOn()) tool.modifyVariableFlags(obj, (Variable)o1, i1);
+				}
 			} else if (type == Type.VARIABLEMOD)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
@@ -230,12 +238,10 @@ public class Undo
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
-//				descript[0] = c->p4;
-//				descript[1] = c->p5;
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].modifydescript)(c->entryaddr, c->p1, c->p2, descript);
+					if (tool.isOn()) tool.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2);
 				}
 			}
 			broadcasting = null;
@@ -478,6 +484,14 @@ public class Undo
 				type = Type.VARIABLENEW;
 				return;
 			}
+			if (type == Type.VARIABLEMODFLAGS)
+			{
+				Variable var = (Variable)o1;
+				int oldFlags = var.lowLevelGetFlags();
+				var.lowLevelSetFlags(i1);
+				i1 = oldFlags;
+				return;
+			}
 			if (type == Type.VARIABLEMOD)
 			{
 				// args: addr, type, key, vartype, aindex, oldvalue
@@ -542,10 +556,12 @@ public class Undo
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
-//				var = getvalkeynoeval(c->entryaddr, c->p1, -1, c->p2);
-//				if (var == NOVARIABLE) break;
-//				oldval = var->textdescript[0];   var->textdescript[0] = c->p4;   c->p4 = oldval;
-//				oldval = var->textdescript[1];   var->textdescript[1] = c->p5;   c->p5 = oldval;
+				TextDescriptor descript = (TextDescriptor)o1;
+				int oldDescript0 = descript.lowLevelGet0();
+				int oldDescript1 = descript.lowLevelGet1();
+				descript.lowLevelSet(i1, i2);
+				i1 = oldDescript0;
+				i2 = oldDescript1;
 				return;
 			}
 		}
@@ -612,13 +628,10 @@ public class Undo
 //					// special cases that make the change "major"
 //					if (db_majorvariable(a1, a2)) major = true;
 //				}
-			} else if (type == Type.DESCRIPTORMOD)
+			} else if (type == Type.VARIABLEMODFLAGS || type == Type.DESCRIPTORMOD)
 			{
-//				if ((a3&VDONTSAVE) == 0)
-//				{
-//					cell = obj.whichCell();
-//					if (cell != null) lib = cell.getLibrary();
-//				}
+				cell = obj.whichCell();
+				if (cell != null) lib = cell.getLibrary();
 			}
 
 			// set "changed" and "dirty" bits
@@ -727,6 +740,10 @@ public class Undo
 //				formatinfstr(infstr, M_(" Variable '%s' killed on %s [was %s]"), changedvariablename(p1, p2, p4),
 //					describeobject(entryaddr, p1), describevariable(&myvar, -1, -1));
 			}
+			if (type == Type.VARIABLEMODFLAGS)
+			{
+				return "Modified variable flags "+obj+" "+((Variable)o1).getReadableName()+" [was 0"+Integer.toOctalString(i1)+"]";
+			}
 			if (type == Type.VARIABLEMOD)
 			{
 				return "Modified variable";
@@ -753,9 +770,7 @@ public class Undo
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
-				return "Modified Text Descriptor";
-//				formatinfstr(infstr, M_(" Text descriptor on variable %s changed [was 0%lo/0%lo]"),
-//					makename(p2), p4, p5);
+				return "Modified Text Descriptor in "+obj+" [was 0"+Integer.toOctalString(i1)+"/0"+Integer.toOctalString(i2)+"]";
 			}
 			return "?";
 		}
@@ -802,16 +817,39 @@ public class Undo
 				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL)
 				{
 					object++;
-				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL ||
+				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL || ch.getType() == Type.VARIABLEMODFLAGS ||
 					ch.getType() == Type.VARIABLEMOD || ch.getType() == Type.VARIABLEINSERT ||
 					ch.getType() == Type.VARIABLEDELETE)
 				{
 					variable++;
 				} else if (ch.getType() == Type.DESCRIPTORMOD)
 				{
-//					if ((VARIABLE *)c->p1 != NOVARIABLE) variable++; else
-//						if ((PORTPROTO *)c->p3 != NOPORTPROTO) export++; else
-//							nodeInst++;
+					TextDescriptor td = (TextDescriptor)ch.o1;
+					if (ch.obj instanceof NodeInst)
+					{
+						NodeInst ni = (NodeInst)ch.obj;
+						if (ni.getNameTextDescriptor() == td || ni.getProtoTextDescriptor() == td)
+							nodeInst++;
+						else
+							variable++;
+					} else if (ch.obj instanceof ArcInst)
+					{
+						ArcInst ai = (ArcInst)ch.obj;
+						if (ai.getNameTextDescriptor() == td)
+							arcInst++;
+						else
+							variable++;
+					} else if (ch.obj instanceof Export)
+					{
+						Export e = (Export)ch.obj;
+						if (e.getTextDescriptor() == td)
+							export++;
+						else
+							variable++;
+					} else
+					{
+						variable++;
+					}
 				}
 			}
 
@@ -991,17 +1029,22 @@ public class Undo
 	 * <LI>VARIABLENEW takes a1=objtype(obsolete) a2=key a3=type.
 	 * <LI>VARIABLEKILL takes a1=objtype(obsolete) a2=key a3=oldAddr a4=oldType a5=td[0] a6=td[1].
 	 * <LI>VARIABLEMOD takes a1=objtype(obsolete) a2=key a3=type a4=index a5=oldValue.
+	 * <LI>VARIABLEMODFLAGS takes o1=variable i1=flags.
 	 * <LI>VARIABLEINSERT takes a1=objtype(obsolete) a2=key a3=type a4=index.
 	 * <LI>VARIABLEDELETE takes a1=objtype(obsolete) a2=key a3=type a4=index a5=oldValue.
-	 * <LI>DESCRIPTORMOD takes a1=objtype(obsolete) a2=key a3=type a4=td[0] a5=td[1].
+	 * <LI>DESCRIPTORMOD takes o1=descript i1=oldDescript0 i2=oldDescript1.
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
 	 * @return the change object (null on error).
 	 */
-	public static Change newChange(ElectricObject obj, Type change)
+	private static Change newChange(ElectricObject obj, Type change)
 	{
-		if (currentBatch == null) return null;
+		if (currentBatch == null)
+		{
+			System.out.println("Recieved " + change + " change when no batch started");
+			return null;
+		}
 		if (broadcasting != null)
 		{
 			System.out.println("Recieved " + change + " change during broadcast of " + broadcasting);
@@ -1022,8 +1065,104 @@ public class Undo
 		currentBatch.add(ch);
 
 		// broadcast the change
-		ch.broadcast(firstChange, false);
+		//ch.broadcast(firstChange, false);
 		return ch;
+	}
+
+	public static void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(ni, Type.NODEINSTMOD);
+		ch.setDoubles(oCX, oCY, oSX, oSY, 0);
+		ch.setInts(oRot, 0);
+		ni.setChange(ch);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		//Constraint.getCurrent().modifyArcInst(ni, oCX, oCY, oSX, oSY, oRot);
+	}
+
+	public static void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(ai, Type.ARCINSTMOD);
+		ch.setDoubles(oHX, oHY, oTX, oTY, oWid);
+		ai.setChange(ch);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		//Constraint.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
+	}
+
+	public static void modifyExport(Export pp, PortInst oldPi)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(pp, Type.EXPORTMOD);
+		ch.setObject(oldPi);
+		pp.setChange(ch);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().modifyExport(pp, oldPi);
+	}
+
+	public static void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(cell, Type.CELLMOD);
+		ch.setDoubles(oLX, oHX, oLY, oHY, 0);
+		cell.setChange(ch);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
+	}
+
+	public static void  modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(obj, Type.DESCRIPTORMOD);
+		ch.setObject(descript);
+		ch.setInts(oldDescript0, oldDescript1);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		// tell constraint system about this TextDescriptor
+		Constraint.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
+	}
+
+	public static void newObject(ElectricObject obj)
+	{
+		if (!recordChange()) return;
+		Type type = Type.OBJECTNEW;
+		if (obj instanceof Cell) type = Type.CELLNEW;
+		else if (obj instanceof NodeInst) type = type.NODEINSTNEW;
+		else if (obj instanceof ArcInst) type = type.ARCINSTNEW;
+		else if (obj instanceof Export) type = type.EXPORTNEW;
+		Change ch = newChange(obj, type);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().newObject(obj);
+	}
+
+	public static void killObject(ElectricObject obj)
+	{
+		if (!recordChange()) return;
+		Type type = Type.OBJECTKILL;
+		if (obj instanceof Cell) type = Type.CELLKILL;
+		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
+		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
+		else if (obj instanceof Export) type = Type.EXPORTKILL;
+		Change ch = newChange(obj, type);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().killObject(obj);
+	}
+
+	public static void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
+	{
+		if (!recordChange()) return;
+		Change ch = Undo.newChange(obj, Type.VARIABLEMODFLAGS);
+		ch.setObject(var);
+		ch.setInts(oldFlags, 0);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
 	/**

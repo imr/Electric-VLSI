@@ -191,14 +191,7 @@ public class NodeInst extends Geometric implements Nodable
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this NodeInst
-			Undo.Change ch = Undo.newChange(ni, Undo.Type.NODEINSTNEW);
-
-			// tell constraint system about new NodeInst
-			Constraint.getCurrent().newObject(ni);
-		}
+		Undo.newObject(ni);
 		return ni;
 	}
 
@@ -225,14 +218,7 @@ public class NodeInst extends Geometric implements Nodable
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this NodeInst
-			Undo.Change ch = Undo.newChange(this, Undo.Type.NODEINSTKILL);
-
-			// tell constraint system about killed NodeInst
-			Constraint.getCurrent().killObject(this);
-		}
+		Undo.killObject(this);
 	}
 
 	/**

@@ -341,7 +341,7 @@ public class Cell extends NodeProto
 	 *  lock=-1 "locked for changes".
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
-	/** number of cells in Electric */								private static int cellNumber = 0;
+	/** counter for enumerating cells */							private static int cellNumber = 0;
 
 	// ------------------ protected and private methods -----------------------
 
@@ -494,7 +494,6 @@ public class Cell extends NodeProto
 		versionGroup.remove(this);
 		Library lib = getLibrary();
 		lib.removeCell(this);
-		super.kill();
 	}
 
 	/**
@@ -514,14 +513,7 @@ public class Cell extends NodeProto
 		if (cell.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this Cell
-			Undo.Change ch = Undo.newChange(cell, Undo.Type.CELLNEW);
-
-			// tell constraint system about new Cell
-			Constraint.getCurrent().newObject(cell);
-		}
+		Undo.newObject(cell);
 		return cell;
 	}
 
@@ -535,14 +527,7 @@ public class Cell extends NodeProto
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this Cell
-			Undo.Change ch = Undo.newChange(this, Undo.Type.CELLKILL);
-
-			// tell constraint system about killed Cell
-			Constraint.getCurrent().killObject(this);
-		}
+		Undo.killObject(this);
 	}
 
 	/**

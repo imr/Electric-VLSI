@@ -27,7 +27,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.TextDescriptorOwner;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -57,7 +56,7 @@ import java.util.Collections;
  * at a higher level in the schematic or layout hierarchy.
  * The PortProto also has a parent cell, characteristics, and more.
  */
-public abstract class PortProto extends ElectricObject implements TextDescriptorOwner
+public abstract class PortProto extends ElectricObject
 {
 	/** angle of this port from node center */			private static final int PORTANGLE =               0777;
 	/** right shift of PORTANGLE field */				private static final int PORTANGLESH =                0;

@@ -47,6 +47,7 @@ public class PrimitiveArc extends ArcProto
 	// ----------------------- private data -------------------------------
 
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
+	/** counter for enumerating primitive arcs */		private static int primArcNumber = 0;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -60,6 +61,7 @@ public class PrimitiveArc extends ArcProto
 		this.widthOffset = 0;
 		this.tech = tech;
 		this.layers = layers;
+		setIndex(primArcNumber++);
 	}
 
 	// ------------------------ public methods -------------------------------

@@ -50,6 +50,7 @@ public class PrimitiveNode extends NodeProto
 	/** special factors for unusual primitives */	private int[] specialValues;
 	/** default width and height */					private double defWidth, defHeight;
 	/** offset from database to user */				private SizeOffset offset;
+	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
 
 	// ------------------ private and protected methods ----------------------
 
@@ -71,6 +72,7 @@ public class PrimitiveNode extends NodeProto
 		this.defHeight = defHeight;
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
+		setIndex(--primNodeNumber);
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);

@@ -295,13 +295,7 @@ public class Layout extends Constraint
 		// mark that this nodeinst has changed
 		if (ni.getChangeClock() < changeClock-1)
 		{
-			Undo.Change c = Undo.newChange(ni, Undo.Type.NODEINSTMOD);
-			if (c != null)
-			{
-				c.setDoubles(oldCX, oldCY, oldSX, oldSY, 0);
-				c.setInts(oldang, 0);
-			}
-			ni.setChange(c);
+			Undo.modifyNodeInst(ni, oldCX, oldCY, oldSX, oldSY, oldang);
 		}
 
 		ni.setChangeClock(changeClock + change);
@@ -941,9 +935,7 @@ public class Layout extends Constraint
 		// if the arc hasn't changed yet, record this change
 		if (ai.getChange() == null)
 		{
-			Undo.Change change = Undo.newChange(ai, Undo.Type.ARCINSTMOD);
-			change.setDoubles(oldHeadX, oldHeadY, oldTailX, oldTailY, ai.getWidth());
-			ai.setChange(change);
+			Undo.modifyArcInst(ai, oldHeadX, oldHeadY, oldTailX, oldTailY, ai.getWidth());
 			ai.setChangeClock(changeClock + arctyp);
 		}
 	}
@@ -1247,12 +1239,7 @@ public class Layout extends Constraint
 		}
 
 		// update the cell size
-		if (change == null)
-		{
-			change = Undo.newChange(cell, Undo.Type.CELLMOD);
-			change.setDoubles(flx, fhx, fly, fhy, 0);
-			cell.setChange(change);
-		}
+		if (change == null) Undo.modifyCell(cell, flx, fhx, fly, fhy);
 
 		// see if all instances of this cell are in the same location
 		boolean mixed = false;
@@ -1470,9 +1457,7 @@ public class Layout extends Constraint
 		}
 
 		// update the cell size
-		Undo.Change change = Undo.newChange(start, Undo.Type.CELLMOD);
-		change.setDoubles(oldCellBounds.getMinX(), oldCellBounds.getMaxX(), oldCellBounds.getMinY(), oldCellBounds.getMaxY(), 0);
-		start.setChange(change);
+		Undo.modifyCell(start, oldCellBounds.getMinX(), oldCellBounds.getMaxX(), oldCellBounds.getMinY(), oldCellBounds.getMaxY());
 		return true;
 	}
 }

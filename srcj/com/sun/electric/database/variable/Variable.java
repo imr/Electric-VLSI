@@ -23,10 +23,12 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraint;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -35,7 +37,7 @@ import java.text.FieldPosition;
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
  */
-public class Variable implements TextDescriptorOwner
+public class Variable
 {
 	/**
 	 * The Key class caches Variable names.
@@ -69,7 +71,6 @@ public class Variable implements TextDescriptorOwner
 		public String getName() { return name; }
 	}
 
-	private ElectricObject owner;
 	private Object addr;
 	private Key key;
 	private int flags;
@@ -94,9 +95,8 @@ public class Variable implements TextDescriptorOwner
 	 */
 	Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
-		this.owner = owner;
 		this.addr = addr;
-		this.descriptor = new TextDescriptor(this, descriptor);
+		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
 	}
     
@@ -105,7 +105,6 @@ public class Variable implements TextDescriptorOwner
 	 */
 	void kill()
 	{
-		owner = null;
 		addr = null;
 		descriptor = null;
 		key = null;
@@ -114,7 +113,14 @@ public class Variable implements TextDescriptorOwner
 	/**
 	 * Routine to check if this Variable can be changed.
 	 */
-	public void checkChanging() { owner.checkChanging(); }
+	public final void checkChanging()
+	{
+		ElectricObject owner = descriptor.owner;
+		owner.checkChanging();
+
+		// handle change control, constraint, and broadcast
+		Undo.modifyVariableFlags(owner, this, flags);
+	}
 
     /**
      * Get the number of entries stored in this Variable.
@@ -382,7 +388,7 @@ public class Variable implements TextDescriptorOwner
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
-	public void setDescriptor(TextDescriptor descriptor) { owner.checkChanging(); this.descriptor.copy(descriptor); }
+	public void setDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
 	 * Low-level routine to get the type bits.
@@ -404,19 +410,25 @@ public class Variable implements TextDescriptorOwner
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".
 	 */
-	public void lowLevelSetFlags(int flags) { owner.checkChanging(); this.flags = flags; }
+	public void lowLevelSetFlags(int flags) { this.flags = flags; }
+
+	/**
+	 * Routine to copy flags from another variable.
+	 * @param var another variable.
+	 */
+	public void copyFlags(Variable var) { checkChanging(); this.flags = var.flags; }
 
 	/**
 	 * Routine to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void setDisplay() { owner.checkChanging(); flags |= VDISPLAY; }
+	public void setDisplay() { checkChanging(); flags |= VDISPLAY; }
 
 	/**
 	 * Routine to set this Variable to be not displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void clearDisplay() { owner.checkChanging(); flags &= ~VDISPLAY; }
+	public void clearDisplay() { checkChanging(); flags &= ~VDISPLAY; }
 
 	/**
 	 * Routine to return true if this Variable is displayable.
@@ -428,7 +440,7 @@ public class Variable implements TextDescriptorOwner
 	 * Routine to set this Variable to be Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 */
-	public void setJava() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
+	public void setJava() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
 
 	/**
 	 * Routine to return true if this Variable is Java.
@@ -443,7 +455,7 @@ public class Variable implements TextDescriptorOwner
 	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setLisp() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
+	public void setLisp() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
 
 	/**
 	 * Routine to return true if this Variable is Lisp.
@@ -460,7 +472,7 @@ public class Variable implements TextDescriptorOwner
 	 * Although the C version of Electric had a TCL interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setTCL() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
+	public void setTCL() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
 
 	/**
 	 * Routine to return true if this Variable is TCL.
@@ -480,19 +492,19 @@ public class Variable implements TextDescriptorOwner
 	/**
 	 * Routine to set this Variable to be not-code.
 	 */
-	public void clearCode() { owner.checkChanging(); flags &= ~(VCODE1|VCODE2); }
+	public void clearCode() { checkChanging(); flags &= ~(VCODE1|VCODE2); }
 
 	/**
 	 * Routine to set this Variable to be not-saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void setDontSave() { owner.checkChanging(); flags |= VDONTSAVE; }
+	public void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
 
 	/**
 	 * Routine to set this Variable to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void clearDontSave() { owner.checkChanging(); flags &= ~VDONTSAVE; }
+	public void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
 
 	/**
 	 * Routine to return true if this Variable is to be saved.
@@ -505,13 +517,13 @@ public class Variable implements TextDescriptorOwner
 	 * Routine to set this Variable to be not-settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void setCantSet() { owner.checkChanging(); flags |= VCANTSET; }
+	public void setCantSet() { checkChanging(); flags |= VCANTSET; }
 
 	/**
 	 * Routine to set this Variable to be settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void clearCantSet() { owner.checkChanging(); flags &= ~VCANTSET; }
+	public void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
 
 	/**
 	 * Routine to return true if this Variable is settable.
@@ -519,5 +531,14 @@ public class Variable implements TextDescriptorOwner
 	 * @return true if this Variable is settable.
 	 */
 	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
+
+	/**
+	 * Returns a printable version of this Variable.
+	 * @return a printable version of this Variable.
+	 */
+	public String toString()
+	{
+		return key.getName();
+	}
 }
 

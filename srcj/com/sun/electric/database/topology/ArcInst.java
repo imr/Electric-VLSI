@@ -224,14 +224,7 @@ public class ArcInst extends Geometric
 		if (ai.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW);
-
-			// tell constraint system about new ArcInst
-//			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
-		}
+		Undo.newObject(ai);
 		return ai;
 	}
 
@@ -244,14 +237,7 @@ public class ArcInst extends Geometric
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL);
-
-			// tell constraint system about killed ArcInst
-//			(*el_curconstraint->killobject)((INTBIG)ni, VARCINST);
-		}
+		Undo.killObject(this);
 	}
 
 	/**
@@ -275,12 +261,7 @@ public class ArcInst extends Geometric
 		lowLevelModify(dWidth, dHeadX, dHeadY, dTailX, dTailY);
 
 		// track the change
-		if (Undo.recordChange())
-		{
-			Undo.Change change = Undo.newChange(this, Undo.Type.ARCINSTMOD);
-			change.setDoubles(oldxA, oldyA, oldxB, oldyB, oldWidth);
-			setChange(change);
-		}
+		Undo.modifyArcInst(this, oldxA, oldyA, oldxB, oldyB, oldWidth);
 		parent.setDirty();
 	}
 

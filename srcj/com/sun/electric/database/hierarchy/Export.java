@@ -87,15 +87,7 @@ public class Export extends PortProto
 		if (pp.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this Export
-			Undo.Change ch = Undo.newChange(pp, Undo.Type.EXPORTNEW);
-
-			// tell constraint system about new Export
-			Constraint.getCurrent().newObject(pp);
-		}
-
+		Undo.newObject(pp);
 		return pp;
 	}	
 
@@ -107,14 +99,7 @@ public class Export extends PortProto
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this Export
-			Undo.Change ch = Undo.newChange(this, Undo.Type.EXPORTKILL);
-
-			// tell constraint system about killed Export
-			Constraint.getCurrent().killObject(this);
-		}
+		Undo.killObject(this);
 	}
 
 	/**
@@ -142,20 +127,7 @@ public class Export extends PortProto
 		lowLevelModify(newPi);
 
 		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// announce the change
-			Undo.Change ch = Undo.newChange(this, Undo.Type.EXPORTMOD);
-			ch.setObject(oldPi);
-			setChange(ch);
-
-			// tell constraint system about modified port
-			Constraint.getCurrent().modifyExport(this, oldPi);
-
-			// mark this as changed
-//			db_forcehierarchicalanalysis(cell);
-		}
-
+		Undo.modifyExport(this, oldPi);
 		return false;
 	}
 

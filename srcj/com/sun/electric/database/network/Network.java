@@ -50,13 +50,16 @@ public class Network extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						public static Network tool = new Network();
-	/** the Network tool. */						private boolean debug = false;
+	/** flag for debug print. */					private boolean debug = false;
 	/** start of cells info in proto arrays */		private int cellsStart;
 	/** size of proto* arrays */					private int protoNum;
 	/** [i][j] offset of j-th PortProto of i-th NodeProto
 	 * in port maps */	   							private int[][] protoPortBeg;
 	/** [i][j][] port map if j-th NodeProt with i-th set of options
 	 **/											private int[][][] protoPortEquiv;
+	/** size of cell* arrays */						private int cellNum;
+	/** size of cell* arrays */						private Object[] cells;
+	/** size of cell* arrays */						private Object[][] netlist;
 
 	/**
 	 * The constructor sets up the Network tool.
@@ -96,6 +99,7 @@ public class Network extends Tool
 		protoPortEquiv[0] = new int[protoNum][];
 		protoPortEquiv[1] = new int[protoNum][];
 
+		/* Gather PrimitiveNodes */
 		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
 		{
 			Technology tech = (Technology)tit.next();
@@ -124,11 +128,14 @@ public class Network extends Tool
 				protoPortEquiv[1][ind] = equiv;
 			}
 		}
+
+		/* Option set 1 has shortcut resistor */
 		int resInd = cellsStart + Schematics.tech.resistorNode.getIndex();
 		int[] resMap = protoPortEquiv[1][resInd];
 		resMap = new int[resMap.length];
 		for (int i = 0; i < resMap.length; i++) resMap[i] = 0;
 		protoPortEquiv[1][resInd] = resMap;
+
 		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
 		{
 			Library lib = (Library)lit.next();
@@ -136,8 +143,22 @@ public class Network extends Tool
 			{
 				Cell c = (Cell)cit.next();
 				int ind = cellsStart + c.getIndex();
-				int[] beg = new int[c.getNumPorts() + 1];
-				for (int i = 0; i < beg.length; i++) beg[i] = i;
+				int numPorts = c.getNumPorts();
+				int[] beg = new int[numPorts + 1];
+				for (int i = 0; i < beg.length; i++) beg[i] = 0;
+				for (Iterator pit = c.getPorts(); pit.hasNext(); )
+				{
+					Export pp = (Export)pit.next();
+					beg[pp.getIndex()] = pp.getProtoNameLow().busWidth();
+				}
+				int b = 0;
+				for (int i = 0; i < numPorts; i++)
+				{
+					int w = beg[i];
+					beg[i] = b;
+					b = b + w;
+				}
+				beg[numPorts] = b;
 				protoPortBeg[ind] = beg;
 			}
 		}
@@ -215,10 +236,10 @@ public class Network extends Tool
 		System.out.println("Network.modifyCell("+cell+","+oLX+","+oHX+","+oLY+","+oHY+")");
 	}
 
-	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue)
+	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
 	{
 		if (!debug) return;
-		System.out.println("Network.modifyTextDescript("+obj+","+key+","+oldValue+")");
+		System.out.println("Network.modifyTextDescript("+obj+",...)");
 	}
 
 	public void newObject(ElectricObject obj)
@@ -243,6 +264,12 @@ public class Network extends Tool
 	{
 		if (!debug) return;
 		System.out.println("Network.killVariable("+obj+","+key+","+oldValue+","+oldDescript+")");
+	}
+
+	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
+	{
+		if (!debug) return;
+		System.out.println("Network.modifyVariableFlags("+obj+","+var+"."+oldFlags+")");
 	}
 
 	public void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue)
