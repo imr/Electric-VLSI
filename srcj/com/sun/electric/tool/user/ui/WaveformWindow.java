@@ -804,7 +804,6 @@ public class WaveformWindow implements WindowContent
 				// draw the horizontal grid lines
 				double displayedLow = scaleYToValue(hei);
 				double displayedHigh = scaleYToValue(0);
-//				ss = getSensibleValues(displayedHigh, displayedLow, 5);
 
 				// instead of sensible values taken from ticks, base it on the range of numbers
 				double lowYData = 0, highYData = 0;
@@ -850,6 +849,7 @@ public class WaveformWindow implements WindowContent
 
 			// look at all traces in this panel
 			processSignals(g, null);
+			processControlPoints(g, null);
 
 			// draw the vertical label
 			g.setColor(Color.WHITE);
@@ -1043,32 +1043,17 @@ public class WaveformWindow implements WindowContent
 				}
 			}
 		}
-	
+
+		private static final int CONTROLPOINTSIZE = 6;
+
 		private List processSignals(Graphics g, Rectangle2D bounds)
 		{
-			List result = null;
-			if (bounds != null) result = new ArrayList();
-
+			List selectedObjects = null;
+			if (bounds != null) selectedObjects = new ArrayList();
 			sz = getSize();
 			int wid = sz.width;
 			int hei = sz.height;
 
-			// show control points
-			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
-			{
-				WaveSignal ws = (WaveSignal)it.next();
-				double [] points = ws.sSig.getControlPoints();
-				if (points != null)
-				{
-					if (g != null) g.setColor(ws.color);
-					for(int i=0; i<points.length; i++)
-					{
-						double time = points[i];
-						int x = scaleTimeToX(time);
-						if (processABox(g, x-8, hei-16, x+8, hei, bounds, result, ws)) break;
-					}
-				}
-			}
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)it.next();
@@ -1089,12 +1074,12 @@ public class WaveformWindow implements WindowContent
 							int y = scaleValueToY(as.getValue(i));
 							if (i != 0)
 							{
-								if (processALine(g, lastX, lastY, x, y, bounds, result, ws, -1)) break;
+								if (processALine(g, lastX, lastY, x, y, bounds, selectedObjects, ws, -1)) break;
 								if (waveWindow.showVertexPoints)
 								{
 									if (i < numEvents-1)
 									{
-										if (processABox(g, x-2, y-2, x+2, y+2, bounds, result, ws)) break;
+										if (processABox(g, x-2, y-2, x+2, y+2, bounds, selectedObjects, ws, false, 0)) break;
 									}
 								}
 							}
@@ -1117,12 +1102,12 @@ public class WaveformWindow implements WindowContent
 								int y = scaleValueToY(as.getSweepValue(s, i));
 								if (i != 0)
 								{
-									if (processALine(g, lastX, lastY, x, y, bounds, result, ws, s)) break;
+									if (processALine(g, lastX, lastY, x, y, bounds, selectedObjects, ws, s)) break;
 									if (waveWindow.showVertexPoints)
 									{
 										if (i < numEvents-1)
 										{
-											if (processABox(g, x-2, y-2, x+2, y+2, bounds, result, ws)) break;
+											if (processABox(g, x-2, y-2, x+2, y+2, bounds, selectedObjects, ws, false, 0)) break;
 										}
 									}
 								}
@@ -1141,10 +1126,10 @@ public class WaveformWindow implements WindowContent
 							int highY = scaleValueToY(as.getIntervalHighValue(i));
 							if (i != 0)
 							{
-								if (processALine(g, lastX, lastLY, x, lowY, bounds, result, ws, -1)) break;
-								if (processALine(g, lastX, lastHY, x, highY, bounds, result, ws, -1)) break;
-								if (processALine(g, lastX, lastHY, x, lowY, bounds, result, ws, -1)) break;
-								if (processALine(g, lastX, lastLY, x, highY, bounds, result, ws, -1)) break;
+								if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+								if (processALine(g, lastX, lastHY, x, highY, bounds, selectedObjects, ws, -1)) break;
+								if (processALine(g, lastX, lastHY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+								if (processALine(g, lastX, lastLY, x, highY, bounds, selectedObjects, ws, -1)) break;
 							}
 							lastX = x;
 							lastLY = lowY;
@@ -1202,19 +1187,19 @@ public class WaveformWindow implements WindowContent
 								if (x < VERTLABELWIDTH+5)
 								{
 									// on the left edge: just draw the "<"
-									if (processALine(g, x, hei/2, x+5, hei-5, bounds, result, ws, -1)) return result;
-									if (processALine(g, x, hei/2, x+5, 5, bounds, result, ws, -1)) return result;
+									if (processALine(g, x, hei/2, x+5, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
+									if (processALine(g, x, hei/2, x+5, 5, bounds, selectedObjects, ws, -1)) return selectedObjects;
 								} else
 								{
 									// bus change point: draw the "X"
-									if (processALine(g, x-5, 5, x+5, hei-5, bounds, result, ws, -1)) return result;
-									if (processALine(g, x+5, 5, x-5, hei-5, bounds, result, ws, -1)) return result;
+									if (processALine(g, x-5, 5, x+5, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
+									if (processALine(g, x+5, 5, x-5, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
 								}
 								if (lastX+5 < x-5)
 								{
 									// previous bus change point: draw horizontal bars to connect
-									if (processALine(g, lastX+5, 5, x-5, 5, bounds, result, ws, -1)) return result;
-									if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, result, ws, -1)) return result;
+									if (processALine(g, lastX+5, 5, x-5, 5, bounds, selectedObjects, ws, -1)) return selectedObjects;
+									if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
 								}
 								if (g != null)
 								{
@@ -1234,8 +1219,8 @@ public class WaveformWindow implements WindowContent
 						if (lastX+5 < wid)
 						{
 							// run horizontal bars to the end
-							if (processALine(g, lastX+5, 5, wid, 5, bounds, result, ws, -1)) return result;
-							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, result, ws, -1)) return result;
+							if (processALine(g, lastX+5, 5, wid, 5, bounds, selectedObjects, ws, -1)) return selectedObjects;
+							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
 						}
 						continue;
 					}
@@ -1263,24 +1248,24 @@ public class WaveformWindow implements WindowContent
 						{
 							if (state != lastState)
 							{
-								if (processALine(g, x, 5, x, hei-5, bounds, result, ws, -1)) return result;
+								if (processALine(g, x, 5, x, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
 							}
 						}
 						if (lastLowy == lastHighy)
 						{
-							if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, result, ws, -1)) return result;
+							if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, selectedObjects, ws, -1)) return selectedObjects;
 						} else
 						{
-							if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, result, ws)) return result;
+							if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, selectedObjects, ws, false, 0)) return selectedObjects;
 						}
 						if (i >= numEvents-1)
 						{
 							if (lowy == highy)
 							{
-								if (processALine(g, x, lowy, wid-1, lowy, bounds, result, ws, -1)) return result;
+								if (processALine(g, x, lowy, wid-1, lowy, bounds, selectedObjects, ws, -1)) return selectedObjects;
 							} else
 							{
-								if (processABox(g, x, lowy, wid-1, highy, bounds, result, ws)) return result;
+								if (processABox(g, x, lowy, wid-1, highy, bounds, selectedObjects, ws, false, 0)) return selectedObjects;
 							}
 						}
 						lastx = x;
@@ -1290,21 +1275,72 @@ public class WaveformWindow implements WindowContent
 					}
 				}
 			}
-			return result;
+			return selectedObjects;
 		}
 
-		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List result, WaveSignal ws)
+		private List processControlPoints(Graphics g, Rectangle2D bounds)
 		{
+			List selectedObjects = null;
+			if (bounds != null) selectedObjects = new ArrayList();
+			sz = getSize();
+			int wid = sz.width;
+			int hei = sz.height;
+
+			// show control points
+			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)it.next();
+				if (g != null) g.setColor(ws.color);
+
+				double [] points = ws.sSig.getControlPoints();
+				if (points == null) continue;
+				if (g != null) g.setColor(ws.color);
+				for(int i=0; i<points.length; i++)
+				{
+					double time = points[i];
+					int x = scaleTimeToX(time);
+					if (processABox(g, x-CONTROLPOINTSIZE, hei-CONTROLPOINTSIZE*2, x+CONTROLPOINTSIZE, hei,
+						bounds, selectedObjects, ws, true, time)) break;
+
+					// see if the control point is selected
+					boolean found = false;
+					if (bounds == null && ws.controlPointsSelected != null)
+					{
+						for(int j=0; j<ws.controlPointsSelected.length; j++)
+							if (ws.controlPointsSelected[j] == time) { found = true;   break; }
+					}
+					if (found)
+					{
+						g.setColor(Color.GREEN);
+						if (processABox(g, x-CONTROLPOINTSIZE+2, hei-CONTROLPOINTSIZE*2+2, x+CONTROLPOINTSIZE-2, hei-2,
+							bounds, selectedObjects, ws, true, time)) break;
+						g.setColor(ws.color);
+					}
+				}
+			}
+			return selectedObjects;
+		}
+
+		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List result,
+			WaveSignal ws, boolean controlPoint, double controlTime)
+		{
+			// bounds is non-null if doing hit-testing
 			if (bounds != null)
 			{
 				// do bounds checking for hit testing
 				if (hX > bounds.getMinX() && lX < bounds.getMaxX() && hY > bounds.getMinY() && lY < bounds.getMaxY())
 				{
-					result.add(ws);
+					WaveSelection wSel = new WaveSelection();
+					wSel.ws = ws;
+					wSel.controlPoint = controlPoint;
+					wSel.controlTime = controlTime;
+					result.add(wSel);
 					return true;
 				}
 				return false;
 			}
+
+			// not doing hit-testing, just doing drawing
 			g.fillRect(lX, lY, hX-lX, hY-lY);
 			return false;
 		}
@@ -1318,7 +1354,10 @@ public class WaveformWindow implements WindowContent
 				Point2D to = new Point2D.Double(tX, tY);
 				if (!GenMath.clipLine(from, to, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY()))
 				{
-					result.add(ws);
+					WaveSelection wSel = new WaveSelection();
+					wSel.ws = ws;
+					wSel.controlPoint = false;
+					result.add(wSel);
 					return true;
 				}
 				return false;
@@ -1444,7 +1483,7 @@ public class WaveformWindow implements WindowContent
 		 * @param hX the high X coordinate of the area.
 		 * @param lY the low Y coordinate of the area.
 		 * @param hY the high Y coordinate of the area.
-		 * @return a List of signals in that area.
+		 * @return a list of WaveSelection objects.
 		 */
 		private List findSignalsInArea(int lX, int hX, int lY, int hY)
 		{
@@ -1455,8 +1494,11 @@ public class WaveformWindow implements WindowContent
 			if (lXd > hXd) { double swap = lXd;   lXd = hXd;   hXd = swap; }
 			if (lYd > hYd) { double swap = lYd;   lYd = hYd;   hYd = swap; }
 			Rectangle2D bounds = new Rectangle2D.Double(lXd, lYd, hXd-lXd, hYd-lYd);
-			List foundList = processSignals(null, bounds);
-			return foundList;
+			List sigs = processSignals(null, bounds);
+			List cps = processControlPoints(null, bounds);
+			for(Iterator it = sigs.iterator(); it.hasNext(); )
+				cps.add(it.next());
+			return cps;
 		}
 	
 		private void clearHighlightedSignals()
@@ -1466,6 +1508,7 @@ public class WaveformWindow implements WindowContent
 				WaveSignal ws = (WaveSignal)it.next();
 				if (!ws.highlighted) continue;
 				ws.highlighted = false;
+				ws.controlPointsSelected = null;
 				if (ws.sigButton != null)
 					ws.sigButton.setBackground(background);
 			}
@@ -1599,6 +1642,13 @@ public class WaveformWindow implements WindowContent
 
 		// ****************************** SELECTION IN WAVEFORM WINDOW ******************************
 
+		private static class WaveSelection
+		{
+			/** Selected signal in Waveform Window */	WaveSignal ws;
+			/** true if this is a control point */		boolean    controlPoint;
+			/** time of the control point (if a CP) */	double     controlTime;
+		}
+
 		/**
 		 * Method to implement the Mouse Pressed event for selection.
 		 */ 
@@ -1695,7 +1745,7 @@ public class WaveformWindow implements WindowContent
 					ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 				{
 					draggingArea = false;
-					List foundList = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
+					List selectedObjects = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
 					if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 					{
 						// standard click: add this as the only trace
@@ -1707,19 +1757,31 @@ public class WaveformWindow implements WindowContent
 								oWp.clearHighlightedSignals();
 							}
 						}
-						for(Iterator it = foundList.iterator(); it.hasNext(); )
+						for(Iterator it = selectedObjects.iterator(); it.hasNext(); )
 						{
-							WaveSignal ws = (WaveSignal)it.next();
-							wp.addHighlightedSignal(ws);
+							WaveSelection wSel = (WaveSelection)it.next();
+							if (wSel.controlPoint)
+							{
+								wSel.ws.addSelectedControlPoint(wSel.controlTime);
+							}
+							wp.addHighlightedSignal(wSel.ws);
 						}
 					} else
 					{
 						// shift click: add or remove to list of highlighted traces
-						for(Iterator it = foundList.iterator(); it.hasNext(); )
+						for(Iterator it = selectedObjects.iterator(); it.hasNext(); )
 						{
-							WaveSignal ws = (WaveSignal)it.next();
-							if (ws.highlighted) removeHighlightedSignal(ws); else
+							WaveSelection wSel = (WaveSelection)it.next();
+							WaveSignal ws = wSel.ws;
+							if (ws.highlighted)
+							{
+								if (wSel.controlPoint) ws.removeSelectedControlPoint(wSel.controlTime);
+								removeHighlightedSignal(ws);
+							} else
+							{
+								if (wSel.controlPoint) ws.addSelectedControlPoint(wSel.controlTime);
 								wp.addHighlightedSignal(ws);
+							}
 						}
 					}
 
@@ -2287,6 +2349,7 @@ public class WaveformWindow implements WindowContent
 		/** the panel that holds this signal */			private Panel wavePanel;
 		/** the data for this signal */					private Stimuli.Signal sSig;
 		/** the color of this signal */					private Color color;
+		/** the times of selected control points */		private double [] controlPointsSelected;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
 
@@ -2352,6 +2415,7 @@ public class WaveformWindow implements WindowContent
 			int sigNo = wavePanel.waveSignals.size();
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
+			this.controlPointsSelected = null;
 			highlighted = false;
 			String sigName = sSig.getFullName();
 			if (wavePanel.isAnalog)
@@ -2383,6 +2447,62 @@ public class WaveformWindow implements WindowContent
 		 * @return the actual signal information associated with this line in the waveform window.
 		 */
 		public Stimuli.Signal getSignal() { return sSig; }
+
+		/**
+		 * Method to return the time of selected control points in this WaveSignal.
+		 * @return an array of times of selected control points in this WaveSignal
+		 * (returns null if no control points are selected).
+		 */
+		public double [] getSelectedControlPoints() { return controlPointsSelected; }
+
+		/**
+		 * Method to tell whether this WaveSignal is highlighted in the waveform window.
+		 * @return true if this WaveSignal is highlighted in the waveform window.
+		 */
+		public boolean isSelected() { return highlighted; }
+
+		private void addSelectedControlPoint(double controlTime)
+		{
+			if (controlPointsSelected == null)
+			{
+				// no control points: set this as the only one
+				controlPointsSelected = new double[1];
+				controlPointsSelected[0] = controlTime;
+				return;
+			}
+
+			// see if this time value is already in the list
+			for(int i=0; i<controlPointsSelected.length; i++)
+				if (controlPointsSelected[i] == controlTime) return;
+
+			// expand the list and add this time value
+			double [] newPoints = new double[controlPointsSelected.length+1];
+			for(int i=0; i<controlPointsSelected.length; i++)
+				newPoints[i] = controlPointsSelected[i];
+			newPoints[controlPointsSelected.length] = controlTime;
+			controlPointsSelected = newPoints;
+		}
+
+		private void removeSelectedControlPoint(double controlTime)
+		{
+			if (controlPointsSelected == null) return;
+
+			// see if this time value is in the list
+			boolean found = false;
+			for(int i=0; i<controlPointsSelected.length; i++)
+				if (controlPointsSelected[i] == controlTime) { found = true;   break; }
+			if (!found) return;
+
+			// shrink the list and remove this time value
+			double [] newPoints = new double[controlPointsSelected.length-1];
+			int j = 0;
+			for(int i=0; i<controlPointsSelected.length; i++)
+			{
+				if (controlPointsSelected[i] == controlTime) continue;
+				newPoints[j++] = controlPointsSelected[i];
+			}
+			controlPointsSelected = newPoints;
+		}
 
 		private void signalNameClicked(ActionEvent evt)
 		{

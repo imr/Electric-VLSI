@@ -159,7 +159,9 @@ public class ToolMenu {
 			irsimSimulationSubMenu.addMenuItem("Get Information about Selected Signals", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("info"); } });
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Clear Vectors on Selected Signals", null,
+			irsimSimulationSubMenu.addMenuItem("Clear Selected Vectors", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearSelected"); } });
+			irsimSimulationSubMenu.addMenuItem("Clear All Vectors on Selected Signals", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clear"); } });
 			irsimSimulationSubMenu.addMenuItem("Clear All Vectors", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearAll"); } });

@@ -196,14 +196,6 @@ public class Stimuli
 		public boolean isInBus() { return busCount != 0; }
 
 		/**
-		 * Method to set a list of control points associated with this signal.
-		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
-		 * These points can be selected for change of the stimuli.
-		 * @param cp an array of times where there are control points.
-		 */
-		public void setControlPoints(double [] controlPoints) { this.controlPoints = controlPoints; }
-
-		/**
 		 * Method to return a list of control points associated with this signal.
 		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
 		 * These points can be selected for change of the stimuli.
@@ -211,6 +203,67 @@ public class Stimuli
 		 * Null if no control points are defined.
 		 */
 		public double [] getControlPoints() { return controlPoints; }
+
+		/**
+		 * Method to clear the list of control points associated with this signal.
+		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+		 * These points can be selected for change of the stimuli.
+		 */
+		public void clearControlPoints() { controlPoints = null; }
+
+		/**
+		 * Method to add a new control point to the list on this signal.
+		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+		 * These points can be selected for change of the stimuli.
+		 * @param time the time of the new control point.
+		 */
+		public void addControlPoint(double time)
+		{
+			if (controlPoints == null)
+			{
+				controlPoints = new double[1];
+				controlPoints[0] = time;
+			} else
+			{
+				// see if it is in the list already
+				for(int i=0; i<controlPoints.length; i++)
+					if (controlPoints[i] == time) return;
+
+				// extend the list
+				double [] newCP = new double[controlPoints.length + 1];
+				for(int i=0; i<controlPoints.length; i++)
+					newCP[i] = controlPoints[i];
+				newCP[controlPoints.length] = time;
+				controlPoints = newCP;
+			}
+		}
+
+		/**
+		 * Method to remove control points the list on this signal.
+		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+		 * These points can be selected for change of the stimuli.
+		 * @param time the time of the control point to delete.
+		 */
+		public void removeControlPoint(double time)
+		{
+			if (controlPoints == null) return;
+
+			// see if it is in the list already
+			boolean found = false;
+			for(int i=0; i<controlPoints.length; i++)
+				if (controlPoints[i] == time) { found = true;   break; }
+			if (!found) return;
+
+			// shrink the list
+			double [] newCP = new double[controlPoints.length - 1];
+			int j = 0;
+			for(int i=0; i<controlPoints.length; i++)
+			{
+				if (controlPoints[i] != time)
+					newCP[j++] = controlPoints[i];
+			}
+			controlPoints = newCP;
+		}
 
 		/**
 		 * Method to set an application-specific object pointer on this Signal.
