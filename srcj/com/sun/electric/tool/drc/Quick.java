@@ -3204,11 +3204,13 @@ public class Quick
 			{
 				case MINAREAERROR:
 					errorMessage += "Minimum area error:";
-					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessagePart2 = ", layer " + layer1.getName();
+					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
 				case ENCLOSEDAREAERROR:
 					errorMessage += "Enclosed area error:";
-					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessagePart2 = ", layer " + layer1.getName();
+					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
 				case MINWIDTHERROR:
 					errorMessage += "Minimum width error:";
