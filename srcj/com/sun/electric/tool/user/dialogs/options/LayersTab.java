@@ -23,83 +23,25 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.technologies.MoCMOS;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.GraphicsEnvironment;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseAdapter;
-import java.awt.font.FontRenderContext;
-import java.awt.font.LineMetrics;
-import java.awt.font.GlyphVector;
-import java.awt.geom.Point2D;
-import java.util.Iterator;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
-import javax.swing.JOptionPane;
-import javax.swing.JList;
+import java.util.Iterator;
+
 import javax.swing.JPanel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JSplitPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
 /**
  * Class to handle the "Layers" tab of the Preferences dialog.
  */
 public class LayersTab extends PreferencePanel
 {
-	private Technology curTech = Technology.getCurrent();
-
 	/** Creates new form LayerTab */
 	public LayersTab(java.awt.Frame parent, boolean modal)
 	{

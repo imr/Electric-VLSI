@@ -99,7 +99,7 @@ public class ELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		writeBigInteger(ELIBConstants.MAGIC12);
+		writeBigInteger(ELIBConstants.MAGIC13);
 		writeByte((byte)2);		// size of Short
 		writeByte((byte)4);		// size of Int
 		writeByte((byte)1);		// size of Char
@@ -728,6 +728,13 @@ public class ELIB extends Output
 		writeBigInteger(lowY);
 		writeBigInteger(highX);
 		writeBigInteger(highY);
+
+		// write anchor point too
+		int anchorX = (int)(ni.getAnchorCenterX() * tech.getScale() * 2);
+		int anchorY = (int)(ni.getAnchorCenterY() * tech.getScale() * 2);
+		writeBigInteger(anchorX);
+		writeBigInteger(anchorY);
+
 		int transpose = 0;
 		int rotation = ni.getAngle();
 		if (ni.isXMirrored()) transpose |= 2;

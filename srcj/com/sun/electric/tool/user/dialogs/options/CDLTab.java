@@ -23,38 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.util.Iterator;
-import java.util.HashMap;
-import javax.print.PrintServiceLookup;
-import javax.print.PrintService;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 
 /**
  * Class to handle the "CDL" tab of the Preferences dialog.

@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import javax.swing.JPanel;
@@ -32,6 +34,9 @@ import javax.swing.JPanel;
  */
 public class PreferencePanel extends EDialog
 {
+	protected Technology curTech = Technology.getCurrent();
+	protected Library curLib = Library.getCurrent();
+
 	private boolean inited = false;
 
 	public PreferencePanel(java.awt.Frame parent, boolean modal)

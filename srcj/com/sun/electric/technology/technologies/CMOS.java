@@ -395,7 +395,6 @@ public class CMOS extends Technology
 			/* PP     */                                     XX,XX,
 			/* WellP  */                                        XX
 		};
-		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 

@@ -2776,11 +2776,11 @@ public class MoCMOS extends Technology
 	{
 		// set rules
 		DRC.Rules rules = getFactoryDesignRules();
-		if (rules != null)
-		{
-			// set the rules on the technology
-			DRC.setRules(this, rules);
-		}
+//		if (rules != null)
+//		{
+//			// set the rules on the technology
+//			DRC.setRules(this, rules);
+//		}
 
 		// handle special transistors
 		if (isSpecialTransistors())

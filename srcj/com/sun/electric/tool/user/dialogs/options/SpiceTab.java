@@ -23,48 +23,33 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
-import java.util.Iterator;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.Iterator;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.Document;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 
 /**
@@ -72,9 +57,6 @@ import javax.swing.text.BadLocationException;
  */
 public class SpiceTab extends PreferencePanel
 {
-	private Technology curTech = Technology.getCurrent();
-	private Library curLib = Library.getCurrent();
-
 	/** Creates new form SpiceTab */
 	public SpiceTab(java.awt.Frame parent, boolean modal)
 	{

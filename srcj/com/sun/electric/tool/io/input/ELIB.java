@@ -354,6 +354,8 @@ public class ELIB extends LibraryFiles
 		nodeInstList.highX = new int[nodeCount];
 		nodeInstList.lowY = new int[nodeCount];
 		nodeInstList.highY = new int[nodeCount];
+		nodeInstList.anchorX = new int[nodeCount];
+		nodeInstList.anchorY = new int[nodeCount];
 		nodeInstList.rotation = new short[nodeCount];
 		nodeInstList.transpose = new int[nodeCount];
 		nodeInstList.userBits = new int[nodeCount];
@@ -1639,7 +1641,8 @@ public class ELIB extends LibraryFiles
 			magic != ELIBConstants.MAGIC5 && magic != ELIBConstants.MAGIC6 &&
 			magic != ELIBConstants.MAGIC7 && magic != ELIBConstants.MAGIC8 &&
 			magic != ELIBConstants.MAGIC9 && magic != ELIBConstants.MAGIC10 &&
-			magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12)
+			magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12 &&
+			magic != ELIBConstants.MAGIC13)
 		{
 			magic = ((byte1&0xFF) << 24) | ((byte2&0xFF) << 16) | ((byte3&0xFF) << 8) | (byte4&0xFF);
 			if (magic != ELIBConstants.MAGIC1 && magic != ELIBConstants.MAGIC2 &&
@@ -1647,7 +1650,8 @@ public class ELIB extends LibraryFiles
 				magic != ELIBConstants.MAGIC5 && magic != ELIBConstants.MAGIC6 &&
 				magic != ELIBConstants.MAGIC7 && magic != ELIBConstants.MAGIC8 &&
 				magic != ELIBConstants.MAGIC9 && magic != ELIBConstants.MAGIC10 &&
-				magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12)
+				magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12 &&
+				magic != ELIBConstants.MAGIC13)
 			{
 				System.out.println("Bad file format: does not start with proper magic number");
 				return true;
@@ -2031,6 +2035,16 @@ public class ELIB extends LibraryFiles
 		nodeInstList.lowY[nodeIndex] = readBigInteger();
 		nodeInstList.highX[nodeIndex] = readBigInteger();
 		nodeInstList.highY[nodeIndex] = readBigInteger();
+		if (magic <= ELIBConstants.MAGIC13)
+		{
+			// read anchor point for cell references
+			if (np instanceof Cell)
+			{
+				nodeInstList.anchorX[nodeIndex] = readBigInteger();
+				nodeInstList.anchorY[nodeIndex] = readBigInteger();
+			}
+		}
+
 		nodeInstList.transpose[nodeIndex] = readBigInteger();
 		nodeInstList.rotation[nodeIndex] = (short)readBigInteger();
 		nodeInstList.name[nodeIndex] = null;

@@ -75,6 +75,8 @@ public class LibraryFiles extends Input
 		protected int []       highX;
 		protected int []       lowY;
 		protected int []       highY;
+		protected int []       anchorX;
+		protected int []       anchorY;
 		protected short []     rotation;
 		protected int []       transpose;
 		protected int []       userBits;

@@ -164,6 +164,14 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(gdt);
 		ioSet.add(new DefaultMutableTreeNode(gdt.getName()));
 
+		EDIFTab edt = new EDIFTab(parent, modal);
+		optionPanes.add(edt);
+		ioSet.add(new DefaultMutableTreeNode(edt.getName()));
+
+		DEFTab det = new DEFTab(parent, modal);
+		optionPanes.add(det);
+		ioSet.add(new DefaultMutableTreeNode(det.getName()));
+
 		CDLTab cdt = new CDLTab(parent, modal);
 		optionPanes.add(cdt);
 		ioSet.add(new DefaultMutableTreeNode(cdt.getName()));
@@ -172,34 +180,26 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(dxt);
 		ioSet.add(new DefaultMutableTreeNode(dxt.getName()));
 
-		EDIFTab edt = new EDIFTab(parent, modal);
-		optionPanes.add(edt);
-		ioSet.add(new DefaultMutableTreeNode(edt.getName()));
-
 		SUETab sut = new SUETab(parent, modal);
 		optionPanes.add(sut);
 		ioSet.add(new DefaultMutableTreeNode(sut.getName()));
-
-		DEFTab det = new DEFTab(parent, modal);
-		optionPanes.add(det);
-		ioSet.add(new DefaultMutableTreeNode(det.getName()));
 
 
 		// the "Tools" section of the Preferences
 		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools");
 		rootNode.add(toolSet);
 
+		AntennaRulesTab art = new AntennaRulesTab(parent, modal);
+		optionPanes.add(art);
+		toolSet.add(new DefaultMutableTreeNode(art.getName()));
+
+		CompactionTab comt = new CompactionTab(parent, modal);
+		optionPanes.add(comt);
+		toolSet.add(new DefaultMutableTreeNode(comt.getName()));
+
 		DRCTab drct = new DRCTab(parent, modal);
 		optionPanes.add(drct);
 		toolSet.add(new DefaultMutableTreeNode(drct.getName()));
-
-		SpiceTab spt = new SpiceTab(parent, modal);
-		optionPanes.add(spt);
-		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
-
-		VerilogTab vet = new VerilogTab(parent, modal);
-		optionPanes.add(vet);
-		toolSet.add(new DefaultMutableTreeNode(vet.getName()));
 
 		FastHenryTab fht = new FastHenryTab(parent, modal);
 		optionPanes.add(fht);
@@ -217,21 +217,21 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(net);
 		toolSet.add(new DefaultMutableTreeNode(net.getName()));
 
-		WellCheckTab wct = new WellCheckTab(parent, modal);
-		optionPanes.add(wct);
-		toolSet.add(new DefaultMutableTreeNode(wct.getName()));
-
-		AntennaRulesTab art = new AntennaRulesTab(parent, modal);
-		optionPanes.add(art);
-		toolSet.add(new DefaultMutableTreeNode(art.getName()));
-
 		RoutingTab rot = new RoutingTab(parent, modal);
 		optionPanes.add(rot);
 		toolSet.add(new DefaultMutableTreeNode(rot.getName()));
 
-		CompactionTab comt = new CompactionTab(parent, modal);
-		optionPanes.add(comt);
-		toolSet.add(new DefaultMutableTreeNode(comt.getName()));
+		SpiceTab spt = new SpiceTab(parent, modal);
+		optionPanes.add(spt);
+		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
+
+		VerilogTab vet = new VerilogTab(parent, modal);
+		optionPanes.add(vet);
+		toolSet.add(new DefaultMutableTreeNode(vet.getName()));
+
+		WellCheckTab wct = new WellCheckTab(parent, modal);
+		optionPanes.add(wct);
+		toolSet.add(new DefaultMutableTreeNode(wct.getName()));
 
 
 		// the "Technology" section of the Preferences
@@ -321,13 +321,6 @@ public class PreferencesFrame extends EDialog
 		gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
 
-//		// initialize all panels
-//		for(Iterator it = optionPanes.iterator(); it.hasNext(); )
-//		{
-//			PreferencePanel ti = (PreferencePanel)it.next();
-//			ti.init();
-//		}
-
 		pack();
 	}
 
@@ -412,8 +405,29 @@ public class PreferencesFrame extends EDialog
 			dialog.pack();
 		}
 
-		public void treeCollapsed(javax.swing.event.TreeExpansionEvent e) { dialog.pack(); }
-		public void treeExpanded(javax.swing.event.TreeExpansionEvent e) { dialog.pack(); }
+		public void treeCollapsed(javax.swing.event.TreeExpansionEvent e)
+		{
+			dialog.pack();
+		}
+		public void treeExpanded(javax.swing.event.TreeExpansionEvent e)
+		{
+			TreePath tp = e.getPath();
+			if (tp.getPathCount() == 2)
+			{
+				// opened a path down to the bottom: close all others
+				TreePath topPath = dialog.optionTree.getPathForRow(0);
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode)topPath.getLastPathComponent();
+				int numChildren = node.getChildCount();
+				for(int i=0; i<numChildren; i++)
+				{
+					DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+					TreePath descentPath = topPath.pathByAddingChild(child);
+					if (!descentPath.getLastPathComponent().equals(tp.getLastPathComponent()))
+						dialog.optionTree.collapsePath(descentPath);
+				}
+			}
+			dialog.pack();
+		}
 	}
 
 	/** Closes the dialog */

@@ -75,11 +75,15 @@ public class SimpleWirer extends InteractiveRouter {
             int pin2Quad = findQuadrant(endLoc, pin2);
             int oppositeQuad = (clickedQuad + 2) % 4;
             if (pin2Quad == clickedQuad)
+            {
                 pin1 = pin2;                // same quad as pin2, use pin2
-            else if (pin1Quad == clickedQuad)
+            } else if (pin1Quad == clickedQuad)
+            {
                 pin1 = pin1;                // same quad as pin1, use pin1
-            else if (pin1Quad == oppositeQuad)
+            } else if (pin1Quad == oppositeQuad)
+            {
                 pin1 = pin2;                // near to pin2 quad, use pin2
+            }
             // else it is near to pin1 quad, use pin1
             cornerLoc = pin1;
         }

@@ -71,8 +71,6 @@ import javax.swing.text.BadLocationException;
  */
 public class DesignRulesTab extends PreferencePanel
 {
-	private Technology curTech = Technology.getCurrent();
-
 	/** Creates new form DesignRulesTab */
 	public DesignRulesTab(java.awt.Frame parent, boolean modal)
 	{
@@ -96,6 +94,7 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void init()
 	{
+		// get the design rules for the current technology
 		drRules = DRC.getRules(curTech);
 
 		drLayers.setSelected(true);
@@ -204,7 +203,7 @@ public class DesignRulesTab extends PreferencePanel
 			"Are you sure you want to do a factory reset of these design rules?");
 		if (response != JOptionPane.YES_OPTION) return;
 		designRulesFactoryReset = true;
-//		OKButton(null);
+//		okActionPerformed(null);
 	}
 
 	/**

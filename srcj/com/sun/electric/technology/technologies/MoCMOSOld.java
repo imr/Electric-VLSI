@@ -751,7 +751,6 @@ public class MoCMOSOld extends Technology
 			/* WelNP */                                                 X,X,
 			/* PadFr */                                                   X,
 		};
-		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 

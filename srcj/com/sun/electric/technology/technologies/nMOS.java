@@ -495,7 +495,6 @@ public class nMOS extends Technology
 			/* PolyP  */                                        XX,XX,
 			/* DiffP  */                                           XX
 		};
-		DRC.setRules(this, getFactoryDesignRules());
 
 		//******************** ARCS ********************
 

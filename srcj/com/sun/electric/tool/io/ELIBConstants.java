@@ -42,7 +42,8 @@ import java.util.GregorianCalendar;
 public class ELIBConstants
 {
 	// ".elib" file version numbers
-	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
+	/** current magic number: version 13 */		public static final int MAGIC13 = -1597;
+	/** older magic number: version 12 */		public static final int MAGIC12 = -1595;
 	/** older magic number: version 11 */		public static final int MAGIC11 = -1593;
 	/** older magic number: version 10 */		public static final int MAGIC10 = -1591;
 	/** older magic number: version 9 */		public static final int MAGIC9 =  -1589;

@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/18/04, SMR) Changed binary file format to include cell anchor points.
+
 BUG: (6/18/04, SMR) Spice output uses wrong .global names.
 FIX: In "io.output.Spice.start()" convert power and ground to proper names.
 
