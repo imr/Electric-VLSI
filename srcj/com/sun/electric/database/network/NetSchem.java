@@ -600,11 +600,13 @@ class NetSchem extends NetCell {
 		for (Iterator it = cell.getCellGroup().getCells(); it.hasNext();) {
 			Cell c = (Cell)it.next();
 			if (!c.isIcon()) continue;
-			NetworkTool.getNetCell(c).invalidateUsagesOf(strong);
+			NetSchem icon = (NetSchem)NetworkTool.getNetCell(c);
+			icon.setInvalid(strong, strong);
 			for (Iterator vit = c.getVersions(); vit.hasNext();) {
 				Cell verCell = (Cell)vit.next();
 				if (verCell == c) continue;
-				NetworkTool.getNetCell(verCell).invalidateUsagesOf(strong);
+				NetSchem verIcon = (NetSchem)NetworkTool.getNetCell(verCell);
+				verIcon.setInvalid(strong, strong);
 			}
 		}
 	}
@@ -1221,6 +1223,7 @@ class NetSchem extends NetCell {
 
 	boolean redoNetworks1()
 	{
+//		System.out.println("redoNetworks1 on " + cell);
 		int numPorts = cell.getNumPorts();
 		if (portOffsets.length != numPorts + 1)
 			portOffsets = new int[numPorts + 1];

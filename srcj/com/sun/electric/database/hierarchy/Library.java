@@ -891,6 +891,7 @@ public class Library extends ElectricObject
 	 */
 	public Cell findNodeProto(String name)
 	{
+		if (name == null) return null;
 		CellName n = CellName.parseName(name);
 		if (n == null) return null;
 

@@ -148,13 +148,7 @@ public class NetworkTool extends Listener
 
 	static void exportsChanged(Cell cell) {
 		NetCell netCell = NetworkTool.getNetCell(cell);
-		netCell.setInvalid(true);
-		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
-			NodeUsage nu = (NodeUsage)it.next();
-			if (nu.isIconOfParent()) continue;
-			netCell = NetworkTool.getNetCell(nu.getParent());
-			netCell.setInvalid(true);
-		}
+		netCell.exportsChanged();
 	}
 
 	static void setCell(Cell cell, NetCell netCell) {

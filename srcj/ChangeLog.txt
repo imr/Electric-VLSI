@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ad: *********************************
 
+BUG: (10/25/04, DN) Network tool didn't recompute icon after removal of export.
+FIX: "NetCell.exportsChanged" corrected.
+
+BUG: (10/25/04, DN) Memory leakage in JELIB reader.
+FIX: Assign null tp "input.JELIB.allCells" at the end of reading.
+
+BUG: (10/25/04, DN) "CrossLibCopy" dialog may crash when no cell celected.
+FIX: "Library.findNodeProto" tests if argument is null.
+
 BUG: (10/25/04, DN) Network errors after moving a cell into another group.
 FIX: Add method "modifyCellGroup" to interface "database.changes.Change".
 

@@ -112,7 +112,32 @@ class NetCell
 
 	final void setNetworksDirty()
 	{
-		setInvalid(true);
+		setInvalid(true, false);
+	}
+
+	void exportsChanged()
+	{
+		setInvalid(true, true);
+	}
+
+	void setInvalid(boolean strongMe, boolean strongUsages)
+	{
+//		System.out.println("setInvalid " + cell + " " + strongMe + " " + strongUsages);
+		if (strongMe) flags &= ~LOCALVALID;
+		if ((flags & VALID) == 0 && !strongUsages) return;
+		flags &= ~VALID;
+		invalidateUsagesOf(strongUsages);
+	}
+
+	void invalidateUsagesOf(boolean strong)
+	{
+//		System.out.println("NetSchem.invalidateUsagesOf " + cell + " " + strong);
+		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
+			NodeUsage nu = (NodeUsage)it.next();
+			if (nu.isIconOfParent()) continue;
+			NetCell netCell = NetworkTool.getNetCell(nu.getParent());
+			if (netCell != null) netCell.setInvalid(strong, false);
+		}
 	}
 
 	Netlist getNetlist(boolean shortResistros) {
@@ -129,23 +154,6 @@ class NetCell
 	 * Get a set of global signal in this Cell and its descendants.
 	 */
 	Global.Set getGlobals() { return Global.Set.empty; }
-
-	void setInvalid(boolean strong)
-	{
-		if (strong) flags &= ~LOCALVALID;
-		if ((flags & VALID) == 0) return;
-		flags &= ~VALID;
-		invalidateUsagesOf(false);
-	}
-
-	void invalidateUsagesOf(boolean strong) {
-		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
-			NodeUsage nu = (NodeUsage)it.next();
-			if (nu.isIconOfParent()) continue;
-			NetCell netCell = NetworkTool.getNetCell(nu.getParent());
-			if (netCell != null) netCell.setInvalid(strong);
-		}
-	}
 
 	/**
 	 * Redo subcells of this cell. Ifmap of equivalent ports of some subcell has
@@ -448,7 +456,7 @@ class NetCell
 				}
 				if (drawns[piOffset] >= 0) continue;
 				if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated()) continue;
-				if (np.getFunction() == PrimitiveNode.Function.PIN) {
+				if (np.getFunction() == PrimitiveNode.Function.PIN && !cell.isIcon()) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);
@@ -759,7 +767,7 @@ class NetCell
 		initNetnames();
 
 		if (redoNetworks1())
-			invalidateUsagesOf(true);
+			setInvalid(false, true);
 		flags |= (LOCALVALID|VALID);
 	}
 

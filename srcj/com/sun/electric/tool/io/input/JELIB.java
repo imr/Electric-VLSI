@@ -113,6 +113,7 @@ public class JELIB extends LibraryFiles
 		if (topLevelLibrary)
 		{
 			if (!error) instantiateCellContents();
+			allCells = null;
 		}
 		return error;
 	}
