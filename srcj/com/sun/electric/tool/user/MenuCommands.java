@@ -1599,8 +1599,6 @@ public final class MenuCommands
 			// @todo GVG Calculates lambda!
 			Rectangle2D bbox = curCell.getBounds();
 			double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
-			DecimalFormat pf = new DecimalFormat("#0"); // format for percentaje
-			DecimalFormat df = new DecimalFormat("#0.00"); // format for double with two precision numbers
 
 			// Traversing tree with merged geometry
 			for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
@@ -1615,10 +1613,10 @@ public final class MenuCommands
 					PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
 					layerArea += area.getArea();
 				}
-				System.out.println("Layer " + layer.getName() + " covers " + df.format(layerArea) + " square lambda (" + (pf.format((layerArea/totalArea)*100)) + "%)");
+				System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
 			}
 
-			System.out.println("Cell is " + df.format(totalArea) + " square lambda");
+			System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
 		}
 //		// initialize for analysis
 //		us_coveragetech = cell->tech;
