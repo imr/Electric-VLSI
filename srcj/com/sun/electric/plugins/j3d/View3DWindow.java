@@ -899,20 +899,12 @@ public class View3DWindow extends JPanel
 
     /**
      * Method to rotate individual groups
-     * @param posX
-     * @param posY
-     * @param posZ
-     * @param rotPosX
-     * @param rotPosY
-     * @param rotPosZ
+     * @param values array of values
      */
-    public void moveAndRotate(double posX, double posY, double posZ,
-                              double rotX, double rotY, double rotZ,
-                              double rotPosX, double rotPosY, double rotPosZ)
+    public J3DUtils.ThreeDDemoKnot moveAndRotate(double[] values)
     {
-        Vector3d newPos = new Vector3d(posX, posY, posZ);
-        Vector3d rotation = new Vector3d(rotX, rotY, rotZ);
-        Quat4f quaf = J3DUtils.createQuaternionFromEuler(rotX, rotY, rotZ);
+        Vector3d newPos = new Vector3d(values[0], values[1], values[2]);
+        Quat4f quaf = J3DUtils.createQuaternionFromEuler(values[3], values[4], values[5]);
         Transform3D tmpTrans = new Transform3D();
         Transform3D currXform = new Transform3D();
 
@@ -947,10 +939,10 @@ public class View3DWindow extends JPanel
                 // Remember old matrix
                 currXform.get(mat);
 
-                tmpTrans.setEuler(rotation);
+                //tmpTrans.setEuler(rotation);
 
                 // Translate to rotation point
-                currXform.setTranslation(new Vector3d(rotPosX, rotPosY, rotPosZ));
+                currXform.setTranslation(new Vector3d(values[6], values[7], values[8]));
                 currXform.setRotation(quaf);
 //                if (invert) {
 //                currXform.mul(currXform, tmpTrans);
@@ -967,6 +959,8 @@ public class View3DWindow extends JPanel
                 grp.setTransform(currXform);
             }
         }
+        return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
+                        0, 0, 0, values[3], values[4], values[5]));
     }
 
 	/**

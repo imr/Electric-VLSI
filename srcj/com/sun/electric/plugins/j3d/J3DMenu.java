@@ -60,14 +60,32 @@ public class J3DMenu {
 
 		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
-        j3DMenu.addMenuItem("Read Capacitance Data", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoData(); } });
+        j3DMenu.addMenuItem("Read Capacitance Data From Socket", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromSocket(); } });
+        j3DMenu.addMenuItem("Read Capacitance Data From File", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
 		return j3DMenu;
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
 
-    public static void readDemoData()
+    public static void readDemoDataFromSocket()
+    {
+        J3DViewDialog.createThreeViewDialog(TopLevel.getCurrentJFrame(), "mudd2");
+//        View3DWindow view3D = null;
+//        WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
+//        if (content instanceof View3DWindow)
+//            view3D = (View3DWindow)content;
+//        else
+//        {
+//            System.out.println("Current Window Frame is not a 3D View for Read Demo Data");
+//            return;
+//        }
+//        J3DClientApp job = new J3DClientApp(view3D, "mudd2");
+//        job.startJob();
+    }
+
+    public static void readDemoDataFromFile()
     {
         String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
         Object[] possibleValues = { "OK", "Skip", "Cancel" };
@@ -85,44 +103,21 @@ public class J3DMenu {
         try {
             LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
             List knotList = new ArrayList();
+            double[] values = new double[9];
 
             for(;;)
             {
                 // get keyword from file
                 String line = lineReader.readLine();
                 if (line == null) break;
-                int count = 0;
-                double[] values = new double[9];
-                StringTokenizer parse = new StringTokenizer(line, " ", false);
-                while (parse.hasMoreTokens())
-                {
-                    String value = parse.nextToken();
-                    if (count > 8)
-                    {
-                        System.out.println("Error reading capacitance file in line " + lineReader.getLineNumber());
-                        break;
-                    }
-                    values[count] = TextUtils.atof(value);
-                    if (2 < count && count < 6 )
-                        values[count] = (Math.PI*values[count])/180;   // original value is in degrees
-                    count++;
-                }
-                if (count != 9)
-                {
-                    System.out.println("Error reading capacitance file in line " + lineReader.getLineNumber());
-                    break;
-                }
                 int response = JOptionPane.showOptionDialog(null,
                 "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
                         possibleValues[0]);
                 if (response == 1) continue; // skip
                 else if (response == 2) break; // cancel option
 
-                knotList.add(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
-                        0, 0, 0, values[3], values[4], values[5]));
-                view3D.moveAndRotate(values[0], values[1], values[2],   // X, Y and Z positions
-                        values[3], values[4], values[5], // X, Y and Z rotation values
-                        values[6], values[7], values[7]); // X, Y and Z rotation positions
+                J3DClientApp.parseValues(line, 0, values);
+                knotList.add(view3D.moveAndRotate(values));
             }
             view3D.addInterpolator(knotList);
         } catch (Exception e)

@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.Job;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
@@ -36,8 +37,10 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 public class J3DViewDialog extends EDialog
 {
     private View3DWindow view3D = null;
+    private Job socketJob = null;
+    private String hostname;
 
-    public static void createThreeViewDialog(java.awt.Frame parent)
+    public static void createThreeViewDialog(java.awt.Frame parent, String hostname)
     {
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
@@ -48,19 +51,20 @@ public class J3DViewDialog extends EDialog
             System.out.println("Current Window Frame is not a 3D View");
             return;
         }
-        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, true);
+        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, true, hostname);
 		dialog.setVisible(true);
     }
 
 	/** Creates new form ThreeView */
-	public J3DViewDialog(java.awt.Frame parent, View3DWindow view3d, boolean modal)
+	public J3DViewDialog(java.awt.Frame parent, View3DWindow view3d, boolean modal, String hostname)
 	{
 		super(parent, modal);
 		initComponents();
         this.view3D = view3d;
+        this.hostname = hostname;
         getRootPane().setDefaultButton(start);
-        spline.addItem("KB Spline");
-        spline.addItem("TCB Spline");
+//        spline.addItem("KB Spline");
+//        spline.addItem("TCB Spline");
         if (view3d.jAlpha != null)
         {
             slider.addChangeListener(view3d.jAlpha);
@@ -68,6 +72,23 @@ public class J3DViewDialog extends EDialog
         }
 		finishInitialization();
 	}
+
+    public void socketAction(String inData)
+    {
+        double[] values = new double[9];
+        J3DClientApp.parseValues(inData, 0, values);
+
+        xField.setText(Double.toString(values[0]));
+        yField.setText(Double.toString(values[1]));
+        zField.setText(Double.toString(values[2]));
+        xRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[3])));
+        yRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[4])));
+        zRotField.setText(Double.toString(J3DClientApp.covertToDegrees(values[5])));
+        xRotPosField.setText(Double.toString(values[6]));
+        yRotPosField.setText(Double.toString(values[7]));
+        zRotPosField.setText(Double.toString(values[8]));
+        view3D.moveAndRotate(values);
+    }
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
@@ -83,7 +104,6 @@ public class J3DViewDialog extends EDialog
         start = new javax.swing.JButton();
         slider = new javax.swing.JSlider();
         auto = new javax.swing.JCheckBox();
-        spline = new javax.swing.JComboBox();
         separator = new javax.swing.JSeparator();
         xLabel = new javax.swing.JLabel();
         xField = new javax.swing.JTextField();
@@ -97,6 +117,12 @@ public class J3DViewDialog extends EDialog
         yRotField = new javax.swing.JTextField();
         zRotLabel = new javax.swing.JLabel();
         zRotField = new javax.swing.JTextField();
+        xRotPosLabel = new javax.swing.JLabel();
+        xRotPosField = new javax.swing.JTextField();
+        yRotPosLabel = new javax.swing.JLabel();
+        yRotPosField = new javax.swing.JTextField();
+        zRotPosLabel = new javax.swing.JLabel();
+        zRotPosField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -123,7 +149,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
-        start.setText("Start");
+        start.setText("Connect");
         start.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 startActionPerformed(evt);
@@ -145,6 +171,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(slider, gridBagConstraints);
 
+        auto.setSelected(true);
         auto.setText("Auto");
         auto.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -152,15 +179,7 @@ public class J3DViewDialog extends EDialog
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        getContentPane().add(auto, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        getContentPane().add(spline, gridBagConstraints);
+        getContentPane().add(auto, new java.awt.GridBagConstraints());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -247,6 +266,47 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(zRotField, gridBagConstraints);
 
+        xRotPosLabel.setText("Rot Pos X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        getContentPane().add(xRotPosLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(xRotPosField, gridBagConstraints);
+
+        yRotPosLabel.setText("Rot Pos Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        getContentPane().add(yRotPosLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(yRotPosField, gridBagConstraints);
+
+        zRotPosLabel.setText("Rot Pos Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        getContentPane().add(zRotPosLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        getContentPane().add(zRotPosField, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
@@ -255,15 +315,33 @@ public class J3DViewDialog extends EDialog
     }//GEN-LAST:event_autoStateChanged
 
     private void startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
-        if (start.getText().equals("Start"))
+        if (start.getText().equals("Connect"))
+        {
             start.setText("Stop");
+            socketJob = new J3DClientApp(this, hostname);
+            socketJob.startJob();
+        }
         else
-           start.setText("Start");
-        view3D.set3DCamera(spline.getSelectedIndex());
+        {
+            start.setText("Connect");
+            if (socketJob != null)
+            {
+                socketJob.abort();
+                socketJob.checkAbort();
+                socketJob.remove();
+            }
+        }
+        //view3D.set3DCamera(spline.getSelectedIndex());
     }//GEN-LAST:event_startActionPerformed
 
 	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
 	{//GEN-HEADEREND:event_cancelActionPerformed
+        if (socketJob != null)
+        {
+            socketJob.abort();
+            socketJob.checkAbort();
+            socketJob.remove();
+        }
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
 
@@ -279,20 +357,25 @@ public class J3DViewDialog extends EDialog
     private javax.swing.JButton cancel;
     private javax.swing.JSeparator separator;
     private javax.swing.JSlider slider;
-    private javax.swing.JComboBox spline;
     private javax.swing.JButton start;
     private javax.swing.JTextField xField;
     private javax.swing.JLabel xLabel;
     private javax.swing.JTextField xRotField;
     private javax.swing.JLabel xRotLabel;
+    private javax.swing.JTextField xRotPosField;
+    private javax.swing.JLabel xRotPosLabel;
     private javax.swing.JTextField yField;
     private javax.swing.JLabel yLabel;
     private javax.swing.JTextField yRotField;
     private javax.swing.JLabel yRotLabel;
+    private javax.swing.JTextField yRotPosField;
+    private javax.swing.JLabel yRotPosLabel;
     private javax.swing.JTextField zField;
     private javax.swing.JLabel zLabel;
     private javax.swing.JTextField zRotField;
     private javax.swing.JLabel zRotLabel;
+    private javax.swing.JTextField zRotPosField;
+    private javax.swing.JLabel zRotPosLabel;
     // End of variables declaration//GEN-END:variables
 
 }
