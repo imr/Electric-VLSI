@@ -63,11 +63,15 @@ public class DRC extends Listener
 	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
-    public static final Variable.Key LAST_GOOD_DRC_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
+    private static final Variable.Key DRC_LAST_GOOD_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
     /** key of Variable for last valid DRC bit on a Cell. */
-    public static final Variable.Key LAST_GOOD_DRC_BIT = ElectricObject.newKey("DRC_last_good_drc_bit");
+    private static final Variable.Key DRC_LAST_GOOD_BIT = ElectricObject.newKey("DRC_last_good_drc_bit");
     public static final int DRC_BIT_AREA = 01; /* Min area condition */
     public static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
+    /** Control different level of error checking */
+    public static final int ERROR_CHECK_DEFAULT = 0;    /** DRC stops after first error between 2 nodes is found (default) */
+    public static final int ERROR_CHECK_CELL = 1;       /** DRC stops after first error per cell is found */
+    public static final int ERROR_CHECK_EXHAUSTIVE = 2;  /** DRC checks all combinations */
 
     /****************************** DESIGN RULES ******************************/
 
@@ -629,18 +633,18 @@ public class DRC extends Listener
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
-	private static Pref cacheOneErrorPerCell = Pref.makeBooleanPref("OneErrorPerCell", DRC.tool.prefs, false);
+	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", DRC.tool.prefs, ERROR_CHECK_DEFAULT);
 	/**
-	 * Method to tell whether DRC should report only one error per Cell.
-	 * The default is "false".
-	 * @return true if DRC should report only one error per Cell.
+	 * Method to retrieve checking level in DRC
+	 * The default is "ERROR_CHECK_DEFAULT".
+	 * @return integer representing error type
 	 */
-	public static boolean isOneErrorPerCell() { return cacheOneErrorPerCell.getBoolean(); }
+	public static int getErrorType() { return cacheErrorCheckLevel.getInt(); }
 	/**
-	 * Method to set whether DRC should report only one error per Cell.
-	 * @param on true if DRC should report only one error per Cell.
+	 * Method to set DRC error type.
+	 * @param type representing error level
 	 */
-	public static void setOneErrorPerCell(boolean on) { cacheOneErrorPerCell.setBoolean(on); }
+	public static void setErrorType(int type) { cacheErrorCheckLevel.setInt(type); }
 
 	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", DRC.tool.prefs, false);
 	/**
@@ -710,21 +714,7 @@ public class DRC extends Listener
 	 * Method to set whether DRC should performance hierarchical area checking.
 	 * @param on true if DRC should performance hierarchical area checking.
 	 */
-	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }  
-
-    private static Pref cacheOnlyFirstChecking = Pref.makeBooleanPref("OnlyFirstCheck", DRC.tool.prefs, false);
-    static { cacheOnlyFirstChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC checks until first error in found per node"); }
-	/**
-	 * Method to tell whether DRC should stop when first error is found in node-node checking.
-	 * The default is "false".
-	 * @return true if DRC should performance hierarchical area checking.
-	 */
-	public static boolean isOnlyFirstChecking() { return cacheOnlyFirstChecking.getBoolean(); }
-	/**
-	 * Method to set whether DRC should stop when first error is found in node-node checking.
-	 * @param on true if DRC should stop when first error is found in node-node checking.
-	 */
-	public static void setOnlyFirstChecking(boolean on) { cacheOnlyFirstChecking.setBoolean(on); }
+	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }
 
 	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 	/**
@@ -734,10 +724,10 @@ public class DRC extends Listener
 	 */
 	public static Date getLastDRCDateBasedOnBits(Cell cell, byte activeBits)
 	{
-		Variable varDate = cell.getVar(LAST_GOOD_DRC_DATE, Integer[].class);
+		Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
 		if (varDate == null) return null;
 
-        Variable varBits = cell.getVar(LAST_GOOD_DRC_BIT, Byte.class);
+        Variable varBits = cell.getVar(DRC_LAST_GOOD_BIT, Byte.class);
         byte thisByte = ((Byte)varBits.getObject()).byteValue();
         boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
         boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
@@ -767,9 +757,9 @@ public class DRC extends Listener
 		Integer [] dateArray = new Integer[2];
 		dateArray[0] = new Integer((int)(iVal >> 32));
 		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-		cell.newVar(LAST_GOOD_DRC_DATE, dateArray);
+		cell.newVar(DRC_LAST_GOOD_DATE, dateArray);
         Byte b = new Byte(bits);
-        cell.newVar(LAST_GOOD_DRC_BIT, b);
+        cell.newVar(DRC_LAST_GOOD_BIT, b);
 	}
 
 	/**
@@ -778,8 +768,8 @@ public class DRC extends Listener
 	 */
 	public static void cleanDRCDateAndBits(Cell cell)
 	{
-		cell.delVar(LAST_GOOD_DRC_DATE);
-        cell.delVar(LAST_GOOD_DRC_BIT);
+		cell.delVar(DRC_LAST_GOOD_DATE);
+        cell.delVar(DRC_LAST_GOOD_BIT);
 	}
 
     public static byte getActiveBits()

@@ -197,7 +197,7 @@ public class Quick
 
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
-	/** true to report only 1 error per Cell. */				private boolean onlyFirstError;
+	/** error type */				                            private int errorType;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
 	/** time stamp for numbering networks. */					private int checkTimeStamp;
@@ -251,7 +251,7 @@ public class Quick
 		if (rules == null || rules.getNumberOfRules() == 0) return 0;
 
 		// get the current DRC options
-		onlyFirstError = DRC.isOneErrorPerCell();
+		errorType = DRC.getErrorType();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
 		numberOfThreads = DRC.getNumberOfThreads();
 	    topCell = cell; /* Especially important for minArea checking */
@@ -259,7 +259,7 @@ public class Quick
 		// if checking specific instances, adjust options and processor count
 		if (count > 0)
 		{
-			onlyFirstError = true;
+			errorType = DRC.ERROR_CHECK_CELL;
 			numberOfThreads = 1;
 		}
 
@@ -283,7 +283,7 @@ public class Quick
 	    nodesMap.clear();
 
 	    // No incremental neither per Cell
-	    if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
+	    if (!DRC.isIgnoreAreaChecking() && errorType != DRC.ERROR_CHECK_CELL)
 	    {
 		    for(Iterator it = tech.getLayers(); it.hasNext(); )
 			{
@@ -569,7 +569,7 @@ public class Quick
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !onlyFirstError)
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorType != DRC.ERROR_CHECK_CELL)
 			totalMsgFound = checkMinArea(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -584,7 +584,7 @@ public class Quick
 			if (ret)
 			{
 				totalMsgFound++;
-				if (onlyFirstError) break;
+				if (errorType == DRC.ERROR_CHECK_CELL) break;
 			}
 		}
 		Technology cellTech = cell.getTechnology();
@@ -604,7 +604,7 @@ public class Quick
 			if (checkArcInst(cp, ai, globalIndex))
 			{
 				totalMsgFound++;
-				if (onlyFirstError) break;
+				if (errorType == DRC.ERROR_CHECK_CELL) break;
 			}
 		}
 
@@ -686,13 +686,13 @@ public class Quick
 			boolean ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ni, layer, poly, tot==1);
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check PP.R.1 select over transistor poly
@@ -700,14 +700,14 @@ public class Quick
 			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
 				reportError(BADLAYERERROR, null, cell, 0, 0, null,
 					poly, ni, layer, null, null, null);
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -775,27 +775,27 @@ public class Quick
 			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ai, layer, poly, tot==1);
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check PP.R.1 select over transistor poly
 			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
 			if (ret)
 			{
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
 				reportError(BADLAYERERROR, null, ai.getParent(), 0, 0, null,
 					(tot==1)?null:poly, ai, layer, null, null, null);
-				if (onlyFirstError) return true;
+				if (errorType == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -911,7 +911,7 @@ public class Quick
 					boolean ret = checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
-						if (onlyFirstError) return true;
+						if (errorType == DRC.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				} else
@@ -940,7 +940,7 @@ public class Quick
 							globalIndex, oNi, topGlobalIndex);
 						if (ret)
 						{
-							if (onlyFirstError) return true;
+							if (errorType == DRC.ERROR_CHECK_CELL) return true;
 							logsFound = true;
 						}
 					}
@@ -978,7 +978,7 @@ public class Quick
 						globalIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
-						if (onlyFirstError) return true;
+						if (errorType == DRC.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				}
@@ -1127,7 +1127,7 @@ public class Quick
 						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
                     {
                         foundError = true;
-                        if (DRC.isOnlyFirstChecking()) return true;
+                        if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
                     }
 				} else
 				{
@@ -1211,7 +1211,7 @@ public class Quick
 						if (ret)
                         {
                             foundError = true;
-                            if (DRC.isOnlyFirstChecking()) return true;
+                            if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
                         }
 					}
 				}
@@ -1287,7 +1287,7 @@ public class Quick
 					if (ret)
                     {
                         foundError = true;
-                        if (DRC.isOnlyFirstChecking()) return true;
+                        if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
                     }
 				}
 			}
@@ -1876,6 +1876,8 @@ public class Quick
 	 */
 	private boolean checkInteraction(NodeInst ni1, NodeInst ni2)
 	{
+        if (errorType == DRC.ERROR_CHECK_EXHAUSTIVE) return false;
+
 		// must recheck parameterized instances always
 		CheckProto cp = getCheckProto((Cell)ni1.getProto());
 		if (cp.cellParameterized) return false;

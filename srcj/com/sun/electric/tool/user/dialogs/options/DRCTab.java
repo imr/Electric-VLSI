@@ -56,7 +56,12 @@ public class DRCTab extends PreferencePanel
 	public void init()
 	{
 		drcIncrementalOn.setSelected(DRC.isIncrementalDRCOn());
-		drcOneErrorPerCell.setSelected(DRC.isOneErrorPerCell());
+        switch (DRC.getErrorType())
+        {
+            case DRC.ERROR_CHECK_DEFAULT: drcErrorDefault.setSelected(true);   break;
+			case DRC.ERROR_CHECK_CELL: drcErrorCell.setSelected(true);      break;
+			case DRC.ERROR_CHECK_EXHAUSTIVE: drcErrorExaustive.setSelected(true);        break;
+        }
 		drcUseMultipleThreads.setSelected(DRC.isUseMultipleThreads());
 		drcNumberOfThreads.setText(Integer.toString(DRC.getNumberOfThreads()));
 		drcIgnoreCenterCuts.setSelected(DRC.isIgnoreCenterCuts());
@@ -67,15 +72,12 @@ public class DRCTab extends PreferencePanel
         // PolySelec rule
 		drcIgnorePolySelect.setSelected(DRC.isIgnorePolySelectChecking());
 
-        // First error only
-        drcoOnlyFirstError.setSelected(DRC.isOnlyFirstChecking());
-
 		requestedDRCClearDates = false;
 		drcClearValidDates.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt)
 			{
-				drcClearValidDates.setEnabled(false);	
+				drcClearValidDates.setEnabled(false);
 				requestedDRCClearDates = true;
 			}
 		});
@@ -83,7 +85,7 @@ public class DRCTab extends PreferencePanel
 		// not yet
 		drcUseMultipleThreads.setEnabled(false);
 		drcNumberOfThreads.setEditable(false);
-		drcEditRulesDeck.setEnabled(false);	
+		drcEditRulesDeck.setEnabled(false);
 	}
 
 	/**
@@ -96,9 +98,12 @@ public class DRCTab extends PreferencePanel
 		if (currentValue != DRC.isIncrementalDRCOn())
 			DRC.setIncrementalDRCOn(currentValue);
 
-		currentValue = drcOneErrorPerCell.isSelected();
-		if (currentValue != DRC.isOneErrorPerCell())
-			DRC.setOneErrorPerCell(currentValue);
+        if (drcErrorDefault.isSelected())
+            DRC.setErrorType(DRC.ERROR_CHECK_DEFAULT);
+        else if (drcErrorCell.isSelected())
+            DRC.setErrorType(DRC.ERROR_CHECK_CELL);
+        else if (drcErrorExaustive.isSelected())
+            DRC.setErrorType(DRC.ERROR_CHECK_EXHAUSTIVE);
 
 		currentValue = drcUseMultipleThreads.isSelected();
 		if (currentValue != DRC.isUseMultipleThreads())
@@ -122,11 +127,6 @@ public class DRCTab extends PreferencePanel
 		if (currentValue != DRC.isIgnorePolySelectChecking())
 			DRC.setIgnorePolySelectChecking(currentValue);
 
-        // First error rule
-        currentValue = drcoOnlyFirstError.isSelected();
-		if (currentValue != DRC.isOnlyFirstChecking())
-			DRC.setOnlyFirstChecking(currentValue);
-
 		if (requestedDRCClearDates) DRC.resetDRCDates();
 	}
 
@@ -138,12 +138,15 @@ public class DRCTab extends PreferencePanel
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        errorTypeGroup = new javax.swing.ButtonGroup();
         drc = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         drcIncrementalOn = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
-        drcOneErrorPerCell = new javax.swing.JCheckBox();
         drcClearValidDates = new javax.swing.JButton();
+        drcErrorCell = new javax.swing.JRadioButton();
+        drcErrorDefault = new javax.swing.JRadioButton();
+        drcErrorExaustive = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
         drcUseMultipleThreads = new javax.swing.JCheckBox();
         jLabel33 = new javax.swing.JLabel();
@@ -151,8 +154,6 @@ public class DRCTab extends PreferencePanel
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
         drcIgnorePolySelect = new javax.swing.JCheckBox();
         drcIgnoreArea = new javax.swing.JCheckBox();
-        secondSeparator = new javax.swing.JSeparator();
-        drcoOnlyFirstError = new javax.swing.JCheckBox();
         firstSeparator = new javax.swing.JSeparator();
         jPanel6 = new javax.swing.JPanel();
         drcEditRulesDeck = new javax.swing.JButton();
@@ -190,15 +191,6 @@ public class DRCTab extends PreferencePanel
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
         jPanel4.setBorder(new javax.swing.border.TitledBorder("Hierarchical DRC"));
-        drcOneErrorPerCell.setText("Just 1 error per cell");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        jPanel4.add(drcOneErrorPerCell, gridBagConstraints);
-
         drcClearValidDates.setText("Clear valid DRC dates");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -207,6 +199,37 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel4.add(drcClearValidDates, gridBagConstraints);
+
+        errorTypeGroup.add(drcErrorCell);
+        drcErrorCell.setText("1 error per cell only");
+        drcErrorCell.setAutoscrolls(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel4.add(drcErrorCell, gridBagConstraints);
+
+        errorTypeGroup.add(drcErrorDefault);
+        drcErrorDefault.setSelected(true);
+        drcErrorDefault.setText("1 error per two nodes only (default)");
+        drcErrorDefault.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel4.add(drcErrorDefault, gridBagConstraints);
+
+        errorTypeGroup.add(drcErrorExaustive);
+        drcErrorExaustive.setText("Exaustive checking");
+        drcErrorExaustive.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel4.add(drcErrorExaustive, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -268,25 +291,6 @@ public class DRCTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel5.add(secondSeparator, gridBagConstraints);
-
-        drcoOnlyFirstError.setSelected(true);
-        drcoOnlyFirstError.setText("Only first error per node");
-        drcoOnlyFirstError.setActionCommand("Only First Error perNode");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        jPanel5.add(drcoOnlyFirstError, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -333,21 +337,22 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JPanel drc;
     private javax.swing.JButton drcClearValidDates;
     private javax.swing.JButton drcEditRulesDeck;
+    private javax.swing.JRadioButton drcErrorCell;
+    private javax.swing.JRadioButton drcErrorDefault;
+    private javax.swing.JRadioButton drcErrorExaustive;
     private javax.swing.JCheckBox drcIgnoreArea;
     private javax.swing.JCheckBox drcIgnoreCenterCuts;
     private javax.swing.JCheckBox drcIgnorePolySelect;
     private javax.swing.JCheckBox drcIncrementalOn;
     private javax.swing.JTextField drcNumberOfThreads;
-    private javax.swing.JCheckBox drcOneErrorPerCell;
     private javax.swing.JCheckBox drcUseMultipleThreads;
-    private javax.swing.JCheckBox drcoOnlyFirstError;
+    private javax.swing.ButtonGroup errorTypeGroup;
     private javax.swing.JSeparator firstSeparator;
     private javax.swing.JLabel jLabel33;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
-    private javax.swing.JSeparator secondSeparator;
     // End of variables declaration//GEN-END:variables
 
 }
