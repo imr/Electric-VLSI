@@ -254,17 +254,7 @@ public class GDS extends Geometry
 
 				// now the string
 				String str = pp.getName();
-				int j = str.length();
-				if (j > 512) j = 512;
-
-                // round up string length to the nearest integer
-                if ((j % 4) != 0) {
-                    j = (int)(j / 4) + 4;
-                }
-				// pad with a blank
-				outputShort((short)(4+j));
-				outputShort(HDR_STRING);
-				outputString(str, j);
+                outputString(str, HDR_STRING);
 				outputHeader(HDR_ENDEL, 0);
 			}
 		}
@@ -428,11 +418,7 @@ public class GDS extends Geometry
 
 					// now the string
 					String str = poly.getString();
-					int j = str.length();
-					if (j > 512) j = 512;
-					outputShort((short)(4+j));
-					outputShort(HDR_STRING);
-					outputString(str, j);
+					outputString(str, HDR_STRING);
 					outputHeader(HDR_ENDEL, 0);
 				}
 				poly.transform(trans);
@@ -668,13 +654,9 @@ public class GDS extends Geometry
 	 * if there is an odd number of bytes, then output the 0 at
 	 * the end of the string as a pad. The maximum length of string is "max"
 	 */
-	private void outputName(int header, String p1, int max)
+	private void outputName(short header, String p1, int max)
 	{
-		int count = Math.min(p1.length(), max);
-		if ((count&1) != 0) count++;
-		outputShort((short)(count+4));
-		outputShort((short)header);
-		outputString(p1, count);
+		outputString(p1, header, max);
 	}
 
 	// Output an angle as part of a STRANS
@@ -815,24 +797,41 @@ public class GDS extends Geometry
 		for (int i = 0; i < n; i++) outputInt(ptr[i]);
 	}
 
-	/**
-	 * String of n bytes, starting at ptr
-	 * Revised 90-11-23 to convert to upper case (SRP)
-	 */
-	private void outputString(String ptr, int n)
-	{
+    private void outputString(String str, short header) {
+        // The usual maximum length for string is 512, though names etc may need to be shorter
+        outputString(str, header, 512);
+    }
+
+    /**
+     * String of n bytes, starting at ptr
+     * Revised 90-11-23 to convert to upper case (SRP)
+     */
+    private void outputString(String str, short header, int max) {
+        int j = str.length();
+        if (j > max) j = max;
+
+        // round up string length to the nearest integer
+        if ((j % 2) != 0) {
+            j = (int)(j / 2)*2 + 2;
+        }
+        // pad with a blank
+        outputShort((short)(4+j));
+        outputShort(header);
+
+        assert( (j%2) == 0);
+        //System.out.println("Writing string "+str+" (length "+str.length()+") using "+j+" bytes");
 		int i = 0;
 		if (IOTool.isGDSOutUpperCase())
 		{
 			// convert to upper case
-			for( ; i<ptr.length(); i++)
-				outputByte((byte)Character.toUpperCase(ptr.charAt(i)));
+			for( ; i<str.length(); i++)
+				outputByte((byte)Character.toUpperCase(str.charAt(i)));
 		} else
 		{
-			for( ; i<ptr.length(); i++)
-				outputByte((byte)ptr.charAt(i));
+			for( ; i<str.length(); i++)
+				outputByte((byte)str.charAt(i));
 		}
-		for ( ; i < n; i++)
+		for ( ; i < j; i++)
 			outputByte((byte)0);
 	}
 
