@@ -79,12 +79,15 @@ public class LayerCoverageJob extends Job
 	private Highlighter highlighter; // To highlight new implants
 	private GeometryOnNetwork geoms;  // Valid only for network job
 
-	public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets, boolean startJob) {
-        return (listGeometryOnNetworksInternal(cell, nets, startJob, GeometryHandler.ALGO_QTREE));
-    }
-    
-    public static GeometryOnNetwork listGeometryOnNetworksInternal(Cell cell, HashSet nets, boolean startJob,
-                                                                   int mode)
+    /**
+     * Method to calculate area, half-perimeter and ratio of each layer by merging geometries
+     * @param cell cell to analyze
+     * @param nets networks to analyze
+     * @param startJob if job has to run on thread
+     * @param mode geometric algorithm to use: GeometryHandler.ALGO_QTREE, GeometryHandler.SWEEP or GeometryHandler.ALGO_MERGE
+     * @return
+     */
+    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets, boolean startJob, int mode)
     {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
@@ -156,8 +159,8 @@ public class LayerCoverageJob extends Job
 		}
 		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
-            if (mode == GeometryHandler.ALGO_SWEEP)
-                ((PolySweepMerge)tree).postProcess();
+//            if (mode == GeometryHandler.ALGO_SWEEP)
+//                ((PolySweepMerge)tree).postProcess();
 		}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -359,6 +362,8 @@ public class LayerCoverageJob extends Job
 		LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
+        if (mode == GeometryHandler.ALGO_SWEEP)
+            ((PolySweepMerge)tree).postProcess();
 
 		switch (function)
 		{
@@ -479,7 +484,7 @@ public class LayerCoverageJob extends Job
 
 					// Traversing tree with merged geometry and sorting layers per name first
 				    List list = new ArrayList(tree.getKeySet());
-				    Collections.sort(list, new Layer.LayerSort());
+				    Collections.sort(list, Layer.layerSort);
 
 					for (Iterator it = list.iterator(); it.hasNext(); )
 					{

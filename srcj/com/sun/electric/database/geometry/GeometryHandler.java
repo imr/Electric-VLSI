@@ -35,10 +35,24 @@ import java.util.HashMap;
  * @author  Gilda Garreton
  */
 public abstract class GeometryHandler {
-    HashMap layers = new HashMap();
+    HashMap layers;
     public static final int ALGO_MERGE = 0;
     public static final int ALGO_QTREE = 1;
     public static final int ALGO_SWEEP = 2;
+
+    public GeometryHandler()
+    {
+        layers = new HashMap();
+    }
+
+    /**
+     * Special constructor in case of using huge amount of memory. E.g. ERC
+     * @param initialSize
+     */
+    public GeometryHandler(int initialSize)
+    {
+        layers = new HashMap(initialSize);
+    }
 
     // To insert new element into handler
 	public void add(Object key, Object value, boolean fasterAlgorithm) {;}

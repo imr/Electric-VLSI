@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP: (02/03/05, GVG) Optimizing usage of memory in sweep algorithm (using ERC as test case).
+
 IMP: (02/03/05, GVG) Change dialog: node names in dialog sorted.
 
 IMP: (02/02/05, GVG) Changes in LayerCoverageJob to allow calls from regression test suite.

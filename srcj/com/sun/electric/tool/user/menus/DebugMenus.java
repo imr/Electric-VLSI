@@ -177,8 +177,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_MERGE); } });
 	    gildaMenu.addMenuItem("Check Wells QTree", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_QTREE); } });
-	    gildaMenu.addMenuItem("List Geometry on Network", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(); } });
+	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
 	    gildaMenu.addMenuItem("3D View", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,

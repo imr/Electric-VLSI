@@ -269,7 +269,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("List Exports below Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
 		networkSubMenu.addMenuItem("List Geometry on Network", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.ALGO_QTREE); } });
         networkSubMenu.addMenuItem("List Total Wire Lengths on All Networks", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
 
@@ -516,7 +516,8 @@ public class ToolMenu {
                 // get wire length
                 HashSet nets = new HashSet();
                 nets.add(layNet);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets, false);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets,
+                        false, GeometryHandler.ALGO_QTREE);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -884,7 +885,7 @@ public class ToolMenu {
     /**
      * Method to handle the "List Geometry On Network" command.
      */
-    public static void listGeometryOnNetworkCommand()
+    public static void listGeometryOnNetworkCommand(int mode)
     {
 	    Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
@@ -898,7 +899,7 @@ public class ToolMenu {
             return;
         }
 	    else
-            LayerCoverageJob.listGeometryOnNetworks(cell, nets, true);
+            LayerCoverageJob.listGeometryOnNetworks(cell, nets, true, mode);
     }
 
     public static void listGeomsAllNetworksCommand() {
@@ -929,7 +930,8 @@ public class ToolMenu {
                 Network net = (Network)it.next();
                 HashSet nets = new HashSet();
                 nets.add(net);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets,
+                        false, GeometryHandler.ALGO_QTREE);
                 if (geoms.getTotalWireLength() == 0) continue;
                 System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
             }

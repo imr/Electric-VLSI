@@ -566,7 +566,7 @@ public class ERCWellCheck
                 switch(check.mode)
                 {
                     case GeometryHandler.ALGO_SWEEP:
-                        thisMerge = new PolySweepMerge();
+                        thisMerge = new PolySweepMerge(ercLayers.size());
                         break;
                     case GeometryHandler.ALGO_QTREE:
                         thisMerge = new PolyQTree(cell.getBounds());
@@ -615,13 +615,13 @@ public class ERCWellCheck
 						thisMerge.add(layer, newElem, qTreeAlgo);
 					}
 				}
+
+                if (check.mode == GeometryHandler.ALGO_SWEEP)
+                    ((PolySweepMerge)thisMerge).postProcess();
 	        }
 
 	        // To mark if cell is already done
 			check.doneCells.put(cell, cell);
-
-            if (check.mode == GeometryHandler.ALGO_SWEEP)
-                ((PolySweepMerge)thisMerge).postProcess();
 
 			// merge everything sub trees
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -647,7 +647,6 @@ public class ERCWellCheck
 	        Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(cell);
 			NodeInst ni = no.getNodeInst();
-			//AffineTransform trans = ni.transformOut();
             PrimitiveNode.Function fun = ni.getFunction();
             AffineTransform trans = null;
 	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);

@@ -62,6 +62,15 @@ public class PolySweepMerge extends GeometryHandler
 	{
 	}
 
+
+	/**
+	 * Method to create a new "merge" object.
+	 */
+	public PolySweepMerge(int initialSize)
+	{
+        super(initialSize);
+	}
+
     private static class PolySweepContainer
     {
         List polyList = new ArrayList();
@@ -148,6 +157,7 @@ public class PolySweepMerge extends GeometryHandler
                 container.areas.removeAll(list);
                 container.areas.add(area);
             }
+            otherAreas = null;
         }
     }
 
@@ -174,42 +184,43 @@ public class PolySweepMerge extends GeometryHandler
         {
             Layer layer = (Layer)it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
-            if (container != null)
-            {
-                Collections.sort(container.polyList, shapeSort);
-                double maxSweep = -Double.MAX_VALUE;
-                Area areaTmp = null;
-                container.areas = new ArrayList();
+            if (container == null) continue;
 
-                for (int i = 0; i < container.polyList.size(); i++)
+            Collections.sort(container.polyList, shapeSort);
+            double maxSweep = -Double.MAX_VALUE;
+            Area areaTmp = null;
+            container.areas = new ArrayList();
+
+            for (int i = 0; i < container.polyList.size(); i++)
+            {
+                Shape geom = (Shape)container.polyList.get(i);
+                Rectangle2D rect = geom.getBounds2D();
+                double x = rect.getX();
+                double y = rect.getMaxX();
+                if (x > maxSweep)
                 {
-                    Shape geom = (Shape)container.polyList.get(i);
-                    Rectangle2D rect = geom.getBounds2D();
-                    double x = rect.getX();
-                    double y = rect.getMaxX();
-                    if (x > maxSweep)
-                    {
-                       // Previous area is 100% disconnected
-                       if (areaTmp != null)
-                       {
+                   // Previous area is 100% disconnected
+                   if (areaTmp != null)
+                   {
+                       if (!container.areas.contains(areaTmp))
                            container.areas.add(areaTmp);
-                           areaTmp = null;
-                       }
-                    }
-                    if (areaTmp == null)
-                    {
-                        areaTmp = new Area(geom);
-                        container.areas.add(areaTmp);
-                    }
-                    else
-                        areaTmp.add(new Area(geom));
-                    if (y > maxSweep)
-                        maxSweep = y;
+                       areaTmp = null;
+                   }
                 }
-                // Can't use HashSet due to Comparator
-                if (areaTmp != null && !container.areas.contains(areaTmp))
+                if (areaTmp == null)
+                {
+                    areaTmp = new Area(geom);
                     container.areas.add(areaTmp);
+                }
+                else
+                    areaTmp.add(new Area(geom));
+                if (y > maxSweep)
+                    maxSweep = y;
             }
+            // Can't use HashSet due to Comparator
+            if (areaTmp != null && !container.areas.contains(areaTmp))
+                container.areas.add(areaTmp);
+            container.polyList = null;
         }
     }
 

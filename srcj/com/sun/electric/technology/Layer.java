@@ -248,6 +248,8 @@ public class Layer
 		public int getHeight() { return height; }
 	}
 
+
+    public static final LayerSort layerSort = new LayerSort(); // No need to create a new one every time
 	public static class LayerSort implements Comparator
 	{
         public static int compareStatic(Object o1, Object o2)
