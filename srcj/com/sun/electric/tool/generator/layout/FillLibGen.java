@@ -721,13 +721,15 @@ public class FillLibGen extends Job {
 		Floorplan[] plans = {
 			null,
 			new CapFloorplan(width, height, 			 !topHori),	// metal 1
-
-//			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
-//			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
-//			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
-//			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
-//			new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
-
+			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
+			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
+			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
+			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
+			new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
+		};
+		Floorplan[] noGapPlans = {
+			null,
+			new CapFloorplan(width, height, 		   !topHori),	// metal 1
 			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
 			new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
 			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
@@ -735,14 +737,14 @@ public class FillLibGen extends Job {
 			new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
 		};
 		FillCell.newFillCell(lib, plans, 1, 2, true);
-//		for (int i=1; i<=6; i++) {
-//			for (int w=0; w<2; w++) {
-//				boolean wireLowest = w==1;
-//				if (!(wireLowest && i==1)) {
-//					FillCell.newFillCell(lib, plans, i, 6, wireLowest);	
-//				}
-//			}
-//		}
+		for (int i=1; i<=6; i++) {
+			for (int w=0; w<2; w++) {
+				boolean wireLowest = w==1;
+				if (!(wireLowest && i==1)) {
+					FillCell.newFillCell(lib, plans, i, 6, wireLowest);	
+				}
+			}
+		}
 		Cell gallery = Gallery.makeGallery(lib);
 	}
 	
