@@ -126,17 +126,17 @@ public class Exec extends Thread {
         public File getWorkingDir() { return dir; }
     }
 
-    private String command;
-    private String [] exec;
-    private String [] envVars;
-    private File dir;                       // working directory
-    private OutputStream outStreamRedir;    // output of process redirected to this stream
-    private OutputStream errStreamRedir;    // error messages of process redirected to this stream
+    private final String command;
+    private final String [] exec;
+    private final String [] envVars;
+    private final File dir;                       // working directory
+    private final OutputStream outStreamRedir;    // output of process redirected to this stream
+    private final OutputStream errStreamRedir;    // error messages of process redirected to this stream
     private PrintWriter processWriter;      // connect to input of process
-    private ExecProcessReader outReader;
-    private ExecProcessReader errReader;
+    //private ExecProcessReader outReader;
+    //private ExecProcessReader errReader;
     private Process p = null;
-    private ArrayList finishedListeners;    // list of listeners waiting for process to finish
+    private final ArrayList finishedListeners;    // list of listeners waiting for process to finish
 
     /**
      * Execute an external process.
@@ -188,6 +188,9 @@ public class Exec extends Thread {
         try {
             Runtime rt = Runtime.getRuntime();
 
+            ExecProcessReader outReader = null;
+            ExecProcessReader errReader = null;
+            
             // run program
             synchronized(this) {
                 if (command != null)
