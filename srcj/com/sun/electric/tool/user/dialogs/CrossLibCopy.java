@@ -113,8 +113,6 @@ public class CrossLibCopy extends EDialog
 		useExistingSubcells.setSelected(lastUseExisting);
 	}
 
-	protected void escapePressed() { doneActionPerformed(null); }
-
 	private void leftListClick(java.awt.event.MouseEvent evt)
 	{
 		int index = listLeft.getSelectedIndex();
@@ -171,7 +169,8 @@ public class CrossLibCopy extends EDialog
 				leftCell = (Cell)cellListLeft.get(leftPos++);
 				leftName = leftCell.noLibDescribe();
 			}
-			if (!report) modelLeft.addElement(leftName);
+			//if (!report)
+				modelLeft.addElement(leftName);
 
 			String rightName = " ";
 			Cell rightCell = null;
@@ -180,46 +179,43 @@ public class CrossLibCopy extends EDialog
 				rightCell = (Cell)cellListRight.get(rightPos++);
 				rightName = rightCell.noLibDescribe();
 			}
-			if (!report) modelRight.addElement(rightName);
+			//if (!report)
+				modelRight.addElement(rightName);
 
 			String pt = " ";
 			if (op == 3)
 			{
                 int compare = leftCell.compareTo(rightCell);
+                StringBuffer buffer = null;
+				boolean result = true;
+                StringBuffer difference = null;
 
-                //
-				//if (leftCell.getRevisionDate().before(rightCell.getRevisionDate()))
-//				{
-//					if (examineContents)
-//					{
-//						if (us_samecontents(leftCell, rightCell, examineContents))
-//						{
-//							pt = "<-OLD";
-//							if (report) System.out.println("%s:%s OLDER THAN %s:%s (but contents are the same)"),
-//								lib->libname, leftName, otherlib->libname, rightName);
-//						} else
-//						{
-//							pt = "<-OLD*";
-//							if (report) System.out.println("%s:%s OLDER THAN %s:%s (and contents are different)"),
-//								lib->libname, leftName, otherlib->libname, rightName);
-//						}
-//					} else
+				if (examineContents)
+				{
+					// Should i put them into a Job?
+					if (report) buffer = new StringBuffer();
+					CrossLibraryExamineJob job = new CrossLibraryExamineJob(leftCell, rightCell, report);
+
+					result = job.getResult();
+					//difference = job.getDifference();
+				}
+				String message = (result) ? "(but contents are the same)" : "(and contents are different)";
 
 
                switch (compare)
                {
                    case -1:
                        {
-                            pt = "<-OLD";
-                            if (report) System.out.println(curLibLeft.getLibName() + ":" + leftName + " OLDER THAN " +
-                                curLibRight.getLibName() + ":" + rightName);
+                           pt = (result) ? "<-OLD" : "<-OLD*";
+                           if (report) System.out.println(curLibLeft.getLibName() + ":" + leftName + " OLDER THAN " +
+                               curLibRight.getLibName() + ":" + rightName + message);
                        }
                        break;
                    case 1:
                        {
-                            pt = "  OLD->";
-                            if (report) System.out.println(curLibRight.getLibName() + ":" + rightName + " OLDER THAN " +
-                                curLibLeft.getLibName() + ":" + leftName);
+	                       pt = (result) ? "  OLD->" : " *OLD->";
+                           if (report) System.out.println(curLibRight.getLibName() + ":" + rightName + " OLDER THAN " +
+                               curLibLeft.getLibName() + ":" + leftName + message);
                        }
                        break;
                    case 0:
@@ -231,29 +227,9 @@ public class CrossLibCopy extends EDialog
                        System.out.println("Error: invalid case");
                        ;
                }
-				//{
-//					if (examineContents)
-//					{
-//						if (us_samecontents(leftCell, otherf, examineContents))
-//						{
-//							pt = "  OLD->";
-//							if (report) System.out.println("%s:%s OLDER THAN %s:%s (but contents are the same)"),
-//								otherlib->libname, rightName, lib->libname, leftName);
-//						} else
-//						{
-//							pt = " *OLD->";
-//							if (report) System.out.println("%s:%s OLDER THAN %s:%s (and contents are different)"),
-//								otherlib->libname, rightName, lib->libname, leftName);
-//						}
-//					} else
-//					{
-//					}
-//				} else
-//				{
-//					pt = "-EQUAL-";
-//				}
 			}
-			if (!report) modelCenter.addElement(pt);
+			//if (!report) 
+				modelCenter.addElement(pt);
 		}
 	}
 
@@ -289,33 +265,44 @@ public class CrossLibCopy extends EDialog
 	{
 		Cell leftC;
 		Cell rightC;
+		boolean reportResults; // to report to std output the comparison
+		boolean result;
+		StringBuffer buffer;
 
-		protected CrossLibraryExamineJob(Cell left, Cell right)
+		protected CrossLibraryExamineJob(Cell left, Cell right, boolean report)
 		{
 			super("Cross-Library examine", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.leftC = left;
 			this.rightC = right;
+			this.reportResults = report;
 			startJob();
 		}
 		public boolean doIt()
 		{
-			boolean sameC = (leftC != null && leftC.myEquals(rightC));
-            StringBuffer message = new StringBuffer("Cells are ");
+			if (reportResults)
+				buffer = new StringBuffer("Cells " + leftC.getLibrary().getLibName() + ":" + leftC.getProtoName() + " and " + rightC.getLibrary().getLibName() + ":" +
+				        rightC.getProtoName() + ":");
+			result = (leftC != null && leftC.compare(rightC, buffer));
 
-            if (!sameC) message.append("not ");
-            message.append("equals");
-			System.out.println(message);
+            if (reportResults)
+            {
+	            if (result)
+		            buffer.append("Do not differ");
+	            System.out.println(buffer);
+            }
 			return (true);
 		}
+		public boolean getResult() { return (result); }
+		public StringBuffer getDifference() { return (buffer); }
 	}
 
-	private static class CrossLibraryCopy extends Job
+	private static class CrossLibraryCopyJob extends Job
 	{
 		Cell fromCell;
 		Library toLibrary;
 		CrossLibCopy dialog;
 
-		protected CrossLibraryCopy(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
+		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
 		{
 			super("Cross-Library copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fromCell = fromCell;
@@ -620,30 +607,30 @@ public class CrossLibCopy extends EDialog
 
 	private void listDifferencesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_listDifferencesActionPerformed
 	{//GEN-HEADEREND:event_listDifferencesActionPerformed
-		examineContentsActionPerformed(evt);
+		//showCells(true, true);
+		String leftName = (String)listLeft.getSelectedValue();
+		String rightName = (String)listLeft.getSelectedValue();
+
+		// Nothing selected
+		if (leftName == null || rightName == null) return;
+
+		Cell leftCell = curLibLeft.findNodeProto(leftName);
+		Cell rightCell = curLibRight.findNodeProto(rightName);
+
+		// Invalid cells
+		if (leftCell == null || rightCell == null) return;
+		Job job = new CrossLibraryExamineJob(leftCell, rightCell, true);
+
 	}//GEN-LAST:event_listDifferencesActionPerformed
 
 	private void examineContentsQuietlyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsQuietlyActionPerformed
 	{//GEN-HEADEREND:event_examineContentsQuietlyActionPerformed
-		examineContentsActionPerformed(evt);
+		showCells(false, true);
 	}//GEN-LAST:event_examineContentsQuietlyActionPerformed
 
 	private void examineContentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsActionPerformed
 	{//GEN-HEADEREND:event_examineContentsActionPerformed
-		System.out.println("Under construction....");
-		String cellLeft = (String)listLeft.getSelectedValue();
-		String cellRight = (String)listRight.getSelectedValue();
-
-        // Nothing selected
-        if (cellLeft == null || cellRight == null) return;
-
-		Cell leftCell = curLibLeft.findNodeProto(cellLeft);
-		Cell rightCell = curLibRight.findNodeProto(cellRight);
-
-        // invalid cells
-         if (leftCell == null || rightCell == null) return;
-		Job job = new CrossLibraryExamineJob(leftCell, rightCell);
-
+		showCells(true, true);
 	}//GEN-LAST:event_examineContentsActionPerformed
 
 	private void copyRightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyRightActionPerformed
@@ -651,7 +638,7 @@ public class CrossLibCopy extends EDialog
 		String cellName = (String)listLeft.getSelectedValue();
 		Cell fromCell = curLibLeft.findNodeProto(cellName);
 		if (fromCell == null) return;
-		CrossLibraryCopy job = new CrossLibraryCopy(fromCell, curLibRight, this);
+		CrossLibraryCopyJob job = new CrossLibraryCopyJob(fromCell, curLibRight, this);
 	}//GEN-LAST:event_copyRightActionPerformed
 
 	private void doneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_doneActionPerformed
@@ -664,9 +651,9 @@ public class CrossLibCopy extends EDialog
 		String cellName = (String)listRight.getSelectedValue();
 		Cell fromCell = curLibRight.findNodeProto(cellName);
 		if (fromCell == null) return;
-		CrossLibraryCopy job = new CrossLibraryCopy(fromCell, curLibLeft, this);
+		CrossLibraryCopyJob job = new CrossLibraryCopyJob(fromCell, curLibLeft, this);
 	}//GEN-LAST:event_copyLeftActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{

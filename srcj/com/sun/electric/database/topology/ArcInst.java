@@ -1329,7 +1329,7 @@ public class ArcInst extends Geometric
      * @param obj
      * @return
      */
-    public boolean myEquals(Object obj)
+    public boolean compare(Object obj, StringBuffer buffer)
 	{
 		if (this == obj) return (true);
 
@@ -1345,12 +1345,21 @@ public class ArcInst extends Geometric
         ArcProto arcType = a.getProto();
 		Technology tech = arcType.getTechnology();
         if (getProto().getTechnology() != tech)
+        {
+	        if (buffer != null)
+		        buffer.append("No same technology for arcs " + getName() + " and " + a.getName());
             return (false);
+        }
 
 		Poly[] polyList = getProto().getTechnology().getShapeOfArc(this);
         Poly[] aPolyList = tech.getShapeOfArc(a);
 
-         if (polyList.length != aPolyList.length) return (false);
+         if (polyList.length != aPolyList.length)
+         {
+	         if (buffer != null)   
+		         buffer.append("No same number of geometries in " + getName() + " and " + a.getName());
+	         return (false);
+         }
 
         // Remove noCheckList if equals is implemented
         // Sort them out by a key so comparison won't be O(n2)
@@ -1362,7 +1371,7 @@ public class ArcInst extends Geometric
             {
                 // Already found
                 if (noCheckAgain.contains(aPolyList[j])) continue;
-                if (polyList[i].myEquals(aPolyList[j]))
+                if (polyList[i].compare(aPolyList[j], buffer))
                 {
                     found = true;
                     noCheckAgain.add(aPolyList[j]);
@@ -1370,7 +1379,12 @@ public class ArcInst extends Geometric
                 }
             }
             // polyList[i] doesn't match any elem in noPolyList
-            if (!found) return (false);
+            if (!found)
+            {
+	            if (buffer != null)
+		            buffer.append("No corresponding geometry in " + getName() + " found in " + a.getName());
+	            return (false);
+            }
         }
         return (true);
     }

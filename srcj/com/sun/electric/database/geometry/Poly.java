@@ -1698,7 +1698,7 @@ public class Poly implements Shape
      * @param obj
      * @return
      */
-    public boolean myEquals(Object obj)
+    public boolean compare(Object obj, StringBuffer buffer)
     {
         if (this == obj) return (true);
 
@@ -1707,9 +1707,18 @@ public class Poly implements Shape
 
         Poly poly = (Poly)obj;
         Layer layer = getLayer();
-        if (getLayer() != poly.getLayer()) return (false);
+        if (getLayer() != poly.getLayer())
+        {
+	        if (buffer != null)
+		        buffer.append("Elements belong to different layers " + getLayer().getName() + " found in " + poly.getLayer().getName());
+	        return (false);
+        }
         if (layer.getFunction() != poly.getLayer().getFunction()) return (false);
 
-        return (polySame(poly));
+	    boolean geometryCheck = polySame(poly);
+
+	    if (!geometryCheck && buffer != null)
+	        buffer.append("Elements don't represent same geometry " + getName() + " found in " + poly.getName());
+        return (geometryCheck);
     }
 }

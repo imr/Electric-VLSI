@@ -707,10 +707,10 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		center.setLocation(EMath.smooth(getAnchorCenterX() + dX), EMath.smooth(getAnchorCenterY() + dY));
 
-		sX = EMath.smooth(sX + dXSize);
-		sY = EMath.smooth(sY + dYSize);
+		sX = EMath.smooth(this.sX + dXSize);
+		sY = EMath.smooth(this.sY + dYSize);
 
-		angle = (angle + dRot) % 3600;
+		angle = (angle +dRot) % 3600;
 
 		// fill in the Geometric fields
 		redoGeometric();
@@ -2131,7 +2131,7 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-					" x " + bounds.getHeight() + " (REPAIRED)");
+					" x " + bounds.getHeight() + " ****REPAIRED****");
 				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
 				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
 				errorCount++;
@@ -2436,7 +2436,7 @@ public class NodeInst extends Geometric implements Nodable
      * @param obj
      * @return True if objects represent same NodeInst
      */
-    public boolean myEquals(Object obj)
+    public boolean compare(Object obj, StringBuffer buffer)
 	{
 		if (this == obj) return (true);
 
@@ -2447,32 +2447,60 @@ public class NodeInst extends Geometric implements Nodable
             return (false);
 
         NodeInst no = (NodeInst)obj;
-        if (getFunction() != no.getFunction()) return (false);
+        if (getFunction() != no.getFunction())
+        {
+	        if (buffer != null)
+	            buffer.append("Functions are not the same for " + getName() + " and " + no.getName());
+	        return (false);
+        }
 
         NodeProto noProtoType = no.getProto();
         NodeProto protoType = getProto();
 
         if (protoType.getClass() != noProtoType.getClass())
-            return (false);
+        {
+	        if (buffer != null)
+	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName());
+	        return (false);
+        }
         // Do I need to compare names?
         //System.out.println("Class " + protoType.getClass() + noProtoType.getClass());
         //System.out.println("Name " + protoType.getProtoName() + noProtoType.getProtoName());
         // If this is Cell, no is a Cell otherwise class checker would notice
         if (protoType instanceof Cell)
+        {
+	        // Missing other comparisons
             return (noProtoType instanceof Cell);
+        }
 
         // Technology only valid for PrimitiveNodes?
         PrimitiveNode np = (PrimitiveNode)protoType;
         PrimitiveNode noNp = (PrimitiveNode)noProtoType;
-        if (np.getTechnology().getPrimitiveFunction(this) != noNp.getTechnology().getPrimitiveFunction(no))
-            return (false);
+	    NodeProto.Function function = np.getTechnology().getPrimitiveFunction(this);
+	    NodeProto.Function noFunc = noNp.getTechnology().getPrimitiveFunction(no);
+        if (function != noFunc)
+        {
+	        if (buffer != null)
+	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + ":" + function.getName() + " v/s " + noFunc.getName());
+	        return (false);
+        }
 
         // Comparing transformation
-        if (!rotateOut().equals(no.rotateOut())) return (false);
+        if (!rotateOut().equals(no.rotateOut()))
+        {
+	        if (buffer != null)
+	            buffer.append("Not the same rotation for " + getName() + " and " + no.getName());
+	        return (false);
+        }
         Poly[] polyList = np.getTechnology().getShapeOfNode(this);
         Poly[] noPolyList = noNp.getTechnology().getShapeOfNode(no);
 
-        if (polyList.length != noPolyList.length) return (false);
+        if (polyList.length != noPolyList.length)
+        {
+	        if (buffer != null)
+	            buffer.append("Not same number of geometries in " + getName() + " and " + no.getName());
+	        return (false);
+        }
 
         // Compare variables?
         // Has to be another way more eficient
@@ -2486,7 +2514,7 @@ public class NodeInst extends Geometric implements Nodable
             {
                 // Already found
                 if (noCheckAgain.contains(noPolyList[j])) continue;
-                if (polyList[i].myEquals(noPolyList[j]))
+                if (polyList[i].compare(noPolyList[j], buffer))
                 {
                     found = true;
                     noCheckAgain.add(noPolyList[j]);
@@ -2494,7 +2522,12 @@ public class NodeInst extends Geometric implements Nodable
                 }
             }
             // polyList[i] doesn't match any elem in noPolyList
-            if (!found) return (false);
+            if (!found)
+            {
+	            if (buffer != null)
+	                buffer.append("No corresponding geometry in " + getName() + " found in " + no.getName());
+	            return (false);
+            }
         }
 
         return (true);

@@ -2452,7 +2452,7 @@ public class Cell extends NodeProto implements Comparable
 	/** Use to compare cells in Cross Library Chech
 	 *
 	 */
-	public boolean myEquals(Object obj)
+	public boolean compare(Object obj, StringBuffer buffer)
 	{
 		if (this == obj) return (true);
 
@@ -2466,7 +2466,11 @@ public class Cell extends NodeProto implements Comparable
         if (getNumNodes() != toCompare.getNumNodes() ||
                 getNumArcs() != toCompare.getNumArcs() ||
                 getNumPorts() != toCompare.getNumPorts())
+        {
+	        if (buffer != null)
+	            buffer.append("Different numbers of nodes/arcs/ports in " + getProtoName() + " and " + toCompare.getProtoName());
             return (false);
+        }
 
         // Traversing nodes
         // @TODO GVG This should be removed if equals is implemented
@@ -2482,7 +2486,7 @@ public class Cell extends NodeProto implements Comparable
 
                 if (noCheckAgain.contains(n)) continue;
 
-                if (node.myEquals(n))
+                if (node.compare(n, buffer))
                 {
                     found = true;
                     // if node is found, remove elem from iterator
@@ -2494,7 +2498,12 @@ public class Cell extends NodeProto implements Comparable
                 }
             }
             // No correspoding NodeInst found
-            if (!found) return (false);
+            if (!found)
+            {
+	            if (buffer != null)
+	                buffer.append("No corresponding node " + node.getName() + " found in " + toCompare.getProtoName());
+	            return (false);
+            }
         }
 
         // Traversing Arcs
@@ -2505,11 +2514,11 @@ public class Cell extends NodeProto implements Comparable
 
             for (Iterator i = toCompare.getArcs(); i.hasNext();)
             {
-                ArcInst a = (ArcInst)it.next();
+                ArcInst a = (ArcInst)i.next();
 
                 if (noCheckAgain.contains(a)) continue;
 
-                if (arc.myEquals(a))
+                if (arc.compare(a, buffer))
                 {
                     found = true;
                     // if node is found, remove elem from iterator
@@ -2521,8 +2530,14 @@ public class Cell extends NodeProto implements Comparable
                 }
             }
             // No correspoding NodeInst found
-            if (!found) return (false);
+            if (!found)
+            {
+	            if (buffer != null)
+	                buffer.append("No corresponding arc " + arc.getName() + " found in other cell");
+	            return (false);
+            }
         }
+		//@TODO GVG missing ports
         /**
 ////	/* make sure the nodes are the same */
 ////	lambda1 = lambdaofcell(np1);
