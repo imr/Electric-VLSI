@@ -24,7 +24,12 @@
 
 package com.sun.electric.tool.simulation.interval;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Locale;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -78,15 +83,40 @@ public class RawFile {
 	}
 
 	/**
-	 * Writes RawFile data to file.
+	 * Writes RawFile data to file in ascii format.
+	 * Ascii format is portable across platforms with different byte order.
 	 * @param fileName name of file.
 	 */
 	public void write(String fileName) {
+		write(fileName, false, null);
+	}
+
+	/**
+	 * Writes RawFile data to file either in binary format.
+	 * Binary format is more compact and faster than ascii, but
+	 * it is not portable across platforms with different byte order.
+	 * @param fileName name of file.
+	 * @param byteOrder byte order, if null then native bute order of the underlying platform.
+	 */
+	public void writeBinary(String fileName, ByteOrder byteOrder) {
+		write(fileName, true, byteOrder);
+	}
+
+	/**
+	 * Writes RawFile data to file either in binary format or in ascii format.
+	 * Ascii format is portable across platforms with different byte order.
+	 * Binary format is faster.
+	 * @param fileName name of file.
+	 * @param binaryFormat if true write in binary format else write in ascii format.
+	 * @param byteOrder byte order, if null then native bute order of the underlying platform.
+	 */
+	private void write(String fileName, boolean binaryFormat, ByteOrder byteOrder) {
 		try {
 			DecimalFormat fmt = new DecimalFormat("0.000000000000000000E00");
 			fmt.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
 
-			PrintWriter FILE = new PrintWriter(new FileOutputStream(fileName));
+			FileOutputStream outStream = new FileOutputStream(fileName);
+			PrintWriter FILE = new PrintWriter(outStream);
 
 			FILE.println("Title: " + fileName);
 			FILE.println("Plotname: Waveform");
@@ -97,19 +127,38 @@ public class RawFile {
 			for (int iVar = 0; iVar < numVars; iVar++) {
 				FILE.println("\t" + iVar + "\t" + varName[iVar] + "\t" + varType[iVar]);
 			}
-			FILE.println("Values:");
+			if (binaryFormat) {
+				FILE.println("Binary:");
+				FILE.flush();
 
-			for (int iPoint = 0; iPoint < numPoints; iPoint++) {
-				FILE.println(" " + iPoint + "\t" + fmt.format(data[iPoint][0]));
+				byte[] bytes = new byte[numVars*8];
+				ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+				byteBuffer.order(byteOrder != null ? byteOrder : ByteOrder.nativeOrder());
 
-				for (int iVar = 1; iVar < numVars; iVar++) {
-					FILE.println("\t" + fmt.format(data[iPoint][iVar]));
+				for (int iPoint = 0; iPoint < numPoints; iPoint++) {
+					byteBuffer.clear();
+					for (int iVar = 0; iVar < numVars; iVar++)
+						byteBuffer.putDouble(data[iPoint][iVar]);
+					outStream.write(bytes);
 				}
-				FILE.println();
+			} else {
+				FILE.println("Values:");
+
+				for (int iPoint = 0; iPoint < numPoints; iPoint++) {
+					FILE.println(iPoint + "\t" + fmt.format(data[iPoint][0]));
+					
+					for (int iVar = 1; iVar < numVars; iVar++) {
+						FILE.println("\t" + fmt.format(data[iPoint][iVar]));
+					}
+					FILE.println();
+				}
 			}
 			FILE.close();
 		}
 		catch (FileNotFoundException e) {
+			System.out.println("Failure writing file " + fileName);
+		}
+		catch (IOException e) {
 			System.out.println("Failure writing file " + fileName);
 		}
 	}

@@ -198,7 +198,7 @@ class Hermite
 		raw.set(k, 6, getV2(t));
 		raw.set(k, 7, getV3(t));
 	    }
-	    raw.write("opt.raw");
+	    raw.writeBinary("opt.raw", null);
 
 	}
     }
@@ -243,7 +243,7 @@ class Hermite
 	    raw.set(k,11, phi10(kk).doubleValue());
 	    raw.set(k,12, phi11(kk).doubleValue());
 	}
-	raw.write("hermite.raw");
+	raw.writeBinary("hermite.raw", null);
     }
 
     /**

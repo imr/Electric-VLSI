@@ -6,9 +6,7 @@ JAVAFLAGS = -classpath $(JARLOC) -source 1.5
 JAVAPURESRC = \
 	IntervalMatrix.java \
 	IntervalExp.java \
-	ExprEval.java \
-	Trick.java \
-	Diode.java
+	Trick.java
 
 #JAVA_SRCS = $(JAVAPURESRC:%=com/sun/electric/%)
 JAVA_SRCS = $(JAVAPURESRC)
@@ -33,10 +31,10 @@ trick: isim.jar
 	java -classpath .:$(JARLOC):isim.jar Trick
 
 diode: isim.jar
-	java -classpath .:$(JARLOC):isim.jar Diode
+	java -classpath $(JARLOC) com.sun.electric.tool.simulation.interval.Diode
 
 hermite: isim.jar Hermite.class
-	java -classpath .:$(JARLOC):isim.jar Hermite
+	java -enableassertions -classpath .:$(JARLOC):isim.jar Hermite
 
 ulp: Ulp.class
 	java  -server -XX:+PrintCompilation  -classpath . Ulp

@@ -173,12 +173,14 @@ public class RawSpiceOut extends Simulate
 				{
 					for(int i=0; i<=numSignals; i++)
 					{
-						line = getLineFromSimulator();
-						if (line == null)
-						{
-							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
-							return null;
-						}
+						do {
+							line = getLineFromSimulator();
+							if (line == null)
+							{
+								System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
+								return null;
+							}
+						} while (line.length() == 0);
 						if (i == 0)
 						{
 							int lineNumber = TextUtils.atoi(line);

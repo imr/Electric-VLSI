@@ -34,6 +34,7 @@
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
            </classpath>
+            <arg value="-debug"/>
         </java>
     </target>
 

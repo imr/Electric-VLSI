@@ -50,6 +50,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
@@ -159,6 +160,13 @@ public class DebugMenus {
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, true); } });
+
+        /****************************** Dima's TEST MENU ******************************/
+ 
+        MenuBar.Menu dimaMenu = new MenuBar.Menu("Dima", 'D');
+        menuBar.add(dimaMenu);
+	    dimaMenu.addMenuItem("Plot diode", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
     }
 
 	// ---------------------- Help Menu additions -----------------
