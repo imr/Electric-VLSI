@@ -131,6 +131,7 @@ public class ElectricObject
         return null;
     }
 
+    private static int debugGetParameterRecurse = 0;
     /**
      * Method to return the Variable on this ElectricObject with the given key
      * that is a parameter.  If the variable is not found on this object, it
@@ -141,6 +142,10 @@ public class ElectricObject
      */
     public Variable getParameter(String name)
     {
+        if (debugGetParameterRecurse > 3)
+            ActivityLogger.logException(new Exception("GetParameter recurse error: "+debugGetParameterRecurse));
+        debugGetParameterRecurse++;
+
         Variable.Key key = findKey(name);
         if (key == null) return null;
         Variable var = getVar(key, null);
@@ -151,15 +156,22 @@ public class ElectricObject
         ElectricObject defOwner = getVarDefaultOwner();
         if (defOwner == null) return null;
         if (defOwner == this) return null;
+
+        debugGetParameterRecurse--;
         return defOwner.getParameter(name);
     }
 
+    private static int debugGetParametersRecurse = 0;
     /**
      * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
      * This may also include any parameters on the defaultVarOwner object that are not on this object.
      * @return an Iterator over all Variables on this ElectricObject.
      */
     public Iterator getParameters() {
+        if (debugGetParametersRecurse > 3)
+            ActivityLogger.logException(new Exception("GetParameters recurse error: "+debugGetParametersRecurse));
+        debugGetParametersRecurse++;
+
         HashMap keysToVars = new HashMap();
         // get all parameters on this object
         for (Iterator it = getVariables(); it.hasNext(); ) {
@@ -176,6 +188,7 @@ public class ElectricObject
             if (keysToVars.get(v.getKey()) == null)
                 keysToVars.put(v.getKey(), v);
         }
+        debugGetParametersRecurse--;
         return keysToVars.values().iterator();
     }
 
