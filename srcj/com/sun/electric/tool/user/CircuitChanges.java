@@ -5117,7 +5117,10 @@ public class CircuitChanges
 			String oldName = lib.getName();
 			if (lib.setName(newName)) return false;
 			System.out.println("Library " + oldName + " renamed to " + newName);
-	
+
+            // mark this library for saving
+            lib.setChangedMajor();
+
 			// mark for saving, all libraries that depend on this
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
 			{
