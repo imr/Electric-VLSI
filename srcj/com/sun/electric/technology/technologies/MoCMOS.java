@@ -2810,8 +2810,8 @@ public class MoCMOS extends Technology
             List tmp = new ArrayList(2);
             int j = (i+1)%transistorNodes.length;
             String tmpVar = shortNames[j]+"Mos";
-            tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
-            tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            tmp.add(makeNodeInst(transistorNodes[j], transistorNodes[j].getFunction(), 0, true, tmpVar, 9));
+            tmp.add(makeNodeInst(thickTransistorNodes[j], thickTransistorNodes[j].getFunction(), 0, true, tmpVar, 9));
             nodeGroups[maxY-4-metalWellContactNodes.length-i][3] = tmp;
         }
 	}
