@@ -45,7 +45,7 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.00n";
+	private static final String CURRENT = "8.00o";
 
 	private int major;
 	private int minor;
