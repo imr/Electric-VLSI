@@ -166,16 +166,6 @@ public class WaveformWindow implements WindowContent
 		private static final ImageIcon iconDeleteSignal = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDelete.gif"));
 		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
 
-//		public static void setListener(EventListener listener)
-//		{
-//			curMouseListener = (MouseListener)listener;
-//			curMouseMotionListener = (MouseMotionListener)listener;
-//			curMouseWheelListener = (MouseWheelListener)listener;
-//			curKeyListener = (KeyListener)listener;
-//		}
-//
-//		public static EventListener getListener() { return curMouseListener; }
-
 	    // constructor
 		public Panel(WaveformWindow waveWindow, boolean isAnalog)
 		{
@@ -329,8 +319,6 @@ public class WaveformWindow implements WindowContent
 			waveWindow.left.add(leftHalf);
 			waveWindow.right.add(rightHalf);
 			waveWindow.wavePanels.add(this);
-//			leftHalf.validate();
-//			rightHalf.validate();
 		}
 
 		public void closePanel()
@@ -1252,14 +1240,14 @@ public class WaveformWindow implements WindowContent
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Simulate.SimData sd;
-	private JPanel overall;
+	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
-	private JButton timeLock;
-	private JButton growPanel;
-	private JButton shrinkPanel;
-	private JScrollPane scrollAll;
-	private JSplitPane split;
+	/** the "lock time" button. */							private JButton timeLock;
+	/** the "grow panel" button for widening. */			private JButton growPanel;
+	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
+	/** the main scroll of all panels. */					private JScrollPane scrollAll;
+	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
 	/** a list of panels in this window */					private List wavePanels;
 	/** current "main" time cursor */						private double mainTime;
@@ -1510,7 +1498,7 @@ public class WaveformWindow implements WindowContent
 		wf.setTitle(title);
 	}
 
-	static class StepSize
+	private static class StepSize
 	{
 		double separation;
 		double low, high;

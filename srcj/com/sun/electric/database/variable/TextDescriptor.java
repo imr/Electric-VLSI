@@ -1146,7 +1146,7 @@ public class TextDescriptor
 	}
 
 	/** Method to return the offset scale of the text in the text descriptor. */
-	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
+	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
 
 	/**
 	 * Method to return the Unit of the TextDescriptor.

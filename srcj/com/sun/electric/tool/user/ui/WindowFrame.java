@@ -55,6 +55,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.database.variable.VarContext;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -227,13 +228,58 @@ public class WindowFrame
     public static WindowFrame createEditWindow(Cell cell)
     {
 		WindowFrame frame = new WindowFrame();
-		EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame);
-		frame.buildWindowStructure(eWnd, cell, null);
-		setCurrentWindowFrame(frame);
-		frame.populateJFrame();
-		eWnd.fillScreen();
+		if (cell != null && cell.getView().isTextView())
+		{
+			TextWindow tWnd = new TextWindow(cell, frame);
+			frame.buildWindowStructure(tWnd, cell, null);
+			setCurrentWindowFrame(frame);
+			frame.populateJFrame();
+			tWnd.fillScreen();
+		} else
+		{
+			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame);
+			frame.buildWindowStructure(eWnd, cell, null);
+			setCurrentWindowFrame(frame);
+			frame.populateJFrame();
+			eWnd.fillScreen();
+		}
 		return frame;
     }
+
+	/**
+	 * Method to show a cell in the right-part of this WindowFrame.
+	 * Handles both circuit cells and text cells.
+	 * @param cell the Cell to display.
+	 */
+	public void setCellWindow(Cell cell)
+	{
+		if (cell != null && cell.getView().isTextView())
+		{
+			// want a TextWindow here
+			if (!(getContent() instanceof TextWindow))
+			{
+				content = new TextWindow(cell, this);
+				int i = js.getDividerLocation();
+				js.setRightComponent(content.getPanel());
+				js.setDividerLocation(i);
+				content.fillScreen();
+				return;
+			}
+		} else
+		{
+			// want an EditWindow here
+			if (!(getContent() instanceof EditWindow))
+			{
+				content = EditWindow.CreateElectricDoc(cell, this);
+				int i = js.getDividerLocation();
+				js.setRightComponent(content.getPanel());
+				js.setDividerLocation(i);
+				content.fillScreen();
+				return;
+			}
+		}
+		content.setCell(cell, VarContext.globalContext);
+	}
 
 	/**
 	 * Method to create a new waveform window on the screen given the simulation data.

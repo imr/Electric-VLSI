@@ -70,7 +70,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-//import java.util.EventListener;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JPanel;

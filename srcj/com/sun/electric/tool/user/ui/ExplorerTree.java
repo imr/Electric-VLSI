@@ -574,7 +574,7 @@ public class ExplorerTree extends JTree
 				return;
 			}
 
-            EditWindow wnd = EditWindow.getCurrent();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 
 			// double click
 			if (e.getClickCount() == 2)
@@ -582,13 +582,13 @@ public class ExplorerTree extends JTree
 				if (currentSelectedObject instanceof CellAndCount)
 				{
 					CellAndCount cc = (CellAndCount)currentSelectedObject;
-					wnd.setCell(cc.getCell(), VarContext.globalContext);
+					wf.setCellWindow(cc.getCell());
 					return;
 				}
 				if (currentSelectedObject instanceof Cell)
 				{
 					Cell cell = (Cell)currentSelectedObject;
-					wnd.setCell(cell, VarContext.globalContext);
+					wf.setCellWindow(cell);
 					return;
 				}
 				if (currentSelectedObject instanceof Library || currentSelectedObject instanceof Cell.CellGroup ||
@@ -912,13 +912,13 @@ public class ExplorerTree extends JTree
 		private void editCellAction(boolean newWindow)
 		{
 			Cell cell = (Cell)currentSelectedObject;
-            EditWindow wnd = EditWindow.getCurrent();
-			if (newWindow)
+ 			if (newWindow)
 			{
 				WindowFrame wf = WindowFrame.createEditWindow(cell);
 			} else
 			{
-				wnd.setCell(cell, VarContext.globalContext);
+				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+				wf.setCellWindow(cell);
 			}
 		}
 
