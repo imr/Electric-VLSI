@@ -75,6 +75,7 @@ public class Undo
 		/** Describes a changed Cell. */									public static final Type CELLMOD = new Type("CellMod");
 		/** Describes the creation of an arbitrary object. */				public static final Type OBJECTNEW = new Type("ObjectNew");
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
+		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
 		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
 		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMODFLAGS = new Type("VariableModFlags");
@@ -154,6 +155,13 @@ public class Undo
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.killObject(obj);
+				}
+			} else if (type == Type.OBJECTREDRAW)
+			{
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+					if (tool.isOn()) tool.redrawObject(obj);
 				}
 			} else if (type == Type.NODEINSTMOD)
 			{
@@ -490,7 +498,7 @@ public class Undo
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL)
+			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTREDRAW)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
@@ -607,6 +615,10 @@ public class Undo
 			{
 				return "Deleted object " + obj;
 			}
+			if (type == Type.OBJECTREDRAW)
+			{
+				return "Redraw object " + obj;
+			}
 			if (type == Type.VARIABLENEW)
 			{
 				return "Created variable "+o1+" on "+obj;
@@ -677,7 +689,7 @@ public class Undo
 				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD)
 				{
 					cell++;
-				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL)
+				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
 				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL || ch.getType() == Type.VARIABLEMODFLAGS ||
@@ -889,6 +901,7 @@ public class Undo
 	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.
 	 * <LI>OBJECTNEW takes nothing.
 	 * <LI>OBJECTKILL takes nothing.
+	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLENEW takes o1=var.
 	 * <LI>VARIABLEKILL takes o1=var.
 	 * <LI>VARIABLEMOD takes o1=var i1=index o2=oldValue.
@@ -1016,6 +1029,15 @@ public class Undo
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		Constraint.getCurrent().killObject(obj);
+	}
+
+	public static void redrawObject(ElectricObject obj)
+	{
+		if (!recordChange()) return;
+		Type type = Type.OBJECTREDRAW;
+		Change ch = newChange(obj, type, null);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 	}
 
 	public static void newVariable(ElectricObject obj, Variable var)

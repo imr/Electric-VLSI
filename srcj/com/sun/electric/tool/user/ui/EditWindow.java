@@ -322,8 +322,8 @@ public class EditWindow extends JPanel
 			} else
 			{
 				// draw the outline
-				Rectangle2D cellBounds = ni.getBounds();
-				Poly poly = new Poly(cellBounds.getCenterX(), cellBounds.getCenterY(), cellBounds.getWidth(), cellBounds.getHeight());
+				Poly poly = new Poly(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize());
+				poly.transform(localTrans);
 				g2.setColor(Color.black);
 				g2.setStroke(solidLine);
 				g2.draw(poly);

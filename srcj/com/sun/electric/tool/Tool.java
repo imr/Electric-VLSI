@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.change.Change;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
@@ -35,6 +34,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.simulation.Simulation;
@@ -294,6 +294,7 @@ public class Tool extends ElectricObject implements Change
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
+	public void redrawObject(ElectricObject obj) {}
 	public void newVariable(ElectricObject obj, Variable var) {}
 	public void killVariable(ElectricObject obj, Variable var) {}
 	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
@@ -304,5 +305,5 @@ public class Tool extends ElectricObject implements Change
 	public void readLibrary(Library lib) {}
 	public void eraseLibrary(Library lib) {}
 	public void writeLibrary(Library lib, boolean pass2) {}
-	
+
 }

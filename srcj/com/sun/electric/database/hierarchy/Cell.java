@@ -1063,7 +1063,8 @@ public class Cell extends NodeProto
 		for(Iterator it = getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			ni.modifyInstance(0, 0, 0, 0, 0);
+			Undo.redrawObject(ni);
+//			ni.modifyInstance(0, 0, 0, 0, 0);
 		}
 
 		// adjust all windows showing this cell

@@ -24,9 +24,12 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
 import com.sun.electric.tool.user.dialogs.GetInfoArc;
@@ -103,6 +106,44 @@ public class User extends Tool
 	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap; }
 
 	/**
+	 * Daemon routine called when an object is to be redrawn.
+	 */
+	public void redrawObject(ElectricObject obj)
+	{
+		if (obj instanceof Geometric)
+		{
+			Geometric geom = (Geometric)obj;
+			Cell parent = geom.getParent();
+			markCellForRedraw(parent, true);
+		}
+	}
+
+	/**
+	 * Routine to recurse flag all windows showing a cell to redraw.
+	 * @param cell the Cell that changed.
+	 * @param recurseUp true to recurse up the hierarchy, redrawing cells that show this one.
+	 */
+	private void markCellForRedraw(Cell cell, boolean recurseUp)
+	{
+		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame window = (WindowFrame)wit.next();
+			EditWindow win = window.getEditWindow();
+			Cell winCell = win.getCell();
+			if (winCell == cell) win.redraw();
+		}
+
+		if (recurseUp)
+		{
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.isExpanded()) markCellForRedraw(ni.getParent(), recurseUp);
+			}
+		}
+	}
+
+	/**
 	 * Daemon routine called when a batch of changes ends.
 	 */
 	public void endBatch()
@@ -112,13 +153,7 @@ public class User extends Tool
 		{
 			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
 			Cell cell = cc.getCell();
-			for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
-			{
-				WindowFrame window = (WindowFrame)wit.next();
-				EditWindow win = window.getEditWindow();
-				Cell winCell = win.getCell();
-				if (winCell == cell) win.redraw();
-			}
+			markCellForRedraw(cell, false);
 		}
 
 		// update any Get-Info dialogs

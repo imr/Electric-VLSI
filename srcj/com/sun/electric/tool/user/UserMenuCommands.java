@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,6 +43,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -79,6 +81,7 @@ import com.sun.electric.tool.simulation.IRSIMTool;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionListener;
@@ -105,9 +108,11 @@ public final class UserMenuCommands
 		// create the menu bar
 		JMenuBar menuBar = new JMenuBar();
 
-		// setup the File menu
+		/****************************** THE FILE MENU ******************************/
+
 		Menu fileMenu = Menu.createMenu("File", 'F');
 		menuBar.add(fileMenu);
+
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 		Menu importSubMenu = Menu.createMenu("Import");
@@ -131,23 +136,29 @@ public final class UserMenuCommands
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
 
-		// setup the Edit menu
+		/****************************** THE EDIT MENU ******************************/
+
 		Menu editMenu = Menu.createMenu("Edit", 'E');
 		menuBar.add(editMenu);
+
 		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
 		editMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+
 		editMenu.addSeparator();
+
 		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cutCommand(); } });
 		editMenu.addMenuItem("Copy", KeyStroke.getKeyStroke('C', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { copyCommand(); } });
 		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { pasteCommand(); } });
+
 		editMenu.addSeparator();
+
 		Menu arcSubMenu = Menu.createMenu("Arc", 'A');
 		editMenu.add(arcSubMenu);
         arcSubMenu.addMenuItem("Rigid", null, 
@@ -158,55 +169,108 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
         arcSubMenu.addMenuItem("Not Fixed Angle", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
+
 		editMenu.addSeparator();
+
 		editMenu.addMenuItem("I/O Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
 		editMenu.addMenuItem("Edit Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
 		editMenu.addMenuItem("Tool Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
+
 		editMenu.addSeparator();
+
 		editMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
 
-		// setup the Cell menu
+		editMenu.addSeparator();
+
+		Menu selListSubMenu = Menu.createMenu("Selection");
+		editMenu.add(selListSubMenu);
+        selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', InputEvent.CTRL_MASK), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
+
+		/****************************** THE CELL MENU ******************************/
+
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
 		menuBar.add(cellMenu);
+
 		cellMenu.addMenuItem("New Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
 		cellMenu.addMenuItem("Delete Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
 		cellMenu.addMenuItem("Cross-Library Copy...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
+
 		cellMenu.addSeparator();
-        cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
+ 
+		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
         cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
+
 		cellMenu.addSeparator();
+
 		cellMenu.addMenuItem("New Version of Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellVersionCommand(); } });
 		cellMenu.addMenuItem("Duplicate Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellCommand(); } });
 		cellMenu.addMenuItem("Delete Unused Old Versions", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteOldCellVersionsCommand(); } });
-		cellMenu.addSeparator();
-		cellMenu.addMenuItem("General Cell Lists...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { generalCellListsCommand(); } });
 
-		// setup the Export menu
+		cellMenu.addSeparator();
+
+		cellMenu.addMenuItem("Describe this Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
+		cellMenu.addMenuItem("General Cell Lists...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
+		Menu specListSubMenu = Menu.createMenu("Special Cell Lists");
+		cellMenu.add(specListSubMenu);
+        specListSubMenu.addMenuItem("List Nodes in this Cell", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
+        specListSubMenu.addMenuItem("List Cell Instances", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
+        specListSubMenu.addMenuItem("List Cell Usage", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
+
+		cellMenu.addSeparator();
+
+		Menu expandListSubMenu = Menu.createMenu("Expand Cell Instances");
+		cellMenu.add(expandListSubMenu);
+        expandListSubMenu.addMenuItem("One Level Down", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
+        expandListSubMenu.addMenuItem("All the Way", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
+        expandListSubMenu.addMenuItem("Specified Amount", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
+		Menu unExpandListSubMenu = Menu.createMenu("Unexpand Cell Instances");
+		cellMenu.add(unExpandListSubMenu);
+        unExpandListSubMenu.addMenuItem("One Level Up", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
+        unExpandListSubMenu.addMenuItem("All the Way", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
+        unExpandListSubMenu.addMenuItem("Specified Amount", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
+
+		/****************************** THE EXPORT MENU ******************************/
+
 		Menu exportMenu = Menu.createMenu("Export", 'X');
 		menuBar.add(exportMenu);
+
 		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newExportCommand(); } });
 
-		// setup the View menu
+		/****************************** THE VIEW MENU ******************************/
+
 		Menu viewMenu = Menu.createMenu("View", 'V');
 		menuBar.add(viewMenu);
-		menuBar.add(exportMenu);
+
 		viewMenu.addMenuItem("View Control...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { viewControlCommand(); } });
+
 		viewMenu.addSeparator();
+
 		viewMenu.addMenuItem("Edit Layout View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
 		viewMenu.addMenuItem("Edit Schematic View", null,
@@ -222,9 +286,11 @@ public final class UserMenuCommands
 		viewMenu.addMenuItem("Edit Other View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOtherViewCommand(); } });
 
-		// setup the Window menu
+		/****************************** THE WINDOW MENU ******************************/
+
 		Menu windowMenu = Menu.createMenu("Window", 'W');
 		menuBar.add(windowMenu);
+
 		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplayCommand(); } });
 		windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', InputEvent.CTRL_MASK),
@@ -233,22 +299,33 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplayCommand(); } });
 		windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlightedCommand(); } });
+
 		windowMenu.addSeparator();
+
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
-		// setup the Tool menu
+		/****************************** THE TOOL MENU ******************************/
+
 		Menu toolMenu = Menu.createMenu("Tool", 'T');
 		menuBar.add(toolMenu);
+
 		Menu drcSubMenu = Menu.createMenu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
-		Menu simulationSubMenu = Menu.createMenu("Simulation", 'S');
+
+		Menu simulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
 		toolMenu.add(simulationSubMenu);
 		simulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { writeSpiceDeckCommand(); }});
 
+		Menu netlisters = Menu.createMenu("Simulation (others)");
+        netlisters.addMenuItem("Write IRSIM Netlist", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
+        toolMenu.add(netlisters);
+
 		Menu ercSubMenu = Menu.createMenu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
+
 		Menu networkSubMenu = Menu.createMenu("Network", 'N');
 		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("redo Network Numbering", null,
@@ -261,30 +338,33 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
 		networkSubMenu.addMenuItem("NCC test 4", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
+
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
         logEffortSubMenu.addMenuItem("Analyze Cell", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
-        Menu netlisters = Menu.createMenu("Other Netlisters");
-        netlisters.addMenuItem("Write IRSIM Netlist", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
-        toolMenu.add(netlisters);
+
 		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
 		toolMenu.add(routingSubMenu);
+
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
         generationSubMenu.addMenuItem("Pad Frame Generator", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+
 		Menu compactionSubMenu = Menu.createMenu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
-        Menu languagesSubMenu = Menu.createMenu("Languages");
+ 
+		Menu languagesSubMenu = Menu.createMenu("Languages");
         languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
         toolMenu.add(languagesSubMenu);
 
-		// setup the Help menu
+		/****************************** THE HELP MENU ******************************/
+
 		Menu helpMenu = Menu.createMenu("Help", 'H');
 		menuBar.add(helpMenu);
+
 		helpMenu.addMenuItem("About Electric...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		helpMenu.addMenuItem("Check and Repair Libraries...", null,
@@ -292,7 +372,8 @@ public final class UserMenuCommands
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
 
-		// setup Russell's test menu
+		/****************************** Russell's TEST MENU ******************************/
+
 		Menu russMenu = Menu.createMenu("Russell", 'R');
 		menuBar.add(russMenu);
 		russMenu.addMenuItem("ivanFlat", new com.sun.electric.tool.generator.layout.IvanFlat());
@@ -308,8 +389,9 @@ public final class UserMenuCommands
 			}
 		});
 		
-        // setup JonGainsley's test menu
-        Menu jongMenu = Menu.createMenu("JonG", 'J');
+		/****************************** Jon's TEST MENU ******************************/
+
+		Menu jongMenu = Menu.createMenu("JonG", 'J');
 		menuBar.add(jongMenu);
         jongMenu.addMenuItem("Describe Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
@@ -717,6 +799,25 @@ public final class UserMenuCommands
 		}
 	}
 
+    public static void selectAllCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		Highlight.clear();
+		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			Highlight.addGeometric(ni);
+		}
+		for(Iterator it = curCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Highlight.addGeometric(ai);
+		}
+		Highlight.finished();
+    }
+
 	// ---------------------- THE CELL MENU -----------------
 
     public static void newCellCommand()
@@ -787,13 +888,191 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to create general Cell lists.
+	 * This routine implements the command to expand the selected cells by 1 level down.
 	 */
-	public static void generalCellListsCommand()
+	public static void expandOneLevelDownCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		CellLists dialog = new CellLists(jf, true);
-		dialog.show();
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, false, 1);
+	}
+
+	/**
+	 * This routine implements the command to expand the selected cells all the way to the bottom of the hierarchy.
+	 */
+	public static void expandFullCommand()
+	{
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, false, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * This routine implements the command to expand the selected cells by a given number of levels from the top.
+	 */
+	public static void expandSpecificCommand()
+	{
+		Object obj = JOptionPane.showInputDialog("Number of levels to expand", "1");
+		int levels = EMath.atoi((String)obj);
+
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, false, levels);
+	}
+
+	/**
+	 * This routine implements the command to unexpand the selected cells by 1 level up.
+	 */
+	public static void unexpandOneLevelUpCommand()
+	{
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, true, 1);
+	}
+
+	/**
+	 * This routine implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
+	 */
+	public static void unexpandFullCommand()
+	{
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, true, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * This routine implements the command to unexpand the selected cells by a given number of levels from the bottom.
+	 */
+	public static void unexpandSpecificCommand()
+	{
+		Object obj = JOptionPane.showInputDialog("Number of levels to unexpand", "1");
+		int levels = EMath.atoi((String)obj);
+
+		List list = Highlight.getHighlighted(true, false);
+		ExpandUnExpand job = new ExpandUnExpand(list, true, levels);
+	}
+
+	private static FlagSet expandFlagBit;
+
+	/**
+	 * Class to read a library in a new thread.
+	 */
+	protected static class ExpandUnExpand extends Job
+	{
+		List list;
+		boolean unExpand;
+		int amount;
+		
+		protected ExpandUnExpand(List list, boolean unExpand, int amount)
+		{
+			super("Change Cell Expansion", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.list = list;
+			this.unExpand = unExpand;
+			this.amount = amount;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			expandFlagBit = Geometric.getFlagSet(1);
+			if (unExpand)
+			{
+				for(Iterator it = list.iterator(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					NodeProto np = ni.getProto();
+					if (!(np instanceof Cell)) continue;
+					{
+						if (ni.isExpanded())
+							setUnExpand(ni, amount);
+					}
+				}
+			}
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (unExpand) doUnExpand(ni); else
+					doExpand(ni, amount, 0);
+				Undo.redrawObject(ni);
+			}
+		}
+	}
+
+	/**
+	 * routine to recursively expand the cell "ni" by "amount" levels.
+	 * "sofar" is the number of levels that this has already been expanded.
+	 */
+	private static void doExpand(NodeInst ni, int amount, int sofar)
+	{
+		if (!ni.isExpanded())
+		{
+			// expanded the cell
+			ni.setExpanded();
+
+			// if depth limit reached, quit
+			if (++sofar >= amount) return;
+		}
+
+		// explore insides of this one
+		NodeProto np = ni.getProto();
+		if (!(np instanceof Cell)) return;
+		Cell cell = (Cell)np;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst subNi = (NodeInst)it.next();
+			NodeProto subNp = subNi.getProto();
+			if (!(subNp instanceof Cell)) continue;
+			Cell subCell = (Cell)subNp;
+
+			// ignore recursive references (showing icon in contents)
+			if (subNi.isIconOfParent()) continue;
+			doExpand(subNi, amount, sofar);
+		}
+	}
+
+	private static void doUnExpand(NodeInst ni)
+	{
+		if (!ni.isExpanded()) return;
+
+		NodeProto np = ni.getProto();
+		if (!(np instanceof Cell)) return;
+		Cell cell = (Cell)np;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst subNi = (NodeInst)it.next();
+			NodeProto subNp = subNi.getProto();
+			if (!(subNp instanceof Cell)) continue;
+
+			/* ignore recursive references (showing icon in contents) */
+			if (subNi.isIconOfParent()) continue;
+			if (subNi.isExpanded()) doUnExpand(subNi);
+		}
+
+		/* expanded the cell */
+		if (ni.isBit(expandFlagBit))
+		{
+			ni.clearExpanded();
+		}
+	}
+
+	private static int setUnExpand(NodeInst ni, int amount)
+	{
+		ni.clearBit(expandFlagBit);
+		if (!ni.isExpanded()) return(0);
+		NodeProto np = ni.getProto();
+		int depth = 0;
+		if (np instanceof Cell)
+		{
+			Cell cell = (Cell)np;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst subNi = (NodeInst)it.next();
+				NodeProto subNp = subNi.getProto();
+				if (!(subNp instanceof Cell)) continue;
+
+				// ignore recursive references (showing icon in contents)
+				if (subNi.isIconOfParent()) continue;
+				if (subNi.isExpanded())
+					depth = Math.max(depth, setUnExpand(subNi, amount));
+			}
+			if (depth < amount) ni.setBit(expandFlagBit);
+		}
+		return depth+1;
 	}
 
 	// ---------------------- THE EXPORT MENU -----------------

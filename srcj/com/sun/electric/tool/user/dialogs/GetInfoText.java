@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -654,19 +655,13 @@ public class GetInfoText extends javax.swing.JDialog
 			{
 				if (geom != null)
 				{
-					if (geom instanceof NodeInst)
-					{
-						((NodeInst)geom).modifyInstance(0, 0, 0, 0, 0);
-					} else if (geom instanceof ArcInst)
-					{
-						((ArcInst)geom).modify(0, 0, 0, 0, 0);
-					}
+					Undo.redrawObject(geom);
 				} else
 				{
 					if (text.getCell().getNumNodes() > 0)
 					{
 						NodeInst ni = (NodeInst)text.getCell().getNodes().next();
-						ni.modifyInstance(0, 0, 0, 0, 0);
+						Undo.redrawObject(ni);
 					}
 				}
 			}

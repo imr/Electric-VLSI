@@ -23,10 +23,13 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -37,13 +40,28 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.Job;
 
+import java.awt.geom.Rectangle2D;
+import java.io.FileOutputStream;
+import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Date;
+import java.util.Comparator;
+import java.util.Collections;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JFrame;
 
 
 /**
@@ -51,8 +69,30 @@ import javax.swing.JList;
  */
 public class CellLists extends javax.swing.JDialog
 {
+	FlagSet nodeFlagBit;
+	FlagSet portFlagBit;
+	Cell curCell;
+	private static int whichSwitch = 0;
+	private static boolean onlyViewSwitch = false;
+	private static View viewSwitch = View.SCHEMATIC;
+	private static boolean alsoIconSwitch = false;
+	private static boolean excOldVersSwitch = false;
+	private static boolean excNewVersSwitch = false;
+	private static int orderingSwitch = 0;
+	private static int destinationSwitch = 0;
+
+	/**
+	 * This routine implements the command to create general Cell lists.
+	 */
+	public static void generalCellListsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		CellLists dialog = new CellLists(jf, true);
+		dialog.show();
+	}
+
 	/** Creates new form New Cell */
-	public CellLists(java.awt.Frame parent, boolean modal)
+	private CellLists(JFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
@@ -65,10 +105,475 @@ public class CellLists extends javax.swing.JDialog
 			views.addItem(v.getFullName());
 		}
 
-		orderByName.setSelected(true);
-		displayInMessages.setSelected(true);
-		allCells.setSelected(true);
-		views.setEnabled(false);
+		curCell = Library.getCurrent().getCurCell();
+		onlyCellsUnderCurrent.setEnabled(curCell != null);
+
+		switch (whichSwitch)
+		{
+			case 0: allCells.setSelected(true);                   break;
+			case 1: onlyCellsUsedElsewhere.setSelected(true);     break;
+			case 2: onlyCellsNotUsedElsewhere.setSelected(true);  break;
+			case 3: onlyCellsUnderCurrent.setSelected(true);      break;
+			case 4: onlyPlaceholderCells.setSelected(true);       break;
+		}
+		onlyThisView.setSelected(onlyViewSwitch);
+		views.setSelectedItem(viewSwitch.getFullName());
+		views.setEnabled(onlyViewSwitch);
+		alsoIconViews.setSelected(alsoIconSwitch);
+		excludeOlderVersions.setSelected(excOldVersSwitch);
+		excludeNewestVersions.setSelected(excNewVersSwitch);
+		switch (orderingSwitch)
+		{
+			case 0: orderByName.setSelected(true);                break;
+			case 1: orderByDate.setSelected(true);                break;
+			case 2: orderByStructure.setSelected(true);           break;
+		}
+		switch (destinationSwitch)
+		{
+			case 0: displayInMessages.setSelected(true);          break;
+			case 1: saveToDisk.setSelected(true);                 break;
+		}
+	}
+
+	private static String makeCellLine(Cell cell, int maxlen)
+	{
+		String line = cell.noLibDescribe();
+		if (maxlen < 0) line += "\t"; else
+		{
+			for(int i=line.length(); i<maxlen; i++) line += " ";
+		}
+
+		/* add the version number */
+		String versionString = EMath.toBlankPaddedString(cell.getVersion(), 5);
+		line += versionString;
+		if (maxlen < 0) line += "\t"; else line += "   ";
+
+		/* add the creation date */
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date creationDate = cell.getCreationDate();
+		if (creationDate == null)
+		{
+			if (maxlen < 0) line += "UNRECORDED"; else
+				line += "     UNRECORDED     ";
+		} else
+		{
+			line += sdf.format(creationDate);
+		}
+		if (maxlen < 0) line += "\t"; else line += "   ";
+
+		/* add the revision date */
+		Date revisionDate = cell.getRevisionDate();
+		if (revisionDate == null)
+		{
+			if (maxlen < 0) line += "UNRECORDED"; else
+				line += "     UNRECORDED     ";
+		} else
+		{
+			line += sdf.format(creationDate);
+		}
+		if (maxlen < 0) line += "\t"; else line += "   ";
+
+		/* add the size */
+		if (cell.getView().isTextView())
+		{
+			int len = 0;
+			Variable var = cell.getVar("FACET_message");
+			if (var != null) len = var.getLength();
+			if (maxlen < 0) line += len + " lines"; else
+			{
+				line += EMath.toBlankPaddedString(len, 8) + " lines   ";
+			}
+		} else
+		{
+			String width = Double.toString(cell.getBounds().getWidth());
+			if (maxlen >= 0)
+			{
+				while (width.length() < 8) width = " " + width;
+			}
+			String height = Double.toString(cell.getBounds().getHeight());
+			if (maxlen >= 0)
+			{
+				while (height.length() < 8) height = height + " ";
+			}
+			line += width + "x" + height;
+		}
+		if (maxlen < 0) line += "\t";
+
+		/* count the number of instances */
+		int total = 0;
+		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		{
+			total++;
+			it.next();
+		}
+		if (maxlen < 0) line += total; else
+		{
+			line += EMath.toBlankPaddedString(total, 4);
+		}
+		if (maxlen < 0) line += "\t"; else line += "   ";
+
+		/* show other factors about the cell */
+		if (cell.isLockedPrim()) line += "L"; else line += " ";
+		if (maxlen < 0) line += "\t"; else line += " ";
+		if (cell.isInstancesLocked()) line += "I"; else line += " ";
+		if (maxlen < 0) line += "\t"; else line += " ";
+		if (cell.isInCellLibrary()) line += "C"; else line += " ";
+		if (maxlen < 0) line += "\t"; else line += " ";
+
+		boolean goodDRC = false;
+		Variable var = cell.getVar("DRC_last_good_drc", Integer.class);
+		if (var != null)
+		{
+			long lastGoodDateLong = ((Integer)var.getObject()).intValue();
+			Date lastGoodDate = new Date(lastGoodDateLong);
+			if (cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		}
+		if (goodDRC) line += "D"; else line += " ";
+		if (maxlen < 0) line += "\t"; else line += " ";
+
+//		if (net_ncchasmatch(cell) != 0) addstringtoinfstr(infstr, x_("N")); else
+//			addstringtoinfstr(infstr, x_(" "));
+		return line;
+	}
+
+	/*
+	 * Routine to recursively walk the hierarchy from "np", marking all cells below it.
+	 */
+	private void recursiveMark(Cell cell)
+	{
+		if (cell.isBit(nodeFlagBit)) return;
+		cell.setBit(nodeFlagBit);
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (!(np instanceof Cell)) continue;
+			Cell subCell = (Cell)np;
+			recursiveMark(subCell);
+			Cell contentsCell = subCell.contentsView();
+			if (contentsCell != null) recursiveMark(contentsCell);
+		}
+	}
+
+	static class SortByCellName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			String s1 = c1.noLibDescribe();
+			String s2 = c2.noLibDescribe();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
+	static class SortByCellDate implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			Date r1 = c1.getRevisionDate();
+			Date r2 = c2.getRevisionDate();
+			return r1.compareTo(r2);
+		}
+	}
+
+	static class SortByCellStructure implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+
+			// first sort by cell size
+			Rectangle2D b1 = c1.getBounds();
+			Rectangle2D b2 = c2.getBounds();
+			int xs1 = (int)b1.getWidth();
+			int xs2 = (int)b2.getWidth();
+			if (xs1 != xs2) return(xs1-xs2);
+			int ys1 = (int)b1.getHeight();
+			int ys2 = (int)b2.getHeight();
+			if (ys1 != ys2) return(ys1-ys2);
+
+			// now sort by number of exports
+			int pc1 = c1.getNumPorts();
+			int pc2 = c2.getNumPorts();
+			pc1 = 0;
+			if (pc1 != pc2) return(pc1-pc2);
+
+			// now match the exports
+//			for(Iterator it = c1.getPorts(); it.hasNext(); )
+//			{
+//				PortProto pp1 = (PortProto)it.next();
+//				pp1.clearBit(portFlagBit);
+//			}
+//			for(Iterator it = c2.getPorts(); it.hasNext(); )
+//			{
+//				PortProto pp2 = (PortProto)it.next();
+//
+//				// locate center of this export
+//				ni = &dummyni;
+//				initdummynode(ni);
+//				ni->proto = f2;
+//				ni->lowx = -xs1/2;   ni->highx = ni->lowx + xs1;
+//				ni->lowy = -ys1/2;   ni->highy = ni->lowy + ys1;
+//				portposition(ni, pp2, &x2, &y2);
+//
+//				ni->proto = f1;
+//				for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto)
+//				{
+//					portposition(ni, pp1, &x1, &y1);
+//					if (x1 == x2 && y1 == y2) break;
+//				}
+//				if (pp1 == NOPORTPROTO) return(f1-f2);
+//				pp1->temp1 = 1;
+//			}
+//			for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto)
+//				if (pp1->temp1 == 0) return(f1-f2);
+			return(0);
+		}
+	}
+
+	/**
+	 * Class for counting instances.
+	 * It is basically a modifiable Integer.
+	 */
+	static class InstanceCount
+	{
+		private int count;
+
+		InstanceCount() { count = 0; }
+		public void increment() { count++; }
+		public int getCount() { return count; }
+	}
+
+	/**
+	 * This routine implements the command to list (recursively) the nodes in this Cell.
+	 */
+	public static void listNodesInCellCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		HashMap nodeCount = new HashMap();
+
+		// first zero the count of each nodeproto
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+			{
+				NodeProto np = (NodeProto)nIt.next();
+				nodeCount.put(np, new InstanceCount());
+			}
+		}
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator nIt = lib.getCells(); nIt.hasNext(); )
+			{
+				NodeProto np = (NodeProto)nIt.next();
+				nodeCount.put(np, new InstanceCount());
+			}
+		}
+
+		// now look at every object recursively in this cell
+		addObjects(curCell, nodeCount);
+
+		// print the totals
+		System.out.println("Contents of cell " + curCell.describe() + ":");
+		Technology printtech = null;
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology curtech = (Technology)it.next();
+			for(Iterator nIt = curtech.getNodes(); nIt.hasNext(); )
+			{
+				NodeProto np = (NodeProto)nIt.next();
+				InstanceCount count = (InstanceCount)nodeCount.get(np);
+				if (count.getCount() == 0) continue;
+				if (curtech != printtech)
+				{
+					System.out.println(curtech.getTechName() + " technology:");
+					printtech = curtech;
+				}
+				System.out.println(EMath.toBlankPaddedString(count.getCount(), 6) + " " + np.describe() + " nodes");
+			}
+		}
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			List cellList = lib.getCellsSortedByName();
+			Library printlib = null;
+			for(Iterator cIt = cellList.iterator(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				InstanceCount count = (InstanceCount)nodeCount.get(cell);
+				if (count.getCount() == 0) continue;
+				if (lib != printlib)
+				{
+					System.out.println(lib.getLibName() + " library:");
+					printlib = lib;
+				}
+				System.out.println(EMath.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe() + " nodes");
+			}
+		}
+	}
+
+	/**
+	 * routine to recursively examine cell "np" and update the number of
+	 * instantiated primitive nodeprotos in the "temp1" field of the nodeprotos.
+	 */
+	private static void addObjects(Cell cell, HashMap nodeCount)
+	{
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			InstanceCount count = (InstanceCount)nodeCount.get(np);
+			if (count != null) count.increment();
+
+			if (!(np instanceof Cell)) continue;
+			Cell subCell = (Cell)np;
+
+			/* ignore recursive references (showing icon in contents) */
+			if (ni.isIconOfParent()) continue;
+			Cell cnp = subCell.contentsView();
+			if (cnp == null) cnp = subCell;
+			addObjects(cnp, nodeCount);
+		}
+	}
+
+	/**
+	 * This routine implements the command to list instances in this Cell.
+	 */
+	public static void listCellInstancesCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		HashMap nodeCount = new HashMap();
+
+		// set counters on every cell in every library
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				nodeCount.put(cell, new InstanceCount());
+			}
+		}
+
+		// count the number of instances in this cell
+		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (!(np instanceof Cell)) continue;
+			InstanceCount count = (InstanceCount)nodeCount.get(np);
+			if (count != null) count.increment();
+		}
+
+		// show the results
+		boolean first = true;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				InstanceCount count = (InstanceCount)nodeCount.get(cell);
+				if (count == null || count.getCount() == 0) continue;
+				if (first)
+					System.out.println("Cell instances appearing in " + curCell.describe());
+				first = false;
+				String line = "   " + count.getCount() + " instances of " + cell.describe() + " at";
+				for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					if (ni.getProto() != cell) continue;
+					line += " (" + ni.getCenterX() + "," + ni.getCenterY() + ")";
+				}
+				System.out.println(line);
+			}
+		}
+		if (first)
+			System.out.println("There are no cell instances in " + curCell.describe());
+	}
+
+	/**
+	 * This routine implements the command to list the usage of the current Cell.
+	 */
+	public static void listCellUsageCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		HashMap nodeCount = new HashMap();
+
+		// stop now if this cell has no instances
+		if (!curCell.getInstancesOf().hasNext())
+		{
+			System.out.println("Cell " + curCell.describe() + " is not used anywhere");
+			return;
+		}
+
+		// set counters on every cell in every library
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				nodeCount.put(cell, new InstanceCount());
+			}
+		}
+
+		// count the number of instances in this cell
+		for(Iterator nIt = curCell.getInstancesOf(); nIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)nIt.next();
+			Cell cell = ni.getParent();
+			InstanceCount count = (InstanceCount)nodeCount.get(cell);
+			if (count != null) count.increment();
+		}
+
+		// show the results
+		System.out.println("Cell " + curCell.describe() + " is used in these locations:");
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				InstanceCount count = (InstanceCount)nodeCount.get(cell);
+				if (count == null || count.getCount() == 0) continue;
+				System.out.println("  " + count.getCount() + " instances in cell " + cell.describe());
+			}
+		}
+	}
+
+	/**
+	 * This routine implements the command to describe the current Cell.
+	 */
+	public static void describeThisCellCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		int maxLen = curCell.describe().length();
+		printHeaderLine(maxLen);
+		String line = makeCellLine(curCell, maxLen);
+		System.out.println(line);
+	}
+
+	private static void printHeaderLine(int maxLen)
+	{
+		String header = "Cell";
+		for(int i=4; i<maxLen; i++) header += "-";
+		header += "Version-----Creation date";
+		header += "---------Revision Date------------Size-------Usage-L-I-C-D-N";
+		System.out.println(header);
 	}
 
 	/** This method is called from within the constructor to
@@ -400,8 +905,11 @@ public class CellLists extends javax.swing.JDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
+		// get cell and port markers
+		nodeFlagBit = NodeProto.getFlagSet(1);
+		portFlagBit = PortProto.getFlagSet(1);
+
 		// mark cells to be shown
-		FlagSet flagBit = NodeProto.getFlagSet(1);
 		if (allCells.isSelected())
 		{
 			// mark all cells for display
@@ -411,7 +919,7 @@ public class CellLists extends javax.swing.JDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					cell.setBit(flagBit);
+					cell.setBit(nodeFlagBit);
 				}
 			}
 		} else
@@ -423,13 +931,13 @@ public class CellLists extends javax.swing.JDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					cell.clearBit(flagBit);
+					cell.clearBit(nodeFlagBit);
 				}
 			}
 			if (onlyCellsUnderCurrent.isSelected())
 			{
 				// mark those that are under this
-//				if (curf != NONODEPROTO) us_recursivemark(curf);
+				recursiveMark(curCell);
 			} else if (onlyCellsUsedElsewhere.isSelected())
 			{
 				// mark those that are in use
@@ -442,41 +950,51 @@ public class CellLists extends javax.swing.JDialog
 						Cell iconCell = cell.iconView();
 						if (iconCell == null) iconCell = cell;
 						if (cell.getInstancesOf().hasNext() || iconCell.getInstancesOf().hasNext())
-							cell.setBit(flagBit);
+							cell.setBit(nodeFlagBit);
 					}
 				}
 			} else if (onlyCellsNotUsedElsewhere.isSelected())
 			{
 				// mark those that are not in use
-//				for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//				{
-//					for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//					{
-//						inp = iconview(np);
-//						if (inp != NONODEPROTO)
-//						{
-//							// has icon: acceptable if the only instances are examples
-//							if (np->firstinst != NONODEINST) continue;
-//							for(ni = inp->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//								if (!isiconof(inp, ni->parent)) break;
-//							if (ni != NONODEINST) continue;
-//						} else
-//						{
-//							// no icon: reject if this has instances
-//							if (np->cellview == el_iconview)
-//							{
-//								// this is an icon: reject if instances are not examples
-//								for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//									if (!isiconof(np, ni->parent)) break;
-//								if (ni != NONODEINST) continue;
-//							} else
-//							{
-//								if (np->firstinst != NONODEINST) continue;
-//							}
-//						}
-//						np->temp1 = 1;
-//					}
-//				}
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						Cell iconCell = cell.iconView();
+						if (iconCell != null)
+						{
+							// has icon: acceptable if the only instances are examples
+							if (cell.getInstancesOf().hasNext()) continue;
+							boolean found = false;
+							for(Iterator nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+							{
+								NodeInst ni = (NodeInst)nIt.next();
+								if (ni.isIconOfParent()) { found = true;   break; }
+							}
+							if (found) continue;
+						} else
+						{
+							// no icon: reject if this has instances
+							if (cell.getView() == View.ICON)
+							{
+								// this is an icon: reject if instances are not examples
+								boolean found = false;
+								for(Iterator nIt = cell.getInstancesOf(); nIt.hasNext(); )
+								{
+									NodeInst ni = (NodeInst)nIt.next();
+									if (ni.isIconOfParent()) { found = true;   break; }
+								}
+								if (found) continue;
+							} else
+							{
+								if (cell.getInstancesOf().hasNext()) continue;
+							}
+						}
+						cell.setBit(nodeFlagBit);
+					}
+				}
 			} else
 			{
 				// mark placeholder cells
@@ -487,7 +1005,7 @@ public class CellLists extends javax.swing.JDialog
 					{
 						Cell cell = (Cell)cIt.next();
 						Variable var = cell.getVar("IO_true_library");
-						if (var != null) cell.setBit(flagBit);
+						if (var != null) cell.setBit(nodeFlagBit);
 					}
 				}
 			}
@@ -500,43 +1018,49 @@ public class CellLists extends javax.swing.JDialog
 			View v = View.findView(viewName);
 			if (v != null)
 			{
-//				for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//				{
-//					for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//					{
-//						if (np->cellview != v)
-//						{
-//							if (np->cellview == el_iconview)
-//							{
-//								if (alsoIconViews.isSelected()) continue;
-//							}
-//							np->temp1 = 0;
-//						}
-//					}
-//				}
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						if (cell.getView() != v)
+						{
+							if (cell.getView() == View.ICON)
+							{
+								if (alsoIconViews.isSelected()) continue;
+							}
+							cell.clearBit(nodeFlagBit);
+						}
+					}
+				}
 			}
 		}
 
 		// filter versions
 		if (excludeOlderVersions.isSelected())
 		{
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//			{
-//				for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				{
-//					if (np->newestversion != np) np->temp1 = 0;
-//				}
-//			}
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell.getNewestVersion() != cell) cell.clearBit(nodeFlagBit);
+				}
+			}
 		}
 		if (excludeNewestVersions.isSelected())
 		{
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//			{
-//				for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				{
-//					if (np->newestversion == np) np->temp1 = 0;
-//				}
-//			}
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell.getNewestVersion() == cell) cell.clearBit(nodeFlagBit);
+				}
+			}
 		}
 
 		// now make a list and sort it
@@ -548,178 +1072,107 @@ public class CellLists extends javax.swing.JDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (cell.isBit(flagBit)) cellList.add(cell);
+				if (cell.isBit(nodeFlagBit)) cellList.add(cell);
 			}
 		}
 		if (cellList.size() == 0) System.out.println("No cells match this request"); else
 		{
 			if (orderByName.isSelected())
 			{
-//				esort(nplist, total, sizeof (NODEPROTO *), us_sortbycellname);
+				Collections.sort(cellList, new SortByCellName());
 			} else if (orderByDate.isSelected())
 			{
-//				esort(nplist, total, sizeof (NODEPROTO *), us_sortbycelldate);
+				Collections.sort(cellList, new SortByCellDate());
 			} else if (orderByStructure.isSelected())
 			{
-//				esort(nplist, total, sizeof (NODEPROTO *), us_sortbyskeletonstructure);
+				Collections.sort(cellList, new SortByCellStructure());
 			}
 
 			// finally show the results
 			if (saveToDisk.isSelected())
 			{
-//				dumpfile = xcreate(x_("celllist.txt"), el_filetypetext, _("Cell Listing File:"), &truename);
-//				if (dumpfile == 0) ttyputerr(_("Cannot write cell listing")); else
-//				{
-//					efprintf(dumpfile, _("List of cells created on %s\n"), timetostring(getcurrenttime()));
-//					efprintf(dumpfile, _("Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n"));
-//					for(i=0; i<total; i++)
-//						efprintf(dumpfile, x_("%s\n"), us_makecellline(nplist[i], -1));
-//					xclose(dumpfile);
-//					ttyputmsg(_("Wrote %s"), truename);
-//				}
+				String trueName = DialogOpenFile.chooseOutputFile(DialogOpenFile.TEXT, null, "celllist.txt");
+				if (trueName == null) System.out.println("Cannot write cell listing"); else
+				{
+					FileOutputStream fileOutputStream = null;
+					try {
+						fileOutputStream = new FileOutputStream(trueName);
+					} catch (FileNotFoundException e) {}
+					BufferedOutputStream bufStrm = new BufferedOutputStream(fileOutputStream);
+					DataOutputStream dataOutputStream = new DataOutputStream(bufStrm);
+					try
+					{
+						DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+						String header = "List of cells created on " + df.format(new Date()) + "\n";
+						dataOutputStream.write(header.getBytes(), 0, header.length());
+						header = "Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n";
+						dataOutputStream.write(header.getBytes(), 0, header.length());
+						for(Iterator it = cellList.iterator(); it.hasNext(); )
+						{
+							Cell cell = (Cell)it.next();
+							String line =  makeCellLine(cell, -1) + "\n";
+							dataOutputStream.write(line.getBytes(), 0, line.length());
+						}
+						dataOutputStream.close();
+						System.out.println("Wrote " + trueName);
+					} catch (IOException e)
+					{
+						System.out.println("Error closing " + trueName);
+					}
+				}
 			} else
 			{
-//				maxlen = 0;
-//				for(i=0; i<total; i++)
-//					maxlen = maxi(maxlen, estrlen(nldescribenodeproto(nplist[i])));
-//				maxlen = maxi(maxlen+2, 7);
-//				infstr = initinfstr();
-//				addstringtoinfstr(infstr, _("Cell"));
-//				for(i=4; i<maxlen; i++) addtoinfstr(infstr, '-');
-//				addstringtoinfstr(infstr, _("Version-----Creation date"));
-//				addstringtoinfstr(infstr, _("---------Revision Date------------Size-------Usage-L-I-C-D-N"));
-//				ttyputmsg(x_("%s"), returninfstr(infstr));
-//				lib = NOLIBRARY;
-//				for(i=0; i<total; i++)
-//				{
-//					if (nplist[i]->lib != lib)
-//					{
-//						lib = nplist[i]->lib;
-//						ttyputmsg(_("======== LIBRARY %s: ========"), lib->libname);
-//					}
-//					savelib = el_curlib;
-//					el_curlib = lib;
-//					ttyputmsg(x_("%s"), us_makecellline(nplist[i], maxlen));
-//					el_curlib = lib;
-//				}
+				int maxLen = 0;
+				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					maxLen = Math.max(maxLen, cell.noLibDescribe().length());
+				}
+				maxLen = Math.max(maxLen+2, 7);
+				printHeaderLine(maxLen);
+				Library lib = null;
+				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					if (cell.getLibrary() != lib)
+					{
+						lib = cell.getLibrary();
+						System.out.println("======== LIBRARY " + lib.getLibName() + ": ========");
+					}
+					System.out.println(makeCellLine(cell, maxLen));
+				}
 			}
 		}
+
+		// free cell and port markers
+		nodeFlagBit.freeFlagSet();
+		portFlagBit.freeFlagSet();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
-
-//	/*
-//	 * Routine to recursively walk the hierarchy from "np", marking all cells below it.
-//	 */
-//	void us_recursivemark(NODEPROTO *np)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER NODEPROTO *cnp;
-//
-//		if (np->temp1 != 0) return;
-//		np->temp1 = 1;
-//		for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto->primindex != 0) continue;
-//			us_recursivemark(ni->proto);
-//			cnp = contentsview(ni->proto);
-//			if (cnp != NONODEPROTO) us_recursivemark(cnp);
-//		}
-//	}
-
-//	/*
-//	 * Helper routine for "esort" that makes cells go by skeleton structure
-//	 */
-//	int us_sortbyskeletonstructure(const void *e1, const void *e2)
-//	{
-//		REGISTER NODEPROTO *f1, *f2;
-//		REGISTER INTBIG xs1, xs2, ys1, ys2, pc1, pc2;
-//		INTBIG x1, y1, x2, y2;
-//		REGISTER PORTPROTO *pp1, *pp2;
-//		NODEINST dummyni;
-//		REGISTER NODEINST *ni;
-//
-//		f1 = *((NODEPROTO **)e1);
-//		f2 = *((NODEPROTO **)e2);
-//
-//		// first sort by cell size
-//		xs1 = f1->highx - f1->lowx;   xs2 = f2->highx - f2->lowx;
-//		if (xs1 != xs2) return(xs1-xs2);
-//		ys1 = f1->highy - f1->lowy;   ys2 = f2->highy - f2->lowy;
-//		if (ys1 != ys2) return(ys1-ys2);
-//
-//		// now sort by number of exports
-//		pc1 = 0;
-//		for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto) pc1++;
-//		pc2 = 0;
-//		for(pp2 = f2->firstportproto; pp2 != NOPORTPROTO; pp2 = pp2->nextportproto) pc2++;
-//		if (pc1 != pc2) return(pc1-pc2);
-//
-//		// now match the exports
-//		for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto) pp1->temp1 = 0;
-//		for(pp2 = f2->firstportproto; pp2 != NOPORTPROTO; pp2 = pp2->nextportproto)
-//		{
-//			// locate center of this export
-//			ni = &dummyni;
-//			initdummynode(ni);
-//			ni->proto = f2;
-//			ni->lowx = -xs1/2;   ni->highx = ni->lowx + xs1;
-//			ni->lowy = -ys1/2;   ni->highy = ni->lowy + ys1;
-//			portposition(ni, pp2, &x2, &y2);
-//
-//			ni->proto = f1;
-//			for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto)
-//			{
-//				portposition(ni, pp1, &x1, &y1);
-//				if (x1 == x2 && y1 == y2) break;
-//			}
-//			if (pp1 == NOPORTPROTO) return(f1-f2);
-//			pp1->temp1 = 1;
-//		}
-//		for(pp1 = f1->firstportproto; pp1 != NOPORTPROTO; pp1 = pp1->nextportproto)
-//			if (pp1->temp1 == 0) return(f1-f2);
-//		return(0);
-//	}
-//
-//	/*
-//	 * Helper routine for "esort" that makes cells go by date
-//	 */
-//	int us_sortbycelldate(const void *e1, const void *e2)
-//	{
-//		REGISTER NODEPROTO *f1, *f2;
-//		REGISTER UINTBIG r1, r2;
-//
-//		f1 = *((NODEPROTO **)e1);
-//		f2 = *((NODEPROTO **)e2);
-//		r1 = f1->revisiondate;
-//		r2 = f2->revisiondate;
-//		if (r1 == r2) return(0);
-//		if (r1 < r2) return(-(int)(r2-r1));
-//		return(r1-r2);
-//	}
-//
-//	/*
-//	 * Helper routine for "esort" that makes cell names be ascending
-//	 */
-//	int us_sortbycellname(const void *e1, const void *e2)
-//	{
-//		REGISTER NODEPROTO *f1, *f2;
-//		REGISTER void *infstr;
-//		REGISTER CHAR *s1, *s2;
-//
-//		f1 = *((NODEPROTO **)e1);
-//		f2 = *((NODEPROTO **)e2);
-//		infstr = initinfstr();
-//		formatinfstr(infstr, x_("%s:%s"), f1->lib->libname, nldescribenodeproto(f1));
-//		s1 = returninfstr(infstr);
-//		infstr = initinfstr();
-//		formatinfstr(infstr, x_("%s:%s"), f2->lib->libname, nldescribenodeproto(f2));
-//		s2 = returninfstr(infstr);
-//		return(namesame(s1, s2));
-//	}
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+		// remember settings
+		if (allCells.isSelected()) whichSwitch = 0; else
+		if (onlyCellsUsedElsewhere.isSelected()) whichSwitch = 1; else
+		if (onlyCellsNotUsedElsewhere.isSelected()) whichSwitch = 2; else
+		if (onlyCellsUnderCurrent.isSelected()) whichSwitch = 3; else
+		if (onlyPlaceholderCells.isSelected()) whichSwitch = 4;
+
+		onlyViewSwitch = onlyThisView.isSelected();
+		viewSwitch = View.findView((String)views.getSelectedItem());
+		alsoIconSwitch = alsoIconViews.isSelected();
+		excOldVersSwitch = excludeOlderVersions.isSelected();
+		excNewVersSwitch = excludeNewestVersions.isSelected();
+
+		if (orderByName.isSelected()) orderingSwitch = 0; else
+		if (orderByDate.isSelected()) orderingSwitch = 1; else
+		if (orderByStructure.isSelected()) orderingSwitch = 2;
+
+		if (displayInMessages.isSelected()) destinationSwitch = 0; else
+		if (saveToDisk.isSelected()) destinationSwitch = 1;
+
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog

@@ -56,6 +56,7 @@ public interface Change
 
 	void newObject(ElectricObject obj);
 	void killObject(ElectricObject obj);
+	void redrawObject(ElectricObject obj);
 	void newVariable(ElectricObject obj, Variable var);
 	void killVariable(ElectricObject obj, Variable var);
 	void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags);

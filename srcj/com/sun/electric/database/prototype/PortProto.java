@@ -27,6 +27,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -213,6 +214,8 @@ public abstract class PortProto extends ElectricObject
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
+	/** The temporary flag bits. */								private int flagBits;
+	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
 
 	// ----------------------- public constants -----------------------
 
@@ -515,6 +518,37 @@ public abstract class PortProto extends ElectricObject
 	 * @return the temporary Object on this PortProto.
 	 */
 	public Object getTempObj() { return tempObj; }
+
+	/**
+	 * Routine to get access to flag bits on this PortProto.
+	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param numBits the number of flag bits desired.
+	 * @return a FlagSet object that can be used to mark and test the PortProto.
+	 */
+	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
+
+	/**
+	 * Routine to set the specified flag bits on this PortProto.
+	 * @param set the flag bits that are to be set on this PortProto.
+	 */
+	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
+
+	/**
+	 * Routine to set the specified flag bits on this PortProto.
+	 * @param set the flag bits that are to be cleared on this PortProto.
+	 */
+	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
+
+	/**
+	 * Routine to test the specified flag bits on this PortProto.
+	 * @param set the flag bits that are to be tested on this PortProto.
+	 * @return true if the flag bits are set.
+	 */
+	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Routine to return the PortProto that is equivalent to this in the

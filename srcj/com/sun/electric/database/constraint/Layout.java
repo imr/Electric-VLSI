@@ -148,16 +148,17 @@ public class Layout extends Constraint
 	 */
 	public void newObject(ElectricObject obj)
 	{
-		if (obj instanceof Export)
-		{
-			Export pp = (Export)obj;
-			Cell cell = (Cell)pp.getParent();
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.modifyInstance(0, 0, 0, 0, 0);
-			}
-		}
+//		if (obj instanceof Export)
+//		{
+//			Export pp = (Export)obj;
+//			Cell cell = (Cell)pp.getParent();
+//			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+//			{
+//				NodeInst ni = (NodeInst)it.next();
+//				Undo.redrawObject(ni);
+////				ni.modifyInstance(0, 0, 0, 0, 0);
+//			}
+//		}
 	}
 
 	/*
@@ -165,16 +166,17 @@ public class Layout extends Constraint
 	 */
 	public void killObject(ElectricObject obj)
 	{
-		if (obj instanceof Export)
-		{
-			Export pp = (Export)obj;
-			Cell cell = (Cell)pp.getParent();
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.modifyInstance(0, 0, 0, 0, 0);
-			}
-		}
+//		if (obj instanceof Export)
+//		{
+//			Export pp = (Export)obj;
+//			Cell cell = (Cell)pp.getParent();
+//			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+//			{
+//				NodeInst ni = (NodeInst)it.next();
+//				Undo.redrawObject(ni);
+////				ni.modifyInstance(0, 0, 0, 0, 0);
+//			}
+//		}
 	}
 
 	/*
@@ -1018,10 +1020,13 @@ public class Layout extends Constraint
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
 		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, headPt, no2pi, no2Pt, null);
+		if (ar1 == null) return;
 		ar1.copyStateBits(ai);
 		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null);
+		if (ar2 == null) return;
 		ar2.copyStateBits(ai);   ar2.clearNegated();
 		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tailPt, null);
+		if (ar3 == null) return;
 		ar3.copyStateBits(ai);   ar3.clearNegated();
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{

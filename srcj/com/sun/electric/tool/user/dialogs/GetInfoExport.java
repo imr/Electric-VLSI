@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -451,7 +452,8 @@ public class GetInfoExport extends javax.swing.JDialog
 			}
 
 			if (changed)
-				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
+				Undo.redrawObject(pp.getOriginalPort().getNodeInst());
+//				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
 		}
 	}
 

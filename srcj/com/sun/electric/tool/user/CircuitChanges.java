@@ -104,7 +104,8 @@ public class CircuitChanges
 			}
 			Highlight.clear();
 			Highlight.finished();
-			eraseObjectsInList(cell, deleteList);
+			if (cell != null)
+				eraseObjectsInList(cell, deleteList);
 		}
 	}
 

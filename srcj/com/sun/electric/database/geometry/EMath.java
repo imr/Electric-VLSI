@@ -184,6 +184,34 @@ public class EMath
 	}
 
 	/**
+	 * Routine to convert an integer to a string that is left-padded with spaces
+	 * @param value the integer value.
+	 * @param width the minimum field width.
+	 * If the result is less than this, extra spaces are added to the beginning.
+	 * @return a string describing the integer.
+	 */
+	public static String toBlankPaddedString(int value, int width)
+	{
+		String msg = Integer.toString(value);
+		while (msg.length() < width) msg = " " + msg;
+		return msg;
+	}
+
+	/**
+	 * Routine to convert a double to a string that is left-padded with spaces
+	 * @param value the double value.
+	 * @param width the minimum field width.
+	 * If the result is less than this, extra spaces are added to the beginning.
+	 * @return a string describing the double.
+	 */
+	public static String toBlankPaddedString(double value, int width)
+	{
+		String msg = Double.toString(value);
+		while (msg.length() < width) msg = " " + msg;
+		return msg;
+	}
+
+	/**
 	 * Routine to determine whether or not a string is a number.
 	 * This method allows hexadecimal numbers as well as those with exponents.
 	 * @param pp the string to test.

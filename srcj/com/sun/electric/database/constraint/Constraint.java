@@ -60,6 +60,7 @@ public class Constraint implements Change
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
+	public void redrawObject(ElectricObject obj) {}
 	public void newVariable(ElectricObject obj, Variable var) {}
 	public void killVariable(ElectricObject obj, Variable var) {}
 	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
@@ -70,5 +71,5 @@ public class Constraint implements Change
 	public void readLibrary(Library lib) {}
 	public void eraseLibrary(Library lib) {}
 	public void writeLibrary(Library lib, boolean pass2) {}
-	
+
 }
