@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
@@ -55,7 +56,7 @@ import javax.swing.tree.TreePath;
  *
  * @author  gainsley
  */
-public class EditKeyBindings extends EDialog implements TreeSelectionListener {
+public class EditKeyBindings extends PreferencePanel implements TreeSelectionListener {
     
     /** MenuBar for building dialog tree */                 MenuBar menuBar;
     
@@ -100,7 +101,17 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         buildCommandsTree();
     }
 
-	protected void escapePressed() { doneActionPerformed(null); }
+    //protected void escapePressed() { doneActionPerformed(null); }
+
+    // -------------------------- Preference Panel Stuff -----------------------
+
+    public JPanel getPanel() {
+        return editKeyBindingsPanel;
+    }
+
+    public String getName() { return "Key Bindings"; }
+
+    // -------------------------------------------------------------------------
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -110,6 +121,7 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        editKeyBindingsPanel = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         commandsTree = new javax.swing.JTree();
@@ -121,7 +133,6 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         jLabel1 = new javax.swing.JLabel();
         bindingsJList = new javax.swing.JList();
         jPanel3 = new javax.swing.JPanel();
-        done = new javax.swing.JButton();
         reset = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -133,8 +144,11 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
             }
         });
 
+        editKeyBindingsPanel.setLayout(new java.awt.GridBagLayout());
+
         jPanel1.setLayout(new java.awt.GridLayout(1, 0));
 
+        jPanel1.setPreferredSize(new java.awt.Dimension(350, 363));
         jScrollPane1.setViewportView(commandsTree);
 
         jPanel1.add(jScrollPane1);
@@ -146,7 +160,7 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        getContentPane().add(jPanel1, gridBagConstraints);
+        editKeyBindingsPanel.add(jPanel1, gridBagConstraints);
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
@@ -234,23 +248,9 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        getContentPane().add(jPanel2, gridBagConstraints);
+        editKeyBindingsPanel.add(jPanel2, gridBagConstraints);
 
         jPanel3.setLayout(new java.awt.GridBagLayout());
-
-        done.setText("         Done         ");
-        done.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                doneActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
-        jPanel3.add(done, gridBagConstraints);
 
         reset.setText("Reset All to Defaults");
         reset.setToolTipText("reset all to default settings");
@@ -273,7 +273,13 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        getContentPane().add(jPanel3, gridBagConstraints);
+        editKeyBindingsPanel.add(jPanel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        getContentPane().add(editKeyBindingsPanel, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -349,10 +355,6 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         model.reload(getSelectedTreeNode());
         updateListBox(item);
     }//GEN-LAST:event_addActionPerformed
-
-    private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
-        setVisible(false);
-    }//GEN-LAST:event_doneActionPerformed
     
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
@@ -488,7 +490,7 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
     private javax.swing.JButton add;
     private javax.swing.JList bindingsJList;
     private javax.swing.JTree commandsTree;
-    private javax.swing.JButton done;
+    private javax.swing.JPanel editKeyBindingsPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;

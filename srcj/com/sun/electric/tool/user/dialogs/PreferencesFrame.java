@@ -104,6 +104,13 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(st);
 		generalSet.add(new DefaultMutableTreeNode(st.getName()));
 
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        if ((top != null) && (top.getTheMenuBar() != null)) {
+            EditKeyBindings keys = new EditKeyBindings(top.getTheMenuBar(), parent, modal);
+            optionPanes.add(keys);
+            generalSet.add(new DefaultMutableTreeNode(keys.getName()));
+        }
+
 		NewNodesTab nnt = new NewNodesTab(parent, modal);
 		optionPanes.add(nnt);
 		generalSet.add(new DefaultMutableTreeNode(nnt.getName()));

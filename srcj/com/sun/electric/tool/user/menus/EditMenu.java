@@ -154,11 +154,12 @@ public class EditMenu {
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
+/*
 		editMenu.addSeparator();
 
 		editMenu.addMenuItem("Key Bindings...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
-
+*/
 		editMenu.addSeparator();
 
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'V');

@@ -1563,7 +1563,7 @@ public class Highlight
 		
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
-		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		Rectangle2D bounds = new Rectangle2D.Double(pt.getX()-0.5, pt.getY()-0.5, 1, 1);
 		List underCursor = findAllInArea(cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
 
 		// if nothing under the cursor, stop now
