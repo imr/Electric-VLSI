@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
+BUG: (11/24/04, GVG) DRC badBoxArea not returning when error found and then wrong good date was stored (Bug #13)
+FIX: return inserted
+
 IMP: (11/24/04, SMR) Widened coordinate area in status bar to account for Macintosh font size.
 
 IMP: (11/24/04, SMR) Added hook to clear the cache of expanded cell contents, used by layer visibility.

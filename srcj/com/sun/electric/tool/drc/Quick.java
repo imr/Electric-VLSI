@@ -572,7 +572,7 @@ public class Quick
 		}
 
 		// If message founds, then remove any possible good date
-		if (totalMsgFound > 0)
+		if (totalMsgFound > 0 || !allSubCellsStillOK)
 		{
 			cleanDRCDate.put(cell, cell);
 		}
@@ -982,19 +982,10 @@ public class Quick
 			baseMulti = isMultiCut((NodeInst)geom);
 		}
 
-		// remember the current position in the hierarchy traversal and set the base one
-//		gethierarchicaltraversal(state->hierarchytempsnapshot);
-//		sethierarchicaltraversal(state->hierarchybasesnapshot);
-
 		// search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
-		boolean retval = badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
-			bounds, (Cell)oNi.getProto(), localIndex,
-			oNi.getParent(), topGlobalIndex, upTrans, minSize, baseMulti, false);
-
-		// restore the proper hierarchy traversal position
-//		sethierarchicaltraversal(state->hierarchytempsnapshot);
-		return retval;
+		return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell)oNi.getProto(), localIndex,
+                oNi.getParent(), topGlobalIndex, upTrans, minSize, baseMulti, false));
 	}
 
 	/**
@@ -1025,9 +1016,8 @@ public class Quick
 
 		// search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
-		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
-			bounds, cell, globalIndex,
-			cell, globalIndex, DBMath.MATID, minSize, baseMulti, true);
+		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
+			    cell, globalIndex, DBMath.MATID, minSize, baseMulti, true);
 	}
 
 	/**
@@ -1088,11 +1078,9 @@ public class Quick
 					subTrans.preConcatenate(upTrans);        //Sept 15 04
 
 					// compute localIndex
-//					if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
-					badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
-						subBound, (Cell)np, localIndex,
-						topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance);
-//					if (!dr_quickparalleldrc) uphierarchy();
+					if (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, subBound, (Cell)np, localIndex,
+						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
+                        return true;
 				} else
 				{
 					// don't check between technologies
