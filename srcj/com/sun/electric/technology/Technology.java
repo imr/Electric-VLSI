@@ -1496,7 +1496,10 @@ public class Technology extends ElectricObject
 	{
 		/** the size of each cut */													private double cutSizeX, cutSizeY;
 		/** the separation between cuts */											private double cutSep;
-		/** the indent of the edge cuts to the node */								private double cutIndent;
+		/** the separation between cuts */											private double cutSep1D;
+		/** the separation between cuts in 3-neiboring or more cases*/				private double cutSep2D;
+		/** the indent of the edge cuts to the node along X */						private double cutIndentX;
+		/** the indent of the edge cuts to the node along Y */						private double cutIndentY;
 		/** the number of cuts in X and Y */										private int cutsX, cutsY;
 		/** the total number of cuts */												private int cutsTotal;
 		/** the "reasonable" number of cuts (around the outside only) */			private int cutsReasonable;
@@ -1519,8 +1522,10 @@ public class Technology extends ElectricObject
 		{
 			cutSizeX = specialValues[0];
 			cutSizeY = specialValues[1];
-			cutIndent = specialValues[2];
-			cutSep = specialValues[3];
+			cutIndentX = specialValues[2];
+			cutIndentY = specialValues[3];
+			cutSep1D = specialValues[4];
+            cutSep2D = specialValues[5];
 
 			// determine the actual node size
 			PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -1533,18 +1538,30 @@ public class Technology extends ElectricObject
 			double cutAreaHeight = ni.getYSize() - cutLY - cutHY;
 
 			// number of cuts depends on the size
-			cutsX = (int)(cutAreaWidth-cutIndent*2+cutSep) / (int)(cutSizeX+cutSep);
-			cutsY = (int)(cutAreaHeight-cutIndent*2+cutSep) / (int)(cutSizeY+cutSep);
+			// Checking first if configuration gives 1D cuts
+			int oneDcutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
+			int oneDcutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
+
+			cutSep = cutSep1D;
+			if (cutSep1D != cutSep2D &&
+			        ((oneDcutsX > 2 && oneDcutsY > 1) ||
+			        (oneDcutsY > 2 && oneDcutsX > 1)))
+			{
+				// 2D cutspace active
+				cutSep = cutSep2D;
+			}
+			cutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep) / (cutSizeX+cutSep));
+			cutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep) / (cutSizeY+cutSep));
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
 			cutsReasonable = cutsTotal = cutsX * cutsY;
 			if (cutsTotal != 1)
 			{
 				// prepare for the multiple contact cut locations
-				cutBaseX = (cutAreaWidth-cutIndent*2 - cutSizeX*cutsX -
-					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
-				cutBaseY = (cutAreaHeight-cutIndent*2 - cutSizeY*cutsY -
-					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
+				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
+					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
+				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
+					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;

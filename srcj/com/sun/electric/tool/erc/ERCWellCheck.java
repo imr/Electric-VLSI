@@ -304,7 +304,8 @@ public class ERCWellCheck
 					if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false);
+					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
 					if (rule.distance < 0) continue;
 					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.distance ||
 						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.distance ||
@@ -676,7 +677,8 @@ public class ERCWellCheck
 					if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false);
+					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
 					if (rule.distance < 0) continue;
 					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.distance ||
 						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.distance ||

@@ -783,6 +783,7 @@ public class Quick
 					subUpTrans.preConcatenate(upTrans);
 
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
+					
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
@@ -860,7 +861,8 @@ public class Quick
 		int globalIndex, Cell cell, NodeInst oNi, int topGlobalIndex)
 	{
 		// see how far around the box it is necessary to search
-		double bound = DRC.getMaxSurround(layer);
+		double maxSize = poly.getMaxSize();
+		double bound = DRC.getMaxSurround(layer, maxSize);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -913,7 +915,8 @@ public class Quick
 		AffineTransform trans, Cell cell, int globalIndex)
 	{
 		// see how far around the box it is necessary to search
-		double bound = DRC.getMaxSurround(layer);
+		double maxSize = poly.getMaxSize();
+		double bound = DRC.getMaxSurround(layer, maxSize);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -1568,7 +1571,8 @@ public class Quick
 			if (polyLayer == null) continue;
 
 			// see how far around the box it is necessary to search
-			double bound = DRC.getMaxSurround(polyLayer);
+			double maxSize = poly.getMaxSize();
+			double bound = DRC.getMaxSurround(polyLayer, maxSize);
 			if (bound < 0) continue;
 
 			// determine network for this polygon
@@ -2777,12 +2781,15 @@ public class Quick
 			}
 		}
 
-		// see how close they can get
-		double wideLimit = DRC.getWideLimit(tech);
-		boolean wide = false;
-		if (size1 > wideLimit || size2 > wideLimit) wide = true;
+		// see how close they can get.
+		double wideS = (size1 > size2) ? size1 : size2;
+		//double wideLimit = DRC.getWideLimit(tech);
 
-		DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, wide, multi);
+		boolean wide = false;
+		//if (size1 > wideLimit || size2 > wideLimit) wide = true;
+
+		DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, multi, wideS);
+		//DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, wide, multi, wideS);
 		return rule;
 	}
 
@@ -3012,7 +3019,7 @@ public class Quick
 
 			if (actual < 0) errorMessage += " OVERLAPS "; else
 				if (actual == 0) errorMessage += " TOUCHES "; else
-					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual, 1) + ") THAN " + TextUtils.formatDouble(limit, 1) + " TO ";
+					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
 
 			if (np1 != np2)
 				errorMessage += "cell " + np2.describe() + ", ";

@@ -2,6 +2,8 @@
 
 ************************* Version 8.01g: *********************************
 
+IMP: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
+
 FIX (8/15/04, JKG) Closing a library now actually closes all Cells in library as well.
 
 IMP/MAN (8/15/04, JKG) Added library palette to Components palette.

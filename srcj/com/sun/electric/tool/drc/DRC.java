@@ -46,12 +46,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Date;
+import java.util.*;
 import java.util.prefs.Preferences;
 import java.awt.geom.Rectangle2D;
 
@@ -107,6 +102,149 @@ public class DRC extends Listener
 
 	/****************************** DESIGN RULES ******************************/
 
+	    /**
+	 * Class to define rules from TSCM files...
+ 	 */
+	public static class RuleTemplate
+	{
+		// design rule constants
+
+		// the meaning of "when" in the DRC table
+		/** always */			                                            public static final int ALL =      0;
+		/** only applies if there are 2 metal layers in process */			public static final int M2 =      01;
+		/** only applies if there are 3 metal layers in process */			public static final int M3 =      02;
+		/** only applies if there are 4 metal layers in process */			public static final int M4 =      04;
+		/** only applies if there are 5 metal layers in process */			public static final int M5 =     010;
+		/** only applies if there are 6 metal layers in process */			public static final int M6 =     020;
+		/** only applies if there are 2-3 metal layers in process */		public static final int M23 =     03;
+		/** only applies if there are 2-4 metal layers in process */		public static final int M234 =    07;
+		/** only applies if there are 2-5 metal layers in process */		public static final int M2345 =  017;
+		/** only applies if there are 4-6 metal layers in process */		public static final int M456 =   034;
+		/** only applies if there are 5-6 metal layers in process */		public static final int M56 =    030;
+		/** only applies if there are 3-6 metal layers in process */		public static final int M3456 =  036;
+
+		/** only applies if alternate contact rules are in effect */		public static final int AC =     040;
+		/** only applies if alternate contact rules are not in effect */	public static final int NAC =   0100;
+		/** only applies if stacked vias are allowed */						public static final int SV =    0200;
+		/** only applies if stacked vias are not allowed */					public static final int NSV =   0400;
+		/** only applies if deep rules are in effect */						public static final int DE =   01000;
+		/** only applies if submicron rules are in effect */				public static final int SU =   02000;
+		/** only applies if scmos rules are in effect */					public static final int SC =   04000;
+
+		// the meaning of "ruletype" in the DRC table
+		/** a minimum-width rule */			public static final int MINWID =     1;
+		/** a node size rule */				public static final int NODSIZ =     2;
+		/** a general surround rule */		public static final int SURROUND =   3;
+		/** a via surround rule */			public static final int VIASUR =     4;
+		/** a transistor well rule */		public static final int TRAWELL =    5;
+		/** a transistor poly rule */		public static final int TRAPOLY =    6;
+		/** a transistor active rule */		public static final int TRAACTIVE =  7;
+		/** a spacing rule */				public static final int SPACING =    8;
+		/** a multi-cut spacing rule */		public static final int SPACINGM =   9;
+		/** a wide spacing rule */			public static final int SPACINGW =  10;
+		/** an edge spacing rule */			public static final int SPACINGE =  11;
+		/** a connected spacing rule */		public static final int CONSPA =    12;
+		/** an unconnected spacing rule */	public static final int UCONSPA =   13;
+		/** a contact cut spacing rule */	public static final int CUTSPA =    14;
+		/** 2D contact cut spacing rule */	public static final int CUTSPA2D =  15;
+		/** a contact cut size rule */		public static final int CUTSIZE =   16;
+		/** a contact cut surround rule */	public static final int CUTSUR =    17;
+		/** X contact cut surround rule */	public static final int CUTSURX =    18;
+		/** Y contact cut surround rule */	public static final int CUTSURY =    19;
+		/** arc surround rule */			public static final int ASURROUND = 20;
+
+		public String rule;			/* the name of the rule */
+		public int when;				/* when the rule is used */
+		public int ruleType;			/* the type of the rule */
+		public String layer1, layer2;	/* two layers that are used by the rule */
+		public double distance;		/* the spacing of the rule */
+		public double maxW;         /* max length where spacing is valid */
+		public String nodeName;		/* the node that is used by the rule */
+
+		public RuleTemplate(String rule, int when, int ruleType, String layer1, String layer2, double distance, String nodeName)
+		{
+			this.rule = rule;
+			this.when = when;
+			this.ruleType = ruleType;
+			this.layer1 = layer1;
+			this.layer2 = layer2;
+			this.distance = distance;
+			this.nodeName = nodeName;
+
+			switch (ruleType)
+			{
+				case SPACING:
+					{
+						if (layer1 == null || layer2 == null)
+						{
+							System.out.println("Error: missing one layer in no '" + rule + "' ");
+						}
+					}
+				break;
+				default:
+			}
+		}
+		// For different spacing depending on wire length
+		public RuleTemplate(String rule, int when, int ruleType, double maxW, String layer1, String layer2, double distance)
+		{
+			this.rule = rule;
+			this.when = when;
+			this.ruleType = ruleType;
+			this.layer1 = layer1;
+			this.layer2 = layer2;
+			this.distance = distance;
+			this.maxW = maxW;
+
+			switch (ruleType)
+			{
+				case SPACING:
+					{
+						if (layer1 == null || layer2 == null)
+						{
+							System.out.println("Error: missing one layer in no '" + rule + "' ");
+						}
+					}
+				break;
+				default:
+			}
+		}
+	};
+
+	public static class RRule
+	{
+		String ruleName;
+		double value;
+		double maxW;
+		int type;
+
+		public RRule(String name, double value, int type, double maxW)
+		{
+			this.ruleName = name;
+			this.value = value;
+			this.type = type;
+			this.maxW = maxW;
+		}
+
+		public boolean equals(Object obj)
+		{
+			// reflexive
+			if (obj == this) return true;
+
+			// should consider null case
+			// symmetry but violates transitivity?
+			// It seems Map doesn't provide obj as PolyNode
+			if (!(obj instanceof RRule))
+				return obj.equals(this);
+
+			RRule a = (RRule)obj;
+			return (ruleName.equals(a.ruleName) && type == a.type);
+		}
+		public int hashCode()
+		{
+			return type;
+		}
+	}
+
 	/**
 	 * Class to define a complete set of design rules.
 	 * Includes constructors for initializing the data from a technology.
@@ -116,7 +254,7 @@ public class DRC extends Listener
 		/** name of the technology */								public String    techName;
 		/** number of layers in the technology */					public int       numLayers;
 		/** size of upper-triangle of layers */						public int       uTSize;
-		/** width limit that triggers wide rules */					public Double    wideLimit;
+		/** width limit that triggers wide rules */					//public Double    wideLimit;
 		/** names of layers */										public String [] layerNames;
 		/** minimum width of layers */								public Double [] minWidth;
 		/** minimum width rules */									public String [] minWidthRules;
@@ -139,6 +277,8 @@ public class DRC extends Listener
 		/** names of nodes */										public String [] nodeNames;
 		/** minimim node size in the technology */					public Double [] minNodeSize;
 		/** minimim node size rules */								public String [] minNodeSizeRules;
+		/** Hash map to store rules per matrix index */                    public HashMap[] matrix;
+		/** Extra message for display until dialog is fixed */      public String displayMessage = null;
 
 		public Rules() {}
 
@@ -150,7 +290,7 @@ public class DRC extends Listener
 			uTSize = (numLayers * numLayers + numLayers) / 2;
 
 			// initialize the width limit
-			wideLimit = new Double(0);
+			//wideLimit = new Double(0);
 
 			// add names
 			techName = tech.getTechName();
@@ -170,6 +310,7 @@ public class DRC extends Listener
 			}
 
 			// allocate tables
+			matrix = new HashMap[uTSize];
 			conList = new Double[uTSize];
 			conListRules = new String[uTSize];
 			unConList = new Double[uTSize];
@@ -223,6 +364,163 @@ public class DRC extends Listener
 				j++;
 			}
 		}
+
+		/**
+		 * Retrieves wide limits for metals
+		 * @return list of limits
+		 */
+		public Set getWideLimits()
+		{
+			Set set = new TreeSet();
+			for (int i = 0; i < matrix.length; i++)
+			{
+				HashMap map = matrix[i];
+
+				if (map == null) continue;
+
+				for (Iterator iter = map.values().iterator(); iter.hasNext(); )
+				{
+					RRule rule = (RRule)iter.next();
+
+					if (rule.maxW > 0)
+						set.add(new Double(rule.maxW));
+				}
+			}
+
+			return (set);
+		}
+
+		/**
+		 * To set wide limit for old techs
+		 * @param values
+		 */
+		public void setWideLimits(double[] values)
+		{
+			Set set = new TreeSet();
+			for (int i = 0; i < matrix.length; i++)
+			{
+				HashMap map = matrix[i];
+
+				if (map == null) continue;
+
+				for (Iterator iter = map.values().iterator(); iter.hasNext(); )
+				{
+					RRule rule = (RRule)iter.next();
+
+					if (rule.maxW > 0 && rule.maxW != values[0])
+						rule.maxW = values[0];
+				}
+			}
+		}
+
+		/**
+		 * Method to add a rule based on template
+		 * @param index
+		 * @param rule
+		 */
+		public void addRule(int index, RuleTemplate rule)
+		{
+			int internalType = rule.ruleType;
+			HashMap map = matrix[index];
+            RRule r = null;
+
+			if (map == null)
+			{
+				map = new HashMap();
+				matrix[index] = map;
+			}
+
+			switch (rule.ruleType)
+			{
+				case RuleTemplate.MINWID:
+					minWidth[index] = new Double(rule.distance);
+					minWidthRules[index] = rule.rule;
+				    break;
+				case RuleTemplate.SPACING:
+					conList[index] = new Double(rule.distance);
+					unConList[index] = new Double(rule.distance);
+					conListRules[index] = rule.rule;
+					unConListRules[index] = rule.rule;
+					internalType = RuleTemplate.UCONSPA;
+					r = new RRule(rule.rule, rule.distance, RuleTemplate.CONSPA, rule.maxW);
+					if (map.get(r) != null)
+						System.out.println("Overwriting?");
+					map.put(r, r);
+				    break;
+			case RuleTemplate.SPACINGW:
+					conListWide[index] = new Double(rule.distance);
+					unConListWide[index] = new Double(rule.distance);
+					conListWideRules[index] = rule.rule;
+					unConListWideRules[index] = rule.rule;
+					internalType = RuleTemplate.UCONSPA;
+					r = new RRule(rule.rule, rule.distance, RuleTemplate.CONSPA, rule.maxW);
+					if (map.get(r) != null)
+						System.out.println("Overwriting?");
+					map.put(r, r);
+				    break;
+				case RuleTemplate.CONSPA:
+					conList[index] = new Double(rule.distance);
+					conListRules[index] = rule.rule;
+					break;
+				case RuleTemplate.UCONSPA:
+					unConList[index] = new Double(rule.distance);
+					unConListRules[index] = rule.rule;
+					break;
+				default:
+					System.out.println("Not implemented in RRule::addRule");
+			}
+			r = new RRule(rule.rule, rule.distance, internalType, rule.maxW);
+			if (map.get(r) != null)
+				System.out.println("Overwriting?");
+			map.put(r, r);
+		}
+
+		/**
+		 * Method to retrieve a rule based on type and max wide size
+		 * (valid for metal only)
+		 * @param index
+		 * @param type
+		 * @param wideS
+		 * @return
+		 */
+		public RRule getRule(int index, int type, double wideS)
+		{
+			HashMap map = matrix[index];
+			if (map == null) return (null);
+
+			RRule maxR = null;
+			boolean searchFor = (wideS > 0);
+
+			for (Iterator i = map.values().iterator(); i.hasNext(); )
+			{
+				RRule rule = (RRule)i.next();
+
+				if (rule.type == type)
+				{
+					// First found is valid
+					if (!searchFor) return (rule);
+					if (rule.maxW <= wideS && (maxR == null || (maxR.maxW < rule.maxW)))
+					{
+						maxR = rule;
+					}
+				}
+			}
+			return (maxR);
+		}
+		public double getMinRule(int index, int type, double maxW)
+		{
+			HashMap map = matrix[index];
+			if (map == null) return (0.0);
+
+			for (Iterator i = map.values().iterator(); i.hasNext(); )
+			{
+				RRule rule = (RRule)i.next();
+
+				if (rule.type == type && rule.maxW <= maxW)
+					return (rule.value);
+			}
+			return (0.0);
+		}
 	}
 
 	public static class Rule
@@ -258,6 +556,49 @@ public class DRC extends Listener
 	private DRC()
 	{
 		super("drc");
+	}
+
+	public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[])
+	{
+		// Clone same rule for different layers
+		int length = arrayL.length;
+		List list = new ArrayList(length);
+		for (int i = 0; i < length; i++)
+		{
+			String layer = arrayL[i];
+			RuleTemplate r = new DRC.RuleTemplate(name, when, type, maxW, layer, null, value);
+			list.add(r);
+		}
+		return list;
+	}
+	public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[][])
+	{
+		// Clone same rule for different layers
+		int length = arrayL.length;
+		List list = new ArrayList(length);
+		for (int i = 0; i < length; i++)
+		{
+			String []layers = arrayL[i];
+			if (layers.length != 2)
+				System.out.println("Invalid number of layers in DRC::makeRuleTemplates");
+			RuleTemplate r = new DRC.RuleTemplate(name, when, type, maxW, layers[0], layers[1], value);
+			list.add(r);
+		}
+		return list;
+	}
+	// For primitive node rules
+	public static List makeRuleTemplates(String name, int when, int type, double value, String arrayL[])
+	{
+		// Clone same rule for different layers
+		int length = arrayL.length;
+		List list = new ArrayList(length);
+		for (int i = 0; i < length; i++)
+		{
+			String primitiveNode = arrayL[i];
+			RuleTemplate r = new DRC.RuleTemplate(name, when, type, null, null, value, primitiveNode);
+			list.add(r);
+		}
+		return list;
 	}
 
 	/**
@@ -612,7 +953,12 @@ public class DRC extends Listener
 		setDRCOverrides(changes, tech);
 
 		// update variables on the technology
-		Variable var = tech.newVar(WIDE_LIMIT, newRules.wideLimit);
+		//Variable var = tech.newVar(WIDE_LIMIT, newRules.wideLimit);
+		Variable var = null;
+
+		Object[] list = newRules.getWideLimits().toArray();
+		if (list.length > 0)
+			tech.newVar(WIDE_LIMIT, ((Double)list[0]));
 		var = tech.newVar(MIN_CONNECTED_DISTANCES, newRules.conList);
 		if (var != null) var.setDontSave();
 		var = tech.newVar(MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
@@ -705,6 +1051,8 @@ public class DRC extends Listener
 		Rules rules = getRules(tech);
 		if (rules == null) return -1;
 		double worstInteractionDistance = 0;
+		double worstDistance = -1;
+
 		for(int i = 0; i < rules.uTSize; i++)
 		{
 			double dist = rules.unConList[i].doubleValue();
@@ -713,7 +1061,11 @@ public class DRC extends Listener
 			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
 			dist = rules.unConListMulti[i].doubleValue();
 			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			double worstValue = rules.getMinRule(i, RuleTemplate.UCONSPA, Double.MAX_VALUE);
+			if (worstValue > worstDistance) worstDistance = worstValue;
 		}
+		if (worstDistance != worstInteractionDistance)
+			System.out.println("Wrong calculation in getWorstSpacingDistance");
 		return worstInteractionDistance;
 	}
 
@@ -722,21 +1074,26 @@ public class DRC extends Listener
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer.
 	 */
-	public static double getMaxSurround(Layer layer)
+	public static double getMaxSurround(Layer layer, double maxSize)
 	{
 		Technology tech = layer.getTechnology();
 		Rules rules = getRules(tech);
 		if (rules == null) return -1;
-		double worstLayerRule = -1;
+		//double worstLayerRule = -1;
+		double worstSpaceRuleNew = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
+
 		for(int i=0; i<tot; i++)
 		{
 			int pIndex = getIndex(tech, layerIndex, i);
-			double dist = rules.unConList[pIndex].doubleValue();
-			if (dist > worstLayerRule) worstLayerRule = dist;
+			double worstValue = rules.getMinRule(pIndex, RuleTemplate.UCONSPA, maxSize);
+			//double dist = rules.unConList[pIndex].doubleValue();
+			//if (dist > worstLayerRule) worstLayerRule = dist;
+			if (worstValue > worstSpaceRuleNew) worstSpaceRuleNew = worstValue;
 		}
-		return worstLayerRule;
+
+		return worstSpaceRuleNew;
 	}
 
 	/**
@@ -763,24 +1120,26 @@ public class DRC extends Listener
 	 * @param tech the Technology in question.
 	 * @return the "wide" limit.  Anything this size or larger must use "wide" design rules.
 	 */
+	/*
 	public static double getWideLimit(Technology tech)
 	{
 		Rules rules = getRules(tech);
 		if (rules == null) return -1;
 		return rules.wideLimit.doubleValue();
 	}
+	*/
 
 	/**
 	 * Method to find the spacing rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.
 	 * @param connected true to find the distance when the layers are connected.
-	 * @param wide true to find the distance when one of the layers is "wide".
 	 * @param multiCut true to find the distance when this is part of a multicut contact.
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
-	public static Rule getSpacingRule(Layer layer1, Layer layer2, boolean connected, boolean wide, boolean multiCut)
+	public static Rule getSpacingRule(Layer layer1, Layer layer2, boolean connected,
+	                                  boolean multiCut, double wideS)
 	{
 		Technology tech = layer1.getTechnology();
 		Rules rules = getRules(tech);
@@ -789,16 +1148,16 @@ public class DRC extends Listener
 
 		double bestDist = -1;
 		String rule = null;
-		if (connected)
+		int type = (connected) ? RuleTemplate.CONSPA : RuleTemplate.UCONSPA;
+		RRule r = rules.getRule(pIndex, type, wideS);
+
+		if (r != null)
 		{
-			double dist = rules.conList[pIndex].doubleValue();
-			if (dist >= 0) { bestDist = dist;   rule = rules.conListRules[pIndex]; }
-		} else
-		{
-			double dist = rules.unConList[pIndex].doubleValue();
-			if (dist >= 0) { bestDist = dist;   rule = rules.unConListRules[pIndex]; }
+			bestDist = r.value;
+			rule = r.ruleName;
 		}
 
+		/*
 		if (wide)
 		{
 			if (connected)
@@ -811,6 +1170,7 @@ public class DRC extends Listener
 				if (dist >= 0) { bestDist = dist;   rule = rules.unConListWideRules[pIndex]; }
 			}
 		}
+        */
 
 		if (multiCut)
 		{
@@ -862,9 +1222,17 @@ public class DRC extends Listener
 		Rules rules = getRules(tech);
 		if (rules == null) return null;
 		int index = layer.getIndex();
-		double dist = rules.minWidth[index].doubleValue();
-		if (dist < 0) return null;
-		return new Rule(dist, rules.minWidthRules[index]);
+		RRule rule = rules.getRule(index, DRC.RuleTemplate.MINWID, 0);
+
+		if (rule == null)
+		{
+			//System.out.println("Error in getMinWidth in '" + tech.getTechName() + "'");
+			return (null);
+		}
+		//double dist = rules.minWidth[index].doubleValue();
+		//if (dist < 0) return null;
+		//return new Rule(dist, rules.minWidthRules[index]);
+		return (new Rule(rule.value, rule.ruleName));
 	}
 
 	/**
@@ -948,9 +1316,38 @@ public class DRC extends Listener
 		StringBuffer changes = new StringBuffer();
 
 		// include differences in the wide-rule limit
+		Set newLimits = newRules.getWideLimits();
+		Set origLimits = origRules.getWideLimits();
+
+		/*
 		if (!newRules.wideLimit.equals(origRules.wideLimit))
 		{
 			changes.append("w:"+newRules.wideLimit+";");
+		}
+		*/
+		// I can't change the format!
+		if (newLimits != null && origLimits != null && !newLimits.containsAll(origLimits))
+		{
+			// Format: W:[0,..,N]
+			Object[] limits = newLimits.toArray();
+			/*
+			changes.append("W:[");
+			for (int i = 0; i < newLimits.size(); i++)
+			{
+				Double wideLimit = ((Double)limits[i]);
+				changes.append(wideLimit);
+				if (i < newLimits.size() - 1)
+					changes.append(",");
+			}
+			changes.append("];");
+			*/
+
+			// Old format for compatibility!!
+			if (limits.length > 0)
+			{
+				Double wideLimit = ((Double)limits[0]);
+				changes.append("w:"+wideLimit+";");
+			}
 		}
 
 		// include differences in layer spacings
@@ -1193,14 +1590,52 @@ public class DRC extends Listener
 			}
 			if (key.equals("w"))
 			{
+			        startKey = endKey + 1;
+			        endKey = override.indexOf(';', startKey);
+			        if (endKey < 0) break;
+			        String newValue = override.substring(startKey, endKey);
+			        //rules.wideLimit = new Double(TextUtils.atof(newValue));
+					double value = TextUtils.atof(newValue);
+					if (value > 0)
+						rules.setWideLimits(new double[] {value});
+			        pos = endKey + 1;
+			        continue;
+			}
+
+			/*
+			if (key.equals("W"))
+			{
 				startKey = endKey + 1;
-				endKey = override.indexOf(';', startKey);
+				// Getting the number of wide values
+				//endKey = override.indexOf('[', startKey);
+				startKey = override.indexOf('[', endKey) + 1;
+				endKey = override.indexOf(']', startKey);
+				StringTokenizer parse = new StringTokenizer(override.substring(startKey, endKey));
 				if (endKey < 0) break;
-				String newValue = override.substring(startKey, endKey);
-				rules.wideLimit = new Double(TextUtils.atof(newValue));
-				pos = endKey + 1;
+
+				try
+				{
+					while (parse.hasMoreElements())
+					{
+						String val = parse.nextToken(",");
+						double value = TextUtils.atof(val);
+						if (value > 0)
+							rules.setWideLimits(new double[] {value});
+					}
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+				//String newValue = override.substring(startKey, endKey);
+				//rules.wideLimit = new Double(TextUtils.atof(newValue));
+				pos = endKey + 2;
 				continue;
 			}
+			*/
+			// Skip this format
+			endKey = override.indexOf(';', startKey);
+			pos = endKey + 1;
 		}
 	}
 

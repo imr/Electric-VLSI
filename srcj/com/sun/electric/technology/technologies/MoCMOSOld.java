@@ -991,7 +991,7 @@ public class MoCMOSOld extends Technology
 			});
 		msac_node.setFunction(NodeProto.Function.CONTACT);
 		msac_node.setSpecialType(PrimitiveNode.MULTICUT);
-		msac_node.setSpecialValues(new double [] {2, 2, 2, 2});
+		msac_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** Metal-1-D-Active-Con */
 		PrimitiveNode mdac_node = PrimitiveNode.newInstance("Metal-1-D-Active-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
@@ -1009,7 +1009,7 @@ public class MoCMOSOld extends Technology
 			});
 		mdac_node.setFunction(NodeProto.Function.CONTACT);
 		mdac_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mdac_node.setSpecialValues(new double [] {2, 2, 2, 2});
+		mdac_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** Metal-1-Polysilicon-Con */
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-Con", this, 6, 6, null,
@@ -1026,7 +1026,7 @@ public class MoCMOSOld extends Technology
 			});
 		mpc_node.setFunction(NodeProto.Function.CONTACT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 2, 2});
+		mpc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** S-Transistor */
 		PrimitiveNode st_node = PrimitiveNode.newInstance("S-Transistor", this, 6, 10, new SizeOffset(2, 2, 4, 4),
@@ -1093,7 +1093,7 @@ public class MoCMOSOld extends Technology
 			});
 		mmc_node.setFunction(NodeProto.Function.CONTACT);
 		mmc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		mmc_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 
 		/** Metal-1-Well-Con */
 		PrimitiveNode mwc_node = PrimitiveNode.newInstance("Metal-1-Well-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
@@ -1112,7 +1112,7 @@ public class MoCMOSOld extends Technology
 			});
 		mwc_node.setFunction(NodeProto.Function.WELL);
 		mwc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mwc_node.setSpecialValues(new double [] {2, 2, 2, 2});
+		mwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** Metal-1-Substrate-Con */
 		PrimitiveNode msc_node = PrimitiveNode.newInstance("Metal-1-Substrate-Con", this, 6, 6, null,
@@ -1129,7 +1129,7 @@ public class MoCMOSOld extends Technology
 			});
 		msc_node.setFunction(NodeProto.Function.SUBSTRATE);
 		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		msc_node.setSpecialValues(new double [] {2, 2, 2, 2});
+		msc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** Metal-1-Node */
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-1-Node", this, 4, 4, null,

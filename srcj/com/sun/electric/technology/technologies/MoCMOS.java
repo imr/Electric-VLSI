@@ -153,405 +153,344 @@ public class MoCMOS extends Technology
 	// design rule constants
 	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 10;
 
-	// the meaning of "when" in the DRC table
-	/** only applies if there are 2 metal layers in process */			private static final int M2 =      01;
-	/** only applies if there are 3 metal layers in process */			private static final int M3 =      02;
-	/** only applies if there are 4 metal layers in process */			private static final int M4 =      04;
-	/** only applies if there are 5 metal layers in process */			private static final int M5 =     010;
-	/** only applies if there are 6 metal layers in process */			private static final int M6 =     020;
-	/** only applies if there are 2-3 metal layers in process */		private static final int M23 =     03;
-	/** only applies if there are 2-4 metal layers in process */		private static final int M234 =    07;
-	/** only applies if there are 2-5 metal layers in process */		private static final int M2345 =  017;
-	/** only applies if there are 4-6 metal layers in process */		private static final int M456 =   034;
-	/** only applies if there are 5-6 metal layers in process */		private static final int M56 =    030;
-	/** only applies if there are 3-6 metal layers in process */		private static final int M3456 =  036;
-
-	/** only applies if alternate contact rules are in effect */		private static final int AC =     040;
-	/** only applies if alternate contact rules are not in effect */	private static final int NAC =   0100;
-	/** only applies if stacked vias are allowed */						private static final int SV =    0200;
-	/** only applies if stacked vias are not allowed */					private static final int NSV =   0400;
-	/** only applies if deep rules are in effect */						private static final int DE =   01000;
-	/** only applies if submicron rules are in effect */				private static final int SU =   02000;
-	/** only applies if scmos rules are in effect */					private static final int SC =   04000;
-
-	// the meaning of "ruletype" in the DRC table
-	/** a minimum-width rule */			private static final int MINWID =     1;
-	/** a node size rule */				private static final int NODSIZ =     2;
-	/** a general surround rule */		private static final int SURROUND =   3;
-	/** a via surround rule */			private static final int VIASUR =     4;
-	/** a transistor well rule */		private static final int TRAWELL =    5;
-	/** a transistor poly rule */		private static final int TRAPOLY =    6;
-	/** a transistor active rule */		private static final int TRAACTIVE =  7;
-	/** a spacing rule */				private static final int SPACING =    8;
-	/** a multi-cut spacing rule */		private static final int SPACINGM =   9;
-	/** a wide spacing rule */			private static final int SPACINGW =  10;
-	/** an edge spacing rule */			private static final int SPACINGE =  11;
-	/** a connected spacing rule */		private static final int CONSPA =    12;
-	/** an unconnected spacing rule */	private static final int UCONSPA =   13;
-	/** a contact cut spacing rule */	private static final int CUTSPA =    14;
-	/** a contact cut size rule */		private static final int CUTSIZE =   15;
-	/** a contact cut surround rule */	private static final int CUTSUR =    16;
-	/** arc surround rule */			private static final int ASURROUND = 17;
-
-	//******************** DESIGN RULES ********************
-
-	private static class DRCRules
+	private DRC.RuleTemplate [] theRules = new DRC.RuleTemplate[]
 	{
-		String rule;			/* the name of the rule */
-		int when;				/* when the rule is used */
-		int ruleType;			/* the type of the rule */
-		String layer1, layer2;	/* two layers that are used by the rule */
-		double distance;		/* the spacing of the rule */
-		String nodeName;		/* the node that is used by the rule */
-
-		DRCRules(String rule, int when, int ruleType, String layer1, String layer2, double distance, String nodeName)
-		{
-			this.rule = rule;
-			this.when = when;
-			this.ruleType = ruleType;
-			this.layer1 = layer1;
-			this.layer2 = layer2;
-			this.distance = distance;
-			this.nodeName = nodeName;
-		}
-	};
-
-	private DRCRules [] theRules = new DRCRules[]
-	{
-		new DRCRules("1.1",  DE|SU,           MINWID,   "P-Well",          null,            12, null),
-		new DRCRules("1.1",  DE|SU,           MINWID,   "N-Well",          null,            12, null),
-		new DRCRules("1.1",  DE|SU,           MINWID,   "Pseudo-P-Well",   null,            12, null),
-		new DRCRules("1.1",  DE|SU,           MINWID,   "Pseudo-N-Well",   null,            12, null),
-		new DRCRules("1.1",  SC,              MINWID,   "P-Well",          null,            10, null),
-		new DRCRules("1.1",  SC,              MINWID,   "N-Well",          null,            10, null),
-		new DRCRules("1.1",  SC,              MINWID,   "Pseudo-P-Well",   null,            10, null),
-		new DRCRules("1.1",  SC,              MINWID,   "Pseudo-N-Well",   null,            10, null),
-
-		new DRCRules("1.2",  DE|SU,           UCONSPA,  "P-Well",         "P-Well",         18, null),
-		new DRCRules("1.2",  DE|SU,           UCONSPA,  "N-Well",         "N-Well",         18, null),
-		new DRCRules("1.2",  SC,              UCONSPA,  "P-Well",         "P-Well",         9,  null),
-		new DRCRules("1.2",  SC,              UCONSPA,  "N-Well",         "N-Well",         9,  null),
-
-		new DRCRules("1.3",  0,               CONSPA,   "P-Well",         "P-Well",         6,  null),
-		new DRCRules("1.3",  0,               CONSPA,   "N-Well",         "N-Well",         6,  null),
-
-		new DRCRules("1.4",  0,               UCONSPA,  "P-Well",         "N-Well",         0,  null),
-
-		new DRCRules("2.1",  0,               MINWID,   "P-Active",        null,            3,  null),
-		new DRCRules("2.1",  0,               MINWID,   "N-Active",        null,            3,  null),
-
-		new DRCRules("2.2",  0,               SPACING,  "P-Active",       "P-Active",       3,  null),
-		new DRCRules("2.2",  0,               SPACING,  "N-Active",       "N-Active",       3,  null),
-		new DRCRules("2.2",  0,               SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
-		new DRCRules("2.2",  0,               SPACING,  "P-Active",       "N-Active",       3,  null),
-		new DRCRules("2.2",  0,               SPACING,  "P-Active",       "P-Active-Well",  3,  null),
-		new DRCRules("2.2",  0,               SPACING,  "N-Active",       "P-Active-Well",  3,  null),
-
-		new DRCRules("2.3",  DE|SU,           SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
-		new DRCRules("2.3",  DE|SU,           ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"),
-		new DRCRules("2.3",  DE|SU,           SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
-		new DRCRules("2.3",  DE|SU,           ASURROUND,"P-Well",         "N-Active",       6,  "N-Active"),
-		new DRCRules("2.3",  DE|SU,           TRAWELL,   null,             null,            6,  null),
-		new DRCRules("2.3",  SC,              SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
-		new DRCRules("2.3",  SC,              ASURROUND,"N-Well",         "P-Active",       5,  "P-Active"),
-		new DRCRules("2.3",  SC,              SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
-		new DRCRules("2.3",  SC,              ASURROUND,"P-Well",         "N-Active",       5,  "N-Active"),
-		new DRCRules("2.3",  SC,              TRAWELL,   null,             null,            5,  null),
-
-		new DRCRules("3.1",  0,               MINWID,   "Polysilicon-1",   null,            2,  null),
-		new DRCRules("3.1",  0,               MINWID,   "Transistor-Poly", null,            2,  null),
-
-		new DRCRules("3.2",  DE|SU,           SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
-		new DRCRules("3.2",  DE|SU,           SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-		new DRCRules("3.2",  SC,              SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
-		new DRCRules("3.2",  SC,              SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
-
-		new DRCRules("3.2a", DE,              SPACING,  "Transistor-Poly","Transistor-Poly",4,  null),
-		new DRCRules("3.2a", SU,              SPACING,  "Transistor-Poly","Transistor-Poly",3,  null),
-		new DRCRules("3.2a", SC,              SPACING,  "Transistor-Poly","Transistor-Poly",2,  null),
-
-		new DRCRules("3.3",  DE,              TRAPOLY,   null,             null,            2.5,null),
-		new DRCRules("3.3",  SU|SC,           TRAPOLY,   null,             null,            2,  null),
-
-		new DRCRules("3.4",  DE,              TRAACTIVE, null,             null,            4,  null),
-		new DRCRules("3.4",  SU|SC,           TRAACTIVE, null,             null,            3,  null),
-
-		new DRCRules("3.5",  0,               SPACING,  "Polysilicon-1",  "P-Active",       1,  null),
-		new DRCRules("3.5",  0,               SPACING,  "Transistor-Poly","P-Active",       1,  null),
-		new DRCRules("3.5",  0,               SPACING,  "Polysilicon-1",  "N-Active",       1,  null),
-		new DRCRules("3.5",  0,               SPACING,  "Transistor-Poly","N-Active",       1,  null),
-		new DRCRules("3.5",  0,               SPACING,  "Polysilicon-1",  "P-Active-Well",  1,  null),
-		new DRCRules("3.5",  0,               SPACING,  "Transistor-Poly","P-Active-Well",  1,  null),
-
-		new DRCRules("4.4",  DE,              MINWID,   "P-Select",        null,            4,  null),
-		new DRCRules("4.4",  DE,              MINWID,   "N-Select",        null,            4,  null),
-		new DRCRules("4.4",  DE,              MINWID,   "Pseudo-P-Select", null,            4,  null),
-		new DRCRules("4.4",  DE,              MINWID,   "Pseudo-N-Select", null,            4,  null),
-		new DRCRules("4.4",  DE,              SPACING,  "P-Select",       "P-Select",       4,  null),
-		new DRCRules("4.4",  DE,              SPACING,  "N-Select",       "N-Select",       4,  null),
-		new DRCRules("4.4",  SU|SC,           MINWID,   "P-Select",        null,            2,  null),
-		new DRCRules("4.4",  SU|SC,           MINWID,   "N-Select",        null,            2,  null),
-		new DRCRules("4.4",  SU|SC,           MINWID,   "Pseudo-P-Select", null,            2,  null),
-		new DRCRules("4.4",  SU|SC,           MINWID,   "Pseudo-N-Select", null,            2,  null),
-		new DRCRules("4.4",  SU|SC,           SPACING,  "P-Select",       "P-Select",       2,  null),
-		new DRCRules("4.4",  SU|SC,           SPACING,  "N-Select",       "N-Select",       2,  null),
-		new DRCRules("4.4",  0,               SPACING,  "P-Select",       "N-Select",       0,  null),
-
-		new DRCRules("5.1",  0,               MINWID,   "Poly-Cut",        null,            2,  null),
-
-		new DRCRules("5.2",        NAC,       NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.2",        NAC,       SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.2",        NAC,       CUTSUR,    null,             null,            1.5,"Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.2b",       AC,        NODSIZ,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.2b",       AC,        SURROUND, "Polysilicon-1",  "Metal-1",        0,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.2b",       AC,        CUTSUR,    null,             null,            1,  "Metal-1-Polysilicon-1-Con"),
-
-		new DRCRules("5.3",     DE,           CUTSPA,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.3",     DE,           SPACING,  "Poly-Cut",       "Poly-Cut",       4,  null),
-		new DRCRules("5.3,6.3", DE|NAC,       SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
-		new DRCRules("5.3",     SU,           CUTSPA,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.3",     SU,           SPACING,  "Poly-Cut",       "Poly-Cut",       3,  null),
-		new DRCRules("5.3,6.3", SU|NAC,       SPACING,  "Active-Cut",     "Poly-Cut",       3,  null),
-		new DRCRules("5.3",     SC,           CUTSPA,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"),
-		new DRCRules("5.3",     SC,           SPACING,  "Poly-Cut",       "Poly-Cut",       2,  null),
-		new DRCRules("5.3,6.3", SC|NAC,       SPACING,  "Active-Cut",     "Poly-Cut",       2,  null),
-
-		new DRCRules("5.4",  0,               SPACING,  "Poly-Cut",       "Transistor-Poly",2,  null),
-
-		new DRCRules("5.5b", DE|SU|AC,        UCONSPA,  "Poly-Cut",       "Polysilicon-1",  5,  null),
-		new DRCRules("5.5b", DE|SU|AC,        UCONSPA,  "Poly-Cut",       "Transistor-Poly",5,  null),
-		new DRCRules("5.5b", SC|   AC,        UCONSPA,  "Poly-Cut",       "Polysilicon-1",  4,  null),
-		new DRCRules("5.5b", SC|   AC,        UCONSPA,  "Poly-Cut",       "Transistor-Poly",4,  null),
-
-		new DRCRules("5.6b",       AC,        SPACING,  "Poly-Cut",       "P-Active",       2,  null),
-		new DRCRules("5.6b",       AC,        SPACING,  "Poly-Cut",       "N-Active",       2,  null),
-
-		new DRCRules("5.7b",       AC,        SPACINGM, "Poly-Cut",       "P-Active",       3,  null),
-		new DRCRules("5.7b",       AC,        SPACINGM, "Poly-Cut",       "N-Active",       3,  null),
-
-		new DRCRules("6.1",  0,               MINWID,   "Active-Cut",      null,            2,  null),
-
-		new DRCRules("6.2",        NAC,       NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2",  DE|SU|NAC,       SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2",  SC|   NAC,       SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2",        NAC,       CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"),
-		new DRCRules("6.2b",       AC,        NODSIZ,    null,             null,            4,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "P-Active",       "Metal-1",        0,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2b", DE|SU|AC,        SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2b", SC|   AC,        SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.2b",       AC,        CUTSUR,    null,             null,            1,  "Metal-1-P-Active-Con"),
-
-		new DRCRules("6.2",        NAC,       NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2",  DE|SU|NAC,       SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2",  SC|   NAC,       SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2",        NAC,       CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"),
-		new DRCRules("6.2b",       AC,        NODSIZ,    null,             null,            4,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2b", DE|SU|AC,        SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2b", SC|   AC,        SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.2b",       AC,        CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"),
-
-		new DRCRules("6.2",        NAC,       NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2",        NAC,       CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
-		new DRCRules("6.2b",       AC,        NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
-		new DRCRules("6.2b",       AC,        CUTSUR,    null,             null,            1,  "Metal-1-P-Well-Con"),
-
-		new DRCRules("6.2",        NAC,       NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2",        NAC,       SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2",        NAC,       CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"),
-		new DRCRules("6.2b",       AC,        NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2b",       AC,        SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
-		new DRCRules("6.2b",       AC,        CUTSUR,    null,             null,            1,  "Metal-1-N-Well-Con"),
-
-		new DRCRules("6.3",  DE,              CUTSPA,    null,             null,            4,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.3",  DE,              CUTSPA,    null,             null,            4,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.3",  DE,              SPACING,  "Active-Cut",     "Active-Cut",     4,  null),
-		new DRCRules("6.3",  SU,              CUTSPA,    null,             null,            3,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.3",  SU,              CUTSPA,    null,             null,            3,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.3",  SU,              SPACING,  "Active-Cut",     "Active-Cut",     3,  null),
-		new DRCRules("6.3",  SC,              CUTSPA,    null,             null,            2,  "Metal-1-P-Active-Con"),
-		new DRCRules("6.3",  SC,              CUTSPA,    null,             null,            2,  "Metal-1-N-Active-Con"),
-		new DRCRules("6.3",  SC,              SPACING,  "Active-Cut",     "Active-Cut",     2,  null),
-
-		new DRCRules("6.4",  0,               SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
-
-		new DRCRules("6.5b",       AC,        UCONSPA,  "Active-Cut",     "P-Active",       5,  null),
-		new DRCRules("6.5b",       AC,        UCONSPA,  "Active-Cut",     "N-Active",       5,  null),
-
-		new DRCRules("6.6b",       AC,        SPACING,  "Active-Cut",     "Polysilicon-1",  2,  null),
-		new DRCRules("6.8b",       AC,        SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
-
-		new DRCRules("7.1",  0,               MINWID,   "Metal-1",         null,            3,  null),
-
-		new DRCRules("7.2",  DE|SU,           SPACING,  "Metal-1",        "Metal-1",        3,  null),
-		new DRCRules("7.2",  SC,              SPACING,  "Metal-1",        "Metal-1",        2,  null),
-
-		new DRCRules("7.4",  DE|SU,           SPACINGW, "Metal-1",        "Metal-1",        6,  null),
-		new DRCRules("7.4",  SC,              SPACINGW, "Metal-1",        "Metal-1",        4,  null),
-
-		new DRCRules("8.1",  DE,              CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
-		new DRCRules("8.1",  DE,              NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
-		new DRCRules("8.1",  SU|SC,           CUTSIZE,   null,             null,            2, "Metal-1-Metal-2-Con"),
-		new DRCRules("8.1",  SU|SC,           NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"),
-
-		new DRCRules("8.2",  0,               SPACING,  "Via1",           "Via1",           3,  null),
-
-		new DRCRules("8.3",  0,               VIASUR,   "Metal-1",         null,            1, "Metal-1-Metal-2-Con"),
-
-		new DRCRules("8.4",        NSV,       SPACING,  "Poly-Cut",       "Via1",           2,  null),
-		new DRCRules("8.4",        NSV,       SPACING,  "Active-Cut",     "Via1",           2,  null),
-
-		new DRCRules("8.5",        NSV,       SPACINGE, "Via1",           "Polysilicon-1",  2,  null),
-		new DRCRules("8.5",        NSV,       SPACINGE, "Via1",           "Transistor-Poly",2,  null),
-		new DRCRules("8.5",        NSV,       SPACINGE, "Via1",           "Polysilicon-2",  2,  null),
-		new DRCRules("8.5",        NSV,       SPACINGE, "Via1",           "P-Active",       2,  null),
-		new DRCRules("8.5",        NSV,       SPACINGE, "Via1",           "N-Active",       2,  null),
-
-		new DRCRules("9.1",  0,               MINWID,   "Metal-2",         null,            3,  null),
-
-		new DRCRules("9.2",  DE,              SPACING,  "Metal-2",        "Metal-2",        4,  null),
-		new DRCRules("9.2",  SU|SC,           SPACING,  "Metal-2",        "Metal-2",        3,  null),
-
-		new DRCRules("9.3",  0,               VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
-
-		new DRCRules("9.4",  DE,              SPACINGW, "Metal-2",        "Metal-2",        8,  null),
-		new DRCRules("9.4",  SU|SC,           SPACINGW, "Metal-2",        "Metal-2",        6,  null),
-
-		new DRCRules("11.1", SU,              MINWID,   "Polysilicon-2",   null,            7,  null),
-		new DRCRules("11.1", SC,              MINWID,   "Polysilicon-2",   null,            3,  null),
-
-		new DRCRules("11.2", 0,               SPACING,  "Polysilicon-2",  "Polysilicon-2",  3,  null),
-
-		new DRCRules("11.3", SU,              SURROUND, "Polysilicon-2",  "Polysilicon-1",  5,  "Metal-1-Polysilicon-1-2-Con"),
-		new DRCRules("11.3", SU,              NODSIZ,    null,             null,            15, "Metal-1-Polysilicon-1-2-Con"),
-		new DRCRules("11.3", SU,              CUTSUR,    null,             null,            6.5,"Metal-1-Polysilicon-1-2-Con"),
-		new DRCRules("11.3", SC,              SURROUND, "Polysilicon-2",  "Polysilicon-1",  2,  "Metal-1-Polysilicon-1-2-Con"),
-		new DRCRules("11.3", SC,              NODSIZ,    null,             null,            9,  "Metal-1-Polysilicon-1-2-Con"),
-		new DRCRules("11.3", SC,              CUTSUR,    null,             null,            3.5,"Metal-1-Polysilicon-1-2-Con"),
-
-		new DRCRules("14.1", DE,              CUTSIZE,   null,             null,            3,  "Metal-2-Metal-3-Con"),
-		new DRCRules("14.1", DE,              MINWID,   "Via2",            null,            3,  null),
-		new DRCRules("14.1", DE,              NODSIZ,    null,             null,            5,  "Metal-2-Metal-3-Con"),
-		new DRCRules("14.1", SU|SC,           CUTSIZE,   null,             null,            2,  "Metal-2-Metal-3-Con"),
-		new DRCRules("14.1", SU|SC,           MINWID,   "Via2",            null,            2,  null),
-		new DRCRules("14.1", SU|SC|    M23,   NODSIZ,    null,             null,            6,  "Metal-2-Metal-3-Con"),
-		new DRCRules("14.1", SU|SC|    M456,  NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"),
-
-		new DRCRules("14.2", 0,               SPACING,  "Via2",           "Via2",           3,  null),
-
-		new DRCRules("14.3", 0,               VIASUR,   "Metal-2",         null,            1,  "Metal-2-Metal-3-Con"),
-
-		new DRCRules("14.4", SU|SC|NSV,       SPACING,  "Via1",           "Via2",           2,  null),
-
-		new DRCRules("15.1", SC|       M3,    MINWID,   "Metal-3",         null,            6,  null),
-		new DRCRules("15.1", SU|       M3,    MINWID,   "Metal-3",         null,            5,  null),
-		new DRCRules("15.1", SC|       M456,  MINWID,   "Metal-3",         null,            3,  null),
-		new DRCRules("15.1", SU|       M456,  MINWID,   "Metal-3",         null,            3,  null),
-		new DRCRules("15.1", DE,              MINWID,   "Metal-3",         null,            3,  null),
-
-		new DRCRules("15.2", DE,              SPACING,  "Metal-3",        "Metal-3",        4,  null),
-		new DRCRules("15.2", SU,              SPACING,  "Metal-3",        "Metal-3",        3,  null),
-		new DRCRules("15.2", SC|       M3,    SPACING,  "Metal-3",        "Metal-3",        4,  null),
-		new DRCRules("15.2", SC|       M456,  SPACING,  "Metal-3",        "Metal-3",        3,  null),
-
-		new DRCRules("15.3", DE,              VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
-		new DRCRules("15.3", SU|SC|    M3,    VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
-		new DRCRules("15.3", SU|SC|    M456,  VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
-
-		new DRCRules("15.4", DE,              SPACINGW, "Metal-3",        "Metal-3",        8,  null),
-		new DRCRules("15.4", SU,              SPACINGW, "Metal-3",        "Metal-3",        6,  null),
-		new DRCRules("15.4", SC|       M3,    SPACINGW, "Metal-3",        "Metal-3",        8,  null),
-		new DRCRules("15.4", SC|       M456,  SPACINGW, "Metal-3",        "Metal-3",        6,  null),
-
-		new DRCRules("21.1", DE,              CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"),
-		new DRCRules("21.1", DE,              MINWID,   "Via3",            null,            3,  null),
-		new DRCRules("21.1", DE,              NODSIZ,    null,             null,            5, "Metal-3-Metal-4-Con"),
-		new DRCRules("21.1", SU|SC,           CUTSIZE,   null,             null,            2, "Metal-3-Metal-4-Con"),
-		new DRCRules("21.1", SU|SC,           MINWID,   "Via3",            null,            2,  null),
-		new DRCRules("21.1", SU|       M4,    NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
-		new DRCRules("21.1", SU|       M56,   NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"),
-		new DRCRules("21.1", SC,              NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
-
-		new DRCRules("21.2", 0,               SPACING,  "Via3",           "Via3",           3,  null),
-
-		new DRCRules("21.3", 0,               VIASUR,   "Metal-3",         null,            1, "Metal-3-Metal-4-Con"),
-
-		new DRCRules("22.1",           M4,    MINWID,   "Metal-4",         null,            6,  null),
-		new DRCRules("22.1",           M56,   MINWID,   "Metal-4",         null,            3,  null),
-
-		new DRCRules("22.2",           M4,    SPACING,  "Metal-4",        "Metal-4",        6,  null),
-		new DRCRules("22.2", DE|       M56,   SPACING,  "Metal-4",        "Metal-4",        4,  null),
-		new DRCRules("22.2", SU|       M56,   SPACING,  "Metal-4",        "Metal-4",        3,  null),
-
-		new DRCRules("22.3",           M4,    VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
-		new DRCRules("22.3",           M56,   VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
-
-		new DRCRules("22.4",           M4,    SPACINGW, "Metal-4",        "Metal-4",        12, null),
-		new DRCRules("22.4", DE|       M56,   SPACINGW, "Metal-4",        "Metal-4",        8,  null),
-		new DRCRules("22.4", SU|       M56,   SPACINGW, "Metal-4",        "Metal-4",        6,  null),
-
-		new DRCRules("25.1", DE,              CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"),
-		new DRCRules("25.1", DE,              MINWID,   "Via4",            null,            3,  null),
-		new DRCRules("25.1", SU,              CUTSIZE,   null,             null,            2, "Metal-4-Metal-5-Con"),
-		new DRCRules("25.1", SU,              MINWID,   "Via4",            null,            2,  null),
-		new DRCRules("25.1", SU,              NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
-		new DRCRules("25.1", DE|       M5,    NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
-		new DRCRules("25.1", DE|       M6,    NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
-
-		new DRCRules("25.2", 0,               SPACINGW, "Via4",           "Via4",           3,  null),
-
-		new DRCRules("25.3", 0,               VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
-
-		new DRCRules("26.1",           M5,    MINWID,   "Metal-5",         null,            4,  null),
-		new DRCRules("26.1",           M6,    MINWID,   "Metal-5",         null,            3,  null),
-
-		new DRCRules("26.2",           M5,    SPACING,  "Metal-5",        "Metal-5",        4,  null),
-		new DRCRules("26.2", DE|       M6,    SPACING,  "Metal-5",        "Metal-5",        4,  null),
-		new DRCRules("26.2", SU|       M6,    SPACING,  "Metal-5",        "Metal-5",        3,  null),
-
-		new DRCRules("26.3", DE|       M5,    VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"),
-		new DRCRules("26.3", SU|       M5,    VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
-		new DRCRules("26.3",           M6,    VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
-
-		new DRCRules("26.4",           M5,    SPACINGW, "Metal-5",        "Metal-5",        8,  null),
-		new DRCRules("26.4", DE|       M6,    SPACINGW, "Metal-5",        "Metal-5",        8,  null),
-		new DRCRules("26.4", SU|       M6,    SPACINGW, "Metal-5",        "Metal-5",        6,  null),
-
-		new DRCRules("29.1", DE,              CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"),
-		new DRCRules("29.1", DE,              MINWID,   "Via5",            null,            4,  null),
-		new DRCRules("29.1", DE,              NODSIZ,    null,             null,            8, "Metal-5-Metal-6-Con"),
-		new DRCRules("29.1", SU,              CUTSIZE,   null,             null,            3, "Metal-5-Metal-6-Con"),
-		new DRCRules("29.1", SU,              MINWID,   "Via5",            null,            3,  null),
-		new DRCRules("29.1", SU,              NODSIZ,    null,             null,            5, "Metal-5-Metal-6-Con"),
-
-		new DRCRules("29.2", 0,               SPACING,  "Via5",           "Via5",           4,  null),
-
-		new DRCRules("29.3", 0,               VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
-
-		new DRCRules("30.1", 0,               MINWID,   "Metal-6",         null,            4,  null),
-
-		new DRCRules("30.2", 0,               SPACING,  "Metal-6",        "Metal-6",        4,  null),
-
-		new DRCRules("30.3", DE,              VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
-		new DRCRules("30.3", SU,              VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
-
-		new DRCRules("30.4", 0,               SPACINGW, "Metal-6",        "Metal-6",        8,  null)
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "P-Well",          null,            12, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "N-Well",          null,            12, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "Pseudo-P-Well",   null,            12, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "Pseudo-N-Well",   null,            12, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "P-Well",          null,            10, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "N-Well",          null,            10, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Pseudo-P-Well",   null,            10, null),
+		new DRC.RuleTemplate("1.1",  DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Pseudo-N-Well",   null,            10, null),
+
+		new DRC.RuleTemplate("1.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.UCONSPA,  "P-Well",         "P-Well",         18, null),
+		new DRC.RuleTemplate("1.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.UCONSPA,  "N-Well",         "N-Well",         18, null),
+		new DRC.RuleTemplate("1.2",  DRC.RuleTemplate.SC, DRC.RuleTemplate.UCONSPA,  "P-Well",         "P-Well",         9,  null),
+		new DRC.RuleTemplate("1.2",  DRC.RuleTemplate.SC, DRC.RuleTemplate.UCONSPA,  "N-Well",         "N-Well",         9,  null),
+
+		new DRC.RuleTemplate("1.3",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.CONSPA,   "P-Well",         "P-Well",         6,  null),
+		new DRC.RuleTemplate("1.3",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.CONSPA,   "N-Well",         "N-Well",         6,  null),
+
+		new DRC.RuleTemplate("1.4",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.UCONSPA,  "P-Well",         "N-Well",         0,  null),
+
+		new DRC.RuleTemplate("2.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "P-Active",        null,            3,  null),
+		new DRC.RuleTemplate("2.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "N-Active",        null,            3,  null),
+
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "P-Active",       3,  null),
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "N-Active",       "N-Active",       3,  null),
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "N-Active",       3,  null),
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "P-Active-Well",  3,  null),
+		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "N-Active",       "P-Active-Well",  3,  null),
+
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.ASURROUND,"P-Well",         "N-Active",       6,  "N-Active"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.TRAWELL,   null,             null,            6,  null),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.ASURROUND,"N-Well",         "P-Active",       5,  "P-Active"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.ASURROUND,"P-Well",         "N-Active",       5,  "N-Active"),
+		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.TRAWELL,   null,             null,            5,  null),
+
+		new DRC.RuleTemplate("3.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
+		new DRC.RuleTemplate("3.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
+
+		new DRC.RuleTemplate("3.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
+		new DRC.RuleTemplate("3.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
+		new DRC.RuleTemplate("3.2",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
+		new DRC.RuleTemplate("3.2",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
+
+		new DRC.RuleTemplate("3.2a", DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",4,  null),
+		new DRC.RuleTemplate("3.2a", DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",3,  null),
+		new DRC.RuleTemplate("3.2a", DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null),
+
+		new DRC.RuleTemplate("3.3",  DRC.RuleTemplate.DE, DRC.RuleTemplate.TRAPOLY,   null,             null,            2.5,null),
+		new DRC.RuleTemplate("3.3",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.TRAPOLY,   null,             null,            2,  null),
+
+		new DRC.RuleTemplate("3.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.TRAACTIVE, null,             null,            4,  null),
+		new DRC.RuleTemplate("3.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.TRAACTIVE, null,             null,            3,  null),
+
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "P-Active",       1,  null),
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Transistor-Poly","P-Active",       1,  null),
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "N-Active",       1,  null),
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Transistor-Poly","N-Active",       1,  null),
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Polysilicon-1",  "P-Active-Well",  1,  null),
+		new DRC.RuleTemplate("3.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Transistor-Poly","P-Active-Well",  1,  null),
+
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "P-Select",        null,            4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "N-Select",        null,            4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Pseudo-P-Select", null,            4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Pseudo-N-Select", null,            4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "P-Select",       "P-Select",       4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "N-Select",       "N-Select",       4,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "P-Select",        null,            2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "N-Select",        null,            2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Pseudo-P-Select", null,            2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Pseudo-N-Select", null,            2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "P-Select",       "P-Select",       2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "N-Select",       "N-Select",       2,  null),
+		new DRC.RuleTemplate("4.4",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Select",       "N-Select",       0,  null),
+
+		new DRC.RuleTemplate("5.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Poly-Cut",        null,            2,  null),
+
+		new DRC.RuleTemplate("5.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "Polysilicon-1",  "Metal-1",        0,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.CUTSUR,    null,             null,            1,  "Metal-1-Polysilicon-1-Con"),
+
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSPA,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       4,  null),
+		new DRC.RuleTemplate("5.3,6.3", DRC.RuleTemplate.DE|DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSPA,    null,             null,            3,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       3,  null),
+		new DRC.RuleTemplate("5.3,6.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       3,  null),
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSPA,    null,             null,            2,  "Metal-1-Polysilicon-1-Con"),
+		new DRC.RuleTemplate("5.3",     DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       2,  null),
+		new DRC.RuleTemplate("5.3,6.3", DRC.RuleTemplate.SC|DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       2,  null),
+
+		new DRC.RuleTemplate("5.4",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Poly-Cut",       "Transistor-Poly",2,  null),
+
+		new DRC.RuleTemplate("5.5b", DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  5,  null),
+		new DRC.RuleTemplate("5.5b", DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Poly-Cut",       "Transistor-Poly",5,  null),
+		new DRC.RuleTemplate("5.5b", DRC.RuleTemplate.SC|   DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  4,  null),
+		new DRC.RuleTemplate("5.5b", DRC.RuleTemplate.SC|   DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Poly-Cut",       "Transistor-Poly",4,  null),
+
+		new DRC.RuleTemplate("5.6b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Poly-Cut",       "P-Active",       2,  null),
+		new DRC.RuleTemplate("5.6b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Poly-Cut",       "N-Active",       2,  null),
+
+		new DRC.RuleTemplate("5.7b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACINGM, "Poly-Cut",       "P-Active",       3,  null),
+		new DRC.RuleTemplate("5.7b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACINGM, "Poly-Cut",       "N-Active",       3,  null),
+
+		new DRC.RuleTemplate("6.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Active-Cut",      null,            2,  null),
+
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2",  DRC.RuleTemplate.SC|   DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Active",       "Metal-1",        0,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b", DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b", DRC.RuleTemplate.SC|   DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.CUTSUR,    null,             null,            1,  "Metal-1-P-Active-Con"),
+
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2",  DRC.RuleTemplate.SC|   DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b", DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b", DRC.RuleTemplate.SC|   DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"),
+
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.CUTSUR,    null,             null,            1,  "Metal-1-P-Well-Con"),
+
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2",        DRC.RuleTemplate.NAC,       DRC.RuleTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
+		new DRC.RuleTemplate("6.2b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.CUTSUR,    null,             null,            1,  "Metal-1-N-Well-Con"),
+
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSPA,    null,             null,            4,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSPA,    null,             null,            4,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "Active-Cut",     "Active-Cut",     4,  null),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSPA,    null,             null,            3,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSPA,    null,             null,            3,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Active-Cut",     "Active-Cut",     3,  null),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSPA,    null,             null,            2,  "Metal-1-P-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSPA,    null,             null,            2,  "Metal-1-N-Active-Con"),
+		new DRC.RuleTemplate("6.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Active-Cut",     "Active-Cut",     2,  null),
+
+		new DRC.RuleTemplate("6.4",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
+
+		new DRC.RuleTemplate("6.5b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Active-Cut",     "P-Active",       5,  null),
+		new DRC.RuleTemplate("6.5b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Active-Cut",     "N-Active",       5,  null),
+
+		new DRC.RuleTemplate("6.6b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Active-Cut",     "Polysilicon-1",  2,  null),
+		new DRC.RuleTemplate("6.8b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
+
+		new DRC.RuleTemplate("7.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Metal-1",         null,            3,  null),
+
+		new DRC.RuleTemplate("7.2",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
+		new DRC.RuleTemplate("7.2",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
+
+		new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        6),
+		new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        4),
+        //new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, "Metal-1",        "Metal-1",        6,  null),
+		//new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACINGW, "Metal-1",        "Metal-1",        4,  null),
+
+		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
+		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.DE, DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
+		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSIZE,   null,             null,            2, "Metal-1-Metal-2-Con"),
+		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"),
+
+		new DRC.RuleTemplate("8.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Via1",           "Via1",           3,  null),
+
+		new DRC.RuleTemplate("8.3",  DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-1",         null,            1, "Metal-1-Metal-2-Con"),
+
+		new DRC.RuleTemplate("8.4",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACING,  "Poly-Cut",       "Via1",           2,  null),
+		new DRC.RuleTemplate("8.4",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACING,  "Active-Cut",     "Via1",           2,  null),
+
+		new DRC.RuleTemplate("8.5",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACINGE, "Via1",           "Polysilicon-1",  2,  null),
+		new DRC.RuleTemplate("8.5",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACINGE, "Via1",           "Transistor-Poly",2,  null),
+		new DRC.RuleTemplate("8.5",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACINGE, "Via1",           "Polysilicon-2",  2,  null),
+		new DRC.RuleTemplate("8.5",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACINGE, "Via1",           "P-Active",       2,  null),
+		new DRC.RuleTemplate("8.5",        DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACINGE, "Via1",           "N-Active",       2,  null),
+
+		new DRC.RuleTemplate("9.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Metal-2",         null,            3,  null),
+
+		new DRC.RuleTemplate("9.2",  DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "Metal-2",        "Metal-2",        4,  null),
+		new DRC.RuleTemplate("9.2",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACING,  "Metal-2",        "Metal-2",        3,  null),
+
+		new DRC.RuleTemplate("9.3",  DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
+
+		new DRC.RuleTemplate("9.4",  DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        8),
+		new DRC.RuleTemplate("9.4",  DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        6),
+
+		new DRC.RuleTemplate("11.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "Polysilicon-2",   null,            7,  null),
+		new DRC.RuleTemplate("11.1", DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Polysilicon-2",   null,            3,  null),
+
+		new DRC.RuleTemplate("11.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Polysilicon-2",  "Polysilicon-2",  3,  null),
+
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SU, DRC.RuleTemplate.SURROUND, "Polysilicon-2",  "Polysilicon-1",  5,  "Metal-1-Polysilicon-1-2-Con"),
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SU, DRC.RuleTemplate.NODSIZ,    null,             null,            15, "Metal-1-Polysilicon-1-2-Con"),
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSUR,    null,             null,            6.5,"Metal-1-Polysilicon-1-2-Con"),
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SC, DRC.RuleTemplate.SURROUND, "Polysilicon-2",  "Polysilicon-1",  2,  "Metal-1-Polysilicon-1-2-Con"),
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SC, DRC.RuleTemplate.NODSIZ,    null,             null,            9,  "Metal-1-Polysilicon-1-2-Con"),
+		new DRC.RuleTemplate("11.3", DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSUR,    null,             null,            3.5,"Metal-1-Polysilicon-1-2-Con"),
+
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            3,  "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Via2",            null,            3,  null),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.NODSIZ,    null,             null,            5,  "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSIZE,   null,             null,            2,  "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Via2",            null,            2,  null),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M23,   DRC.RuleTemplate.NODSIZ,    null,             null,            6,  "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("14.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M456,  DRC.RuleTemplate.NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"),
+
+		new DRC.RuleTemplate("14.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Via2",           "Via2",           3,  null),
+
+		new DRC.RuleTemplate("14.3", DRC.RuleTemplate.ALL, DRC.RuleTemplate.VIASUR,   "Metal-2",         null,            1,  "Metal-2-Metal-3-Con"),
+
+		new DRC.RuleTemplate("14.4", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|DRC.RuleTemplate.NSV,       DRC.RuleTemplate.SPACING,  "Via1",           "Via2",           2,  null),
+
+		new DRC.RuleTemplate("15.1", DRC.RuleTemplate.SC| DRC.RuleTemplate.M3,    DRC.RuleTemplate.MINWID,   "Metal-3",         null,            6,  null),
+		new DRC.RuleTemplate("15.1", DRC.RuleTemplate.SU| DRC.RuleTemplate.M3,    DRC.RuleTemplate.MINWID,   "Metal-3",         null,            5,  null),
+		new DRC.RuleTemplate("15.1", DRC.RuleTemplate.SC| DRC.RuleTemplate.M456,  DRC.RuleTemplate.MINWID,   "Metal-3",         null,            3,  null),
+		new DRC.RuleTemplate("15.1", DRC.RuleTemplate.SU| DRC.RuleTemplate.M456,  DRC.RuleTemplate.MINWID,   "Metal-3",         null,            3,  null),
+		new DRC.RuleTemplate("15.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Metal-3",         null,            3,  null),
+
+		new DRC.RuleTemplate("15.2", DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
+		new DRC.RuleTemplate("15.2", DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
+		new DRC.RuleTemplate("15.2", DRC.RuleTemplate.SC|DRC.RuleTemplate.M3,    DRC.RuleTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
+		new DRC.RuleTemplate("15.2", DRC.RuleTemplate.SC|DRC.RuleTemplate.M456,  DRC.RuleTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
+
+		new DRC.RuleTemplate("15.3", DRC.RuleTemplate.DE, DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("15.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M3,    DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
+		new DRC.RuleTemplate("15.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M456,  DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
+
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACINGW, "Metal-3",        "Metal-3",        8,  null),
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, "Metal-3",        "Metal-3",        6,  null),
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SC|DRC.RuleTemplate.M3,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8),
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SC|DRC.RuleTemplate.M456,  DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6),
+
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Via3",            null,            3,  null),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.CUTSIZE,   null,             null,            2, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC, DRC.RuleTemplate.MINWID,   "Via3",            null,            2,  null),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.M4,    DRC.RuleTemplate.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.SU|DRC.RuleTemplate.M56,   DRC.RuleTemplate.NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("21.1", DRC.RuleTemplate.SC, DRC.RuleTemplate.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
+
+		new DRC.RuleTemplate("21.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Via3",           "Via3",           3,  null),
+
+		new DRC.RuleTemplate("21.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-3-Metal-4-Con"),
+
+		new DRC.RuleTemplate("22.1", DRC.RuleTemplate.M4,    DRC.RuleTemplate.MINWID,   "Metal-4",         null,            6,  null),
+		new DRC.RuleTemplate("22.1", DRC.RuleTemplate.M56,   DRC.RuleTemplate.MINWID,   "Metal-4",         null,            3,  null),
+
+		new DRC.RuleTemplate("22.2", DRC.RuleTemplate.M4,    DRC.RuleTemplate.SPACING,  "Metal-4",        "Metal-4",        6,  null),
+		new DRC.RuleTemplate("22.2", DRC.RuleTemplate.DE|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACING,  "Metal-4",        "Metal-4",        4,  null),
+		new DRC.RuleTemplate("22.2", DRC.RuleTemplate.SU|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACING,  "Metal-4",        "Metal-4",        3,  null),
+
+		new DRC.RuleTemplate("22.3", DRC.RuleTemplate.M4,    DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
+		new DRC.RuleTemplate("22.3", DRC.RuleTemplate.M56,   DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
+
+		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.M4,    DRC.RuleTemplate.SPACINGW, "Metal-4",        "Metal-4",        12, null),
+		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.DE|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8),
+		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.SU|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6),
+
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Via4",            null,            3,  null),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSIZE,   null,             null,            2, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "Via4",            null,            2,  null),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
+
+		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, "Via4",           "Via4",           3,  null),
+
+		new DRC.RuleTemplate("25.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
+
+		new DRC.RuleTemplate("26.1", DRC.RuleTemplate.M5,    DRC.RuleTemplate.MINWID,   "Metal-5",         null,            4,  null),
+		new DRC.RuleTemplate("26.1", DRC.RuleTemplate.M6,    DRC.RuleTemplate.MINWID,   "Metal-5",         null,            3,  null),
+
+		new DRC.RuleTemplate("26.2", DRC.RuleTemplate.M5,    DRC.RuleTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
+		new DRC.RuleTemplate("26.2", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
+		new DRC.RuleTemplate("26.2", DRC.RuleTemplate.SU|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACING,  "Metal-5",        "Metal-5",        3,  null),
+
+		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.M5,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.M6,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
+
+		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.M5,    DRC.RuleTemplate.SPACINGW, "Metal-5",        "Metal-5",        8,  null),
+		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8),
+		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.SU|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        6),
+
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"),
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.MINWID,   "Via5",            null,            4,  null),
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.DE, DRC.RuleTemplate.NODSIZ,    null,             null,            8, "Metal-5-Metal-6-Con"),
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.CUTSIZE,   null,             null,            3, "Metal-5-Metal-6-Con"),
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.MINWID,   "Via5",            null,            3,  null),
+		new DRC.RuleTemplate("29.1", DRC.RuleTemplate.SU, DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-5-Metal-6-Con"),
+
+		new DRC.RuleTemplate("29.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Via5",           "Via5",           4,  null),
+
+		new DRC.RuleTemplate("29.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
+
+		new DRC.RuleTemplate("30.1", DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Metal-6",         null,            4,  null),
+
+		new DRC.RuleTemplate("30.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Metal-6",        "Metal-6",        4,  null),
+
+		new DRC.RuleTemplate("30.3", DRC.RuleTemplate.DE, DRC.RuleTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
+		new DRC.RuleTemplate("30.3", DRC.RuleTemplate.SU, DRC.RuleTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
+
+		new DRC.RuleTemplate("30.4", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8)
 	};
 
 	// -------------------- private and protected methods ------------------------
@@ -1896,7 +1835,7 @@ public class MoCMOS extends Technology
 			});
 		metal1PActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1PActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1PActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1PActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-N-active-contact */
@@ -1916,7 +1855,7 @@ public class MoCMOS extends Technology
 			});
 		metal1NActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1NActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1NActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1NActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1NActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-polysilicon-1-contact */
@@ -1934,7 +1873,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly1Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly1Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1Poly1Contact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1Poly1Contact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1Poly1Contact_node.setMinSize(5, 5, "5.2, 7.3");
 
 		/** metal-1-polysilicon-2-contact */
@@ -1952,7 +1891,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly2Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1Poly2Contact_node.setSpecialValues(new double [] {2, 2, 4, 3});
+		metal1Poly2Contact_node.setSpecialValues(new double [] {2, 2, 4, 4, 3, 3});
 		metal1Poly2Contact_node.setNotUsed();
 		metal1Poly2Contact_node.setMinSize(10, 10, "?");
 
@@ -1972,7 +1911,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly12Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly12Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1Poly12Contact_node.setSpecialValues(new double [] {2, 2, 6.5, 3});
+		metal1Poly12Contact_node.setSpecialValues(new double [] {2, 2, 6.5, 6.5, 3, 3});
 		metal1Poly12Contact_node.setNotUsed();
 		metal1Poly12Contact_node.setMinSize(15, 15, "?");
 
@@ -2185,7 +2124,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Metal2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Metal2Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1Metal2Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		metal1Metal2Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 		metal1Metal2Contact_node.setMinSize(5, 5, "8.3, 9.3");
 
 		/** metal-2-metal-3-contact */
@@ -2203,7 +2142,7 @@ public class MoCMOS extends Technology
 			});
 		metal2Metal3Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal2Metal3Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal2Metal3Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		metal2Metal3Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 		metal2Metal3Contact_node.setMinSize(6, 6, "14.3, 15.3");
 
 		/** metal-3-metal-4-contact */
@@ -2221,7 +2160,7 @@ public class MoCMOS extends Technology
 			});
 		metal3Metal4Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal3Metal4Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal3Metal4Contact_node.setSpecialValues(new double [] {2, 2, 2, 3});
+		metal3Metal4Contact_node.setSpecialValues(new double [] {2, 2, 2, 2, 3, 3});
 		metal3Metal4Contact_node.setMinSize(6, 6, "21.3, 22.3");
 
 		/** metal-4-metal-5-contact */
@@ -2239,7 +2178,7 @@ public class MoCMOS extends Technology
 			});
 		metal4Metal5Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal4Metal5Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal4Metal5Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		metal4Metal5Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 		metal4Metal5Contact_node.setNotUsed();
 		metal4Metal5Contact_node.setMinSize(7, 7, "25.3, 26.3");
 
@@ -2258,7 +2197,7 @@ public class MoCMOS extends Technology
 			});
 		metal5Metal6Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal5Metal6Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal5Metal6Contact_node.setSpecialValues(new double [] {3, 3, 2, 4});
+		metal5Metal6Contact_node.setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
 		metal5Metal6Contact_node.setNotUsed();
 		metal5Metal6Contact_node.setMinSize(8, 8, "29.3, 30.3");
 
@@ -2279,7 +2218,7 @@ public class MoCMOS extends Technology
 			});
 		metal1PWellContact_node.setFunction(NodeProto.Function.WELL);
 		metal1PWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1PWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1PWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-N-Well Contact */
@@ -2299,7 +2238,7 @@ public class MoCMOS extends Technology
 			});
 		metal1NWellContact_node.setFunction(NodeProto.Function.SUBSTRATE);
 		metal1NWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1NWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1NWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1NWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-Node */
@@ -3015,8 +2954,8 @@ public class MoCMOS extends Technology
 		// determine the multicut information
 		double [] specialValues = metal1PActiveContact_node.getSpecialValues();
 		double cutSize = specialValues[0];
-		double cutIndent = specialValues[2];
-		double cutSep = specialValues[3];
+		double cutIndent = specialValues[2];   // or specialValues[3]
+		double cutSep = specialValues[4];      // or specialValues[5]
 		int numCuts = (int)((activeWid-cutIndent*2+cutSep) / (cutSize+cutSep));
 		if (numCuts <= 0) numCuts = 1;
 		double cutBase = 0;
@@ -3134,8 +3073,9 @@ public class MoCMOS extends Technology
 	{
 		DRC.Rules rules = new DRC.Rules(this);
 
+		rules.displayMessage = null;
 		// load the DRC tables from the explanation table
-		rules.wideLimit = new Double(WIDELIMIT);
+		//rules.wideLimit = new Double(WIDELIMIT);
 		for(int pass=0; pass<2; pass++)
 		{
 			for(int i=0; i < theRules.length; i++)
@@ -3143,49 +3083,49 @@ public class MoCMOS extends Technology
 				// see if the rule applies
 				if (pass == 0)
 				{
-					if (theRules[i].ruleType == NODSIZ) continue;
+					if (theRules[i].ruleType == DRC.RuleTemplate.NODSIZ) continue;
 				} else
 				{
-					if (theRules[i].ruleType != NODSIZ) continue;
+					if (theRules[i].ruleType != DRC.RuleTemplate.NODSIZ) continue;
 				}
 
 				int when = theRules[i].when;
 				boolean goodrule = true;
-				if ((when&(DE|SU|SC)) != 0)
+				if ((when&(DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.SC)) != 0)
 				{
 					switch (getRuleSet())
 					{
-						case DEEPRULES:  if ((when&DE) == 0) goodrule = false;   break;
-						case SUBMRULES:  if ((when&SU) == 0) goodrule = false;   break;
-						case SCMOSRULES: if ((when&SC) == 0) goodrule = false;   break;
+						case DEEPRULES:  if ((when&DRC.RuleTemplate.DE) == 0) goodrule = false;   break;
+						case SUBMRULES:  if ((when&DRC.RuleTemplate.SU) == 0) goodrule = false;   break;
+						case SCMOSRULES: if ((when&DRC.RuleTemplate.SC) == 0) goodrule = false;   break;
 					}
 					if (!goodrule) continue;
 				}
-				if ((when&(M2|M3|M4|M5|M6)) != 0)
+				if ((when&(DRC.RuleTemplate.M2|DRC.RuleTemplate.M3|DRC.RuleTemplate.M4|DRC.RuleTemplate.M5|DRC.RuleTemplate.M6)) != 0)
 				{
 					switch (getNumMetal())
 					{
-						case 2:  if ((when&M2) == 0) goodrule = false;   break;
-						case 3:  if ((when&M3) == 0) goodrule = false;   break;
-						case 4:  if ((when&M4) == 0) goodrule = false;   break;
-						case 5:  if ((when&M5) == 0) goodrule = false;   break;
-						case 6:  if ((when&M6) == 0) goodrule = false;   break;
+						case 2:  if ((when&DRC.RuleTemplate.M2) == 0) goodrule = false;   break;
+						case 3:  if ((when&DRC.RuleTemplate.M3) == 0) goodrule = false;   break;
+						case 4:  if ((when&DRC.RuleTemplate.M4) == 0) goodrule = false;   break;
+						case 5:  if ((when&DRC.RuleTemplate.M5) == 0) goodrule = false;   break;
+						case 6:  if ((when&DRC.RuleTemplate.M6) == 0) goodrule = false;   break;
 					}
 					if (!goodrule) continue;
 				}
-				if ((when&AC) != 0)
+				if ((when&DRC.RuleTemplate.AC) != 0)
 				{
 					if (!isAlternateActivePolyRules()) continue;
 				}
-				if ((when&NAC) != 0)
+				if ((when&DRC.RuleTemplate.NAC) != 0)
 				{
 					if (isAlternateActivePolyRules()) continue;
 				}
-				if ((when&SV) != 0)
+				if ((when&DRC.RuleTemplate.SV) != 0)
 				{
 					if (isDisallowStackedVias()) continue;
 				}
-				if ((when&NSV) != 0)
+				if ((when&DRC.RuleTemplate.NSV) != 0)
 				{
 					if (!isDisallowStackedVias()) continue;
 				}
@@ -3230,7 +3170,7 @@ public class MoCMOS extends Technology
 				PrimitiveArc aty = null;
 				if (theRules[i].nodeName != null)
 				{
-					if (theRules[i].ruleType == ASURROUND)
+					if (theRules[i].ruleType == DRC.RuleTemplate.ASURROUND)
 					{
 						aty = this.findArcProto(theRules[i].nodeName);
 						if (aty == null)
@@ -3252,7 +3192,7 @@ public class MoCMOS extends Technology
 				// get more information about the rule
 				double distance = theRules[i].distance;
 				String proc = "";
-				if ((when&(DE|SU|SC)) != 0)
+				if ((when&(DRC.RuleTemplate.DE|DRC.RuleTemplate.SU|DRC.RuleTemplate.SC)) != 0)
 				{
 					switch (getRuleSet())
 					{
@@ -3262,7 +3202,7 @@ public class MoCMOS extends Technology
 					}
 				}
 				String metal = "";
-				if ((when&(M2|M3|M4|M5|M6)) != 0)
+				if ((when&(DRC.RuleTemplate.M2|DRC.RuleTemplate.M3|DRC.RuleTemplate.M4|DRC.RuleTemplate.M5|DRC.RuleTemplate.M6)) != 0)
 				{
 					switch (getNumMetal())
 					{
@@ -3275,83 +3215,100 @@ public class MoCMOS extends Technology
 					if (!goodrule) continue;
 				}
 				String rule = theRules[i].rule;
-				if (proc.length() > 0 || metal.length() > 0)
-					rule += ", " +  metal + proc;
+				String extraString = metal + proc;
+				if (extraString.length() > 0 && rule.indexOf(extraString) == -1)
+					rule += ", " +  extraString;
+				theRules[i].rule = new String(rule);
 
 				// set the rule
 				double [] specValues;
 				switch (theRules[i].ruleType)
 				{
-					case MINWID:
+					case DRC.RuleTemplate.MINWID:
+						/*
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
+						*/
+						rules.addRule(layert1, theRules[i]);
 						setLayerMinWidth(theRules[i].layer1, theRules[i].rule, distance, errorLogger);
 						break;
-					case NODSIZ:
+					case DRC.RuleTemplate.NODSIZ:
 						setDefNodeSize(nty, distance, distance, rules);
 						break;
-					case SURROUND:
+					case DRC.RuleTemplate.SURROUND:
 						setLayerSurroundLayer(nty, lay1, lay2, distance,
 						        rules.minWidth, errorLogger);
 						break;
-					case ASURROUND:
+					case DRC.RuleTemplate.ASURROUND:
 						setArcLayerSurroundLayer(aty, lay1, lay2, distance);
 						break;
-					case VIASUR:
+					case DRC.RuleTemplate.VIASUR:
 						setLayerSurroundVia(nty, lay1, distance);
 						specValues = nty.getSpecialValues();
 						specValues[2] = distance;
+						specValues[3] = distance;
 						break;
-					case TRAWELL:
+					case DRC.RuleTemplate.TRAWELL:
 						setTransistorWellSurround(distance);
 						break;
-					case TRAPOLY:
+					case DRC.RuleTemplate.TRAPOLY:
 						setTransistorPolyOverhang(distance);
 						break;
-					case TRAACTIVE:
+					case DRC.RuleTemplate.TRAACTIVE:
 						setTransistorActiveOverhang(distance);
 						break;
-					case SPACING:
+					case DRC.RuleTemplate.SPACING:
+						/*
 						rules.conList[index] = new Double(distance);
 						rules.unConList[index] = new Double(distance);
 						rules.conListRules[index] = rule;
 						rules.unConListRules[index] = rule;
+						*/
+						rules.addRule(index, theRules[i]);
 						break;
-					case SPACINGM:
+					case DRC.RuleTemplate.SPACINGM:
 						rules.conListMulti[index] = new Double(distance);
 						rules.unConListMulti[index] = new Double(distance);
 						rules.conListMultiRules[index] = rule;
 						rules.unConListMultiRules[index] = rule;
+						rules.addRule(index, theRules[i]);
 						break;
-					case SPACINGW:
+					case DRC.RuleTemplate.SPACINGW:
+						/*
 						rules.conListWide[index] = new Double(distance);
 						rules.unConListWide[index] = new Double(distance);
 						rules.conListWideRules[index] = rule;
 						rules.unConListWideRules[index] = rule;
+						*/
+						rules.addRule(index, theRules[i]);
 						break;
-					case SPACINGE:
+					case DRC.RuleTemplate.SPACINGE:
 						rules.edgeList[index] = new Double(distance);
 						rules.edgeListRules[index] = rule;
 						break;
-					case CONSPA:
-						rules.conList[index] = new Double(distance);
-						rules.conListRules[index] = rule;
+					case DRC.RuleTemplate.CONSPA:
+						//rules.conList[index] = new Double(distance);
+						//rules.conListRules[index] = rule;
+						rules.addRule(index, theRules[i]);
 						break;
-					case UCONSPA:
-						rules.unConList[index] = new Double(distance);
-						rules.unConListRules[index] = rule;
+					case DRC.RuleTemplate.UCONSPA:
+						//rules.unConList[index] = new Double(distance);
+						//rules.unConListRules[index] = rule;
+						rules.addRule(index, theRules[i]);
 						break;
-					case CUTSPA:
+					case DRC.RuleTemplate.CUTSPA:
 						specValues = nty.getSpecialValues();
-						specValues[3] = distance;
+						specValues[4] = distance;
+						specValues[5] = distance;
 						break;
-					case CUTSIZE:
+					case DRC.RuleTemplate.CUTSIZE:
 						specValues = nty.getSpecialValues();
 						specValues[0] = specValues[1] = distance;
 						break;
-					case CUTSUR:
+					case DRC.RuleTemplate.CUTSUR:
 						specValues = nty.getSpecialValues();
 						specValues[2] = distance;
+						specValues[3] = distance;
 						break;
 				}
 			}
@@ -3985,5 +3942,4 @@ public class MoCMOS extends Technology
 //			break;
 //	}
 //}
-
 }

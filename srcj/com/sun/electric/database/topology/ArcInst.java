@@ -986,7 +986,7 @@ public class ArcInst extends Geometric
 		{
 			// allow for round-off error
 			tailPt.setLocation(DBMath.round(tailPt.getX()), DBMath.round(tailPt.getY()));
-
+			//tailPt.setLocation(DBMath.smooth(tailPt.getX()), DBMath.smooth(tailPt.getY()));
 			if (!stillInPort(getTail(), tailPt, false))
 			{
 				Poly poly = getTail().getPortInst().getPoly();

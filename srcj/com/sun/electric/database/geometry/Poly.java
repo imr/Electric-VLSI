@@ -537,6 +537,18 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Method to compute the maximum size of this Polygon.
+	 * Only works with manhattan geometry.
+	 * @return
+	 */
+	public double getMaxSize()
+	{
+		Rectangle2D box = getBox();
+		if (box == null) return 0;
+		return Math.max(box.getWidth(), box.getHeight());
+	}
+
+	/**
 	 * Method to compare this Poly to another.
 	 * @param polyOther the other Poly to compare.
 	 * @return true if the Polys are the same.

@@ -600,7 +600,7 @@ public class CMOS extends Technology
 			});
 		mpc_node.setFunction(NodeProto.Function.CONTACT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 1, 2});
+		mpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Metal-Diff-P-Con */
 		PrimitiveNode mdpc_node = PrimitiveNode.newInstance("Metal-Diff-P-Con", this, 8, 8, new SizeOffset(2, 2, 2, 2),
@@ -618,7 +618,7 @@ public class CMOS extends Technology
 			});
 		mdpc_node.setFunction(NodeProto.Function.CONTACT);
 		mdpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mdpc_node.setSpecialValues(new double [] {2, 2, 1, 2});
+		mdpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Metal-Diff-Well-Con */
 		PrimitiveNode mdwc_node = PrimitiveNode.newInstance("Metal-Diff-Well-Con", this, 10, 10, new SizeOffset(3, 3, 3, 3),
@@ -636,7 +636,7 @@ public class CMOS extends Technology
 			});
 		mdwc_node.setFunction(NodeProto.Function.CONTACT);
 		mdwc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mdwc_node.setSpecialValues(new double [] {2, 2, 1, 2});
+		mdwc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Transistor */
 		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 6, 6, new SizeOffset(2, 2, 2, 2),

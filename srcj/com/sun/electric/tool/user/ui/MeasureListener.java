@@ -81,10 +81,10 @@ public class MeasureListener
             }
 
             // show coords at start and end point
-            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+start.getX()+
-                    ","+start.getY()+")", start));
-            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+end.getX()+
-                    ","+end.getY()+")", end));
+            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+TextUtils.formatDouble(start.getX())+
+                    ","+TextUtils.formatDouble(start.getY())+")", start));
+            lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("+TextUtils.formatDouble(end.getX())+
+                    ","+TextUtils.formatDouble(end.getY())+")", end));
             // add in line
             lastHighlights.add(highlighter.addLine(start, end, wnd.getCell()));
 

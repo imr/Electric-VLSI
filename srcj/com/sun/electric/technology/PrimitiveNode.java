@@ -392,8 +392,9 @@ public class PrimitiveNode extends NodeProto
 	 * <LI>for MULTICUT:
 	 *   <UL>
 	 *   <LI>cut size is [0] x [1]
-	 *   <LI>cut indented [2] from highlighting
-	 *   <LI>cuts spaced [3] apart
+	 *   <LI>cut indented [2]x[3] from highlighting
+	 *   <LI>cuts spaced [4] apart for 2-neiboring CO
+	 *   <LI>cuts spaced [5] apar for 3-neighboring CO or more
 	 *   </UL>
 	 * <LI>for SERPTRANS:
 	 *   <UL>
@@ -414,7 +415,12 @@ public class PrimitiveNode extends NodeProto
 	 * The meaning depends on the specialType (see the documentation for "getSpecialValues").
 	 * @param specialValues the special values for this PrimitiveNode.
 	 */
-	public void setSpecialValues(double [] specialValues) { this.specialValues = specialValues; }
+	public void setSpecialValues(double [] specialValues)
+	{
+		if (specialValues.length != 6)
+			throw new IndexOutOfBoundsException("Invalid number of values in setSpecialValues");
+		this.specialValues = specialValues;
+	}
 
 	/**
 	 * Method to tell whether this PrimitiveNode is a Pin.

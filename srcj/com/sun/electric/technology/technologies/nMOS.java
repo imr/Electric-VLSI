@@ -689,7 +689,7 @@ public class nMOS extends Technology
 			});
 		mpc_node.setFunction(NodeProto.Function.CONTACT);
 		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 1, 2});
+		mpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Metal-Diffusion-Con */
 		PrimitiveNode mdc_node = PrimitiveNode.newInstance("Metal-Diffusion-Con", this, 4, 4, null,
@@ -706,7 +706,7 @@ public class nMOS extends Technology
 			});
 		mdc_node.setFunction(NodeProto.Function.CONTACT);
 		mdc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mdc_node.setSpecialValues(new double [] {2, 2, 1, 2});
+		mdc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Butting-Con */
 		PrimitiveNode bc_node = PrimitiveNode.newInstance("Butting-Con", this, 6, 4, null,
