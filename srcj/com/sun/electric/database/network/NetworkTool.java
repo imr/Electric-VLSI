@@ -431,7 +431,7 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.killExport("+pp+","+oldPortInsts.size()+")");
 	}
 
-	public void renameObject(ElectricObject obj, Name oldName)
+	public void renameObject(ElectricObject obj, Name oldName, int oldVersion)
 	{
 		invalidate();
 		Cell cell = obj.whichCell();
@@ -442,7 +442,7 @@ public class NetworkTool extends Listener
 			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
-		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
+		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+","+oldVersion+")");
 	}
 
 	public void newVariable(ElectricObject obj, Variable var)

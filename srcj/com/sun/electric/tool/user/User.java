@@ -134,7 +134,7 @@ public class User extends Listener
 	/**
 	 * Daemon Method called when an object has been renamed.
 	 */
-	public void renameObject(ElectricObject obj, Name oldName)
+	public void renameObject(ElectricObject obj, Name oldName, int oldVersion)
 	{
 		if (obj instanceof Cell)
 		{
