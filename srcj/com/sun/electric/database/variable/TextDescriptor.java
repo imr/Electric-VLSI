@@ -619,7 +619,7 @@ public class TextDescriptor
 	 */
 	private void checkChanging()
 	{
-		if (owner == null) return;
+		if (owner == null || !owner.inDatabase()) return;
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast

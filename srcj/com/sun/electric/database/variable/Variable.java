@@ -106,6 +106,7 @@ public class Variable
 	public final void checkChanging()
 	{
 		ElectricObject owner = descriptor.owner;
+		if (!owner.inDatabase()) return;
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast

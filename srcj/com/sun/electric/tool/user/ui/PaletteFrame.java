@@ -287,14 +287,14 @@ public class PaletteFrame
 
 	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
 	{
-		Undo.changesQuiet(true);
+		//Undo.changesQuiet(true);
 		NodeInst ni = NodeInst.lowLevelAllocate();
 		SizeOffset so = np.getSizeOffset();
 		Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
 			(so.getHighYOffset() - so.getLowYOffset()) / 2);
 		AffineTransform trans = NodeInst.pureRotate(angle, 1, 1);
 		trans.transform(pt, pt);
-		Undo.changesQuiet(false);
+		//Undo.changesQuiet(false);
 		ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
 		np.getTechnology().setPrimitiveFunction(ni, func);
 //		Undo.setNextChangeQuiet();
@@ -672,7 +672,7 @@ public class PaletteFrame
 			// make a single-square Image
 			Image img = createImage(frame.entrySize, frame.entrySize);
 			Graphics2D g2 = (Graphics2D)img.getGraphics();
-			Undo.changesQuiet(true);
+			//Undo.changesQuiet(true);
 			for(int x=0; x<frame.menuX; x++)
 			{
 				for(int y=0; y<frame.menuY; y++)
@@ -735,7 +735,7 @@ public class PaletteFrame
 					}
 				}
 			}
-			Undo.changesQuiet(false);
+			//Undo.changesQuiet(false);
 
 			// show dividing lines
 			g.setColor(Color.BLACK);

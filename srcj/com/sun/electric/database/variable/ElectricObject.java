@@ -607,6 +607,12 @@ public class ElectricObject
 	 */
 	public void checkChanging() { Job.checkChanging(); }
 
+	/**
+	 * Routine which indicates that this object is in database.
+	 * Some objects are not in database, for example NodeInsts in PaletteFrame.
+	 * @return true if this object is in database.
+	 */
+	public boolean inDatabase() { return true; }
 
 	/**
 	 * Routine to return the Key object for a given Variable name.
