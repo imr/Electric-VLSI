@@ -477,7 +477,7 @@ public class Interval
 	// -----------------------------------------------------------------------
  
 	/**
-	 * Returns an approximation of the midpoint of this interval, i.e.
+	 * Returns double number nearest to the midpoint of this interval, i.e.
 	 * 
 	 * x.mid == (x.inf() + x.sup()) / 2.
 	 * 
@@ -490,7 +490,10 @@ public class Interval
 	 * </UL> 
 	 */
     public double mid() {
-		return inf == sup ? inf : -inf == sup ? 0 : 0.5*inf + 0.5*sup;
+		double mid = 0.5*(inf + sup);
+		if (mid > Double.NEGATIVE_INFINITY && mid < Double.POSITIVE_INFINITY)
+			return mid;
+		return -inf == sup ? 0 : 0.5*inf + 0.5*sup;
     }
 
 	/**
@@ -505,7 +508,27 @@ public class Interval
 	 * </UL> 
 	 */
     public double wid() {
-		return add_up(sup, -inf);
+		return addPosUp(sup, -inf);
+	}
+
+	/**
+	 * Returns an upper bound for the radius of this interval, i.e.
+	 *
+	 * x.mid() - x.rad() <= x.inf() <= x.sup <= x.mid() + x.rad()
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.rad() == NaN for x == [ EMPTY ] 
+	 * <LI> x.rad() == +INF for any infinite interval
+	 * </UL>
+	 */
+	public double rad() {
+		double mid = (inf + sup) * 0.5;
+		if (!(mid > Double.NEGATIVE_INFINITY && mid < Double.POSITIVE_INFINITY)) {
+			if (inf == Double.NEGATIVE_INFINITY || sup == Double.POSITIVE_INFINITY) return Double.POSITIVE_INFINITY;
+			mid = 0.5*inf + 0.5*sup;
+		}
+		return Math.max(addPosUp(sup, -mid), addPosUp(mid, -inf));
 	}
 
 	/**
@@ -623,8 +646,8 @@ public class Interval
 		if (isInfinite() || x.isInfinite())
 			return Double.POSITIVE_INFINITY;;
 
-		double dinf = this.inf > x.inf ? add_up(this.inf, -x.inf) : add_up(-this.inf, x.inf);
-		double dsup = this.sup > x.sup ? add_up(this.sup, -x.sup) : add_up(-this.sup, x.sup);
+		double dinf = this.inf > x.inf ? addPosUp(this.inf, -x.inf) : addPosUp(-this.inf, x.inf);
+		double dsup = this.sup > x.sup ? addPosUp(this.sup, -x.sup) : addPosUp(-this.sup, x.sup);
 
 		return Math.max(dinf, dsup);
 	}
@@ -1081,7 +1104,7 @@ public class Interval
     }
 
 	/**
-	 * Adds interval x to this interval and returns the sum.
+	 * Adds interval y to this interval and returns the sum.
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
@@ -1105,7 +1128,38 @@ public class Interval
 	}
 
 	/**
-	 * Subtracts interval x from this interval and returns the difference.
+	 * Adds double number y to this interval and returns the sum.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x += y == [ EMPTY ] for x == [ EMPTY ] or y == NaN
+	 * </UL>
+	 */
+	public Interval add(double y) {
+		double l = this.inf + y;
+		if (l - this.inf > y || l - y > this.inf) {
+			assert Math.abs(l) >= MIN_NORMAL*2;
+			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+		} else if (!(l < Double.POSITIVE_INFINITY)) {
+			if (y >= this.sup) // x is not [EMPTY] and y is not NaN 
+				l = Double.MAX_VALUE;
+		}
+		double h = this.sup + y;
+		if (h - this.sup < y || h - y < this.sup) {
+			assert Math.abs(h) >= MIN_NORMAL*2;
+			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+		} else if (!(h > Double.NEGATIVE_INFINITY)) {
+			if (y <= this.inf) // x is not [EMPTY] and y is not NaN
+				h = -Double.MAX_VALUE;
+		}
+		inf = l;
+		sup = h;
+		return this;
+		
+	}
+
+	/**
+	 * Subtracts interval y from this interval and returns the difference.
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
@@ -1120,7 +1174,7 @@ public class Interval
 		}
 		double h = this.sup - y.inf;
 		if (this.sup - h >  y.inf || h + y.inf < this.sup) {
-			assert Math.abs(l) >= MIN_NORMAL*2;
+			assert Math.abs(h) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		inf = l;
@@ -1129,7 +1183,37 @@ public class Interval
     }
 
 	/**
-	 * Multiplies this interval by interval x and returns the product.
+	 * Subtracts double number y from this interval and returns the difference.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x -= y == [ EMPTY ] for x == [ EMPTY ] or y == NaN
+	 * </UL>
+	 */
+	public Interval sub(double y) {
+		double l = this.inf - y;
+		if (this.inf - l < y || l + y > this.inf) {
+			assert Math.abs(l) >= MIN_NORMAL*2;
+			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+		} else if (!(l < Double.POSITIVE_INFINITY)) {
+			if (y >= this.sup) // x is not [EMPTY] and y is not NaN 
+				l = Double.MAX_VALUE;
+		}
+		double h = this.sup - y;
+		if (this.sup - h >  y || h + y < this.sup) {
+			assert Math.abs(h) >= MIN_NORMAL*2;
+			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+		} else if (!(h > Double.NEGATIVE_INFINITY)) {
+			if (y <= this.inf) // x is not [EMPTY] and y is not NaN
+				h = -Double.MAX_VALUE;
+		}
+		inf = l;
+		sup = h;
+		return this;
+    }
+
+	/**
+	 * Multiplies this interval by interval y and returns the product.
 	 *
 	 *
 	 * Special cases in the extended system:
@@ -1205,7 +1289,7 @@ public class Interval
 	}
 
 	/**
-	 * Divides this interval by interval x and returns the quotient.
+	 * Divides this interval by interval y and returns the quotient.
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
@@ -1377,29 +1461,38 @@ public class Interval
 	}
 
 	private static double nextPos(double x) {
-		assert x >= 0;
+		assert x >= 0 || x != x;
 		return x >= MIN_NORMAL*2 ? x + x*ULP_EPS : x + Double.MIN_VALUE;
 	}
 	private static double nextNeg(double x) {
-		assert x <= 0;
+		assert x <= 0 || x != x;
 		return x <= -MIN_NORMAL ? (x > Double.NEGATIVE_INFINITY ? x*SCALE_DOWN : -Double.MAX_VALUE) : x < 0 ? x + Double.MIN_VALUE : x;
 	}
 
 	private static double prevPos(double x) {
-		assert x >= 0;
+		assert x >= 0 || x != x;
 		return x >= MIN_NORMAL ? (x < Double.POSITIVE_INFINITY ? x*SCALE_DOWN : Double.MAX_VALUE ) : x > 0 ? x - Double.MIN_VALUE : x;
 	}
 
 	private static double prevNeg(double x) {
-		assert x <= 0;
+		assert x <= 0 || x != x;
 		return x <= -MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
 	}
 
-	private double add_up(double x, double y) {
+	public static double addUp(double x, double y) {
 		double z = x + y;
-		assert z > 0;
 		if (z - x < y || z - y < x) {
-			assert Math.abs(z) > MIN_NORMAL*2;
+			assert Math.abs(z) >= MIN_NORMAL*2;
+			return (z > 0 ? z + z*ULP_EPS : z > Double.NEGATIVE_INFINITY ? z*SCALE_DOWN : -Double.MAX_VALUE);
+		}
+		return (z == z || x != x || y != y ? z : Double.POSITIVE_INFINITY);
+	}
+
+	public static double addPosUp(double x, double y) {
+		double z = x + y;
+		assert z >= 0 || z != z;
+		if (z - x < y || z - y < x) {
+			assert z >= MIN_NORMAL*2;
 			z = z + z*ULP_EPS;
 		}
 		return z;

@@ -86,13 +86,16 @@ class TestIntervals {
 	    case 4: md = mix.sup(); nd = nix.sup(); break;
 	    case 5: md = mix.mid(); nd = nix.mid(); break;
 	    case 6: md = mix.wid(); nd = nix.wid(); break;
-	    case 7: md = mix.mig(); nd = nix.mig(); break;
-	    case 8: md = mix.mag(); nd = nix.mag(); break;
+	    case 7: md = mix.rad();
+		nd = mix.isEmpty() ? Double.NaN : mix.isInfinite() ? Double.POSITIVE_INFINITY : miz.assign(-mix.mid()).add(mix).mag();
+		break;
+	    case 8: md = mix.mig(); nd = nix.mig(); break;
+	    case 9: md = mix.mag(); nd = nix.mag(); break;
 
-	    case 9: miz.assign(mix).abs(); niz.assign(nix).abs(); break;
-	    case 10: miz.assign(mix).negate(); niz.assign(nix).negate(); break;
-	    case 11: miz.assign(mix).exp(); niz.assign(nix).exp(); break;
-	    case 12: miz.assign(mix).log(); niz.assign(nix).log(); break;
+	    case 10: miz.assign(mix).abs(); niz.assign(nix).abs(); break;
+	    case 11: miz.assign(mix).negate(); niz.assign(nix).negate(); break;
+	    case 12: miz.assign(mix).exp(); niz.assign(nix).exp(); break;
+	    case 13: miz.assign(mix).log(); niz.assign(nix).log(); break;
 	}
     }
 
@@ -105,9 +108,13 @@ class TestIntervals {
 		if (k <= 2) {
 		    if (mb != nb)
 			System.out.println("checkUnops k=" + k);
-		} else if (k <= 8) {
-		    if (md != nd && (md == md || nd == nd))
-			System.out.println("checkUnops k=" + k);
+		} else if (k <= 9) {
+		    if (md != nd && (md == md || nd == nd)) {
+			if (k == 5 && (md == Functions.prev(nd) || md == Functions.next(nd))) continue;
+			System.out.println("checkUnops k=" + k + " " + nix + " " + md + " " + nd);
+			System.out.println(Double.toHexString(mix.inf()) + " " + Double.toHexString(mix.sup()) + " " + Double.toHexString(md) );
+			System.out.println(Double.toHexString(miz.inf()) + " " + Double.toHexString(miz.sup()) + " " + Double.toHexString(mix.mid()) );
+		    }
 		} else {
 		    double minf = miz.inf();
 		    double msup = miz.sup();

@@ -42,10 +42,13 @@ ulp: Ulp.class
 	java  -client -XX:+PrintCompilation  -classpath . Ulp
 
 testint: TestIntervals.class
-	java -classpath $(JARLOC):. TestIntervals
+	java -enableassertions -classpath $(JARLOC):. TestIntervals
 
 sum: Sum.class
 	java -server -XX:+PrintCompilation -classpath $(JARLOC):. Sum
+
+inflated: InflatedLinearMap.class
+	java -server -classpath $(JARLOC):. InflatedLinearMap
 
 clean:
 	rm -rf *.class
