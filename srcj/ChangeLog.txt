@@ -6,6 +6,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ae: *********************************
 
+FIX: (10/27/04, JKG) Added code in LibraryFiles.readExternalLibraryFromFilename to handle
+    references to other library formats.
+
+IMP/MAN: (10/27/04, JKG) Added File->Export->ELIB (version 7) All libraries command.
+
 BUG: (10/27/04, GVG) Miscellaneous: another attempt to remove out of bound exception and fix the group naming (it was removing last character due to <= condition)
 Removing TSMC90 PP/NP.S.7 rule in DRC.
 
