@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
-IMP: (01/05/05, GVG) Avoid exception if new name is null due to errors in Cell.rename.
+IMP: (01/08/05, GVG) Catching expection due to bad filename while generating ImageIO during export.
 
-IMP: (01/05/05, GVG) DRC TSMC90nm: NW.A.1 for P-wells to be consistent.
+IMP: (01/08/05, GVG) Avoid exception if new name is null due to errors in Cell.rename.
+
+IMP: (01/08/05, GVG) DRC TSMC90nm: NW.A.1 for P-wells to be consistent.
 
 IMP: (01/05/05, DN) View, Libraries, Cells, Exports, Tools,
 Technologies, PrimitveNodes, PrimitiveArcs, Variables are comparable by name and ordered in database.

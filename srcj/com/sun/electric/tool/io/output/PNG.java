@@ -57,7 +57,8 @@ public class PNG extends Output
         }
         catch (Exception e)
         {
-	        e.printStackTrace();
+	        //e.printStackTrace();
+            System.out.println("PNG output '" + filePath + "' cannot be generated");
         }
 	}
 
