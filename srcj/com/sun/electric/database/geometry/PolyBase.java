@@ -197,12 +197,7 @@ public class PolyBase implements Shape
 	public void transform(AffineTransform af)
 	{
 		// Nothing to do
-		if (af.getType() == AffineTransform.TYPE_IDENTITY)
-		{
-//			if (Main.LOCALDEBUGFLAG)
-//				System.out.println("Doing nothing");
-			return;
-		}
+		if (af.getType() == AffineTransform.TYPE_IDENTITY) return;
 
 		// special case for Poly type CIRCLEARC and THICKCIRCLEARC: if transposing, reverse points
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
