@@ -4,11 +4,6 @@
 <!-- COMMAND Edit/Cleanup Cell/Cleanup Pins Everywhere -->
 <!-- COMMAND Edit/Arc/Insert Jog In Arc -->
 
-When connecting between two objects that are on different layers, Electric will insert vias to change layers.
-Thus, you can wire from a metal-1 pin to a metal-2 pin, and a single via will be created.
-When a via is inserted, it is placed closest to the "destination" node (or farthest from the original node).
-<P>
-The width of a new arc is automatically chosen according to a number of factors.
 The default width is set by the "New Arcs" preferences (in menu <B>File / Preferences...</B>, "General" section, "New Arcs" tab).
 If there are other arcs of this type already connected to the new one,
 and they are wider than normal, then the new arc will use that width.
@@ -17,6 +12,7 @@ Note that all arcs overlap their endpoint by half of their width,
 so very wide arcs may overlap their destination with too much geometry.
 You can turn off this overlap by using the <B>Toggle End Extension</B> command
 (in menu <B>Edit / Arc</B>).
+See <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A> for more on End Extension.
 <P>
 <TABLE><TR><TD>
 An unusual circuit creation command is the <B>Insert Jog In Arc</B> command (in menu <B>Edit / Arc</B>).

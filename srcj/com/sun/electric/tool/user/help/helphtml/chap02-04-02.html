@@ -11,8 +11,7 @@ Another way to move a node is to use the <B>Object Properties...</B> command
 and type new X and Y positions.
 This dialog allows other modifications to be made as well (orientation, etc.)
 <P>
-The dialog shows the location of the anchor-point of the node,
-which may be in any number of positions (see <A HREF="chap02-02-01.html#chap02-02-01">Section 2-2-1</A>).
+The dialog shows the location of the anchor-point of the node.
 </TD><TD><CENTER><IMG SRC="fig02-01.png" ALT="Figure 2.1"></CENTER></TD></TR></TABLE>
 <P>
 The dialog also has a field for the node's name.
@@ -33,14 +32,18 @@ which vary according to the type of node selected:
 <TABLE><TR><TD>
 <UL>
 <LI>"Expanded" and "Unexpanded" control how the node is drawn (if it is a cell instance).
-An expanded instance is one that shows its contents; an unexpanded instance is drawn as a black box.
+An expanded instance is one that shows its contents; an unexpanded instance is drawn as a black box
+(see <A HREF="chap03-04.html#chap03-04">Section 3-4</A>).
 </LI>
+
 <LI>"Easy to Select" sets whether this node is selectable with a simple click.
 This feature allows you to eliminate pieces of circuitry from active editing
 (see <A HREF="chap02-01-05.html#chap02-01-05">Section 2-1-5</A>).</LI>
+
 <LI>"Invisible Outside Cell" 
 indicates that this node will not be drawn when the current cell is viewed from higher-up the hierarchy.
 </LI>
+
 <LI>"Locked" nodes may not be changed (moved, deleted).
 </LI>
 </UL>
@@ -49,8 +52,8 @@ indicates that this node will not be drawn when the current cell is viewed from 
 The bottom of the expanded Properties... dialog has a scroll area that can view "Ports" or "Attributes".
 By default, a list of the node's ports is shown, including any exports, connections, and highlight details.
 If the "Attributes" button is selected, the list shows the attributes on the node.
-When "Attributes" is selected, the entries in the list let you modify individual values,
-and the "Attributes" button brings up an extended dialog for them.
+When "Attributes" is selected, the entries in the list let you modify individual values.
+Note that there is also an "Attributes" button, which brings up a full dialog for editing them.
 <P>
 <!-- NEED 4in -->
 If many objects are selected,
