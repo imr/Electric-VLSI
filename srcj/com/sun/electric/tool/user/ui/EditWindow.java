@@ -2152,8 +2152,8 @@ public class EditWindow extends JPanel
                 // highlight node we came from
                 if (pi != null)
                     highlighter.addElectricObject(pi, parent);
-                else if (no instanceof NodeInst)
-					highlighter.addElectricObject((NodeInst)no, parent);
+                else
+					highlighter.addElectricObject(no.getNodeInst(), parent);
                 // highlight portinst selected at the time, if any
 				return;
 			}
