@@ -4,6 +4,7 @@ JAVACOMPILER = javac
 JAVAFLAGS = -classpath $(BEANSHELLLOC):$(JARLOC) -source 1.5
 
 JAVAPURESRC = \
+	Interval.java \
 	IntervalMatrix.java \
 	RawWriter.java \
 	IntervalExp.java \
