@@ -78,6 +78,11 @@ public class Layout extends Constraints
 	 */
 	private static int changeClock = 10;
 
+	/**
+	 * A set of complex Cells which require extensive recomputation.
+	 */
+	private static HashSet forcedCells = new HashSet();
+
 	private Layout() {}
 
 	/**
@@ -103,6 +108,7 @@ public class Layout extends Constraints
 				cell.rememberBounds();
 			}
 		}
+		forcedCells.clear();
 	}
 
 	/**
@@ -112,17 +118,17 @@ public class Layout extends Constraints
 	{
 		// solve any cells that changed
 		List changedCells = new ArrayList();
-		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
+		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
 			changedCells.add(it.next());
 
 		deletedArcs = new HashSet();
 
 		for(Iterator it = changedCells.iterator(); it.hasNext(); )
 		{
-			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
-			Cell cell = cc.getCell();
-			boolean forcedLook = cc.getForcedLook();
-			computeCell(cell, forcedLook);
+			Cell cell = (Cell)it.next();
+			computeCell(cell, forcedCells.contains(cell));
+// 			boolean forcedLook = cc.getForcedLook();
+// 			computeCell(cell, forcedLook);
 		}
 
 		deletedArcs = null;
@@ -155,6 +161,7 @@ public class Layout extends Constraints
 				cell.setChange(null);
 			}
 		}
+		forcedCells.clear();
 	}
 
 	/**
@@ -267,7 +274,8 @@ public class Layout extends Constraints
 		double oldSX = ni.getXSizeWithMirror();
 		double oldSY = ni.getYSizeWithMirror();
 		if (alterNodeInst(ni, dCX, dCY, dSX, dSY, dRot, false))
-			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
+			forcedCells.add(ni.getParent());
+//			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
 		deletedArcs = new HashSet();
 
@@ -275,7 +283,8 @@ public class Layout extends Constraints
 		boolean flipX = (oldSX * ni.getXSizeWithMirror()) < 0;
 		boolean flipY = (oldSY * ni.getYSizeWithMirror()) < 0;
 		if (modNodeArcs(ni, dRot, dSX, dSY, flipX, flipY))
-			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
+			forcedCells.add(ni.getParent());
+//			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
 		deletedArcs = null;
 	}
@@ -317,7 +326,8 @@ public class Layout extends Constraints
 				parent = nis[i].getParent();
 		}
 		if (parent != null)
-			Undo.ChangeCell.forceHierarchicalAnalysis(parent);
+			forcedCells.add(parent);
+//			Undo.ChangeCell.forceHierarchicalAnalysis(parent);
 
 		deletedArcs = null;
 	}

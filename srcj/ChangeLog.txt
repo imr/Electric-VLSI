@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
-IMP: (01/31/04, RK) Removed the compile time limit on the number of transistors that may be combined into a single series stack.
+IMP: (01/31/05, DN) Simplifications of Undo API.
+
+BUG: (01/31/05, DN) Incorrect calculation of size of Outline primitives in "NodeInst.redoGeometric()"
+FIX: Calculate MBB both in parent and in instance coordinates.
+
+IMP: (01/31/05, RK) Removed the compile time limit on the number of transistors that may be combined into a single series stack.
 
 IMP: (01/30/05, DN) DatabaseChangeListener API changed to prepare for transactional database.
 

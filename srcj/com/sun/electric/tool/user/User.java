@@ -205,12 +205,10 @@ public class User extends Listener
 		if (Main.BATCHMODE) return;
 
 		// redraw all windows with Cells that changed
-		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
+		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
 		{
-			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
-			Cell cell = cc.getCell();
+			Cell cell = (Cell)it.next();
 			markCellForRedraw(cell, false);
-
 			PixelDrawing.forceRedraw(cell);
 		}
 	}

@@ -144,7 +144,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		}
 
         // always broadcast library changes
-        Undo.setNextChangeQuiet(false);
+//        Undo.setNextChangeQuiet(false);
         Undo.newObject(lib);
 		return lib;
 	}
@@ -240,7 +240,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		if (newCurLib != null) newCurLib.setCurrent();
 
 		// always broadcast library changes
-		Undo.setNextChangeQuiet(false);
+//		Undo.setNextChangeQuiet(false);
 		Undo.killObject(this);
 		return true;
 	}

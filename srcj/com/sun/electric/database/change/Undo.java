@@ -50,6 +50,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -678,10 +679,7 @@ public class Undo
 			if (cell != null)
 			{
 				if (major) cell.madeRevision();
-				if (!ChangeCell.contains(cell))
-				{
-					ChangeCell.add(cell);
-				}
+				changedCells.add(cell);
 			}
 			if (lib != null)
 			{
@@ -944,109 +942,14 @@ public class Undo
 		}
 	}
 
-	/**
-	 * This method describes a Cell that changed as a result of changes to the database.
-	 */
-	public static class ChangeCell
-	{
-		private Cell cell;
-		private boolean forcedLook;
-		private static List changeCells = new ArrayList();
-
-		private ChangeCell(Cell cell)
-		{
-			this.cell = cell;
-			this.forcedLook = false;
-		}
-
-		/**
-		 * Method to return the Cell that has changed.
-		 * @return the Cell that has changed.
-		 */
-		public Cell getCell() { return cell; }
-
-		/**
-		 * Method to tell whether changes to a Cell are complex and require extensive recomputation.
-		 * @return true if the hierarchy above the Cell must be examined.
-		 */
-		public boolean getForcedLook() { return forcedLook; }
-
-		/**
-		 * Method to clear the list of changed cells.
-		 */
-		public static void clear()
-		{
-			changeCells.clear();
-		}
-
-		/**
-		 * Method to add a Cell to the list of changed cells.
-		 * @param cell the Cell to add to the list.
-		 * @return the ChangeCell object associated with the Cell.
-		 */
-		public static ChangeCell add(Cell cell)
-		{
-			ChangeCell cc = new ChangeCell(cell);
-			changeCells.add(cc);
-			return cc;
-		}
-
-		/**
-		 * Method to tell whether a Cell is listed in the current change-cells.
-		 * @param cell the Cell in question.
-		 * @return true if that Cell is in the list.
-		 */
-		public static boolean contains(Cell cell)
-		{
-			//return changeCells.contains(cell);
-			for(Iterator it = changeCells.iterator(); it.hasNext(); )
-			{
-				ChangeCell cc = (ChangeCell)it.next();
-				if (cc.cell == cell) return true;
-			}
-			return false;
-		}
-
-		/**
-		 * Method to return a list of cells that have changed in this batch.
-		 * @return an Interator over the list of changed cells.
-		 */
-		public static Iterator getIterator()
-		{
-			return changeCells.iterator();
-		}
-
-		/**
-		 * Method to ensure that a cell is in the list of changed-cells.
-		 * The cell is listed with the "forcelook" state set true so that
-		 * full hierarchical analysis is done.
-		 * @param cell the Cell to add.
-		 */
-		public static void forceHierarchicalAnalysis(Cell cell)
-		{
-			if (currentBatch == null) return;
-			for(Iterator it = changeCells.iterator(); it.hasNext(); )
-			{
-				ChangeCell cc = (ChangeCell)it.next();
-				if (cc.cell != cell) continue;
-				cc.forcedLook = true;
-				return;
-			}
-
-			// if not in the list, create the entry and try again
-			ChangeCell cc = ChangeCell.add(cell);
-			cc.forcedLook = true;
-		}
-	}
-
 	private static Type broadcasting = null;
-	private static boolean doNextChangeQuietly = false;
 	private static boolean doChangesQuietly = false;
 	private static ChangeBatch currentBatch = null;
 	private static int maximumBatches = User.getMaxUndoHistory();
 	private static int overallBatchNumber = 0;
 	private static List doneList = new ArrayList();
 	private static List undoneList = new ArrayList();
+	private static HashSet changedCells = new HashSet();
 
 	/** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
 	/** List of all PropertyChangeListeners */          private static List propertyChangeListeners = new ArrayList();
@@ -1072,7 +975,7 @@ public class Undo
 		noRedoAllowed();
 
 		// erase the list of changed cells
-		ChangeCell.clear();
+		changedCells.clear();
 
 		// allocate a new change batch
 		currentBatch = new ChangeBatch();
@@ -1133,6 +1036,15 @@ public class Undo
 		fireEndChangeBatch(currentBatch);
 
 		currentBatch = null;
+	}
+
+	/**
+	 * Method to return an iterator on cells that have changed in the current batch.
+	 * @return an Interator over the changed cells.
+	 */
+	public static Iterator getChangedCells()
+	{
+		return changedCells.iterator();
 	}
 
 	/** Add a DatabaseChangeListener. It will be notified when
@@ -1440,7 +1352,8 @@ public class Undo
 	 */
 	public static void newObject(ElectricObject obj)
 	{
-		if (!recordChange()) return;
+		// always broadcast library changes
+		if (!recordChange() && !(obj instanceof Library)) return;
 		Cell cell = obj.whichCell();
 		if (cell != null) cell.checkInvariants();
 		Type type = Type.OBJECTNEW;
@@ -1466,7 +1379,8 @@ public class Undo
 	 */
 	public static void killObject(ElectricObject obj)
 	{
-		if (!recordChange()) return;
+		// always broadcast library changes
+		if (!recordChange() && !(obj instanceof Library)) return;
 		Type type = Type.OBJECTKILL;
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
@@ -1668,12 +1582,6 @@ public class Undo
 	public static ChangeBatch getCurrentBatch() { return currentBatch; }
 
 	/**
-	 * Method to request that the next change be "quiet".
-	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 */
-	public static void setNextChangeQuiet(boolean quiet) { doNextChangeQuietly = quiet; }
-
-	/**
 	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
@@ -1681,7 +1589,6 @@ public class Undo
 		Library.checkInvariants();
 		NetworkTool.changesQuiet(quiet);
         doChangesQuietly = quiet;
-        setNextChangeQuiet(quiet);
     }
 
 	/**
@@ -1693,15 +1600,7 @@ public class Undo
 	public static boolean recordChange()
 	{
 		if (currentBatch == null) return false;
-		boolean recordChange = !doChangesQuietly;
-		if (doNextChangeQuietly != doChangesQuietly)
-		{
-			// the next change state overrides the changesquietly state
-			recordChange = !doNextChangeQuietly;
-			// reset the next change quiet state
-			setNextChangeQuiet(doChangesQuietly);
-		}
-		return recordChange;
+		return !doChangesQuietly;
 	}
 
 	/**

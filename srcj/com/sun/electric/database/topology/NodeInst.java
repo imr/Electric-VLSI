@@ -1234,9 +1234,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		{
 			AffineTransform trans = rotateOut();
 			Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+			Rectangle2D bounds = new Rectangle2D.Double();
 			for (int i = 0; i < polys.length; i++)
 			{
 				Poly poly = polys[i];
+				if (i == 0)
+					bounds.setRect(poly.getBounds2D());
+				else
+					Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
 				poly.transform(trans);
 				if (i == 0)
 					visBounds.setRect(poly.getBounds2D());
@@ -1245,8 +1250,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 
 			// recompute actual bounds
-			double width = DBMath.round(visBounds.getWidth());
-			double height = DBMath.round(visBounds.getHeight());
+			double width = DBMath.round(bounds.getWidth());
+			double height = DBMath.round(bounds.getHeight());
 			sX = isXMirrored() ? -width : width;
 			sY = isYMirrored() ? -height : height;
 			return;
