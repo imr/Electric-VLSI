@@ -240,21 +240,11 @@ public class SelectObject extends EDialog
 				allNames.add(netName);
 			}
 		}
-		Collections.sort(allNames, new SortStringsInsensitive());
+		Collections.sort(allNames, new TextUtils.StringsWithNumbers());
 		for(Iterator it = allNames.iterator(); it.hasNext(); )
 		{
 			String s = (String)it.next();
 			model.addElement(s);
-		}
-	}
-
-	private static class SortStringsInsensitive implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			String s1 = (String)o1;
-			String s2 = (String)o2;
-			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
 

@@ -2,6 +2,8 @@
 
 ************************* Version 8.01l: *********************************
 
+IMP: (9/2/04, SMR) Removed printer choice from "Printing" tab of "Preferences".
+
 BUG: (9/1/04, GVG) Artwork arcs don't have network associated then modification in StatusBar crashes
 FIX: Get Network information only when network is not null.
 

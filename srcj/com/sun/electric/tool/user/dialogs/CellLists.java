@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -38,19 +38,20 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Rectangle2D;
-import java.io.FileOutputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
+import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Date;
-import java.util.Comparator;
-import java.util.Collections;
+
 import javax.swing.JFrame;
 
 
@@ -238,30 +239,6 @@ public class CellLists extends EDialog
 			recursiveMark(subCell);
 			Cell contentsCell = subCell.contentsView();
 			if (contentsCell != null) recursiveMark(contentsCell);
-		}
-	}
-
-	private static class SortByCellName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-			String s1 = c1.noLibDescribe();
-			String s2 = c2.noLibDescribe();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	private static class SortByCellDate implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-			Date r1 = c1.getRevisionDate();
-			Date r2 = c2.getRevisionDate();
-			return r1.compareTo(r2);
 		}
 	}
 
@@ -1057,10 +1034,10 @@ public class CellLists extends EDialog
 		{
 			if (orderByName.isSelected())
 			{
-				Collections.sort(cellList, new SortByCellName());
+				Collections.sort(cellList, new TextUtils.CellsByName());
 			} else if (orderByDate.isSelected())
 			{
-				Collections.sort(cellList, new SortByCellDate());
+				Collections.sort(cellList, new TextUtils.CellsByDate());
 			} else if (orderByStructure.isSelected())
 			{
 				Collections.sort(cellList, new SortByCellStructure());

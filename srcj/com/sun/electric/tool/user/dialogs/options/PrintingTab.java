@@ -32,8 +32,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.print.PrintService;
-import javax.print.PrintServiceLookup;
 import javax.swing.JPanel;
 
 /**
@@ -61,32 +59,6 @@ public class PrintingTab extends PreferencePanel
 	private Cell initialCell;
 	private double initialEPSScale;
 	private String initialEPSSyncFile;
-	private String initialPrinter;
-
-	/**
-	 * Class to find printers in a separate thread.
-	 * This can take a long time if there are many printers, so it
-	 * is done asynchronously.
-	 */
-	private static class FindPrintersThread extends Thread
-	{
-		PrintingTab dialog;
-
-		FindPrintersThread(PrintingTab dialog)
-		{
-			super("Database");
-			this.dialog = dialog;
-			start();
-		}
-
-		public void run()
-		{
-			PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
-			for(int i=0; i<printers.length; i++)
-			dialog.printDefaultPrinter.addItem(printers[i].getName());
-			dialog.printDefaultPrinter.setSelectedItem(dialog.initialPrinter);
-		}
-	}
 
 	/**
 	 * Method called at the start of the dialog.
@@ -104,11 +76,6 @@ public class PrintingTab extends PreferencePanel
 
 		initialPrintDate = IOTool.isPlotDate();
 		printPlotDateInCorner.setSelected(initialPrintDate);
-
-		// get list of printers (do it in a separate thread because it takes a long time)
-		initialPrinter = IOTool.getPrinterName();
-		if (initialPrinter == null) initialPrinter = "";
-		new FindPrintersThread(this);
 
 		initialPrintEncapsulated = IOTool.isPrintEncapsulated();
 		printEncapsulated.setSelected(initialPrintEncapsulated);
@@ -193,12 +160,6 @@ public class PrintingTab extends PreferencePanel
 		if (plotDate != initialPrintDate)
 			IOTool.setPlotDate(plotDate);
 
-		String printer = (String)printDefaultPrinter.getSelectedItem();
-		if (!printer.equals(initialPrinter))
-		{
-			IOTool.setPrinterName(printer);
-		}
-
 		boolean encapsulated = printEncapsulated.isSelected();
 		if (encapsulated != initialPrintEncapsulated)
 			IOTool.setPrintEncapsulated(encapsulated);
@@ -256,9 +217,7 @@ public class PrintingTab extends PreferencePanel
         printPlotEntireCell = new javax.swing.JRadioButton();
         printPlotDateInCorner = new javax.swing.JCheckBox();
         printPlotHighlightedArea = new javax.swing.JRadioButton();
-        jLabel18 = new javax.swing.JLabel();
         printPlotDisplayedWindow = new javax.swing.JRadioButton();
-        printDefaultPrinter = new javax.swing.JComboBox();
         jLabel19 = new javax.swing.JLabel();
         printResolution = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
@@ -333,16 +292,6 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(printPlotHighlightedArea, gridBagConstraints);
 
-        jLabel18.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel18.setText("Default printer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel4.add(jLabel18, gridBagConstraints);
-
         printPlotDisplayedWindow.setText("Plot only Displayed Window");
         printingPlotArea.add(printPlotDisplayedWindow);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -352,29 +301,22 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(printPlotDisplayedWindow, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel4.add(printDefaultPrinter, gridBagConstraints);
-
         jLabel19.setText("Print and Copy resolution factor:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel4.add(jLabel19, gridBagConstraints);
 
         printResolution.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel4.add(printResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -632,7 +574,6 @@ public class PrintingTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
@@ -645,7 +586,6 @@ public class PrintingTab extends PreferencePanel
     private javax.swing.JPanel jPanel6;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel printCellName;
-    private javax.swing.JComboBox printDefaultPrinter;
     private javax.swing.JTextField printEPSScale;
     private javax.swing.JLabel printEPSScaleLabel;
     private javax.swing.JCheckBox printEncapsulated;

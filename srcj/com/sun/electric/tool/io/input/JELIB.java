@@ -352,6 +352,7 @@ public class JELIB extends LibraryFiles
 	private void instantiateCellContents()
 	{
 		// look through all cells
+		System.out.println("Creating the circuitry...");
 		for(Iterator it = allCells.keySet().iterator(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -361,7 +362,7 @@ public class JELIB extends LibraryFiles
 			instantiateCellContent(cell, cc);
 		}
 	}
-	
+
 	/**
 	 * Method called after all libraries have been read to instantiate a single Cell.
 	 * @param cell the Cell to instantiate.
@@ -697,8 +698,7 @@ public class JELIB extends LibraryFiles
 				while (objectPos < piece.length())
 				{
 					if (piece.charAt(objectPos) == ']') break;
-					Object oneObj = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
-					objList.add(oneObj);
+					int start = objectPos;
 					boolean inQuote = false;
 					while (objectPos < piece.length())
 					{
@@ -721,6 +721,8 @@ public class JELIB extends LibraryFiles
 						}
 						objectPos++;
 					}
+					Object oneObj = getVariableValue(piece.substring(start, objectPos), 0, varType, fileName, lineNumber);
+					objList.add(oneObj);
 					objectPos++;
 				}
 				int limit = objList.size();

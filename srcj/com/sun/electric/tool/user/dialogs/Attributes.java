@@ -23,38 +23,44 @@
 */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.change.Undo;
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.Main;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
-import javax.swing.*;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 
 
 /**
@@ -385,21 +391,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
     }
 
-    /**
-     * Class to sort Variables by name.
-     */
-    public static class VariableNameSort implements Comparator
-	{
-        public int compare(Object o1, Object o2)
-        {
-            Variable v1 = (Variable)o1;
-            Variable v2 = (Variable)o2;
-            String s1 = v1.getKey().getName();
-            String s2 = v2.getKey().getName();
-            return s1.compareToIgnoreCase(s2);
-        }
-    }
-
     private void checkName() {
         // if name does not equal name of selected var, disable update button
         String varName = name.getText().trim();
@@ -453,7 +444,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             }
             variables.add(var);
         }
-        Collections.sort(variables, new VariableNameSort());
+        Collections.sort(variables, new TextUtils.VariablesByName());
 
         // show the variables
         for(Iterator it = variables.iterator(); it.hasNext(); )

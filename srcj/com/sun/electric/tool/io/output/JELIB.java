@@ -23,46 +23,34 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
 
 /** 
  * Class to write a library to disk in new Electric-Library format.
@@ -79,6 +67,7 @@ public class JELIB extends Output
 	/**
 	 * Method to write a Library in Electric Library (.jelib) format.
 	 * @param lib the Library to be written.
+	 * @return true on error.
 	 */
 	protected boolean writeLib(Library lib)
 	{
@@ -94,7 +83,8 @@ public class JELIB extends Output
 
 	/**
 	 * Method to write the .jelib file.
-	 * Returns true on error.
+	 * @param lib the Library to write.
+	 * @return true on error.
 	 */
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
@@ -107,13 +97,13 @@ public class JELIB extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			if (cell.getNumUsagesIn() == 0) textRecurse(cell, lib);
+			if (cell.getNumUsagesIn() == 0) traverseAndGatherNames(cell, lib);
 		}
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			StringBuffer abbr = (StringBuffer)abbreviationMap.get(cell);
-			if (abbr == null) textRecurse(cell, lib);
+			if (abbr == null) traverseAndGatherNames(cell, lib);
 		}
 
 		// write header information (library, version, main cell)
@@ -127,7 +117,7 @@ public class JELIB extends Output
 		if (externalLibs.size() > 0)
 		{
 			printWriter.print("\n# External Libraries:\n");
-			Collections.sort(externalLibs, new LibrariesByName());
+			Collections.sort(externalLibs, new TextUtils.LibrariesByName());
 			for(Iterator it = externalLibs.iterator(); it.hasNext(); )
 			{
 				Library eLib = (Library)it.next();
@@ -148,7 +138,7 @@ public class JELIB extends Output
 		if (toolList.size() > 0)
 		{
 			printWriter.print("\n# Tools:\n");
-			Collections.sort(toolList, new ToolsByName());
+			Collections.sort(toolList, new TextUtils.ToolsByName());
 			for(Iterator it = toolList.iterator(); it.hasNext(); )
 			{
 				Tool tool = (Tool)it.next();
@@ -279,7 +269,7 @@ public class JELIB extends Output
 			List sortedNodes = new ArrayList();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 				sortedNodes.add(it.next());
-			Collections.sort(sortedNodes, new NodesByName());
+			Collections.sort(sortedNodes, new TextUtils.NodesByName());
 			for(Iterator it = sortedNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -316,13 +306,12 @@ public class JELIB extends Output
 			List sortedArcs = new ArrayList();
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 				sortedArcs.add(it.next());
-			Collections.sort(sortedArcs, new ArcsByName());
+			Collections.sort(sortedArcs, new TextUtils.ArcsByName());
 			for(Iterator it = sortedArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
-				StringBuffer arcTypeName = (StringBuffer)abbreviationMap.get(ap);
-				printWriter.print("A" + arcTypeName.toString());
+				printWriter.print("A" + ap.getTechnology().getTechName() + ":" + ap.getName());
 				printWriter.print("|" + ai.getName());
 				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
 				StringBuffer arcBits = new StringBuffer();
@@ -358,7 +347,7 @@ public class JELIB extends Output
 			List sortedExports = new ArrayList();
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 				sortedExports.add(it.next());
-			Collections.sort(sortedExports, new ExportsByName());
+			Collections.sort(sortedExports, new TextUtils.ExportsByName());
 			for(Iterator it = sortedExports.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
@@ -393,7 +382,7 @@ public class JELIB extends Output
 			List sortedList = new ArrayList();
 			for(Iterator cIt = group.getCells(); cIt.hasNext(); )
 				sortedList.add(cIt.next());
-			Collections.sort(sortedList, new CellsByName());
+			Collections.sort(sortedList, new TextUtils.CellsByName());
 			printWriter.print("G");
 			boolean first = true;
 			for(Iterator cIt = sortedList.iterator(); cIt.hasNext(); )
@@ -412,100 +401,12 @@ public class JELIB extends Output
 		System.out.println(filePath + " written");
 		return false;
 	}
-
-	private static class NodesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			NodeInst n1 = (NodeInst)o1;
-			NodeInst n2 = (NodeInst)o2;
-			String s1 = n1.getName();
-			String s2 = n2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class ArcsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			ArcInst a1 = (ArcInst)o1;
-			ArcInst a2 = (ArcInst)o2;
-			String s1 = a1.getName();
-			String s2 = a2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class ExportsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Export e1 = (Export)o1;
-			Export e2 = (Export)o2;
-			String s1 = e1.getName();
-			String s2 = e2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class CellsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-			String s1 = c1.describe();
-			String s2 = c2.describe();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class LibrariesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Library l1 = (Library)o1;
-			Library l2 = (Library)o2;
-			String s1 = l1.getName();
-			String s2 = l2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	private static class ToolsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Tool t1 = (Tool)o1;
-			Tool t2 = (Tool)o2;
-			String s1 = t1.getName();
-			String s2 = t2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	private static class VariablesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Variable v1 = (Variable)o1;
-			Variable v2 = (Variable)o2;
-			String s1 = v1.getKey().getName();
-			String s2 = v2.getKey().getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
 	
 	/**
 	 * Method to help order the library for proper nonforward references
 	 * in the outout
 	 */
-	private void textRecurse(Cell cell, Library lib)
+	private void traverseAndGatherNames(Cell cell, Library lib)
 	{
 		Library cellLib = cell.getLibrary();
 		if (cellLib == lib)
@@ -517,7 +418,7 @@ public class JELIB extends Output
 				{
 					Cell subCell = (Cell)ni.getProto();
 					StringBuffer abbr = (StringBuffer)abbreviationMap.get(subCell);
-					if (abbr == null) textRecurse(subCell, lib);
+					if (abbr == null) traverseAndGatherNames(subCell, lib);
 				} else
 				{
 					PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -528,19 +429,28 @@ public class JELIB extends Output
 					}
 				}
 			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				ArcProto ap = ai.getProto();
-				StringBuffer abbr = (StringBuffer)abbreviationMap.get(ap);
-				if (abbr == null)
-				{
-					abbreviationMap.put(ap, new StringBuffer(ap.getTechnology().getTechName() + ":" + ap.getName()));
-				}
-			}
 		} else
 		{
 			if (!externalLibs.contains(cellLib)) externalLibs.add(cellLib);
+		}
+
+		// make sure every node has a name, and that it is unique
+		TreeSet nodeNames = new TreeSet();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			String nodeName = ni.getName();
+			if (nodeName == null)
+			{
+				System.out.println("ERROR: Cell " + cell.describe() + " has node " + ni.describe() + " with null name");
+				continue;
+			}
+			if (nodeNames.contains(nodeName))
+			{
+				System.out.println("ERROR: Cell " + cell.describe() + " has two nodes named " + nodeName);
+				continue;
+			}
+			nodeNames.add(nodeName);
 		}
 
 		// add this cell to the list
@@ -695,7 +605,7 @@ public class JELIB extends Output
 				if (var.isDontSave()) continue;
 				sortedVars.add(var);
 			}
-			Collections.sort(sortedVars, new VariablesByName());
+			Collections.sort(sortedVars, new TextUtils.VariablesByName());
 			varIterator = sortedVars.iterator();
 		}
 

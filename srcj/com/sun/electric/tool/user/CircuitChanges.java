@@ -59,13 +59,27 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
-import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
@@ -2394,7 +2408,7 @@ public class CircuitChanges
 			nodes.add(it.next());
 
 		// sort the nodes by name
-		Collections.sort(nodes, new NodesByName());
+		Collections.sort(nodes, new TextUtils.NodesByName());
 
 		// copy the nodes
 		HashMap newNodes = new HashMap();
@@ -2426,7 +2440,7 @@ public class CircuitChanges
 			arcs.add(it.next());
 
 		// sort the arcs by name
-		Collections.sort(arcs, new ArcsByName());
+		Collections.sort(arcs, new TextUtils.ArcsByName());
 
 		// extract the arcs
 		for(Iterator it = arcs.iterator(); it.hasNext(); )
@@ -2523,7 +2537,7 @@ public class CircuitChanges
 				queuedExports.add(it.next());
 
 			// sort the exports by name
-			Collections.sort(queuedExports, new ExportsByName());
+			Collections.sort(queuedExports, new TextUtils.ExportsByName());
 
 			for(Iterator it = queuedExports.iterator(); it.hasNext(); )
 			{
@@ -2554,42 +2568,6 @@ public class CircuitChanges
 
 		// delete the cell instance
 		eraseNodeInst(topno);
-	}
-
-	private static class NodesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			NodeInst n1 = (NodeInst)o1;
-			NodeInst n2 = (NodeInst)o2;
-			String s1 = n1.getName();
-			String s2 = n2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class ArcsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			ArcInst a1 = (ArcInst)o1;
-			ArcInst a2 = (ArcInst)o2;
-			String s1 = a1.getName();
-			String s2 = a2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private static class ExportsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Export e1 = (Export)o1;
-			Export e2 = (Export)o2;
-			String s1 = e1.getName();
-			String s2 = e2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
 	}
 
 	/****************************** CLEAN-UP ******************************/

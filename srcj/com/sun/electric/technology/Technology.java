@@ -23,47 +23,45 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.CMOS;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
-import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.technology.technologies.RCMOS;
-import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.Main;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.lang.reflect.Method;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
@@ -693,18 +691,6 @@ public class Technology extends ElectricObject
 		return technologies.iterator();
 	}
 
-	private static class TechnologyCaseInsensitive implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Technology c1 = (Technology)o1;
-			Technology c2 = (Technology)o2;
-			String s1 = c1.getTechName();
-			String s2 = c2.getTechName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
 	/**
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
@@ -714,7 +700,7 @@ public class Technology extends ElectricObject
 		List sortedList = new ArrayList();
 		for(Iterator it = getTechnologies(); it.hasNext(); )
 			sortedList.add(it.next());
-		Collections.sort(sortedList, new TechnologyCaseInsensitive());
+		Collections.sort(sortedList, new TextUtils.TechnologiesByName());
 		return sortedList;
 	}
 

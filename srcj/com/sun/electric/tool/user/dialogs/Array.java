@@ -33,22 +33,21 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -403,9 +402,9 @@ public class Array extends EDialog
 					arcList.add(geom);
 				}
 			}
-			Collections.sort(nodeList, new GeometricsByName());
-			Collections.sort(arcList, new GeometricsByName());
-			Collections.sort(exportList, new ExportsByName());
+			Collections.sort(nodeList, new TextUtils.GeometricsByName());
+			Collections.sort(arcList, new TextUtils.GeometricsByName());
+			Collections.sort(exportList, new TextUtils.ExportsByName());
 
 			// determine the distance between arrayed entries
 			double xOverlap = lastXDistance;
@@ -597,31 +596,6 @@ public class Array extends EDialog
 				}
 			}
 			return true;
-		}
-
-		static class GeometricsByName implements Comparator
-		{
-			public int compare(Object o1, Object o2)
-			{
-				Geometric g1 = (Geometric)o1;
-				Geometric g2 = (Geometric)o2;
-				String name1 = g1.getName();
-				String name2 = g2.getName();
-				if (name1 == null || name2 == null) return 0;
-				return name1.compareToIgnoreCase(name2);
-			}
-		}
-
-		static class ExportsByName implements Comparator
-		{
-			public int compare(Object o1, Object o2)
-			{
-				Export p1 = (Export)o1;
-				Export p2 = (Export)o2;
-				String s1 = p1.getName();
-				String s2 = p2.getName();
-				return TextUtils.nameSameNumeric(s1, s2);
-			}
 		}
 
 		private void setNewName(Geometric geom, int x, int y)

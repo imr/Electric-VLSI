@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -34,6 +35,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -48,20 +50,27 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JOptionPane;
 
@@ -164,22 +173,9 @@ public class Cell extends NodeProto implements Comparable
 				for(Iterator it = cells.iterator(); it.hasNext(); )
 					sortedList.add(it.next());
 			}
-			Collections.sort(sortedList, new CellsByView());
+			Collections.sort(sortedList, new TextUtils.CellsByView());
 			return sortedList;
 		}
-
-		private static class CellsByView implements Comparator
-		{
-			public int compare(Object o1, Object o2)
-			{
-				Cell c1 = (Cell)o1;
-				Cell c2 = (Cell)o2;
-				View v1 = c1.getView();
-				View v2 = c2.getView();
-				return v1.getOrder() - v2.getOrder();
-			}
-		}
-
 		/**
 		 * Method to return main schematics Cell in ths CellGroup.
 		 * @return main schematics Cell  in this CellGroup.
@@ -260,23 +256,13 @@ public class Cell extends NodeProto implements Comparable
 			cell.setVersionGroup(this);
 
 			// resort the group and find the newest
-			Collections.sort(versions, new CellsByVersion());
+			Collections.sort(versions, new TextUtils.CellsByVersion());
 			Cell newestCell = (Cell)versions.iterator().next();
 
 			// if the former newest is still newest, report no displacement
 			if (newestCell == formerNewestCell) formerNewestCell = null;
 
 			return formerNewestCell;
-		}
-
-		private static class CellsByVersion implements Comparator
-		{
-			public int compare(Object o1, Object o2)
-			{
-				Cell c1 = (Cell)o1;
-				Cell c2 = (Cell)o2;
-				return c2.getVersion() - c1.getVersion();
-			}
 		}
 
 		/**

@@ -23,19 +23,29 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.text.DecimalFormat;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 
 /**
@@ -880,4 +890,167 @@ public class TextUtils
 		}
 		return true;
 	}
+
+	/****************************** FOR SORTING OBJECTS ******************************/
+
+	public static class StringsWithNumbers implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			String s1 = (String)o1;
+			String s2 = (String)o2;
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	public static class CellsByView implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			View v1 = c1.getView();
+			View v2 = c2.getView();
+			return v1.getOrder() - v2.getOrder();
+		}
+	}
+
+	public static class CellsByVersion implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			return c2.getVersion() - c1.getVersion();
+		}
+	}
+
+	public static class CellsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			String s1 = c1.noLibDescribe();
+			String s2 = c2.noLibDescribe();
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	public static class CellsByDate implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			Date r1 = c1.getRevisionDate();
+			Date r2 = c2.getRevisionDate();
+			return r1.compareTo(r2);
+		}
+	}
+
+	public static class GeometricsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Geometric g1 = (Geometric)o1;
+			Geometric g2 = (Geometric)o2;
+			String name1 = g1.getName();
+			String name2 = g2.getName();
+			if (name1 == null || name2 == null) return 0;
+			return name1.compareToIgnoreCase(name2);
+		}
+	}
+
+	public static class NodesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			NodeInst n1 = (NodeInst)o1;
+			NodeInst n2 = (NodeInst)o2;
+			String s1 = n1.getName();
+			String s2 = n2.getName();
+			if (s1 == null) s1 = "";
+			if (s2 == null) s2 = "";
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	public static class ArcsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			ArcInst a1 = (ArcInst)o1;
+			ArcInst a2 = (ArcInst)o2;
+			String s1 = a1.getName();
+			String s2 = a2.getName();
+			if (s1 == null) s1 = "";
+			if (s2 == null) s2 = "";
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	public static class ExportsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Export p1 = (Export)o1;
+			Export p2 = (Export)o2;
+			String s1 = p1.getName();
+			String s2 = p2.getName();
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	/**
+	 * Class to sort Variables by name.
+	 */
+	public static class VariablesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Variable v1 = (Variable)o1;
+			Variable v2 = (Variable)o2;
+			String s1 = v1.getKey().getName();
+			String s2 = v2.getKey().getName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
+	public static class LibrariesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Library l1 = (Library)o1;
+			Library l2 = (Library)o2;
+			String s1 = l1.getName();
+			String s2 = l2.getName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
+	public static class ToolsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Tool t1 = (Tool)o1;
+			Tool t2 = (Tool)o2;
+			String s1 = t1.getName();
+			String s2 = t2.getName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
+	public static class TechnologiesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Technology c1 = (Technology)o1;
+			Technology c2 = (Technology)o2;
+			String s1 = c1.getTechName();
+			String s2 = c2.getTechName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
 }

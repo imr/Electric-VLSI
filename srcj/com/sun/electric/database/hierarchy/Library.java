@@ -24,20 +24,25 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import javax.swing.*;
-import java.util.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.swing.JOptionPane;
 
 /**
  * A Library represents a collection of Cells.
@@ -690,20 +695,8 @@ public class Library extends ElectricObject
 			for(Iterator it = new VisibleLibraryIterator(); it.hasNext(); )
 				sortedList.add(it.next());
 		}
-		Collections.sort(sortedList, new LibCaseInsensitive());
+		Collections.sort(sortedList, new TextUtils.LibrariesByName());
 		return sortedList;
-	}
-
-	private static class LibCaseInsensitive implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Library l1 = (Library)o1;
-			Library l2 = (Library)o2;
-			String s1 = l1.getName();
-			String s2 = l2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
 	}
 
 	/**
@@ -845,30 +838,6 @@ public class Library extends ElectricObject
 		return null;
 	}
 
-	private static class CellCaseInsensitive implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-			String s1 = c1.describe();
-			String s2 = c2.describe();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	private static class CellComparatorNoLibDescribe implements Comparator
-    {
-        public int compare(Object o1, Object o2)
-        {
-            Cell c1 = (Cell)o1;
-            Cell c2 = (Cell)o2;
-            String s1 = c1.noLibDescribe();
-            String s2 = c2.noLibDescribe();
-            return s1.compareTo(s2);
-        }
-    }
-
 	/**
 	 * Method to return an Iterator over all Cells in this Library.
 	 * @return an Iterator over all Cells in this Library.
@@ -894,7 +863,7 @@ public class Library extends ElectricObject
 			for(Iterator it = getCells(); it.hasNext(); )
 				sortedList.add(it.next());
 		}
-		Collections.sort(sortedList, new CellCaseInsensitive());
+		Collections.sort(sortedList, new TextUtils.CellsByName());
 		return sortedList;
 	}
 
@@ -908,7 +877,7 @@ public class Library extends ElectricObject
     {
         List sortedList = new ArrayList();
         sortedList.addAll(cellList);
-        Collections.sort(sortedList, new CellComparatorNoLibDescribe());
+        Collections.sort(sortedList, new TextUtils.CellsByName());
         return sortedList;
     }
 }

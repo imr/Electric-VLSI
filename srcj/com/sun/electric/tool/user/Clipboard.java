@@ -23,44 +23,51 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
-import com.sun.electric.tool.user.menus.MenuCommands;
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.awt.*;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
 /*
  * Class for managing the circuitry clipboard (for copy and paste).
@@ -479,63 +486,63 @@ public class Clipboard
 	 */
 	public String toString() { return "Clipboard"; }
 
-    private static class NameComparator implements Comparator
-    {
-        /** These should be String objects */
-        public int compare(Object o1, Object o2)
-        {
-            if ((o1 == null) && (o2 == null)) return 0;
-            if (o1 == null) return 1;
-            if (o2 == null) return -1;
-            String s1 = (String)o1;
-            String s2 = (String)o2;
-            Name n1 = Name.findName(s1);
-            Name n2 = Name.findName(s2);
-            return n1.compareTo(n2);
-        }
-    }
+//    private static class NameComparator implements Comparator
+//    {
+//        /** These should be String objects */
+//        public int compare(Object o1, Object o2)
+//        {
+//            if ((o1 == null) && (o2 == null)) return 0;
+//            if (o1 == null) return 1;
+//            if (o2 == null) return -1;
+//            String s1 = (String)o1;
+//            String s2 = (String)o2;
+//            Name n1 = Name.findName(s1);
+//            Name n2 = Name.findName(s2);
+//            return n1.compareTo(n2);
+//        }
+//    }
 
-	private static class NodeNameCaseInsensitive extends NameComparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			NodeInst n1 = (NodeInst)o1;
-			NodeInst n2 = (NodeInst)o2;
-			String s1 = n1.getName();
-			String s2 = n2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-            return super.compare(s1, s2);
-		}
-	}
+//	private static class NodeNameCaseInsensitive extends NameComparator
+//	{
+//		public int compare(Object o1, Object o2)
+//		{
+//			NodeInst n1 = (NodeInst)o1;
+//			NodeInst n2 = (NodeInst)o2;
+//			String s1 = n1.getName();
+//			String s2 = n2.getName();
+//			if (s1 == null) s1 = "";
+//			if (s2 == null) s2 = "";
+//            return super.compare(s1, s2);
+//		}
+//	}
 
-	private static class ArcNameCaseInsensitive extends NameComparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			ArcInst a1 = (ArcInst)o1;
-			ArcInst a2 = (ArcInst)o2;
-			String s1 = a1.getName();
-			String s2 = a2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			return super.compare(s1, s2);
-		}
-	}
+//	private static class ArcNameCaseInsensitive extends NameComparator
+//	{
+//		public int compare(Object o1, Object o2)
+//		{
+//			ArcInst a1 = (ArcInst)o1;
+//			ArcInst a2 = (ArcInst)o2;
+//			String s1 = a1.getName();
+//			String s2 = a2.getName();
+//			if (s1 == null) s1 = "";
+//			if (s2 == null) s2 = "";
+//			return super.compare(s1, s2);
+//		}
+//	}
 
-	private static class ExportNameCaseInsensitive extends NameComparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Export e1 = (Export)o1;
-			Export e2 = (Export)o2;
-			String s1 = e1.getName();
-			String s2 = e2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			return super.compare(s1, s2);
-		}
-	}
+//	private static class ExportNameCaseInsensitive extends NameComparator
+//	{
+//		public int compare(Object o1, Object o2)
+//		{
+//			Export e1 = (Export)o1;
+//			Export e2 = (Export)o2;
+//			String s1 = e1.getName();
+//			String s2 = e2.getName();
+//			if (s1 == null) s1 = "";
+//			if (s2 == null) s2 = "";
+//			return super.compare(s1, s2);
+//		}
+//	}
 
 	/**
 	 * Method to copy the list of Geometrics in "list" (NOGEOM terminated) from "fromCell"
@@ -607,7 +614,7 @@ public class Clipboard
         double dY = delta.getY();
 
 		// sort the nodes by name
-		Collections.sort(theNodes, new NodeNameCaseInsensitive());
+		Collections.sort(theNodes, new TextUtils.NodesByName());
 
 		// create the new objects
 		for(Iterator it = theNodes.iterator(); it.hasNext(); )
@@ -657,7 +664,7 @@ public class Clipboard
 		if (theArcs.size() > 0)
 		{
 			// sort the arcs by name
-			Collections.sort(theArcs, new ArcNameCaseInsensitive());
+			Collections.sort(theArcs, new TextUtils.ArcsByName());
 
 			for(Iterator it = theArcs.iterator(); it.hasNext(); )
 			{
