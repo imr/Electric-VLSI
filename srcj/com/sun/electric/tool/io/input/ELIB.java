@@ -24,9 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
@@ -1492,6 +1490,7 @@ public class ELIB extends LibraryFiles
 		{
 			Cell subCell = (Cell)np;
 			Rectangle2D bounds = subCell.getBounds();
+            //if (false)
 			if (bounds.getWidth() != width || bounds.getHeight() != height)
 			{
 				if (Math.abs(bounds.getWidth() - width) > 0.5 ||
@@ -1502,7 +1501,7 @@ public class ELIB extends LibraryFiles
 					double scaleY = height / bounds.getHeight();
 					String scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX +
 						"{" + subCell.getView().getAbbreviation() + "}";
-					if (!DBMath.areEquals(scaleX, scaleY))
+					if (!GenMath.doublesClose(scaleX, scaleY))
 					{
                         // don't scale, most likely the size changed, and this is not a lambda problem
                         //scaledCellName = null;
