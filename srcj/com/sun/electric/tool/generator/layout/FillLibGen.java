@@ -104,10 +104,15 @@ class MetalFloorplan extends Floorplan {
 		super(cellWidth, cellHeight, horiz);
 		mergedVdd = vddReserve==0;
 		double cellSpace = horiz ? cellHeight : cellWidth;
-		vddWidth = (cellSpace/2 - space - vddReserve) / 2;
 		gndWidth = (cellSpace/2 - space - gndReserve) / 2;
-		vddCenter = mergedVdd ? 0 : vddReserve/2 + vddWidth/2;
-		gndCenter = vddReserve/2 + vddWidth + space + gndWidth/2;			
+		gndCenter = cellSpace/4 + space/2 + gndWidth/2;
+		if (mergedVdd) {		
+			vddWidth = cellSpace/2 - space - vddReserve;
+			vddCenter = 0;
+		} else {
+			vddWidth = (cellSpace/2 - space - vddReserve) / 2;
+			vddCenter = vddReserve/2 + vddWidth/2;
+		}
 	}
 }
 
@@ -283,7 +288,7 @@ class CapCell {
 		public final double gndWidth = 4;
 		public final double vddGndSpace = 3;
 
-		public final double mosWidth;
+		public final double gateWidth;
 		public final int numMosX;
 		public final double mosPitchX;
 		public final double leftWellContX;
@@ -305,8 +310,8 @@ class CapCell {
 			numMosX = (int) Math.ceil(numMosD);
 			double mosWidth1 = availForCap/numMosX - SEL_WIDTH - 2*SEL_TO_MOS;
 			// round down mos Width to integral number of lambdas
-			mosWidth = Math.floor(mosWidth1);
-			mosPitchX = mosWidth + SEL_WIDTH + 2*SEL_TO_MOS;
+			gateWidth = Math.floor(mosWidth1);
+			mosPitchX = gateWidth + SEL_WIDTH + 2*SEL_TO_MOS;
 			leftWellContX = - numMosX * mosPitchX / 2;
 
 			// compute number of MOS's bottom to top
@@ -339,7 +344,7 @@ class CapCell {
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			conts[i] = LayoutLib.newNodeInst(Tech.ndm1, x, y, plan.mosWidth, 5, 
+			conts[i] = LayoutLib.newNodeInst(Tech.ndm1, x, y, plan.gateWidth, 5, 
 											 0, cell).getOnlyPortInst();
 			LayoutLib.newArcInst(Tech.m1, plan.gndWidth, wellCont, conts[i]);
 			x += plan.mosPitchX/2;
@@ -348,6 +353,19 @@ class CapCell {
 											 ).getOnlyPortInst();
 			LayoutLib.newArcInst(Tech.m1, plan.gndWidth, conts[i], wellCont);
 		}
+		
+		// bring metal to cell left and right edges to prevent notches
+		x = -plan.protoWidth/2 + plan.gndWidth/2;
+		PortInst pi;
+		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0, 
+		                           cell).getOnlyPortInst();
+		LayoutLib.newArcInst(Tech.m1, plan.gndWidth, pi, conts[0]);
+		
+		x = plan.protoWidth/2 - plan.gndWidth/2;
+		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		                           cell).getOnlyPortInst();
+		LayoutLib.newArcInst(Tech.m1, plan.gndWidth, pi, conts[conts.length-1]);
+
 		return conts;
 	}
 
@@ -360,12 +378,13 @@ class CapCell {
 		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1, x, y, POLY_CONT_WIDTH, 
 											  POLY_CONT_HEIGHT, 0, cell
 											  ).getOnlyPortInst();	
+		PortInst leftCont = poly;
 		Export e = Export.newInstance(cell, poly, "vdd_"+vddNum++);
 		e.setCharacteristic(PortProto.Characteristic.PWR);
 		
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos, x, y, plan.mosWidth, 
+			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos, x, y, plan.gateWidth, 
 												 plan.gateLength, 0, cell);	
 			G.noExtendArc(Tech.p1, POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(LEFT_POLY));
@@ -381,6 +400,20 @@ class CapCell {
 			botDiffs[i] = mos.findPortInst(BOT_DIFF);
 			topDiffs[i] = mos.findPortInst(TOP_DIFF);
 		}
+		PortInst rightCont = poly;
+
+		// bring metal to cell left and right edges to prevent notches
+		x = -plan.protoWidth/2 + plan.vddWidth/2;
+		PortInst pi;
+		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0, 
+								   cell).getOnlyPortInst();
+		LayoutLib.newArcInst(Tech.m1, plan.vddWidth, pi, leftCont);
+		
+		x = plan.protoWidth/2 - plan.vddWidth/2;
+		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+								   cell).getOnlyPortInst();
+		LayoutLib.newArcInst(Tech.m1, plan.vddWidth, pi, rightCont);
+
 	}
 	
 	private void connectDiffs(PortInst[] a, PortInst[] b) {
@@ -530,7 +563,9 @@ class FillCell {
 	private String fillName(int lo, int hi, boolean wireLowest) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("fill");
-		for (int i=hi; i>=lo; i--)  buf.append(i);
+		if (lo!=1 || hi!=6) {
+			for (int i=lo; i<=hi; i++)  buf.append(i);
+		}
 
 		if (wireLowest)  buf.append("w");
 		buf.append("{lay}");
@@ -547,6 +582,31 @@ class FillCell {
 		}
 	}	
 	
+	/** Move via's edge inside by 1 lambda if via's edge is on cell's edge */
+	private static class ViaDim {
+		public final double x, y, w, h;
+		public ViaDim(VddGndStraps lay, double x, double y, double w, double h) {
+			if (x+w/2 == lay.getCellWidth()/2) {
+				w -= 1;
+				x -= .5;
+			} else if (x-w/2 == -lay.getCellWidth()/2) {
+				w -= 1;
+				x += .5;
+			}
+			if (y+h/2 == lay.getCellHeight()/2) {
+				h -= 1;
+				y -= .5;
+			} else if (y-h/2 == -lay.getCellHeight()/2) {
+				h -= 1;
+				y += .5;
+			}
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.h = h;
+		}
+	}
+	
 	private void connectVddStraps(VddGndStraps horLay, int horNdx,
 								  VddGndStraps verLay, int verNdx, Cell cell) {
 		double w = verLay.getVddWidth(verNdx);
@@ -560,13 +620,15 @@ class FillCell {
 		PortInst horPort = horLay.getVdd(horNdx);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
 
-		PortInst via = LayoutLib.newNodeInst(viaType, x, y, w, h, 0, cell
-											 ).getOnlyPortInst();
+		ViaDim d = new ViaDim(horLay, x, y, w, h);
+
+		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0, 
+		                                     cell).getOnlyPortInst();
 
 		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
 		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
 	}
-	
+
 	private void connectGndStraps(VddGndStraps horLay, int horNdx,
 								  VddGndStraps verLay, int verNdx, Cell cell) {
 		double w = verLay.getGndWidth(verNdx);
@@ -580,8 +642,10 @@ class FillCell {
 		PortInst horPort = horLay.getGnd(horNdx);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
 
-		PortInst via = LayoutLib.newNodeInst(viaType, x, y, w, h, 0, cell
-											 ).getOnlyPortInst();
+		ViaDim d = new ViaDim(horLay, x, y, w, h);
+
+		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0, 
+		 									 cell).getOnlyPortInst();
 
 		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
 		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
@@ -649,29 +713,36 @@ public class FillLibGen extends Job {
 	private void genFillCells() {
 		Library lib = 
 			LayoutLib.openLibForWrite("fillLib", "fillLib.elib");
-		double width = 218; //218 80
-		double height = 170; //170 100 
+		double width = 245; //245 80
+		double height = 175; //175 100 
 		boolean topHori = false;
 		// m1 via = 4x4, m1 space = 6
 		// m6 via = 5x5, m6 space = 8
 		Floorplan[] plans = {
 			null,
 			new CapFloorplan(width, height, 			 !topHori),	// metal 1
-			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
-			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
-			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
-			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
-			new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
+
+//			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
+//			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
+//			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
+//			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
+//			new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
+
+			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
+			new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
+			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
+			new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
+			new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
 		};
-		//FillCell.newFillCell(lib, plans, 5, 6, true);
-		for (int i=1; i<=6; i++) {
-			for (int w=0; w<2; w++) {
-				boolean wireLowest = w==1;
-				if (!(wireLowest && i==1)) {
-					FillCell.newFillCell(lib, plans, i, 6, wireLowest);	
-				}
-			}
-		}
+		FillCell.newFillCell(lib, plans, 1, 2, true);
+//		for (int i=1; i<=6; i++) {
+//			for (int w=0; w<2; w++) {
+//				boolean wireLowest = w==1;
+//				if (!(wireLowest && i==1)) {
+//					FillCell.newFillCell(lib, plans, i, 6, wireLowest);	
+//				}
+//			}
+//		}
 		Cell gallery = Gallery.makeGallery(lib);
 	}
 	
