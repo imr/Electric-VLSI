@@ -47,12 +47,15 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     private static final String istcl = "TCL (not avail.)";
     private static final String islisp = "Lisp (not avail.)";
 
+    private static final String displaynone = "None";
+
     private Variable var;
     private TextDescriptor td;
     private String futureVarName;
     private ElectricObject owner;
     private TextDescriptor.Unit initialUnit;
-    private TextDescriptor.DispPos initialDispPos;
+    private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
+                                        // instead of a TextDescriptor.DispPos
     private String initialCode;
     private boolean initialParamter;
     private boolean initialInherits;
@@ -76,10 +79,33 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         }
 
         // populate show style dialog box
-        for (Iterator it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
-            show.addItem((TextDescriptor.DispPos)it.next());
-        }
+        populateShowComboBox(true);
 
+        // default settings
+
+        // set code
+        initialCode = notcode;
+        code.setSelectedItem(notcode);
+        // set units
+        initialUnit = TextDescriptor.Unit.NONE;
+        units.setSelectedItem(initialUnit);
+        // set show style
+        initialDispPos = TextDescriptor.DispPos.NAMEVALUE;
+        show.setSelectedItem(initialDispPos);
+        // set isParam
+        initialParamter = false;
+        parameter.setSelected(false);
+        // only vars on cell and nodeinst can thier parameter property set
+        if (!(owner instanceof Cell) && !(owner instanceof NodeInst))
+            parameter.setEnabled(false);
+        // set isInherits
+        initialInherits = false;
+        inherited.setSelected(false);
+        // only vars on Cell and Exports can have their inherits property set
+        if (!(owner instanceof Cell) && !(owner instanceof Export))
+            inherited.setEnabled(false);
+
+        // dialog is disabled by default
         setVariable(null, null, null, null);
     }
 
@@ -122,33 +148,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
         if (var != null) this.td = var.getTextDescriptor(); else td = tdesc;
 
-        if (td == null) {
-            // do default settings for future var name
-
-            // set code
-            initialCode = notcode;
-            code.setSelectedItem(notcode);
-            // set units
-            initialUnit = TextDescriptor.Unit.NONE;
-            units.setSelectedItem(initialUnit);
-            // set show style
-            initialDispPos = TextDescriptor.DispPos.NAMEVALUE;
-            show.setSelectedItem(initialDispPos);
-            // set isParam
-            initialParamter = false;
-            parameter.setSelected(false);
-            // only vars on cell and nodeinst can thier parameter property set
-            if (!(owner instanceof Cell) && !(owner instanceof NodeInst))
-                parameter.setEnabled(false);
-            // set isInherits
-            initialInherits = false;
-            inherited.setSelected(false);
-            // only vars on Cell and Exports can have their inherits property set
-            if (!(owner instanceof Cell) && !(owner instanceof Export))
-                inherited.setEnabled(false);
-
-            return;
-        }
+        // if td is null (implies var is null) and futureVarName is null,
+        // then use the current panel values to apply to futureVarName.
+        if ((td == null) && (futureVarName != null)) return;
 
         // otherwise, use td
 
@@ -167,7 +169,19 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         units.setSelectedItem(td.getUnit());
         // set show style
         initialDispPos = td.getDispPart();
-        show.setSelectedItem(td.getDispPart());
+        // show style is none if var non-null and isDisplay is false
+        if (var != null) {
+            // make sure "none" is a choice
+            populateShowComboBox(true);
+            if (!var.isDisplay()) {
+                show.setSelectedIndex(0);
+            } else {
+                show.setSelectedItem(initialDispPos);
+            }
+        } else {
+            populateShowComboBox(false);
+            show.setSelectedItem(initialDispPos);
+        }
         // set isParam
         initialParamter = td.isParam();
         parameter.setSelected(td.isParam());
@@ -197,8 +211,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         // see if units changed
         TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
         if (newUnit != initialUnit) changed = true;
-        // see if show style changed
-        TextDescriptor.DispPos newDisp = (TextDescriptor.DispPos)show.getSelectedItem();
+        // see if show style changed - check if DispPos changed
+        Object newDisp = show.getSelectedItem();
         if (newDisp != initialDispPos) changed = true;
         // see if is param changed
         boolean newParameter = parameter.isSelected();
@@ -230,6 +244,19 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         return true;
     }
 
+    // populate show combo box. If includeNoneChoice is true, include
+    // the "None" option in the combo box. Note that it is a String, while
+    // all the other objects are TextDescriptor.DispPos objects.
+    private void populateShowComboBox(boolean includeNoneChoice) {
+        show.removeAllItems();
+        // populate show style dialog box
+        if (includeNoneChoice) show.addItem(displaynone);
+        for (Iterator it = TextDescriptor.DispPos.getShowStyles(); it.hasNext(); ) {
+            show.addItem((TextDescriptor.DispPos)it.next());
+        }
+
+    }
+
     private static class ChangeText extends Job {
 
         private ElectricObject owner;
@@ -238,7 +265,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         private String futureVarName;
         private String code;
         private TextDescriptor.Unit unit;
-        private TextDescriptor.DispPos dispPos;
+        private Object dispPos;
         private boolean parameter;
         private boolean inherits;
         
@@ -249,7 +276,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 String futureVarName,
                 String code,
                 TextDescriptor.Unit unit,
-                TextDescriptor.DispPos dispPos,
+                Object dispPos,
                 boolean parameter,
                 boolean inherits
                 )
@@ -285,7 +312,13 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             // change the units
             td.setUnit(unit);
             // change the show style
-            td.setDispPart(dispPos);
+            if (dispPos == displaynone) {
+                // var should not be null
+                var.clearDisplay();
+            } else {
+                var.setDisplay();
+                td.setDispPart((TextDescriptor.DispPos)dispPos);
+            }
             // change the parameter
             if (parameter) td.setParam(); else td.clearParam();
             // change the inherits

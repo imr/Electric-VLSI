@@ -252,6 +252,7 @@ public class GetInfoText2 extends javax.swing.JDialog
     private static class UpdateDialog extends Job {
         private UpdateDialog() {
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
         }
         public void doIt() {
             GetInfoText2.load();
@@ -401,27 +402,29 @@ public class GetInfoText2 extends javax.swing.JDialog
         String currentText = theText.getText();
         if (!currentText.equals(initialText)) changed = true;
 
-        if (!changed) return;
+        if (changed) {
+            // split text into lines
+            String [] textArray = new String[theText.getLineCount()];
+            for(int i=0; i<theText.getLineCount(); i++) {
+                try {
+                    int startPos = theText.getLineStartOffset(i);
+                    int endPos = theText.getLineEndOffset(i);
+                    if (currentText.charAt(endPos-1) == '\n') endPos--;
+                    textArray[i] = currentText.substring(startPos, endPos);
+                } catch (javax.swing.text.BadLocationException e)
+                {
+                }
+            }
 
-        // split text into lines
-        String [] textArray = new String[theText.getLineCount()];
-        for(int i=0; i<theText.getLineCount(); i++) {
-            try {
-                int startPos = theText.getLineStartOffset(i);
-                int endPos = theText.getLineEndOffset(i);
-                if (currentText.charAt(endPos-1) == '\n') endPos--;
-                textArray[i] = currentText.substring(startPos, endPos);
-            } catch (javax.swing.text.BadLocationException e)
-            {
+            if (textArray.length > 0) {
+                // generate job to change text
+                ChangeText job = new ChangeText(var, shownText.getName(), owner, textArray);
+                initialText = currentText;
             }
         }
-
-        if (textArray.length == 0) return;
-        ChangeText job = new ChangeText(var, shownText.getName(), owner, textArray);
         // update dialog
         UpdateDialog job2 = new UpdateDialog();
 
-        initialText = currentText;
     }
 
     private void okActionPerformed(ActionEvent evt)

@@ -240,6 +240,7 @@ public class GetInfoExport2 extends javax.swing.JDialog
     private static class UpdateDialog extends Job {
         private UpdateDialog() {
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
         }
         public void doIt() {
             GetInfoExport2.load();
@@ -430,7 +431,7 @@ public class GetInfoExport2 extends javax.swing.JDialog
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
-		Attributes.showDialog();
+		Attributes2.showDialog();
 	}//GEN-LAST:event_attributesActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
@@ -457,14 +458,16 @@ public class GetInfoExport2 extends javax.swing.JDialog
         String newRefName = refName.getText();
         if (!newRefName.equals(initialRefName)) changed = true;
 
-        if (!changed) return;
-
-		ChangeExport job = new ChangeExport(
-                shownExport,
-                newName,
-                newBodyOnly, newAlwaysDrawn,
-                newChar, newRefName
-                );
+        if (changed) {
+            // generate Job to change export port options
+            ChangeExport job = new ChangeExport(
+                    shownExport,
+                    newName,
+                    newBodyOnly, newAlwaysDrawn,
+                    newChar, newRefName
+                    );
+        }
+        // possibly generate job to change export text options
         textPanel.applyChanges();
         // update dialog
         UpdateDialog job2 = new UpdateDialog();

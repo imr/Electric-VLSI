@@ -512,6 +512,7 @@ public class Attributes2 extends javax.swing.JDialog
             this.newName = newName;
             this.newValue = newValue;
             this.owner = owner;
+            startJob();
         }
 
         public void doIt() {
@@ -534,6 +535,7 @@ public class Attributes2 extends javax.swing.JDialog
     private static class UpdateDialog extends Job {
         private UpdateDialog() {
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
         }
         public void doIt() {
             Attributes2.load();
@@ -759,7 +761,7 @@ public class Attributes2 extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel2, gridBagConstraints);
 
-        name.setText(" ");
+        name.setText("");
         name.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 nameKeyReleased(evt);
@@ -781,7 +783,7 @@ public class Attributes2 extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel11, gridBagConstraints);
 
-        value.setText(" ");
+        value.setText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -921,12 +923,14 @@ public class Attributes2 extends javax.swing.JDialog
         // Spawn a Job to create the Variable
         CreateAttribute job = new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
-        // because the var has not been created yet, the Job gets passed the Var name
+        // because the var has not been created yet, set the futureVarName for the panel
+        textPanel.setTextDescriptor(null, varName, selectedObject);
         textPanel.applyChanges();
         // same for text attributes panel
+        attrPanel.setVariable(null, null, varName, selectedObject);
         attrPanel.applyChanges();
         // generate Job to update this dialog when the changes have been processed
-        UpdateDialog job2 = new UpdateDialog();
+        //UpdateDialog job2 = new UpdateDialog();
 
         initialName = varName;
         initialValue = val;
@@ -953,6 +957,7 @@ public class Attributes2 extends javax.swing.JDialog
         if (changed) {
             // generate Job to update value
             ChangeAttribute job = new ChangeAttribute(varName, selectedObject, getVariableObject(varValue));
+            initialValue = varValue;
         }
         // update text options and attribute options (will check for changes)
         textPanel.applyChanges();
@@ -960,7 +965,6 @@ public class Attributes2 extends javax.swing.JDialog
         // generate Job to update this dialog once changes have completed
         UpdateDialog job2 = new UpdateDialog();
 
-        initialValue = varValue;
     }//GEN-LAST:event_updateButtonActionPerformed
 
     /** Closes the dialog */

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -86,6 +87,32 @@ public class TextInfoPanel extends javax.swing.JPanel
             textAnchor.addItem(pos);
         }
 
+        // default settings
+
+        // offset
+        initialXOffset = initialYOffset = 0;
+        xOffset.setText("0"); yOffset.setText("0");
+        // invisible outside cell
+        initialInvisibleOutsideCell = false;
+        invisibleOutsideCell.setSelected(initialInvisibleOutsideCell);
+        // size
+        initialSize = TextDescriptor.Size.newRelSize(1.0);
+        unitsButton.setSelected(true);
+        unitsSize.setText("1.0");
+        // position
+        initialPos = TextDescriptor.Position.CENT;
+        textAnchor.setSelectedItem(initialPos);
+        // font
+        initialFont = 0;
+        font.setSelectedIndex(initialFont);
+        // italic/bold/underline
+        initialItalic = false; italic.setEnabled(false);
+        initialBold = false; bold.setEnabled(false);
+        initialUnderline = false; underline.setEnabled(false);
+        // rotation
+        initialRotation = TextDescriptor.Rotation.ROT0;
+        rotation.setSelectedItem(initialRotation);
+
         setTextDescriptor(null, null, null);
     }
 
@@ -135,10 +162,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         boxedWidth.setEnabled(false);               // only enabled when boxed anchor is selected
         boxedHeight.setEnabled(false);               // only enabled when boxed anchor is selected
 
-        if (!enabled) {
-            // values for new TextDescriptors
-            return;
-        }
+        if (!enabled) return;
+
+        // if td is null and we are going to apply value to future var,
+        // use current panel settings.
+        if ((td == null) && (futureVarName != null)) return;
 
         NodeInst ni = null;
         // use location of owner if it is a generic invisible pin, because
@@ -151,38 +179,6 @@ public class TextInfoPanel extends javax.swing.JPanel
                 }
             }
         }
-
-        if (td == null) {
-            // do default settings for future var name
-
-            // offset
-            initialXOffset = initialYOffset = 0;
-            xOffset.setText("0"); yOffset.setText("0");
-            // invisible outside cell
-            initialInvisibleOutsideCell = false;
-            invisibleOutsideCell.setSelected(initialInvisibleOutsideCell);
-            // size
-            initialSize = TextDescriptor.Size.newRelSize(1.0);
-            unitsButton.setSelected(true);
-            unitsSize.setText("1.0");
-            // position
-            initialPos = TextDescriptor.Position.CENT;
-            textAnchor.setSelectedItem(initialPos);
-            // font
-            initialFont = 0;
-            font.setSelectedIndex(initialFont);
-            // italic/bold/underline
-            initialItalic = false; italic.setEnabled(false);
-            initialBold = false; bold.setEnabled(false);
-            initialUnderline = false; underline.setEnabled(false);
-            // rotation
-            initialRotation = TextDescriptor.Rotation.ROT0;
-            rotation.setSelectedItem(initialRotation);
-
-            return;
-        }
-
-        // td is non-null, fill it values for it
 
         // set the offset
         if (ni != null) {
@@ -233,10 +229,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         boolean ownerIsNodeInst = false;
         if (owner instanceof NodeInst) ownerIsNodeInst = true;
         if ((td.getPos() == TextDescriptor.Position.BOXED) && ownerIsNodeInst) {
-            initialBoxedWidth = ni.getXSize();
-            initialBoxedHeight = ni.getYSize();
-            boxedWidth.setEnabled(true); boxedWidth.setText(Double.toString(ni.getXSize()));
-            boxedHeight.setEnabled(true); boxedHeight.setText(Double.toString(ni.getYSize()));
+            NodeInst ni2 = (NodeInst)owner;
+            initialBoxedWidth = ni2.getXSize();
+            initialBoxedHeight = ni2.getYSize();
+            boxedWidth.setEnabled(true); boxedWidth.setText(Double.toString(ni2.getXSize()));
+            boxedHeight.setEnabled(true); boxedHeight.setText(Double.toString(ni2.getYSize()));
             // make sure BOXED option is part of pull down menu
             boolean found = false;
             for (int i=0; i<textAnchor.getModel().getSize(); i++) {
@@ -248,6 +245,9 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (!found) {
                 textAnchor.addItem(TextDescriptor.Position.BOXED);
             }
+            // offset means nothing if boxed, so disable it
+            xOffset.setEnabled(false);
+            yOffset.setEnabled(false);
         }
         if (!ownerIsNodeInst) {
             // The TextDescriptor cannot be set to boxed, so remove it from the list
@@ -465,9 +465,11 @@ public class TextInfoPanel extends javax.swing.JPanel
             // handle changes to the offset
             if (owner instanceof NodeInst) {
                 NodeInst ni = (NodeInst)owner;
+                if (ni.getProto() == Generic.tech.invisiblePinNode) {
                     double dX = xoffset - ni.getGrabCenterX();
                     double dY = yoffset - ni.getGrabCenterY();
                     ni.modifyInstance(dX, dY, 0, 0, 0);
+                } else td.setOff(xoffset, yoffset);
             } else {
                 td.setOff(xoffset, yoffset);
             }
@@ -775,11 +777,24 @@ public class TextInfoPanel extends javax.swing.JPanel
             boxedWidth.setBackground(Color.WHITE);
             boxedHeight.setEnabled(true);
             boxedHeight.setBackground(Color.WHITE);
+            // if position is boxed, offset means nothing unless this is a generic invisible pin,
+            // in which case offset is actually the pin's position.
+            // default case: disable offsets
+            xOffset.setEnabled(false); yOffset.setEnabled(false);
+            if (owner instanceof NodeInst) {
+                NodeInst ni = (NodeInst)owner;
+                if (ni.getProto() == Generic.tech.invisiblePinNode) {
+                    // enable offsets for generic invisible pin
+                    xOffset.setEnabled(true); yOffset.setEnabled(true);
+                }
+            }
         } else {
             boxedWidth.setEnabled(false);
             boxedWidth.setBackground(this.getBackground());
             boxedHeight.setEnabled(false);
             boxedHeight.setBackground(this.getBackground());
+            // if position is not boxed, enable offset
+            xOffset.setEnabled(true); yOffset.setEnabled(true);
         }
     }//GEN-LAST:event_textAnchorItemStateChanged
 
@@ -787,7 +802,12 @@ public class TextInfoPanel extends javax.swing.JPanel
     {//GEN-HEADEREND:event_seeNodeActionPerformed
         EditWindow wnd = EditWindow.getCurrent();
         Cell cell = wnd.getCell();
-        Highlight.addElectricObject(owner, cell);
+        // if owner is an export, highlight the port inst
+        if (owner instanceof Export) {
+            Highlight.addElectricObject(((Export)owner).getOriginalPort(), cell);
+        } else {
+            Highlight.addElectricObject(owner, cell);
+        }
         Highlight.finished();
 /*        ElectricObject eobj = shownText.getElectricObject();
         if (eobj instanceof NodeInst || eobj instanceof PortInst)

@@ -37,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Stack;
+import java.util.Iterator;
 
 /**
  * Used for evaluating Java expressions in Variables
@@ -149,6 +150,8 @@ public class EvalJavaBsh
 
 	/** Evaluate Object as if it were a String containing java code.
 	 * Note that this function may call itself recursively.
+     * If it calls itself recursively more than MAXEVALSTACK times,
+     * it returns a stack overflow error.
 	 * @param obj the object to be evaluated (toString() must apply).
 	 * @param context the context in which the object will be evaluated.
 	 * @param info used to pass additional info from Electric to the interpreter, if needed.
@@ -157,6 +160,12 @@ public class EvalJavaBsh
 	public static Object eval(Object obj, VarContext context, Object info) {
 		String expr = replace(obj.toString());  // change @var calls to P(var)
 		if (context == null) context = VarContext.globalContext;
+        // check for infinite recursion
+        for (int i=0; i<contextStack.size(); i++) {
+            VarContext vc = (VarContext)contextStack.get(i);
+            Object inf = infoStack.get(i);
+            if ((vc == context) && (inf == info)) return "Eval recursion error";
+        }
 		contextStack.push(context);             // push context
 		infoStack.push(info);                   // push info
 		Object ret = doEval(expr);              // ask bsh to eval
