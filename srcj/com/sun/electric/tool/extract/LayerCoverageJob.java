@@ -23,7 +23,7 @@
 * Boston, Mass 02111-1307, USA.
 */
 
-package com.sun.electric.tool.misc;
+package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -46,6 +47,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
@@ -108,57 +110,6 @@ public class LayerCoverageJob extends Job
 	    return geoms;
 	}
 
-    /**
-     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
-     * except "List Geometry on Network" commands.
-     */
-    public static void layerCoverageCommand(Type jobType, int func, int mode)
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-
-        Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
-        job.startJob();
-    }
-
-    /**
-     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
-     * except "List Geometry on Network" commands.
-     */
-    public static boolean layerCoverageCommand(Cell cell, Type jobType, int func, int mode,
-                                            double width, double height, double deltaX, double deltaY)
-    {
-        Cell curCell = cell;
-
-        if (curCell == null ) curCell = WindowFrame.needCurCell();
-        if (curCell == null) return false;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-
-        Rectangle2D bBoxOrig = curCell.getBounds();
-        double maxY = bBoxOrig.getMaxY();
-        double maxX = bBoxOrig.getMaxX();
-        for (double posY = bBoxOrig.getMinY(); posY < maxY; posY += deltaY)
-        {
-            for (double posX = bBoxOrig.getMinX(); posX < maxX; posX += deltaX)
-            {
-                Rectangle2D box = new Rectangle2D.Double(posX, posY, width, height);
-                GeometryOnNetwork geoms = new GeometryOnNetwork(curCell, null, 1, true);
-                System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
-                        posX + "," + posY + ") (" + box.getMaxX() + "," + box.getMaxY() + ")");
-                Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, geoms, box);
-                job.doIt();
-            }
-        }
-        return true;
-    }
-
     public static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
 		private GeometryHandler tree;
@@ -216,15 +167,15 @@ public class LayerCoverageJob extends Job
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
             // Undo the transformation
-            if (origBBox != null)
-            {
-                NodeInst thisInst = (NodeInst)info.getParentInst();
-                if (thisInst != null) // not top cell
-                {
-                    AffineTransform trans = thisInst.transformOut();
-                    //DBMath.transformRect(thisBBox, trans);
-                }
-            }
+//            if (origBBox != null)
+//            {
+//                NodeInst thisInst = (NodeInst)info.getParentInst();
+//                if (thisInst != null) // not top cell
+//                {
+//                    AffineTransform trans = thisInst.transformOut();
+//                    //DBMath.transformRect(thisBBox, trans);
+//                }
+//            }
         }
 
         private boolean doesIntersectBoundingBox(Rectangle2D rect, HierarchyEnumerator.CellInfo info)
@@ -248,26 +199,6 @@ public class LayerCoverageJob extends Job
             // Nothing to visit  CAREFUL WITH TRANSFORMATION IN SUBCELL!!
             if (!doesIntersectBoundingBox(curCell.getBounds(), info))
                 return false;
-//            if (origBBox != null)
-//            {
-//                Rectangle2D rect = curCell.getBounds();
-//                // only because I need to transform the points.
-//                PolyBase polyRect = new PolyBase(rect);
-//                // To avoid transformation while traversing the hierarchy
-//                polyRect.transform(info.getTransformToRoot());
-//                rect = polyRect.getBounds2D();
-//                if (!rect.intersects(origBBox)) return false;
-//                NodeInst thisInst = (NodeInst)info.getParentInst();
-//                if (thisInst == null) // top celll
-//                    thisBBox = (Rectangle2D)origBBox.clone();
-//                else
-//                {
-//                    AffineTransform trans = thisInst.transformIn();
-//                    DBMath.transformRect(thisBBox, trans);
-//                }
-//                if (!rect.intersects(thisBBox)) return false;
-//                thisBBoxArea = new Area(thisBBox);
-//            }
 
 			// Checking if any network is found
             boolean found = (netSet == null);
@@ -377,17 +308,6 @@ public class LayerCoverageJob extends Job
 			if (NodeInst.isSpecialNode(node)) return (false);
 
             boolean inside = doesIntersectBoundingBox(node.getBounds(), info);
-
-//            if (origBBox != null)
-//            {
-//                Rectangle2D rect = node.getBounds();
-//                AffineTransform trans = node.transformIn();
-//                AffineTransform rTransI = node.rotateIn(node.translateIn());
-//                Rectangle2D localBB = (Rectangle2D)thisBBox.clone();
-//                //DBMath.transformRect(localBB, trans);
-//                inside = rect.intersects(localBB);
-//                //thisBBoxArea = new Area(localBB);
-//            }
 
 			// Its a cell
             if (np instanceof Cell) return (inside);
@@ -711,7 +631,7 @@ public class LayerCoverageJob extends Job
 	    private ArrayList halfPerimeters;
 	    private double totalWire;
 
-	    private GeometryOnNetwork(Cell cell, Set nets, double lambda, boolean printable) {
+	    protected GeometryOnNetwork(Cell cell, Set nets, double lambda, boolean printable) {
 	        this.cell = cell;
 	        this.nets = nets;
 	        this.lambda = lambda;
@@ -734,6 +654,36 @@ public class LayerCoverageJob extends Job
 	            totalWire += halfperimeter;
 	        }
 	    }
+
+        /**
+         * Method to analyze amount of area covered by layer and if meets the minimum
+         * specified
+         * @param bbox
+         * @param errorLogger
+         * @return true if no errors are found
+         */
+        public boolean analyzeCoverage(Rectangle2D bbox, ErrorLogger errorLogger)
+        {
+            double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambda;
+            boolean foundError = false;
+
+            for (int i = 0; i < layers.size(); i++)
+            {
+                Layer layer = (Layer)layers.get(i);
+                Double area = (Double)areas.get(i);
+                double percentage = area.doubleValue()/totalArea * 100;
+                double minV = layer.getAreaCoverage();
+                if (percentage < minV)
+                {
+                    String msg = "Error area coverage " + layer.getName() + " min value = " + minV + " actual value = " + percentage;
+                    ErrorLogger.MessageLog err = errorLogger.logError(msg, cell, layer.getIndex());
+                    PolyBase poly = new PolyBase(bbox);
+                    err.addPoly(poly, true, cell);
+                    foundError = true;
+                }
+            }
+            return foundError;
+        }
 
 	    public void print() {
 		    // Doesn't print information

@@ -42,7 +42,8 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.misc.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -202,8 +203,8 @@ public class EditMenu {
 
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
-		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+//		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 		editInfoSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		editInfoSubMenu.addMenuItem("Describe this Technology", null,

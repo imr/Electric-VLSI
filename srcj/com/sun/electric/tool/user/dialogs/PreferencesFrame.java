@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.dialogs.options.CIFTab;
 import com.sun.electric.tool.user.dialogs.options.ColorsTab;
 import com.sun.electric.tool.user.dialogs.options.CompactionTab;
 import com.sun.electric.tool.user.dialogs.options.CopyrightTab;
+import com.sun.electric.tool.user.dialogs.options.CoverageTab;
 import com.sun.electric.tool.user.dialogs.options.DEFTab;
 import com.sun.electric.tool.user.dialogs.options.DRCTab;
 import com.sun.electric.tool.user.dialogs.options.DXFTab;
@@ -258,6 +259,10 @@ public class PreferencesFrame extends EDialog
 		CompactionTab comt = new CompactionTab(parent, modal);
 		optionPanes.add(comt);
 		toolSet.add(new DefaultMutableTreeNode(comt.getName()));
+
+        CoverageTab covt = new CoverageTab(parent, modal);
+		optionPanes.add(covt);
+		toolSet.add(new DefaultMutableTreeNode(covt.getName()));
 
 		DRCTab drct = new DRCTab(parent, modal);
 		optionPanes.add(drct);

@@ -78,35 +78,17 @@ public class MoCMOS extends Technology
 
 	// arcs
     /** metal 1->6 arc */						private PrimitiveArc[] metalArcs = new PrimitiveArc[6];
-//	/** metal 1 arc */							private PrimitiveArc metal1_arc;
-//	/** metal 2 arc */							private PrimitiveArc metal2_arc;
-//	/** metal 3 arc */							private PrimitiveArc metal3_arc;
-//	/** metal 4 arc */							private PrimitiveArc metal4_arc;
-//	/** metal 5 arc */							private PrimitiveArc metal5_arc;
-//	/** metal 6 arc */							private PrimitiveArc metal6_arc;
 	/** polysilicon 1 arc */					private PrimitiveArc poly1_arc;
 	/** polysilicon 2 arc */					private PrimitiveArc poly2_arc;
-//	/** P-active arc */							private PrimitiveArc pActive_arc;
-//	/** N-active arc */							private PrimitiveArc nActive_arc;
     /** P/N-active arc */                       PrimitiveArc[] activeArcs = new PrimitiveArc[2];
 	/** General active arc */					private PrimitiveArc active_arc;
 
 	// nodes
     /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
-//	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
-//	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
-//	/** metal-3-pin */							private PrimitiveNode metal3Pin_node;
-//	/** metal-4-pin */							private PrimitiveNode metal4Pin_node;
-//	/** metal-5-pin */							private PrimitiveNode metal5Pin_node;
-//	/** metal-6-pin */							private PrimitiveNode metal6Pin_node;
 	/** polysilicon-1-pin */					private PrimitiveNode poly1Pin_node;
 	/** polysilicon-2-pin */					private PrimitiveNode poly2Pin_node;
-//	/** P-active-pin */							private PrimitiveNode pActivePin_node;
-//	/** N-active-pin */							private PrimitiveNode nActivePin_node;
     /** P/N-active-pins */                      private PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
 	/** General active-pin */					private PrimitiveNode activePin_node;
-//	/** metal-1-P-active-contact */				private PrimitiveNode metal1PActiveContact_node;
-//	/** metal-1-N-active-contact */				private PrimitiveNode metal1NActiveContact_node;
     /** metal-1-P/N-active-contacts */          private PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
 	/** metal-1-polysilicon-1-contact */		private PrimitiveNode metal1Poly1Contact_node;
 	/** metal-1-polysilicon-2-contact */		private PrimitiveNode metal1Poly2Contact_node;
@@ -115,14 +97,7 @@ public class MoCMOS extends Technology
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
 	/** Scalable-P-Transistor */				private PrimitiveNode scalablePTransistor_node;
 	/** Scalable-N-Transistor */				private PrimitiveNode scalableNTransistor_node;
-//	/** metal-1-metal-2-contact */				private PrimitiveNode metal1Metal2Contact_node;
-//	/** metal-2-metal-3-contact */				private PrimitiveNode metal2Metal3Contact_node;
-//	/** metal-3-metal-4-contact */				private PrimitiveNode metal3Metal4Contact_node;
-//	/** metal-4-metal-5-contact */				private PrimitiveNode metal4Metal5Contact_node;
-//	/** metal-5-metal-6-contact */				private PrimitiveNode metal5Metal6Contact_node;
     /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
-//	/** Metal-1-P-Well Contact */				private PrimitiveNode metal1PWellContact_node;
-//	/** Metal-1-N-Well Contact */				private PrimitiveNode metal1NWellContact_node;
     /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 	/** Metal-1-Node */							private PrimitiveNode metal1Node_node;
 	/** Metal-2-Node */							private PrimitiveNode metal2Node_node;

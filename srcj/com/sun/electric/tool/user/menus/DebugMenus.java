@@ -53,11 +53,12 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
-import com.sun.electric.tool.misc.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -67,7 +68,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.CoverageDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -189,21 +189,19 @@ public class DebugMenus {
 	    gildaMenu.addMenuItem("3D View", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Covering Implants Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
-        gildaMenu.addMenuItem("Bounding box layer coverage", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
         /****************************** Dima's TEST MENU ******************************/
 
@@ -637,6 +635,7 @@ public class DebugMenus {
 			instance1Node.setExpanded();
 
 			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0);
+            //NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 900, null, 0);
 			instance2Node.setExpanded();
 
 			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0);
@@ -773,12 +772,10 @@ public class DebugMenus {
           Rectangle2D bbox = cell.getBounds();
 
           System.out.println("------RUNNING QTREE MODE -------------");
-          errorCounts[0] = LayerCoverageJob.layerCoverageCommand(cell, Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_QTREE,
-                  bbox.getWidth()/2, bbox.getHeight()/2,bbox.getWidth()/2, bbox.getHeight()/2);
+          errorCounts[0] = CellMenu.layerCoverageCommand(cell, GeometryHandler.ALGO_QTREE, false);
 
           System.out.println("------RUNNING SWEEP MODE -------------");
-          errorCounts[1] = LayerCoverageJob.layerCoverageCommand(cell, Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP,
-                  bbox.getWidth()/2, bbox.getHeight()/2,bbox.getWidth()/2, bbox.getHeight()/2);
+          errorCounts[1] = CellMenu.layerCoverageCommand(cell, GeometryHandler.ALGO_SWEEP, false);
         } catch (Exception e) {
           System.out.println("exception: "+e);
           e.printStackTrace();
@@ -812,18 +809,6 @@ public class DebugMenus {
         }
         if (count == 2)
             System.out.println("Result " + DRCConnection.checkCellConnectivity(cells[0], cells[1]));*/
-    }
-
-    public static void layerCoverage()
-    {
-        EditWindow wnd = EditWindow.getCurrent();
-        Cell cell = wnd.getCell();
-
-        if (cell == null) return;
-
-        CoverageDialog.showDialog(cell);
-
-        //LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP, cell.getBounds());
     }
 
 	/**

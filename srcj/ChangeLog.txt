@@ -3,6 +3,12 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
+
+IMP: (02/10/05, GVG) New coverage tab under Tool section in preferences. Second version of new layer coverage tool
+
+IMP: (02/10/05, GVG) Rollback of "Made all pure-layer nodes have ports that run to their edges" changes
+in MoCMOS.
+
 IMP: (02/10/05, RK) I changed the layout generator for inv so it uses a different floorplan with a 10 lambda wide output bus for strengths x>25.
 
 IMP: (02/10/05, RK) The layout generators for inv2iKp and inv2iKn now use a different floorplan with a 10 lambda wide output bus.

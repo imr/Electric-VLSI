@@ -28,10 +28,14 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellProperties;
@@ -43,6 +47,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -130,7 +135,12 @@ public class CellMenu {
         cellInfoSubMenu.addMenuItem("List Cell Usage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
         cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("Graphically, Entire Library", null,
+        cellInfoSubMenu.addMenuItem("List Layer Coverage on Cell", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+        cellInfoSubMenu.addMenuItem("Area Coverage Tool", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
+        cellInfoSubMenu.addSeparator();
+                cellInfoSubMenu.addMenuItem("Graphically, Entire Library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
         cellInfoSubMenu.addMenuItem("Graphically, From Current Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsFromCell(); }});
@@ -170,7 +180,7 @@ public class CellMenu {
     /**
      * This method implements the command to do cell options.
      */
-    public static void cellControlCommand()
+    private static void cellControlCommand()
     {
         CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
@@ -179,7 +189,7 @@ public class CellMenu {
     /**
      * This command opens a dialog box to edit a Cell.
      */
-    public static void newCellCommand()
+    private static void newCellCommand()
     {
 		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
@@ -206,6 +216,62 @@ public class CellMenu {
     	}
 
 		SetMultiPageJob job = new SetMultiPageJob(cell, 1);
+    }
+
+    /**
+     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
+     * except "List Geometry on Network" commands.
+     */
+    public static void layerCoverageCommand(Job.Type jobType, int func, int mode)
+    {
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
+	    EditWindow wnd = EditWindow.needCurrent();
+	    Highlighter highlighter = null;
+	    if ((wnd != null) && (wnd.getCell() == curCell))
+		    highlighter = wnd.getHighlighter();
+
+        Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
+        job.startJob();
+    }
+
+    /**
+     * Method to kick area coverage per layer in a cell
+     * @param cell
+     * @param mode
+     * @param startJob to determine if job has to run in a separate thread
+     * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
+     */
+    public static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
+    {
+        Cell curCell = cell;
+
+        if (curCell == null ) curCell = WindowFrame.needCurCell();
+        if (curCell == null) return false;
+	    EditWindow wnd = EditWindow.needCurrent();
+	    Highlighter highlighter = null;
+	    if ((wnd != null) && (wnd.getCell() == curCell))
+		    highlighter = wnd.getHighlighter();
+
+        double width = LayerCoverage.getWidth(curCell.getTechnology());
+        double height = LayerCoverage.getHeight(curCell.getTechnology());
+        double deltaX = LayerCoverage.getDeltaX(curCell.getTechnology());
+        double deltaY = LayerCoverage.getDeltaY(curCell.getTechnology());
+
+        // Reset values to cell bounding box if area is bigger than the actual cell
+        Rectangle2D bbox = curCell.getBounds();
+        if (width > bbox.getWidth()) width = bbox.getWidth();
+        if (height > bbox.getHeight()) height = bbox.getHeight();
+        LayerCoverage.AreaCoverage job = new LayerCoverage.AreaCoverage(curCell, highlighter, mode, width, height,
+                deltaX, deltaY);
+
+        // No regression
+        boolean foundError = false;
+        if (startJob)
+            job.startJob();
+        else
+            foundError = job.doIt();
+        return (foundError);
     }
 
     /**

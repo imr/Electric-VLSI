@@ -589,7 +589,7 @@ public class DRC extends Listener
 		Pref pref = (Pref)prefDRCOverride.get(tech);
 		if (pref == null)
 		{
-			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), DRC.tool.prefs, "");
+			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
 			prefDRCOverride.put(tech, pref);
 		}
 		StringBuffer sb = new StringBuffer();
@@ -612,7 +612,7 @@ public class DRC extends Listener
 		Pref pref = (Pref)prefDRCOverride.get(tech);
 		if (pref == null)
 		{
-			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), DRC.tool.prefs, "");
+			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
 			prefDRCOverride.put(tech, pref);
 		}
 		pref.setString(sb.toString());
@@ -620,7 +620,7 @@ public class DRC extends Listener
 
     /****************************** OPTIONS ******************************/
 
-	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", DRC.tool.prefs, true);
+	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, true);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
 	 * The default is "true".
@@ -633,7 +633,7 @@ public class DRC extends Listener
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
-	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", DRC.tool.prefs, ERROR_CHECK_DEFAULT);
+	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs, ERROR_CHECK_DEFAULT);
 	/**
 	 * Method to retrieve checking level in DRC
 	 * The default is "ERROR_CHECK_DEFAULT".
@@ -646,7 +646,7 @@ public class DRC extends Listener
 	 */
 	public static void setErrorType(int type) { cacheErrorCheckLevel.setInt(type); }
 
-	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", DRC.tool.prefs, false);
+	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", tool.prefs, false);
 	/**
 	 * Method to tell whether DRC should use multiple threads.
 	 * The default is "false".
@@ -659,7 +659,7 @@ public class DRC extends Listener
 	 */
 	public static void setUseMultipleThreads(boolean on) { cacheUseMultipleThreads.setBoolean(on); }
 
-	private static Pref cacheNumberOfThreads = Pref.makeIntPref("NumberOfThreads", DRC.tool.prefs, 2);
+	private static Pref cacheNumberOfThreads = Pref.makeIntPref("NumberOfThreads", tool.prefs, 2);
 	/**
 	 * Method to return the number of threads to use when running DRC with multiple threads.
 	 * The default is 2.
@@ -672,8 +672,8 @@ public class DRC extends Listener
 	 */
 	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
-	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", DRC.tool.prefs, false);
-    static { cacheIgnoreCenterCuts.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
+	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", tool.prefs, false);
+    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.
@@ -688,8 +688,8 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
 
-    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", DRC.tool.prefs, false);
-    static { cacheIgnoreAreaChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores area checking"); }
+    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", tool.prefs, false);
+    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
 	/**
 	 * Method to tell whether DRC should ignore minimum/enclosed area checking.
 	 * The default is "false".
@@ -702,8 +702,8 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
 
-    private static Pref cacheIgnorePolySelectChecking = Pref.makeBooleanPref("IgnorePolySelectCheck", DRC.tool.prefs, false);
-    static { cacheIgnorePolySelectChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores polysilicon select rule checking"); }
+    private static Pref cacheIgnorePolySelectChecking = Pref.makeBooleanPref("IgnorePolySelectCheck", tool.prefs, false);
+    static { cacheIgnorePolySelectChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores polysilicon select rule checking"); }
 	/**
 	 * Method to tell whether DRC should polysilicon select rule.
 	 * The default is "false".

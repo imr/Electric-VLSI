@@ -62,6 +62,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
+import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.io.FileType;
@@ -70,7 +71,7 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.misc.LayerCoverageJob;
+import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
@@ -352,7 +353,7 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
@@ -376,6 +377,8 @@ public class ToolMenu {
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
+
+        //------------------- Others
 
 		toolMenu.addSeparator();
 

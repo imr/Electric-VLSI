@@ -276,7 +276,7 @@ public class Layer
 	private String dxfLayer;
 	private String gdsLayer;
 	private String skillLayer;
-	private double thickness, distance;
+	private double thickness, distance, areaCoverage;
 	private double resistance, capacitance, edgeCapacitance;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if this layer is invisible */									private boolean visible;
@@ -293,6 +293,7 @@ public class Layer
 	private static HashMap layerThicknessPrefs = new HashMap();
 	private static HashMap layerDistancePrefs = new HashMap();
     private static HashMap layerVisibilityPrefs = new HashMap();
+    private static HashMap areaCoveragePrefs = new HashMap();
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -303,6 +304,7 @@ public class Layer
 		this.visible = true;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
+        this.areaCoverage = 10; // 10% as default
 	}
 
 	/**
@@ -675,12 +677,34 @@ public class Layer
 	 */
 	public double getEdgeCapacitance() { return getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance).getDouble(); }
 
-	/**
-	 * Method to set the edge capacitance for this Layer.
-	 * Also saves this information in the permanent options.
-	 * @param edgeCapacitance the new edge capacitance for this Layer.
+    /**
+     * Method to set the edge capacitance for this Layer.
+     * Also saves this information in the permanent options.
+     * @param edgeCapacitance the new edge capacitance for this Layer.
+     */
+    public void setEdgeCapacitance(double edgeCapacitance) { getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance).setDouble(edgeCapacitance); }
+
+    /**
+	 * Method to set the minimum area to cover with this Layer in a particular cell.
+	 * @param area the minimum area coverage of this layer.
 	 */
-	public void setEdgeCapacitance(double edgeCapacitance) { getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance).setDouble(edgeCapacitance); }
+	public void setFactoryAreaCoverage(double area)
+	{
+		this.areaCoverage = area;
+		getDoublePref("AreaCoverage", areaCoveragePrefs, this.areaCoverage).setDouble(this.areaCoverage);
+	}
+
+    /**
+	 * Method to return the minimu area coverage that the layer must reach in the technology.
+	 * @return the minimum area coverage (in percentage).
+	 */
+	public double getAreaCoverage() { return getDoublePref("AreaCoverage", areaCoveragePrefs, areaCoverage).getDouble(); }
+
+    /**
+     * Methot to set minimu area coverage that the layer must reach in the technology.
+     * @param area the minimum area coverage (in percentage).
+     */
+	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverage", areaCoveragePrefs, areaCoverage).setDouble(area); }
 
 	/**
 	 * Returns a printable version of this Layer.
