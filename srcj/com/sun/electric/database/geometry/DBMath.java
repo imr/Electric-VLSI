@@ -44,6 +44,13 @@ public class DBMath extends GenMath {
 	 */
 	private static double NDECIMALS = 2;
 
+	/**
+	 * To return private epsilon used for calculation.
+	 * This might problably be removed
+	 * @return epsilon
+	 */
+	public static double getEpsilon() { return EPSILON; }
+
     /**
      * Method to tell whether a point is inside of a bounds, compensating
      * for possible database precision errors.

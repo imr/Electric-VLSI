@@ -1706,7 +1706,8 @@ public class Poly implements Shape
 				if (y < lY) lY = y;
 				if (y > hY) hY = y;
 			}
-			bounds.setRect(lX, lY, hX-lX, hY-lY);
+			//bounds.setRect(lX, lY, hX-lX, hY-lY);
+			bounds.setRect(lX, lY, DBMath.round(hX-lX), DBMath.round(hY-lY));
 		}
 	}
 
