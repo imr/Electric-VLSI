@@ -774,8 +774,9 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return the network of this ArcInst..
-	 * @param busIndex index of subnetwork for busses
+	 * Routine to return the network of this ArcInst.
+	 * @param busIndex index of subnetwork for busses.
+	 * @return the network on this ArcInst.
 	 */
 	public JNetwork getNetwork(int busIndex)
 	{
@@ -837,19 +838,19 @@ public class ArcInst extends Geometric
 	 * Routine to write a description of this ArcInst.
 	 * Displays the description in the Messages Window.
 	 */
-	public void getInfo()
-	{
-		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
-		Point2D loc = ends[HEADEND].getLocation();
-		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-
-		loc = ends[TAILEND].getLocation();
-		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
-		super.getInfo();
-	}
+//	public void getInfo()
+//	{
+//		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
+//		Point2D loc = ends[HEADEND].getLocation();
+//		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
+//			" at (" + loc.getX() + "," + loc.getY() + ")");
+//
+//		loc = ends[TAILEND].getLocation();
+//		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
+//			" at (" + loc.getX() + "," + loc.getY() + ")");
+//		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
+//		super.getInfo();
+//	}
 
 	/**
 	 * Routine to set the name of this ArcInst.

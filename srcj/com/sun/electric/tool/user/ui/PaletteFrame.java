@@ -31,6 +31,8 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -173,32 +175,32 @@ public class PaletteFrame
 			inPalette.add(Schematics.tech.capacitorNode);
 			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900));
 			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900));
-			inPalette.add(Schematics.tech.flipflopNode);
+			inPalette.add(Schematics.tech.switchNode);
 			inPalette.add(Schematics.tech.muxNode);
 			inPalette.add(Schematics.tech.xorNode);
-			inPalette.add(null);
+			inPalette.add(Schematics.tech.bboxNode);
 
 			inPalette.add(Schematics.tech.bus_arc);
 			inPalette.add(Schematics.tech.busPinNode);
-			inPalette.add("Inst.");
+			inPalette.add("Cell");
 			inPalette.add(Schematics.tech.wireConNode);
-			inPalette.add(Schematics.tech.switchNode);
+			inPalette.add("Misc.");
 			inPalette.add(Schematics.tech.groundNode);
 			inPalette.add(Schematics.tech.inductorNode);
 			inPalette.add(Schematics.tech.diodeNode);
 			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900));
 			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900));
+			inPalette.add(Schematics.tech.flipflopNode);
 			inPalette.add(Schematics.tech.bufferNode);
-			inPalette.add(Schematics.tech.andNode);
 			inPalette.add(Schematics.tech.orNode);
-			inPalette.add(Schematics.tech.bboxNode);
+			inPalette.add(Schematics.tech.andNode);
 		} else if (tech == Artwork.tech)
 		{
 			menuX = 2;
 			menuY = 12;
 			inPalette.add(Artwork.tech.solidArc);
 			inPalette.add(Artwork.tech.thickerArc);
-			inPalette.add("Inst.");
+			inPalette.add("Cell");
 			inPalette.add(Artwork.tech.openedPolygonNode);
 			inPalette.add(Artwork.tech.openedThickerPolygonNode);
 			inPalette.add(Artwork.tech.filledTriangleNode);
@@ -237,7 +239,9 @@ public class PaletteFrame
 				inPalette.add(ap);
 			}
 			User.tool.setCurrentArcProto(firstHighlightedArc);
-			inPalette.add("Inst.");
+			inPalette.add("Cell");
+			inPalette.add("Misc.");
+			inPalette.add("Pure");
 			for(Iterator it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
@@ -284,7 +288,12 @@ public class PaletteFrame
 	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
-		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), angle, null);
+		SizeOffset so = np.getSizeOffset();
+		Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
+			(so.getHighYOffset() - so.getLowYOffset()) / 2);
+		AffineTransform trans = NodeInst.pureRotate(angle, 1, 1);
+		trans.transform(pt, pt);
+		ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
 		np.getTechnology().setPrimitiveFunction(ni, func);
 //		Undo.setNextChangeQuiet();
 		np.getTechnology().setDefaultOutline(ni);
@@ -482,7 +491,7 @@ public class PaletteFrame
 			} else if (obj instanceof String)
 			{
 				String msg = (String)obj;
-				if (msg.equals("Inst."))
+				if (msg.equals("Cell"))
 				{
 					JPopupMenu cellMenu = new JPopupMenu("Cells");
 					for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
@@ -495,6 +504,37 @@ public class PaletteFrame
 //					cellMenu.addMouseListener(new MyPopupListener());
 //					cellMenu.addPopupMenuListener(new MyPopupListener());
 					cellMenu.show(panel, e.getX(), e.getY());
+				} else if (msg.equals("Misc."))
+				{
+					JPopupMenu specialMenu = new JPopupMenu("Special");
+					JMenuItem menuItem = new JMenuItem("Text");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Cell Center");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.cellCenterNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Essential Bounds");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.essentialBoundsNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Simulation Probe");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.simProbeNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("DRC Exclusion");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.drcNode));
+					specialMenu.add(menuItem);
+					specialMenu.show(panel, e.getX(), e.getY());
+				} else if (msg.equals("Pure"))
+				{
+					JPopupMenu pureMenu = new JPopupMenu("Pure");
+					for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
+					{
+						PrimitiveNode np = (PrimitiveNode)it.next();
+						if (np.getFunction() != NodeProto.Function.NODE) continue;
+						JMenuItem menuItem = new JMenuItem(np.describe());
+						menuItem.addActionListener(new PlacePopupListener(panel, np));
+						pureMenu.add(menuItem);
+					}
+					pureMenu.show(panel, e.getX(), e.getY());
 				} if (msg.equals("Spice"))
 				{
 					JPopupMenu cellMenu = new JPopupMenu("Spice");
@@ -597,6 +637,8 @@ public class PaletteFrame
 					currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
 					EditWindow.setListener(currentListener);
 				}
+				if (obj == Generic.tech.invisiblePinNode)
+					((PlaceNodeListener)currentListener).setTextNode();
 				PaletteFrame frame = panel.getFrame();
 //				frame.highlightedNode = obj;
 			}
@@ -685,7 +727,7 @@ public class PaletteFrame
 						int xpos = imgX+frame.entrySize/2 - strWid/2;
 						int ypos = imgY+frame.entrySize/2 + strHeight/2 - fm.getMaxDescent();
 						g.drawString(str, xpos, ypos);
-						if (str.equals("Inst.") || str.equals("Spice"))
+						if (str.equals("Cell") || str.equals("Spice") || str.equals("Misc.") || str.equals("Pure"))
 							drawArrow(g, x, y);
 					}
 				}
@@ -845,6 +887,7 @@ public class PaletteFrame
 		private EventListener oldListener;
 		private Cursor oldCursor;
 		private boolean isDrawn;
+		private boolean isTextNode;
 		private PalettePanel window;
 
 		private PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
@@ -854,9 +897,12 @@ public class PaletteFrame
 			this.oldListener = oldListener;
 			this.oldCursor = oldCursor;
 			this.isDrawn = false;
+			this.isTextNode = false;
 		}
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
+
+		public void setTextNode() { isTextNode = true; }
 
 		private void updateBox(EditWindow wnd, int oldx, int oldy)
 		{
@@ -915,7 +961,7 @@ public class PaletteFrame
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getProtoName() + " Primitive";
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell());
+			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), isTextNode);
 
 			// restore the former listener to the edit windows
 			Highlight.clear();
@@ -962,13 +1008,15 @@ public class PaletteFrame
 		Object toDraw;
 		Point2D where;
 		Cell cell;
+		boolean isTextNode;
 
-		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell)
+		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, boolean isTextNode)
 		{
 			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
 			this.where = where;
 			this.cell = cell;
+			this.isTextNode = isTextNode;
 			this.startJob();
 		}
 
@@ -984,11 +1032,30 @@ public class PaletteFrame
 				ni = (NodeInst)toDraw;
 				np = ni.getProto();
 			}
-			NodeInst newNi = NodeInst.newInstance(np, where, np.getDefWidth(), np.getDefHeight(), 0, cell, null);
+			double width = np.getDefWidth();
+			double height = np.getDefHeight();
+			if (isTextNode) width = height = 0;
+			NodeInst newNi = NodeInst.newInstance(np, where, width, height, 0, cell, null);
 			if (newNi == null) return;
-			if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
-			np.getTechnology().setDefaultOutline(newNi);
-			Highlight.addGeometric(newNi);
+			if (isTextNode)
+			{
+				// text object: add initial text
+				Variable var = newNi.setVar("ART_message", "text");
+				if (var != null)
+				{
+					var.setDisplay();
+					var.setDescriptor(TextDescriptor.newNonLayoutDescriptor());
+					Highlight h = Highlight.addText(cell, var, null);
+					h.setGeom(newNi);
+				}
+			} else
+			{
+				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
+				if (np instanceof Cell && np.isWantExpanded())
+					newNi.setExpanded();
+				np.getTechnology().setDefaultOutline(newNi);
+				Highlight.addGeometric(newNi);
+			}
 			Highlight.finished();
 		}
 	}

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
@@ -213,11 +214,12 @@ public class Poly implements Shape
 		public static final Type BIGCROSS = new Type("big-cross");
 	}
 
-	/** the layer (used for graphics) */					private Layer layer;
-	/** the points */										private Point2D points[];
-	/** the bounds of the points */							private Rectangle2D bounds;
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
+	/** the points */										private Point2D points[];
+	/** the layer (used for graphics) */					private Layer layer;
+	/** the bounds of the points */							private Rectangle2D bounds;
 	/** the string (if of type TEXT) */						private String string;
+	/** the Name (if of type TEXT) */						private Name name;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
 	/** the variable (if of type TEXT) */					private Variable var;
 	/** the PortProto (if from a node or TEXT) */			private PortProto pp;
@@ -229,10 +231,15 @@ public class Poly implements Shape
 	 */
 	public Poly(Point2D [] points)
 	{
+		this.style = null;
 		this.points = points;
-		layer = null;
-		style = null;
-		bounds = null;
+		this.layer = null;
+		this.bounds = null;
+		this.string = null;
+		this.name = null;
+		this.descript = null;
+		this.var = null;
+		this.pp = null;
 	}
 
 	/**
@@ -244,6 +251,7 @@ public class Poly implements Shape
 	 */
 	public Poly(double cX, double cY, double width, double height)
 	{
+		this.style = null;
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
 		this.points = new Point2D.Double[] {
@@ -251,22 +259,14 @@ public class Poly implements Shape
 			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY-halfHeight)),
 			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY+halfHeight)),
 			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY+halfHeight))};
-		layer = null;
-		style = null;
-		bounds = null;
+		this.layer = null;
+		this.bounds = null;
+		this.string = null;
+		this.name = null;
+		this.descript = null;
+		this.var = null;
+		this.pp = null;
 	}
-
-	/**
-	 * Routine to return the layer associated with this Poly.
-	 * @return the layer associated with this Poly.
-	 */
-	public Layer getLayer() { return layer; }
-
-	/**
-	 * Routine to set the layer associated with this Poly.
-	 * @param layer the layer associated with this Poly.
-	 */
-	public void setLayer(Layer layer) { this.layer = layer; }
 
 	/**
 	 * Routine to return the style associated with this Poly.
@@ -283,6 +283,24 @@ public class Poly implements Shape
 	public void setStyle(Poly.Type style) { this.style = style; }
 
 	/**
+	 * Routine to return the points associated with this Poly.
+	 * @return the points associated with this Poly.
+	 */
+	public Point2D [] getPoints() { return points; }
+
+	/**
+	 * Routine to return the layer associated with this Poly.
+	 * @return the layer associated with this Poly.
+	 */
+	public Layer getLayer() { return layer; }
+
+	/**
+	 * Routine to set the layer associated with this Poly.
+	 * @param layer the layer associated with this Poly.
+	 */
+	public void setLayer(Layer layer) { this.layer = layer; }
+
+	/**
 	 * Routine to return the String associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * @return the String associated with this Poly.
@@ -295,6 +313,20 @@ public class Poly implements Shape
 	 * @param string the String associated with this Poly.
 	 */
 	public void setString(String string) { this.string = string; }
+
+	/**
+	 * Routine to return the Name associated with this Poly.
+	 * This only applies to text Polys which come from Named objects (Node and Arc names).
+	 * @return the Name associated with this Poly.
+	 */
+	public Name getName() { return name; }
+
+	/**
+	 * Routine to set the String associated with this Poly.
+	 * This only applies to text Polys which come from Named objects (Node and Arc names).
+	 * @param string the Name associated with this Poly.
+	 */
+	public void setName(Name name) { this.name = name; }
 
 	/**
 	 * Routine to return the Text Descriptor associated with this Poly.
@@ -339,12 +371,6 @@ public class Poly implements Shape
 	 * @param pp the PortProto associated with this Poly.
 	 */
 	public void setPort(PortProto pp) { this.pp = pp; }
-
-	/**
-	 * Routine to return the points associated with this Poly.
-	 * @return the points associated with this Poly.
-	 */
-	public Point2D [] getPoints() { return points; }
 
 	/**
 	 * Routine to transformed the points in this Poly.
@@ -1088,6 +1114,7 @@ public class Poly implements Shape
 
 	/**
 	 * Routine to return the bounds of this Poly.
+	 * Nobody really uses this, but it is necessary for the implementation of Shape.
 	 * @return the bounds of this Poly.
 	 */
 	public Rectangle getBounds()

@@ -920,8 +920,8 @@ public class NodeInst extends Geometric implements Nodable
 			double cX = getCenterX();
 			double cY = getCenterY();
 			TextDescriptor td = getProtoTextDescriptor();
-			double offX = (double)td.getXOff() / 4;
-			double offY = (double)td.getYOff() / 4;
+			double offX = td.getXOff();
+			double offY = td.getYOff();
 			TextDescriptor.Position pos = td.getPos();
 			Poly.Type style = pos.getPolyType();
 			Point2D [] pointList = new Point2D.Double[1];
@@ -1619,45 +1619,45 @@ public class NodeInst extends Geometric implements Nodable
 	 * Routine to write a description of this NodeInst.
 	 * Displays the description in the Messages Window.
 	 */
-	public void getInfo()
-	{
-		System.out.println("-------------- NODE INSTANCE " + describe() + ": --------------");
-		String xMir = "";
-		String yMir = "";
-		if (isXMirrored()) xMir = ", MirrorX";
-		if (isYMirrored()) yMir = ", MirrorY";
-		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), size: " + getXSize() + "x" + getYSize() + ", rotated " + angle/10.0 +
-			xMir + yMir);
-		super.getInfo();
-		System.out.println(" Ports:");
-		for(Iterator it = getPortInsts(); it.hasNext();)
-		{
-			PortInst pi = (PortInst) it.next();
-			Poly p = pi.getPoly();
-			System.out.println("     " + pi.getPortProto().getProtoName() + " at (" + p.getCenterX() + "," + p.getCenterY() + ")");
-		}
-		if (connections.size() != 0)
-		{
-			System.out.println(" Connections:");
-			for (int i = 0; i < connections.size(); i++)
-			{
-				Connection c = (Connection) connections.get(i);
-				System.out.println("     " + c.getArc().describe() +
-					" on port " + c.getPortInst().getPortProto().getProtoName());
-			}
-		}
-		if (exports.size() != 0)
-		{
-			System.out.println(" Exports:");
-			for (int i = 0; i < exports.size(); i++)
-			{
-				Export ex = (Export) exports.get(i);
-				System.out.println("     " + ex.getProtoName() +
-					" on port " + ex.getOriginalPort().getPortProto().getProtoName() +
-					", " + ex.getCharacteristic());
-			}
-		}
-	}
+//	public void getInfo()
+//	{
+//		System.out.println("-------------- NODE INSTANCE " + describe() + ": --------------");
+//		String xMir = "";
+//		String yMir = "";
+//		if (isXMirrored()) xMir = ", MirrorX";
+//		if (isYMirrored()) yMir = ", MirrorY";
+//		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), size: " + getXSize() + "x" + getYSize() + ", rotated " + angle/10.0 +
+//			xMir + yMir);
+//		super.getInfo();
+//		System.out.println(" Ports:");
+//		for(Iterator it = getPortInsts(); it.hasNext();)
+//		{
+//			PortInst pi = (PortInst) it.next();
+//			Poly p = pi.getPoly();
+//			System.out.println("     " + pi.getPortProto().getProtoName() + " at (" + p.getCenterX() + "," + p.getCenterY() + ")");
+//		}
+//		if (connections.size() != 0)
+//		{
+//			System.out.println(" Connections:");
+//			for (int i = 0; i < connections.size(); i++)
+//			{
+//				Connection c = (Connection) connections.get(i);
+//				System.out.println("     " + c.getArc().describe() +
+//					" on port " + c.getPortInst().getPortProto().getProtoName());
+//			}
+//		}
+//		if (exports.size() != 0)
+//		{
+//			System.out.println(" Exports:");
+//			for (int i = 0; i < exports.size(); i++)
+//			{
+//				Export ex = (Export) exports.get(i);
+//				System.out.println("     " + ex.getProtoName() +
+//					" on port " + ex.getOriginalPort().getPortProto().getProtoName() +
+//					", " + ex.getCharacteristic());
+//			}
+//		}
+//	}
 
 	/**
 	 * Routine to set the name of this NodeInst.

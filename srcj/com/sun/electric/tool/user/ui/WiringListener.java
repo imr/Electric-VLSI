@@ -82,9 +82,20 @@ class WiringListener
 		EditWindow wnd = (EditWindow)evt.getSource();
 		startPoint = wnd.screenToDatabase(startx, starty);
 
-		// if over selected things, wire them
 		boolean another = false;
 		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
+
+		// show "get info" on double-click
+		if (evt.getClickCount() == 2 && !another)
+		{
+			if (Highlight.getNumHighlights() >= 1)
+			{
+				UserMenuCommands.getInfoCommand();
+				return;
+			}
+		}
+
+		// if over selected things, wire them
 		doingWiringDrag = false;
 
 		// object wiring: start by seeing if cursor is over a highlighted object
@@ -102,7 +113,7 @@ class WiringListener
 		} else
 		{
 			// new selection: see if cursor is over anything
-			Highlight.findObject(startPoint, wnd, false, another, true, false, false);
+			Highlight.findObject(startPoint, wnd, false, another, false, true, false, false);
 			if (Highlight.getNumHighlights() == 1)
 			{
 				// not over anything: bail

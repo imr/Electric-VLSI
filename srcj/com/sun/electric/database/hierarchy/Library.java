@@ -191,7 +191,7 @@ public class Library extends ElectricObject
 	
 		// add the library to the global list
 		libraries.add(lib);
-		Library.setCurrent(lib);
+//		Library.setCurrent(lib);
 
 		return lib;
 	}

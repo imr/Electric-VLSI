@@ -119,46 +119,45 @@ public class GetInfoArc extends javax.swing.JDialog
 			if (shownArc != null)
 			{
 				// no arc selected, disable the dialog
-				name.setEditable(false);
-				width.setEditable(false);
-				easyToSelect.setEnabled(false);
-				rigid.setEnabled(false);
-				fixedAngle.setEnabled(false);
-				slidable.setEnabled(false);
-				negated.setEnabled(false);
-				directional.setEnabled(false);
-				endsExtend.setEnabled(false);
-				skipHead.setEnabled(false);
-				skipTail.setEnabled(false);
-				reverseEnds.setEnabled(false);
-
 				type.setText("");
 				network.setText("");
+				name.setEditable(false);
 				name.setText("");
+				width.setEditable(false);
 				width.setText("");
 				busSize.setText("");
 				angle.setText("");
+				easyToSelect.setEnabled(false);
 				headNode.setText("");
 				headLoc.setText("");
+				headSee.setEnabled(false);
 				tailNode.setText("");
 				tailLoc.setText("");
+				tailSee.setEnabled(false);
+				rigid.setEnabled(false);
 				rigid.setSelected(false);
+				fixedAngle.setEnabled(false);
 				fixedAngle.setSelected(false);
+				slidable.setEnabled(false);
 				slidable.setSelected(false);
+				negated.setEnabled(false);
 				negated.setSelected(false);
+				directional.setEnabled(false);
 				directional.setSelected(false);
+				endsExtend.setEnabled(false);
 				endsExtend.setSelected(false);
+				skipHead.setEnabled(false);
 				skipHead.setSelected(false);
+				skipTail.setEnabled(false);
 				skipTail.setSelected(false);
+				reverseEnds.setEnabled(false);
 				reverseEnds.setSelected(false);
+				apply.setEnabled(false);
 
 				shownArc = null;
 			}
 			return;
 		}
-
-		ai.getParent().rebuildNetworks(null, false);
-		JNetwork net = ai.getNetwork(0);
 
 		// enable it
 		name.setEditable(true);
@@ -173,6 +172,9 @@ public class GetInfoArc extends javax.swing.JDialog
 		skipHead.setEnabled(true);
 		skipTail.setEnabled(true);
 		reverseEnds.setEnabled(true);
+		headSee.setEnabled(true);
+		tailSee.setEnabled(true);
+		apply.setEnabled(true);
 
 		// get initial values
 		initialName = ai.getName();
@@ -190,6 +192,8 @@ public class GetInfoArc extends javax.swing.JDialog
 
 		// load the dialog
 		type.setText(ai.getProto().describe());
+		ai.getParent().rebuildNetworks(null, false);
+		JNetwork net = ai.getNetwork(0);
 		network.setText(net != null ? net.describe() : "????");
 		name.setText(initialName);
 		width.setText(Double.toString(initialWidth));
@@ -279,8 +283,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel1, gridBagConstraints);
 
         type.setText(" ");
@@ -289,16 +293,16 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(type, gridBagConstraints);
 
         jLabel3.setText("Network:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel3, gridBagConstraints);
 
         network.setText(" ");
@@ -307,16 +311,16 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(network, gridBagConstraints);
 
         jLabel5.setText("Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -324,33 +328,33 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(name, gridBagConstraints);
 
         jLabel6.setText("Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel6, gridBagConstraints);
 
         width.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(width, gridBagConstraints);
 
         jLabel7.setText("Bus size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel7, gridBagConstraints);
 
         busSize.setText(" ");
@@ -358,16 +362,16 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(busSize, gridBagConstraints);
 
         jLabel9.setText("Angle:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel9, gridBagConstraints);
 
         angle.setText(" ");
@@ -375,8 +379,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(angle, gridBagConstraints);
 
         easyToSelect.setText("Easy to Select");
@@ -384,8 +388,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(easyToSelect, gridBagConstraints);
 
         cancel.setText("Cancel");
@@ -408,8 +412,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel11, gridBagConstraints);
 
         headNode.setText(" ");
@@ -418,16 +422,16 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(headNode, gridBagConstraints);
 
         jLabel13.setText("At:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel1.add(jLabel13, gridBagConstraints);
 
         headLoc.setText(" ");
@@ -436,8 +440,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(headLoc, gridBagConstraints);
 
         headSee.setText("See");
@@ -477,8 +481,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(jLabel15, gridBagConstraints);
 
         tailNode.setText(" ");
@@ -487,16 +491,16 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(tailNode, gridBagConstraints);
 
         jLabel17.setText("At:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel1.add(jLabel17, gridBagConstraints);
 
         tailLoc.setText(" ");
@@ -505,8 +509,8 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(tailLoc, gridBagConstraints);
 
         tailSee.setText("See");
@@ -550,72 +554,72 @@ public class GetInfoArc extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(rigid, gridBagConstraints);
 
         reverseEnds.setText("Reverse head and tail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(reverseEnds, gridBagConstraints);
 
         endsExtend.setText("Ends extend");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(endsExtend, gridBagConstraints);
 
         slidable.setText("Slidable");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(slidable, gridBagConstraints);
 
         skipTail.setText("Ignore tail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(skipTail, gridBagConstraints);
 
         directional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(directional, gridBagConstraints);
 
         fixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(fixedAngle, gridBagConstraints);
 
         skipHead.setText("Ignore head");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(skipHead, gridBagConstraints);
 
         negated.setText("Negated");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(negated, gridBagConstraints);
 
         attributes.setText("Attributes");

@@ -244,7 +244,7 @@ public abstract class PortProto extends ElectricObject
 	 * Routine to set the name of this PortProto.
 	 * @param protoName string with new name of this PortProto.
 	 */
-	protected void setProtoName(String protoName)
+	public void setProtoName(String protoName)
 	{
 		this.protoName = Name.findName(protoName);
 	}

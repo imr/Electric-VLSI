@@ -85,7 +85,28 @@ public class EMath
 			int start = 0;
 			while (start < text.length() && text.charAt(start) == ' ') start++;
 			int end = start;
+
+			// allow initial + or -
+			if (end < text.length() && (text.charAt(end) == '-' || text.charAt(end) == '+')) end++;
+
+			// allow digits
 			while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+
+			// allow decimal point and digits beyond it
+			if (end < text.length() && text.charAt(end) == '.')
+			{
+				end++;
+				while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+			}
+
+			// allow exponent
+			if (end < text.length() && (text.charAt(end) == 'e' || text.charAt(end) == 'E'))
+			{
+				end++;
+				if (end < text.length() && (text.charAt(end) == '-' || text.charAt(end) == '+')) end++;
+				while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+			}
+
 			if (end <= start) return 0;
 			v = Double.parseDouble(text.substring(start, end-start));
 		}

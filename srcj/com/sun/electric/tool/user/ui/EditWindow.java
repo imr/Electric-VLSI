@@ -351,7 +351,8 @@ public class EditWindow extends JPanel
 					if (portPoly == null) continue;
 					portPoly.transform(trans);
 					descript = portPoly.getTextDescriptor();
-					drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), Poly.Type.TEXTCENT,
+					Poly.Type type = descript.getPos().getPolyType();
+					drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
 						descript, portlist[i].getPortProto().getProtoName(), Color.red);
 				}
 			}
@@ -387,8 +388,9 @@ public class EditWindow extends JPanel
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				poly.transform(localTrans);
 				TextDescriptor descript = poly.getTextDescriptor();
-				drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), Poly.Type.TEXTCENT, descript, e.getProtoName(),
-					Color.black);
+				Poly.Type type = descript.getPos().getPolyType();
+				drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), type,
+					descript, e.getProtoName(), Color.black);
 
 				// draw variables on the export
 				int numPolys = e.numDisplayableVariables(true);

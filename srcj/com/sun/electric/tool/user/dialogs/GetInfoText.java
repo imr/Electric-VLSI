@@ -23,12 +23,17 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -37,6 +42,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -55,6 +61,16 @@ public class GetInfoText extends javax.swing.JDialog
 {
 	private static GetInfoText theDialog = null;
 	private Highlight shownText;
+	private TextDescriptor.Position initialPos;
+	private TextDescriptor.Size initialSize;
+	private TextDescriptor.Rotation initialRotation;
+	private TextDescriptor.Units initialUnits;
+	private TextDescriptor.DispPos initialDispPart;
+	private boolean initialItalic, initialBold, initialUnderline;
+	private boolean initialInvisibleOutsideCell;
+	private int initialLanguage;
+	private String initialText;
+	private double initialXOffset, initialYOffset;
 
 	/**
 	 * Routine to show the Text Get-Info dialog.
@@ -100,6 +116,7 @@ public class GetInfoText extends javax.swing.JDialog
 			{
 				// no text selected, disable the dialog
 				theText.setEditable(false);
+				evaluation.setText("");
 				xOffset.setEditable(false);
 				yOffset.setEditable(false);
 				pointsSize.setEditable(false);
@@ -139,37 +156,41 @@ public class GetInfoText extends javax.swing.JDialog
 		}
 
 		// enable it
+//		editText.setEnabled(true);
+		seeNode.setEnabled(true);
 		String description = "Unknown text";
-		String value = "";
+		initialText = "";
 		TextDescriptor td = null;
 		NodeInst ni = null;
 		boolean posNotOffset = false;
-		if (textHighlight.getVar() != null)
+		boolean instanceName = false;
+		Variable var = textHighlight.getVar();
+		if (var != null)
 		{
-			td = textHighlight.getVar().getTextDescriptor();
-			value = textHighlight.getVar().describe(-1, -1);
-			String trueName = textHighlight.getVar().getReadableName();
+			td = var.getTextDescriptor();
+			initialText = var.getPureValue(-1, -1);
+			String trueName = var.getReadableName();
 			if (textHighlight.getGeom() != null)
 			{
 				if (textHighlight.getPort() != null)
 				{
-					description = "'" + trueName + "' on export '" + textHighlight.getPort().getProtoName() + "'";
+					description = trueName + " on export '" + textHighlight.getPort().getProtoName() + "'";
 				} else
 				{
-					description = "'" + trueName + "' on geometry " + textHighlight.getGeom().describe();
+					description = trueName + " on " + textHighlight.getGeom().describe();
 					if (textHighlight.getGeom() instanceof NodeInst)
 					{
 						ni = (NodeInst)textHighlight.getGeom();
 						if (ni.getProto() == Generic.tech.invisiblePinNode)
 						{
 							posNotOffset = true;
-							String varName = textHighlight.getVar().getKey().getName();
+							String varName = var.getKey().getName();
 							if (varName.equals("ART_message"))
 							{
 								description = "Nonlayout text";
 							} else if (varName.equals("VERILOG_code"))
 							{
-								description = "Verilog Code";
+								description = "Verilog code";
 							} else if (varName.equals("VERILOG_declaration"))
 							{
 								description = "Verilog declaration";
@@ -182,50 +203,39 @@ public class GetInfoText extends javax.swing.JDialog
 				}
 			} else
 			{
-				description = "'" + trueName + "' on cell " + textHighlight.getCell().describe();
+				description = trueName + " of cell " + textHighlight.getCell().describe();
 			}
 		} else
 		{
-			if (textHighlight.getGeom() != null)
+			if (textHighlight.getName() != null)
+			{
+				Geometric geom = textHighlight.getGeom();
+				td = geom.getNameTextDescriptor();
+				if (geom != null)
+				{
+					if (geom instanceof NodeInst)
+					{
+						description = "Name of node " + ((NodeInst)geom).getProto().describe();
+					} else
+					{
+						description = "Name of arc " + ((ArcInst)geom).getProto().describe();
+					}
+				}
+				initialText = geom.getName();
+			} else if (textHighlight.getGeom() != null)
 			{
 				description = "Name of cell instance " + textHighlight.getGeom().describe();
 				td = ((NodeInst)textHighlight.getGeom()).getProtoTextDescriptor();
-				value = ((NodeInst)textHighlight.getGeom()).getProto().describe();
+				initialText = ((NodeInst)textHighlight.getGeom()).getProto().describe();
+				instanceName = true;
 			}
 		}
 		header.setText(description);
-		theText.setEditable(true);
-		theText.setText(value);
+		if (instanceName) theText.setEditable(false); else
+			theText.setEditable(true);
+		theText.setText(initialText);
 
-		xOffset.setEditable(true);
-		yOffset.setEditable(true);
-		if (posNotOffset)
-		{
-			xOffset.setText(Double.toString(ni.getCenterX()));
-			yOffset.setText(Double.toString(ni.getCenterY()));
-		} else
-		{
-			xOffset.setText(Double.toString(td.getXOff() / 4));
-			yOffset.setText(Double.toString(td.getYOff() / 4));
-		}
-
-		pointsSize.setEditable(true);
-		unitsSize.setEditable(true);
-		pointsButton.setEnabled(true);
-		unitsButton.setEnabled(true);
-		TextDescriptor.Size sz = td.getSize();
-		if (sz.isAbsolute())
-		{
-			pointsButton.setSelected(true);
-			unitsSize.setText("");
-			pointsSize.setText(Double.toString(sz.getSize()));
-		} else
-		{
-			unitsButton.setSelected(true);
-			pointsSize.setText("");
-			unitsSize.setText(Double.toString(sz.getSize()));
-		}
-
+		// set the text corner
 		center.setEnabled(true);
 		bottom.setEnabled(true);
 		top.setEnabled(true);
@@ -236,53 +246,111 @@ public class GetInfoText extends javax.swing.JDialog
 		upperRight.setEnabled(true);
 		upperLeft.setEnabled(true);
 		boxed.setEnabled(true);
-		if (td.getPos() == TextDescriptor.Position.CENT)      center.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.UP)        bottom.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.DOWN)      top.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.RIGHT)     left.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.LEFT)      right.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.UPLEFT)    lowerRight.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.UPRIGHT)   lowerLeft.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.DOWNLEFT)  upperRight.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.DOWNRIGHT) upperLeft.setSelected(true); else
-		if (td.getPos() == TextDescriptor.Position.BOXED)     boxed.setSelected(true);
+		initialPos = td.getPos();
+		if (initialPos == TextDescriptor.Position.CENT)      center.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.UP)        bottom.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.DOWN)      top.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.RIGHT)     left.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.LEFT)      right.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.UPLEFT)    lowerRight.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.UPRIGHT)   lowerLeft.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.DOWNLEFT)  upperRight.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.DOWNRIGHT) upperLeft.setSelected(true); else
+		if (initialPos == TextDescriptor.Position.BOXED)     boxed.setSelected(true);
 
-//		editText.setEnabled(true);
-//		language.setEnabled(true);
-//		seeNode.setEnabled(true);
+		// set the offset
+		xOffset.setEditable(true);
+		yOffset.setEditable(true);
+		if (posNotOffset)
+		{
+			initialXOffset = ni.getCenterX();
+			initialYOffset = ni.getCenterY();
+		} else
+		{
+			initialXOffset = td.getXOff();
+			initialYOffset = td.getYOff();
+		}
+		xOffset.setText(Double.toString(initialXOffset));
+		yOffset.setText(Double.toString(initialYOffset));
 
+		// set the language
+		initialLanguage = 0;
+		evaluation.setText("");
+		if (var == null) language.setEnabled(true); else
+		{
+			language.setEnabled(true);
+			if (var.isCode())
+			{
+				initialLanguage = 3;
+				evaluation.setText("Evaluation: " + var.describe(-1, -1));
+			}
+			language.setSelectedIndex(initialLanguage);
+		}
+
+		// set the "invisible outside cell"
 		invisibleOutsideCell.setEnabled(true);
-		invisibleOutsideCell.setSelected(td.isInterior());
+		initialInvisibleOutsideCell = td.isInterior();
+		invisibleOutsideCell.setSelected(initialInvisibleOutsideCell);
 
+		// set what to show
 		show.setEnabled(true);
-		if (td.getDispPart() == TextDescriptor.DispPos.VALUE) show.setSelectedIndex(0); else
-		if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE) show.setSelectedIndex(1); else
-		if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALINH) show.setSelectedIndex(2); else
-		if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALINHALL) show.setSelectedIndex(3);
+		initialDispPart = td.getDispPart();
+		if (initialDispPart == TextDescriptor.DispPos.VALUE) show.setSelectedIndex(0); else
+		if (initialDispPart == TextDescriptor.DispPos.NAMEVALUE) show.setSelectedIndex(1); else
+		if (initialDispPart == TextDescriptor.DispPos.NAMEVALINH) show.setSelectedIndex(2); else
+		if (initialDispPart == TextDescriptor.DispPos.NAMEVALINHALL) show.setSelectedIndex(3);
 
+		// set the size
+		pointsSize.setEditable(true);
+		unitsSize.setEditable(true);
+		pointsButton.setEnabled(true);
+		unitsButton.setEnabled(true);
+		initialSize = td.getSize();
+		if (initialSize.isAbsolute())
+		{
+			pointsButton.setSelected(true);
+			unitsSize.setText("");
+			pointsSize.setText(Double.toString(initialSize.getSize()));
+		} else
+		{
+			unitsButton.setSelected(true);
+			pointsSize.setText("");
+			unitsSize.setText(Double.toString(initialSize.getSize()));
+		}
+
+		// set the font
 		font.setEnabled(true);
 
+		// set italic / bold / underline
 		italic.setEnabled(true);
-		italic.setSelected(td.isItalic());
+		initialItalic = td.isItalic();
+		italic.setSelected(initialItalic);
 		bold.setEnabled(true);
-		bold.setSelected(td.isBold());
+		initialBold = td.isBold();
+		bold.setSelected(initialBold);
 		underline.setEnabled(true);
-		underline.setSelected(td.isUnderline());
+		initialUnderline = td.isUnderline();
+		underline.setSelected(initialUnderline);
 
+		// set the rotation
 		rotation.setEnabled(true);
-		if (td.getRotation() == TextDescriptor.Rotation.ROT0) rotation.setSelectedIndex(0); else
-		if (td.getRotation() == TextDescriptor.Rotation.ROT90) rotation.setSelectedIndex(1); else
-		if (td.getRotation() == TextDescriptor.Rotation.ROT180) rotation.setSelectedIndex(2); else
-		if (td.getRotation() == TextDescriptor.Rotation.ROT270) rotation.setSelectedIndex(3);
+		initialRotation = td.getRotation();
+		if (initialRotation == TextDescriptor.Rotation.ROT0) rotation.setSelectedIndex(0); else
+		if (initialRotation == TextDescriptor.Rotation.ROT90) rotation.setSelectedIndex(1); else
+		if (initialRotation == TextDescriptor.Rotation.ROT180) rotation.setSelectedIndex(2); else
+		if (initialRotation == TextDescriptor.Rotation.ROT270) rotation.setSelectedIndex(3);
+
+		// set the units
 		units.setEnabled(true);
-		if (td.getUnits() == TextDescriptor.Units.NONE) units.setSelectedIndex(0); else
-		if (td.getUnits() == TextDescriptor.Units.RESISTANCE) units.setSelectedIndex(1); else
-		if (td.getUnits() == TextDescriptor.Units.CAPACITANCE) units.setSelectedIndex(2); else
-		if (td.getUnits() == TextDescriptor.Units.INDUCTANCE) units.setSelectedIndex(3); else
-		if (td.getUnits() == TextDescriptor.Units.CURRENT) units.setSelectedIndex(4); else
-		if (td.getUnits() == TextDescriptor.Units.VOLTAGE) units.setSelectedIndex(5); else
-		if (td.getUnits() == TextDescriptor.Units.DISTANCE) units.setSelectedIndex(6); else
-		if (td.getUnits() == TextDescriptor.Units.TIME) units.setSelectedIndex(7);
+		initialUnits = td.getUnits();
+		if (initialUnits == TextDescriptor.Units.NONE) units.setSelectedIndex(0); else
+		if (initialUnits == TextDescriptor.Units.RESISTANCE) units.setSelectedIndex(1); else
+		if (initialUnits == TextDescriptor.Units.CAPACITANCE) units.setSelectedIndex(2); else
+		if (initialUnits == TextDescriptor.Units.INDUCTANCE) units.setSelectedIndex(3); else
+		if (initialUnits == TextDescriptor.Units.CURRENT) units.setSelectedIndex(4); else
+		if (initialUnits == TextDescriptor.Units.VOLTAGE) units.setSelectedIndex(5); else
+		if (initialUnits == TextDescriptor.Units.DISTANCE) units.setSelectedIndex(6); else
+		if (initialUnits == TextDescriptor.Units.TIME) units.setSelectedIndex(7);
 
 		shownText = textHighlight;
 	}
@@ -331,10 +399,261 @@ public class GetInfoText extends javax.swing.JDialog
 		units.addItem("Distance");
 		units.addItem("Time");
 
-		apply.setEnabled(false);
-		ok.setEnabled(false);
-		
+		editText.setEnabled(false);
+
 		loadTextInfo();
+	}
+
+	protected static class ChangeText extends Job
+	{
+		Highlight text;
+		GetInfoText dialog;
+
+		protected ChangeText(Highlight text, GetInfoText dialog)
+		{
+			super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.text = text;
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			boolean changed = false;
+
+			TextDescriptor td = null;
+			Variable var = text.getVar();
+			Geometric geom = text.getGeom();
+			if (var != null)
+			{
+				td = var.getTextDescriptor();
+			} else
+			{
+				if (text.getName() != null)
+				{
+					td = geom.getNameTextDescriptor();
+				} else if (text.getGeom() != null)
+				{
+					td = ((NodeInst)text.getGeom()).getProtoTextDescriptor();
+				}
+			}
+
+			String currentText = dialog.theText.getText();
+			if (!currentText.equals(dialog.initialText))
+			{
+				// change the text
+				changed = true;
+				if (var != null)
+				{
+					boolean oldCantSet = var.isCantSet();
+					boolean oldJava = var.isJava();
+					boolean oldDisplay = var.isDisplay();
+					boolean oldTemporary = var.isDontSave();
+					Variable newVar = null;
+					if (geom != null)
+					{
+						if (text.getPort() != null)
+						{
+							// change variable on export
+							newVar = text.getPort().setVar(var.getKey().getName(), currentText);
+						} else
+						{
+							// change variable on NodeInst or ArcInst
+							newVar = geom.setVar(var.getKey().getName(), currentText);
+						}
+					} else
+					{
+						// change variable on cell
+						newVar = text.getCell().setVar(var.getKey().getName(), currentText);
+					}
+					if (newVar != null)
+					{
+						newVar.setDescriptor(td);
+						if (oldCantSet) newVar.setCantSet();
+						if (oldJava) newVar.setJava();
+						if (oldDisplay) newVar.setDisplay();
+						if (oldTemporary) newVar.setDontSave();
+					}
+				} else
+				{
+					if (text.getName() != null)
+					{
+						if (geom != null)
+						{
+							// change name of NodeInst or ArcInst
+							geom.setName(currentText);
+						}
+					}
+				}
+				dialog.initialText = currentText;
+			}
+
+			// handle changes to the text corner
+			TextDescriptor.Position currentPos = TextDescriptor.Position.CENT;
+			if (dialog.bottom.isSelected()) currentPos = TextDescriptor.Position.UP; else
+			if (dialog.top.isSelected()) currentPos = TextDescriptor.Position.DOWN; else
+			if (dialog.left.isSelected()) currentPos = TextDescriptor.Position.RIGHT; else
+			if (dialog.right.isSelected()) currentPos = TextDescriptor.Position.LEFT; else
+			if (dialog.lowerRight.isSelected()) currentPos = TextDescriptor.Position.UPLEFT; else
+			if (dialog.lowerLeft.isSelected()) currentPos = TextDescriptor.Position.UPRIGHT; else
+			if (dialog.upperRight.isSelected()) currentPos = TextDescriptor.Position.DOWNLEFT; else
+			if (dialog.upperLeft.isSelected()) currentPos = TextDescriptor.Position.DOWNRIGHT;
+			if (currentPos != dialog.initialPos)
+			{
+				changed = true;
+				td.setPos(currentPos);
+				dialog.initialPos = currentPos;
+			}
+
+			// handle changes to the offset
+			double currentXOffset = EMath.atof(dialog.xOffset.getText());
+			double currentYOffset = EMath.atof(dialog.yOffset.getText());
+			if (!EMath.doublesEqual(currentXOffset, dialog.initialXOffset) ||
+				!EMath.doublesEqual(currentYOffset, dialog.initialYOffset))
+			{
+				changed = true;
+				td.setOff(currentXOffset, currentYOffset);
+				dialog.initialXOffset = currentXOffset;
+				dialog.initialYOffset = currentYOffset;
+			}
+
+			// handle changes to the language
+			int currentLanguage = dialog.language.getSelectedIndex();
+			if (currentLanguage != dialog.initialLanguage && var != null)
+			{
+				changed = true;
+				if (currentLanguage == 3) var.setJava(); else var.clearCode();
+			}
+
+			// handle changes to "invisible outside cell"
+			boolean currentInvisibleOutsideCell = dialog.invisibleOutsideCell.isSelected();
+			if (currentInvisibleOutsideCell != dialog.initialInvisibleOutsideCell)
+			{
+				changed = true;
+				if (currentInvisibleOutsideCell) td.setInterior(); else
+					td.clearInterior();
+				dialog.initialInvisibleOutsideCell = currentInvisibleOutsideCell;
+			}
+
+			// handle changes to what to show
+			TextDescriptor.DispPos currentDispPos = null;
+			int unitDispPos = dialog.units.getSelectedIndex();
+			switch (unitDispPos)
+			{
+				case 1:  currentDispPos = TextDescriptor.DispPos.NAMEVALUE;       break;
+				case 2:  currentDispPos = TextDescriptor.DispPos.NAMEVALINH;      break;
+				case 3:  currentDispPos = TextDescriptor.DispPos.NAMEVALINHALL;   break;
+				default: currentDispPos = TextDescriptor.DispPos.VALUE;           break;
+			}
+			if (currentDispPos != dialog.initialDispPart)
+			{
+				changed = true;
+				td.setDispPart(currentDispPos);
+				dialog.initialDispPart = currentDispPos;
+			}
+
+			// handle changes to the size
+			TextDescriptor.Size currentSize = null;
+			if (dialog.pointsButton.isSelected())
+			{
+				int newSize = EMath.atoi(dialog.pointsSize.getText());
+				currentSize = TextDescriptor.Size.newAbsSize(newSize);
+			} else
+			{
+				double newSize = EMath.atof(dialog.unitsSize.getText());
+				currentSize = TextDescriptor.Size.newRelSize(newSize);
+			}
+			if (!currentSize.equals(dialog.initialSize))
+			{
+				changed = true;
+				if (currentSize.isAbsolute())
+					td.setAbsSize((int)currentSize.getSize()); else
+						td.setRelSize(currentSize.getSize());
+				dialog.initialSize = currentSize;
+			}
+
+			// handle changes to the font
+
+			// handle changes to italic / bold / underline
+			boolean currentItalic = dialog.italic.isSelected();
+			if (currentItalic != dialog.initialItalic)
+			{
+				changed = true;
+				if (currentItalic) td.setItalic(); else
+					td.clearItalic();
+				dialog.initialItalic = currentItalic;
+			}
+
+			boolean currentBold = dialog.bold.isSelected();
+			if (currentBold != dialog.initialBold)
+			{
+				changed = true;
+				if (currentBold) td.setBold(); else
+					td.clearBold();
+				dialog.initialBold = currentBold;
+			}
+
+			boolean currentUnderline = dialog.underline.isSelected();
+			if (currentUnderline != dialog.initialUnderline)
+			{
+				changed = true;
+				if (currentUnderline) td.setUnderline(); else
+					td.clearUnderline();
+				dialog.initialUnderline = currentUnderline;
+			}
+
+			// handle changes to the rotation
+			TextDescriptor.Rotation currentRotation = null;
+			int rotIndex = dialog.rotation.getSelectedIndex();
+			switch (rotIndex)
+			{
+				case 1:  currentRotation = TextDescriptor.Rotation.ROT90;    break;
+				case 2:  currentRotation = TextDescriptor.Rotation.ROT180;   break;
+				case 3:  currentRotation = TextDescriptor.Rotation.ROT270;   break;
+				default: currentRotation = TextDescriptor.Rotation.ROT0;     break;
+			}
+			if (currentRotation != dialog.initialRotation)
+			{
+				changed = true;
+				td.setRotation(currentRotation);
+				dialog.initialRotation = currentRotation;
+			}
+
+			// handle changes to the units
+			TextDescriptor.Units currentUnits = null;
+			int unitIndex = dialog.units.getSelectedIndex();
+			switch (unitIndex)
+			{
+				case 1:  currentUnits = TextDescriptor.Units.RESISTANCE;   break;
+				case 2:  currentUnits = TextDescriptor.Units.CAPACITANCE;  break;
+				case 3:  currentUnits = TextDescriptor.Units.INDUCTANCE;   break;
+				case 4:  currentUnits = TextDescriptor.Units.CURRENT;      break;
+				case 5:  currentUnits = TextDescriptor.Units.VOLTAGE;      break;
+				case 6:  currentUnits = TextDescriptor.Units.DISTANCE;     break;
+				case 7:  currentUnits = TextDescriptor.Units.TIME;         break;
+				default: currentUnits = TextDescriptor.Units.NONE;         break;
+			}
+			if (currentUnits != dialog.initialUnits)
+			{
+				changed = true;
+				td.setUnits(currentUnits);
+				dialog.initialUnits = currentUnits;
+			}
+
+			if (changed)
+			{
+				if (geom != null)
+				{
+					if (geom instanceof NodeInst)
+					{
+						((NodeInst)geom).modifyInstance(0, 0, 0, 0, 0);
+					} else if (geom instanceof ArcInst)
+					{
+						((ArcInst)geom).modify(0, 0, 0, 0, 0);
+					}
+				}
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -399,6 +718,7 @@ public class GetInfoText extends javax.swing.JDialog
         invisibleOutsideCell = new javax.swing.JCheckBox();
         seeNode = new javax.swing.JButton();
         apply = new javax.swing.JButton();
+        evaluation = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -423,7 +743,7 @@ public class GetInfoText extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridy = 21;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
@@ -439,7 +759,7 @@ public class GetInfoText extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridy = 21;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
@@ -466,17 +786,17 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel2.setText("Text corner:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel2, gridBagConstraints);
 
         center.setText("Center");
         grab.add(center);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -486,7 +806,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(bottom);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -496,7 +816,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(top);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -506,7 +826,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(right);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -516,7 +836,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(left);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -526,7 +846,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(lowerRight);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -536,7 +856,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(lowerLeft);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -546,7 +866,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(upperRight);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -556,7 +876,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(upperLeft);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -566,7 +886,7 @@ public class GetInfoText extends javax.swing.JDialog
         grab.add(boxed);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.ipady = -4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -576,104 +896,104 @@ public class GetInfoText extends javax.swing.JDialog
         textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconCenter, gridBagConstraints);
 
         textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconBottom, gridBagConstraints);
 
         textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconTop, gridBagConstraints);
 
         textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconRight, gridBagConstraints);
 
         textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconLeft, gridBagConstraints);
 
         textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconLowerRight, gridBagConstraints);
 
         textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconLowerLeft, gridBagConstraints);
 
         textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconUpperRight, gridBagConstraints);
 
         textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconUpperLeft, gridBagConstraints);
 
         textIconBoxed.setMinimumSize(new java.awt.Dimension(25, 15));
         textIconBoxed.setPreferredSize(new java.awt.Dimension(25, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textIconBoxed, gridBagConstraints);
 
         jLabel3.setText("Show:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -682,17 +1002,17 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel4.setText("Size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel4, gridBagConstraints);
 
         pointsSize.setColumns(8);
         pointsSize.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         getContentPane().add(pointsSize, gridBagConstraints);
@@ -701,7 +1021,7 @@ public class GetInfoText extends javax.swing.JDialog
         unitsSize.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         getContentPane().add(unitsSize, gridBagConstraints);
@@ -710,7 +1030,7 @@ public class GetInfoText extends javax.swing.JDialog
         sizes.add(pointsButton);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -720,7 +1040,7 @@ public class GetInfoText extends javax.swing.JDialog
         sizes.add(unitsButton);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -729,15 +1049,15 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel5.setText("Font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -746,16 +1066,16 @@ public class GetInfoText extends javax.swing.JDialog
         italic.setText("Italic");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(italic, gridBagConstraints);
 
         bold.setText("Bold");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(bold, gridBagConstraints);
@@ -763,22 +1083,22 @@ public class GetInfoText extends javax.swing.JDialog
         underline.setText("Underline");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(underline, gridBagConstraints);
 
         jLabel6.setText("Rotation:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel6, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 18;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -787,24 +1107,32 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel7.setText("Units:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 20;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel7, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 20;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(units, gridBagConstraints);
 
         editText.setText("Edit Text");
+        editText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editTextActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(editText, gridBagConstraints);
@@ -812,7 +1140,7 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel8.setText("X offset:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -822,7 +1150,7 @@ public class GetInfoText extends javax.swing.JDialog
         xOffset.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(xOffset, gridBagConstraints);
@@ -830,7 +1158,7 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel9.setText("Y offset:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -840,7 +1168,7 @@ public class GetInfoText extends javax.swing.JDialog
         yOffset.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(yOffset, gridBagConstraints);
@@ -848,15 +1176,17 @@ public class GetInfoText extends javax.swing.JDialog
         jLabel10.setText("Language:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel10, gridBagConstraints);
 
+        language.setMinimumSize(new java.awt.Dimension(125, 25));
+        language.setPreferredSize(new java.awt.Dimension(125, 25));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -865,7 +1195,7 @@ public class GetInfoText extends javax.swing.JDialog
         invisibleOutsideCell.setText("Invisible outside cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -873,9 +1203,17 @@ public class GetInfoText extends javax.swing.JDialog
         getContentPane().add(invisibleOutsideCell, gridBagConstraints);
 
         seeNode.setText("See");
+        seeNode.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                seeNodeActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(seeNode, gridBagConstraints);
@@ -891,15 +1229,45 @@ public class GetInfoText extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridy = 21;
         getContentPane().add(apply, gridBagConstraints);
+
+        evaluation.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        getContentPane().add(evaluation, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
 
+	private void editTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editTextActionPerformed
+	{//GEN-HEADEREND:event_editTextActionPerformed
+		// Add your handling code here:
+	}//GEN-LAST:event_editTextActionPerformed
+
+	private void seeNodeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeNodeActionPerformed
+	{//GEN-HEADEREND:event_seeNodeActionPerformed
+		Geometric geom = shownText.getGeom();
+		if (geom == null) return;
+		Cell cell = shownText.getCell();
+		Variable var = shownText.getVar();
+		Name name = shownText.getName();
+
+		Highlight.clear();
+		Highlight.addGeometric(geom);
+		Highlight newHigh = Highlight.addText(cell, var, name);
+		newHigh.setGeom(geom);
+		Highlight.finished();
+	}//GEN-LAST:event_seeNodeActionPerformed
+
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
-		// Add your handling code here:
+		if (shownText == null) return;
+		ChangeText job = new ChangeText(shownText, this);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
@@ -928,6 +1296,7 @@ public class GetInfoText extends javax.swing.JDialog
     private javax.swing.JButton cancel;
     private javax.swing.JRadioButton center;
     private javax.swing.JButton editText;
+    private javax.swing.JLabel evaluation;
     private javax.swing.JComboBox font;
     private javax.swing.ButtonGroup grab;
     private javax.swing.JLabel header;

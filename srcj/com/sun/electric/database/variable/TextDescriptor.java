@@ -23,10 +23,10 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.util.HashMap;
 import java.awt.Point;
 
 /**
@@ -85,8 +85,8 @@ public class TextDescriptor
 	private static final int VTUNITSTIME =                7;		/* 1:   units: time */
 
 	// text size information
-	private static final int TXTMAXPOINTS =    63;
-	private static final int TXTQGRIDSH =       6;		
+	private static final int TXTMAXPOINTS =       63;
+	private static final int TXTQGRIDSH =          6;		
 	private static final double TXTMAXQGRID =    127.75;
 
 	/**
@@ -305,6 +305,17 @@ public class TextDescriptor
 		public boolean isAbsolute() { return absolute; }
 
 		/**
+		 * Routine to tell whether this Size is the same as another.
+		 * @return true if they are equal.
+		 */
+		public boolean equals(Size other)
+		{
+			if (this.absolute != other.absolute) return false;
+			if (!EMath.doublesEqual(this.size, other.size)) return false;
+			return true;
+		}
+
+		/**
 		 * Returns a printable version of this Size.
 		 * @return a printable version of this Size.
 		 */
@@ -386,82 +397,80 @@ public class TextDescriptor
 
 
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
-	/** set of all descriptors */				private static HashMap allDescriptors = new HashMap();
-	/** descriptor for search */				private static TextDescriptor searchDescriptor = new TextDescriptor();
-	/** blank descriptor */						private static TextDescriptor blankDescriptor = newDescriptor(0,0);
-	/** nodeArc descriptor */					private static TextDescriptor nodeArcDescriptor = blankDescriptor.setRelSize(1);
-	/** export descriptor */					private static TextDescriptor exportDescriptor = blankDescriptor.setRelSize(2);
-	/** nonLayout descriptor */					private static TextDescriptor nonLayoutDescriptor = blankDescriptor.setRelSize(1);
-	/** instance descriptor */					private static TextDescriptor instanceDescriptor = blankDescriptor.setRelSize(4);
-	/** cell descriptor */						private static TextDescriptor cellDescriptor = blankDescriptor.setRelSize(1);
 
 	/**
-	 * The constructor simply creates a TextDescriptor with no values filled-in.
+	 * The constructor simply creates a TextDescriptor with zero values filled-in.
 	 */
-	private TextDescriptor()
+	public TextDescriptor()
 	{
+		this.descriptor0 = this.descriptor1 = 0;
 	}
 
 	/**
 	 * The constructor simply creates a TextDescriptor with specified values.
 	 */
-	private TextDescriptor(int descriptor0, int descriptor1)
+	public TextDescriptor(int descriptor0, int descriptor1)
 	{
 		this.descriptor0 = descriptor0;
 		this.descriptor1 = descriptor1;
 	}
 
 	/**
-	 * This routine finds descriptor with specified values.
-	 */
-	public static TextDescriptor newDescriptor(int descriptor0, int descriptor1)
-	{
-		searchDescriptor.descriptor0 = descriptor0;
-		searchDescriptor.descriptor1 = descriptor1;
-		TextDescriptor descriptor = (TextDescriptor) allDescriptors.get(searchDescriptor);
-		if (descriptor != null) return descriptor;
-		descriptor = new TextDescriptor(descriptor0, descriptor1);
-		allDescriptors.put(descriptor, descriptor);
-		return descriptor;
-	}
-
-	/**
-	 * Routine to return a TextDescriptor that is blank.
-	 * @return a TextDescriptor that is blank.
-	 */
-	public static TextDescriptor newBlankDescriptor() { return blankDescriptor; }
-
-	/**
 	 * Routine to return a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @return a TextDescriptor with to be used on a Variable on a NodeInsts.
 	 */
-	public static TextDescriptor newNodeArcDescriptor() { return nodeArcDescriptor; }
+	public static TextDescriptor newNodeArcDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(1);
+		return td;
+	}
 
 	/**
 	 * Routine to return a TextDescriptor that is a default for Exports.
 	 * @return a TextDescriptor with to be used on an Export.
 	 */
-	public static TextDescriptor newExportDescriptor() { return exportDescriptor; }
+	public static TextDescriptor newExportDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(2);
+		return td;
+	}
 
 	/**
 	 * Routine to return a TextDescriptor that is a default for Nonlayout text (on invisible pins).
 	 * @return a TextDescriptor with to be used on Nonlayout text (on invisible pins)..
 	 */
-	public static TextDescriptor newNonLayoutDescriptor() { return nonLayoutDescriptor; }
+	public static TextDescriptor newNonLayoutDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(2);
+		return td;
+	}
 
 	/**
 	 * Routine to return a TextDescriptor that is a default for Cell instance names.
 	 * This text appears on unexpanded instances of Cells.
 	 * @return a TextDescriptor with to be used on a Cell instance name.
 	 */
-	public static TextDescriptor newInstanceDescriptor() { return instanceDescriptor; }
+	public static TextDescriptor newInstanceDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(4);
+		return td;
+	}
 
 	/**
 	 * Routine to return a TextDescriptor that is a default for Variables on Cells.
 	 * These variables are use for parameter declarations.
 	 * @return a TextDescriptor with to be used on a Variable on a Cells.
 	 */
-	public static TextDescriptor newCellDescriptor() { return cellDescriptor; }
+	public static TextDescriptor newCellDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(1);
+		return td;
+	}
 
     /**
      * Compares this text descriptor to the specified object.
@@ -490,7 +499,8 @@ public class TextDescriptor
      * <code>TextDescriptor</code> object is computed as sum of its fields.
      * @return  a hash code value for this object.
      */
-    public int hashCode() {
+    public int hashCode()
+	{
 		return descriptor0+descriptor1;
     }
 
@@ -529,23 +539,6 @@ public class TextDescriptor
 	public int lowLevelGet1() { return descriptor1; }
 
 	/**
-	 * Routine to clear the the TextDescriptor.
-	 */
-	//public void clear() { this.descriptor0 = this.descriptor1 = 0; }
-
-	/**
-	 * Routine to copy this TextDescriptor to a specified destination.
-	 * @param dest the specified destination TextDescriptor.
-	 */
-	//public void copy(TextDescriptor dest) { dest.lowLevelSet(descriptor0, descriptor1); }
-
-	/**
-	 * Routine to return true if this TextDescriptor is different than the specified one.
-	 * @return true if this TextDescriptor is different than the specified one.
-	 */
-	public boolean diff(TextDescriptor td) { return td != this; }
-
-	/**
 	 * Routine to return the text position of the TextDescriptor.
 	 * The text position describes the "grab point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
@@ -564,7 +557,7 @@ public class TextDescriptor
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @param p the text position of the TextDescriptor.
 	 */
-	public TextDescriptor setPos(Position p) { return newDescriptor((descriptor0 & ~VTPOSITION) | p.getIndex(), descriptor1); }
+	public void setPos(Position p) { descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
 
 	/**
 	 * Routine to return the text size of the text in this TextDescriptor.
@@ -575,6 +568,7 @@ public class TextDescriptor
 	public Size getSize()
 	{
 		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
+		if (textSize == 0) return Size.newRelSize(1);
 		if (textSize <= TXTMAXPOINTS) return Size.newAbsSize(textSize);
 		int sizeValue = textSize>>TXTQGRIDSH;
 		double size = sizeValue / 4.0;
@@ -602,11 +596,11 @@ public class TextDescriptor
 	 * The size must be between 1 and 63 points.
 	 * @param s the point size of this TextDescriptor.
 	 */
-	public TextDescriptor setAbsSize(int s)
+	public void setAbsSize(int s)
 	{
 		Size size = Size.newAbsSize(s);
-		if (size == null) return this;
-		return newDescriptor(descriptor0, (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH));
+		if (size == null) return;
+		descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
 	}
 
 	/**
@@ -614,11 +608,11 @@ public class TextDescriptor
 	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
 	 * @param s the unit size of this TextDescriptor.
 	 */
-	public TextDescriptor setRelSize(double s)
+	public void setRelSize(double s)
 	{
 		Size size = Size.newRelSize(s);
-		if (size == null) return this;
-		return newDescriptor(descriptor0, (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH));
+		if (size == null) return;
+		descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
 	}
 
 	/**
@@ -631,7 +625,7 @@ public class TextDescriptor
 	 * Routine to set the text font of the TextDescriptor.
 	 * @param f the text font of the TextDescriptor.
 	 */
-	public TextDescriptor setFace(int f) { return newDescriptor(descriptor0, (descriptor1 & ~VTFACE) | (f << VTFACESH)); }
+	public void setFace(int f) { descriptor1 = (descriptor1 & ~VTFACE) | (f << VTFACESH); }
 
 	/**
 	 * Routine to return the text rotation of the TextDescriptor.
@@ -645,7 +639,7 @@ public class TextDescriptor
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @param r the text rotation of the TextDescriptor.
 	 */
-	public TextDescriptor setRotation(Rotation r) { return newDescriptor(descriptor0, (descriptor1 & ~VTROTATION) | (r.getBits() << VTROTATIONSH)); }
+	public void setRotation(Rotation r) { descriptor1 = (descriptor1 & ~VTROTATION) | (r.getBits() << VTROTATIONSH); }
 
 	/**
 	 * Routine to return the text display part of the TextDescriptor.
@@ -657,7 +651,7 @@ public class TextDescriptor
 	 * Routine to set the text display part of the TextDescriptor.
 	 * @param d the text display part of the TextDescriptor.
 	 */
-	public TextDescriptor setDispPart(DispPos d) { return newDescriptor((descriptor0 & ~VTDISPLAYPART) | d.getIndex(), descriptor1); }
+	public void setDispPart(DispPos d) { descriptor0 = (descriptor0 & ~VTDISPLAYPART) | d.getIndex(); }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is italic.
@@ -668,12 +662,12 @@ public class TextDescriptor
 	/**
 	 * Routine to set the text in the TextDescriptor to be italic.
 	 */
-	public TextDescriptor setItalic() { return newDescriptor(descriptor0 | VTITALIC, descriptor1); }
+	public void setItalic() { descriptor0 |= VTITALIC; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not italic.
 	 */
-	public TextDescriptor clearItalic() { return newDescriptor(descriptor0 & ~VTITALIC, descriptor1); }
+	public void clearItalic() { descriptor0 &= ~VTITALIC; }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is bold.
@@ -684,12 +678,12 @@ public class TextDescriptor
 	/**
 	 * Routine to set the text in the TextDescriptor to be bold.
 	 */
-	public TextDescriptor setBold() { return newDescriptor(descriptor0 | VTBOLD, descriptor1); }
+	public void setBold() { descriptor0 |= VTBOLD; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not bold.
 	 */
-	public TextDescriptor clearBold() { return newDescriptor(descriptor0 & ~VTBOLD, descriptor1); }
+	public void clearBold() { descriptor0 &= ~VTBOLD; }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is underlined.
@@ -700,12 +694,12 @@ public class TextDescriptor
 	/**
 	 * Routine to set the text in the TextDescriptor to be underlined.
 	 */
-	public TextDescriptor setUnderline() { return newDescriptor(descriptor0 | VTUNDERLINE, descriptor1); }
+	public void setUnderline() { descriptor0 |= VTUNDERLINE; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not underlined.
 	 */
-	public TextDescriptor clearUnderline() { return newDescriptor(descriptor0 & ~VTUNDERLINE, descriptor1); }
+	public void clearUnderline() { descriptor0 &= ~VTUNDERLINE; }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is interior.
@@ -718,13 +712,13 @@ public class TextDescriptor
 	 * Routine to set the text in the TextDescriptor to be interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
-	public TextDescriptor setInterior() { return newDescriptor(descriptor0 | VTINTERIOR, descriptor1); }
+	public void setInterior() { descriptor0 |= VTINTERIOR; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
-	public TextDescriptor clearInterior() { return newDescriptor(descriptor0 & ~VTINTERIOR, descriptor1); }
+	public void clearInterior() { descriptor0 &= ~VTINTERIOR; }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is inheritable.
@@ -743,7 +737,7 @@ public class TextDescriptor
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
 	 * created on that NodeInst.
 	 */
-	public TextDescriptor setInherit() { return newDescriptor(descriptor0 | VTINHERIT, descriptor1); }
+	public void setInherit() { descriptor0 |= VTINHERIT; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not inheritable.
@@ -752,7 +746,7 @@ public class TextDescriptor
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
 	 * created on that NodeInst.
 	 */
-	public TextDescriptor clearInherit() { return newDescriptor(descriptor0 & ~VTINHERIT, descriptor1); }
+	public void clearInherit() { descriptor0 &= ~VTINHERIT; }
 
 	/**
 	 * Routine to return true if the text in the TextDescriptor is a parameter.
@@ -769,7 +763,7 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public TextDescriptor setParam() { return newDescriptor(descriptor0 | VTISPARAMETER, descriptor1); }
+	public void setParam() { descriptor0 |= VTISPARAMETER; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not a parameter.
@@ -777,32 +771,30 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public TextDescriptor clearParam() { return newDescriptor(descriptor0 & ~VTISPARAMETER, descriptor1); }
+	public void clearParam() { descriptor0 &= ~VTISPARAMETER; }
 
 	/**
 	 * Routine to return the X offset of the text in the TextDescriptor.
-	 * The value is scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
 	 * @return the X offset of the text in the TextDescriptor.
 	 */
-	public int getXOff()
+	public double getXOff()
 	{
 		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
 		if ((descriptor0&VTXOFFNEG) != 0) offset = -offset;
 		int scale = getOffScale() + 1;
-		return(offset * scale);
+		return(offset * scale / 4);
 	}
 
 	/**
 	 * Routine to return the Y offset of the text in the TextDescriptor.
-	 * The value is scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
 	 * @return the Y offset of the text in the TextDescriptor.
 	 */
-	public int getYOff()
+	public double getYOff()
 	{
 		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
 		if ((descriptor0&VTYOFFNEG) != 0) offset = -offset;
 		int scale = getOffScale() + 1;
-		return(offset * scale);
+		return(offset * scale / 4);
 	}
 
 	/**
@@ -811,26 +803,28 @@ public class TextDescriptor
 	 * @param x the X offset of the text in the TextDescriptor.
 	 * @param y the Y offset of the text in the TextDescriptor.
 	 */
-	public TextDescriptor setOff(int x, int y)
+	public void setOff(double xd, double yd)
 	{
-		int desc0 = descriptor0 & ~(VTXOFF|VTYOFF|VTXOFFNEG|VTYOFFNEG);
+		int x = (int)(xd * 4);
+		int y = (int)(yd * 4);
+		descriptor0 &= ~(VTXOFF|VTYOFF|VTXOFFNEG|VTYOFFNEG);
 		if (x < 0)
 		{
 			x = -x;
-			desc0 |= VTXOFFNEG;
+			descriptor0 |= VTXOFFNEG;
 		}
 		if (y < 0)
 		{
 			y = -y;
-			desc0 |= VTYOFFNEG;
+			descriptor0 |= VTYOFFNEG;
 		}
 		int scale = Math.max(x,y) >> VTOFFMASKWID;
 		x /= (scale + 1);
 		y /= (scale + 1);
-		desc0 |= (x << VTXOFFSH) & VTXOFF;
-		desc0 |= (y << VTYOFFSH) & VTYOFF;
+		descriptor0 |= (x << VTXOFFSH) & VTXOFF;
+		descriptor0 |= (y << VTYOFFSH) & VTYOFF;
 		//setOffScale(scale);
-		return newDescriptor(desc0, (descriptor1 & ~VTOFFSCALE) | ((scale << VTOFFSCALESH) & VTOFFSCALE));
+		descriptor1 = (descriptor1 & ~VTOFFSCALE) | ((scale << VTOFFSCALESH) & VTOFFSCALE);
 	}
 
 	/** routine to return the offset scale of the text in the text descriptor. */
@@ -855,5 +849,5 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @param u the units of the TextDescriptor.
 	 */
-	public TextDescriptor setUnits(Units u) { return newDescriptor(descriptor0, (descriptor1 & ~VTUNITS) | (u.getIndex() << VTUNITSSH)); }
+	public void setUnits(Units u) { descriptor1 = (descriptor1 & ~VTUNITS) | (u.getIndex() << VTUNITSSH); }
 }

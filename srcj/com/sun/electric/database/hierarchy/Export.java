@@ -266,8 +266,8 @@ public class Export extends PortProto
 		double cX = poly.getCenterX();
 		double cY = poly.getCenterY();
 		TextDescriptor td = getTextDescriptor();
-		double offX = (double)td.getXOff() / 4;
-		double offY = (double)td.getYOff() / 4;
+		double offX = td.getXOff();
+		double offY = td.getYOff();
 		TextDescriptor.Position pos = td.getPos();
 		Poly.Type style = pos.getPolyType();
 		Point2D [] pointList = new Point2D.Double[1];

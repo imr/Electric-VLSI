@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import javax.swing.JFrame;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -60,8 +62,8 @@ public class GetInfoMulti extends javax.swing.JDialog
 {
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
-	private List highlightList;
 	private JList list;
+	private List highlightList;
 	private String initialXPosition, initialYPosition, initialXSize, initialYSize, initialWidth;
 	private int numNodes, numArcs;
 
@@ -116,20 +118,19 @@ public class GetInfoMulti extends javax.swing.JDialog
 
 	private void loadMultiInfo()
 	{
-		// copy the selected objects to a private list
+		// copy the selected objects to a private list and sort it
 		highlightList.clear();
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			highlightList.add(it.next());
 		}
 		Collections.sort(highlightList, new SortMultipleHighlights());
-		showMultiInfo();
-	}
 
-	private void showMultiInfo()
-	{
+		// show the list
 		numNodes = 0;
 		numArcs = 0;
+		Geometric firstGeom = null;
+		Geometric secondGeom = null;
 		double xPositionLow=0, xPositionHigh=0, yPositionLow=0, yPositionHigh=0;
 		double xSizeLow=0, xSizeHigh=0, ySizeLow=0, ySizeHigh=0;
 		double widthLow=0, widthHigh=0;
@@ -142,6 +143,8 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				String description;
 				Geometric geom = h.getGeom();
+				if (firstGeom == null) firstGeom = geom; else
+					if (secondGeom == null) secondGeom = geom;
 				if (geom instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)geom;
@@ -222,7 +225,15 @@ public class GetInfoMulti extends javax.swing.JDialog
 					}
 				} else
 				{
-					if (h.getPort() != null)
+					if (h.getName() != null)
+					{
+						Geometric geom = h.getGeom();
+						if (geom != null)
+						{
+							if (geom instanceof NodeInst) description = "Node name for " + geom.describe(); else
+								description = "Arc name for " + geom.describe();
+						}
+					} else if (h.getPort() != null)
 					{
 						description = "Text: Export '" + h.getPort().getProtoName() + "'";
 					} else
@@ -236,13 +247,25 @@ public class GetInfoMulti extends javax.swing.JDialog
 				listModel.addElement(description);
 			} else if (h.getType() == Highlight.Type.LINE)
 			{
-				String description = "Line";
+				Point2D pt1 = h.getFromPoint();
+				Point2D pt2 = h.getToPoint();
+				String description = "Line from (" + pt1.getX() + "," + pt1.getY() + ") to (" +
+					pt2.getX() + "," + pt2.getY() + ")";
 				listModel.addElement(description);
 			} else if (h.getType() == Highlight.Type.BBOX)
 			{
-				String description = "Area";
+				Rectangle2D bounds = h.getBounds();
+				String description = "Area from " + bounds.getMinX() + "<=X<=" + bounds.getMaxX() +
+					" and " + bounds.getMinY() + "<=Y<=" + bounds.getMaxY();
 				listModel.addElement(description);
 			}
+		}
+
+		// with exactly 2 objects, show the distance between them
+		if (numNodes + numArcs == 2)
+		{
+			listModel.addElement("---------------------------");
+			listModel.addElement("Distance between centers is " + firstGeom.getCenter().distance(secondGeom.getCenter()));
 		}
 		if (numNodes != 0)
 		{
@@ -254,6 +277,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				xPositionRange.setText(xPositionLow + " to " + xPositionHigh);
 			}
+			xPosition.setEditable(true);
 			xPosition.setText(initialXPosition);
 
 			initialYPosition = "";
@@ -265,6 +289,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				yPositionRange.setText(yPositionLow + " to " + yPositionHigh);
 			}
+			yPosition.setEditable(true);
 			yPosition.setText(initialYPosition);
 
 			initialXSize = "";
@@ -276,6 +301,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				xSizeRange.setText(xSizeLow + " to " + xSizeHigh);
 			}
+			xSize.setEditable(true);
 			xSize.setText(initialXSize);
 
 			initialYSize = "";
@@ -287,15 +313,20 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				ySizeRange.setText(ySizeLow + " to " + ySizeHigh);
 			}
+			ySize.setEditable(true);
 			ySize.setText(initialYSize);
 		} else
 		{
+			xPosition.setEditable(false);
 			xPosition.setText("");
 			xPositionRange.setText("");
+			yPosition.setEditable(false);
 			yPosition.setText("");
 			yPositionRange.setText("");
+			xSize.setEditable(false);
 			xSize.setText("");
 			xSizeRange.setText("");
+			ySize.setEditable(false);
 			ySize.setText("");
 			ySizeRange.setText("");
 		}
@@ -310,11 +341,30 @@ public class GetInfoMulti extends javax.swing.JDialog
 			{
 				widthRange.setText(widthLow + " to " + widthHigh);
 			}
+			width.setEditable(true);
 			width.setText(initialWidth);
 		} else
 		{
+			width.setEditable(false);
 			width.setText("");
 			widthRange.setText("");
+		}
+		if (numNodes == 0 && numArcs == 0)
+		{
+			listPane.setEnabled(false);
+			remove.setEnabled(false);
+			removeOthers.setEnabled(false);
+			apply.setEnabled(false);
+			selection.setEnabled(false);
+			characteristics.setEnabled(false);
+		} else
+		{
+			listPane.setEnabled(true);
+			remove.setEnabled(true);
+			removeOthers.setEnabled(true);
+			apply.setEnabled(true);
+			selection.setEnabled(true);
+			characteristics.setEnabled(true);
 		}
 	}
 
@@ -529,8 +579,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 19;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.33;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(removeOthers, gridBagConstraints);
 
         apply.setText("Apply");
@@ -545,8 +595,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 19;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.33;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
         selectionCount.setText("0 selections:");
@@ -554,8 +604,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         getContentPane().add(selectionCount, gridBagConstraints);
 
         jLabel2.setText("For all selected nodes:");
@@ -563,8 +613,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         listPane.setMinimumSize(new java.awt.Dimension(300, 22));
@@ -575,17 +625,17 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.gridheight = 18;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
 
         jLabel3.setText("X Position:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel3, gridBagConstraints);
 
         xPosition.setColumns(8);
@@ -609,8 +659,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel5, gridBagConstraints);
 
         yPosition.setColumns(8);
@@ -634,8 +684,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel7, gridBagConstraints);
 
         xSize.setColumns(8);
@@ -659,8 +709,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel9, gridBagConstraints);
 
         ySize.setColumns(8);
@@ -692,16 +742,16 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel11, gridBagConstraints);
 
         jLabel12.setText("Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 11;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel12, gridBagConstraints);
 
         width.setColumns(8);
@@ -733,8 +783,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel14, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -757,8 +807,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 17;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel15, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -796,8 +846,8 @@ public class GetInfoMulti extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 19;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.33;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(remove, gridBagConstraints);
 
         cancel.setText("Cancel");
@@ -840,8 +890,9 @@ public class GetInfoMulti extends javax.swing.JDialog
 			if (j < items.length) continue;
 			newList.add(highlightList.get(i));
 		}
-		highlightList = newList;
-		showMultiInfo();
+		Highlight.clear();
+		Highlight.setHighlightList(newList);
+		Highlight.finished();
 	}//GEN-LAST:event_removeActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
@@ -862,7 +913,9 @@ public class GetInfoMulti extends javax.swing.JDialog
 			newList.add(highlightList.get(i));
 		}
 		highlightList = newList;
-		showMultiInfo();
+		Highlight.clear();
+		Highlight.setHighlightList(newList);
+		Highlight.finished();
 	}//GEN-LAST:event_removeOthersActionPerformed
 
 	/** Closes the dialog */

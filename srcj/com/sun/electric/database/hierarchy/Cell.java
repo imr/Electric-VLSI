@@ -1597,47 +1597,47 @@ public class Cell extends NodeProto
 	 * Routine to write a description of this Cell.
 	 * Displays the description in the Messages Window.
 	 */
-	public void getInfo()
-	{
-		System.out.println("--------- CELL " + describe() +  " ---------");
-		System.out.println("  technology= " + tech);
-		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
-		System.out.println("  creation date= " + df.format(creationDate));
-		System.out.println("  revision date= " + df.format(revisionDate));
-		System.out.println("  newestVersion= " + getNewestVersion().describe());
-		Rectangle2D rect = getBounds();
-		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
-		System.out.println("  nodes (" + getNumNodes() + "):");
-		for (Iterator it = getUsagesIn(); it.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			if (nu.getNumIcons() == 0)
-				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-			else
-				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-		}
-		System.out.println("  arcs (" + arcs.size() + "):");
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			if (i > 20)
-			{
-				System.out.println("     ...");
-				break;
-			}
-			System.out.println("     " + arcs.get(i));
-		}
-		if (getUsagesOf().hasNext())
-			System.out.println("  instances:");
-		for (Iterator it = getUsagesOf(); it.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			if (nu.getNumIcons() == 0)
-				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-			else
-				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-		}
-		super.getInfo();
-	}
+//	public void getInfo()
+//	{
+//		System.out.println("--------- CELL " + describe() +  " ---------");
+//		System.out.println("  technology= " + tech);
+//		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+//		System.out.println("  creation date= " + df.format(creationDate));
+//		System.out.println("  revision date= " + df.format(revisionDate));
+//		System.out.println("  newestVersion= " + getNewestVersion().describe());
+//		Rectangle2D rect = getBounds();
+//		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
+//		System.out.println("  nodes (" + getNumNodes() + "):");
+//		for (Iterator it = getUsagesIn(); it.hasNext();)
+//		{
+//			NodeUsage nu = (NodeUsage)it.next();
+//			if (nu.getNumIcons() == 0)
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+//			else
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
+//		}
+//		System.out.println("  arcs (" + arcs.size() + "):");
+//		for (int i = 0; i < arcs.size(); i++)
+//		{
+//			if (i > 20)
+//			{
+//				System.out.println("     ...");
+//				break;
+//			}
+//			System.out.println("     " + arcs.get(i));
+//		}
+//		if (getUsagesOf().hasNext())
+//			System.out.println("  instances:");
+//		for (Iterator it = getUsagesOf(); it.hasNext();)
+//		{
+//			NodeUsage nu = (NodeUsage)it.next();
+//			if (nu.getNumIcons() == 0)
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+//			else
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
+//		}
+//		super.getInfo();
+//	}
 
 	// ------------------------- public methods -----------------------------
 

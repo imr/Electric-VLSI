@@ -642,7 +642,7 @@ public class Clipboard
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						Highlight h = Highlight.addText(tocell, poly.getBounds2D(), poly.getStyle(), poly.getVariable());
+						Highlight h = Highlight.addText(tocell, poly.getVariable(), poly.getName());
 					}
 					continue;
 				}
@@ -947,10 +947,10 @@ public class Clipboard
 			if (newVar != null)
 			{
 				double lambda = 1;
-				TextDescriptor descript = TextDescriptor.newBlankDescriptor();
+				TextDescriptor descript = new TextDescriptor();
 				var.setDescriptor(descript);
-				int dx = descript.getXOff() / 4;
-				int dy = descript.getYOff() / 4;
+				double dx = descript.getXOff();
+				double dy = descript.getYOff();
 
 //				saverot = pp->subnodeinst->rotation;
 //				savetrn = pp->subnodeinst->transpose;
@@ -1052,9 +1052,9 @@ public class Clipboard
 			}
 		}
 
-		int xc = posVar.getTextDescriptor().getXOff();
+		double xc = posVar.getTextDescriptor().getXOff();
 		if (posVar == var) xc -= np.getBounds().getCenterX();
-		int yc = posVar.getTextDescriptor().getYOff();
+		double yc = posVar.getTextDescriptor().getYOff();
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
 		// set the attribute
@@ -1063,10 +1063,12 @@ public class Clipboard
 		{
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
 			if (var.getTextDescriptor().isInterior()) newVar.clearDisplay();
-			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor().clearInherit().setOff(xc, yc);
+			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor();
+			newDescript.clearInherit();
+			newDescript.setOff(xc, yc);
 			if (var.getTextDescriptor().isParam())
 			{
-				newDescript = newDescript.clearInterior();
+				newDescript.clearInterior();
 				TextDescriptor.DispPos i = newDescript.getDispPart();
 				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
 					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);

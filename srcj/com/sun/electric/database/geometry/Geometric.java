@@ -1106,8 +1106,8 @@ public class Geometric extends ElectricObject
 		{
 			double cX = rect.getCenterX();
 			double cY = rect.getCenterY();
-			double offX = (double)nameDescriptor.getXOff() / 4;
-			double offY = (double)nameDescriptor.getYOff() / 4;
+			double offX = nameDescriptor.getXOff();
+			double offY = nameDescriptor.getYOff();
 			TextDescriptor.Position pos = nameDescriptor.getPos();
 			Poly.Type style = pos.getPolyType();
 
@@ -1119,6 +1119,7 @@ public class Geometric extends ElectricObject
 			polys[start].setTextDescriptor(nameDescriptor);
 			polys[start].setLayer(null);
 			//polys[start].setVariable(var); ???
+			polys[start].setName(name);
 			numVars = 1;
 		}
 		return super.addDisplayableVariables(rect,polys,start+numVars,wnd,multipleStrings)+numVars;

@@ -138,7 +138,9 @@ public class ElectricObject
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
-	 * @return the number of Variables that were added.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @param multipleStrings true to break multiline text into multiple Polys.
+	 * @return the number of Polys that were added.
 	 */
 	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
 	{
@@ -151,50 +153,69 @@ public class ElectricObject
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
-			TextDescriptor td = var.getTextDescriptor();
-			double offX = (double)td.getXOff() / 4;
-			double offY = (double)td.getYOff() / 4;
-			int varLength = var.getLength();
-			double height = 0;
-			TextDescriptor.Position pos = td.getPos();
-			Poly.Type style = pos.getPolyType();
-			if (varLength > 1)
-			{
-				// compute text height
-				GlyphVector gv = wnd.getGlyphs(var.describe(0, -1, wnd.getVarContext(), this), td);
-				Rectangle2D glyphBounds = gv.getVisualBounds();
-				height = glyphBounds.getHeight() / wnd.getScale();
-				if (multipleStrings)
-				{
-					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY += height * (varLength-1) / 2;
-					if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
-						cY += height * (varLength-1);
-				} else
-				{
-					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY -= height * (varLength-1) / 2;
-					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-						cY -= height * (varLength-1);
-					varLength = 1;
-				}
-			}
-			for(int i=0; i<varLength; i++)
+			Poly [] polyList = getPolyList(var, cX, cY, wnd, multipleStrings);
+			for(int i=0; i<polyList.length; i++)
 			{
 				int index = start + numAddedVariables;
+				polys[index] = polyList[i];
 				numAddedVariables++;
-				Point2D [] pointList = new Point2D.Double[1];
-				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-				polys[index] = new Poly(pointList);
-				polys[index].setStyle(style);
-				polys[index].setString(var.describe(i, -1, wnd.getVarContext(), this));
-				polys[index].setTextDescriptor(td);
-				polys[index].setLayer(null);
-				polys[index].setVariable(var);
-				cY -= height;
 			}
 		}
 		return numAddedVariables;
+	}
+
+	/**
+	 * Routine to create an array of Poly objects that describes a displayable Variables on this Electric object.
+	 * @param var the Variable on this ElectricObject to describe.
+	 * @param cX the center X coordinate of the ElectricObject.
+	 * @param cY the center Y coordinate of the ElectricObject.
+	 * @param wnd window in which the Variable will be displayed.
+	 * @param multipleStrings true to break multiline text into multiple Polys.
+	 * @return an array of Poly objects that describe the Variable.
+	 */
+	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow wnd, boolean multipleStrings)
+	{
+		TextDescriptor td = var.getTextDescriptor();
+		double offX = td.getXOff();
+		double offY = td.getYOff();
+		int varLength = var.getLength();
+		double height = 0;
+		Poly.Type style = td.getPos().getPolyType();
+		if (varLength > 1)
+		{
+			// compute text height
+			GlyphVector gv = wnd.getGlyphs(var.describe(0, -1, wnd.getVarContext(), this), td);
+			Rectangle2D glyphBounds = gv.getVisualBounds();
+			height = glyphBounds.getHeight() / wnd.getScale();
+			if (multipleStrings)
+			{
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+					cY += height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+					cY += height * (varLength-1);
+			} else
+			{
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+					cY -= height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+					cY -= height * (varLength-1);
+				varLength = 1;
+			}
+		}
+		Poly [] polys = new Poly[varLength];
+		for(int i=0; i<varLength; i++)
+		{
+			Point2D [] pointList = new Point2D.Double[1];
+			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			polys[i] = new Poly(pointList);
+			polys[i].setStyle(style);
+			polys[i].setString(var.describe(i, -1, wnd.getVarContext(), this));
+			polys[i].setTextDescriptor(td);
+			polys[i].setLayer(null);
+			polys[i].setVariable(var);
+			cY -= height;
+		}
+		return polys;
 	}
 
 	/**

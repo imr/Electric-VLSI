@@ -280,34 +280,11 @@ public class Variable
                 returnVal.append(makeStringVar(val, purpose, units));
         } else
 		{
-			if (addr instanceof Object[])
+			returnVal.append(getPureValue(aindex, purpose));
+			if (addr instanceof Object[] && aindex >= 0)
 			{
-				/* compute the array length */
-				Object [] addrArray = (Object []) addr;
-				int len = addrArray.length;
-
-				/* if asking for a single entry, get it */
-				if (aindex >= 0)
-				{
-					/* normal array indexing */
-					whichIndex = "[" + aindex + "]";
-					if (aindex < len)
-						returnVal.append(makeStringVar(addrArray[aindex], purpose, units));
-				} else
-				{
-					/* in an array, quote strings */
-					if (purpose < 0) purpose = 0;
-					if (len > 1) returnVal.append("[");
-					for(int i=0; i<len; i++)
-					{
-						if (i != 0) returnVal.append(",");
-						returnVal.append(makeStringVar(addrArray[i], purpose, units));
-					}
-					if (len > 1) returnVal.append("]");
-				}
-			} else
-			{
-				returnVal.append(makeStringVar(addr, purpose, units));
+				/* normal array indexing */
+				whichIndex = "[" + aindex + "]";
 			}
 		}
 		if (dispPos == TextDescriptor.DispPos.NAMEVALUE ||
@@ -325,6 +302,41 @@ public class Variable
 		{
 			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
 		}*/
+		return returnVal.toString();
+	}
+
+	public String getPureValue(int aindex, int purpose)
+	{
+		TextDescriptor.Units units = descriptor.getUnits();
+		StringBuffer returnVal = new StringBuffer();
+		if (addr instanceof Object[])
+		{
+			/* compute the array length */
+			Object [] addrArray = (Object [])addr;
+			int len = addrArray.length;
+
+			/* if asking for a single entry, get it */
+			if (aindex >= 0)
+			{
+				/* normal array indexing */
+				if (aindex < len)
+					returnVal.append(makeStringVar(addrArray[aindex], purpose, units));
+			} else
+			{
+				/* in an array, quote strings */
+				if (purpose < 0) purpose = 0;
+				if (len > 1) returnVal.append("[");
+				for(int i=0; i<len; i++)
+				{
+					if (i != 0) returnVal.append(",");
+					returnVal.append(makeStringVar(addrArray[i], purpose, units));
+				}
+				if (len > 1) returnVal.append("]");
+			}
+		} else
+		{
+			returnVal.append(makeStringVar(addr, purpose, units));
+		}
 		return returnVal.toString();
 	}
 

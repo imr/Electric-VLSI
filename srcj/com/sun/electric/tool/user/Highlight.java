@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -90,9 +91,10 @@ import javax.swing.JPanel;
  *   <LI>If a NodeInst is selected, may fill-in "port" if a port on that node is selected.
  *   <LI>If a NodeInst is selected, may fill-in "point" if an outline node being edited.
  *   </UL>
- * <LI>TEXT: text is selected.  Fills in "cell", "bounds", and "textStyle".  Also:
+ * <LI>TEXT: text is selected.  Fills in "cell".  Also:
  *   <UL>
  *   <LI>For variable on NodeInst or ArcInst, fills in "var" and "geom".
+ *   <LI>For the name on NodeInst or ArcInst, fills in "name" and "geom".
  *   <LI>For variable on a Port, fills in "var", "geom", and "port".
  *   <LI>For Export name, fills in "geom" and "port".
  *   <LI>For variable on Cell, fills in "var".
@@ -140,9 +142,9 @@ public class Highlight
 	/** The highlighted port (only for NodeInst). */			private PortProto port;
 	/** The highlighted outline point (only for NodeInst). */	private int point;
 	/** The highlighted variable. */							private Variable var;
+	/** The highlighted Name. */								private Name name;
 	/** The highlighted area. */								private Rectangle2D bounds;
 	/** The highlighted line. */								private Point2D pt1, pt2;
-	/** The style of highlighted text. */						private Poly.Type textStyle;
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
@@ -150,7 +152,19 @@ public class Highlight
 	private static final int EXACTSELECTDISTANCE = 5;
 	private static final int CROSSSIZE = 3;
 
-	private Highlight(Type type) { this.type = type; }
+	private Highlight(Type type)
+	{
+		this.type = type;
+		this.geom = null;
+		this.cell = null;
+		this.port = null;
+		this.point = 0;
+		this.var = null;
+		this.name = null;
+		this.bounds = null;
+		this.pt1 = null;
+		this.pt2 = null;
+	}
 
 	/**
 	 * Routine to clear the list of highlighted objects.
@@ -159,11 +173,6 @@ public class Highlight
 	{
 		highlightList.clear();
 		highOffX = highOffY = 0;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			wf.getEditWindow().repaint();
-		}
 	}
 
 	/**
@@ -177,6 +186,11 @@ public class Highlight
 		GetInfoExport.load();
 		GetInfoText.load();
 		GetInfoMulti.load();
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.getEditWindow().repaint();
+		}
 	}
 
 	/**
@@ -197,19 +211,16 @@ public class Highlight
 	/**
 	 * Routine to add a text selection to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
-	 * @param area the Rectangle that covers the test.
-	 * @param textStyle the style of drawing the text (grab point).
 	 * @param var the Variable associated with the text (text is then a visual of that variable).
+	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addText(Cell cell, Rectangle2D area, Poly.Type textStyle, Variable var)
+	public static Highlight addText(Cell cell, Variable var, Name name)
 	{
 		Highlight h = new Highlight(Type.TEXT);
-		h.bounds = new Rectangle2D.Double();
-		h.bounds.setRect(area);
 		h.cell = cell;
-		h.textStyle = textStyle;
 		h.var = var;
+		h.name = name;
 
 		highlightList.add(h);
 		return h;
@@ -242,10 +253,8 @@ public class Highlight
 	public static Highlight addLine(Point2D start, Point2D end, Cell cell)
 	{
 		Highlight h = new Highlight(Type.LINE);
-		h.pt1 = new Point2D.Double();
-		h.pt1.setLocation(start);
-		h.pt2 = new Point2D.Double();
-		h.pt2.setLocation(end);
+		h.pt1 = new Point2D.Double(start.getX(), start.getY());
+		h.pt2 = new Point2D.Double(end.getX(), end.getY());
 		h.cell = cell;
 
 		highlightList.add(h);
@@ -268,7 +277,7 @@ public class Highlight
 	 * Routine to set the Geometric associated with this Highlight object.
 	 * @param geom the Geometric associated with this Highlight object.
 	 */
-	private void setGeom(Geometric geom) { this.geom = geom;   this.cell = geom.getParent(); }
+	public void setGeom(Geometric geom) { this.geom = geom;   this.cell = geom.getParent(); }
 
 	/**
 	 * Routine to return the Cell associated with this Highlight object.
@@ -307,13 +316,6 @@ public class Highlight
 	public int getPoint() { return point; }
 
 	/**
-	 * Routine to set an bounds to be displayed with this Highlight.
-	 * Bounds are used for area definitions and also for text.
-	 * @param bounds the bounds to show with this Highlight (must be a NodeInst highlight).
-	 */
-	public void setBounds(Rectangle2D bounds) { this.bounds = bounds; }
-
-	/**
 	 * Routine to return the bounds associated with this Highlight object.
 	 * Bounds are used for area definitions and also for text.
 	 * @return the bounds associated with this Highlight object.
@@ -321,22 +323,36 @@ public class Highlight
 	public Rectangle2D getBounds() { return bounds; }
 
 	/**
-	 * Routine to set an text style to be displayed with this Highlight.
-	 * @param textStyle the text style to show with this Highlight (must be a NodeInst highlight).
-	 */
-	public void setTextStyle(Poly.Type textStyle) { this.textStyle = textStyle; }
-
-	/**
-	 * Routine to return the text style associated with this Highlight object.
-	 * @return the text style associated with this Highlight object.
-	 */
-	public Poly.Type getTextStyle() { return textStyle; }
-
-	/**
 	 * Routine to set the Variable associated with this Highlight object.
 	 * @param var the Variable associated with this Highlight object.
 	 */
 	private void setVar(Variable var) { this.var = var; }
+
+	/**
+	 * Routine to return the Name associated with this Highlight object.
+	 * @return the Name associated with this Highlight object.
+	 */
+	public Name getName() { return name; }
+
+	/**
+	 * Routine to set the Name associated with this Highlight object.
+	 * @param name the Name associated with this Highlight object.
+	 */
+	private void setName(Name name) { this.name = name; }
+
+	/**
+	 * Routine to return the "from point" associated with this Highlight object.
+	 * This only applies to Highlights of type LINE.
+	 * @return the from point associated with this Highlight object.
+	 */
+	public Point2D getFromPoint() { return pt1; }
+
+	/**
+	 * Routine to return the "to point" associated with this Highlight object.
+	 * This only applies to Highlights of type LINE.
+	 * @return the to point associated with this Highlight object.
+	 */
+	public Point2D getToPoint() { return pt2; }
 
 	/**
 	 * Routine to return the Variable associated with this Highlight object.
@@ -355,6 +371,18 @@ public class Highlight
 	 * @return an Iterator over the highlighted objects.
 	 */
 	public static Iterator getHighlights() { return highlightList.iterator(); }
+
+	/**
+	 * Routine to load a list of Highlights into the highlighting.
+	 * @param newHighlights a List of Highlight objects.
+	 */
+	public static void setHighlightList(List newHighlights)
+	{
+		for(Iterator it = newHighlights.iterator(); it.hasNext(); )
+		{
+			highlightList.add(it.next());
+		}
+	}
 
 	/**
 	 * Routine to return an List of all highlighted Geometrics.
@@ -429,7 +457,7 @@ public class Highlight
 		{
 			if (curWind != null && curWind.getCell() == cell) return curWind;
 
-//				     !!! beter way to find out the CURRENT window !!!
+//			!!! find a beter way to determine the CURRENT window !!!
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
@@ -481,19 +509,37 @@ public class Highlight
 	 * @param maxSelX the high X coordinate of the area in database units.
 	 * @param minSelY the low Y coordinate of the area in database units.
 	 * @param maxSelY the high Y coordinate of the area in database units.
+	 * @param invertSelection is true to invert the selection (remove what is already highlighted and add what is new).
+	 * @param findSpecial is true to find hard-to-select objects.
 	 */
-	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY, boolean findSpecial)
+	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY,
+		boolean invertSelection, boolean findSpecial)
 	{
-		clear();
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
-
 		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, true, searchArea, wnd);
-		for(Iterator it = underCursor.iterator(); it.hasNext(); )
+		if (invertSelection)
 		{
-			Highlight h = (Highlight)it.next();
-			highlightList.add(h);
+			for(Iterator it = underCursor.iterator(); it.hasNext(); )
+			{
+				Highlight newHigh = (Highlight)it.next();
+				boolean found = false;
+				for(int i=0; i<highlightList.size(); i++)
+				{
+					Highlight oldHigh = (Highlight)highlightList.get(i);
+					if (newHigh.sameThing(oldHigh))
+					{
+						highlightList.remove(i);
+						found = true;
+						break;
+					}
+				}
+				if (found) continue;
+				highlightList.add(newHigh);
+			}
+		} else
+		{
+			setHighlightList(underCursor);
 		}
-		Highlight.finished();
 	}
 
 	/**
@@ -567,8 +613,9 @@ public class Highlight
 		}
 		if (type == Type.TEXT)
 		{
-			Poly.Type style = getTextStyle();
-			Rectangle2D bounds = getBounds();
+			Poly poly = computeTextPoly(wnd);
+			Poly.Type style = poly.getStyle();
+			Rectangle2D bounds = poly.getBounds2D();
 			Point2D [] points = new Point2D.Double[2];
 			if (style == Poly.Type.TEXTCENT)
 			{
@@ -776,6 +823,84 @@ public class Highlight
 		}
 	}
 
+	private Poly computeTextPoly(EditWindow wnd)
+	{
+		Poly poly = null;
+		Variable var = getVar();
+		if (var != null)
+		{
+			Poly [] polys = null;
+			if (getGeom() != null)
+			{
+				if (getPort() != null)
+				{
+					PortInst pi = ((NodeInst)getGeom()).findPortInstFromProto(getPort());
+					Rectangle2D bounds = pi.getPoly().getBounds2D();
+					polys = getPort().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				} else
+				{
+					polys = getGeom().getPolyList(var, getGeom().getCenterX(), getGeom().getCenterY(), wnd, false);
+				}
+			} else
+			{
+				Rectangle2D bounds = getCell().getBounds();
+				polys = getCell().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+			}
+			if (polys != null)
+			{
+				poly = polys[0];
+				poly.setExactTextBounds(wnd);
+			}
+		} else
+		{
+			Geometric geom = getGeom();
+			if (getName() != null)
+			{
+				if (geom != null)
+				{
+					TextDescriptor td = geom.getNameTextDescriptor();
+					Point2D [] pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(geom.getCenterX()+td.getXOff(), geom.getCenterY()+td.getYOff());
+					poly = new Poly(pointList);
+					poly.setStyle(td.getPos().getPolyType());
+					Name name = getName();
+					poly.setTextDescriptor(td);
+					poly.setString(name.toString());
+					poly.setExactTextBounds(wnd);
+				}
+			} else if (geom != null)
+			{
+				if (getPort() != null)
+				{
+					// export name
+					Export pp = (Export)getPort();
+					Rectangle2D bounds = pp.getOriginalPort().getBounds();
+					TextDescriptor td = pp.getTextDescriptor();
+					Point2D [] pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
+					poly = new Poly(pointList);
+					poly.setStyle(td.getPos().getPolyType());
+					poly.setTextDescriptor(td);
+					poly.setString(pp.getProtoName());
+					poly.setExactTextBounds(wnd);
+				} else
+				{
+					// cell instance name
+					NodeInst ni = (NodeInst)geom;
+					TextDescriptor td = ni.getProtoTextDescriptor();
+					Point2D [] pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(ni.getCenterX()+td.getXOff(), ni.getCenterY()+td.getYOff());
+					poly = new Poly(pointList);
+					poly.setStyle(td.getPos().getPolyType());
+					poly.setTextDescriptor(td);
+					poly.setString(ni.getProto().describe());
+					poly.setExactTextBounds(wnd);
+				}
+			}
+		}
+		return poly;
+	}
+
 	/**
 	 * Routine to handle a click in a window and select the appropriate objects.
 	 * @param pt the coordinates of the click (in database units).
@@ -783,14 +908,15 @@ public class Highlight
 	 * @param exclusively true if the currently selected object must remain selected.
 	 * This happens during "outline edit" when the node doesn't change, just the point on it.
 	 * @param another true to find another object under the point (when there are multiple ones).
+	 * @param invert true to invert selection (add if not selected, remove if already selected).
 	 * @param findPort true to also show the closest port on a selected node.
 	 * @param findSpecial true to select hard-to-find objects.
 	 * @param findText true to select text objects.
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
-	public static void findObject(Point2D pt, EditWindow wnd, boolean exclusively,
-		boolean another, boolean findPort, boolean findSpecial, boolean findText)
+	public static int findObject(Point2D pt, EditWindow wnd, boolean exclusively,
+		boolean another, boolean invert, boolean findPort, boolean findSpecial, boolean findText)
 	{
 		// initialize
 		double bestdist = Double.MAX_VALUE;
@@ -804,44 +930,74 @@ public class Highlight
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
 		{
-			clear();
-			finished();
-			return;
+			if (!invert)
+			{
+				clear();
+				finished();
+			}
+			return 0;
 		}
 
 		// multiple objects under the cursor: see if looping through them
-		if (underCursor.size() > 1 && another && highlightList.size() == 1)
+		if (underCursor.size() > 1 && another)
 		{
-			Highlight oldHigh = (Highlight)highlightList.get(0);
-			for(int i=0; i<underCursor.size(); i++)
+			for(int j=0; j<highlightList.size(); j++)
 			{
-				if (oldHigh.sameThing((Highlight)underCursor.get(i)))
+				Highlight oldHigh = (Highlight)highlightList.get(j);
+				for(int i=0; i<underCursor.size(); i++)
 				{
-					// found the same thing: loop
-					clear();
-					if (i < underCursor.size()-1)
+					if (oldHigh.sameThing((Highlight)underCursor.get(i)))
 					{
-						highlightList.add(underCursor.get(i+1));
-					} else
-					{
-						highlightList.add(underCursor.get(0));
+						// found the same thing: loop
+						if (invert)
+						{
+							highlightList.remove(j);
+						} else
+						{
+							clear();
+						}
+						if (i < underCursor.size()-1)
+						{
+							highlightList.add(underCursor.get(i+1));
+						} else
+						{
+							highlightList.add(underCursor.get(0));
+						}
+						finished();
+						return 1;
 					}
-					finished();
-					return;
 				}
 			}
 		}
 
 		// just use the first in the list
-		clear();
-		highlightList.add(underCursor.get(0));
-		finished();
+		if (invert)
+		{
+			Highlight newHigh = (Highlight)underCursor.get(0);
+			for(int i=0; i<highlightList.size(); i++)
+			{
+				if (newHigh.sameThing((Highlight)highlightList.get(i)))
+				{
+					highlightList.remove(i);
+					finished();
+					return 1;
+				}
+			}
+			highlightList.add(newHigh);
+			finished();
+		} else
+		{
+			clear();
+			highlightList.add(underCursor.get(0));
+			finished();
+		}
 
 //		// reevaluate if this is code
 //		if ((curhigh->status&HIGHTYPE) == HIGHTEXT && curhigh->fromvar != NOVARIABLE &&
 //			curhigh->fromvarnoeval != NOVARIABLE &&
 //				curhigh->fromvar != curhigh->fromvarnoeval)
 //					curhigh->fromvar = evalvar(curhigh->fromvarnoeval, 0, 0);
+		return 1;
 	}
 
 	/**
@@ -897,8 +1053,6 @@ public class Highlight
 					if (dist >= directHitDist) continue;
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
-					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
 					list.add(h);
 				}
@@ -922,9 +1076,8 @@ public class Highlight
 					if (dist >= directHitDist) continue;
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
-					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
+					h.setName(poly.getName());
 					h.setPort(poly.getPort());
 					h.setGeom(ni);
 					list.add(h);
@@ -945,9 +1098,8 @@ public class Highlight
 					if (dist >= directHitDist) continue;
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
-					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
+					h.setName(poly.getName());
 					h.setPort(poly.getPort());
 					h.setGeom(ai);
 					list.add(h);
@@ -1238,6 +1390,7 @@ public class Highlight
 		if (type == Type.TEXT)
 		{
 			if (var != other.getVar()) return false;
+			if (name != other.getName()) return false;
 			if (cell != other.getCell()) return false;
 			if (geom != other.getGeom()) return false;
 			if (port != other.getPort()) return false;

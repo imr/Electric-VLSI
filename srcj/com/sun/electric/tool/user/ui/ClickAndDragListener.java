@@ -45,7 +45,7 @@ class ClickAndDragListener
 {
 	public static ClickAndDragListener theOne = new ClickAndDragListener();
 	private int oldx, oldy;
-	private boolean doingMotionDrag;
+	private boolean doingMotionDrag, invertSelection;
 
 	private ClickAndDragListener() {}
 
@@ -57,8 +57,12 @@ class ClickAndDragListener
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
+		boolean another = (evt.getModifiers()&MouseEvent.CTRL_MASK) != 0;
+		invertSelection = (evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0;
+		boolean special = (ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
+
 		// show "get info" on double-click
-		if (evt.getClickCount() == 2)
+		if (evt.getClickCount() == 2 && !another && !invertSelection)
 		{
 			if (Highlight.getNumHighlights() >= 1)
 			{
@@ -68,14 +72,11 @@ class ClickAndDragListener
 		}
 
 		// selection: if over selected things, move them
-		boolean special = (ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
-		boolean another = false;
-		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
 		doingMotionDrag = false;
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 		{
 			// object selection: start by seeing if cursor is over a highlighted object
-			if (!another && Highlight.overHighlighted(wnd, oldx, oldy))
+			if (!another && !invertSelection && Highlight.overHighlighted(wnd, oldx, oldy))
 			{
 				// over a highlighted object: move it
 				doingMotionDrag = true;
@@ -84,8 +85,8 @@ class ClickAndDragListener
 
 			// standard selection: see if cursor is over anything
 			Point2D pt = wnd.screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, wnd, false, another, true, special, true);
-			if (Highlight.getNumHighlights() == 0)
+			int numFound = Highlight.findObject(pt, wnd, false, another, invertSelection, true, special, true);
+			if (numFound == 0)
 			{
 				// not over anything: drag out a selection rectangle
 				wnd.setStartDrag(oldx, oldy);
@@ -117,15 +118,17 @@ class ClickAndDragListener
 			double maxSelX = Math.max(start.getX(), end.getX());
 			double minSelY = Math.min(start.getY(), end.getY());
 			double maxSelY = Math.max(start.getY(), end.getY());
+			if (!invertSelection)
+				Highlight.clear();
 			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
-				Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
+				Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection,
+					ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
 			} else
 			{
-				Highlight.clear();
-				Highlight h = Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
-				Highlight.finished();
+				Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 			}
+			Highlight.finished();
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
 		}
@@ -223,7 +226,7 @@ class ClickAndDragListener
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		Highlight.setHighlightOffset(0, 0);
-	CircuitChanges.manyMove(dX, dY);
+		CircuitChanges.manyMove(dX, dY);
 		wnd.redraw();
 	}
 

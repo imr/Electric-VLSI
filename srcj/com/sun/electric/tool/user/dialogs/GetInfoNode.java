@@ -179,49 +179,53 @@ public class GetInfoNode extends javax.swing.JDialog
 			if (shownNode != null)
 			{
 				// no node selected, disable the dialog
-				name.setEditable(false);
-				xSize.setEditable(false);
-				ySize.setEditable(false);
-				xPos.setEditable(false);
-				yPos.setEditable(false);
-				rotation.setEditable(false);
-				mirrorX.setEnabled(false);
-				mirrorY.setEnabled(false);
 				type.setText("");
+				name.setEditable(false);
 				name.setText("");
-				xPos.setText("");
-				yPos.setText("");
+				xSize.setEditable(false);
 				xSize.setText("");
+				ySize.setEditable(false);
 				ySize.setText("");
+				xPos.setEditable(false);
+				xPos.setText("");
+				yPos.setEditable(false);
+				yPos.setText("");
+				rotation.setEditable(false);
 				rotation.setText("");
+				mirrorX.setEnabled(false);
 				mirrorX.setSelected(false);
+				mirrorY.setEnabled(false);
 				mirrorY.setSelected(false);
+				apply.setEnabled(false);
 
-				// in large version
+				// in "more" version
 				expanded.setEnabled(false);
 				unexpanded.setEnabled(false);
 				easyToSelect.setEnabled(false);
-				invisibleOutsideCell.setEnabled(false);
-				ports.setEnabled(false);
-				parameters.setEnabled(false);
-				attributes.setEnabled(false);
-				listPane.setEnabled(false);
-				locked.setEnabled(false);
-				see.setEnabled(false);
-				attributesButton.setEnabled(false);
-				listEdit.setEditable(false);
-				listPopup.setEnabled(false);
-				listEdit.setText("");
-				invisibleOutsideCell.setSelected(false);
 				easyToSelect.setSelected(false);
-				locked.setSelected(false);
+				invisibleOutsideCell.setEnabled(false);
+				invisibleOutsideCell.setSelected(false);
 				textFieldLabel.setText("");
 				textField.setText("");
 				textField.setEditable(false);
 				popupLabel.setText("");
 				popup.removeAllItems();
 				popup.setEnabled(false);
+				ports.setEnabled(false);
+				parameters.setEnabled(false);
+				attributes.setEnabled(false);
+				listPane.setEnabled(false);
 				listModel.clear();
+				locked.setEnabled(false);
+				locked.setSelected(false);
+				see.setEnabled(false);
+				attributesButton.setEnabled(false);
+				listEditLabel.setText("");
+				listEdit.setEditable(false);
+				listEdit.setText("");
+				listPopupLabel.setText("");
+				listPopup.setEnabled(false);
+				listPopup.removeAllItems();
 
 				shownNode = null;
 				shownPort = null;
@@ -242,6 +246,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		rotation.setEditable(true);
 		mirrorX.setEnabled(true);
 		mirrorY.setEnabled(true);
+		apply.setEnabled(true);
 
 		initialName = ni.getName();
 		initialXPos = ni.getCenterX();
@@ -262,7 +267,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		mirrorX.setSelected(initialXSize < 0);
 		mirrorY.setSelected(initialYSize < 0);
 
-		// in large version
+		// in "more" version
 		easyToSelect.setEnabled(true);
 		invisibleOutsideCell.setEnabled(true);
 		ports.setEnabled(true);

@@ -1197,7 +1197,7 @@ public class InputText extends Input
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord.substring(slashPos+1));
-		TextDescriptor td = TextDescriptor.newDescriptor(td0, td1);
+		TextDescriptor td = new TextDescriptor(td0, td1);
 		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setProtoTextDescriptor(td);
 	}
 
@@ -1431,7 +1431,7 @@ public class InputText extends Input
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord, slashPos+1);
-		TextDescriptor td = TextDescriptor.newDescriptor(td0,td1);
+		TextDescriptor td = new TextDescriptor(td0, td1);
 		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
 	}
 
@@ -1569,7 +1569,7 @@ public class InputText extends Input
 				if (slashPos >= 0)
 					td1 = EMath.atoi(keyWord, slashPos+1);
 			}
-			TextDescriptor td = TextDescriptor.newDescriptor(td0, td1);
+			TextDescriptor td = new TextDescriptor(td0, td1);
 
 			// get value
 			if (getKeyword())
