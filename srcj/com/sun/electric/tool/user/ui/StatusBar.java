@@ -371,6 +371,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				Netlist netlist = theArc.getParent().acquireUserNetlist();
 				if (netlist == null)
                     return("netlist exception! try again");
+	            if (theArc.getArcIndex() == -1)
+	                return("netlist exception! try again. ArcIndex = -1");
 				Network net = netlist.getNetwork(theArc, 0);
 				String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
 				return(netMsg + "ARC: " + theArc.describe());
