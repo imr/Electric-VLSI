@@ -225,32 +225,24 @@ public class LibraryFiles extends Input
 		Library elib = Library.findLibrary(libName);
 		if (elib != null) return elib;
 
-		// library does not exist: see if file is in the same directory as the main file
-		URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
-		StringBuffer errmsg = new StringBuffer();
-		boolean exists = TextUtils.URLExists(externalURL, errmsg);
-		if (!exists)
-		{
-			// try secondary library file locations
-			for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
-			{
-				externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
-				exists = TextUtils.URLExists(externalURL, errmsg);
-				if (exists) break;
-			}
-			if (!exists)
-			{
-				// try the exact path specified in the reference
-				externalURL = TextUtils.makeURLToFile(libFile.getPath());
-				exists = TextUtils.URLExists(externalURL, errmsg);
-				if (!exists)
-				{
-					// try the Electric library area
-					externalURL = LibFile.getLibFile(libFileName);
-					exists = TextUtils.URLExists(externalURL, errmsg);
-				}
-			}
-		}
+        StringBuffer errmsg = new StringBuffer();
+        // try looking for the specified type
+        URL externalURL = getLibrary(libFileName, libFile.getPath(), errmsg);
+        if (externalURL == null) {
+            // try JELIB
+            externalURL = getLibrary(libName + "." + OpenFile.Type.JELIB.getExtensions()[0], libFile.getPath(), errmsg);
+        }
+        if (externalURL == null) {
+            // try ELIB
+            externalURL = getLibrary(libName + "." + OpenFile.Type.ELIB.getExtensions()[0], libFile.getPath(), errmsg);
+        }
+        if (externalURL == null) {
+            // try txt
+            externalURL = getLibrary(libName + "." + OpenFile.Type.READABLEDUMP.getExtensions()[0], libFile.getPath(), errmsg);
+        }
+
+        boolean exists = (externalURL == null) ? false : true;
+        // last option: let user pick library location
 		if (!exists)
 		{
 			System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
@@ -276,11 +268,21 @@ public class LibraryFiles extends Input
 			}
 		}
 
-        // last option: let user pick library location
 		if (exists)
 		{
 			System.out.println("Reading referenced library " + externalURL.getFile());
-			elib = Library.newInstance(libName, externalURL);
+            importType = defaultType;
+            if (externalURL.getFile().endsWith(".elib"))
+            {
+                importType = OpenFile.Type.ELIB;
+            } else if (externalURL.getFile().endsWith(".jelib"))
+            {
+                importType = OpenFile.Type.JELIB;
+            } else if (externalURL.getFile().endsWith(".txt"))
+            {
+                importType = OpenFile.Type.READABLEDUMP;
+            }
+            elib = Library.newInstance(libName, externalURL);
 		}
 
         if (elib != null)
@@ -314,6 +316,41 @@ public class LibraryFiles extends Input
 
 		return elib;
 	}
+
+    /** Get the URL to the library named libNameNoExtension.
+     * @param libFileName the library file name (with extension)
+     * @return null if not found, or valid URL if file found
+     */
+    private URL getLibrary(String libFileName, String fullPathName, StringBuffer errmsg)
+    {
+        // library does not exist: see if file is in the same directory as the main file
+        URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
+        boolean exists = TextUtils.URLExists(externalURL, errmsg);
+        if (!exists)
+        {
+            // try secondary library file locations
+            for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
+            {
+                externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
+                exists = TextUtils.URLExists(externalURL, errmsg);
+                if (exists) break;
+            }
+            if (!exists)
+            {
+                // try the exact path specified in the reference
+                externalURL = TextUtils.makeURLToFile(fullPathName);
+                exists = TextUtils.URLExists(externalURL, errmsg);
+                if (!exists)
+                {
+                    // try the Electric library area
+                    externalURL = LibFile.getLibFile(libFileName);
+                    exists = TextUtils.URLExists(externalURL, errmsg);
+                }
+            }
+        }
+        if (!exists) return null;
+        return externalURL;
+    }
 
 	public static void cleanupLibraryInput()
 	{
