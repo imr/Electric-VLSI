@@ -32,11 +32,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+//import java.util.Collection;
+//import java.util.HashMap;
+//import java.util.HashSet;
 import java.util.Iterator;
-import java.util.TreeSet;
+//import java.util.TreeSet;
 import java.util.prefs.Preferences;
 import java.util.prefs.BackingStoreException;
 
@@ -60,26 +60,27 @@ public class JNetwork
 {
 	// ------------------------- private data ------------------------------
 	private Cell parent; // Cell that owns this JNetwork
-	private TreeSet names = new TreeSet(); // Sorted list of names. The
+	private ArrayList names = new ArrayList(); // Sorted list of names. The
 	// first name is the most
 	// appropriate.
 
 	// ----------------------- protected and private methods -----------------
 
 	// used for PrimitivePorts
-	public JNetwork(Collection names, Cell cell)
-	{
-		this.parent = cell;
-		for (Iterator it = names.iterator(); it.hasNext();)
-		{
-			addName((String) it.next());
-		}
-	}
+// 	public JNetwork(Collection names, Cell cell)
+// 	{
+// 		this.parent = cell;
+// 		for (Iterator it = names.iterator(); it.hasNext();)
+// 		{
+// 			addName((String) it.next());
+// 		}
+// 	}
 
 	// used to build Cell networks
 	public JNetwork(Cell cell)
 	{
-		this(new ArrayList(), cell);
+		this.parent = cell;
+		//		this(new ArrayList(), cell);
 	}
 
 	public void addName(String nm)
@@ -90,15 +91,15 @@ public class JNetwork
 
 	/** Remove this JNetwork.  Actually, we just let the garbage collector
 	 * take care of it. */
-	void remove()
-	{
-	}
+// 	void remove()
+// 	{
+// 	}
 
 	/** Create a JNetwork based on this one, but attached to a new Cell */
-	JNetwork copy(Cell f)
-	{
-		return new JNetwork(names, f);
-	}
+// 	JNetwork copy(Cell f)
+// 	{
+// 		return new JNetwork(names, f);
+// 	}
 
 	// --------------------------- public methods ------------------------------
 	public NodeProto getParent()

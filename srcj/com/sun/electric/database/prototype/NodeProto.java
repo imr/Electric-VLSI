@@ -381,7 +381,7 @@ public abstract class NodeProto extends ElectricObject
 
 	/** The name of the NodeProto. */						protected String protoName;
 	/** This NodeProto's Technology. */						protected Technology tech;
-	/** A list of exports on the NodeProto. */				private List ports;
+	/** A list of PortProtos on the NodeProto. */			private List ports;
 	/** A list of NodeUsages of this NodeProto. */			private List usagesOf;
 	/** Internal flag bits. */								protected int userBits;
 	/** The function of this NodeProto. */					private Function function;
@@ -430,7 +430,7 @@ public abstract class NodeProto extends ElectricObject
 	public void removePort(PortProto port)
 	{
 		checkChanging();
-		int portIndex = port.getIndex();
+		int portIndex = port.getPortIndex();
 		ports.remove(portIndex);
 		for (; portIndex < ports.size(); portIndex++)
 		{
@@ -521,7 +521,7 @@ public abstract class NodeProto extends ElectricObject
 		for (int i = 0; i < ports.size(); i++)
 		{
 			PortProto pp = (PortProto)ports.get(i);
-			if (pp.getIndex() != i)
+			if (pp.getPortIndex() != i)
 			{
 				System.out.println();
 				System.out.println(this + ", " + pp + " has wrong index");
@@ -1145,6 +1145,16 @@ public abstract class NodeProto extends ElectricObject
 	public int getNumPorts()
 	{
 		return ports.size();
+	}
+
+	/**
+	 * Routine to return the PortProto at specified position.
+	 * @param portIndex specified position of PortProto.
+	 * @return the PortProto at specified position..
+	 */
+	public final PortProto getPort(int portIndex)
+	{
+		return (PortProto)ports.get(portIndex);
 	}
 
 	/**

@@ -104,12 +104,15 @@ public class ArcInst extends Geometric
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** end connections of this arc instance */			private Connection [] ends;
-	/** true if this ArcInst is linked to parent */		private boolean linked;
+	/** 0-based index of this ArcInst in cell. */		private int arcIndex;
 
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
 	 */
-	private ArcInst() {}
+	private ArcInst()
+	{
+		arcIndex = -1;
+	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
@@ -394,7 +397,6 @@ public class ArcInst extends Geometric
 		// add this arc to the cell
 		linkGeom(parent);
 		parent.addArc(this);
-		linked = true;
 
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
@@ -418,8 +420,6 @@ public class ArcInst extends Geometric
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
-
-		linked = false;
 	}
 
 	/**
@@ -835,62 +835,6 @@ public class ArcInst extends Geometric
 //	}
 
 	/**
-	 * Routine to set the name key of this ArcInst.
-	 * The name is a local string that can be set by the user.
-	 * @param name the new name key of this ArcInst.
-	 */
-	public boolean setNameKey(Name name)
-	{
-		if (name == getNameKey()) return false;
-		if (checkArcName(name)) return true;
-
-		if (linked && getNameKey() != null)
-		{
-			parent.removeArcName(this);
-		}
-		super.setNameKey(name);
-		if (linked)
-		{
-			parent.addArcName(this);
-		}
-		return false;
-	}
-
-	/**
-	 * Routine to check the name of this NodeInst.
-	 * @param name the new name of this NodeInst.
-	 */
-	private boolean checkArcName(Name name)
-	{
-		if (!name.isValid())
-		{
-			System.out.println("Invalid arc name <"+name+"> :"+Name.checkName(name.toString()));
-			return true;
-		}
-		if (name.isTempname() && name.isBus())
-		{
-			System.out.println("Temporary bus name <"+name+">");
-			return true;
-		}
-		if (name.hasEmptySubnames())
-		{
-			System.out.println("Name <"+name+"> has empty subnames");
-			return true;
-		}
-		if (name.isBus() && protoType.getFunction() != ArcProto.Function.BUS)
-		{
-			System.out.println("Bus name <"+name+"> can be assigned only to bus arcs");
-			return true;
-		}
-		if (name.isTempname() && linked && !parent.isUniqueName(name, NodeInst.class, this))
-		{
-			System.out.println("Arc name <"+name+"> is duplicated in "+parent);
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Routine to describe this ArcInst as a string.
 	 * @return a description of this ArcInst.
 	 */
@@ -949,6 +893,26 @@ public class ArcInst extends Geometric
 		}
 		return errorCount;
 	}
+
+	/**
+	 * Routine to set an index of this ArcInst in Cell arcs.
+	 * This is a zero-based index of arcs on the Cell.
+	 * @param arcIndex an index of this ArcInst in Cell nodes.
+	 */
+	public void setArcIndex(int arcIndex) { this.arcIndex = arcIndex; }
+
+	/**
+	 * Routine to get the index of this ArcInst.
+	 * This is a zero-based index of arcs on the Cell.
+	 * @return the index of this ArcInst.
+	 */
+	public final int getArcIndex() { return arcIndex; }
+
+	/**
+	 * Routine tells if this ArcInst is linked to parent Cell.
+	 * @return true if this ArcInst is linked to parent Cell.
+	 */
+	public boolean isLinked() { return arcIndex >= 0; }
 
 	/**
 	 * Routine to return the prototype of this ArcInst.

@@ -476,6 +476,7 @@ public class Technology extends ElectricObject
 	/** name of the technology */						private String techName;
 	/** full description of the technology */			private String techDesc;
 	/** flags for the technology */						private int userBits;
+	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** list of layers in the technology */				private List layers;
 	/** list of primitive nodes in the technology */	private List nodes;
@@ -501,7 +502,7 @@ public class Technology extends ElectricObject
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
 		this.scale = 1.0;
-		setIndex(techNumber++);
+		this.techIndex = techNumber++;
 		userBits = 0;
 
 		// add the technology to the global list
@@ -912,7 +913,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorGatePort(NodeInst ni) { return ni.findPortInst("g"); }
+//     public PortInst getTransistorGatePort(NodeInst ni) { return ni.findPortInst("g"); }
     
     /**
      * Routine to return a gate PortInst for this transistor NodeInst.
@@ -923,7 +924,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorSourcePort(NodeInst ni) { return ni.findPortInst("s"); }
+//     public PortInst getTransistorSourcePort(NodeInst ni) { return ni.findPortInst("s"); }
 
     /**
      * Routine to return a gate PortInst for this transistor NodeInst.
@@ -934,7 +935,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorDrainPort(NodeInst ni) { return ni.findPortInst("d"); }
+//     public PortInst getTransistorDrainPort(NodeInst ni) { return ni.findPortInst("d"); }
 
     /**
 	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
@@ -1904,6 +1905,13 @@ public class Technology extends ElectricObject
 	{
 		if (scale != 0) this.scale = scale;
 	}
+
+	/**
+	 * Returns the 0-based index of this Technology.
+	 * Each Technology has a unique index that can be used for array lookup.
+	 * @return the index of this Technology.
+	 */
+	public int getIndex() { return techIndex; }
 
 	/**
 	 * Routine to determine whether a new technology with the given name would be legal.

@@ -250,7 +250,6 @@ public class View extends ElectricObject
 	 */
 	private View()
 	{
-		setIndex(views.size());
 	}
 
 	private static View makeInstance(String fullName, String abbreviation, int type, int order)

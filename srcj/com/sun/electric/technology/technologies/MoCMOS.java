@@ -2588,15 +2588,15 @@ public class MoCMOS extends Technology
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorGatePort(NodeInst ni) 
-    {
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-        if (np == pTransistor_node) return ni.findPortInst("p-trans-poly-left");
-        if (np == nTransistor_node) return ni.findPortInst("n-trans-poly-left");
-        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-poly-left");
-        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-poly-left");
-        return null;
-    }
+//     public PortInst getTransistorGatePort(NodeInst ni) 
+//     {
+// 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+//         if (np == pTransistor_node) return ni.findPortInst("p-trans-poly-left");
+//         if (np == nTransistor_node) return ni.findPortInst("n-trans-poly-left");
+//         if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-poly-left");
+//         if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-poly-left");
+//         return null;
+//     }
     
     /**
      * Routine to return a gate PortInst for this transistor NodeInst.
@@ -2607,15 +2607,15 @@ public class MoCMOS extends Technology
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorSourcePort(NodeInst ni)
-    {
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-        if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-top");
-        if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-top");
-        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-top");
-        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-top");
-        return null;
-    }
+//     public PortInst getTransistorSourcePort(NodeInst ni)
+//     {
+// 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+//         if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-top");
+//         if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-top");
+//         if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-top");
+//         if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-top");
+//         return null;
+//     }
 
     /**
      * Routine to return a gate PortInst for this transistor NodeInst.
@@ -2626,15 +2626,15 @@ public class MoCMOS extends Technology
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-    public PortInst getTransistorDrainPort(NodeInst ni)
-    {
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-        if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-bottom");
-        if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-bottom");
-        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-bottom");
-        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-bottom");
-        return null;
-    }
+//     public PortInst getTransistorDrainPort(NodeInst ni)
+//     {
+// 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+//         if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-bottom");
+//         if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-bottom");
+//         if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-bottom");
+//         if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-bottom");
+//         return null;
+//     }
 
 /* this tables must correspond with the above table (nodeprotos) */
 //static INTBIG node_minsize[NODEPROTOCOUNT*2] = {

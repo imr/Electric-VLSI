@@ -47,6 +47,7 @@ public class PrimitiveNode extends NodeProto
 	
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** flag bits */								private int userBits;
+	/** Index of this PrimitiveNode. */				private int primNodeIndex;
 	/** special factors for unusual primitives */	private int[] specialValues;
 	/** default width and height */					private double defWidth, defHeight;
 	/** offset from database to user */				private SizeOffset offset;
@@ -72,7 +73,7 @@ public class PrimitiveNode extends NodeProto
 		this.defHeight = defHeight;
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
-		setIndex(--primNodeNumber);
+		primNodeIndex = primNodeNumber++;
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
@@ -217,6 +218,12 @@ public class PrimitiveNode extends NodeProto
 		name += protoName;
 		return name;
 	}
+
+	/**
+	 * Routine to get the index of this PrimitiveNode.
+	 * @return the index of this PrimitiveNode.
+	 */
+	public final int getPrimNodeIndex() { return primNodeIndex; }
 
 	/**
 	 * Returns a printable version of this PrimitiveNode.

@@ -50,7 +50,6 @@ public class ElectricObject
 	// ------------------------ private data ------------------------------------
 
 	/** extra variables (null if no variables yet) */		private HashMap vars;
-	/** Index of this ElectricObject */						private int index;
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
 	/** all variable keys addressed by lower case name */	private static HashMap varLowCaseKeys = new HashMap();
@@ -594,18 +593,6 @@ public class ElectricObject
 	{
 		return varKeys.keySet().size();
 	}
-
-	/**
-	 * Routine to set an index of this PortProto in NodeProto ports.
-	 * @param index an index of this PortProto in NodeProto ports.
-	 */
-	protected void setIndex(int index) { this.index = index; }
-
-	/**
-	 * Routine to get the index of this PortProto in NodeProto ports.
-	 * @return index of this PortProto in NodeProto ports.
-	 */
-	public final int getIndex() { return index; }
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.

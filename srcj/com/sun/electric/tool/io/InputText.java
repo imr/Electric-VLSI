@@ -453,7 +453,7 @@ public class InputText extends Input
 				double height = (highY - lowY) / lambda;
 				if (nil.nodeInstTranspose[j]) width = -width;
 				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
-				ni.setNameKey(name);
+				if (name != null) ni.setNameKey(name);
 				ni.lowLevelLink();
 			}
 		}
@@ -482,7 +482,7 @@ public class InputText extends Input
 				rotation = (rotation + 900) % 3600;
 			}
 			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-			ni.setNameKey(name);
+			if (name != null) ni.setNameKey(name);
 			ni.lowLevelLink();
 
 			// convert outline information, if present
@@ -496,6 +496,7 @@ public class InputText extends Input
 			ArcProto ap = ail.arcProto[j];
 			Name name = ail.arcInstName[j];
 			double width = ail.arcWidth[j] / lambda;
+			if (!ail.arcHeadNode[j].isLinked() || !ail.arcTailNode[j].isLinked()) continue;
 			PortInst headPortInst = ail.arcHeadNode[j].findPortInst(ail.arcHeadPort[j]);
 			PortInst tailPortInst = ail.arcTailNode[j].findPortInst(ail.arcTailPort[j]);
 			if (ap == null || headPortInst == null || tailPortInst == null) continue;
@@ -517,7 +518,7 @@ public class InputText extends Input
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt);
-			ai.setNameKey(name);
+			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
 
@@ -526,6 +527,7 @@ public class InputText extends Input
 		{
 			Export pp = el.exportList[j];
 			if (pp.lowLevelName(cell, el.exportName[j])) return;
+			if (!el.exportSubNode[j].isLinked()) continue;
 			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
 			if (pp.lowLevelPopulate(pi)) return;
 			if (pp.lowLevelLink()) return;

@@ -42,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * Besides representing the geometry of these objects, it organizes them
  * into an R-tree, which is a spatial structure that enables fast searching.
  */
-public class Geometric extends ElectricObject
+public abstract class Geometric extends ElectricObject
 {
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
@@ -793,7 +793,6 @@ public class Geometric extends ElectricObject
 		center = new Point2D.Double();
 		nameDescriptor = TextDescriptor.newNodeArcDescriptor(this);
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-		setIndex(-1);
 	}
 
 	/**
@@ -879,17 +878,48 @@ public class Geometric extends ElectricObject
 	/**
 	 * Routine to set the name key  of this Geometric.
 	 * @param name name key of this geometric.
+	 * @return true on error.
 	 */
 	public boolean setNameKey(Name name)
 	{
-		if (name != null && !name.isValid())
+		if (name == null)
 		{
-			System.out.println("Invalid name "+name+" wasn't assigned to Geometric");
+			System.out.println(parent + ": Null name wasn't assigned to Geometric");
 			return true;
 		}
+		if (!name.isValid())
+		{
+			System.out.println(parent + ": Invalid name "+name+" wasn't assigned to Geometric :" +	Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.isTempname() && name.isBus())
+		{
+			System.out.println(parent + ": Temporary name <"+name+"> can't be bus");
+			return true;
+		}
+		if (name.hasEmptySubnames())
+		{
+			System.out.println(parent + ": Name <"+name+"> with empty subnames wasn't assigned to Geometric");
+			return true;
+		}
+		if (isLinked() && parent.hasTempName(name))
+		{
+			System.out.println(parent + " already has Geometric with temporary name <"+name+">");
+			return true;
+		}
+		if (isLinked() && !isUsernamed())
+			parent.removeTempName(this);
 		this.name = name;
+		if (isLinked() && !isUsernamed())
+			parent.addTempName(this);
 		return false;
 	}
+
+	/**
+	 * Abstract routine tells if this Geometric is linked to parent Cell.
+	 * @return true if this Geometric is linked to parent Cell.
+	 */
+	public abstract boolean isLinked();
 
 	/**
 	 * Routine to return the Text Descriptor associated with name of this Geometric.

@@ -1131,7 +1131,7 @@ public class InputBinary extends Input
 				continue;
 			}
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
-			ai.setNameKey(name);
+			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
 	}
@@ -1159,7 +1159,7 @@ public class InputBinary extends Input
 			rotation = (rotation + 900) % 3600;
 		}
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-		ni.setNameKey(name);
+		if (name != null) ni.setNameKey(name);
 		ni.lowLevelLink();
 
 		// convert outline information, if present

@@ -211,6 +211,7 @@ public abstract class PortProto extends ElectricObject
 	/** The name of this PortProto. */							private Name protoName;
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
+	/** Index of this PortProto in NodeProto ports. */			private int portIndex;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
@@ -253,17 +254,17 @@ public abstract class PortProto extends ElectricObject
 
 	/**
 	 * Routine to set an index of this PortProto in NodeProto ports.
-	 * It is visible in this package.
-	 * @param index an index of this PortProto in NodeProto ports.
+	 * This is a zero-based index of ports on the NodeProto.
+	 * @param portIndex an index of this PortProto in NodeProto ports.
 	 */
-	void setPortIndex(int index) { setIndex(index); }
+	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
 	/**
 	 * Routine to get the index of this PortProto.
 	 * This is a zero-based index of ports on the NodeProto.
 	 * @return the index of this PortProto.
 	 */
-	public int getPortIndex() { return getIndex(); }
+	public final int getPortIndex() { return portIndex; }
 
 	/**
 	 * Routine to remove this PortProto from its parent NodeProto.

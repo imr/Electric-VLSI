@@ -114,8 +114,9 @@ public class NodeInst extends Geometric implements Nodable
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto protoType;
 	/** node usage of this node instance */					private NodeUsage nodeUsage;
+	/** 0-based index of this NodeInst in cell. */			private int nodeIndex;
 	/** labling information for this node instance */		private int textbits;
-	/** HashTable of portInsts on this node instance */		private HashMap portMap;
+	/** HashTable of portInsts on this node instance */		private List portInsts;
 	/** List of connections belonging to this instance */	private List connections;
 	/** List of Exports belonging to this node instance */	private List exports;
 	/** Text descriptor of prototype name */				private TextDescriptor protoDescriptor;
@@ -128,8 +129,9 @@ public class NodeInst extends Geometric implements Nodable
 	private NodeInst()
 	{
 		// initialize this object
+		this.nodeIndex = -1;
 		this.textbits = 0;
-		this.portMap = new HashMap();
+		this.portInsts = new ArrayList();
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
 		this.protoDescriptor = TextDescriptor.newInstanceDescriptor(this);
@@ -610,24 +612,16 @@ public class NodeInst extends Geometric implements Nodable
 			System.out.println("NodeInst can't be linked because it is not in database");
 			return true;
 		}
-		if (isUsernamed())
-		{
-			if (!parent.isUniqueName(name, getClass(), this))
-			{
-				System.out.println("NodeInst "+name+" already exists in "+parent);
-				if (setNameKey(parent.getAutoname(getBasename()))) return true;
-				System.out.println("\tRenamed to "+name);
-			}
-		} else
+		if (!isUsernamed())
 		{
 			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
 				if (setNameKey(parent.getAutoname(getBasename()))) return true;
 		}
+		if (checkAndRepair() > 0) return true;
 
 		// add to linked lists
 		linkGeom(parent);
 		nodeUsage = parent.addNode(this);
-		parent.updateMaxSuffix(this);
 		return false;
 	}
 
@@ -688,10 +682,24 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to set an index of this PortProto in NodeProto ports.
-	 * @param index an index of this PortProto in NodeProto ports.
+	 * Routine to set an index of this NodeInst in Cell nodes.
+	 * This is a zero-based index of nodes on the Cell.
+	 * @param nodeIndex an index of this NodeInst in Cell nodes.
 	 */
-	public void lowLevelSetIndex(int index) { setIndex(index); }
+	public void setNodeIndex(int nodeIndex) { this.nodeIndex = nodeIndex; }
+
+	/**
+	 * Routine to get the index of this NodeInst.
+	 * This is a zero-based index of nodes on the Cell.
+	 * @return the index of this NodeInst.
+	 */
+	public final int getNodeIndex() { return nodeIndex; }
+
+	/**
+	 * Routine tells if this NodeInst is linked to parent Cell.
+	 * @return true if this NodeInst is linked to parent Cell.
+	 */
+	public boolean isLinked() { return nodeIndex >= 0; }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -1230,7 +1238,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Iterator getPortInsts()
 	{
-		return portMap.values().iterator();
+		return portInsts.iterator();
 	}
 
 	/**
@@ -1239,7 +1247,17 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public int getNumPortInsts()
 	{
-		return portMap.size();
+		return portInsts.size();
+	}
+
+	/**
+	 * Routine to return the PortInst at specified position.
+	 * @param portIndex specified position of PortInst.
+	 * @return the PortProto at specified position..
+	 */
+	public PortInst getPortInst(int portIndex)
+	{
+		return (PortInst)portInsts.get(portIndex);
 	}
 
 	/**
@@ -1250,13 +1268,13 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst getOnlyPortInst()
 	{
-		int sz = portMap.size();
+		int sz = portInsts.size();
 		if (sz != 1)
 		{
 			System.out.println("NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
 			return null;
 		}
-		return (PortInst) portMap.values().iterator().next();
+		return (PortInst) portInsts.get(0);
 	}
 
 	/**
@@ -1266,7 +1284,9 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst findPortInst(String name)
 	{
-		return (PortInst) portMap.get(name);
+		PortProto pp = protoType.findPortProto(name);
+		if (pp == null) return null;
+		return (PortInst) portInsts.get(pp.getPortIndex());
 	}
 
 	/**
@@ -1278,9 +1298,9 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		double bestDist = Double.MAX_VALUE;
 		PortInst bestPi = null;
-		for(Iterator it = portMap.values().iterator(); it.hasNext(); )
+		for (int i = 0; i < portInsts.size(); i++)
 		{
-			PortInst pi = (PortInst)it.next();
+			PortInst pi = (PortInst) portInsts.get(i);
 			Poly piPoly = pi.getPoly();
 			Point2D piPt = new Point2D.Double(piPoly.getCenterX(), piPoly.getCenterY());
 			double thisDist = piPt.distance(w);
@@ -1301,12 +1321,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst findPortInstFromProto(PortProto pp)
 	{
-		for(Iterator it = portMap.values().iterator(); it.hasNext(); )
-		{
-			PortInst pi = (PortInst)it.next();
-			if (pi.getPortProto() == pp) return pi;
-		}
-		return null;
+		return (PortInst) portInsts.get(pp.getPortIndex());
 	}
 
 	/**
@@ -1316,7 +1331,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void addPortInst(PortProto pp)
 	{
 		PortInst pi = PortInst.newInstance(pp, this);
-		portMap.put(pp.getProtoName(), pi);
+		portInsts.add(pp.getPortIndex(), pi);
 	}
 
 	/**
@@ -1325,7 +1340,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void removePortInst(PortProto pp)
 	{
-		portMap.remove(pp.getProtoName());
+		portInsts.remove(pp.getPortIndex());
 	}
 
     /** 
@@ -1669,62 +1684,6 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
-	 * Routine to set the name key of this NodeInst.
-	 * The name is a local string that can be set by the user.
-	 * @param name the new name key of this NodeInst.
-	 */
-	public boolean setNameKey(Name name)
-	{
-		if (name == getNameKey()) return false;
-		if (checkNodeName(name)) return true;
-		super.setNameKey(name);
-		if (nodeUsage != null)
-		{
-			parent.updateMaxSuffix(this);
-		}
-		return false;
-	}
-
-	/**
-	 * Routine to check the name of this NodeInst.
-	 * @param name the new name of this NodeInst.
-	 */
-	private boolean checkNodeName(Name name)
-	{
-		if (!name.isValid())
-		{
-			System.out.println("Invalid node name <"+name+"> :"+Name.checkName(name.toString()));
-			return true;
-		}
-		if (name.isTempname() && name.isBus())
-		{
-			System.out.println("Temporary bus name <"+name+">");
-			return true;
-		}
-		if (name.hasEmptySubnames())
-		{
-			System.out.println("Name <"+name+"> has empty subnames");
-			return true;
-		}
-		if (name.hasDuplicates())
-		{
-			System.out.println("Name <"+name+"> has duplicate subnames");
-			return true;
-		}
-		if (name.isBus() && !protoType.isIcon())
-		{
-			System.out.println("Bus name <"+name+"> can be assigned only to icon nodes");
-			return true;
-		}
-		if (nodeUsage != null && !parent.isUniqueName(name, NodeInst.class, this))
-		{
-			System.out.println("Node name <"+name+"> is duplicated in "+parent);
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Routine to determine whether a variable key on NodeInst is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
@@ -1827,8 +1786,9 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorGatePort()
     {
-		PrimitiveNode np = (PrimitiveNode)protoType;
-		return np.getTechnology().getTransistorGatePort(this);
+		return getPortInst(0);
+// 		PrimitiveNode np = (PrimitiveNode)protoType;
+// 		return np.getTechnology().getTransistorGatePort(this);
     }
     
     /**
@@ -1840,8 +1800,9 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorSourcePort()
     {
-		PrimitiveNode np = (PrimitiveNode)protoType;
-		return np.getTechnology().getTransistorSourcePort(this);
+		return getPortInst(1);
+// 		PrimitiveNode np = (PrimitiveNode)protoType;
+// 		return np.getTechnology().getTransistorSourcePort(this);
     }
     
     /**
@@ -1853,8 +1814,9 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorDrainPort()
     {
-		PrimitiveNode np = (PrimitiveNode)protoType;
-		return np.getTechnology().getTransistorDrainPort(this);
+		return getPortInst(2);
+// 		PrimitiveNode np = (PrimitiveNode)protoType;
+// 		return np.getTechnology().getTransistorDrainPort(this);
     }
 
 	/**
@@ -1863,41 +1825,66 @@ public class NodeInst extends Geometric implements Nodable
 	public int checkAndRepair()
 	{
 		int errorCount = 0;
-
-		// make sure there is a PortInst for every PortProto
-		FlagSet fs = PortProto.getFlagSet(1);
-		for(Iterator it = protoType.getPorts(); it.hasNext(); )
+		if (portInsts.size() != protoType.getNumPorts())
+		{
+			System.out.println("Library " + parent.getLibrary().getLibName() +
+				", cell " + parent.describe() + ", node " + describe() +
+				" has number of PortInsts " + portInsts.size() + " , but prototype " + protoType +
+				" has " + protoType.getNumPorts() + " ports");
+			return 1;
+		}
+		int i = 0;
+		for (Iterator it = protoType.getPorts(); it.hasNext(); i++)
 		{
 			PortProto pp = (PortProto)it.next();
-			pp.clearBit(fs);
-		}
-		for(Iterator it = getPortInsts(); it.hasNext(); )
-		{
-			PortInst pi = (PortInst)it.next();
-			PortProto pp = pi.getPortProto();
-			if (pp.isBit(fs))
+			PortInst pi = (PortInst)portInsts.get(i);
+			if (pp.getPortIndex() != i || pi.getPortProto() != pp)
 			{
-				System.out.println("Library " + parent.getLibrary().getLibName() +
-					", cell " + parent.describe() + ", node " + describe() +
-					" has multiple PortInsts pointing to the same PortProto (" + pp.getProtoName() + ")");
-				errorCount++;
-			}
-			pp.setBit(fs);
-		}
-		for(Iterator it = protoType.getPorts(); it.hasNext(); )
-		{
-			PortProto pp = (PortProto)it.next();
-			if (!pp.isBit(fs))
-			{
-				System.out.println("Library " + parent.getLibrary().getLibName() +
-					", cell " + parent.describe() + ", node " + describe() +
-					" port " + pp.getProtoName() + " has no PortInst");
+ 				System.out.println("Library " + parent.getLibrary().getLibName() +
+ 					", cell " + parent.describe() + ", node " + describe() +
+ 					" has mismatches between PortInsts and PortProtos (" + pp.getProtoName() + ")");
 				errorCount++;
 			}
 		}
-		fs.freeFlagSet();
 		return errorCount;
 	}
+// 	{
+// 		int errorCount = 0;
+
+// 		// make sure there is a PortInst for every PortProto
+// 		FlagSet fs = PortProto.getFlagSet(1);
+// 		for(Iterator it = protoType.getPorts(); it.hasNext(); )
+// 		{
+// 			PortProto pp = (PortProto)it.next();
+// 			pp.clearBit(fs);
+// 		}
+// 		for(Iterator it = getPortInsts(); it.hasNext(); )
+// 		{
+// 			PortInst pi = (PortInst)it.next();
+// 			PortProto pp = pi.getPortProto();
+// 			if (pp.isBit(fs))
+// 			{
+// 				System.out.println("Library " + parent.getLibrary().getLibName() +
+// 					", cell " + parent.describe() + ", node " + describe() +
+// 					" has multiple PortInsts pointing to the same PortProto (" + pp.getProtoName() + ")");
+// 				errorCount++;
+// 			}
+// 			pp.setBit(fs);
+// 		}
+// 		for(Iterator it = protoType.getPorts(); it.hasNext(); )
+// 		{
+// 			PortProto pp = (PortProto)it.next();
+// 			if (!pp.isBit(fs))
+// 			{
+// 				System.out.println("Library " + parent.getLibrary().getLibName() +
+// 					", cell " + parent.describe() + ", node " + describe() +
+// 					" port " + pp.getProtoName() + " has no PortInst");
+// 				errorCount++;
+// 			}
+// 		}
+// 		fs.freeFlagSet();
+// 		return errorCount;
+// 	}
 
 	/**
 	 * Returns the basename for autonaming.

@@ -55,6 +55,7 @@ public class Tool extends ElectricObject implements Change
 	// The name of this tool
 	private String toolName;
 	private int toolState;
+	private int toolIndex;
 
 	// the static list of all tools
 	private static List tools = new ArrayList();
@@ -78,7 +79,7 @@ public class Tool extends ElectricObject implements Change
 	{
 		this.toolName = toolName;
 		this.toolState = 0;
-		setIndex(toolNumber++);
+		this.toolIndex = toolNumber++;
 		tools.add(this);
         prefs = Preferences.userNodeForPackage(this.getClass());  // per-package namespace for preferences
 	}
@@ -140,6 +141,13 @@ public class Tool extends ElectricObject implements Change
 	 * @return the name of this Tool.
 	 */
 	public String getName() { return toolName; }
+
+	/**
+	 * Routine to return the index of this Tool.
+	 * Each tool has a 0-based index that can be used to access arrays of Tools.
+	 * @return the index of this Tool.
+	 */
+	public int getIndex() { return toolIndex; }
 
     /**
      * Routine to return Preferences object

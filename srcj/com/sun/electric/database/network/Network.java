@@ -75,17 +75,17 @@ public class Network extends Tool
 
 	static public void reload()
 	{
-		int maxPrim = 0;
+		int maxPrim = -1;
 		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
 		{
 			Technology tech = (Technology)tit.next();
 			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode pn = (PrimitiveNode)nit.next();
-				maxPrim = Math.max(maxPrim, -pn.getIndex());
+				maxPrim = Math.max(maxPrim, pn.getPrimNodeIndex());
 			}
 		}
-		primEquivPorts = new int[maxPrim][];
+		primEquivPorts = new int[maxPrim + 1][];
 
 		/* Gather PrimitiveNodes */
 		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
@@ -108,11 +108,11 @@ public class Network extends Tool
 					}
 					equiv[i] = j;
 				}
-				primEquivPorts[~pn.getIndex()] = equiv;
+				primEquivPorts[pn.getPrimNodeIndex()] = equiv;
 			}
 		}
-		resistorIndex = Schematics.tech.resistorNode.getIndex();
-		resistorEquivPorts = new int[primEquivPorts[~resistorIndex].length]; // allocated zero-filled
+		resistorIndex = Schematics.tech.resistorNode.getPrimNodeIndex();
+		resistorEquivPorts = new int[primEquivPorts[resistorIndex].length]; // allocated zero-filled
 
 		int maxCell = 1;
 		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
@@ -121,7 +121,7 @@ public class Network extends Tool
 			for (Iterator cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell c = (Cell)cit.next();
-				while (c.getIndex() >= maxCell) maxCell *= 2;
+				while (c.getCellIndex() >= maxCell) maxCell *= 2;
 			}
 		}
 		cells = new NetCell[maxCell];
@@ -159,11 +159,11 @@ public class Network extends Tool
 	}
 
 	static void setCell(Cell cell, NetCell netCell, int iconIndex) {
-		int ind = cell.getIndex();
-		if (ind >= cells.length)
+		int cellIndex = cell.getCellIndex();
+		if (cellIndex >= cells.length)
 		{
 			int newLength = cells.length;
-			while (ind >= newLength) newLength *= 2;
+			while (cellIndex >= newLength) newLength *= 2;
 			NetCell[] newCells = new NetCell[newLength];
 			int[] newCellIcon = new int[newLength];
 			for (int i = 0; i < cells.length; i++) {
@@ -173,11 +173,11 @@ public class Network extends Tool
 			cells = newCells;
 			cellIcon = newCellIcon;
 		}
-		cells[cell.getIndex()] = netCell;
-		cellIcon[cell.getIndex()] = iconIndex;
+		cells[cellIndex] = netCell;
+		cellIcon[cellIndex] = iconIndex;
 	}
 
-	static final NetCell getNetCell(Cell cell) { return cells[cell.getIndex()]; }
+	static final NetCell getNetCell(Cell cell) { return cells[cell.getCellIndex()]; }
 
 // 	final static NetSchem.Icon getNetIcon(Cell cell) {
 // 		int cellIndex = cell.getIndex();
@@ -187,9 +187,13 @@ public class Network extends Tool
 // 	}
 
 	static final int getPortOffset(PortProto pp, int busIndex) {
-		int portIndex = pp.getIndex();
-		int cellIndex = pp.getParent().getIndex();
-		if (cellIndex < 0 || !(cells[cellIndex] instanceof NetSchem))
+		int portIndex = pp.getPortIndex();
+		NodeProto np = pp.getParent();
+		if (!(np instanceof Cell))
+			return busIndex == 0 ? portIndex : -1;
+		Cell cell = (Cell)np;
+		int cellIndex = cell.getCellIndex();
+		if (!(cells[cellIndex] instanceof NetSchem))
 			return busIndex == 0 ? portIndex : -1;
 		NetSchem netSchem = (NetSchem)cells[cellIndex];
 		return netSchem.getPortOffset(cellIcon[cellIndex], portIndex, busIndex);
@@ -197,10 +201,11 @@ public class Network extends Tool
 
 	static int[] getEquivPorts(NodeProto np)
  	{
-		int ind = np.getIndex();
-		if (ind >= 0) return cells[ind].equivPorts;
-		if (shortResistors && ind == resistorIndex) return resistorEquivPorts;
-		return primEquivPorts[~ind];
+		if (np instanceof Cell)
+			return cells[((Cell)np).getCellIndex()].equivPorts;
+		int primNodeIndex = ((PrimitiveNode)np).getPrimNodeIndex();
+		if (shortResistors && primNodeIndex == resistorIndex) return resistorEquivPorts;
+		return primEquivPorts[primNodeIndex];
  	}
 
 	/****************************** PUBLIC METHODS ******************************/

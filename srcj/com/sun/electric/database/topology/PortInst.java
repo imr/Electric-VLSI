@@ -74,6 +74,12 @@ public class PortInst extends ElectricObject
 	 */
 	public PortProto getPortProto() { return portProto; }
 
+	/**
+	 * Routine to get the index of this PortInst in NodeInst ports.
+	 * @return index of this PortInst in NodeInst ports.
+	 */
+	public final int getPortIndex() { return portProto.getPortIndex(); }
+
 	/** 
 	 ** Routine to return the equivalent PortProto of this PortInst's PortProto.
 	 * This is typically used to find the PortProto in the schematic view.
@@ -82,9 +88,6 @@ public class PortInst extends ElectricObject
     public PortProto getProtoEquivalent() 
     {
 		return portProto.getEquivalent();
-		//Cell schCell = nodeInst.getProtoEquivalent();
-		//if (schCell == null) return null;               // no cell equivalent view
-		//return schCell.findPortProto(portProto.getProtoName());
     }
     
 	/**
@@ -127,6 +130,6 @@ public class PortInst extends ElectricObject
 	 */
 	public String toString()
 	{
-		return "PortInst " + portProto.getProtoName();
+		return "PortInst " + nodeInst.describe() + "." + portProto.getProtoName();
 	}
 }

@@ -284,7 +284,7 @@ public class Cell extends NodeProto
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
-	/** A map from temporary arc name to ArcInst. */				private Map tempNameToArc;
+	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
 	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
@@ -295,6 +295,7 @@ public class Cell extends NodeProto
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
 	/** true if this Cell is linked to library */					private boolean linked;
+	/** 0-based index of this Cell. */								private int cellIndex;
 
 	/** counter for enumerating cells */							private static int cellNumber = 0;
 
@@ -307,12 +308,12 @@ public class Cell extends NodeProto
 	private Cell()
 	{
 //		this.versionGroup = new VersionGroup(this);
-		setIndex(cellNumber++);
+		this.cellIndex = cellNumber++;
 		nodes = new ArrayList();
 		usagesIn = new HashMap();
 		maxSuffix = new HashMap();
 		arcs = new ArrayList();
-		tempNameToArc = new HashMap();
+		tempNames = new HashMap();
 		cellGroup = null;
 		tech = null;
 		creationDate = new Date();
@@ -612,21 +613,7 @@ public class Cell extends NodeProto
 	{
 		Job.checkChanging();
 		Cell c = new Cell();
-		c.nodes = new ArrayList();
-		c.usagesIn = new HashMap();
-		c.maxSuffix = new HashMap();
-		c.arcs = new ArrayList();
-		c.tempNameToArc = new HashMap();
-		c.cellGroup = null;
-		c.tech = null;
 		c.lib = lib;
-		c.creationDate = new Date();
-		c.revisionDate = new Date();
-		c.userBits = 0;
-		c.cellBounds = new Rectangle2D.Double();
-		c.boundsEmpty = true;
-		c.boundsDirty = false;
-		c.rTree = Geometric.RTNode.makeTopLevel();
 		return c;
 	}
 
@@ -1040,6 +1027,16 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to return the NodeInst at specified position.
+	 * @param nodeIndex specified position of NodeInst.
+	 * @return the NodeInst at specified position..
+	 */
+	public final NodeInst getNode(int nodeIndex)
+	{
+		return (NodeInst)nodes.get(nodeIndex);
+	}
+
+	/**
 	 * Routine to return an Iterator over all NodeUsage objects in this Cell.
 	 * @return an Iterator over all NodeUsage objects in this Cell.
 	 */
@@ -1092,10 +1089,10 @@ public class Cell extends NodeProto
 		}
 
 		// add the node
-		ni.lowLevelSetIndex(nodes.size());
+		ni.setNodeIndex(nodes.size());
 		nodes.add(ni);
+		addTempName(ni);
 		nu.addInst(ni);
-		updateMaxSuffix(ni);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -1130,13 +1127,15 @@ public class Cell extends NodeProto
 		nu.removeInst(ni);
 		if (nu.isEmpty())
 			removeUsage(nu);
-		int nodeIndex = ni.getIndex();
-		nodes.remove(nodeIndex);
-		for (; nodeIndex < nodes.size(); nodeIndex++)
-		{
-			((NodeInst)nodes.get(nodeIndex)).lowLevelSetIndex(nodeIndex);
-		}
-		ni.lowLevelSetIndex(-1);
+
+		removeTempName(ni);
+		int nodeIndex = ni.getNodeIndex();
+		int lastNode = nodes.size() - 1;
+		if (nodeIndex == lastNode)
+			nodes.remove(nodeIndex);
+		else
+			nodes.set(nodeIndex, nodes.remove(lastNode));
+		ni.setNodeIndex(-1);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -1194,6 +1193,16 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to return the ArcInst at specified position.
+	 * @param arcIndex specified position of ArcInst.
+	 * @return the ArcInst at specified position..
+	 */
+	public final ArcInst getArc(int arcIndex)
+	{
+		return (ArcInst)arcs.get(arcIndex);
+	}
+
+	/**
 	 * Routine to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
 	 */
@@ -1205,8 +1214,9 @@ public class Cell extends NodeProto
 			System.out.println("Cell " + this +" already contains arc " + ai);
 			return;
 		}
+		ai.setArcIndex(arcs.size());
 		arcs.add(ai);
-		addArcName(ai);
+		addTempName(ai);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -1224,36 +1234,18 @@ public class Cell extends NodeProto
 			System.out.println("Cell " + this +" doesn't contain arc " + ai);
 			return;
 		}
-		arcs.remove(ai);
-		removeArcName(ai);
+
+		removeTempName(ai);
+		int arcIndex = ai.getArcIndex();
+		int lastArc = arcs.size() - 1;
+		if (arcIndex == lastArc)
+			arcs.remove(arcIndex);
+		else
+			arcs.set(arcIndex, arcs.remove(lastArc));
+		ai.setArcIndex(-1);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
-	}
-
-	/**
-	 * Routine to add a new arc name.
-	 * @param ai the ArcInst which name to be included in the cell.
-	 */
-	public void addArcName(ArcInst ai)
-	{
-		Name name = ai.getNameKey();
-		if (name.isTempname())
-		{
-			tempNameToArc.put(name.lowerCase(), ai);
-			updateMaxSuffix(ai);
-		}
-	}
-
-	/**
-	 * Routine to remove an arc name from the cell.
-	 * @param ai the ArcInst which name to be removed from the cell.
-	 */
-	public void removeArcName(ArcInst ai)
-	{
-		Name name = ai.getNameKey();
-		if (!name.isTempname()) return;
-		tempNameToArc.remove(name.lowerCase());
 	}
 
 	/****************************** EXPORTS ******************************/
@@ -1279,12 +1271,6 @@ public class Cell extends NodeProto
 	}
 
 	/****************************** TEXT ******************************/
-
-	/**
-	 * Routine to return the basename for autonaming instances of this Cell.
-	 * @return the basename for autonaming instances of this Cell.
-	 */
-	public Name getBasename() { return basename; }
 
 	/**
 	 * Routine to describe this cell.
@@ -1374,6 +1360,12 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to return the basename for autonaming instances of this Cell.
+	 * @return the basename for autonaming instances of this Cell.
+	 */
+	public Name getBasename() { return basename; }
+
+	/**
 	 * Routine to return unique autoname in this cell.
 	 * @param basename base name of autoname
 	 * @return autoname
@@ -1391,6 +1383,54 @@ public class Cell extends NodeProto
 			ms.v++;
 			return basename.findSuffixed(ms.v);
 		}
+	}
+
+	/**
+	 * Routine to add a new temporary name of Geometric.
+	 * @param geom the Geometric to be added to the cell.
+	 */
+	public void addTempName(Geometric geom)
+	{
+		Name name = geom.getNameKey();
+		if (!name.isTempname()) return;
+		tempNames.put(name.lowerCase(), geom);
+
+		Name basename = name.getBasename();
+		if (basename != null && basename != name)
+		{
+			basename = basename.lowerCase(); 
+			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+			if (ms == null)
+			{
+				ms = new MaxSuffix();
+				maxSuffix.put(basename, ms);
+			}
+			int numSuffix = name.getNumSuffix();
+			if (numSuffix > ms.v)
+			{
+				ms.v = numSuffix;
+			}
+		}
+	}
+
+	/**
+	 * Routine to remove temporary name of Geometric.
+	 * @param geom the Geometric to be removed from the cell.
+	 */
+	public void removeTempName(Geometric geom)
+	{
+		Name name = geom.getNameKey();
+		if (!name.isTempname()) return;
+		tempNames.remove(name.lowerCase());
+	}
+
+	/**
+	 * Routine check if Geometric with specified temporary name key exists in a cell.
+	 * @param name specified temorary name key.
+	 */
+	public boolean hasTempName(Name name)
+	{
+		return tempNames.get(name) != null;
 	}
 
 	/**
@@ -1425,38 +1465,32 @@ public class Cell extends NodeProto
 		}
 		if (cls == NodeInst.class)
 		{
+			if (name.isTempname())
+			{
+				Geometric geom = (Geometric)tempNames.get(name);
+				return geom == null || exclude == geom;
+			}
 			for(Iterator it = getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (exclude == ni) continue;
 				Name nodeName = ni.getNameKey();
-				if (nodeName == null) continue;
 				if (name == nodeName.lowerCase()) return false;
 			}
-// 			int width = name.busWidth();
-// 			for (int i = 0; i < width; i++)
-// 			{
-// 				Name subname = name.subname(i);
-// 				Nodable na = (Nodable)nodables.get(subname);
-// 				if (na != null && na != exclude) return false;
-// 			}
-//			return true;
-// 			Nodable na = (Nodable)nodables.get(name);
-// 			return na == null || exclude == na;
+			return true;
 		}
 		if (cls == ArcInst.class)
 		{
 			if (name.isTempname())
 			{
-				ArcInst ai = (ArcInst)tempNameToArc.get(name);
-				return ai == null || exclude == ai;
+				Geometric geom = (Geometric)tempNames.get(name);
+				return geom == null || exclude == geom;
 			}
 			for(Iterator it = getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (exclude == ai) continue;
 				Name arcName = ai.getNameKey();
-				if (arcName == null) continue;
 				if (name == arcName.lowerCase()) return false;
 			}
 			return true;
@@ -1934,6 +1968,12 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to get the 0-based index of this Cell.
+	 * @return the index of this Cell.
+	 */
+	public final int getCellIndex() { return cellIndex; }
+
+	/**
 	 * Routine to clear change lock of this cell.
 	 */
 	public void clearChangeLock()
@@ -1976,33 +2016,6 @@ public class Cell extends NodeProto
 	 * @return the Change object on this Cell.
 	 */
 	public Undo.Change getChange() { return change; }
-
-	/**
-	 * Update max suffix of node/arc names
-	 * @param geom Geometric
-	 */
-	public void updateMaxSuffix(Geometric geom)
-	{
-		Name name = geom.getNameKey();
-		if (name == null || !name.isTempname()) return;
-		Name basename = name.getBasename();
-		if (basename != null && basename != name)
-		{
-			basename = basename.lowerCase(); 
-			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
-			if (ms == null)
-			{
-				ms = new MaxSuffix();
-				maxSuffix.put(basename, ms);
-			}
-			int numSuffix = name.getNumSuffix();
-			if (numSuffix > ms.v)
-			{
-				ms.v = numSuffix;
-				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
-			}
-		}
-	}
 
 	/*
 	 * Routine to determine the appropriate Cell associated with this ElectricObject.

@@ -69,6 +69,22 @@ public class Global
 		globalsByName.put(name.lowerCase(), this);
 	}
 
+	/**
+	 * Returns name of this Global signal.
+	 * @return name of this Global signal.
+	 */
+	public String getName() { return name.toString(); }
+
+	/**
+	 * Returns name key of this Global signal.
+	 * @return name key of this Global signal.
+	 */
+	public Name getNameKey() { return name; }
+
+	/**
+	 * Returns a printable version of this Global.
+	 * @return a printable version of this Global.
+	 */
 	public String toString() {
 		return "Global "+name;
 	}
