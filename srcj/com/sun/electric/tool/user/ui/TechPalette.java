@@ -574,9 +574,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         else if (item instanceof NodeInst)
         {
             NodeInst ni = (NodeInst)item;
-            if (getVarName)
+            Variable var = ni.getVar(TECH_TMPVAR);
+            if (getVarName && var != null && !var.isDisplay())
             {
-                Variable var = ni.getVar(TECH_TMPVAR);
                 return (var.getObject().toString());
             }
             else // At least case for well contacts

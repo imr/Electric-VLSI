@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02: *********************************
 
+IMP: (12/23/04, GVG): Fixing side effects in TechPalette after Bug#103
+
 IMP: (12/23/04, GVG): TSMC90: Adding rules OD2.W.1, OD2.S.1 and OD2.EX.3 even though they are met by construction
 (triggered by Bug #137)
 
