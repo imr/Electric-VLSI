@@ -37,13 +37,14 @@ import java.util.List;
 public class PolyQTree {
 	private static int MAX_NUM_CHILDREN = 4;
 	private static int MAX_DEPTH = 10;
-	private static Rectangle2D testBox = new Rectangle2D.Double();
+	//private static Rectangle2D testBox = new Rectangle2D.Double();
     private HashMap layers = new HashMap();
+	private Rectangle2D rootBox;
 
 	//--------------------------PUBLIC METHODS--------------------------
-	public PolyQTree()
+	public PolyQTree(Rectangle2D root)
 	{
-		;
+		rootBox = root;
 	}
 
 	/**
@@ -98,9 +99,9 @@ public class PolyQTree {
 	/**
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
-	 * @param box Bounding box of the cell containing the layer
+	 * @param obj
 	 */
-	public void insert(Object layer, Rectangle2D box, PolyNode obj)
+	public void insert(Object layer, PolyNode obj)
 	{
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
@@ -111,11 +112,21 @@ public class PolyQTree {
 		};
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
-		if (!root.findAndRemoveObjects(box, obj, areaBB))
-			root.insert(box, obj, areaBB);
+		boolean done = root.findAndRemoveObjects(rootBox, obj, areaBB);
+
+		if (!done)
+			done = root.insert(rootBox, obj, areaBB);
+		//@TODO GVG Check this case
+		if (!done)
+			System.out.println("Repeated element?");
 	}
 
-	public void insert(PolyQTree other, Rectangle2D bounds, AffineTransform trans)
+	/**
+	 * Merge two PolyTree
+	 * @param other Tree to merge with
+	 * @param trans
+	 */
+	public void insert(PolyQTree other, AffineTransform trans)
 	{
 		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
 		{
@@ -126,7 +137,7 @@ public class PolyQTree {
 			{
 				PolyNode geo = (PolyNode)i.next();
 				geo.transform(trans);
-				insert(layer, bounds, geo);
+				insert(layer, geo);
 			}
 		}
 	}
@@ -271,25 +282,26 @@ public class PolyQTree {
 			return loc;
 		}
 
-		private Rectangle2D getBox(Rectangle2D box, double centerX, double centerY, int loc)
+		/**
+		 * Calculates the bounding box of a child depending on the location. Parameters are passed to avoid
+		 * extra calculation
+		 * @param x Parent x value
+		 * @param y Parent y value
+		 * @param w Child width (1/4 of parent if qtree)
+		 * @param h Child height (1/2 of parent if qtree)
+		 * @param centerX Parent center x value
+		 * @param centerY Parent center y value
+		 * @param loc Location in qtree
+		 * @return
+		 */
+		private Rectangle2D getBox(double x, double y, double w, double h, double centerX, double centerY, int loc)
 		{
-			double w = box.getWidth()/2;
-			double h = box.getHeight()/2;
-			// Values for quadtree 0
-			double x = box.getX();
-			double y = box.getY();
-
-			if ((loc >> 1 & 1) == 0)
+			if ((loc >> 0 & 1) == 1)
 			{
 				x = centerX;
 			}
-			else if ((loc >> 2 & 1) == 0)
+			if ((loc >> 1 & 1) == 1)
 			{
-				y = centerY;
-			}
-			else if ((loc >> 3 & 1) == 0)
-			{
-				x = centerX;
 				y = centerY;
 			}
 			return (new Rectangle2D.Double(x, y, w, h));
@@ -315,7 +327,10 @@ public class PolyQTree {
 			}
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
-				children[i].getLeafObjects(set, modified);
+			{
+				if (children[i] != null) children[i].getLeafObjects(set, modified);
+			}
+
 		}
 		/**
 		 *   print function for debugging purposes
@@ -327,7 +342,9 @@ public class PolyQTree {
 				System.out.println("Area " + it.next());
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
-				children[i].print();
+			{
+				if (children[i] != null) children[i].print();
+			}
 		}
 
 		/**
@@ -336,7 +353,9 @@ public class PolyQTree {
 		 */
 		private boolean compact()
 		{
+
 			//System.out.println("To implement") ;
+
 			//@TODO GVG Compact tree
 			if (children != null)
 			{
@@ -348,6 +367,7 @@ public class PolyQTree {
 					}
 			}
 			return (nodes == null || nodes.isEmpty());
+			//return (false);
 		}
 
 		/**
@@ -389,11 +409,16 @@ public class PolyQTree {
 			if (children != null)
 			{
 				int loc = getQuadrants(centerX, centerY, areaBB);
+				double w = box.getWidth()/2;
+				double h = box.getHeight()/2;
+				double x = box.getX();
+				double y = box.getY();
+
 				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 				{
-					if (((loc >> i) & 1) == 0)
+					if (((loc >> i) & 1) == 1)
 					{
-						Rectangle2D bb = getBox(box, centerX, centerY, i);
+						Rectangle2D bb = getBox(x, y, w, h, centerX, centerY, i);
 
 						// if identical element was found, no need of re-insertion
 						// No need of reviewing other quadrants?
@@ -437,62 +462,99 @@ public class PolyQTree {
 		}
 
 		/**
-		 *
-		 * @param box
-		 * @param obj
+		 * To make sure new element is inserted in all childres
+		 * @param box Bounding box of current node
+		 * @param centerX To avoid calculation inside function from object box
+		 * @param centerY To avoid calculation inside function from object box
+		 * @param obj Object to insert
+		 * @param areaBB Bounding box of the object to insert
+		 * @return True if element was inserted
 		 */
-		protected void insert(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
+		protected boolean insertInAllChildren(Rectangle2D box, double centerX, double centerY, PolyNode obj, Rectangle2D areaBB)
 		{
+			int loc = getQuadrants(centerX, centerY, areaBB);
+			boolean inserted = false;
+			double w = box.getWidth()/2;
+			double h = box.getHeight()/2;
+			double x = box.getX();
+			double y = box.getY();
+
+			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
+			{
+				if (((loc >> i) & 1) == 1)
+				{
+					Rectangle2D bb = getBox(x, y, w, h, centerX, centerY, i);
+
+					if (children[i] == null) children[i] = new PolyQNode();
+
+					boolean done = children[i].insert(bb, obj, areaBB);
+
+					inserted = (inserted) ? inserted : done;
+				}
+			}
+			return (inserted);
+		}
+		/**
+		 *
+		 * @param box Bounding box of the current PolyQNode
+		 * @param obj Object to insert
+		 * @param areaBB Bounding box of object to insert
+		 */
+		protected boolean insert(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
+		{
+			if (!box.intersects(areaBB))
+			{
+				// new element is outside of bounding box. Might need flag to avoid
+				// double checking if obj is coming from findAndRemove
+				return (false);
+			}
+
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
 
 			// Node has been split
 			if (children != null)
 			{
-				int loc = getQuadrants(centerX, centerY, areaBB);
-				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
-				{
-					if (((loc >> i) & 1) == 0)
-					{
-						Rectangle2D bb = getBox(box, centerX, centerY, i);
-
-						if (children[i] == null) children[i] = new PolyQNode();
-
-						children[i].insert(bb, obj, areaBB);
-					}
-				}
+				return (insertInAllChildren(box, centerX, centerY, obj, areaBB));
 			}
 			if (nodes == null)
 			{
 				nodes = new HashSet();
 			}
+			boolean inserted = false;
+
 			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
 			{
-				nodes.add(obj);
+				inserted = nodes.add(obj);
 				//  nodes.add(obj.clone());
 			}
 			else
 			{
-				// subdivides into 4
-				children = new PolyQNode[4];
+				// subdivides into PolyQTree.MAX_NUM_CHILDREN. Might work only for 2^n
+				children = new PolyQNode[PolyQTree.MAX_NUM_CHILDREN];
+				double w = box.getWidth()/2;
+				double h = box.getHeight()/2;
+				double x = box.getX();
+				double y = box.getY();
 
-				for (int i = 0; i < 4; i++)
+				// Redistributing existing elements in children
+				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 				{
 					children[i] = new PolyQNode();
-				}
+					Rectangle2D bb = getBox(x, y, w, h, centerX, centerY, i);
 
-				for (Iterator it = nodes.iterator(); it.hasNext();)
-				{
-					for (int i = 0; i < 4; i++)
+					for (Iterator it = nodes.iterator(); it.hasNext();)
 					{
-						Rectangle2D bb = getBox(box, centerX, centerY, i);
 						PolyNode node = (PolyNode)it.next();
+
 						children[i].insert(bb, node, node.getBounds2D());
 					}
 				}
 				nodes.clear(); // not sure about this clear yet
 				nodes = null;
+				inserted = insertInAllChildren(box, centerX, centerY, obj, areaBB);
 			}
+			return (inserted);
 		}
 	}
 }

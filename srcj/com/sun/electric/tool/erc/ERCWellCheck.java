@@ -767,7 +767,7 @@ public class ERCWellCheck
 
 			if (merge == null)
 			{
-				merge = new PolyQTree();
+				merge = new PolyQTree(cell.getBounds());
 				cellMerges.put(cell, merge);
 
 				// merge everything
@@ -789,7 +789,7 @@ public class ERCWellCheck
 							Layer layer = poly.getLayer();
 							if (getWellLayerType(layer) == 0) continue;
 							poly.transform(trans);
-							merge.insert((Object)layer, cell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+							merge.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 						}
 					} else
 					{
@@ -800,7 +800,7 @@ public class ERCWellCheck
 						{
 							AffineTransform tTrans = ni.translateOut();
 							tTrans.concatenate(trans);
-							merge.insert(subMerge, cell.getBounds(), tTrans);
+							merge.insert(subMerge, tTrans);
 						}
 					}
 				}
@@ -816,7 +816,7 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						if (getWellLayerType(layer) == 0) continue;
-						merge.insert((Object)layer, cell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						merge.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}

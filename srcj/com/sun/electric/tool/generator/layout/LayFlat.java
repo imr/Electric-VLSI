@@ -118,6 +118,12 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		}
 	}
 
+	/**
+	 * @TODO GVG Not finished yet
+	 * @param no
+	 * @param inf
+	 * @return
+	 */
 	public boolean visitNodeInst(Nodable no,
 	                             HierarchyEnumerator.CellInfo inf) {
 		FlatInfo info = (FlatInfo) inf;

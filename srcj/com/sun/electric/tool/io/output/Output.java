@@ -376,6 +376,7 @@ public class Output extends IOTool
 		} catch (FileNotFoundException e)
 		{
 			System.out.println("Could not write file " + filePath);
+			System.out.println("Reason: " + e.getMessage());
 			return true;
 		}
 		BufferedOutputStream bufStrm = new BufferedOutputStream(fileOutputStream);

@@ -2,6 +2,9 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/11/04, GVG) Message in WriteLib if no write access. Unified version of coverage implant, merge polygons and
+layer coverage calculation. New idea for icon of current library selected in ExplorerTree.
+
 IMP: (6/11/04, RK) Move fill generation to a script. Add Essential-Bounds to tiled fill cells. 
 
 IMP: (6/10/04, SMR) Changed the Job.doIt() method to return a success indicator.

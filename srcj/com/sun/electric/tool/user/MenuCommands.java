@@ -320,7 +320,7 @@ public final class MenuCommands
 		Menu editInfoSubMenu = new Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, false); } });
 		editInfoSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		editInfoSubMenu.addMenuItem("Describe this Technology", null,
@@ -933,7 +933,8 @@ public final class MenuCommands
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
+			//new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("Generate gate layouts", null,
@@ -1025,16 +1026,21 @@ public final class MenuCommands
         //    new ActionListener() { public void actionPerformed(ActionEvent e) { checkExports(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
-		Menu gildaMenu = new Menu("Gilda", 'G');
-		menuBar.add(gildaMenu);
-		gildaMenu.addMenuItem("Merge Polyons", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, true);}});
-		gildaMenu.addMenuItem("Covering Implants", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, false);}});
-		gildaMenu.addMenuItem("Covering Implants Old", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
-		gildaMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(true); } });
+		// Only active in debug mode. Doesn't work
+		//if (Main.getDebug())
+		{
+			Menu gildaMenu = new Menu("Gilda", 'G');
+			menuBar.add(gildaMenu);
+			gildaMenu.addMenuItem("Merge Polyons", null,
+					new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, true);}});
+			gildaMenu.addMenuItem("Covering Implants", null,
+					//new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, false);}});
+			        new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, true);}});
+			gildaMenu.addMenuItem("Covering Implants Old", null,
+					new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
+			gildaMenu.addMenuItem("List Layer Coverage", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, true); } });
+		}
 
         /********************************* Hidden Menus *******************************/
 
@@ -1791,37 +1797,48 @@ public final class MenuCommands
 	/**
 	 * Method to handle the "List Layer Coverage" command.
 	 */
-	public static void layerCoverageCommand(boolean test)
+	public static void layerCoverageCommand(Job.Type jobType, int func, boolean test)
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        Job job = new LayerCoverage(curCell, test);
+        Job job = new LayerCoverageJob(jobType, curCell, func, test);
 	}
 
-	private static class LayerCoverage extends Job
+	private static class LayerCoverageJob extends Job
 	{
 		private Cell curCell;
         private boolean testCase;
-		PolyQTree tree = new PolyQTree();
+		private PolyQTree tree; // = new PolyQTree(curCell.getBounds());
+		private final static int AREA = 0;   // function Layer Coverage
+		private final static int MERGE = 1;  // Generic merge polygons function
+		private final static int IMPLANT = 2; // Coverage implants
+		private final int function;
+		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 
 		public static class LayerVisitor extends HierarchyEnumerator.Visitor
 		{
 			private boolean testCase;
 			private PolyQTree tree;
-			private AffineTransform transformation;
+            private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+			private final int function;
 
-			public LayerVisitor(boolean test, PolyQTree t)
+			public LayerVisitor(boolean test, PolyQTree t, List delList, int func)
 			{
 				this.testCase = test;
 				this.tree = t;
+				this.deleteList = delList;
+				this.function = func;
 			}
 		    public void exitCell(HierarchyEnumerator.CellInfo info)
             {
                 //return true;
+			    //System.out.println("Cell exit " + info.getCell().getProtoName());
             }
 			public boolean enterCell(HierarchyEnumerator.CellInfo info)
 			{
 				Cell curCell = info.getCell();
+
+				//System.out.println("Cell enter " + curCell.getProtoName());
 
 				// Traversing arcs
 				for (Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -1839,9 +1856,11 @@ public final class MenuCommands
 						Layer layer = poly.getLayer();
 						Layer.Function func = layer.getFunction();
 
-						if (!testCase && !func.isPoly() && !func.isMetal()) continue;
+						boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
+						if (!testCase && value) continue;
+						//if (!testCase && (function==IMPLANT) ? func.isSubstrate() : !func.isPoly() && !func.isMetal()) continue;
 
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
+						tree.insert((Object)layer, new PolyQTree.PolyNode(poly));
 					}
 				}
 				// Traversing nodes
@@ -1851,7 +1870,11 @@ public final class MenuCommands
 
 					// Coverage implants are pure primitive nodes
 					// and they are ignored.
-					if (!testCase && node.getFunction() == NodeProto.Function.NODE) continue;
+					if (!testCase && node.getFunction() == NodeProto.Function.NODE)
+					{
+						deleteList.add(node);
+						continue;
+					}
 
 					NodeProto protoType = node.getProto();
 					//  Analyzing only leaves
@@ -1867,13 +1890,17 @@ public final class MenuCommands
 							Layer layer = poly.getLayer();
 							Layer.Function func = layer.getFunction();
 
-							// Only checking poly or metal
-							if (!testCase && !func.isPoly() && !func.isMetal()) continue;
+							// Only checking poly or metal for AREA case
+							boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
+                            if (!testCase && value) continue;
 
 							poly.transform(transform);
+							// Not sure if I need this for general merge polygons function
 							poly.transform(info.getTransformToRoot());
 
-							tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
+							//System.out.println("Node name"+ node.getName() + " layer " + layer.getName()+ " P " + poly.getBounds2D());
+
+							tree.insert((Object)layer, new PolyQTree.PolyNode(poly));
 						}
 					}
 				}
@@ -1885,11 +1912,15 @@ public final class MenuCommands
             }
 		}
 
-		protected LayerCoverage(Cell cell, boolean test)
+		protected LayerCoverageJob(Type jobType, Cell cell, int func, boolean test)
 		{
-			super("Layer Coverage", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Layer Coverage", User.tool, jobType, null, null, Job.Priority.USER);
 			this.curCell = cell;
 			this.testCase = test;
+			this.tree = new PolyQTree(curCell.getBounds());
+			this.function = func;
+			this.deleteList = new ArrayList(); // should only be used by IMPLANT
+
 			setReportExecutionFlag(true);
 			startJob();
 		}
@@ -1897,140 +1928,91 @@ public final class MenuCommands
 		public boolean doIt()
 		{
 			// enumerate the hierarchy below here
-			LayerVisitor visitor = new LayerVisitor(testCase, tree);
+			LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
-			double lambdaSqr = 1;
-			// @todo GVG Calculates lambda!
-			Rectangle2D bbox = curCell.getBounds();
-			double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
-
-			// Traversing tree with merged geometry
-			for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
+			switch (function)
 			{
-				Layer layer = (Layer)it.next();
-				Set set = tree.getObjects(layer, false);
-				double layerArea = 0;
+				case AREA:
+					{
+						double lambdaSqr = 1;
+						// @todo GVG Calculates lambda!
+						Rectangle2D bbox = curCell.getBounds();
+						double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
 
-				// Get all objects and sum the area
-				for (Iterator i = set.iterator(); i.hasNext(); )
-				{
-					PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
-					layerArea += area.getArea();
-				}
-				System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
+						// Traversing tree with merged geometry
+						for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
+						{
+							Layer layer = (Layer)it.next();
+							Set set = tree.getObjects(layer, false);
+							double layerArea = 0;
+
+							// Get all objects and sum the area
+							for (Iterator i = set.iterator(); i.hasNext(); )
+							{
+								PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
+								layerArea += area.getArea();
+							}
+							System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
+						}
+
+						System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
+					}
+					break;
+				case MERGE:
+				case IMPLANT:
+					{
+						// With polygons collected, new geometries are calculated
+						Highlight.clear();
+						boolean noNewNodes = true;
+                        boolean isMerge = (function == MERGE);
+
+						// Need to detect if geometry was really modified
+						for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
+						{
+							Layer layer = (Layer)it.next();
+							Set set = tree.getObjects(layer, !isMerge);
+
+							// Ready to create new implants.
+							for (Iterator i = set.iterator(); i.hasNext(); )
+							{
+								PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+								Rectangle2D rect = qNode.getBounds2D();
+								Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
+								PrimitiveNode priNode = layer.getPureLayerNode();
+								// Adding the new implant. New implant not assigned to any local variable                                .
+								NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
+								Highlight.addElectricObject(node, curCell);
+
+								if (isMerge)
+								{
+									Point2D [] points = qNode.getPoints();
+									node.newVar(NodeInst.TRACE, points);
+								}
+								else
+								{
+									// New implant can't be selected again
+									node.setHardSelect();
+								}
+								noNewNodes = false;
+							}
+						}
+						Highlight.finished();
+						for (Iterator it = deleteList.iterator(); it.hasNext(); )
+						{
+							NodeInst node = (NodeInst)it .next();
+							node.kill();
+						}
+						if (noNewNodes)
+							System.out.println("No implant areas added");
+
+					}
+					break;
+				default:
+					System.out.println("Error in LayerCoverageJob: function not implemented");
 			}
-
-			System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
 			return true;
 		}
-//		// initialize for analysis
-//		us_coveragetech = cell->tech;
-//
-//		// determine which layers are being collected
-//		us_coveragelayercount = 0;
-//		for(i=0; i<us_coveragetech->layercount; i++)
-//		{
-//			fun = layerfunction(us_coveragetech, i);
-//			if ((fun&LFPSEUDO) != 0) continue;
-//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
-//			us_coveragelayercount++;
-//		}
-//		if (us_coveragelayercount == 0)
-//		{
-//			ttyputerr(_("No metal or polysilicon layers in this technology"));
-//			return;
-//		}
-//		us_coveragelayers = (INTBIG *)emalloc(us_coveragelayercount * SIZEOFINTBIG, us_tool->cluster);
-//		if (us_coveragelayers == 0) return;
-//		us_coveragelayercount = 0;
-//		for(i=0; i<us_coveragetech->layercount; i++)
-//		{
-//			fun = layerfunction(us_coveragetech, i);
-//			if ((fun&LFPSEUDO) != 0) continue;
-//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
-//			us_coveragelayers[us_coveragelayercount++] = i;
-//		}
-//
-//		// show the progress dialog
-//		us_coveragedialog = DiaInitProgress(_("Merging geometry..."), 0);
-//		if (us_coveragedialog == 0)
-//		{
-//			termerrorlogging(TRUE);
-//			return;
-//		}
-//		DiaSetProgress(us_coveragedialog, 0, 1);
-//
-//		// reset merging information
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				np->temp1 = 0;
-//
-//				// if this cell has parameters, force its polygons to be examined for every instance
-//				for(i=0; i<np->numvar; i++)
-//				{
-//					var = &np->firstvar[i];
-//					if (TDGETISPARAM(var->textdescript) != 0) break;
-//				}
-//				if (i < np->numvar) np->temp1 = -1;
-//			}
-//		}
-//
-//		// run through the work and count the number of polygons
-//		us_coveragepolyscrunched = 0;
-//		us_gathercoveragegeometry(cell, el_matid, 0);
-//		us_coveragejobsize = us_coveragepolyscrunched;
-//
-//		// now gather all of the geometry into the polygon merging system
-//		polymerge = (void **)emalloc(us_coveragelayercount * (sizeof (void *)), us_tool->cluster);
-//		if (polymerge == 0) return;
-//		for(i=0; i<us_coveragelayercount; i++)
-//			polymerge[i] = mergenew(us_tool->cluster);
-//		us_coveragepolyscrunched = 0;
-//		us_gathercoveragegeometry(cell, el_matid, polymerge);
-//
-//		// extract the information
-//		us_coveragearea = (float *)emalloc(us_coveragelayercount * (sizeof (float)), us_tool->cluster);
-//		if (us_coveragearea == 0) return;
-//		for(i=0; i<us_coveragelayercount; i++)
-//		{
-//			us_coveragearea[i] = 0.0;
-//			mergeextract(polymerge[i], us_getcoveragegeometry);
-//		}
-//
-//		// show the results
-//		totalarea = (float)(cell->highx - cell->lowx);
-//		totalarea *= (float)(cell->highy - cell->lowy);
-//		ttyputmsg(x_("Cell is %g square lambda"), totalarea/(float)lambda/(float)lambda);
-//		for(i=0; i<us_coveragelayercount; i++)
-//		{
-//			if (us_coveragearea[i] == 0.0) continue;
-//			if (totalarea == 0.0) coverageratio = 0.0; else
-//				coverageratio = us_coveragearea[i] / totalarea;
-//			percentcoverage = (INTBIG)(coverageratio * 100.0 + 0.5);
-//
-//			ttyputmsg(x_("Layer %s covers %g square lambda (%ld%%)"),
-//				layername(us_coveragetech, us_coveragelayers[i]),
-//				us_coveragearea[i]/(float)lambda/(float)lambda, percentcoverage);
-//		}
-//
-//		// delete merge information
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				if (np->temp1 == 0 || np->temp1 == -1) continue;
-//				submerge = (void **)np->temp1;
-//				for(i=0; i<us_coveragelayercount; i++)
-//					mergedelete(submerge[i]);
-//				efree((CHAR *)submerge);
-//			}
-//		}
-//		for(i=0; i<us_coveragelayercount; i++)
-//			mergedelete(polymerge[i]);
-//		efree((CHAR *)polymerge);
 	}
 
 	/**
@@ -4088,7 +4070,7 @@ public final class MenuCommands
 		public boolean doIt()
 		{
 			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
-            PolyQTree tree = new PolyQTree();
+            PolyQTree tree = new PolyQTree(curCell.getBounds());
 
 			// Traversing arcs
 			for (Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -4109,7 +4091,7 @@ public final class MenuCommands
 					if (Main.getDebug() || func.isSubstrate())
 					{
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -4144,7 +4126,7 @@ public final class MenuCommands
 					{
 						poly.transform(transform);
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -4153,7 +4135,7 @@ public final class MenuCommands
 
 			// With polygons collected, new geometries are calculated
 			Highlight.clear();
-			List nodesList = new ArrayList();
+			boolean noNewNodes = true;
 
 			// Need to detect if geometry was really modified
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
@@ -4164,15 +4146,25 @@ public final class MenuCommands
 				// Ready to create new implants.
 				for (Iterator i = set.iterator(); i.hasNext(); )
 				{
-					Rectangle2D rect = ((PolyQTree.PolyNode)i.next()).getBounds2D();
+					PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+					Rectangle2D rect = qNode.getBounds2D();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .
 					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
 					Highlight.addElectricObject(node, curCell);
-					// New implant can't be selected again
-					node.setHardSelect();
-					nodesList.add(node);
+
+					if ( testMerge )
+					{
+					        Point2D [] points = qNode.getPoints();
+					        node.newVar(NodeInst.TRACE, points);
+					}
+					else
+					{
+					        // New implant can't be selected again
+					        node.setHardSelect();
+					}
+					noNewNodes = false;
 				}
 			}
 			Highlight.finished();
@@ -4181,7 +4173,7 @@ public final class MenuCommands
 				NodeInst node = (NodeInst)it .next();
 				node.kill();
 			}
-			if ( nodesList.isEmpty() )
+			if (noNewNodes)
 				System.out.println("No implant areas added");
 			return true;
 		}

@@ -359,7 +359,15 @@ public class ExplorerTree extends JTree
 		{
 			Library lib = (Library)nodeInfo;
 			String nodeName = lib.getLibName();
-			if (lib == Library.getCurrent()) nodeName += " [Current]";
+			if (lib == Library.getCurrent())
+			{
+				nodeName += " [Current]";
+				iconLibrary = new ImageIcon(getClass().getResource("IconLibraryCheck.gif"));
+			}
+			else
+			{
+				iconLibrary = new ImageIcon(getClass().getResource("IconLibrary.gif"));
+			}
 			return nodeName;
 		}
 		if (nodeInfo instanceof CellAndCount)
