@@ -237,8 +237,8 @@ public class LESizer {
                     currentLoopDeltaX = (deltaX > currentLoopDeltaX) ? deltaX : currentLoopDeltaX;
                     if (verbose) {
                         out.println("Optimized "+instanceName+": size:  "+
-                            Variable.format(new Float(instance.getLeX()), 3)+
-                            "x ==> "+Variable.format(new Float(newX), 3)+"x");
+                            TextUtils.formatDouble(instance.getLeX(), 3)+
+                            "x ==> "+TextUtils.formatDouble(newX, 3)+"x");
                     }
                     instance.setLeX(newX);
 
@@ -301,7 +301,7 @@ public class LESizer {
 			Instance instance = (Instance)instancesIter.next();
 			String instanceName = instance.getName();
             StringBuffer buf = new StringBuffer();
-			out.println("\t"+instanceName+" ==> "+Variable.format(new Float(instance.getLeX()), 3)+"x");
+			out.println("\t"+instanceName+" ==> "+TextUtils.formatDouble(instance.getLeX(), 3)+"x");
 			ArrayList pins = instance.getAllPins();
 			
 			// now print out pinname ==> netname

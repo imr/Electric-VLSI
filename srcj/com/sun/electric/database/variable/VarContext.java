@@ -182,7 +182,7 @@ public class VarContext
     public Object evalVar(Variable var, Object info)
     {
         if (var == null) return null;
-        if (var.isJava()) return(EvalJavaBsh.evalJavaBsh.eval(var.getObject(), this, info));
+        if (var.isJava()) return EvalJavaBsh.evalJavaBsh.eval(var.getObject(), this, info);
         // TODO: if(var.isTCL()) { }
         // TODO: if(var.isLisp()) { }
         return var.getObject();

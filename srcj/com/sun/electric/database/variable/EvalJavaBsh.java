@@ -66,8 +66,8 @@ public class EvalJavaBsh
     /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
     /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
 
-    /** turn on Bsh verbose debug stmts */          private static boolean debug = false;
-
+    /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = true;
+    /** turn on stack trace stmts for exceptions */ private static boolean DEBUGSTACKTRACE = false;
 
     public static class IgnorableException extends Exception {
         public IgnorableException() { super(); }
@@ -196,11 +196,11 @@ public class EvalJavaBsh
         Object ret = doEval(expr);              // ask bsh to eval
         contextStack.pop();                     // pop context
         infoStack.pop();                        // pop info
-        //System.out.println("BSH: "+expr.toString()+" --> "+ret);
-        if (ret instanceof Number) {
-            // get rid of lots of decimal places on floats and doubles
-            ret = Variable.format((Number)ret, 3);
-        }
+        if (DEBUG) System.out.println("BSH: "+expr.toString()+" --> "+ret);
+//        if (ret instanceof Number) {
+//            // get rid of lots of decimal places on floats and doubles
+//            ret = Variable.format((Number)ret, 3);
+//        }
         return ret;
     }
 
@@ -213,6 +213,15 @@ public class EvalJavaBsh
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
         if (val == null) throw new IgnorableException("Lookup of "+name+" not found");
+        if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
+        try {
+            // try to convert to a Number
+            Double d = new Double(val.toString());
+            val = d;
+            if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
+        } catch (java.lang.NumberFormatException e) {
+            // just return original val object
+        }
         return val;
     }
 
@@ -220,6 +229,15 @@ public class EvalJavaBsh
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);
         if (val == null) throw new IgnorableException("Far lookup of "+name+" not found");
+        if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
+        try {
+            // try to convert to a Number
+            Double d = new Double(val.toString());
+            val = d;
+            if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
+        } catch (java.lang.NumberFormatException e) {
+            // just return original val object
+        }
         return val;
     }
 
@@ -359,11 +377,11 @@ public class EvalJavaBsh
         }
         else if (e instanceof IllegalArgumentException) {
             System.out.println(description+": "+e.getMessage());
-            if (debug) e.printStackTrace(System.out);
+            if (DEBUG) e.printStackTrace(System.out);
         }
         else if (e instanceof IllegalAccessException) {
             System.out.println(description+": "+e.getMessage());
-            if (debug) e.printStackTrace(System.out);
+            if (DEBUG) e.printStackTrace(System.out);
         }
         else {
             System.out.println("Unhandled Exception: ");
@@ -384,18 +402,18 @@ public class EvalJavaBsh
             Throwable t = doGetTarget(e);
             if (t != null) {
                 if (t instanceof IgnorableException) {
-                    if (debug) {
+                    if (DEBUG) {
                         System.out.println("IngorableException: "+description+": "+t.getMessage());
-                        // e.printStackTrace(System.out);
+                        if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                     }
                 } else {
                     System.out.println(description+": "+t.getMessage());
-                    if (debug) e.printStackTrace(System.out);
+                    if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                 }
             }
         } else {
             System.out.println("Unhandled Bsh Exception: "+description+": "+e.getMessage());
-            e.printStackTrace();
+            if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
         }
     }
 

@@ -306,24 +306,6 @@ public class Variable
 		return name;
 	}
 
-    private static NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
-
-    /** Truncate a Number to something sensible that can be printed */
-    public static Number format(Number num, int numFractions) {
-
-        numberFormat.setMaximumFractionDigits(numFractions);
-        numberFormat.setMinimumFractionDigits(numFractions);
-        if (num instanceof Double) {
-            String n = numberFormat.format(num.doubleValue());
-            return new Double(n);
-        }
-        if (num instanceof Float) {
-            String n = numberFormat.format(num.floatValue());
-            return new Float(n);
-        }
-        return num;
-    }
-
 	/**
 	 * Method to return a description of this Variable.
 	 * @return a description of this Variable.
