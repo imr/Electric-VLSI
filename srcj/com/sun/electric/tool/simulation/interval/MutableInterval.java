@@ -75,7 +75,11 @@ public class MutableInterval
     /**
      * A constant holding minimal positive normalized double number.
      */
-    private static final double MIN_NORMAL = Double.MIN_VALUE*(1L << 52); // (0x1.0p-1022;
+    private static final double MIN_NORMAL = Double.MIN_VALUE*(1L << 52); // 0x1.0p-1022;
+    /**
+     * A constant limiting those x for which x*ULP_EPS is noramlized.
+     */
+    private static final double ULP_EPS_NORMAL = MIN_NORMAL / ULP_EPS; // 0x1.5555555555555p-970
     /**
      * A constant holding ulp(Double.MAX_VALUE).
      */
@@ -1117,12 +1121,12 @@ public class MutableInterval
 		double l = this.inf + y.inf;
 		if (l - this.inf > y.inf || l - y.inf > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
-			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+			l = (l < 0 ? (l < -ULP_EPS_NORMAL ? l + l*ULP_EPS : l/SCALE_DOWN) : l <= Double.MAX_VALUE ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		double h = this.sup + y.sup;
 		if (h - this.sup < y.sup || h - y.sup < this.sup) {
 			assert Math.abs(h) >= MIN_NORMAL*2;
-			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+			h = (h > 0 ? (h > ULP_EPS_NORMAL ? h + h*ULP_EPS : h/SCALE_DOWN) : h >= -Double.MAX_VALUE ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		inf = l;
 		sup = h;
@@ -1141,7 +1145,7 @@ public class MutableInterval
 		double l = this.inf + y;
 		if (l - this.inf > y || l - y > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
-			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+			l = (l < 0 ? (l < -ULP_EPS_NORMAL ? l + l*ULP_EPS : l/SCALE_DOWN) : l <= Double.MAX_VALUE ? l*SCALE_DOWN : Double.MAX_VALUE);
 		} else if (!(l < Double.POSITIVE_INFINITY)) {
 			if (y >= this.sup) // x is not [EMPTY] and y is not NaN 
 				l = Double.MAX_VALUE;
@@ -1149,7 +1153,7 @@ public class MutableInterval
 		double h = this.sup + y;
 		if (h - this.sup < y || h - y < this.sup) {
 			assert Math.abs(h) >= MIN_NORMAL*2;
-			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+			h = (h > 0 ? (h > ULP_EPS_NORMAL ? h + h*ULP_EPS : h/SCALE_DOWN) : h >= -Double.MAX_VALUE ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		} else if (!(h > Double.NEGATIVE_INFINITY)) {
 			if (y <= this.inf) // x is not [EMPTY] and y is not NaN
 				h = -Double.MAX_VALUE;
@@ -1172,12 +1176,12 @@ public class MutableInterval
 		double l = this.inf - y.sup;
 		if (this.inf - l < y.sup || l + y.sup > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
-			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+			l = (l < 0 ? (l < -ULP_EPS_NORMAL ? l + l*ULP_EPS : l/SCALE_DOWN) : l <= Double.MAX_VALUE ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		double h = this.sup - y.inf;
 		if (this.sup - h >  y.inf || h + y.inf < this.sup) {
 			assert Math.abs(h) >= MIN_NORMAL*2;
-			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+			h = (h > 0 ? (h > ULP_EPS_NORMAL ? h + h*ULP_EPS : h/SCALE_DOWN) : h >= -Double.MAX_VALUE ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		inf = l;
 		sup = h;
@@ -1196,7 +1200,7 @@ public class MutableInterval
 		double l = this.inf - y;
 		if (this.inf - l < y || l + y > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
-			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
+			l = (l < 0 ? (l < -ULP_EPS_NORMAL ? l + l*ULP_EPS : l/SCALE_DOWN) : l <= Double.MAX_VALUE ? l*SCALE_DOWN : Double.MAX_VALUE);
 		} else if (!(l < Double.POSITIVE_INFINITY)) {
 			if (y >= this.sup) // x is not [EMPTY] and y is not NaN 
 				l = Double.MAX_VALUE;
@@ -1204,7 +1208,7 @@ public class MutableInterval
 		double h = this.sup - y;
 		if (this.sup - h >  y || h + y < this.sup) {
 			assert Math.abs(h) >= MIN_NORMAL*2;
-			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
+			h = (h > 0 ? (h > ULP_EPS_NORMAL ? h + h*ULP_EPS : h/SCALE_DOWN) : h >= -Double.MAX_VALUE ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		} else if (!(h > Double.NEGATIVE_INFINITY)) {
 			if (y <= this.inf) // x is not [EMPTY] and y is not NaN
 				h = -Double.MAX_VALUE;
@@ -1363,7 +1367,10 @@ public class MutableInterval
 		if (l > 0)
 			l = prevPos(l);
 		double h = Math.exp(this.sup);
-		h = nextPos(h);
+		if (h > 0)
+			h = nextPos(h);
+		else if (h == 0)
+			h = Double.MIN_VALUE;
 		inf = l;
 		sup = h;
 		return this;
@@ -1389,17 +1396,6 @@ public class MutableInterval
 		sup = h;
 		return this;
 	}
-
-	/**
-	 * Return string representation.
-	 */
-
-//	public String toString() {
-//		final int precision = 16;
-//		if (isEmpty())
-//			return "[Empty]";
-//		return "[" + DirectedFloatingDecimal.toStringInf(inf, precision) + "," + DirectedFloatingDecimal.toStringSup(sup, precision) + "]";
-//	}
 
 	// -----------------------------------------------------------------------
 	// I/O
@@ -1564,8 +1560,10 @@ public class MutableInterval
 		if (d < 0)
 			d = -d;
 		if (d < Double.MAX_VALUE) {
-			if (d >= MIN_NORMAL*2)
+			if (d > ULP_EPS_NORMAL)
 				return (d + d*ULP_EPS) - d;
+			if (d >= MIN_NORMAL*2)
+				return d/SCALE_DOWN - d;
 			return Double.MIN_VALUE;
 		}
 		if (d == Double.MAX_VALUE)
@@ -1585,9 +1583,19 @@ public class MutableInterval
 	 * </UL>
 	 */
 	public static double prev(double x) {
-		return x < MIN_NORMAL
-			? (x <= -MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE)
-			: x == Double.POSITIVE_INFINITY ? Double.MAX_VALUE : x*SCALE_DOWN;
+		if (x <= MIN_NORMAL) {
+			if (x < -ULP_EPS_NORMAL)
+				return x + x*ULP_EPS;
+			else if (x <= -MIN_NORMAL)
+				return x/SCALE_DOWN;
+			else if (x == 0)
+				return -Double.MIN_VALUE;
+			else
+				return Double.longBitsToDouble(Double.doubleToLongBits(x) + (x > 0 ? -1 : 1));
+		} else if (x > Double.MAX_VALUE)
+			return Double.MAX_VALUE;
+		else
+			return x*SCALE_DOWN;
 	}
 
 	/**
@@ -1602,35 +1610,46 @@ public class MutableInterval
 	 * </UL>
 	 */
 	public static double next(double x) {
-		return x > -MIN_NORMAL
-			? (x >= MIN_NORMAL*2 ? x + x*ULP_EPS : x + Double.MIN_VALUE)
-			: x == Double.NEGATIVE_INFINITY ? -Double.MAX_VALUE : x*SCALE_DOWN;
+		if (x >= -MIN_NORMAL) {
+			if (x > ULP_EPS_NORMAL)
+				return x + x*ULP_EPS;
+			else if (x >= MIN_NORMAL)
+				return x/SCALE_DOWN;
+			else if (x == 0)
+				return Double.MIN_VALUE;
+			else
+				return Double.longBitsToDouble(Double.doubleToLongBits(x) + (x > 0 ? 1 : -1));
+		} else if (x < -Double.MAX_VALUE)
+			return -Double.MAX_VALUE;
+		else
+			return x*SCALE_DOWN;
 	}
 
 	private static double nextPos(double x) {
-		assert x >= 0 || x != x;
-		return x >= MIN_NORMAL*2 ? x + x*ULP_EPS : x + Double.MIN_VALUE;
+		assert x > 0;
+		return x > ULP_EPS_NORMAL ? x + x*ULP_EPS : x >= MIN_NORMAL ? x/SCALE_DOWN : Double.longBitsToDouble(Double.doubleToLongBits(x) + 1);
 	}
+
 	private static double nextNeg(double x) {
-		assert x <= 0 || x != x;
-		return x <= -MIN_NORMAL ? (x > Double.NEGATIVE_INFINITY ? x*SCALE_DOWN : -Double.MAX_VALUE) : x < 0 ? x + Double.MIN_VALUE : x;
+		assert x < 0;
+		return x <= -MIN_NORMAL ? (x >= -Double.MAX_VALUE ? x*SCALE_DOWN : -Double.MAX_VALUE) : Double.longBitsToDouble(Double.doubleToLongBits(x) - 1);
 	}
 
 	private static double prevPos(double x) {
-		assert x >= 0 || x != x;
-		return x >= MIN_NORMAL ? (x < Double.POSITIVE_INFINITY ? x*SCALE_DOWN : Double.MAX_VALUE ) : x > 0 ? x - Double.MIN_VALUE : x;
+		assert x > 0;
+		return x >= MIN_NORMAL ? (x <= Double.MAX_VALUE ? x*SCALE_DOWN : Double.MAX_VALUE) : Double.longBitsToDouble(Double.doubleToLongBits(x) - 1);
 	}
 
 	private static double prevNeg(double x) {
-		assert x <= 0 || x != x;
-		return x <= -MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
+		assert x < 0;
+		return x < -ULP_EPS_NORMAL ? x + x*ULP_EPS : x <= -MIN_NORMAL ? x/SCALE_DOWN : Double.longBitsToDouble(Double.doubleToLongBits(x) + 1);
 	}
 
 	public static double addUp(double x, double y) {
 		double z = x + y;
 		if (z - x < y || z - y < x) {
 			assert Math.abs(z) >= MIN_NORMAL*2;
-			return (z > 0 ? z + z*ULP_EPS : z > Double.NEGATIVE_INFINITY ? z*SCALE_DOWN : -Double.MAX_VALUE);
+			return (z > 0 ? (z > ULP_EPS_NORMAL ? z + z*ULP_EPS : z/SCALE_DOWN) : z >= -Double.MAX_VALUE ? z*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		return (z == z || x != x || y != y ? z : Double.POSITIVE_INFINITY);
 	}
@@ -1640,7 +1659,7 @@ public class MutableInterval
 		assert z >= 0 || z != z;
 		if (z - x < y || z - y < x) {
 			assert z >= MIN_NORMAL*2;
-			z = z + z*ULP_EPS;
+			return (z > ULP_EPS_NORMAL ? z + z*ULP_EPS : z/SCALE_DOWN);
 		}
 		return z;
 	}

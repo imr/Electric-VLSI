@@ -22,6 +22,21 @@ class Ulp
 	return x;
     }
 
+    private static final double DOWN_SCALE = 0x1.fffffffffffffp-1;
+
+    public static double ulpd(double x) {
+	if (x < 0)
+	    x = -x;
+	if (x < Double.MAX_VALUE) {
+	    if (x >= MIN_NORMAL*2)
+		return (x/DOWN_SCALE) - x;
+	    return Double.MIN_VALUE;
+	}
+	if (x == Double.MAX_VALUE)
+	    return MAX_ULP;
+	return x;
+    }
+
     private static final double two53 = 0x1.0p53;
     private static final double[] ulp_tab = {
 	0x1.0p-1074, 0x1.0p-1074, 0x1.0p-1073, 0x1.0p-1072, 0x1.0p-1071, 0x1.0p-1070, 0x1.0p-1069, 0x1.0p-1068,
@@ -42,8 +57,8 @@ class Ulp
 	    if (x < MIN_NORMAL*2)
 		return Double.MIN_VALUE;
 	    else {
-		int mant = (int)(Double.doubleToLongBits(x) >> 52);
-		return ulp_tab[mant & 0xff];
+		int exponent = (int)(Double.doubleToLongBits(x) >> 52);
+		return ulp_tab[exponent & 0xff];
 	    }
 	}
 	if (x == Double.MAX_VALUE)
@@ -51,13 +66,55 @@ class Ulp
 	return x;
     }
 
+    public static double nextUp(double x) {
+	if (x >= -MIN_NORMAL) {
+	    if (x >= MIN_NORMAL*two53)
+		return x + x*ULP_EPS;
+	    else if (x >= MIN_NORMAL)
+		return x/DOWN_SCALE;
+	    else if (x == 0)
+		return Double.MIN_VALUE;
+	    else
+		return Double.longBitsToDouble(Double.doubleToLongBits(x) + (x > 0 ? 1 : -1));
+	} else {
+	    if (x >= -Double.MAX_VALUE)
+		return x*DOWN_SCALE;
+	    else if (x == x)
+		return -Double.MAX_VALUE;
+	    else
+		return x;
+	}
+    }
+
+    public static double nextUp1(double x) {
+	if (x >= -MIN_NORMAL) {
+	    if (x >= MIN_NORMAL*two53)
+		return x + x*ULP_EPS;
+// 	    else if (x >= MIN_NORMAL)
+// 		return x/DOWN_SCALE;
+	    else if (x == 0)
+		return Double.MIN_VALUE;
+	    else
+		return Double.longBitsToDouble(Double.doubleToLongBits(x) + (x > 0 ? 1 : -1));
+	} else {
+	    if (x >= -Double.MAX_VALUE)
+		return x*DOWN_SCALE;
+	    else if (x == x)
+		return -Double.MAX_VALUE;
+	    else
+		return x;
+	}
+    }
+
     static abstract class Test {
 	double x0, x1, x2, x3, x4, x5, x6, x7, x8, x9;
 	double y0, y1, y2, y3, y4, y5, y6, y7, y8, y9;
 	String name;
+	boolean testNextUp;
 
-	Test(String name) {
+	Test(String name, boolean testNextUp) {
 	    this.name = name;
+	    this.testNextUp = testNextUp;
 	}
 
 	void cycle() {
@@ -124,13 +181,14 @@ class Ulp
 	    for (int i = 0; i < 10; i++) {
 		double x = getX(i);
 		double y = getY(i);
-		long mathBits = Double.doubleToRawLongBits(Math.ulp(x));
+		double z = (testNextUp ? FpUtils.nextUp(x) : Math.ulp(x));
+		long mathBits = Double.doubleToRawLongBits(z);
 		long thisBits = Double.doubleToRawLongBits(y);
 		if (mathBits != thisBits)
 		    System.out.println("!!!!!!\t"
 			+ "x=" + x + "=" + Double.toHexString(x)
 			+ " y=" + y + "=" + Double.toHexString(y)
-			+ " ulp(x)=" + Double.toHexString(Math.ulp(x)));
+			+ (testNextUp ? " nextUp(x)=" : " ulp(x)=") + Double.toHexString(z));
 	    }
 	}
 
@@ -155,7 +213,8 @@ class Ulp
 	    setX(2, -1.0);
 	    setX(3, Double.NaN);
 	    setX(4, -Double.POSITIVE_INFINITY);
-	    setX(5, 0x1.fffffffffffffp1);
+	    setX(5, 0x1.ffffffffffffep-1021);
+	    //setX(5, 0x1.fffffffffffffp1);
 	    setX(6, -Double.MIN_VALUE);
 	    setX(7, Math.PI);
 	    setX(8, -MIN_NORMAL*2.1);
@@ -164,7 +223,7 @@ class Ulp
 
 	void fillZeros() {
 	    for (int j = 0; j < 10; j++)
-		setX(j, 0.0);
+		setX(j, j%2 == 0 ? 0.0 : -0.0);
 	}
 
 	void fillPI() {
@@ -201,7 +260,7 @@ class Ulp
 
     static class TestFpUtilsUlp extends Test {
 
-	TestFpUtilsUlp() { super("FpUtils.ulp"); }
+	TestFpUtilsUlp() { super("FpUtils.ulp", false); }
 
 	void calc() {
 	    y0 = FpUtils.ulp(x0);
@@ -219,7 +278,7 @@ class Ulp
 
     static class TestMathUlp extends Test {
 
-	TestMathUlp() { super("Math.ulp"); }
+	TestMathUlp() { super("Math.ulp", false); }
 
 	void calc() {
 	    y0 = Math.ulp(x0);
@@ -237,7 +296,7 @@ class Ulp
 
     static class TestPureUlp extends Test {
 
-	TestPureUlp() { super("pure Java ulp"); }
+	TestPureUlp() { super("pure Java ulp", false); }
 
 	void calc() {
 	    y0 = ulp(x0);
@@ -253,9 +312,27 @@ class Ulp
 	}
     }
 
+    static class TestPureUlpd extends Test {
+
+	TestPureUlpd() { super("pure Java ulpd", false); }
+
+	void calc() {
+	    y0 = ulpd(x0);
+	    y1 = ulpd(x1);
+	    y2 = ulpd(x2);
+	    y3 = ulpd(x3);
+	    y4 = ulpd(x4);
+	    y5 = ulpd(x5);
+	    y6 = ulpd(x6);
+	    y7 = ulpd(x7);
+	    y8 = ulpd(x8);
+	    y9 = ulpd(x9);
+	}
+    }
+
     static class TestPureUlp1 extends Test {
 
-	TestPureUlp1() { super("pure Java ulp1"); }
+	TestPureUlp1() { super("pure Java ulp1", false); }
 
 	void calc() {
 	    y0 = ulp1(x0);
@@ -271,13 +348,71 @@ class Ulp
 	}
     }
 
+    static class TestFpUtilsNextUp extends Test {
+
+	TestFpUtilsNextUp() { super("FpUtils.nextUp", true); }
+
+	void calc() {
+	    y0 = FpUtils.nextUp(x0);
+	    y1 = FpUtils.nextUp(x1);
+	    y2 = FpUtils.nextUp(x2);
+	    y3 = FpUtils.nextUp(x3);
+	    y4 = FpUtils.nextUp(x4);
+	    y5 = FpUtils.nextUp(x5);
+	    y6 = FpUtils.nextUp(x6);
+	    y7 = FpUtils.nextUp(x7);
+	    y8 = FpUtils.nextUp(x8);
+	    y9 = FpUtils.nextUp(x9);
+	}
+    }
+
+    static class TestNextUp extends Test {
+
+	TestNextUp() { super("nextUp", true); }
+
+	void calc() {
+	    y0 = nextUp(x0);
+	    y1 = nextUp(x1);
+	    y2 = nextUp(x2);
+	    y3 = nextUp(x3);
+	    y4 = nextUp(x4);
+	    y5 = nextUp(x5);
+	    y6 = nextUp(x6);
+	    y7 = nextUp(x7);
+	    y8 = nextUp(x8);
+	    y9 = nextUp(x9);
+	}
+    }
+
+    static class TestNextUp1 extends Test {
+
+	TestNextUp1() { super("nextUp1", true); }
+
+	void calc() {
+	    y0 = nextUp1(x0);
+	    y1 = nextUp1(x1);
+	    y2 = nextUp1(x2);
+	    y3 = nextUp1(x3);
+	    y4 = nextUp1(x4);
+	    y5 = nextUp1(x5);
+	    y6 = nextUp1(x6);
+	    y7 = nextUp1(x7);
+	    y8 = nextUp1(x8);
+	    y9 = nextUp1(x9);
+	}
+    }
+
     public static void main (String argv[])
     {
 	List<Test> tests = new ArrayList<Test>();
 	tests.add(new TestFpUtilsUlp());
 	tests.add(new TestMathUlp());
 	tests.add(new TestPureUlp());
+	tests.add(new TestPureUlpd());
 	tests.add(new TestPureUlp1());
+	tests.add(new TestFpUtilsNextUp());
+	tests.add(new TestNextUp());
+	tests.add(new TestNextUp1());
 
 	/* Warm */
 	System.out.println("Warm");
