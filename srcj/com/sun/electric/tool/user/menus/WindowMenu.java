@@ -104,7 +104,7 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.3); } });
         panLarge = panningDistanceSubMenu.addRadioButton("Large", true, windowPanGroup, null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.6); } });
-        panLarge.setSelected(true);
+        panMedium.setSelected(true);
 
         MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center");
         windowMenu.add(centerSubMenu);

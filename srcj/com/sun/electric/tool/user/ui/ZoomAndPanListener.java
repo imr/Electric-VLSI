@@ -187,7 +187,7 @@ public class ZoomAndPanListener
 
     // --------------------------- Pan Commands -------------------------------
 
-	private static double panningAmount = 0.6;
+	private static double panningAmount = 0.3;
 
     /**
      * Pan in X direction.
