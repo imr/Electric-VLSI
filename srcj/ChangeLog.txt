@@ -2,7 +2,9 @@
 
 ************************* Version 8.01e: *********************************
 
-FIX: (8/9/04) DRC: Missing transformation in hierarchical DRC so neighbor cells were not checked.
+IMP: (8/11/04, JKG) Highlighter now selects from a stack of objects based on last object selected. 
+
+FIX: (8/9/04, GVG): DRC: Missing transformation in hierarchical DRC so neighbor cells were not checked.
 
 IMP: (8/9/04, GVG): GDS values in TSMC90 tech.
 
