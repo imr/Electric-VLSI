@@ -2,6 +2,8 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/17/04, JKG) Various dialog improvements.
+
 IMP: (5/14/04, JKG) Tool Tips added. HTML based tips can be browsed by user.
 
 IMP: (5/14/04, JKG) Commented out code to access other Interface modes except
