@@ -980,6 +980,7 @@ public class WindowFrame
                     change.getType() == Undo.Type.LIBRARYNEW ||
                     change.getType() == Undo.Type.CELLKILL ||
                     change.getType() == Undo.Type.CELLNEW ||
+                    change.getType() == Undo.Type.CELLGROUPMOD ||
                     (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell)) {
                     changed = true; break;
                 }
