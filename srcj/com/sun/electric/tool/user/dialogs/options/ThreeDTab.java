@@ -74,8 +74,6 @@ public class ThreeDTab extends PreferencePanel
 
 	public String getName() { return "3D"; }
 
-	private boolean initial3DPerspective;
-    private boolean initial3DAntialiasing; // to turn on antialising if available. No by default because of performance.
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
@@ -125,13 +123,10 @@ public class ThreeDTab extends PreferencePanel
 
 		threeDClickedLayer();
 
-		initial3DPerspective = User.is3DPerspective();
-		threeDPerspective.setSelected(initial3DPerspective);
-        initial3DAntialiasing = User.is3DAntialiasing();
-        threeDAntialiasing.setSelected(initial3DAntialiasing);
-
-		// not yet
-		//threeDPerspective.setEnabled(false);
+		threeDPerspective.setSelected(User.is3DPerspective());
+        // to turn on antialising if available. No by default because of performance.
+        threeDAntialiasing.setSelected(User.is3DAntialiasing());
+        scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
 	}
 
 	private class ThreeDSideView extends JPanel
@@ -333,11 +328,11 @@ public class ThreeDTab extends PreferencePanel
 		}
 
 		boolean currentPerspective = threeDPerspective.isSelected();
-		if (currentPerspective != initial3DPerspective)
+		if (currentPerspective != User.is3DPerspective())
 			User.set3DPerspective(currentPerspective);
 
         boolean currentAntialiasing = threeDAntialiasing.isSelected();
-		if (currentAntialiasing != initial3DAntialiasing)
+		if (currentAntialiasing != User.is3DAntialiasing())
 		{
 			// Using reflection to call 3D function
 			if (view3DClass != null)
@@ -353,6 +348,23 @@ public class ThreeDTab extends PreferencePanel
 			}
 			User.set3DAntialiasing(currentAntialiasing);
 		}
+        double currentScaleFactor = TextUtils.atof(scaleField.getText());
+        if (currentScaleFactor != User.get3DFactor())
+        {
+			// Using reflection to call 3D function
+			if (view3DClass != null)
+
+			try
+			{
+				if (set3DClass == null)
+					set3DClass = view3DClass.getDeclaredMethod("setScaleFactor", new Class[] {Double.class});
+				Double value = new Double(currentScaleFactor);
+				set3DClass.invoke(view3DClass, new Object[]{value});
+			} catch (Exception e) {
+				System.out.println("Cannot call 3D setScaleFactor plugin method: " + e.getMessage());
+			}
+            User.set3DFactor(currentScaleFactor);
+        }
 	}
 
 	/** This method is called from within the constructor to
@@ -372,6 +384,8 @@ public class ThreeDTab extends PreferencePanel
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
         threeDAntialiasing = new javax.swing.JCheckBox();
+        scaleLabel = new javax.swing.JLabel();
+        scaleField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -439,7 +453,7 @@ public class ThreeDTab extends PreferencePanel
         threeDPerspective.setText("Use Perspective");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDPerspective, gridBagConstraints);
@@ -447,10 +461,26 @@ public class ThreeDTab extends PreferencePanel
         threeDAntialiasing.setText("Use Antialiasing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAntialiasing, gridBagConstraints);
+
+        scaleLabel.setText("Scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        threeD.add(scaleLabel, gridBagConstraints);
+
+        scaleField.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        threeD.add(scaleField, gridBagConstraints);
 
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
@@ -467,6 +497,8 @@ public class ThreeDTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
+    private javax.swing.JTextField scaleField;
+    private javax.swing.JLabel scaleLabel;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JTextField threeDHeight;

@@ -90,6 +90,7 @@ public class View3DWindow extends JPanel
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
 	/** the cell that is in the window */					private Cell cell;
+    /** scale factor in Z axis */                           private double scale = User.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
@@ -574,8 +575,8 @@ public class View3DWindow extends JPanel
 
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
-			double thickness = layer.getThickness();
-			double distance = layer.getDistance();
+			double thickness = layer.getThickness() * scale;
+			double distance = layer.getDistance() * scale;
 
 			if (thickness == 0) continue; // Skip zero-thickness layers
 
@@ -729,6 +730,27 @@ public class View3DWindow extends JPanel
 			}
 		}
 	}
+
+    /**
+     *
+     */
+    /**
+     * Method to change Z values in elements
+     * @param value
+     */
+    public static void setScaleFactor(Double value)
+    {
+       	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof View3DWindow)) continue;
+			View3DWindow wnd = (View3DWindow)content;
+			View view = wnd.u.getViewer().getView();
+            System.out.println("implement setScaleFactor");
+			//view.setScaleFactor(value.doubleValue());
+		}
+    }
 
 	/**
 	 * Method to turn on/off antialiasing

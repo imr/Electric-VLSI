@@ -1184,6 +1184,7 @@ public class User extends Listener
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
 
+    /**************************** 3D Display Preferences **************************************/
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("Perspective3D", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw 3D views with perspective.
@@ -1209,6 +1210,20 @@ public class User extends Listener
 	 * @param on true to draw 3D views with perspective.
 	 */
 	public static void set3DAntialiasing(boolean on) { cache3DAntialiasing.setBoolean(on); }
+    
+    private static Pref cache3DFactor = Pref.makeDoublePref("Scale3D", User.tool.prefs, 1.0);
+	/**
+	 * Method to get current scale factor for Z values.
+	 * The default is 1.0
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static double get3DFactor() { return cache3DFactor.getDouble(); }
+	/**
+	 * Method to set 3D scale factor
+	 * @param value 3D scale factor to set.
+	 */
+	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
+    /**************************** End of 3D Display Preferences **************************************/
 
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);
 	/**
