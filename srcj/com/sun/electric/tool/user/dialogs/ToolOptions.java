@@ -1126,16 +1126,24 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** VERILOG ********************************
 
+	private boolean initialVerilogUseAssign;
+	private boolean initialVerilogUseTrireg;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Verilog tab.
 	 */
 	private void initVerilog()
 	{
+		initialVerilogUseAssign = Simulation.getVerilogUseAssign();
+		verUseAssign.setSelected(initialVerilogUseAssign);
+
+		initialVerilogUseTrireg = Simulation.getVerilogUseTrireg();
+		verDefWireTrireg.setSelected(initialVerilogUseTrireg);
+
+		// not yet
 		verLibrary.setEnabled(false);
 		verCells.setEnabled(false);
-		verUseAssign.setEnabled(false);
-		verDefWireTrireg.setEnabled(false);
 		verDeriveModel.setEnabled(false);
 		verUseModelFile.setEnabled(false);
 		verBrowse.setEnabled(false);
@@ -1148,6 +1156,13 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termVerilog()
 	{
+		boolean currentUseAssign = verUseAssign.isSelected();
+		if (currentUseAssign != initialVerilogUseAssign)
+			Simulation.setVerilogUseAssign(currentUseAssign);
+
+		boolean currentUseTrireg = verDefWireTrireg.isSelected();
+		if (currentUseTrireg != initialVerilogUseTrireg)
+			Simulation.setVerilogUseTrireg(currentUseTrireg);
 	}
 
 	//******************************** FAST HENRY ********************************

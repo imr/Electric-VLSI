@@ -218,6 +218,16 @@ class ClickAndDragListener
 		{
 			moveSelected(evt, 0, -1);
 		}
+
+		// "A" for abort
+		if (chr == KeyEvent.VK_A && doingMotionDrag)
+		{
+			// restore the listener to the former state
+			doingMotionDrag = false;
+			Highlight.setHighlightOffset(0, 0);
+			wnd.repaint();
+			System.out.println("Aborted");
+		}
 	}
 
 	public void keyReleased(KeyEvent evt) {}

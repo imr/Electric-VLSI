@@ -55,9 +55,19 @@ public class Simulation extends Tool
 //		setOn();
 	}
 
+	/****************************** VERILOG OPTIONS ******************************/
+
+	private static Tool.Pref cacheVerilogUseAssign = Simulation.tool.makeBooleanPref("VerilogUseAssign", false);
+	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
+	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
+
+	private static Tool.Pref cacheVerilogUseTrireg = Simulation.tool.makeBooleanPref("VerilogUseTrireg", false);
+	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
+	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
+
 	/****************************** SPICE OPTIONS ******************************/
 
-	private static Tool.Pref cacheSpiceEngine =Simulation.tool.makeStringPref("SpiceEngine", "Spice 3");
+	private static Tool.Pref cacheSpiceEngine = Simulation.tool.makeStringPref("SpiceEngine", "Spice 3");
 	public static String getSpiceEngine() { return cacheSpiceEngine.getString(); }
 	public static void setSpiceEngine(String engine) { cacheSpiceEngine.setString(engine); }
 

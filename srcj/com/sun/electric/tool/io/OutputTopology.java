@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputGeometry.java
+ * File: OutputTopology.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,20 +23,20 @@
  */
 package com.sun.electric.tool.io;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.io.Output;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -45,9 +45,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Base class for writing geometry to a file
+ * This is the Simulation Interface tool.
  */
-public abstract class OutputGeometry extends Output
+public abstract class OutputTopology extends Output
 {
     /** number of unique cells processed */             protected int numVisited;
     /** number of unique cells to process */            protected int numCells;
@@ -55,8 +55,8 @@ public abstract class OutputGeometry extends Output
 
     /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
 
-    /** Creates a new instance of OutputGeometry */
-    OutputGeometry() 
+    /** Creates a new instance of OutputTopology */
+    OutputTopology() 
     {
     }
 
@@ -66,7 +66,7 @@ public abstract class OutputGeometry extends Output
      */
     public boolean writeCell(Cell cell) 
     {
-		writeCell(cell, new Visitor(this, getMaxHierDepth(cell)));
+//		writeCell(cell, new Visitor(this, getMaxHierDepth(cell)));
 		return false;
 	}
 
@@ -104,8 +104,7 @@ public abstract class OutputGeometry extends Output
     {
         return false;
     }
-    
-    
+
     /**
      * Class to store polygon geometry of a cell
      */
@@ -143,13 +142,13 @@ public abstract class OutputGeometry extends Output
 
     public class Visitor extends HierarchyEnumerator.Visitor
     {
-        /** OutputGeometry object this Visitor is enumerating for */	private OutputGeometry outGeom;
+        /** OutputTopology object this Visitor is enumerating for */	private OutputTopology outGeom;
         /** Current cellGeom */                                         protected CellGeom cellGeom = null;
-        /** OutputGeometry stack when descending hierarchy */			private CellGeom [] outGeomStack;
+        /** OutputTopology stack when descending hierarchy */			private CellGeom [] outGeomStack;
         /** hierarchy max depth */                                      private int maxHierDepth;
         /** current hierarchy depth */                                  private int curHierDepth;
 
-        public Visitor(OutputGeometry outGeom, int maxHierDepth)
+        public Visitor(OutputTopology outGeom, int maxHierDepth)
         {
             this.outGeom = outGeom;
             this.maxHierDepth = maxHierDepth;

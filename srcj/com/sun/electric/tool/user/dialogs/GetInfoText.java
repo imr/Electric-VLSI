@@ -601,10 +601,14 @@ public class GetInfoText extends javax.swing.JDialog
 					}
 				} else
 				{
-					if (ni.getXSize() != 0 || ni.getYSize() != 0)
+					// make invisible pin zero size if no longer boxed
+					if (ni.getProto() == Generic.tech.invisiblePinNode)
 					{
-						// no longer boxed: make it zero size
-						ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
+						if (ni.getXSize() != 0 || ni.getYSize() != 0)
+						{
+							// no longer boxed: make it zero size
+							ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
+						}
 					}
 				}
 			}
@@ -1339,7 +1343,6 @@ public class GetInfoText extends javax.swing.JDialog
         textBoxedWid.setColumns(4);
         textBoxedWid.setText(" ");
         textBoxedWid.setMinimumSize(new java.awt.Dimension(35, 20));
-        textBoxedWid.setPreferredSize(new java.awt.Dimension(48, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 14;
@@ -1350,7 +1353,6 @@ public class GetInfoText extends javax.swing.JDialog
         textBoxedHei.setColumns(4);
         textBoxedHei.setText(" ");
         textBoxedHei.setMinimumSize(new java.awt.Dimension(35, 20));
-        textBoxedHei.setPreferredSize(new java.awt.Dimension(48, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 14;

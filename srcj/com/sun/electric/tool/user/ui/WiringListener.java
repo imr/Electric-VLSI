@@ -245,6 +245,18 @@ public class WiringListener
 		{
 			CircuitChanges.deleteSelected();
 		}
+
+		// "A" for abort
+		if (chr == KeyEvent.VK_A)
+		{
+			// restore the listener to the former state
+			doingWiringDrag = false;
+			Highlight.clear();
+			Highlight h = Highlight.addElectricObject(startObj, startGeom.getParent());
+			Highlight.finished();
+			wnd.repaint();
+			System.out.println("Aborted");
+		}
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt) {}

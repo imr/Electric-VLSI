@@ -1802,9 +1802,16 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						if (samples[samp++] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
-							row[trueX>>3] |= (1 << (trueX&7));
+						int sampleValue = samples[samp++] & 0xFF;
+						if (sampleValue == 0) continue;
+						if (layerBitMap == null)
+						{
+							sampleValue = 255 - sampleValue;
+							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+						} else
+						{
+							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+						}
 					}
 				}
 				break;
@@ -1825,9 +1832,16 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						if (samples[x * rasWidth + (rasWidth-y-1)] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
-							row[trueX>>3] |= (1 << (trueX&7));
+						int sampleValue = samples[x * rasWidth + (rasWidth-y-1)];
+						if (sampleValue == 0) continue;
+						if (layerBitMap == null)
+						{
+							sampleValue = 255 - sampleValue;
+							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+						} else
+						{
+							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+						}
 					}
 				}
 				break;
@@ -1851,9 +1865,16 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						if (samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
-							row[trueX>>3] |= (1 << (trueX&7));
+						int sampleValue = samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)];
+						if (sampleValue == 0) continue;
+						if (layerBitMap == null)
+						{
+							sampleValue = 255 - sampleValue;
+							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+						} else
+						{
+							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+						}
 					}
 				}
 				break;
@@ -1874,9 +1895,16 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						if (samples[(rasHeight-x-1) * rasWidth + y] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
-							row[trueX>>3] |= (1 << (trueX&7));
+						int sampleValue = samples[(rasHeight-x-1) * rasWidth + y];
+						if (sampleValue == 0) continue;
+						if (layerBitMap == null)
+						{
+							sampleValue = 255 - sampleValue;
+							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+						} else
+						{
+							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+						}
 					}
 				}
 				break;
@@ -1993,7 +2021,7 @@ public class PixelDrawing
 		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
 
 		// allocate space for the rendered text
-		Rectangle rect = gv.getPixelBounds(frc, 0, 0);
+		Rectangle rect = gv.getPixelBounds(frc, 0, (float)(lm.getAscent()-lm.getLeading()));
 		int height = (int)(lm.getHeight()+0.5);
 		if (rect.width <= 0 || height <= 0) return null;
 
@@ -2021,7 +2049,7 @@ public class PixelDrawing
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
-		g2.setColor(new Color(128,128,128));
+		g2.setColor(new Color(255,255,255));
 		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
 		if (underline)
 		{

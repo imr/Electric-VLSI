@@ -1591,9 +1591,6 @@ public class CircuitChanges
 			{
 //				ni.setExpanded();
 
-				// now inherit parameters that now do exist
-				inheritAttributes(ni);
-
 				Highlight.clear();
 				Highlight.addElectricObject(ni, curCell);
 				Highlight.finished();
@@ -2902,7 +2899,7 @@ public class CircuitChanges
 			}
 
 			// now inherit parameters that now do exist
-			inheritAttributes(newNi);
+			inheritAttributes(newNi, true);
 
 			// remove node name if it is not visible
 			//Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
@@ -2917,7 +2914,7 @@ public class CircuitChanges
 	/**
 	 * Method to inherit all prototype attributes down to instance "ni".
 	 */
-	public static void inheritAttributes(NodeInst ni)
+	public static void inheritAttributes(NodeInst ni, boolean cleanUp)
 	{
 		// ignore primitives
 		NodeProto np = ni.getProto();
@@ -2966,28 +2963,31 @@ public class CircuitChanges
 		}
 
 		// now delete parameters that are not in the prototype
-		if (cNp == null) cNp = cell;
-		boolean found = true;
-		while (found)
+		if (cleanUp)
 		{
-			found = false;
-			for(Iterator it = ni.getVariables(); it.hasNext(); )
+			if (cNp == null) cNp = cell;
+			boolean found = true;
+			while (found)
 			{
-				Variable var = (Variable)it.next();
-				if (!var.getTextDescriptor().isParam()) continue;
-				Variable oVar = null;
-				for(Iterator oIt = cNp.getVariables(); oIt.hasNext(); )
+				found = false;
+				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
-					oVar = (Variable)oIt.next();
-					if (!oVar.getTextDescriptor().isParam()) continue;
-					if (oVar.getKey() == var.getKey()) break;
-					oVar = null;
-				}
-				if (oVar != null)
-				{
-					ni.delVar(var.getKey());
-					found = true;
-					break;
+					Variable var = (Variable)it.next();
+					if (!var.getTextDescriptor().isParam()) continue;
+					Variable oVar = null;
+					for(Iterator oIt = cNp.getVariables(); oIt.hasNext(); )
+					{
+						oVar = (Variable)oIt.next();
+						if (!oVar.getTextDescriptor().isParam()) continue;
+						if (oVar.getKey() == var.getKey()) break;
+						oVar = null;
+					}
+					if (oVar != null)
+					{
+						ni.delVar(var.getKey());
+						found = true;
+						break;
+					}
 				}
 			}
 		}
@@ -3130,19 +3130,25 @@ public class CircuitChanges
 		newVar = ni.newVar(var.getKey(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
+			newVar.setDescriptor(var.getTextDescriptor());
+			TextDescriptor newDescript = newVar.getTextDescriptor();
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
-			if (var.getTextDescriptor().isInterior()) newVar.clearDisplay();
-			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor(null);
+			if (newDescript.isInterior())
+				newVar.clearDisplay();
+			if (var.isDontSave()) newVar.setDontSave(); else newVar.clearDontSave();
+			newVar.clearCode();
+			if (var.isJava()) newVar.setJava();
+			if (var.isLisp()) newVar.setLisp();
+			if (var.isTCL()) newVar.setTCL();
 			newDescript.clearInherit();
 			newDescript.setOff(xc, yc);
-			if (var.getTextDescriptor().isParam())
+			if (newDescript.isParam())
 			{
 				newDescript.clearInterior();
 				TextDescriptor.DispPos i = newDescript.getDispPart();
 				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
 					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 			}
-			newVar.setDescriptor(newDescript);
 		}
 	}
 

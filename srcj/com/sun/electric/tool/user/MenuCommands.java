@@ -580,10 +580,15 @@ public final class MenuCommands
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
 
-		Menu simulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
-		toolMenu.add(simulationSubMenu);
-		simulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
+		Menu spiceSimulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
+		toolMenu.add(spiceSimulationSubMenu);
+		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
+
+		Menu verilogSimulationSubMenu = Menu.createMenu("Simulation (Verilog)", 'V');
+		toolMenu.add(verilogSimulationSubMenu);
+		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.VERILOG, OpenFile.VERILOG); } });
 
 		Menu netlisters = Menu.createMenu("Simulation (others)");
 		netlisters.addMenuItem("Write IRSIM Netlist", null,
@@ -901,6 +906,7 @@ public final class MenuCommands
 
 		exportCellCommand(cell, filePath, type);
 	}
+
 	/**
 	 * This is the non-interactive version of exportCellCommand
 	 */

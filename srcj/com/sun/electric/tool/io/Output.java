@@ -42,6 +42,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.OutputVerilog;
 import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -61,6 +62,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
+import javax.print.PrintServiceLookup;
 
 /**
  * This class manages writing files in different formats.
@@ -95,6 +97,10 @@ public class Output extends IOTool
 		/** Describes CIF output. */			public static final ExportType CIF       = new ExportType("CIF");
 		/** Describes GDS output. */			public static final ExportType GDS       = new ExportType("GDS");
 		/** Describes PostScript output. */		public static final ExportType POSTSCRIPT= new ExportType("PostScript");
+		/** Describes SPICE output .*/			public static final ExportType SPICE     = new ExportType("Spice");
+		/** Describes VERILOG output. */		public static final ExportType VERILOG   = new ExportType("Verilog");
+		/** Describes MAXWELL output. */		public static final ExportType MAXWELL   = new ExportType("Maxwell");
+		/** Describes IRSIM output. */			public static final ExportType IRSIM     = new ExportType("IRSIM");
 	}
 
 	// ------------------------- private data ----------------------------
@@ -126,7 +132,11 @@ public class Output extends IOTool
     protected boolean writeCell(Cell cell) { return true; }
     
 	/**
-	 * Method to write a Library with a particular format
+	 * Method to write an entire Library with a particular format.
+	 * This is used for output formats that capture the entire library
+	 * (only the Binary and Text/Readable Dump formats).
+	 * The alternative to writing the entire library is writing a single
+	 * cell and the hierarchy below it (use "writeCell").
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
      * @return true on error.
@@ -216,8 +226,13 @@ public class Output extends IOTool
     
     /**
      * Method to write a Cell to a file with a particular format.
-     * @param cell the Cell to be written
-     * @param type the format of the output file
+	 * In addition to the specified Cell, these formats typically
+	 * also include the hierarchy below it.
+	 * The alternative is to write the entire library, regardless of
+	 * hierarchical structure (use "WriteLibrary").
+     * @param cell the Cell to be written.
+     * @param filePath the path to the disk file to be written.
+     * @param type the format of the output file.
      * @return true on error.
      */
     public static boolean writeCell(Cell cell, String filePath, ExportType type)
@@ -229,6 +244,9 @@ public class Output extends IOTool
 		} else if (type == ExportType.GDS)
 		{
 			error = OutputGDS.writeGDSFile(cell, filePath);
+		} else if (type == ExportType.VERILOG)
+		{
+			error = OutputVerilog.writeVerilogFile(cell, filePath);
 		} else if (type == ExportType.POSTSCRIPT)
 		{
 			error = OutputPostScript.writePostScriptFile(cell, filePath);
@@ -356,7 +374,6 @@ public class Output extends IOTool
 		fontFound[fontIndex-1] = true;
 	}
 
-    
     /**
      * Opens the dataOutputStream for writing of binary files.
      * @return true on error.
@@ -548,7 +565,8 @@ public class Output extends IOTool
 	 */
 	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
 
-	private static Tool.Pref cachePrinterName = IOTool.tool.makeStringPref("PrinterName", "");
+	private static Tool.Pref cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
+		PrintServiceLookup.lookupDefaultPrintService().getName());
 	/**
 	 * Method to tell the default printer name to use.
 	 * The default is "".

@@ -52,6 +52,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
@@ -180,6 +181,9 @@ public class NodeInst extends Geometric implements Nodable
 				// for primitives, set a default outline if appropriate
 				protoType.getTechnology().setDefaultOutline(ni);
 			}
+
+			// create inheritable variables
+			CircuitChanges.inheritAttributes(ni, false);
 		}
 		return ni;
 	}
