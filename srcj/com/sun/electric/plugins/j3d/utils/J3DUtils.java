@@ -324,6 +324,7 @@ public final class J3DUtils
         }
     }
 
+
     public static void setViewPoint(SimpleUniverse u, Canvas3D canvas, BranchGroup scene, Rectangle2D cellBnd)
     {
 		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
@@ -337,6 +338,10 @@ public final class J3DUtils
 		// Setting the projection policy
 		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
 		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+
+         // Setting transparency sorting
+        //view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
+        //view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
 
 		Point3d c1 = new Point3d();
 		sceneBnd.getCenter(c1);

@@ -200,23 +200,17 @@ public class View3DWindow extends JPanel
         J3DAppearance.setHighlightedAppearanceValues(this);
         J3DAppearance.setAxisAppearanceValues(this);
 
-
 		// Create a simple scene and attach it to the virtual universe
 		scene = createSceneGraph(cell, infiniteBounds);
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
 
-		ViewingPlatform viewP = new ViewingPlatform(4);
-		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
+		ViewingPlatform viewingPlatform = new ViewingPlatform(4);
+		viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
 		Viewer viewer = new Viewer(canvas);
-		u = new SimpleUniverse(viewP, viewer);
+		u = new SimpleUniverse(viewingPlatform, viewer);
 		u.addBranchGraph(scene);
-
-        // This will move the ViewPlatform back a bit so the
-        // objects in the scene can be viewed.
-
-		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 
         JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
         translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
@@ -277,6 +271,10 @@ public class View3DWindow extends JPanel
 		// Setting the projection policy
 		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
 		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+
+        // Setting transparency sorting
+        view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
+        view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
 
 		Point3d c1 = new Point3d();
 		sceneBnd.getCenter(c1);

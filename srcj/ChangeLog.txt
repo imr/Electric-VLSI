@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/21/05, GVG) Improvements in transparency/Z buffer handling after discussion with Java3D team.
+
 BUG: (03/31/05, GVG) Cell expansion with several sublevels was not working.
 FIX: Using rotateOutAboutTrueCenter instead of rotateOut
 

@@ -253,7 +253,8 @@ public class JThreeDTab extends ThreeDTab
             ta.setTransparency((float)TextUtils.atof(transparancyField.getText()));
             J3DTransparencyOption op = (J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
-            threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
+            app.getRenderingAttributes().setDepthBufferEnable(op.mode != TransparencyAttributes.NONE);
+            //threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
         }
         else
         {
@@ -269,9 +270,9 @@ public class JThreeDTab extends ThreeDTab
                     break;  // found
                 }
             }
+        threeDSideView.showLayer(layer);
         }
         if (!set) initial3DTextChanging = false;
-        threeDSideView.showLayer(layer);
     }
 
 	/**
@@ -289,6 +290,7 @@ public class JThreeDTab extends ThreeDTab
             J3DAppearance newApp = (J3DAppearance)transparencyMap.get(layer);
             J3DAppearance oldApp = (J3DAppearance)layer.getGraphics().get3DAppearance();
             oldApp.setTransparencyAttributes(newApp.getTransparencyAttributes());
+            oldApp.getRenderingAttributes().setDepthBufferEnable(newApp.getRenderingAttributes().getDepthBufferEnable());
 			if (thickness.doubleValue() != layer.getThickness())
 				layer.setThickness(thickness.doubleValue());
 			if (height.doubleValue() != layer.getDistance())

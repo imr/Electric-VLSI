@@ -29,7 +29,7 @@ public class J3DAppearance extends Appearance
     private static final HashMap graphics3DTransModePrefs = new HashMap(); // NONE is the default
     private static final HashMap graphics3DTransFactorPrefs = new HashMap(); // 0 is the default
     private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
-    private static final float JAPP_DEFAULT_FACTOR = 0.05f;
+    private static final float JAPP_DEFAULT_FACTOR = 0.2f;
 
     private EGraphics graphics; // reference to layer for fast access to appearance
 
@@ -86,8 +86,12 @@ public class J3DAppearance extends Appearance
             RenderingAttributes ra = new RenderingAttributes();
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+            ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
+            ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_WRITE);
             ra.setVisible(graphics.getLayer().isVisible());
             setRenderingAttributes(ra);
+            if (mode != TransparencyAttributes.NONE)
+                ra.setDepthBufferEnable(true);
         }
 
         // Set up the polygon attributes
