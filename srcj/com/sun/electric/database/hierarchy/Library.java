@@ -240,6 +240,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.add(c);
+		rebuildExplorerTree();
 	}
 
 	void removeCell(Cell c)
@@ -251,6 +252,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.remove(c);
+		rebuildExplorerTree();
 	}
 
 	// ----------------- public interface --------------------
@@ -394,6 +396,12 @@ public class Library extends ElectricObject
 	 */
 	public static DefaultMutableTreeNode getExplorerTree()
 	{
+		rebuildExplorerTree();
+		return explorerTree;
+	}
+
+	public static void rebuildExplorerTree()
+	{
 		if (explorerTree == null)
 			explorerTree = new DefaultMutableTreeNode("LIBRARIES");
 		explorerTree.removeAllChildren();
@@ -413,7 +421,6 @@ public class Library extends ElectricObject
 			}
 			explorerTree.add(libTree);
 		}
-		return explorerTree;
 	}
 
 	/**

@@ -1,9 +1,26 @@
-/*
- * Options.java
+/* -*- tab-width: 4 -*-
  *
- * Created on December 1, 2003, 11:49 AM
+ * Electric(tm) VLSI Design System
+ *
+ * File: Options.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Library;
@@ -32,8 +49,7 @@ import javax.swing.text.BadLocationException;
 
 
 /**
- *
- * @author  strubin
+ * Class to handle the "Options" dialog.
  */
 public class Options extends javax.swing.JDialog
 {
@@ -106,6 +122,7 @@ public class Options extends javax.swing.JDialog
 	public Options(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
+		setLocation(100, 50);
 		initComponents();
 
 		// get current information
@@ -540,8 +557,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 5, 0);
         spice1.add(spiceRunPopup, gridBagConstraints);
 
         spiceEnginePopup.addActionListener(new java.awt.event.ActionListener()
@@ -693,9 +710,9 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 5, 0);
         spice2.add(jLabel16, gridBagConstraints);
 
         jLabel17.setText("With");
@@ -725,8 +742,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         spice3.add(SpicePrimitivesetPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -740,7 +757,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 0, 5, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         spice.add(jSeparator1, gridBagConstraints);
 
         spice4.setLayout(new java.awt.GridBagLayout());
@@ -753,9 +770,9 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         spice4.add(spiceLayer, gridBagConstraints);
 
         jLabel7.setText("Layer:");
@@ -792,8 +809,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 5, 0);
         spice4.add(spiceTechnology, gridBagConstraints);
 
         spiceResistance.setColumns(8);
@@ -902,7 +919,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 0, 5, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         spice.add(jSeparator2, gridBagConstraints);
 
         spice5.setLayout(new java.awt.GridBagLayout());
@@ -988,8 +1005,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         spice5.add(jButton1, gridBagConstraints);
 
         jTextField10.setColumns(5);
@@ -1015,8 +1032,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         spice5.add(jButton2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1037,7 +1054,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 0, 5, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         spice.add(jSeparator3, gridBagConstraints);
 
         spice6.setLayout(new java.awt.GridBagLayout());
@@ -1082,7 +1099,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice6.add(jButton3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

@@ -34,6 +34,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -1096,344 +1097,218 @@ public class Cell extends NodeProto
 		return polys;
 	}
 
-	/*
-	 * routine to copy nodeproto "fromnt" to the library "tolib" with the nodeproto
-	 * name "toname".  If "useexisting" is TRUE, then a cross-library copy that finds
-	 * instances in the destination library which are the same as in the source library
-	 * will use those existing instances instead of making them into cross-library references.
-	 * Returns address of new nodeproto copy if sucessful, NONODEPROTO if not.
+	/**
+	 * Routine to copy a Cell to any Library.
+	 * @param fromCell the Cell to copy.
+	 * @param toLib the Library to copy it to.
+	 * If the destination library is the same as the original Cell's library, a new version is made.
+	 * @param toName the name of the Cell in the destination Library.
+	 * @param useExisting true to use existing Cell instances if they exist in the destination Library.
+	 * @return the new Cell in the destination Library.
 	 */
-	public static Cell copynodeproto(Cell fromnp, Library tolib, String toname, boolean useexisting)
+	public static Cell copynodeproto(Cell fromCell, Library toLib, String toName, boolean useExisting)
 	{
 		// check for validity
-		if (fromnp == null) return null;
-		if (tolib == null) return null;
+		if (fromCell == null) return null;
+		if (toLib == null) return null;
 
 		// make sure name of new cell is valid
-		for(int i=0; i<toname.length(); i++)
+		for(int i=0; i<toName.length(); i++)
 		{
-			char ch = toname.charAt(i);
-			if (ch <= ' ' || ch == ':' || ch >= 0177)
-				return null;
+			char ch = toName.charAt(i);
+			if (ch <= ' ' || ch == ':' || ch >= 0177) return null;
 		}
 
 		// determine whether this copy is to a different library
-		Library destlib = tolib;
-		if (tolib == fromnp.getLibrary()) destlib = null;
+		Library destLib = toLib;
+		if (toLib == fromCell.getLibrary()) destLib = null;
 
 		// mark the proper prototype to use for each node
-//		for(ni = fromnp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			ni->temp1 = (INTBIG)ni->proto;
+		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.setTempObj(ni.getProto());
+		}
 
-//		// if doing a cross-library copy and can use existing ones from new library, do it
-//		if (destlib != NOLIBRARY)
-//		{
-//			// scan all subcells to see if they are found in the new library
-//			for(ni = fromnp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if (ni->proto->primindex != 0) continue;
-//
-//				// keep cross-library references
-//				if (ni->proto->lib != fromnp->lib) continue;
-//
-//				maysubstitute = useexisting;
-//				if (!maysubstitute)
-//				{
-//					// force substitution for documentation icons
-//					if (ni->proto->cellview == el_iconview)
-//					{
-//						if (isiconof(ni->proto, fromnp)) maysubstitute = TRUE;
-//					}
-//				}
-//				if (!maysubstitute) continue;
-//
-//				// search for cell with same name and view in new library
-//				for(lnt = tolib->firstnodeproto; lnt != NONODEPROTO; lnt = lnt->nextnodeproto)
-//					if (namesame(lnt->protoname, ni->proto->protoname) == 0 &&
-//						lnt->cellview == ni->proto->cellview) break;
-//				if (lnt == NONODEPROTO) continue;
-//
-//				// make sure all used ports can be found on the uncopied cell
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//				{
-//					pp = pi->proto;
-//					ppt = getportproto(lnt, pp->protoname);
-//					if (ppt != NOPORTPROTO)
-//					{
-//						// the connections must match, too
-//						if (pp->connects != ppt->connects) ppt = NOPORTPROTO;
-//					}
-//					if (ppt == NOPORTPROTO)
-//					{
-//						ttyputerr(_("Cannot use subcell %s in library %s: exports don't match"),
-//							nldescribenodeproto(lnt), destlib->libname);
-//						break;
-//					}
-//				}
-//				if (pi != NOPORTARCINST) continue;
-//				for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//				{
-//					pp = pe->proto;
-//					ppt = getportproto(lnt, pp->protoname);
-//					if (ppt != NOPORTPROTO)
-//					{
-//						// the connections must match, too
-//						if (pp->connects != ppt->connects) ppt = NOPORTPROTO;
-//					}
-//					if (ppt == NOPORTPROTO)
-//					{
-//						ttyputerr(_("Cannot use subcell %s in library %s: exports don't match"),
-//							nldescribenodeproto(lnt), destlib->libname);
-//						break;
-//					}
-//				}
-//
-//				// match found: use the prototype from the destination library
-//				ni->temp1 = (INTBIG)lnt;
-//			}
-//		}
-//
-//		// create the nodeproto
-//		if (toname[estrlen(toname)-1] == '}' || fromnp->cellview->sviewname[0] == 0)
-//			cellname = toname; else
-//		{
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, toname);
-//			addtoinfstr(infstr, '{');
-//			addstringtoinfstr(infstr, fromnp->cellview->sviewname);
-//			addtoinfstr(infstr, '}');
-//			cellname = returninfstr(infstr);
-//		}
-//		np = newnodeproto(cellname, tolib);
-//		if (np == NONODEPROTO) return(NONODEPROTO);
-//		np->userbits = fromnp->userbits;
-//
-//		// zero the count of variables that failed to copy
-//		failures = 0;
-//
-//		// copy nodes
-//		for(ni = fromnp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			// create the new nodeinst
-//			lnt = (NODEPROTO *)ni->temp1;
-//			toni = db_newnodeinst(lnt, ni->lowx, ni->highx, ni->lowy, ni->highy,
-//				ni->transpose, ni->rotation, np);
-//			if (toni == NONODEINST) return(NONODEPROTO);
-//
-//			// save the new nodeinst address in the old nodeinst
-//			ni->temp1 = (UINTBIG)toni;
-//
-//			// copy miscellaneous information
-//			TDCOPY(toni->textdescript, ni->textdescript);
-//			toni->userbits = ni->userbits;
-//		}
-//
-//		// now copy the variables on the nodes
-//		for(ni = fromnp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			toni = (NODEINST *)ni->temp1;
-//			res = db_copyxlibvars((INTBIG)ni, VNODEINST, (INTBIG)toni, VNODEINST, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//
-//			// variables may affect geometry size
-//			boundobj(toni->geom, &lx, &hx, &ly, &hy);
-//			if (lx != toni->geom->lowx || hx != toni->geom->highx ||
-//				ly != toni->geom->lowy || hy != toni->geom->highy)
-//					updategeom(toni->geom, toni->parent);
-//		}
-//
-//		// copy arcs
-//		for(ai = fromnp->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//		{
-//			// find the nodeinst and portinst connections for this arcinst
-//			for(i=0; i<2; i++)
-//			{
-//				opt[i] = NOPORTPROTO;
-//				ono[i] = (NODEINST *)ai->end[i].nodeinst->temp1;
-//				if (ono[i]->proto->primindex != 0)
-//				{
-//					// primitives associate ports directly
-//					for(pp = ai->end[i].nodeinst->proto->firstportproto,
-//						ppt = ono[i]->proto->firstportproto; pp != NOPORTPROTO;
-//							pp = pp->nextportproto, ppt = ppt->nextportproto)
-//								if (pp == ai->end[i].portarcinst->proto)
-//					{
-//						opt[i] = ppt;
-//						break;
-//					}
-//				} else
-//				{
-//					// cells associate ports by name
-//					pp = ai->end[i].portarcinst->proto;
-//					ppt = getportproto(ono[i]->proto, pp->protoname);
-//					if (ppt != NOPORTPROTO) opt[i] = ppt;
-//				}
-//				if (opt[i] == NOPORTPROTO)
-//					ttyputerr(_("Error: no port for %s arc on %s node"), describearcproto(ai->proto),
-//						describenodeproto(ai->end[i].nodeinst->proto));
-//			}
-//
-//			// create the arcinst
-//			toai = db_newarcinst(ai->proto, ai->width, ai->userbits, ono[0],opt[0],
-//				ai->end[0].xpos, ai->end[0].ypos, ono[1],opt[1], ai->end[1].xpos, ai->end[1].ypos, np);
-//			if (toai == NOARCINST) return(NONODEPROTO);
-//
-//			// copy arcinst variables
-//			res = db_copyxlibvars((INTBIG)ai, VARCINST, (INTBIG)toai, VARCINST, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//			res = db_copyxlibvars((INTBIG)ai->end[0].portarcinst, VPORTARCINST,
-//				(INTBIG)toai->end[0].portarcinst, VPORTARCINST, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//			res = db_copyxlibvars((INTBIG)ai->end[1].portarcinst, VPORTARCINST,
-//				(INTBIG)toai->end[1].portarcinst, VPORTARCINST, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//
-//			// copy miscellaneous information
-//			toai->userbits = ai->userbits;
-//
-//			// variables may affect geometry size
-//			boundobj(toai->geom, &lx, &hx, &ly, &hy);
-//			if (lx != toai->geom->lowx || hx != toai->geom->highx ||
-//				ly != toai->geom->lowy || hy != toai->geom->highy)
-//					updategeom(toai->geom, toai->parent);
-//		}
-//
-//		// copy the portprotos
-//		for(pp = fromnp->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//		{
-//			// match sub-portproto in old nodeinst to sub-portproto in new one
-//			ni = (NODEINST *)pp->subnodeinst->temp1;
-//			for(p1 = ni->proto->firstportproto, p2 = pp->subnodeinst->proto->firstportproto;
-//				p1 != NOPORTPROTO && p2 != NOPORTPROTO;
-//					p1 = p1->nextportproto, p2 = p2->nextportproto)
-//						if (pp->subportproto == p2) break;
-//			if (pp->subportproto != p2)
-//				ttyputerr(_("Error: no port on %s cell"), describenodeproto(pp->subnodeinst->proto));
-//
-//			// create the nodeinst portinst
-//			ppt = db_newportproto(np, ni, p1, pp->protoname);
-//			if (ppt == NOPORTPROTO) return(NONODEPROTO);
-//
-//			// copy portproto variables
-//			res = db_copyxlibvars((INTBIG)pp, VPORTPROTO, (INTBIG)ppt, VPORTPROTO, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//			res = db_copyxlibvars((INTBIG)pp->subportexpinst, VPORTEXPINST,
-//				(INTBIG)ppt->subportexpinst, VPORTEXPINST, fromnp, destlib);
-//			if (res < 0) return(NONODEPROTO);
-//			failures += res;
-//
-//			// copy miscellaneous information
-//			ppt->userbits = pp->userbits;
-//			TDCOPY(ppt->textdescript, pp->textdescript);
-//		}
-//
-//		// copy cell variables
-//		res = db_copyxlibvars((INTBIG)fromnp, VNODEPROTO, (INTBIG)np, VNODEPROTO, fromnp, destlib);
-//		if (res < 0) return(NONODEPROTO);
-//		failures += res;
-//
-//		// report failures to copy variables across libraries
-//		if (failures != 0)
-//			ttyputmsg(_("WARNING: cross-library copy of cell %s deleted %ld variables"),
-//				describenodeproto(fromnp), failures);
-//
-//		// reset (copy) date information
-//		np->creationdate = fromnp->creationdate;
-//		np->revisiondate = fromnp->revisiondate;
-//
-//		return(np);
-		return null;
+		// if doing a cross-library copy and can use existing ones from new library, do it
+		if (destLib != null)
+		{
+			// scan all subcells to see if they are found in the new library
+			for(Iterator it = fromCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() instanceof PrimitiveNode) continue;
+				Cell niProto = (Cell)ni.getProto();
+
+				// keep cross-library references
+				if (niProto.getLibrary() != fromCell.getLibrary()) continue;
+
+				boolean maySubstitute = useExisting;
+				if (!maySubstitute)
+				{
+					// force substitution for documentation icons
+					if (niProto.getView() == View.ICON)
+					{
+						if (niProto.isIconOf(fromCell)) maySubstitute = true;
+					}
+				}
+				if (!maySubstitute) continue;
+
+				// search for cell with same name and view in new library
+				Cell lnt = null;
+				for(Iterator cIt = toLib.getCells(); cIt.hasNext(); )
+				{
+					lnt = (Cell)cIt.next();
+					if (lnt.getProtoName().equalsIgnoreCase(niProto.getProtoName()) &&
+						lnt.getView() == niProto.getView()) break;
+					lnt = null;
+				}
+				if (lnt == null) continue;
+
+				// make sure all used ports can be found on the uncopied cell
+				boolean validPorts = true;
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					PortProto pp = pi.getPortProto();
+					PortProto ppt = lnt.findPortProto(pp.getProtoName());
+					if (ppt != null)
+					{
+						// the connections must match, too
+//						if (pp->connects != ppt->connects) ppt = null;
+					}
+					if (ppt == null)
+					{
+						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in library " + destLib.getLibName() +
+							": exports don't match");
+						validPorts = false;
+						break;
+					}
+				}
+				if (!validPorts) continue;
+
+				// match found: use the prototype from the destination library
+				ni.setTempObj(lnt);
+			}
+		}
+
+		// create the nodeproto
+		String cellName = toName;
+		if (toName.indexOf('{') < 0 && fromCell.getView() != View.UNKNOWN)
+		{
+			cellName = toName + "{" + fromCell.getView().getAbbreviation() + "}";
+		}
+		Cell newCell = Cell.newInstance(toLib, cellName);
+		if (newCell == null) return(null);
+		newCell.lowLevelSetUserbits(fromCell.lowLevelGetUserbits());
+
+		// copy nodes
+		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
+		{
+			// create the new nodeinst
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto lnt = (NodeProto)ni.getTempObj();
+			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
+			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
+			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getCenterX(), ni.getCenterY()),
+				scaleX, scaleY, ni.getAngle(), newCell);
+			if (toNi == null) return null;
+
+			// save the new nodeinst address in the old nodeinst
+			ni.setTempObj(toNi);
+
+			// copy miscellaneous information
+			toNi.setTextDescriptor(ni.getTextDescriptor());
+			toNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+		}
+
+		// now copy the variables on the nodes
+		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeInst toNi = (NodeInst)ni.getTempObj();
+			ni.copyVars(toNi, false);
+			toNi.endChange();
+		}
+
+		// copy arcs
+		for(Iterator it = fromCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+
+			// find the nodeinst and portinst connections for this arcinst
+			PortInst [] opi = new PortInst[2];
+			for(int i=0; i<2; i++)
+			{
+				opi[i] = null;
+				Connection con = ai.getConnection(i);
+				NodeInst ono = (NodeInst)con.getPortInst().getNodeInst().getTempObj();
+				PortProto pp = con.getPortInst().getPortProto();
+				if (ono.getProto() instanceof PrimitiveNode)
+				{
+					// primitives associate ports directly
+					opi[i] = ono.getPortInstFromProto(pp);
+				} else
+				{
+					// cells associate ports by name
+					PortProto ppt = ono.getProto().findPortProto(pp.getProtoName());
+					if (ppt != null) opi[i] = ono.getPortInstFromProto(ppt);
+				}
+				if (opi[i] == null)
+					System.out.println("Error: no port for " + ai.getProto().describe() +
+						" arc on " + ono.getProto().describe() + " node");
+			}
+			if (opi[0] == null || opi[1] == null) return null;
+
+			// create the arcinst
+			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1], ai.getTail().getLocation());
+			if (toAi == null) return null;
+
+			// copy arcinst variables
+			ai.copyVars(toAi, false);
+
+			// copy miscellaneous information
+			toAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+			toAi.endChange();
+		}
+
+		// copy the Exports
+		for(Iterator it = fromCell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+
+			// match sub-portproto in old nodeinst to sub-portproto in new one
+			NodeInst ni = (NodeInst)pp.getOriginalPort().getNodeInst().getTempObj();
+			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getProtoName());
+			if (pi == null)
+			{
+				System.out.println("Error: no port on " + pp.getOriginalPort().getNodeInst().getProto().describe() + " cell");
+				return null;
+			}
+
+			// create the nodeinst portinst
+			Export ppt = Export.newInstance(newCell, pi, pp.getProtoName());
+			if (ppt == null) return null;
+
+			// copy portproto variables
+			pp.copyVars(ppt, false);
+
+			// copy miscellaneous information
+			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
+			ppt.setTextDescriptor(pp.getTextDescriptor());
+			ppt.endChange();
+		}
+
+		// copy cell variables
+		fromCell.copyVars(newCell, false);
+
+		// reset (copy) date information
+		newCell.lowLevelSetCreationDate(fromCell.getCreationDate());
+		newCell.lowLevelSetRevisionDate(fromCell.getRevisionDate());
+		newCell.endChange();
+
+		return newCell;
 	}
-
-//	private HashMap copyNodes(Cell f)
-//	{
-//		HashMap oldToNew = new HashMap();
-//		for (Iterator it = getNodes(); it.hasNext();)
-//		{
-//			NodeInst oldInst = (NodeInst) it.next();
-//			NodeProto oldProto = oldInst.getProto();
-//			if (oldProto instanceof PrimitiveNode
-//				&& oldProto.getProtoName().equals("Cell-Center"))
-//			{
-//				// Cell-Center already handled by copyReferencePoint
-//			} else
-//			{
-//				NodeInst newInst =
-//					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getCenterX(), oldInst.getCenterY()),
-//						oldInst.getXSize(), oldInst.getYSize(), oldInst.getAngle(), f);
-//				String nm = oldInst.getName();
-//				if (nm != null)
-//					newInst.setName(nm);
-//				if (oldToNew.containsKey(oldInst))
-//				{
-//					System.out.println("oldInst already in oldToNew?!");
-//					return null;
-//				}
-//				oldToNew.put(oldInst, newInst);
-//			}
-//		}
-//		return oldToNew;
-//	}
-
-//	private PortInst getNewPortInst(PortInst oldPort, HashMap oldToNew)
-//	{
-//		NodeInst newInst = (NodeInst) oldToNew.get(oldPort.getNodeInst());
-//		if (newInst == null)
-//		{
-//			System.out.println( "no new instance for old instance in oldToNew?!");
-//			return null;
-//		}
-//		String portNm = oldPort.getPortProto().getProtoName();
-//		if (portNm == null)
-//		{
-//			System.out.println("PortProto with no name?");
-//			return null;
-//		}JInternalFrame
-//		return newInst.findPortInst(portNm);
-//	}
-
-//	private void copyArcs(Cell f, HashMap oldToNew)
-//	{
-//		for (int i = 0; i < arcs.size(); i++)
-//		{
-//			ArcInst ai = (ArcInst) arcs.get(i);
-//			Connection c0 = ai.getConnection(false);
-//			Connection c1 = ai.getConnection(true);
-//			Point2D p0 = c0.getLocation();
-//			Point2D p1 = c1.getLocation();
-//			ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-//				getNewPortInst(c0.getPortInst(), oldToNew), p0.getX(), p0.getY(),
-//				getNewPortInst(c1.getPortInst(), oldToNew), p1.getX(), p1.getY());
-//		}
-//	}
-
-//	private void copyExports(Cell f, HashMap oldToNew)
-//	{
-//		for (Iterator it = getPorts(); it.hasNext();)
-//		{
-//			Export e = (Export) it.next();
-//			PortInst newPort = getNewPortInst(e.getOriginalPort(), oldToNew);
-//			if (newPort == null)
-//			{
-//				System.out.println("can't find new PortInst to export");
-//				return;
-//			}
-//			Export.newInstance(f, e.getOriginalNode(), newPort, e.getProtoName());
-//		}
-//	}
-
-//	private void copyContents(Cell f)
-//	{
-//		// Note: Electric has already created f and called f.init()
-//		HashMap oldToNew = copyNodes(f);
-//		copyArcs(f, oldToNew);
-//		copyExports(f, oldToNew);
-//	}
 
 	/*
 	 * Routine to determine the appropriate Cell associated with this ElectricObject.
@@ -1769,10 +1644,10 @@ public class Cell extends NodeProto
             }
         }   
         // find cell in lib
-        String cellname = (descsplit.length > 1)? descsplit[1] : descsplit[0];
+        String cellName = (descsplit.length > 1)? descsplit[1] : descsplit[0];
         for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
             Cell cell = (Cell)cellIt.next();
-            if (cell.noLibDescribe().equals(cellname))
+            if (cell.noLibDescribe().equals(cellName))
                 return cell;
         }
         return null; // cell not found

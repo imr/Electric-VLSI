@@ -50,8 +50,10 @@ import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.EditCell;
 import com.sun.electric.tool.user.dialogs.Options;
+import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.misc.PadGenerator;
 import com.sun.electric.tool.simulation.Spice;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
@@ -149,6 +151,9 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 		cellMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showCellGroupsCommand(); } });
+		cellMenu.addSeparator();
+		cellMenu.addMenuItem("Cross-Library Copy...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 
 		// setup the Export menu
 		Menu exportMenu = Menu.createMenu("Export", 'X');
@@ -200,6 +205,8 @@ public final class UserMenuCommands
 		toolMenu.add(routingSubMenu);
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
+        generationSubMenu.addMenuItem("Pad Frame Generator", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		Menu compactionSubMenu = Menu.createMenu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
 
@@ -577,6 +584,16 @@ public final class UserMenuCommands
 		cellFlag.freeFlagSet();
 	}
 
+	/**
+	 * This routine implements the command to do cross-library copies.
+	 */
+	public static void crossLibraryCopyCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+		dialog.show();
+	}
+
 	// ---------------------- THE WINDOW MENU -----------------
 
 	public static void fullDisplayCommand()
@@ -663,6 +680,13 @@ public final class UserMenuCommands
 //		NetFactory nf = new NetFactory();
 //		nf.testFour();
 	}
+
+	public static void padFrameGeneratorCommand()
+	{
+		PadGenerator gen = new PadGenerator();
+		gen.ArrayFromFile();
+	}
+
     // ---------------------- THE HELP MENU -----------------
 
 	public static void aboutCommand()

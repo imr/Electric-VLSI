@@ -1,9 +1,26 @@
-/*
- * About.java
+/* -*- tab-width: 4 -*-
  *
- * Created on December 1, 2003, 11:49 AM
+ * Electric(tm) VLSI Design System
+ *
+ * File: About.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user.dialogs;
 
 import javax.swing.JComboBox;
@@ -14,8 +31,7 @@ import javax.swing.JScrollPane;
 
 
 /**
- *
- * @author  strubin
+ * Class to handle the "About" dialog.
  */
 public class About extends javax.swing.JDialog
 {
@@ -77,6 +93,7 @@ public class About extends javax.swing.JDialog
 	public About(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
+		setLocation(100, 50);
 		initComponents();
 
 		// setup the region popup
@@ -146,8 +163,8 @@ public class About extends javax.swing.JDialog
             }
         });
 
-        Center.setMinimumSize(new java.awt.Dimension(200, 100));
-        Center.setPreferredSize(new java.awt.Dimension(200, 100));
+        Center.setMinimumSize(new java.awt.Dimension(100, 50));
+        Center.setPreferredSize(new java.awt.Dimension(300, 200));
         getContentPane().add(Center, java.awt.BorderLayout.CENTER);
 
         Top.setLayout(new java.awt.BorderLayout(10, 0));
@@ -157,9 +174,11 @@ public class About extends javax.swing.JDialog
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel7.setMaximumSize(new java.awt.Dimension(64, 64));
         jLabel7.setMinimumSize(new java.awt.Dimension(64, 64));
+        jLabel7.setPreferredSize(new java.awt.Dimension(64, 64));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopRight.add(jLabel7, gridBagConstraints);
 
         jComboBox1.setMinimumSize(new java.awt.Dimension(100, 25));
@@ -176,6 +195,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopRight.add(jComboBox1, gridBagConstraints);
 
         Top.add(TopRight, java.awt.BorderLayout.CENTER);
@@ -188,6 +208,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         TopLeft.add(jLabel4, gridBagConstraints);
 
@@ -196,6 +217,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         TopLeft.add(jLabel2, gridBagConstraints);
 
@@ -212,8 +234,8 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weighty = 0.1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         TopLeft.add(jButton3, gridBagConstraints);
 
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -221,6 +243,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         TopLeft.add(jLabel3, gridBagConstraints);
 
@@ -237,8 +260,8 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weighty = 0.1;
-        gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
         TopLeft.add(jButton1, gridBagConstraints);
 
         Top.add(TopLeft, java.awt.BorderLayout.WEST);
@@ -252,6 +275,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
         Bottom.add(jLabel9, gridBagConstraints);
@@ -262,6 +286,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
         Bottom.add(jLabel8, gridBagConstraints);
@@ -278,7 +303,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         Bottom.add(jButton2, gridBagConstraints);
 
         jButton4.setText("Copying Details");
@@ -294,7 +319,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         Bottom.add(jButton4, gridBagConstraints);
 
         jLabel11.setText("redistribute it under certain conditions");
@@ -302,6 +327,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
         Bottom.add(jLabel11, gridBagConstraints);
@@ -311,6 +337,7 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
         Bottom.add(jLabel10, gridBagConstraints);

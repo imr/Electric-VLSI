@@ -817,7 +817,7 @@ public class CircuitChanges
 	 * is a top-level request.  Otherwise, this is for a subcell, so only create a
 	 * new cell if one with the same name and date doesn't already exists.
 	 */
-	Cell us_copyrecursively(Cell fromnp, String toname, Library tolib,
+	public static Cell copyRecursively(Cell fromnp, String toname, Library tolib,
 		View toview, boolean verbose, boolean move, String subdescript, boolean norelatedviews,
 		boolean nosubcells, boolean useexisting)
 	{
@@ -858,7 +858,7 @@ public class CircuitChanges
 					if (us_indestlib(cell, tolib)) continue;
 
 					// copy subcell if not already there
-					Cell onp = us_copyrecursively(cell, cell.getProtoName(), tolib, cell.getView(),
+					Cell onp = copyRecursively(cell, cell.getProtoName(), tolib, cell.getView(),
 						verbose, move, "subcell ", norelatedviews, nosubcells, useexisting);
 					if (onp == null)
 					{
@@ -891,7 +891,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 //					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell onp = us_copyrecursively(np, np.getProtoName(), tolib, np.getView(),
+					Cell onp = copyRecursively(np, np.getProtoName(), tolib, np.getView(),
 						verbose, move, "alternate view ", true, nosubcells, useexisting);
 					if (onp == null)
 					{
@@ -919,7 +919,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 //					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell onp = us_copyrecursively(np, np.getProtoName(), tolib, np.getView(),
+					Cell onp = copyRecursively(np, np.getProtoName(), tolib, np.getView(),
 						verbose, move, "alternate view ", true, nosubcells, useexisting);
 					if (onp == null)
 					{
@@ -1042,7 +1042,7 @@ public class CircuitChanges
 	 * Routine to delete cell "np".  Validity checks are assumed to be made (i.e. the
 	 * cell is not used and is not locked).
 	 */
-	private void us_dokillcell(Cell np)
+	private static void us_dokillcell(Cell np)
 	{
 //		// delete random references to this cell
 //		curcell = getcurcell();
@@ -1127,7 +1127,7 @@ public class CircuitChanges
 	/*
 	 * Routine to return true if a cell like "np" exists in library "lib".
 	 */
-	private boolean us_indestlib(Cell np, Library lib)
+	private static boolean us_indestlib(Cell np, Library lib)
 	{
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
