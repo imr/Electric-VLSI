@@ -422,4 +422,20 @@ public class OpenFile
 			return awtDialog.getDirectory() + fileName;
 		}
 	}
+
+	/**
+	 * Method to determine OpenFile type based on extension
+	 * @param libName
+	 * @return OpenFile.Type extension
+	 */
+	public static Type getOpenFileType(String libName)
+	{
+		if (libName.endsWith(".elib"))
+			return Type.ELIB;
+		else if (libName.endsWith(".jelib"))
+			return Type.JELIB;
+		else if (libName.endsWith(".txt"))
+			return Type.READABLEDUMP;
+		return (Type.DEFAULTLIB);
+	}
 }
