@@ -1,9 +1,6 @@
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
@@ -71,6 +68,11 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         if (currentDepth == 0) {
             // set the global net ID that will be used in sub cells
             netID = info.getNetID(net);
+        }
+
+        // do not go below depth 0 for schematics
+        if (cell.getView() == View.SCHEMATIC) {
+            if (currentDepth > 0) return false;
         }
 
         if (currentDepth >= startDepth) {

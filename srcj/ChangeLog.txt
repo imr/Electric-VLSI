@@ -1,5 +1,14 @@
 			Java Electric change log
 
+************************* Version 8.01f: *********************************
+
+FIX: (8/13/04, JKG) Round doubles before truncating to int in ELIB writer, fixes
+    instances moving because of doubles precision errors.
+
+FIX: (8/13/04, JKG) Various fixes to Highlighter introduced in last version
+
+IMP/MAN (8/13/04, JKG) Show networks now works hierarchically for layout (keep hitting ctrl-k)
+
 IMP: (8/13/04, RK) "Better" NCC error reporting for Hash Code parition failures
 
 IMP: (8/13/04, RK) NCC reports Part and Wire counts
