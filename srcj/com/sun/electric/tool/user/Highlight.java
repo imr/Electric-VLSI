@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1346,6 +1347,9 @@ public class Highlight
 
 				// handle verbose highlighting of nodes
 				Netlist netlist = cell.getUserNetlist();
+				Nodable no = Netlist.getNodableFor(ni, 0);
+				PortProto epp = pp.getEquivalent();
+				if (epp == null) epp = pp;
 				int busWidth = pp.getNameKey().busWidth();
 
 				FlagSet markObj = Geometric.getFlagSet(1);
@@ -1355,7 +1359,7 @@ public class Highlight
 				{
 					ArcInst ai = (ArcInst)it.next();
 					ai.clearBit(markObj);
-					if (!netlist.sameNetwork(ni, pp, ai)) continue;
+					if (!netlist.sameNetwork(no, epp, ai)) continue;
 
 					ai.setBit(markObj);
 					ai.getHead().getPortInst().getNodeInst().setBit(markObj);

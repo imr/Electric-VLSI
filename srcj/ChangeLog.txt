@@ -2,6 +2,12 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (7/4/04, DN) Network wasn't highlighted when click on icon's port.
+FIX: Use 0-th nodable of the icon in "Highlight.showHighlight".
+
+BUG: (7/4/04, DN) "TestUtils.URLExists" sometimes returns true on unexisting URL on Java1.5".
+FIX: Explicitly call "connect" in "TestUtils.URLExists".
+
 IMP: (7/2/04. GVG) Reorganizing gif files under resources folders.
 3D view working with reflection now.
 

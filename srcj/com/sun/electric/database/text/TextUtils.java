@@ -679,6 +679,7 @@ public class TextUtils
 		try
 		{
 			URLConnection con = url.openConnection();
+			con.connect();
 			if (con.getContentLength() < 0) return false;
 		} catch (IOException e)
 		{
