@@ -3141,10 +3141,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void checkCellDates()
 	{
-		FlagSet cellDateFlagSet = Cell.getFlagSet(1);
-		cellDateFlagSet.clearOnAllCells();
-		checkCellDate(getRevisionDate(), cellDateFlagSet);
-		cellDateFlagSet.freeFlagSet();
+		HashSet cellsChecked = new HashSet();
+		checkCellDate(getRevisionDate(), cellsChecked);
 	}
 
 	/**
@@ -3152,7 +3150,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param rev_time the revision date of the top-level cell.
 	 * Nothing below it can be newer.
 	 */
-	private void checkCellDate(Date rev_time, FlagSet cellDateFlagSet)
+	private void checkCellDate(Date rev_time, HashSet cellsChecked)
 	{
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
@@ -3163,23 +3161,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 			// ignore recursive references (showing icon in contents)
 			if (subCell.isIconOf(this)) continue;
-			if (!subCell.isBit(cellDateFlagSet))
+			if (!cellsChecked.contains(subCell))
 			{
-				subCell.checkCellDate(rev_time, cellDateFlagSet); // recurse
+				subCell.checkCellDate(rev_time, cellsChecked); // recurse
 			}
 
 			Cell contentsCell = subCell.contentsView();
 			if (contentsCell != null)
 			{
-				if (!contentsCell.isBit(cellDateFlagSet))
+				if (!cellsChecked.contains(contentsCell))
 				{
-					contentsCell.checkCellDate(rev_time, cellDateFlagSet); // recurse
+					contentsCell.checkCellDate(rev_time, cellsChecked); // recurse
 				}
 			}
 		}
 
 		// check this cell
-		setBit(cellDateFlagSet); /* flag that we have seen this one */
+		cellsChecked.add(this); // flag that we have seen this one
 		if (!getRevisionDate().after(rev_time)) return;
 
 		// possible error in hierarchy

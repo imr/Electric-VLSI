@@ -27,10 +27,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.drc.DRC;
@@ -49,6 +47,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,8 +59,6 @@ import javax.swing.JFrame;
  */
 public class CellLists extends EDialog
 {
-	FlagSet cellFlagBit;
-//	FlagSet portFlagBit;
 	Cell curCell;
 	private static int whichSwitch = 0;
 	private static boolean onlyViewSwitch = false;
@@ -227,19 +224,19 @@ public class CellLists extends EDialog
 	/*
 	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
 	 */
-	private void recursiveMark(Cell cell)
+	private void recursiveMark(Cell cell, HashSet cellsSeen)
 	{
-		if (cell.isBit(cellFlagBit)) return;
-		cell.setBit(cellFlagBit);
+		if (cellsSeen.contains(cell)) return;
+		cellsSeen.add(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
-			recursiveMark(subCell);
+			recursiveMark(subCell, cellsSeen);
 			Cell contentsCell = subCell.contentsView();
-			if (contentsCell != null) recursiveMark(contentsCell);
+			if (contentsCell != null) recursiveMark(contentsCell, cellsSeen);
 		}
 	}
 
@@ -870,8 +867,7 @@ public class CellLists extends EDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		// get cell and port markers
-		cellFlagBit = Cell.getFlagSet(1);
-//		portFlagBit = PortProto.getFlagSet(1);
+		HashSet cellsSeen = new HashSet();
 
 		// mark cells to be shown
 		if (allCells.isSelected())
@@ -883,17 +879,16 @@ public class CellLists extends EDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					cell.setBit(cellFlagBit);
+					cellsSeen.add(cell);
 				}
 			}
 		} else
 		{
 			// mark no cells for display, filter according to request
-			cellFlagBit.clearOnAllCells();
 			if (onlyCellsUnderCurrent.isSelected())
 			{
 				// mark those that are under this
-				recursiveMark(curCell);
+				recursiveMark(curCell, cellsSeen);
 			} else if (onlyCellsUsedElsewhere.isSelected())
 			{
 				// mark those that are in use
@@ -906,7 +901,7 @@ public class CellLists extends EDialog
 						Cell iconCell = cell.iconView();
 						if (iconCell == null) iconCell = cell;
 						if (cell.getInstancesOf().hasNext() || iconCell.getInstancesOf().hasNext())
-							cell.setBit(cellFlagBit);
+							cellsSeen.add(cell);
 					}
 				}
 			} else if (onlyCellsNotUsedElsewhere.isSelected())
@@ -948,7 +943,7 @@ public class CellLists extends EDialog
 								if (cell.getInstancesOf().hasNext()) continue;
 							}
 						}
-						cell.setBit(cellFlagBit);
+						cellsSeen.add(cell);
 					}
 				}
 			} else
@@ -961,7 +956,7 @@ public class CellLists extends EDialog
 					{
 						Cell cell = (Cell)cIt.next();
 						Variable var = cell.getVar("IO_true_library");
-						if (var != null) cell.setBit(cellFlagBit);
+						if (var != null) cellsSeen.add(cell);
 					}
 				}
 			}
@@ -986,7 +981,7 @@ public class CellLists extends EDialog
 							{
 								if (alsoIconViews.isSelected()) continue;
 							}
-							cell.clearBit(cellFlagBit);
+							cellsSeen.remove(cell);
 						}
 					}
 				}
@@ -1002,7 +997,7 @@ public class CellLists extends EDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					if (cell.getNewestVersion() != cell) cell.clearBit(cellFlagBit);
+					if (cell.getNewestVersion() != cell) cellsSeen.remove(cell);
 				}
 			}
 		}
@@ -1014,7 +1009,7 @@ public class CellLists extends EDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					if (cell.getNewestVersion() == cell) cell.clearBit(cellFlagBit);
+					if (cell.getNewestVersion() == cell) cellsSeen.remove(cell);
 				}
 			}
 		}
@@ -1028,7 +1023,7 @@ public class CellLists extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (cell.isBit(cellFlagBit)) cellList.add(cell);
+				if (cellsSeen.contains(cell)) cellList.add(cell);
 			}
 		}
 		if (cellList.size() == 0) System.out.println("No cells match this request"); else
@@ -1100,9 +1095,6 @@ public class CellLists extends EDialog
 			}
 		}
 
-		// free cell and port markers
-		cellFlagBit.freeFlagSet();
-//		portFlagBit.freeFlagSet();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 

@@ -23,18 +23,20 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -48,6 +50,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -107,8 +110,8 @@ public class ERCAntenna
 	/** A list of AntennaObjects to process. */				private List       pathList;
 	/** Map from ArcProtos to Layers. */					private HashMap    arcProtoToLayer;
 	/** Map from Layers to ArcProtos. */					private HashMap    layerToArcProto;
-	/** Bit for marking ArcInsts and NodeInsts. */			private FlagSet    fsGeom;
-	/** Bit for marking Cells. */							private FlagSet    fsCell;
+	/** Map for marking ArcInsts and NodeInsts. */			private HashSet    fsGeom;
+	/** Map for marking Cells. */							private HashSet    fsCell;
 
     /** for storing errors */                               private ErrorLogger errorLogger;
 
@@ -153,9 +156,9 @@ public class ERCAntenna
 	{
 		curTech = topCell.getTechnology();
 
-		// flag for marking nodes and arcs, and also for marking cells
-		fsGeom = Geometric.getFlagSet(1);
-		fsCell = Cell.getFlagSet(1);
+		// maps for marking nodes and arcs, and also for marking cells
+		fsGeom = new HashSet();
+		fsCell = new HashSet();
 
 		// create mappings between ArcProtos and Layers
 		arcProtoToLayer = new HashMap();
@@ -192,7 +195,7 @@ public class ERCAntenna
 			System.out.println("Checking Antenna rules for " + lay.getName() + "...");
 
 			// clear timestamps on all cells
-			fsCell.clearOnAllCells();
+			fsCell.clear();
 
 			// do the check for this level
 			checkThisCell(topCell, lay);
@@ -214,8 +217,8 @@ public class ERCAntenna
 			System.out.println("FOUND " + errorCount + " ANTENNA ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 		errorLogger.termLogging(true);
-		fsGeom.freeFlagSet();
-		fsCell.freeFlagSet();
+		fsGeom = null;
+		fsCell = null;
 	}
 
 	/**
@@ -226,22 +229,13 @@ public class ERCAntenna
 	private void checkThisCell(Cell cell, Layer lay)
 	{
 		// examine every node and follow all relevant arcs
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.clearBit(fsGeom);
-		}
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			ai.clearBit(fsGeom);
-		}
+		fsGeom.clear();
 
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.isBit(fsGeom)) continue;
-			ni.setBit(fsGeom);
+			if (fsGeom.contains(ni)) continue;
+			fsGeom.add(ni);
 
 			// check every connection on the node
 			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -254,7 +248,7 @@ public class ERCAntenna
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
-					if (con.getPortInst() == pi && ai.isBit(fsGeom)) { seen = true;   break; }
+					if (con.getPortInst() == pi && fsGeom.contains(ai)) { seen = true;   break; }
 				}
 				if (seen) continue;
 
@@ -369,13 +363,13 @@ public class ERCAntenna
 		}
 	
 		// now look at subcells
-		cell.setBit(fsCell);
+		fsCell.add(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			Cell subCell = (Cell)ni.getProto();
-			if (subCell.isBit(fsCell)) continue;
+			if (fsCell.contains(subCell)) continue;
 	
 			checkThisCell(subCell, lay);
 		}
@@ -403,7 +397,7 @@ public class ERCAntenna
 		for(;;)
 		{
 			// if this is a subcell, recurse on it
-			ni.setBit(fsGeom);
+			fsGeom.add(ni);
 			NodeInst thisni = ni;
 			while (thisni.getProto() instanceof Cell)
 			{
@@ -515,7 +509,7 @@ public class ERCAntenna
 			if (ai.getProto().getFunction().getLevel() > aLayer.getFunction().getLevel()) continue;
 
 			// make an antenna object for this arc
-			ai.setBit(fsGeom);
+			fsGeom.add(ai);
 			AntennaObject ao = new AntennaObject(ai);
 
 			if (haveAntennaObject(ao)) continue;
@@ -567,8 +561,15 @@ public class ERCAntenna
 			if (oAo.geom == ao.geom && oAo.depth == ao.depth)
 			{
 				boolean found = true;
-				for(int i=0; i<oAo.hierstack.length; i++)
+				int len = 0;
+				if (ao.hierstack != null) len = ao.hierstack.length;
+				int oLen = 0;
+				if (oAo.hierstack != null) oLen = oAo.hierstack.length;
+				if (len != oLen) continue;
+				for(int i=0; i<len; i++)
+				{
 					if (oAo.hierstack[i] != ao.hierstack[i]) { found = false;   break; }
+				}
 				if (found) return true;
 			}
 		}

@@ -38,20 +38,27 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /*
@@ -855,19 +862,15 @@ public class Highlight
 					}
                     int busWidth = pp.getNameKey().busWidth();
 
-                    FlagSet markObj = Geometric.getFlagSet(1);
-                    for(Iterator it = cell.getNodes(); it.hasNext(); )
-                        ((NodeInst)it.next()).clearBit(markObj);
+                    HashSet markObj = new HashSet();
                     for(Iterator it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = (ArcInst)it.next();
-                        ai.clearBit(markObj);
-
                         if (!netlist.sameNetwork(no, epp, ai)) continue;
 
-                        ai.setBit(markObj);
-                        ai.getHead().getPortInst().getNodeInst().setBit(markObj);
-                        ai.getTail().getPortInst().getNodeInst().setBit(markObj);
+                        markObj.add(ai);
+                        markObj.add(ai.getHead().getPortInst().getNodeInst());
+                        markObj.add(ai.getTail().getPortInst().getNodeInst());
                     }
 
                     // draw lines along all of the arcs on the network
@@ -876,7 +879,7 @@ public class Highlight
                     for(Iterator it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = (ArcInst)it.next();
-                        if (!ai.isBit(markObj)) continue;
+                        if (!markObj.contains(ai)) continue;
                         Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
                         Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
                         drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
@@ -888,7 +891,7 @@ public class Highlight
                     {
                         NodeInst oNi = (NodeInst)it.next();
                         if (oNi == ni) continue;
-                        if (!oNi.isBit(markObj)) continue;
+                        if (!markObj.contains(oNi)) continue;
 
                         Point c = wnd.databaseToScreen(oNi.getTrueCenter());
                         g.fillOval(c.x-4, c.y-4, 8, 8);
@@ -899,7 +902,7 @@ public class Highlight
                         {
                             Connection con = (Connection)pIt.next();
                             ArcInst ai = con.getArc();
-                            if (!ai.isBit(markObj)) continue;
+                            if (!markObj.contains(ai)) continue;
                             Point2D arcEnd = con.getLocation();
                             if (arcEnd.getX() != nodeCenter.getX() || arcEnd.getY() != nodeCenter.getY())
                             {
@@ -912,7 +915,6 @@ public class Highlight
                         }
                     }
                     g2.setStroke(origStroke);
-                    markObj.freeFlagSet();
                 }
 			}
 		}

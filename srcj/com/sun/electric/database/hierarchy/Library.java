@@ -31,7 +31,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -83,7 +82,6 @@ public class Library extends ElectricObject
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
 	/** the current library in Electric */					private static Library curLib = null;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("Library");
 
 	// ----------------- private and protected methods --------------------
 
@@ -820,37 +818,6 @@ public class Library extends ElectricObject
 	{
 		this.libFile = libFile;
 	}
-
-	/**
-	 * Method to get access to flag bits on this Library.
-	 * Flag bits allow Libraries to be marked and examined more conveniently.
-	 * However, multiple competing activities may want to mark the nodes at
-	 * the same time.  To solve this, each activity that wants to mark nodes
-	 * must create a FlagSet that allocates bits in the node.  When done,
-	 * the FlagSet must be released.
-	 * @param numBits the number of flag bits desired.
-	 * @return a FlagSet object that can be used to mark and test the Library.
-	 */
-	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-
-	/**
-	 * Method to set the specified flag bits on this Library.
-	 * @param set the flag bits that are to be set on this Library.
-	 */
-	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
-
-	/**
-	 * Method to set the specified flag bits on this Library.
-	 * @param set the flag bits that are to be cleared on this Library.
-	 */
-	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
-
-	/**
-	 * Method to test the specified flag bits on this Library.
-	 * @param set the flag bits that are to be tested on this Library.
-	 * @return true if the flag bits are set.
-	 */
-	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Returns a printable version of this Library.

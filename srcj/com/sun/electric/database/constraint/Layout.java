@@ -26,11 +26,11 @@ package com.sun.electric.database.constraint;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -38,22 +38,21 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class to implement the layout-constraint system.
@@ -1300,10 +1299,8 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		return transform;
 	}
 
-	FlagSet cellModFlag;
-	FlagSet cellNoModFlag;
-	FlagSet markNode;
-	FlagSet touchNode;
+	private HashSet cellModFlag;
+	private HashSet cellNoModFlag;
 
 	/**
 	 * Method to re-compute the bounds of the cell "cell" (because an object
@@ -1383,21 +1380,9 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		 * if instances are scattered or port motion has occured, examine
 		 * entire database in proper recursive order and adjust cell sizes
 		 */
-		cellModFlag = Cell.getFlagSet(1);
-		cellNoModFlag = Cell.getFlagSet(1);
-		markNode = NodeInst.getFlagSet(1);
-		touchNode = NodeInst.getFlagSet(1);
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell c = (Cell)cIt.next();
-				c.clearBit(cellModFlag);
-				c.clearBit(cellNoModFlag);
-			}
-		}
-		cell.setBit(cellModFlag);
+		cellModFlag = new HashSet();
+		cellNoModFlag = new HashSet();
+		cellModFlag.add(cell);
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
@@ -1413,20 +1398,19 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 				lookDown(c);
 			}
 		}
-		touchNode.freeFlagSet();
-		markNode.freeFlagSet();
-		cellNoModFlag.freeFlagSet();
-		cellModFlag.freeFlagSet();
+		cellModFlag = null;
+		cellNoModFlag = null;
 	}
 
 	private boolean lookDown(Cell start)
 	{
 		// first look recursively to the bottom to see if this cell changed
+		HashSet markNode = new HashSet();
+		HashSet touchNode = new HashSet();
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() instanceof Cell) ni.setBit(markNode); else
-				ni.clearBit(markNode);
+			if (ni.getProto() instanceof Cell) markNode.add(ni);
 		}
 
 		boolean foundone = true;
@@ -1436,29 +1420,29 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 			for(Iterator it = start.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (!ni.isBit(markNode)) continue;
-				ni.clearBit(markNode);
+				if (!markNode.contains(ni)) continue;
+				markNode.remove(ni);
 				Cell subCell = (Cell)ni.getProto();
 
 //				// ignore recursive references (showing icon in contents)
 //				if (ni.isIconOfParent()) continue;
 
 				// if this nodeinst is to change, mark the parent cell also
-				if (subCell.isBit(cellModFlag)) start.setBit(cellModFlag);
+				if (cellModFlag.contains(subCell)) cellModFlag.add(start);
 
 				// don't look inside if the cell is certified
-				if (subCell.isBit(cellModFlag) || subCell.isBit(cellNoModFlag)) continue;
+				if (cellModFlag.contains(subCell) || cellNoModFlag.contains(subCell)) continue;
 
 				// look inside nodeinst to see if it changed
-				if (lookDown(subCell)) start.setBit(cellModFlag);
+				if (lookDown(subCell)) cellModFlag.add(start);
 				foundone = true;
 			}
 		}
 
 		// if this cell did not change, certify so and quit
-		if (!start.isBit(cellModFlag))
+		if (!cellModFlag.contains(start))
 		{
-			start.setBit(cellNoModFlag);
+			cellNoModFlag.add(start);
 			return false;
 		}
 
@@ -1467,14 +1451,14 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
-			ni.clearBit(markNode);
-			ni.clearBit(touchNode);
+			markNode.remove(ni);
+			touchNode.remove(ni);
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
 //			if (ni.isIconOfParent()) continue;
-			if (!subCell.isBit(cellModFlag)) continue;
-			ni.setBit(markNode);
-			ni.setBit(touchNode);
+			if (!cellModFlag.contains(subCell)) continue;
+			markNode.add(ni);
+			touchNode.add(ni);
 		}
 
 		// modify the nodes in this cell that changed
@@ -1486,8 +1470,8 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 			for(Iterator it = start.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (!ni.isBit(markNode)) continue;
-				ni.clearBit(markNode);
+				if (!markNode.contains(ni)) continue;
+				markNode.remove(ni);
 				Cell np = (Cell)ni.getProto();
 
 				// determine original size of cell
@@ -1523,7 +1507,7 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.isBit(touchNode)) nodesThatChanged.add(ni);
+			if (touchNode.contains(ni)) nodesThatChanged.add(ni);
 		}
 		foundone = true;
 		while (foundone)
@@ -1532,8 +1516,8 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 			for(Iterator it = nodesThatChanged.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (!ni.isBit(touchNode)) continue;
-				ni.clearBit(touchNode);
+				if (!touchNode.contains(ni)) continue;
+				touchNode.remove(ni);
 				if (modNodeArcs(ni, 0, 0, 0, false, false)) forcedLook = true;
 				foundone = true;
 			}
@@ -1547,7 +1531,7 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		// quit if it has not changed
 		if (oldCellBounds.equals(cellBounds) && !forcedLook)
 		{
-			start.setBit(cellModFlag);
+			cellModFlag.add(start);
 			return false;
 		}
 

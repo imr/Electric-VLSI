@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -818,7 +817,6 @@ public abstract class Geometric extends ElectricObject
 	/** The temporary flag bits. */							private int flagBits;
 	/** The timestamp for changes. */						private int changeClock;
 	/** The Change object. */								private Undo.Change change;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("Geometric");
 
 	// ------------------------ private and protected methods--------------------
 
@@ -1065,51 +1063,6 @@ public abstract class Geometric extends ElectricObject
 	 * @param geom the other Geometric to copy.
 	 */
 	public void copyStateBits(Geometric geom) { this.userBits = geom.userBits; }
-
-	/**
-	 * Method to get access to flag bits on this Geometric.
-	 * Flag bits allow Geometric to be marked and examined more conveniently.
-	 * However, multiple competing activities may want to mark the nodes at
-	 * the same time.  To solve this, each activity that wants to mark nodes
-	 * must create a FlagSet that allocates bits in the node.  When done,
-	 * the FlagSet must be released.
-	 * @param numBits the number of flag bits desired.
-	 * @return a FlagSet object that can be used to mark and test the Geometric.
-	 */
-	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-
-	/**
-	 * Method to set the specified flag bits on this Geometric.
-	 * @param set the flag bits that are to be set on this Geometric.
-	 */
-	public void setBit(FlagSet set) { if (set != null) flagBits = flagBits | set.getMask(); }
-
-	/**
-	 * Method to set the specified flag bits on this Geometric.
-	 * @param set the flag bits that are to be cleared on this Geometric.
-	 */
-	public void clearBit(FlagSet set) { if (set != null) flagBits = flagBits & set.getUnmask(); }
-
-	/**
-	 * Method to set the specified flag bits on this Geometric.
-	 * @param set the flag bits that are to be set on this Geometric.
-	 * @param value the value to be set on this Geometric.
-	 */
-	public void setFlagValue(FlagSet set, int value) { if (set != null) flagBits = (flagBits & set.getUnmask()) | ((value << set.getShift()) & set.getMask()); }
-
-	/**
-	 * Method to return the specified flag bits on this Geometric.
-	 * @param set the flag bits that are to be examined on this Geometric.
-	 * @return the value of the specified flag bits on this Geometric.
-	 */
-	public int getFlagValue(FlagSet set) { return (flagBits & set.getMask()) >> set.getShift(); }
-
-	/**
-	 * Method to test the specified flag bits on this Geometric.
-	 * @param set the flag bits that are to be tested on this Geometric.
-	 * @return true if the flag bits are set.
-	 */
-	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Method to set a timestamp for constraint propagation on this Geometric.

@@ -34,21 +34,26 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -163,7 +168,7 @@ public final class ExportChanges
 
 		// describe each export
 		System.out.println("----- Exports on cell " + cell.describe() + " -----");
-		FlagSet arcMark = ArcProto.getFlagSet(1);
+		HashSet arcsSeen = new HashSet();
 		for(int j=0; j<num_found; j++)
 		{
 			ExportList el = (ExportList)exports.get(j);
@@ -177,7 +182,7 @@ public final class ExportChanges
 				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)aIt.next();
-					ap.clearBit(arcMark);
+					arcsSeen.remove(ap);
 				}
 			}
 
@@ -214,10 +219,10 @@ public final class ExportChanges
 					}
 					ArcProto [] arcList = opp.getBasePort().getConnections();
 					for(int a=0; a<arcList.length; a++)
-						arcList[a].setBit(arcMark);
+						arcsSeen.add(arcList[a]);
 				}
 				infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
-				infstr = addPossibleArcConnections(infstr, arcMark);
+				infstr = addPossibleArcConnections(infstr, arcsSeen);
 			} else
 			{
 				m = j + 1;
@@ -249,7 +254,7 @@ public final class ExportChanges
 						}
 						ArcProto [] arcList = opp.getBasePort().getConnections();
 						for(int a=0; a<arcList.length; a++)
-							arcList[a].setBit(arcMark);
+							arcsSeen.add(arcList[a]);
 					}
 
 					List sortedBusList = new ArrayList();
@@ -281,7 +286,7 @@ public final class ExportChanges
 						infstr += pt1.substring(openPos+1, closePos);
 					}
 					infstr += "]' at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
-					infstr = addPossibleArcConnections(infstr, arcMark);
+					infstr = addPossibleArcConnections(infstr, arcsSeen);
 				} else
 				{
 					// isolated export
@@ -291,8 +296,8 @@ public final class ExportChanges
 					infstr += activity + " export '" + pp.getName() + "' at (" + x + ", " + y + ") connects to";
 					ArcProto [] arcList = pp.getBasePort().getConnections();
 					for(int a=0; a<arcList.length; a++)
-						arcList[a].setBit(arcMark);
-					infstr = addPossibleArcConnections(infstr, arcMark);
+						arcsSeen.add(arcList[a]);
+					infstr = addPossibleArcConnections(infstr, arcsSeen);
 
 					// check for the export in the associated cell
 					if (wnp != null)
@@ -314,14 +319,13 @@ public final class ExportChanges
 					System.out.println("*** Export " + pp.getName() + ", found in cell " + wnp.describe() + ", is missing here");
 			}
 		}
-		arcMark.freeFlagSet();
 	}
 
-	/*
-	 * Helper routine to add all marked arc prototypes to the infinite string.
+	/**
+	 * Helper method to add all marked arc prototypes to the infinite string.
 	 * Marking is done by having the "temp1" field be nonzero.
 	 */
-	private static String addPossibleArcConnections(String infstr, FlagSet arcMark)
+	private static String addPossibleArcConnections(String infstr, HashSet arcsSeen)
 	{
 		int i = 0;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
@@ -330,7 +334,7 @@ public final class ExportChanges
 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)aIt.next();
-				if (!ap.isBit(arcMark)) i++;
+				if (!arcsSeen.contains(ap)) i++;
 			}
 		}
 		if (i == 0) infstr += " EVERYTHING"; else
@@ -343,7 +347,7 @@ public final class ExportChanges
 				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 				{
 					ArcProto ap = (ArcProto)aIt.next();
-					if (!ap.isBit(arcMark)) continue;
+					if (!arcsSeen.contains(ap)) continue;
 					if (i != 0) infstr += ",";
 					i++;
 					infstr += " " + ap.getName();

@@ -28,22 +28,19 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -51,29 +48,29 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 import java.util.Iterator;
 
 public class Schematic
 {
-	private static FlagSet cellsCheckedBit;
+	private static HashSet cellsChecked;
     private static ErrorLogger errorLogger = null;
 
 	public static ErrorLogger doCheck(Cell cell)
 	{
-		cellsCheckedBit = Cell.getFlagSet(1);
-		cellsCheckedBit.clearOnAllCells();
+		cellsChecked = new HashSet();
 
         if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell);
 		errorLogger.termLogging(true);
-		cellsCheckedBit.freeFlagSet();
+		cellsChecked = null;
 		return(errorLogger);
 	}
 
 	private static void checkSchematicCellRecursively(Cell cell)
 	{
-		cell.setBit(cellsCheckedBit);
+		cellsChecked.add(cell);
 
 		// ignore if not a schematic
 		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech)
@@ -89,7 +86,7 @@ public class Schematic
 
 			Cell contentsCell = subCell.contentsView();
 			if (contentsCell == null) contentsCell = subCell;
-			if (contentsCell.isBit(cellsCheckedBit)) continue;
+			if (cellsChecked.contains(contentsCell)) continue;
 
 			// ignore documentation icon
 			if (ni.isIconOfParent()) continue;

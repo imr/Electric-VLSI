@@ -33,8 +33,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -45,7 +45,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -60,7 +59,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
@@ -175,12 +173,7 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			// figure out which nodes get rotated/mirrored
-			FlagSet markObj = Geometric.getFlagSet(1);
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.clearBit(markObj);
-			}
+			HashSet markObj = new HashSet();
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
@@ -191,10 +184,9 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)geom;
 				if (cantEdit(cell, ni, true) != 0)
 				{
-					markObj.freeFlagSet();
 					return false;
 				}
-				ni.setBit(markObj);
+				markObj.add(ni);
 				if (nicount == 0)
 				{
 					selectedBounds.setRect(ni.getBounds());
@@ -210,7 +202,6 @@ public class CircuitChanges
 			if (nicount <= 0)
 			{
 				System.out.println("Must select at least 1 node for rotation");
-				markObj.freeFlagSet();
 				return false;
 			}
 
@@ -223,7 +214,7 @@ public class CircuitChanges
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
-					if (!ni.isBit(markObj)) continue;
+					if (!markObj.contains(ni)) continue;
 					double dist = center.distance(ni.getTrueCenter());
 
 					// LINTED "bestdist" used in proper order
@@ -236,23 +227,14 @@ public class CircuitChanges
 			}
 
 			// see which nodes already connect to the main rotation/mirror node (theNi)
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.clearBit(markObj);
-			}
-			theNi.setBit(markObj);
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				ai.clearBit(markObj);
-			}
+			markObj.clear();
+			markObj.add(theNi);
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
-				ai.setBit(markObj);
+				markObj.add(ai);
 			}
 			spreadRotateConnection(theNi, markObj);
 
@@ -265,7 +247,7 @@ public class CircuitChanges
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				if (ni == theNi) continue;
-				if (ni.isBit(markObj)) continue;
+				if (markObj.contains(ni)) continue;
 
 				if (theNi.getNumPortInsts() == 0)
 				{
@@ -333,7 +315,6 @@ public class CircuitChanges
 //				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
 				ni.kill();
 			}
-			markObj.freeFlagSet();
 			return true;
 		}
 	}
@@ -342,18 +323,18 @@ public class CircuitChanges
 	 * Helper method for rotation to mark selected nodes that need not be
 	 * connected with an invisible arc.
 	 */
-	private static void spreadRotateConnection(NodeInst theNi, FlagSet markObj)
+	private static void spreadRotateConnection(NodeInst theNi, HashSet markObj)
 	{
 		for(Iterator it = theNi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
-			if (!ai.isBit(markObj)) continue;
+			if (!markObj.contains(ai)) continue;
 			Connection other = ai.getTail();
 			if (other == con) other = ai.getHead();
 			NodeInst ni = other.getPortInst().getNodeInst();
-			if (ni.isBit(markObj)) continue;
-			ni.setBit(markObj);
+			if (markObj.contains(ni)) continue;
+			markObj.add(ni);
 			spreadRotateConnection(ni, markObj);
 		}
 	}
@@ -1498,14 +1479,8 @@ public class CircuitChanges
 	 */
 	public static void eraseObjectsInList(Cell cell, List list)
 	{
-		FlagSet deleteFlag = Geometric.getFlagSet(2);
+		HashMap deleteFlag = new HashMap();
 
-		// mark all nodes touching arcs that are killed
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.setFlagValue(deleteFlag, 0);
-		}
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
@@ -1516,8 +1491,8 @@ public class CircuitChanges
 			if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;
-				ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-				ai.getTail().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+				deleteFlag.put(ai.getHead().getPortInst().getNodeInst(), new Integer(1));
+				deleteFlag.put(ai.getTail().getPortInst().getNodeInst(), new Integer(1));
 			}
 		}
 
@@ -1529,8 +1504,9 @@ public class CircuitChanges
 			if (!(obj instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)obj;
 
-			if (ni.getFlagValue(deleteFlag) != 0)
-				ni.setFlagValue(deleteFlag, 2);
+			Integer flag = (Integer)deleteFlag.get(ni);
+			if (flag != null && flag.intValue() != 2)
+				deleteFlag.put(ni, new Integer(2));
 		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
@@ -1547,8 +1523,9 @@ public class CircuitChanges
 				ArcInst ai = con.getArc();
 				Connection otherEnd = ai.getHead();
 				if (ai.getHead() == con) otherEnd = ai.getTail();
-				if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
-					otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+
+				NodeInst oNi = otherEnd.getPortInst().getNodeInst();
+				if (deleteFlag.get(oNi) == null) deleteFlag.put(oNi, new Integer(1));
 			}
 		}
 
@@ -1583,7 +1560,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFlagValue(deleteFlag) == 0) continue;
+			if (deleteFlag.get(ni) == null) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
@@ -1602,7 +1579,7 @@ public class CircuitChanges
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFlagValue(deleteFlag) == 0) continue;
+			if (deleteFlag.get(ni) == null) continue;
 			if (ni.getProto() instanceof PrimitiveNode)
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
@@ -1636,8 +1613,6 @@ public class CircuitChanges
 
 			owner.delVar(var.getKey());
 		}
-
-		deleteFlag.freeFlagSet();
 	}
 
 	/**
@@ -3128,8 +3103,7 @@ public class CircuitChanges
         if (highlighter == null) return;
 
 		// see which cells (in any library) have nonmanhattan stuff
-		FlagSet cellMark = Cell.getFlagSet(1);
-		cellMark.clearOnAllCells();
+        HashSet cellsSeen = new HashSet();
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
@@ -3143,15 +3117,15 @@ public class CircuitChanges
 					if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
 						ap.getTechnology() == Schematics.tech) continue;
 					Variable var = ai.getVar(ArcInst.ARC_RADIUS);
-					if (var != null) cell.setBit(cellMark);
+					if (var != null) cellsSeen.add(cell);
 					if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
 						ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
-							cell.setBit(cellMark);
+							cellsSeen.add(cell);
 				}
 				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
-					if ((ni.getAngle() % 900) != 0) cell.setBit(cellMark);
+					if ((ni.getAngle() % 900) != 0) cellsSeen.add(cell);
 				}
 			}
 		}
@@ -3200,7 +3174,7 @@ public class CircuitChanges
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (cell.isBit(cellMark) && cell != curCell) numBad++;
+				if (cellsSeen.contains(cell) && cell != curCell) numBad++;
 			}
 			if (numBad == 0) continue;
 			if (lib == Library.getCurrent())
@@ -3210,7 +3184,7 @@ public class CircuitChanges
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					if (cell == curCell || !cell.isBit(cellMark)) continue;
+					if (cell == curCell || !cellsSeen.contains(cell)) continue;
 					if (cellsFound > 0) infstr += " ";;
 					infstr += cell.describe();
 					cellsFound++;
@@ -3227,7 +3201,6 @@ public class CircuitChanges
 				System.out.println("Found nonmanhattan geometry in library " + lib.getName());
 			}
 		}
-		cellMark.freeFlagSet();
 	}
 
 	/**
@@ -3625,14 +3598,13 @@ public class CircuitChanges
 			}
 
 			// make flag to track the nodes that move
-			FlagSet flag = Geometric.getFlagSet(1);
+			HashSet flag = new HashSet();
 
 			// remember the location of every node and arc
 			HashMap nodeLocation = new HashMap();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.clearBit(flag);
 				nodeLocation.put(ni, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
 			HashMap arcLocation = new HashMap();
@@ -3652,14 +3624,14 @@ public class CircuitChanges
 				if (eobj instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)eobj;
-					ni.setBit(flag);
+					flag.add(ni);
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
 					NodeInst ni1 = ai.getHead().getPortInst().getNodeInst();
 					NodeInst ni2 = ai.getTail().getPortInst().getNodeInst();
-					ni1.setBit(flag);
-					ni2.setBit(flag);
+					flag.add(ni1);
+					flag.add(ni2);
 					Layout.setTempRigid(ai, true);
 				}
 			}
@@ -3669,14 +3641,14 @@ public class CircuitChanges
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (!ni.isBit(flag)) continue;
+				if (!flag.contains(ni)) continue;
 
 				// make sure moving the node is allowed
 				int errorCode = cantEdit(cell, ni, true);
 				if (errorCode < 0) return false;
 				if (errorCode > 0)
 				{
-					ni.clearBit(flag);
+					flag.remove(ni);
 					continue;
 				}
 				numNodes++;
@@ -3695,7 +3667,7 @@ public class CircuitChanges
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
-					if (!ni.isBit(flag)) continue;
+					if (!flag.contains(ni)) continue;
 					nis[numNodes] = ni;
 					dXs[numNodes] = dX;
 					dYs[numNodes] = dY;
@@ -3706,7 +3678,7 @@ public class CircuitChanges
 				}
 				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
 			}
-			flag.freeFlagSet();
+			flag = null;
 
 			// look at all arcs and move them appropriately
 			for(Iterator it = highlighted.iterator(); it.hasNext(); )
@@ -4358,7 +4330,7 @@ public class CircuitChanges
 
 	/****************************** CHANGE CELL EXPANSION ******************************/
 
-	private static FlagSet expandFlagBit;
+	private static HashSet expandFlagBit;
 
 	/**
 	 * This method implements the command to expand the selected cells by 1 level down.
@@ -4456,7 +4428,7 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
-			expandFlagBit = Geometric.getFlagSet(1);
+			expandFlagBit = new HashSet();
 			if (unExpand)
 			{
 				for(Iterator it = list.iterator(); it.hasNext(); )
@@ -4477,7 +4449,7 @@ public class CircuitChanges
 					doExpand(ni, amount, 0);
 				Undo.redrawObject(ni);
 			}
-			expandFlagBit.freeFlagSet();
+			expandFlagBit = null;
 			EditWindow.repaintAllContents();
 			return true;
 		}
@@ -4534,7 +4506,7 @@ public class CircuitChanges
 		}
 
 		// expanded the cell
-		if (ni.isBit(expandFlagBit))
+		if (expandFlagBit.contains(ni))
 		{
 			ni.clearExpanded();
 		}
@@ -4542,7 +4514,7 @@ public class CircuitChanges
 
 	private static int setUnExpand(NodeInst ni, int amount)
 	{
-		ni.clearBit(expandFlagBit);
+		expandFlagBit.remove(ni);
 		if (!ni.isExpanded()) return(0);
 		NodeProto np = ni.getProto();
 		int depth = 0;
@@ -4560,7 +4532,7 @@ public class CircuitChanges
 				if (subNi.isExpanded())
 					depth = Math.max(depth, setUnExpand(subNi, amount));
 			}
-			if (depth < amount) ni.setBit(expandFlagBit);
+			if (depth < amount) expandFlagBit.add(ni);
 		}
 		return depth+1;
 	}
@@ -5022,12 +4994,7 @@ public class CircuitChanges
 
 			// see if there are dependencies
 			Set dummyLibs = new HashSet();
-			FlagSet fs = Library.getFlagSet(1);
-			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-			{
-				Library oLib = (Library)lIt.next();
-				oLib.clearBit(fs);
-			}
+			HashSet markedLibs = new HashSet();
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
@@ -5042,14 +5009,14 @@ public class CircuitChanges
 						String pt = (String)var.getObject();
 						dummyLibs.add(pt);
 					}
-					subCell.getLibrary().setBit(fs);
+					markedLibs.add(subCell.getLibrary());
 				}
 			}
 			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
 				Library oLib = (Library)lIt.next();
 				if (oLib == lib) continue;
-				if (!oLib.isBit(fs)) continue;
+				if (!markedLibs.contains(oLib)) continue;
 				System.out.println("   Makes use of cells in library " + oLib.getName());
 				infstr = new StringBuffer();
 				infstr.append("      These cells make reference to that library:");

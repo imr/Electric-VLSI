@@ -24,33 +24,20 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.geom.Point2D;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
+import java.util.HashSet;
 import java.util.Iterator;
 
 
@@ -272,23 +259,13 @@ public class Spread extends EDialog
 			double sLy = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
 			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 
-			// initialize by turning the marker bits off
-			FlagSet fs = Geometric.getFlagSet(1);
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst oNi = (NodeInst)it.next();
-				oNi.clearBit(fs);
-			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst oAi = (ArcInst)it.next();
-				oAi.clearBit(fs);
-			}
+			// initialize a collection of Geometrics that have been seen
+			HashSet geomSeen = new HashSet();
 
 			// set "already done" flag for nodes manhattan connected on spread line
 			boolean mustBeHor = true;
 			if (direction == 'l' || direction == 'r') mustBeHor = false;
-			manhattanTravel(ni, mustBeHor, fs);
+			manhattanTravel(ni, mustBeHor, geomSeen);
 
 			// set "already done" flag for nodes that completely cover spread node or are in its line
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -299,16 +276,16 @@ public class Spread extends EDialog
 				{
 					if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < sLx &&
 						oNi.getTrueCenterX() + oNi.getXSize()/2 - oSo.getHighXOffset() > sHx)
-							oNi.setBit(fs);
+							geomSeen.add(oNi);
 					if (oNi.getTrueCenterX() == (sLx+sHx)/2)
-						oNi.setBit(fs);
+						geomSeen.add(oNi);
 				} else
 				{
 					if (oNi.getTrueCenterY() - oNi.getYSize()/2 + oSo.getLowYOffset() < sLy &&
 						oNi.getTrueCenterY() + oNi.getYSize()/2 - oSo.getHighYOffset() > sHy)
-							oNi.setBit(fs);
+							geomSeen.add(oNi);
 					if (oNi.getTrueCenterY() == (sLy+sHy)/2)
-						oNi.setBit(fs);
+						geomSeen.add(oNi);
 				}
 			}
 
@@ -324,7 +301,7 @@ public class Spread extends EDialog
 				double yC2 = no2.getTrueCenterY();
 
 				// if one node is along spread line, make it "no1"
-				if (no2.isBit(fs))
+				if (geomSeen.contains(no2))
 				{
 					NodeInst swapNi = no1;  no1 = no2;  no2 = swapNi;
 					double swap = xC1;     xC1 = xC2;  xC2 = swap;
@@ -332,10 +309,10 @@ public class Spread extends EDialog
 				}
 
 				// if both nodes are along spread line, leave arc alone
-				if (no2.isBit(fs)) continue;
+				if (geomSeen.contains(no2)) continue;
 
 				boolean i = true;
-				if (no1.isBit(fs))
+				if (geomSeen.contains(no1))
 				{
 					// handle arcs connected to spread line
 					switch (direction)
@@ -364,7 +341,7 @@ public class Spread extends EDialog
 							break;
 					}
 				}
-				if (!i) ai.setBit(fs);
+				if (!i) geomSeen.add(ai);
 			}
 
 			// now look at every nodeinst in the cell
@@ -378,7 +355,7 @@ public class Spread extends EDialog
 					NodeInst oNi = (NodeInst)it.next();
 
 					// ignore this nodeinst if it has been spread already
-					if (oNi.isBit(fs)) continue;
+					if (geomSeen.contains(oNi)) continue;
 
 					// make sure nodeinst is on proper side of requested spread
 					double xC1 = oNi.getTrueCenterX();
@@ -397,7 +374,7 @@ public class Spread extends EDialog
 					for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst ai = (ArcInst)aIt.next();
-						if (ai.isBit(fs))
+						if (geomSeen.contains(ai))
 						{
 							// make arc temporarily unrigid
 							Layout.setTempRigid(ai, false);
@@ -407,7 +384,7 @@ public class Spread extends EDialog
 							Layout.setTempRigid(ai, true);
 						}
 					}
-					netTravel(oNi, fs);
+					netTravel(oNi, geomSeen);
 
 					// move this nodeinst in proper direction to do spread
 					switch(direction)
@@ -432,7 +409,6 @@ public class Spread extends EDialog
 					break;
 				}
 			}
-			fs.freeFlagSet();
 			if (!moved) System.out.println("Nothing changed");
 			return true;
 		}
@@ -440,20 +416,20 @@ public class Spread extends EDialog
 		/**
 		 * Method to travel through the network, setting flags.
 		 * @param ni the NodeInst from which to start traveling.
-		 * @param fs the FlagSet bit to mark during travel.
+		 * @param geomSeen the HashSet bit to mark during travel.
 		 */
-		private static void netTravel(NodeInst ni, FlagSet fs)
+		private static void netTravel(NodeInst ni, HashSet geomSeen)
 		{
-			if (ni.isBit(fs)) return;
-			ni.setBit(fs);
+			if (geomSeen.contains(ni)) return;
+			geomSeen.add(ni);
 
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				if (ai.isBit(fs)) continue;
-				netTravel(ai.getHead().getPortInst().getNodeInst(), fs);
-				netTravel(ai.getTail().getPortInst().getNodeInst(), fs);
+				if (geomSeen.contains(ai)) continue;
+				netTravel(ai.getHead().getPortInst().getNodeInst(), geomSeen);
+				netTravel(ai.getTail().getPortInst().getNodeInst(), geomSeen);
 			}
 		}
 
@@ -461,13 +437,13 @@ public class Spread extends EDialog
 		 * Method to recursively travel along all arcs on a NodeInst.
 		 * @param ni the NodeInst to examine.
 		 * @param hor true to travel along horizontal arcs; false for vertical.
-		 * @param fs the FlagSet used to mark nodes that are examined.
+		 * @param geomSeen the HashSet used to mark nodes that are examined.
 		 * This is called from "spread" to propagate along manhattan
 		 * arcs that are in the correct orientation (along the spread line).
 		 */
-		private static void manhattanTravel(NodeInst ni, boolean hor, FlagSet fs)
+		private static void manhattanTravel(NodeInst ni, boolean hor, HashSet geomSeen)
 		{
-			ni.setBit(fs);
+			geomSeen.add(ni);
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
@@ -485,8 +461,8 @@ public class Spread extends EDialog
 				NodeInst other = null;
 				if (ai.getHead() == con) other = ai.getTail().getPortInst().getNodeInst(); else
 					other = ai.getHead().getPortInst().getNodeInst();
-				if (other.isBit(fs)) continue;
-				manhattanTravel(other, hor, fs);
+				if (geomSeen.contains(other)) continue;
+				manhattanTravel(other, hor, geomSeen);
 			}
 		}
 	}

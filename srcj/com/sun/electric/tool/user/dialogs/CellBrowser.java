@@ -371,6 +371,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     // ---- Rename Cell extras ----
     private JLabel newCellNameLabel;
     private JTextField newCellName;
+    // ---- Delete Cell extras ----
+    private JCheckBox confirmDeletions;
 
     private void initExtras() {
         // extras should be added in gridboxlayout inside JPanel "extrasPanel",
@@ -423,6 +425,15 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             doAction.setText("Apply Rename");
         }
         else if (action == DoAction.deleteCell) {
+            boolean confirm = true;
+            confirmDeletions = new JCheckBox("Confirm Deletions", confirm);
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 0;
+            gridBagConstraints.gridy = 0;
+            gridBagConstraints.gridwidth = 2;
+            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+            extrasPanel.add(confirmDeletions, gridBagConstraints);
+
             // set current cell as the default
             Cell cell = WindowFrame.getCurrentCell();
             setCell(cell);
@@ -555,7 +566,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             closeDialog(null);                     // we have performed the action
 
         } else if (action == DoAction.deleteCell) {
-            boolean confirm = true;
+            boolean confirm = confirmDeletions.isSelected();
 
             List cells = getSelectedCells();
             String lastDeleted = null;

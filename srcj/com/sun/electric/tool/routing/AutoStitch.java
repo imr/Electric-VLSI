@@ -34,35 +34,31 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
-import java.util.Iterator;
-import java.util.List;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Auto Stitching tool.
@@ -112,7 +108,7 @@ public class AutoStitch
 	private static class AutoStitchJob extends Job
 	{
 		List nodesToStitch;
-		FlagSet nodeMark;
+		HashSet nodeMark;
 		boolean forced;
         List allRoutes;                 // list of all routes to be created at end of analysis
         List possibleInlinePins;        // list of pins that may be inline pins due to created arcs
@@ -130,11 +126,8 @@ public class AutoStitch
 
 		public boolean doIt()
 		{
-			FlagSet cellMark = Cell.getFlagSet(1);
-			nodeMark = NodeInst.getFlagSet(1);
-
-			// clear flag for finding cells that will be checked
-			cellMark.clearOnAllCells();
+			HashSet cellMark = new HashSet();
+			nodeMark = new HashSet();
 
 			// next pre-compute bounds on all nodes in cells to be changed
 			int count = 0;
@@ -143,13 +136,13 @@ public class AutoStitch
 			{
 				NodeInst nodeToStitch = (NodeInst)it.next();
 				Cell parent = nodeToStitch.getParent();
-				if (parent.isBit(cellMark)) continue;
-				parent.setBit(cellMark);
+				if (cellMark.contains(parent)) continue;
+				cellMark.add(parent);
 
 				for(Iterator nIt = parent.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
-					ni.clearBit(nodeMark);
+					nodeMark.remove(ni);
 
 					// count the ports on this node
 					int total = ni.getProto().getNumPorts();
@@ -181,7 +174,7 @@ public class AutoStitch
 			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.setBit(nodeMark);
+				nodeMark.add(ni);
 			}
 
 			// find out the prefered routing arc
@@ -234,11 +227,11 @@ public class AutoStitch
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					if (!cell.isBit(cellMark)) continue;
+					if (!cellMark.contains(cell)) continue;
 				}
 			}
-			cellMark.freeFlagSet();
-			nodeMark.freeFlagSet();
+			cellMark = null;
+			nodeMark = null;
 
             // create the routes
             for (Iterator it = allRoutes.iterator(); it.hasNext(); ) {
@@ -295,7 +288,7 @@ public class AutoStitch
 				NodeInst oNi = (NodeInst)it.next();
 
 				// if both nodes are being checked, examine them only once
-				if (oNi.isBit(nodeMark) && oNi.getNodeIndex() <= ni.getNodeIndex()) continue;
+				if (nodeMark.contains(oNi) && oNi.getNodeIndex() <= ni.getNodeIndex()) continue;
 
 				// now look at every layer in this node
 				Rectangle2D oBounds = oNi.getBounds();

@@ -34,7 +34,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -54,15 +53,21 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the "Change" dialog.
@@ -872,19 +877,7 @@ public class Change extends EDialog implements HighlightListener
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd == null) return;
 			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-			FlagSet marked = Geometric.getFlagSet(1);
-
-			// mark the pin nodes that must be changed
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.clearBit(marked);
-			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				ai.clearBit(marked);
-			}
+			HashSet geomMarked = new HashSet();
 
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
@@ -892,7 +885,7 @@ public class Change extends EDialog implements HighlightListener
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 				if (ai.getProto() != oldAi.getProto()) continue;
-				ai.setBit(marked);
+				geomMarked.add(ai);
 			}
 			if (connected)
 			{
@@ -902,7 +895,7 @@ public class Change extends EDialog implements HighlightListener
 					ArcInst ai = (ArcInst)it.next();
 					if (ai.getProto() != oldAi.getProto()) continue;
 					if (!netlist.sameNetwork(ai, oldAi)) continue;
-					ai.setBit(marked);
+					geomMarked.add(ai);
 				}
 			}
 			if (thiscell)
@@ -911,7 +904,7 @@ public class Change extends EDialog implements HighlightListener
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (ai.getProto() != oldAi.getProto()) continue;
-					ai.setBit(marked);
+					geomMarked.add(ai);
 				}
 			}
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -924,9 +917,9 @@ public class Change extends EDialog implements HighlightListener
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
-					if (!con.getArc().isBit(marked)) { allArcs = false;   break; }
+					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
 				}
-				if (allArcs) ni.setBit(marked);
+				if (allArcs) geomMarked.add(ni);
 			}
 
 			// now create new pins where they belong
@@ -937,7 +930,7 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (!ni.isBit(marked)) continue;
+				if (!geomMarked.contains(ni)) continue;
 				dupPins.add(ni);
 			}
 			HashMap newNodes = new HashMap();
@@ -947,7 +940,8 @@ public class Change extends EDialog implements HighlightListener
 
 				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
 				if (newNi == null) return;
-				newNi.clearBit(marked);
+				geomMarked.remove(newNi);
+//				newNi.clearBit(marked);
 				newNodes.put(ni, newNi);
 			}
 
@@ -956,7 +950,7 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				if (ai.isBit(marked)) dupArcs.add(ai);
+				if (geomMarked.contains(ai)) dupArcs.add(ai);
 			}
 			for(Iterator it = dupArcs.iterator(); it.hasNext(); )
 			{
@@ -995,7 +989,7 @@ public class Change extends EDialog implements HighlightListener
 				        ai.getTail().getLocation(), null);
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
-				newAi.clearBit(marked);
+				geomMarked.remove(newAi);
 			}
 
 			// now remove the previous arcs and nodes
@@ -1003,7 +997,7 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				if (ai.isBit(marked)) killArcs.add(ai);
+				if (geomMarked.contains(ai)) killArcs.add(ai);
 			}
 			for(Iterator it = killArcs.iterator(); it.hasNext(); )
 			{
@@ -1015,14 +1009,13 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (ni.isBit(marked)) killNodes.add(ni);
+				if (geomMarked.contains(ni)) killNodes.add(ni);
 			}
 			for(Iterator it = killNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.kill();
 			}
-			marked.freeFlagSet();
 		}
 
 		NodeProto [] contactStack = new NodeProto[100];

@@ -23,13 +23,12 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -39,7 +38,6 @@ import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.datatransfer.StringSelection;
@@ -59,6 +57,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -288,7 +287,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	{
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 
-		FlagSet cellFlag = Cell.getFlagSet(1);
+		HashSet cellsSeen = new HashSet();
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
@@ -297,7 +296,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			for(Iterator eit = cells.iterator(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
-				cell.clearBit(cellFlag);
+				cellsSeen.remove(cell);
 			}
 			for(Iterator eit = cells.iterator(); eit.hasNext(); )
 			{
@@ -333,14 +332,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					Cell cellInGroup = (Cell)gIt.next();
                     if ((cellInGroup.getNumVersions() > 1) && (cellInGroup.getNewestVersion() != cellInGroup)) continue;
-					if (cellInGroup.isBit(cellFlag)) continue;
+					if (cellsSeen.contains(cellInGroup)) continue;
 					if (groupTree == null)
 					{
 						groupTree = new DefaultMutableTreeNode(group);
 					}
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellInGroup);
 					groupTree.add(cellTree);
-					cellInGroup.setBit(cellFlag);
+					cellsSeen.add(cellInGroup);
 					if (cellInGroup.getNumVersions() > 1)
 					{
 						for(Iterator vIt = cellInGroup.getVersions(); vIt.hasNext(); )
@@ -357,7 +356,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			}
 			libraryExplorerTree.add(libTree);
 		}
-		cellFlag.freeFlagSet();
 	}
 
 	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
