@@ -58,7 +58,6 @@ import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
-import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -757,33 +756,65 @@ public class DebugMenus {
      * Easy way to test bash scripts
      */
     public static void testBash()
-    {
-        String regressionname = "area";
-        String logname = "output/"+regressionname+Version.getVersion()+".log";
-        boolean[] errorCounts = new boolean[2];
-        double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
+    {String regressionname = "geoOnNet";
+String logname = "output/"+regressionname+Version.getVersion()+".log";
+boolean[] errorCounts = new boolean[2];
+double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
+double wireLength = GenMath.toNearest(163.30159818105273, delta);
 
-        try {
-          TopLevel.getMessagesWindow().save(logname);
-          String techName = "tsmc90";
-          //DebugMenus.makeFakeCircuitryForCoverageCommand(techName, false);
-          Library rootLib = Library.findLibrary("noname");
-          Cell cell = rootLib.findNodeProto("higher{lay}");
-          Rectangle2D bbox = cell.getBounds();
+try {
+  TopLevel.getMessagesWindow().save(logname);
+  String techName = "tsmc90";
+  DebugMenus.makeFakeCircuitryCommand(techName, false);
+  Library rootLib = Library.findLibrary("noname");
+  Cell cell = rootLib.findNodeProto(techName+"test{lay}");
+  double calculatedValue = 0;
 
-          System.out.println("------RUNNING QTREE MODE -------------");
-          errorCounts[0] = CellMenu.layerCoverageCommand(cell, GeometryHandler.ALGO_QTREE, false);
+  // Similar to ListGeomsAllNetworksJob
+  Netlist netlist = cell.getNetlist(true);
+  ArrayList networks = new ArrayList();
+  for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+    networks.add(it.next());
+  }
+    // sort list of networks by name
+    Collections.sort(networks, new TextUtils.NetworksByName());
 
-          System.out.println("------RUNNING SWEEP MODE -------------");
-          errorCounts[1] = CellMenu.layerCoverageCommand(cell, GeometryHandler.ALGO_SWEEP, false);
-        } catch (Exception e) {
-          System.out.println("exception: "+e);
-          e.printStackTrace();
-          //System.exit(1);
-        }
+    System.out.println("------RUNNING QTREE MODE -------------");
+    for (Iterator it = networks.iterator(); it.hasNext(); ) {
+        Network net = (Network)it.next();
+        HashSet nets = new HashSet();
+        nets.add(net);
+        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false, GeometryHandler.ALGO_QTREE);
+        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+        // Only 1 net gives non zero value
+        if (geoms.getTotalWireLength() != 0)
+            calculatedValue = GenMath.toNearest(geoms.getTotalWireLength(), delta);
+    }
+    System.out.println("Wire value " + calculatedValue + " (expected " + wireLength + ")");
+    errorCounts[0] = !GenMath.doublesEqual(calculatedValue, wireLength);
 
-        System.out.println("Error results : QTREE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
-        //System.exit((!errorCounts[0] && !errorCounts[1]) ? 0 : 1);
+    System.out.println("------RUNNING SWEEP MODE -------------");
+    calculatedValue = 0;
+    for (Iterator it = networks.iterator(); it.hasNext(); ) {
+        Network net = (Network)it.next();
+        HashSet nets = new HashSet();
+        nets.add(net);
+        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false, GeometryHandler.ALGO_SWEEP);
+        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+        // Only 1 net gives non zero value
+        if (geoms.getTotalWireLength() != 0)
+            calculatedValue = GenMath.toNearest(geoms.getTotalWireLength(), delta);
+    }
+    System.out.println("Wire value " + calculatedValue + " (expected " + wireLength + ")");
+    errorCounts[1] = !GenMath.doublesEqual(calculatedValue, wireLength);
+} catch (Exception e) {
+  System.out.println("exception: "+e);
+  e.printStackTrace();
+  System.exit(1);
+}
+
+System.out.println("Error results : QTREE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
+System.exit((!errorCounts[0] && !errorCounts[1]) ? 0 : 1);
     }
 
     public static void genFakeNodes()

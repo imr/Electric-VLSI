@@ -215,6 +215,20 @@ public class CoverageTab extends PreferencePanel
             GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
             layer.setFactoryAreaCoverageInfo(value.doubleValue());
 		}
+
+        // Default values are 50mm x 50 mm
+        double val = TextUtils.atof(widthField.getText());
+        if (val != LayerCoverage.getWidth(curTech))
+            LayerCoverage.setWidth(val, curTech);
+        val = TextUtils.atof(heightField.getText());
+        if (val != LayerCoverage.getHeight(curTech))
+            LayerCoverage.setHeight(val, curTech);
+        val = TextUtils.atof(deltaXField.getText());
+        if (val != LayerCoverage.getDeltaX(curTech))
+            LayerCoverage.setDeltaX(val, curTech);
+        val = TextUtils.atof(deltaYField.getText());
+        if (val != LayerCoverage.getDeltaY(curTech))
+            LayerCoverage.setDeltaY(val, curTech);
 	}
 
 	/** This method is called from within the constructor to
