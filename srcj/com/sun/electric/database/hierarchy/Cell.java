@@ -813,6 +813,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 		}
 		setProtoName(newName);
+		cellGroup.groupName = null;
 	}
 
 	/**

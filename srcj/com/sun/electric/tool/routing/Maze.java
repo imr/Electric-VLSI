@@ -38,6 +38,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -224,9 +225,11 @@ public class Maze
 	}
 
 	/**
-	 * Method to replace the selected unrouted arcs with routed geometry
+	 * This is the public interface for Maze Routing when done in batch mode.
+	 * It replaces the selected unrouted arcs with routed geometry
+	 * @param cell the cell to be Maze-routed.
 	 */
-	private void routeSelected(Cell cell)
+	public void routeSelected(Cell cell)
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
@@ -331,10 +334,10 @@ public class Maze
 		// add the ports to the net
 		for(int i=0; i<count; i++)
 		{
-			PortInst pi = (PortInst)netEnds.get(i);
-			Poly poly = pi.getPoly();
-			double cXD = poly.getCenterX();
-			double cYD = poly.getCenterY();
+			Connection con = (Connection)netEnds.get(i);
+			PortInst pi = con.getPortInst();
+			double cXD = con.getLocation().getX();
+			double cYD = con.getLocation().getY();
 			SRPORT fsp = addPort(srnet, determineDir(pi.getNodeInst(), cXD, cYD), cXD, cYD, pi);
 			if (fsp == null)
 			{
@@ -2051,11 +2054,15 @@ public class Maze
 			double oFX = fX, oFY = fY;
 			if (path.end[0] && port.pi != null)
 			{
-				fX = port.cX;   fY = port.cY;
-				if (fX != oFX || fY != oFY)
-				{
-					adjustPath(net.paths, path, 0, fX-oFX, fY-oFY);
-				}
+//				fX = port.cX;   fY = port.cY;
+//				if (fX != oFX || fY != oFY)
+//				{
+//					adjustPath(net.paths, path, 0, fX-oFX, fY-oFY);
+//				}
+				Poly portPoly = port.pi.getPoly();
+				Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
+				if (closest.getX() != oFX || closest.getY() != oFY)
+					adjustPath(net.paths, path, 0, closest.getX()-oFX, closest.getY()-oFY);
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? mazeVertWire : mazeHorizWire;
@@ -2073,11 +2080,15 @@ public class Maze
 			fX = oFX = path.wx[1];   fY = oFY = path.wy[1];
 			if (path.end[1] && port.pi != null)
 			{
-				fX = port.cX;   fY = port.cY;
-				if (fX != oFX || fY != oFY)
-				{
-					adjustPath(net.paths, path, 1, fX-oFX, fY-oFY);
-				}
+//				fX = port.cX;   fY = port.cY;
+//				if (fX != oFX || fY != oFY)
+//				{
+//					adjustPath(net.paths, path, 1, fX-oFX, fY-oFY);
+//				}
+				Poly portPoly = port.pi.getPoly();
+				Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
+				if (closest.getX() != oFX || closest.getY() != oFY)
+					adjustPath(net.paths, path, 1, closest.getX()-oFX, closest.getY()-oFY);
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? mazeVertWire : mazeHorizWire;
@@ -2102,13 +2113,13 @@ public class Maze
 
 			// create arc between the end points
 			List fromPortInstList = null;
+			fX = path.wx[0];   fY = path.wy[0];
 			if (path.end[0] && port.pi != null)
 			{
 				fromPortInstList = new ArrayList();
 				fromPortInstList.add(port.pi);
 			} else
 			{
-				fX = path.wx[0];   fY = path.wy[0];
 				fromPortInstList = findPort(parent, fX, fY, ap, net, false);
 				if (fromPortInstList.size() == 0)
 				{
@@ -2126,13 +2137,13 @@ public class Maze
 			}
 
 			List toPortInstList = null;
+			double tX = path.wx[1];   double tY = path.wy[1];
 			if (path.end[1] && port.pi != null)
 			{
 				toPortInstList = new ArrayList();
 				toPortInstList.add(port.pi);
 			} else
 			{
-				double tX = path.wx[1];   double tY = path.wy[1];
 				toPortInstList = findPort(parent, tX, tY, ap, net, false);
 				if (toPortInstList.size() == 0)
 				{
@@ -2155,7 +2166,7 @@ public class Maze
 				// now make the connection (simple wire to wire for now)
 				PortInst fPi = (PortInst)fromPortInstList.get(0);
 				PortInst tPi = (PortInst)toPortInstList.get(0);
-				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi);
+				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi, new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 				if (ai == null)
 				{
 					System.out.println("Could not create path (arc)");
@@ -2240,7 +2251,7 @@ public class Maze
 		Point2D searchPoint = new Point2D.Double(x, y);
 		double bestDist = 0;
 		PortInst closestPi = null;
-		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
+		Rectangle2D searchBounds = new Rectangle2D.Double(x-0.5, y-0.5, 1, 1);
 		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();

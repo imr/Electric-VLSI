@@ -23,8 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -132,6 +135,37 @@ public class LayerVisibility extends EDialog
 						System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
 					}
 				}
+			}
+		}
+
+		// recompute visibility of primitive nodes and arcs
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)nIt.next();
+				Technology.NodeLayer [] layers = np.getLayers();
+				boolean invisible = true;
+				for(int i=0; i<layers.length; i++)
+				{
+					Technology.NodeLayer lay = layers[i];
+					if (lay.getLayer().isVisible()) { invisible = false;   break; }
+				}
+				np.setNodeInvisible(invisible);
+			}
+			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)aIt.next();
+				PrimitiveArc pAp = (PrimitiveArc)ap;
+				Technology.ArcLayer [] layers = pAp.getLayers();
+				boolean invisible = true;
+				for(int i=0; i<layers.length; i++)
+				{
+					Technology.ArcLayer lay = layers[i];
+					if (lay.getLayer().isVisible()) { invisible = false;   break; }
+				}
+				ap.setArcInvisible(invisible);
 			}
 		}
 

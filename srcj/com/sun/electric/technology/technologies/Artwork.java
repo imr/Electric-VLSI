@@ -594,6 +594,7 @@ public class Artwork extends Technology
 			closed = false;
 		}
 		int pts = (int)(endangle * ELLIPSEPOINTS / (Math.PI * 2.0));
+		if (pts < 3) pts = 3;
 		if (closed) pts++;
 
 		Point2D [] points = new Point2D.Double[pts];

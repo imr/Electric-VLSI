@@ -1432,6 +1432,19 @@ public class User extends Listener
 	 */
 	public static void setExtractCopiesExports(boolean on) { cacheExtractCopiesExports.setBoolean(on); }
 
+	private static Pref cacheArcsAutoIncremented = Pref.makeBooleanPref("ArcsAutoIncremented", User.tool.prefs, true);
+	/**
+	 * Method to tell whether Duplicate/Paste/Array of ArcInsts auto-increments arc names.
+	 * The default is "true".
+	 * @return true if the system auto-increments arc names when doing a Duplicate/Paste/Array.
+	 */
+	public static boolean isArcsAutoIncremented() { return cacheArcsAutoIncremented.getBoolean(); }
+	/**
+	 * Method to set whether Duplicate/Paste/Array of ArcInsts auto-increments arc names.
+	 * @param on true if the system auto-increments arc names when doing a Duplicate/Paste/Array.
+	 */
+	public static void setArcsAutoIncremented(boolean on) { cacheArcsAutoIncremented.setBoolean(on); }
+
 	private static Pref cacheNewNodeRotation = Pref.makeIntPref("NewNodeRotation", User.tool.prefs, 0);
 	/**
 	 * Method to return the default rotation of all new nodes.

@@ -4,8 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
-IMP/MAN: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes. New location of
-scale factor in 3D dialog.
+IMP: (11/29/04, SMR) Improved name incrementing so that lists are all incremented
+     (for example, "A,B" used to become "A,B_1" but now becomes "A_1,B_1").
+
+IMP: (11/28/04, SMR) Added primitive node/arc invisibility when all of their layers
+     are invisible, so that they are not selectable.
+
+IMP/MAN: (11/25/04, SMR) Added DXF input.
+
+IMP: (11/25/04, SMR) Added "grid" button to analog waveform window.
+
+IMP: (11/25/04, SMR) Renaming a group shows up in the explorer tree.
+
+IMP/MAN: (11/25/04, SMR) New Arc Preference: Duplicate/Array/Paste auto-increments arc names.
+
+IMP/MAN: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes.
+     New location of scale factor in 3D dialog.
 
 BUG: (11/25/04, GVG) DRC badBoxArea not returning when error found and then wrong good date was stored (Bug #13)
 FIX: return inserted

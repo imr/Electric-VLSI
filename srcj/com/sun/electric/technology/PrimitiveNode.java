@@ -428,7 +428,8 @@ public class PrimitiveNode implements NodeProto
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
-	/** set if nodes are in same group in menu */           private static final int NODESPECIAL =      01000000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =      0400000;
+	/** set if nodes are in same group in menu */           private static final int NODESPECIAL =    01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
 	/** set if nodes are in same group in menu */           private static final int NODEGROUP =      04000000;
 
@@ -1283,6 +1284,25 @@ public class PrimitiveNode implements NodeProto
 	 * @return true if instances of this PrimitiveNode cause arcs to shrink in nonmanhattan situations.
 	 */
 	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode to be completely invisible, and unselectable.
+	 * When all of its layers have been made invisible, the node is flagged to be invisible.
+	 * @param invisible true to make this PrimitiveNode completely invisible and unselectable.
+	 */
+	public void setNodeInvisible(boolean invisible)
+	{
+		/*checkChanging();*/
+		if (invisible) userBits |= NINVISIBLE; else
+			userBits &= ~NINVISIBLE;
+	}
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are invisible.
+	 * When all of its layers have been made invisible, the node is flagged to be invisible.
+	 * @return true if instances of this PrimitiveNode are invisible.
+	 */
+	public boolean isNodeInvisible() { return (userBits & NINVISIBLE) != 0; }
 
 	/**
 	 * Method to set this PrimitiveNode so that it is not used.

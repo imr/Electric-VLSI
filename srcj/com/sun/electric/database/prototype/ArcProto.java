@@ -200,20 +200,21 @@ public abstract class ArcProto
 	/** The temporary flag bits. */								private int flagBits;
 
 	// the meaning of the "userBits" field:
-//	/** these arcs are fixed-length */							private static final int WANTFIX =            01;
-//	/** these arcs are fixed-angle */							private static final int WANTFIXANG =         02;
-//	/** set if arcs should not slide in ports */				private static final int WANTCANTSLIDE =      04;
-//	/** set if ends do not extend by half width */				private static final int WANTNOEXTEND =      010;
-//	/** set if arcs should be negated */						private static final int WANTNEGATED =       020;
-//	/** set if arcs should be directional */					private static final int WANTDIRECTIONAL =   040;
-	/** set if arcs can wipe wipable nodes */					private static final int CANWIPE =          0100;
-	/** set if arcs can curve */								private static final int CANCURVE =         0200;
-	/** arc function (from efunction.h) */						private static final int AFUNCTION =      017400;
-	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH =         8;
-//	/** angle increment for this type of arc */					private static final int AANGLEINC =   017760000;
-//	/** right shift for AANGLEINC */							private static final int AANGLEINCSH =        13;
-	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT = 020000000;
-	/** set if arc is not used */								private static final int ANOTUSED = 020000000000;
+//	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
+//	/** these arcs are fixed-angle */							private static final int WANTFIXANG  =         02;
+//	/** set if arcs should not slide in ports */				private static final int WANTCANTSLIDE  =      04;
+//	/** set if ends do not extend by half width */				private static final int WANTNOEXTEND  =      010;
+//	/** set if arcs should be negated */						private static final int WANTNEGATED  =       020;
+//	/** set if arcs should be directional */					private static final int WANTDIRECTIONAL  =   040;
+	/** set if arcs can wipe wipable nodes */					private static final int CANWIPE  =          0100;
+	/** set if arcs can curve */								private static final int CANCURVE  =         0200;
+	/** arc function (from efunction.h) */						private static final int AFUNCTION  =      017400;
+	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH  =         8;
+//	/** angle increment for this type of arc */					private static final int AANGLEINC  =   017760000;
+//	/** right shift for AANGLEINC */							private static final int AANGLEINCSH  =        13;
+	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT  = 020000000;
+	/** set if arc is invisible and unselectable */				private static final int AINVISIBLE   = 040000000;
+	/** set if arc is not used */								private static final int ANOTUSED  = 020000000000;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -491,6 +492,24 @@ public abstract class ArcProto
 	 * @return true if this ArcProto is used.
 	 */
 	public boolean isNotUsed() { return (userBits & ANOTUSED) != 0; }
+
+	/**
+	 * Method to set this ArcProto to be completely invisible, and unselectable.
+	 * When all of its layers have been made invisible, the node is flagged to be invisible.
+	 * @param invisible true to set this ArcProto to be completely invisible and unselectable.
+	 */
+	public void setArcInvisible(boolean invisible)
+	{
+		if (invisible) userBits |= AINVISIBLE; else
+			userBits &= ~AINVISIBLE;
+	}
+
+	/**
+	 * Method to tell if instances of this ArcProto are invisible.
+	 * When all of its layers have been made invisible, the node is flagged to be invisible.
+	 * @return true if instances of this ArcProto are invisible.
+	 */
+	public boolean isArcInvisible() { return (userBits & AINVISIBLE) != 0; }
 
 	/**
 	 * Method to set this ArcProto so that instances of it can wipe nodes.

@@ -41,6 +41,7 @@ import java.awt.Font;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -829,6 +830,12 @@ public abstract class ElectricObject
 //		}
 	}
 
+	private static class ArrayName
+	{
+		private String baseName;
+		private String indexPart;
+	}
+
 	/**
 	 * Method to return a unique object name in a Cell.
 	 * @param name the original name that is not unique.
@@ -877,137 +884,200 @@ public abstract class ElectricObject
 
 		char separateChar = '_';
 
-		// now see if the name ends in "]"
-		int possibleEnd = 0;
-		int nameLen = name.length();
-		if (name.endsWith("]"))
+		// break the string into a list of ArrayName objects
+		List names = new ArrayList();
+		boolean inBracket = false;
+		int len = name.length();
+		int startOfBase = 0;
+		int startOfIndex = -1;
+		for(int i=0; i<len; i++)
 		{
-			// see if the array contents can be incremented
-			int possibleStart = -1;
-			int endPos = nameLen-1;
-			for(;;)
+			char ch = name.charAt(i);
+			if (ch == '[')
 			{
-				// find the range of characters in square brackets
-				int startPos = name.lastIndexOf('[', endPos);
-				if (startPos < 0) break;
+				if (startOfIndex < 0) startOfIndex = i;
+				inBracket = true;
+			}
+			if (ch == ']') inBracket = false;
+			if ((ch == ',' && !inBracket) || i == len-1)
+			{
+				// remember this arrayname
+				if (i == len-1) i++;
+				ArrayName an = new ArrayName();
+				int endOfBase = startOfIndex;
+				if (endOfBase < 0) endOfBase = i;
+				an.baseName = name.substring(startOfBase, endOfBase);
+				if (startOfIndex >= 0) an.indexPart = name.substring(startOfIndex, i);
+				names.add(an);
+				startOfBase = i+1;
+				startOfIndex = -1;
+			}
+		}
 
-				// see if there is a comma in the bracketed expression
-				int i = name.indexOf(',', startPos);
-				if (i >= 0 && i < endPos)
-				{
-					// this bracketed expression cannot be incremented: move on
-					if (startPos > 0 && name.charAt(startPos-1) == ']')
-					{
-						endPos = startPos-1;
-						continue;
-					}
-					break;
-				}
+		for(Iterator it = names.iterator(); it.hasNext(); )
+		{
+			ArrayName an = (ArrayName)it.next();
 
-				// see if there is a colon in the bracketed expression
-				i = name.indexOf(':', startPos);
-				if (i >= 0 && i < endPos)
+			// adjust the index part if possible
+			boolean indexAdjusted = false;
+			String index = an.indexPart;
+			if (index != null)
+			{
+				int possibleEnd = 0;
+				int nameLen = index.length();
+
+				// see if the index part can be incremented
+				int possibleStart = -1;
+				int endPos = nameLen-1;
+				for(;;)
 				{
-					// colon: make sure there are two numbers
-					String firstIndex = name.substring(startPos+1, i);
-					String secondIndex = name.substring(i+1, endPos);
-					if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex))
+					// find the range of characters in square brackets
+					int startPos = index.lastIndexOf('[', endPos);
+					if (startPos < 0) break;
+	
+					// see if there is a comma in the bracketed expression
+					int i = index.indexOf(',', startPos);
+					if (i >= 0 && i < endPos)
 					{
-						int startIndex = TextUtils.atoi(firstIndex);
-						int endIndex = TextUtils.atoi(secondIndex);
-						int spacing = Math.abs(endIndex - startIndex) + 1;
-						for(int nextIndex = 1; ; nextIndex++)
+						// this bracketed expression cannot be incremented: move on
+						if (startPos > 0 && index.charAt(startPos-1) == ']')
 						{
-							String newname = name.substring(0, startPos) + "[" + (startIndex+spacing*nextIndex) +
-								":" + (endIndex+spacing*nextIndex) + name.substring(endPos);
-							if (cell.isUniqueName(newname, cls, null)) return newname;
+							endPos = startPos-1;
+							continue;
 						}
+						break;
 					}
-
+	
+					// see if there is a colon in the bracketed expression
+					i = index.indexOf(':', startPos);
+					if (i >= 0 && i < endPos)
+					{
+						// colon: make sure there are two numbers
+						String firstIndex = index.substring(startPos+1, i);
+						String secondIndex = index.substring(i+1, endPos);
+						if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex))
+						{
+							int startIndex = TextUtils.atoi(firstIndex);
+							int endIndex = TextUtils.atoi(secondIndex);
+							int spacing = Math.abs(endIndex - startIndex) + 1;
+							for(int nextIndex = 1; ; nextIndex++)
+							{
+								String newIndex = index.substring(0, startPos) + "[" + (startIndex+spacing*nextIndex) +
+									":" + (endIndex+spacing*nextIndex) + index.substring(endPos);
+								if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+								{
+									indexAdjusted = true;
+									an.indexPart = newIndex;
+									break;
+								}
+							}
+							if (indexAdjusted) break;
+						}
+	
+						// this bracketed expression cannot be incremented: move on
+						if (startPos > 0 && index.charAt(startPos-1) == ']')
+						{
+							endPos = startPos-1;
+							continue;
+						}
+						break;
+					}
+	
+					// see if this bracketed expression is a pure number
+					String bracketedExpression = index.substring(startPos+1, endPos);
+					if (TextUtils.isANumber(bracketedExpression))
+					{
+						int nextIndex = TextUtils.atoi(bracketedExpression) + 1;
+						for(; ; nextIndex++)
+						{
+							String newIndex = index.substring(0, startPos) + "[" + nextIndex + index.substring(endPos);
+							if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+							{
+								indexAdjusted = true;
+								an.indexPart = newIndex;
+								break;
+							}
+						}
+						if (indexAdjusted) break;
+					}
+	
+					// remember the first index that could be incremented in a pinch
+					if (possibleStart < 0)
+					{
+						possibleStart = startPos;
+						possibleEnd = endPos;
+					}
+	
 					// this bracketed expression cannot be incremented: move on
-					if (startPos > 0 && name.charAt(startPos-1) == ']')
+					if (startPos > 0 && index.charAt(startPos-1) == ']')
 					{
 						endPos = startPos-1;
 						continue;
 					}
 					break;
 				}
-
-				// see if this bracketed expression is a pure number
-				String bracketedExpression = name.substring(startPos+1, endPos);
-				if (TextUtils.isANumber(bracketedExpression))
+	
+				// if there was a possible place to increment, do it
+				if (!indexAdjusted && possibleStart >= 0)
 				{
-					int nextIndex = TextUtils.atoi(bracketedExpression) + 1;
+					// nothing simple, but this one can be incremented
+					int i;
+					for(i=possibleEnd-1; i>possibleStart; i--)
+						if (!TextUtils.isDigit(index.charAt(i))) break;
+					int nextIndex = TextUtils.atoi(index.substring(i+1)) + 1;
+					int startPos = i+1;
+					if (index.charAt(startPos-1) == separateChar) startPos--;
 					for(; ; nextIndex++)
 					{
-						String newname = name.substring(0, startPos) + "[" + nextIndex + name.substring(endPos);
-						if (cell.isUniqueName(newname, cls, null)) return newname;
+						String newIndex = index.substring(0, startPos) + separateChar + nextIndex + index.substring(possibleEnd);
+						if (cell.isUniqueName(an.baseName + newIndex, cls, null))
+						{
+							indexAdjusted = true;
+							an.indexPart = newIndex;
+							break;
+						}
 					}
 				}
-
-				// remember the first index that could be incremented in a pinch
-				if (possibleStart < 0)
-				{
-					possibleStart = startPos;
-					possibleEnd = endPos;
-				}
-
-				// this bracketed expression cannot be incremented: move on
-				if (startPos > 0 && name.charAt(startPos-1) == ']')
-				{
-					endPos = startPos-1;
-					continue;
-				}
-				break;
 			}
 
-			// if there was a possible place to increment, do it
-			if (possibleStart >= 0)
+			// if the index was not adjusted, adjust the base part
+			if (!indexAdjusted)
 			{
-				// nothing simple, but this one can be incremented
-				int i;
-				for(i=possibleEnd-1; i>possibleStart; i--)
-					if (!TextUtils.isDigit(name.charAt(i))) break;
-				int nextIndex = TextUtils.atoi(name.substring(i+1)) + 1;
-				int startPos = i+1;
-				if (name.charAt(startPos-1) == separateChar) startPos--;
-				for(; ; nextIndex++)
+				// array contents cannot be incremented: increment base name
+				String base = an.baseName;
+				int startPos = base.length();
+				int endPos = base.length();
+	
+				// if there is a numeric part at the end, increment that
+				String localSepString = String.valueOf(separateChar);
+				while (startPos > 0 && TextUtils.isDigit(base.charAt(startPos-1))) startPos--;
+				int nextIndex = 1;
+				if (startPos >= endPos)
 				{
-					String newname = name.substring(0, startPos) + separateChar + nextIndex + name.substring(possibleEnd);
-					if (cell.isUniqueName(newname, cls, null)) return newname;
+					if (startPos > 0 && base.charAt(startPos-1) == separateChar) startPos--;
+				} else
+				{
+					nextIndex = TextUtils.atoi(base.substring(startPos)) + 1;
+					localSepString = "";
 				}
+	
+				// find the unique index to use
+				String prefix = base.substring(0, startPos) + localSepString;
+				int uniqueIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+				an.baseName = prefix + uniqueIndex + base.substring(endPos);
 			}
 		}
-
-		// array contents cannot be incremented: increment base name
-		int startPos = 0;
-		for( ; startPos < name.length(); startPos++)
-			if (name.charAt(startPos) == '[') break;
-		int endPos = startPos;
-
-		// if there is a numeric part at the end, increment that
-		String localSepString = String.valueOf(separateChar);
-		while (startPos > 0 && TextUtils.isDigit(name.charAt(startPos-1))) startPos--;
-		int nextIndex = 1;
-		if (startPos >= endPos)
+		StringBuffer result = new StringBuffer();
+		boolean first = true;
+		for(Iterator it = names.iterator(); it.hasNext(); )
 		{
-			if (startPos > 0 && name.charAt(startPos-1) == separateChar) startPos--;
-		} else
-		{
-			nextIndex = TextUtils.atoi(name.substring(startPos)) + 1;
-			localSepString = "";
+			if (first) first = false; else
+				result.append(",");
+			ArrayName an = (ArrayName)it.next();
+			result.append(an.baseName);
+			if (an.indexPart != null) result.append(an.indexPart);
 		}
-
-		// find the unique index to use
-		String prefix = name.substring(0, startPos) + localSepString;
-		int uniqueIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
-		return prefix + uniqueIndex + name.substring(endPos);
-
-//		for(; ; nextIndex++)
-//		{
-//			String newName = name.substring(0, startPos) + localSepString + nextIndex + name.substring(endPos);
-//			if (cell.isUniqueName(newName, cls, null)) return newName;
-//		}
+		return result.toString();
 	}
 
 	/**

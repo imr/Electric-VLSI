@@ -28,8 +28,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -43,12 +43,12 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -168,6 +168,7 @@ public class WaveformWindow implements WindowContent
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
 	private int highlightedSweep = -1;
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
+	/** true to show a grid (analog only) */				private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
@@ -182,6 +183,7 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
 	private static final ImageIcon iconPointsOn = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOn.gif");
 	private static final ImageIcon iconPointsOff = Resources.getResource(WaveformWindow.class, "ButtonSimPointsOff.gif");
+	private static final ImageIcon iconToggleGrid = Resources.getResource(WaveformWindow.class, "ButtonSimGrid.gif");
 	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
 	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
 	private static final ImageIcon iconVCRRewind = Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif");
@@ -699,10 +701,6 @@ public class WaveformWindow implements WindowContent
 		private Font waveWindowFont;
 		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
 
-		/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
-		/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
-
-
 		/**
 		 * Method to repaint this Panel.
 		 */
@@ -742,6 +740,33 @@ public class WaveformWindow implements WindowContent
 			}
 			if (isAnalog)
 			{
+				if (waveWindow.showGrid)
+				{
+					double displayedXLow = scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
+					double displayedXHigh = scaleXToTime(wid);
+					StepSize ss = getSensibleValues(displayedXHigh, displayedXLow, 10);
+					if (ss.separation != 0.0)
+					{
+						double time = ss.low;
+						Graphics2D g2 = (Graphics2D)g;
+						g2.setStroke(Highlight.dottedLine);
+						for(int i=0; ; i++)
+						{
+							if (time >= displayedXLow)
+							{
+								if (time > ss.high) break;
+								if ((i % 2) == 0)
+								{
+									int x = scaleTimeToX(time);
+									g.drawLine(x, 0, x, hei);
+								}
+							}
+							time += ss.separation;
+						}
+						g2.setStroke(Highlight.solidLine);
+					}
+				}
+
 				double displayedLow = scaleYToValue(hei);
 				double displayedHigh = scaleYToValue(0);
 				StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
@@ -749,13 +774,23 @@ public class WaveformWindow implements WindowContent
 				{
 					double value = ss.low;
 					g.setFont(waveWindowFont);
-					for(;;)
+					for(int i=0; ; i++)
 					{
 						if (value >= displayedLow)
 						{
 							if (value > displayedHigh) break;
 							int y = scaleValueToY(value);
 							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
+							if (waveWindow.showGrid)
+							{
+								if ((i % 2) == 0)
+								{
+									Graphics2D g2 = (Graphics2D)g;
+									g2.setStroke(Highlight.dottedLine);
+									g.drawLine(VERTLABELWIDTH, y, wid, y);
+									g2.setStroke(Highlight.solidLine);
+								}
+							}
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
 							Rectangle2D glyphBounds = gv.getVisualBounds();
@@ -772,7 +807,7 @@ public class WaveformWindow implements WindowContent
 
 			// draw the time cursors
 			Graphics2D g2 = (Graphics2D)g;
-			g2.setStroke(dashedLine);
+			g2.setStroke(Highlight.dashedLine);
 			int x = scaleTimeToX(waveWindow.mainTime);
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
@@ -780,7 +815,7 @@ public class WaveformWindow implements WindowContent
 			x = scaleTimeToX(waveWindow.extTime);
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
-			g2.setStroke(solidLine);
+			g2.setStroke(Highlight.solidLine);
 			
 			// show dragged area if there
 			if (draggingArea)
@@ -2295,6 +2330,7 @@ public class WaveformWindow implements WindowContent
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
 		this.showVertexPoints = false;
+		this.showGrid = false;
 
         highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
@@ -2358,6 +2394,24 @@ public class WaveformWindow implements WindowContent
 			showPoints.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { toggleShowPoints(); }
+			});
+
+			JButton toggleGrid = new JButton(iconToggleGrid);
+			toggleGrid.setBorderPainted(false);
+			toggleGrid.setDefaultCapable(false);
+			toggleGrid.setToolTipText("Toggle display of a grid");
+			minWid = new Dimension(iconToggleGrid.getIconWidth()+4, iconToggleGrid.getIconHeight()+4);
+			toggleGrid.setMinimumSize(minWid);
+			toggleGrid.setPreferredSize(minWid);
+			gbc.gridx = 0;       gbc.gridy = 1;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.fill = java.awt.GridBagConstraints.NONE;
+			overall.add(toggleGrid, gbc);
+			toggleGrid.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { toggleGridPoints(); }
 			});
 		}
 
@@ -3983,6 +4037,19 @@ public class WaveformWindow implements WindowContent
 		showVertexPoints = !showVertexPoints;
 		if (showVertexPoints) showPoints.setIcon(iconPointsOn); else
 			showPoints.setIcon(iconPointsOff);
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.repaintWithTime();
+		}
+	}
+
+	/**
+	 * Method called to toggle the display of a grid.
+	 */
+	private void toggleGridPoints()
+	{
+		showGrid = !showGrid;
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();

@@ -610,6 +610,12 @@ public class WindowFrame
 	 */
 	public static Cell getCurrentCell()
 	{
+		if (Main.BATCHMODE)
+		{
+			Library lib = Library.getCurrent();
+			if (lib == null) return null;
+			return lib.getCurCell();
+		}
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf == null) return null;
 		return wf.getContent().getCell();

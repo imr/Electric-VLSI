@@ -183,7 +183,7 @@ public class Compaction extends Listener
 //			}
 
 			// alternate vertical then horizontal compaction
-			boolean change = examineOneCell(cell);
+			boolean change = compactOneDirection(cell);
 			if (!change && !lastTime)
 			{
 				System.out.println("Compaction complete");
@@ -199,7 +199,7 @@ public class Compaction extends Listener
 		 * compaction (if "axis" is HORIZONTAL) to cell "np".  Displays state if
 		 * "verbose" is nonzero.  Returns true if a change was made.
 		 */
-		private boolean examineOneCell(Cell cell)
+		private boolean compactOneDirection(Cell cell)
 		{
 			// determine maximum drc surround for entire technology
 			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent());

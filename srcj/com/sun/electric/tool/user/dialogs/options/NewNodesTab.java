@@ -59,9 +59,6 @@ public class NewNodesTab extends PreferencePanel
 	{
 		double initialWid, wid;
 		double initialHei, hei;
-//		boolean initialOverride, override;
-//		int initialRotation, rotation;
-//		boolean initialMirrorX, mirrorX;
 		Variable var;
 	}
 	private HashMap initialNewNodesPrimInfo;

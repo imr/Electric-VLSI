@@ -302,7 +302,11 @@ public class River
 		}
 	}
 
-	private void river(Cell cell)
+	/**
+	 * This is the public interface for River Routing when done in batch mode.
+	 * @param cell the cell to be River-routed.
+	 */
+	public void river(Cell cell)
 	{
 		// locate wires
 		if (findWires(cell))

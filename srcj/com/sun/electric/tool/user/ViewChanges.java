@@ -151,7 +151,7 @@ public class ViewChanges
 					ArcInst ai = (ArcInst)aIt.next();
 					pasteList.add(ai);
 				}
-				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true);
+				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true, true);
 	
 				// also copy any variables on the cell
 				for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )

@@ -193,7 +193,8 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
 			// copy objects to clipboard
-			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0,0), User.isDupCopiesExports());
+			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0,0),
+				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 			return true;
 		}
 	}
@@ -258,7 +259,8 @@ public class Clipboard
 			highlights = deleteList;
 
 			// copy objects to clipboard
-			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(mouseDB.getX(), mouseDB.getY()), User.isDupCopiesExports());
+			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(mouseDB.getX(), mouseDB.getY()),
+				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, highlights);
@@ -305,7 +307,8 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
             // copy objects to clipboard
-            copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0), User.isDupCopiesExports());
+            copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0),
+            	User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
             Highlighter highlighter = wnd.getHighlighter();
             if (highlighter != null) highlighter.clear();
@@ -492,7 +495,8 @@ public class Clipboard
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
 
 			// paste them into the current cell
-			copyListToCell(wnd, pasteList, clipCell, parent, new Point2D.Double(dX, dY), User.isDupCopiesExports());
+			copyListToCell(wnd, pasteList, clipCell, parent, new Point2D.Double(dX, dY),
+				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// also copy any variables on the clipboard cell
 			for(Iterator it = clipCell.getVariables(); it.hasNext(); )
@@ -527,9 +531,11 @@ public class Clipboard
 	 * @param fromCell the source cell of the Geometrics.
 	 * @param toCell the destination cell of the Geometrics.
 	 * @param delta an offset for all of the copied Geometrics.
+	 * @param copyExports true to copy exports.
+	 * @param uniqueArcs true to generate unique arc names.
 	 */
 	public static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell,
-		Point2D delta, boolean copyExports)
+		Point2D delta, boolean copyExports, boolean uniqueArcs)
 	{
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
@@ -659,7 +665,11 @@ public class Clipboard
 
 				String name = null;
 				if (ai.isUsernamed())
-					name = ElectricObject.uniqueObjectName(ai.getName(), toCell, ArcInst.class);
+				{
+					name = ai.getName();
+					if (uniqueArcs)
+						name = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class);
+				}
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, tailPi, new Point2D.Double(ai.getHead().getLocation().getX() + dX, ai.getHead().getLocation().getY() + dY),
 				        new Point2D.Double(ai.getTail().getLocation().getX() + dX, ai.getTail().getLocation().getY() + dY), name, ai.getAngle());

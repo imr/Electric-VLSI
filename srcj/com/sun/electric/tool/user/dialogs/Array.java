@@ -551,7 +551,7 @@ public class Array extends EDialog
 					PortInst pi0 = ni0.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
-					        pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
+					    pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);
 
@@ -563,7 +563,10 @@ public class Array extends EDialog
 						Name arcNameKey = ai.getNameKey();
 						if (!arcNameKey.isTempname())
 						{
-							newAi.setName(ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class));
+							String newName = ai.getName();
+							if (User.isArcsAutoIncremented())
+								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class);
+							newAi.setName(newName);
 							newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
 						}
 					}

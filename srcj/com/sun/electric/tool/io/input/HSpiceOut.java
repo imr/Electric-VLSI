@@ -244,6 +244,7 @@ public class HSpiceOut extends Simulate
 			if (k == 0) continue;
 
 			// convert name if there is a colon in it
+String origLine = line.toString();
 			for(j=0; j<line.length(); j++)
 			{
 				if (line.charAt(j) == ':') break;

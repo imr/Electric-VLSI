@@ -1048,6 +1048,8 @@ public class Highlight
 	{
         Dimension screen = wnd.getScreenSize();
 		boolean onePoint = true;
+		if (points.length <= 0)
+			return;
 		Point firstP = wnd.databaseToScreen(points[0].getX(), points[0].getY());
 		for(int i=1; i<points.length; i++)
 		{

@@ -1594,16 +1594,19 @@ public class Highlighter implements DatabaseChangeListener {
 
 			// do not "find" hard-to-find nodes if "findSpecial" is not set
 			boolean hardToSelect = ni.isHardSelect();
-			boolean ignoreCells = !User.isEasySelectionOfCellInstances();
-			if ((ni.getProto() instanceof Cell) && ignoreCells) hardToSelect = true;
+			if (ni.getProto() instanceof Cell)
+			{
+				if (!User.isEasySelectionOfCellInstances()) hardToSelect = true;
+			} else
+			{
+				// do not include primitives that have all layers invisible
+				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+				if (np.isNodeInvisible()) return null;
+			}
 			if (!findSpecial && hardToSelect) return null;
 
-			// do not include primitives that have all layers invisible
-//			if (ni.getProto() instanceof PrimitiveNode && (ni->proto->userbits&NINVISIBLE) != 0) return;
-
 			// do not "find" Invisible-Pins if they have text or exports
-			if (ni.isInvisiblePinWithText())
-				return null;
+			if (ni.isInvisiblePinWithText()) return null;
 
 			// get the distance to the object
 			double dist = distToNode(bounds, ni, wnd);
@@ -1669,7 +1672,7 @@ public class Highlighter implements DatabaseChangeListener {
 			if (!findSpecial && ai.isHardSelect()) return null;
 
 			// do not include arcs that have all layers invisible
-//			if ((ai->proto->userbits&AINVISIBLE) != 0) return;
+			if (ai.getProto().isArcInvisible()) return null;
 
 			// get distance to arc
 			double dist = distToArc(bounds, ai, wnd);
