@@ -44,7 +44,7 @@ public class RawFile {
 	/**
 	 * Constructs RawFile object.
 	 * @param numPoints number of points.
-	 * @param numvars dimension of vectors..
+	 * @param numVars dimension of vectors..
 	 */
 	public RawFile(int numPoints, int numVars) {
 		this.numVars = numVars;
@@ -72,7 +72,6 @@ public class RawFile {
 	 * @param iPoint index of point.
 	 * @param iVar index of component of vector.
 	 * @param v value of component of point.
-	 * @param varType type of component of vector..
 	 */
 	public void set(int iPoint, int iVar, double v) {
 		data[iPoint][iVar] = v;
