@@ -1046,7 +1046,9 @@ public class ELIB extends Output
 			if (varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
-				type |= ELIBConstants.getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
+				// This doesn't seem to work properly for trace
+				if (objList.length > 0)
+					type |= ELIBConstants.getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
 			} else
 			{
 				if (compatibleWith6 && varObj instanceof Double)
