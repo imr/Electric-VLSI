@@ -93,6 +93,7 @@ public class ERCWellCheck
 		if (curCell == null) return;
         Job job = null;
 
+		// @todo GVG Install latest version
 		if (newAlgorithm)
 			job = new WellCheckNew(curCell);
 		else

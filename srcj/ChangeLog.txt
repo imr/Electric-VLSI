@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/12/04), GVG) List Geometry on Network functionality.
+
 IMP: (7/12/04, SMR) Made window adjustment handle multiscreen configurations.
 
 IMP: (7/12/04, SMR) Made requests for the highlighted object ignore text, lines, areas,
@@ -18,7 +20,7 @@ IMP: (7/12/04, SMR) Node "Properties" dialog now switches X and Y size when the 
 BUG: (7/12,04, SMR) Schematic Off-page connectors are too small.
 FIX: In Schematics.java, made the initial size right.
 
-IMP: (7/12/04, GVG) 3D View available now from View-> Make 3D View menu.
+IMP: (7/12/04, GVG) 3D View available now from Window -> 3D Display menu.
 
 IMP: (7/8/04, SMR) Implemented auto-growth of schematic gates that take any number of inputs.
 

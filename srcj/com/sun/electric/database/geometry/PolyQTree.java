@@ -175,9 +175,38 @@ public class PolyQTree {
 			Point2D [] points = new Point2D[pointList.size()];
 			return ((Point2D [])(pointList.toArray(points)));
 		}
+
+		public double getPerimeter()
+		{
+			double [] coords = new double[6];
+			List pointList = new ArrayList();
+			double perimeter = 0;
+            PathIterator pi = getPathIterator(null);
+
+			while (!pi.isDone()) {
+				switch (pi.currentSegment(coords)) {
+	                case PathIterator.SEG_CLOSE:
+						{
+							Object [] points = pointList.toArray();
+							for (int i = 0; i < pointList.size(); i++)
+							{
+								int j = (i + 1)% pointList.size();
+								perimeter += ((Point2D)points[i]).distance((Point2D)points[j]);
+							}
+							pointList.clear();
+						}
+						break;
+					default:
+						Point2D pt = new Point2D.Double(coords[0], coords[1]);
+						pointList.add(pt);
+	            }
+	            pi.next();
+			}
+			return(perimeter);
+		}
 		/**
-		 *
-		 * @return
+		 * Calculates area
+		 * @return area associated to the node
 		 */
 		public double getArea()
 		{

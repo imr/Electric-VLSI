@@ -152,6 +152,10 @@ public class DebugMenus {
  
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+	    gildaMenu.addMenuItem("List Geometry on Network", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(); } });
+	    gildaMenu.addMenuItem("3D View", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
         gildaMenu.addMenuItem("Merge Polyons", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, ToolMenu.LayerCoverageJob.MERGE, true);}});
         gildaMenu.addMenuItem("Covering Implants", null,

@@ -42,6 +42,7 @@ import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.generator.PadGenerator;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.database.topology.PortInst;
@@ -597,68 +598,62 @@ public class ToolMenu {
      */
     public static void listGeometryOnNetworkCommand()
     {
-        System.out.println("Can't Yet");
-//		/* gather geometry on this network */
-//		np = net->parent;
-//		firstarpe = net_gathergeometry(net, &p_gate, &n_gate, &p_active, &n_active, TRUE);
-//
-//		/* copy the linked list to an array for sorting */
-//		total = 0;
-//		for(arpe = firstarpe; arpe != NOAREAPERIM; arpe = arpe->nextareaperim)
-//			if (arpe->layer >= 0) total++;
-//		if (total == 0)
-//		{
-//			ttyputmsg(_("No geometry on network '%s' in cell %s"), describenetwork(net),
-//				describenodeproto(np));
-//			return;
-//		}
-//		arpelist = (AREAPERIM **)emalloc(total * (sizeof (AREAPERIM *)), net_tool->cluster);
-//		if (arpelist == 0) return;
-//		i = 0;
-//		for(arpe = firstarpe; arpe != NOAREAPERIM; arpe = arpe->nextareaperim)
-//			if (arpe->layer >= 0) arpelist[i++] = arpe;
-//
-//		/* sort the layers */
-//		esort(arpelist, total, sizeof (AREAPERIM *), net_areaperimdepthascending);
-//
-//		ttyputmsg(_("For network '%s' in cell %s:"), describenetwork(net),
-//			describenodeproto(np));
-//		lambda = lambdaofcell(np);
-//		widest = 0;
-//		for(i=0; i<total; i++)
-//		{
-//			arpe = arpelist[i];
-//			lname = layername(arpe->tech, arpe->layer);
-//			len = estrlen(lname);
-//			if (len > widest) widest = len;
-//		}
-//		totalWire = 0;
-//		for(i=0; i<total; i++)
-//		{
-//			arpe = arpelist[i];
-//			lname = layername(arpe->tech, arpe->layer);
-//			infstr = initinfstr();
-//			for(j=estrlen(lname); j<widest; j++) addtoinfstr(infstr, ' ');
-//			pad = returninfstr(infstr);
-//			if (arpe->perimeter == 0)
-//			{
-//				ttyputmsg(_("Layer %s:%s area=%7g  half-perimeter=%s"), lname, pad,
-//					arpe->area/(float)lambda/(float)lambda, latoa(arpe->perimeter/2, 0));
-//			} else
-//			{
-//				ratio = (arpe->area / (float)lambda) / (float)(arpe->perimeter/2);
-//				ttyputmsg(_("Layer %s:%s area=%7g  half-perimeter=%s ratio=%g"), lname,
-//					pad, arpe->area/(float)lambda/(float)lambda,
-//						latoa(arpe->perimeter/2, lambda), ratio);
-//
-//				/* accumulate total wire length on all metal/poly layers */
-//				fun = layerfunction(arpe->tech, arpe->layer);
-//				if ((layerispoly(fun) && !layerisgatepoly(fun)) || layerismetal(fun))
-//					totalWire += arpe->perimeter / 2;
-//			}
-//			efree((CHAR *)arpelist[i]);
-//		}
-//		if (totalWire > 0.0) ttyputmsg(_("Total wire length = %s"), latoa(totalWire,lambda));
+	    Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+        Set nets = Highlight.getHighlightedNetworks();
+	    Netlist netlist = cell.getUserNetlist();
+
+	    if (nets.isEmpty())
+	    {
+		    System.out.println("No network in cell '" + cell.describe() + "' selected");
+		    return;
+	    }
+
+        for(Iterator it = nets.iterator(); it.hasNext(); )
+        {
+	        JNetwork net = (JNetwork)it.next();
+	        System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
+        }
+        PolyQTree tree = new PolyQTree(cell.getBounds());
+	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK);
+	    HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, visitor);
+
+		double totalWire = 0;
+        double lambda = 1; // lambdaofcell(np);
+
+		// Traversing tree with merged geometry
+		for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			Set set = tree.getObjects(layer, false);
+			double layerArea = 0;
+			double perimeter = 0;
+
+			// Get all objects and sum the area
+			for (Iterator i = set.iterator(); i.hasNext(); )
+			{
+				PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
+				layerArea += area.getArea();
+				perimeter += area.getPerimeter();
+			}
+			layerArea /= lambda;
+			perimeter /= 2;
+
+			Layer.Function func = layer.getFunction();
+
+			/* accumulate total wire length on all metal/poly layers */
+			if (func.isPoly() && !func.isGatePoly() || func.isMetal())
+				totalWire += perimeter;
+
+			System.out.println("Layer " + layer.getName()
+			        + ":\t area " + TextUtils.formatDouble(layerArea)
+			        + "\t half-perimeter " + TextUtils.formatDouble(perimeter)
+			        + "\t ratio " + TextUtils.formatDouble(layerArea/perimeter));
+		}
+	    if (totalWire > 0)
+		    System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda));
+
+		// @TODO GVG lambda and ratio ==0 (when is the case?)
     }
 
     public static void showPowerAndGround()
@@ -870,6 +865,7 @@ public class ToolMenu {
         public final static int AREA = 0;   // function Layer Coverage
         public final static int MERGE = 1;  // Generic merge polygons function
         public final static int IMPLANT = 2; // Coverage implants
+	    public final static int NETWORK = 3; // List Geometry on Network function
         private final int function;
         private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 
@@ -880,6 +876,27 @@ public class ToolMenu {
             private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
             private final int function;
 
+	        /**
+	         * Determines if function of given layer is applicable for the corresponding operation
+	         * @param func
+	         * @param function
+	         * @param testCase
+	         * @return
+	         */
+	        private static boolean IsValidFunction(Layer.Function func, int function, boolean testCase)
+	        {
+		        if (testCase) return (true);
+				switch (function)
+				{
+					case IMPLANT:
+						return (func.isSubstrate());
+					case AREA:
+						return (func.isPoly() || func.isMetal());
+					default:
+						return (false);
+				}
+	        }
+
             public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func)
             {
                 this.testCase = test;
@@ -889,8 +906,6 @@ public class ToolMenu {
             }
             public void exitCell(HierarchyEnumerator.CellInfo info)
             {
-                //return true;
-                //System.out.println("Cell exit " + info.getCell().getName());
             }
             public boolean enterCell(HierarchyEnumerator.CellInfo info)
             {
@@ -912,13 +927,19 @@ public class ToolMenu {
                         Layer layer = poly.getLayer();
                         Layer.Function func = layer.getFunction();
 
-                        boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
-                        if (!testCase && value) continue;
+                        //boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
+                        //if (!testCase && value) continue;
+	                    boolean value = IsValidFunction(func, function, testCase);
+                        if (!value) continue;
                         //if (!testCase && (function==IMPLANT) ? func.isSubstrate() : !func.isPoly() && !func.isMetal()) continue;
 
                         tree.insert((Object)layer, new PolyQTree.PolyNode(poly));
                     }
                 }
+
+	            // Skipping actual nodes
+	            //if (function == NETWORK) return (true);
+
                 // Traversing nodes
                 // This function should be moved to visitNodeInst
                 for (Iterator it = curCell.getNodes(); it.hasNext(); )
@@ -934,6 +955,11 @@ public class ToolMenu {
                     }
 
                     NodeProto protoType = node.getProto();
+
+	                // Skip Facet-Center
+	                if (protoType == Tech.facetCenter)
+	                    continue;
+
                     //  Analyzing only leaves
                     if (!(protoType instanceof Cell))
                     {
@@ -948,8 +974,9 @@ public class ToolMenu {
                             Layer.Function func = layer.getFunction();
 
                             // Only checking poly or metal for AREA case
-                            boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
-                            if (!testCase && value) continue;
+	                        //boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
+                            boolean value = IsValidFunction(func, function, testCase);
+                            if (!value) continue;
 
                             poly.transform(transform);
                             // Not sure if I need this for general merge polygons function
@@ -961,11 +988,12 @@ public class ToolMenu {
                         }
                     }
                 }
-                return true;
+                return (true);
             }
             public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
             {
-                return true;
+	            // @todo GVG Migrate functionality here from enterCell
+                return (true);
             }
         }
 
