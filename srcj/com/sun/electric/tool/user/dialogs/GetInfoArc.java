@@ -44,7 +44,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
-public class GetInfoArc extends JDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoArc extends EDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;

@@ -2860,7 +2860,7 @@ public class MoCMOS extends Technology
 		}
 		if (getRuleSet() != DEEPRULES)
 		{
-			if (!isSecondPolysilicon())
+			if (isSecondPolysilicon())
 			{
 				// non-DEEP: enable Polysilicon-2
 				poly2_arc.clearNotUsed();

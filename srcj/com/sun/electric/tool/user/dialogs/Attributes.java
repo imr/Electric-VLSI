@@ -59,7 +59,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes extends JDialog implements HighlightListener, DatabaseChangeListener
+public class Attributes extends EDialog implements HighlightListener, DatabaseChangeListener
 {
     private static Attributes theDialog = null;
     private DefaultListModel listModel;
@@ -201,7 +201,7 @@ public class Attributes extends JDialog implements HighlightListener, DatabaseCh
         loadAttributesInfo();
     }
 
-//	protected void escapePressed() { cancel(null); }
+	protected void escapePressed() { ok(null); }
 
     /**
      * Set whether Attributes dialog shows attributes only

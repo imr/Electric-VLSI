@@ -51,7 +51,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
-public class GetInfoExport extends JDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoExport extends EDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoExport theDialog = null;
 	private Export shownExport;

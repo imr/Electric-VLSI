@@ -74,7 +74,7 @@ public class Spice extends Topology
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
-	/** Old pre-fix for spice extension. */                     public static final String SPICE_PREFIX = "Extension ";
+	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
@@ -1068,12 +1068,11 @@ public class Spice extends Topology
 		String headerFile = Simulation.getSpiceHeaderCardInfo();
 		if (headerFile.length() > 0)
 		{
-			//if (headerFile.startsWith("Extension "))
-            if (headerFile.startsWith(SPICE_PREFIX))
+           if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(SPICE_PREFIX.length());
+				String headerPath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{
@@ -1123,11 +1122,11 @@ public class Spice extends Topology
 		String trailerFile = Simulation.getSpiceTrailerCardInfo();
 		if (trailerFile.length() > 0)
 		{
-			if (trailerFile.startsWith("Extension "))
+			if (trailerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String trailerpath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(10);
+				String trailerpath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{

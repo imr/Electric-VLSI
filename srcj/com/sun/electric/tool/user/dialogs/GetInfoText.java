@@ -60,7 +60,7 @@ import javax.swing.border.BevelBorder;
 /**
  * Class to handle the "Text Get-Info" dialog.
  */
-public class GetInfoText extends JDialog implements HighlightListener, DatabaseChangeListener {
+public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
     private static GetInfoText theDialog = null;
     private Highlight shownText;
     private String initialText;
@@ -243,6 +243,8 @@ public class GetInfoText extends JDialog implements HighlightListener, DatabaseC
 
         loadTextInfo();
     }
+
+	protected void escapePressed() { cancelActionPerformed(null); }
 
     protected static class ChangeText extends Job {
         Highlight shownText;

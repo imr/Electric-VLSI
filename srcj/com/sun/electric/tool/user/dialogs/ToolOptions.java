@@ -923,10 +923,10 @@ public class ToolOptions extends EDialog
 		spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
 		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
 		{
-			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_PREFIX))
+			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
 			{
 				spiceHeaderCardsWithExtension.setSelected(true);
-				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(Spice.SPICE_PREFIX.length()));
+				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
 			} else
 			{
 				spiceHeaderCardsFromFile.setSelected(true);
@@ -936,10 +936,10 @@ public class ToolOptions extends EDialog
 		spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
 		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
 		{
-			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_PREFIX))
+			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
 			{
 				spiceTrailerCardsWithExtension.setSelected(true);
-				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(Spice.SPICE_PREFIX.length()));
+				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
 			} else
 			{
 				spiceTrailerCardsFromFile.setSelected(true);
@@ -1140,7 +1140,7 @@ public class ToolOptions extends EDialog
 		String header = "";
 		if (spiceHeaderCardsWithExtension.isSelected())
 		{
-			header = Spice.SPICE_PREFIX + spiceHeaderCardExtension.getText();
+			header = Spice.SPICE_EXTENSION_PREFIX + spiceHeaderCardExtension.getText();
 		} else if (spiceHeaderCardsFromFile.isSelected())
 		{
 			header = spiceHeaderCardFile.getText();
@@ -1150,7 +1150,7 @@ public class ToolOptions extends EDialog
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
 		{
-			trailer = Spice.SPICE_PREFIX + spiceTrailerCardExtension.getText();
+			trailer = Spice.SPICE_EXTENSION_PREFIX + spiceTrailerCardExtension.getText();
 		} else if (spiceTrailerCardsFromFile.isSelected())
 		{
 			trailer = spiceTrailerCardFile.getText();
@@ -3158,7 +3158,7 @@ public class ToolOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         spice5.add(spiceHeaderCardExtension, gridBagConstraints);
@@ -3235,7 +3235,7 @@ public class ToolOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         spice5.add(spiceTrailerCardExtension, gridBagConstraints);
@@ -4647,9 +4647,9 @@ public class ToolOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         getContentPane().add(ok, gridBagConstraints);
 
         pack();

@@ -66,7 +66,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Node Get-Info" dialog.
  */
-public class GetInfoNode extends JDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoNode extends EDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoNode theDialog = null;
 	private static NodeInst shownNode = null;

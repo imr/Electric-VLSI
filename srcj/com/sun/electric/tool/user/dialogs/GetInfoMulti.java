@@ -52,7 +52,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
-public class GetInfoMulti extends JDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoMulti extends EDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
