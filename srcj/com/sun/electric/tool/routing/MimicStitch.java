@@ -392,7 +392,13 @@ public class MimicStitch
 		endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
 
 		Cell cell = endPi[0].getNodeInst().getParent();
-		Netlist netlist = cell.getUserNetlist();
+//		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
+			return;
+		}
 
 		// make list of possible arc connections
 		List possibleArcs = new ArrayList();

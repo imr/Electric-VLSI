@@ -1062,7 +1062,12 @@ public class CircuitChanges
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (ai.getProto() != Schematics.tech.bus_arc) continue;
-				Netlist netList = ai.getParent().getUserNetlist();
+				Netlist netList = ai.getParent().acquireUserNetlist();
+				if (netList == null)
+				{
+					System.out.println("Sorry, a deadlock aborted bus ripping (network information unavailable).  Please try again");
+					break;
+				}
 				int busWidth = netList.getBusWidth(ai);
 				String netName = netList.getNetworkName(ai);
 				if (netName.length() == 0)

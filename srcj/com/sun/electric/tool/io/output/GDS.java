@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: GDS.java
- * Input/output tool: DXF output
+ * Input/output tool: GDS output
  * Original C Code written by Sid Penstone, Queens University
  * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
@@ -47,7 +47,9 @@ import com.sun.electric.tool.io.IOTool;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -574,6 +576,14 @@ public class GDS extends Geometry
 	// Write a library header, get the date information
 	private void outputBeginLibrary(Cell cell)
 	{
+		outputHeader(HDR_HEADER, GDSVERSION);
+		outputHeader(HDR_BGNLIB, 0);
+		outputDate(cell.getCreationDate());
+		outputDate(cell.getRevisionDate());
+		outputName(HDR_LIBNAME, makeGDSName(cell.getName(), HDR_M_ASCII), HDR_M_ASCII);
+		outputShort(HDR_N_UNITS);
+		outputShort(HDR_UNITS);
+
 		/* GDS floating point values - -
 		 * 0x3E418937,0x4BC6A7EF = 0.001
 		 * 0x3944B82F,0xA09B5A53 = 1e-9
@@ -582,18 +592,8 @@ public class GDS extends Geometry
 		 */
 
 		// set units
-		int [] units01 = convertFloatToArray(1e-3);
-		int [] units23 = convertFloatToArray(1.0e-9);
-
-		outputHeader(HDR_HEADER, GDSVERSION);
-		outputHeader(HDR_BGNLIB, 0);
-		outputDate(cell.getCreationDate());
-		outputDate(cell.getRevisionDate());
-		outputName(HDR_LIBNAME, makeGDSName(cell.getName(), HDR_M_ASCII), HDR_M_ASCII);
-		outputShort(HDR_N_UNITS);
-		outputShort(HDR_UNITS);
-		outputIntArray(units01, 2);
-		outputIntArray(units23, 2);
+		outputDouble(1e-3);
+		outputDouble(1.0e-9);
 	}
 
 	void outputBeginStruct(Cell cell)
@@ -683,8 +683,7 @@ public class GDS extends Geometry
 		double gdfloat = ang / 10.0;
 		outputShort(HDR_N_ANGLE);
 		outputShort(HDR_ANGLE);
-		int [] units = convertFloatToArray(gdfloat);
-		outputIntArray(units, 2);
+		outputDouble(gdfloat);
 	}
 
 	// Output a magnification as part of a STRANS
@@ -692,8 +691,7 @@ public class GDS extends Geometry
 	{
 		outputShort(HDR_N_MAG);
 		outputShort(HDR_MAG);
-		int [] units = convertFloatToArray(scale);
-		outputIntArray(units, 2);
+		outputDouble(scale);
 	}
 
 	// Output the pairs of XY points to the file 
@@ -817,7 +815,7 @@ public class GDS extends Geometry
 		for (int i = 0; i < n; i++) outputInt(ptr[i]);
 	}
 
-	/*
+	/**
 	 * String of n bytes, starting at ptr
 	 * Revised 90-11-23 to convert to upper case (SRP)
 	 */
@@ -838,55 +836,99 @@ public class GDS extends Geometry
 			outputByte((byte)0);
 	}
 
-	/*
-	 * Create 8-byte GDS representation of a floating point number
+	/**
+	 * Method to write a GDSII representation of a double.
+	 * New conversion code contributed by Tom Valine <tomv@transmeta.com>.
+	 * @param data the double to process.
 	 */
-	private int [] convertFloatToArray(double a)
+	public void outputDouble(double data)
 	{
-		int [] ret = new int[2];
-
-		// handle default
-		if (a == 0)
+		if (data == 0.0)
 		{
-			ret[0] = 0x40000000;
-			ret[1] = 0;
-			return ret;
+			for(int i=0; i<8; i++) outputByte((byte)0);
+			return;
+		}
+		BigDecimal reg = new BigDecimal((double)data);
+
+		boolean negSign = false;
+		if (reg.doubleValue() < 0)
+		{
+			negSign = true;
+			reg = reg.negate();
 		}
 
-		// identify sign
-		double temp = a;
-		boolean negsign = false;
-		if (temp < 0)
-		{
-			negsign = true;
-			temp = -temp;
-		}
-
-		// establish the excess-64 exponent value
 		int exponent = 64;
-
-		// scale the exponent and mantissa
-		for (; temp < 0.0625 && exponent > 0; exponent--) temp *= 16.0;
-
+		for(; (reg.doubleValue() < 0.0625) && (exponent > 0); exponent--)
+			reg = reg.multiply(new BigDecimal(16.0));
 		if (exponent == 0) System.out.println("Exponent underflow");
-
-		for (; temp >= 1 && exponent < 128; exponent++) temp /= 16.0;
-
+		for(; (reg.doubleValue() >= 1) && (exponent < 128); exponent++)
+			reg = reg.divide(new BigDecimal(16.0));
 		if (exponent > 127) System.out.println("Exponent overflow");
-
-		// set the sign
-		if (negsign) exponent |= 0x80;
-
-		// convert temp to 7-byte binary integer
-		double top = temp;
-		for (int i = 0; i < 24; i++) top *= 2;
-		int highmantissa = (int)top;
-		double frac = top - highmantissa;
-		for (int i = 0; i < 32; i++) frac *= 2;
-		ret[0] = highmantissa | (exponent<<24);
-		ret[1] = (int)frac;
-		return ret;
+		if (negSign) exponent |= 0x00000080;
+		BigDecimal f_mantissa = reg.remainder(new BigDecimal(1.0));
+		for(int i = 0; i < 56; i++)
+			f_mantissa = f_mantissa.multiply(new BigDecimal(2.0));
+		long mantissa = f_mantissa.longValue();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		baos.write(exponent);
+		for(int i = 6; i >= 0; i--)
+			baos.write((int)((mantissa >> (i * 8)) & 0xFF));
+		byte [] result = baos.toByteArray();
+		for(int i=0; i<8; i++) outputByte(result[i]);
 	}
+
+//	/**
+//	 * Method to write a GDSII representation of a double.
+//	 * Original C-Electric code (no longer used).
+//	 * @param data the double to process.
+//	 */
+//	private void outputDouble(double a)
+//	{
+//		int [] ret = new int[2];
+//
+//		// handle default
+//		if (a == 0)
+//		{
+//			ret[0] = 0x40000000;
+//			ret[1] = 0;
+//			outputIntArray(ret, 2);
+//			return;
+//		}
+//
+//		// identify sign
+//		double temp = a;
+//		boolean negsign = false;
+//		if (temp < 0)
+//		{
+//			negsign = true;
+//			temp = -temp;
+//		}
+//
+//		// establish the excess-64 exponent value
+//		int exponent = 64;
+//
+//		// scale the exponent and mantissa
+//		for (; temp < 0.0625 && exponent > 0; exponent--) temp *= 16.0;
+//
+//		if (exponent == 0) System.out.println("Exponent underflow");
+//
+//		for (; temp >= 1 && exponent < 128; exponent++) temp /= 16.0;
+//
+//		if (exponent > 127) System.out.println("Exponent overflow");
+//
+//		// set the sign
+//		if (negsign) exponent |= 0x80;
+//
+//		// convert temp to 7-byte binary integer
+//		double top = temp;
+//		for (int i = 0; i < 24; i++) top *= 2;
+//		int highmantissa = (int)top;
+//		double frac = top - highmantissa;
+//		for (int i = 0; i < 32; i++) frac *= 2;
+//		ret[0] = highmantissa | (exponent<<24);
+//		ret[1] = (int)frac;
+//		outputIntArray(ret, 2);
+//	}
 
 	/**
 	 * Method to parse the GDS layer string and get the 3 layer numbers (plain, text, and pin).

@@ -127,7 +127,7 @@ public class GenerateVHDL
 
 		// write the entity section
 		HashSet exportNames = new HashSet();
-		vhdlStrings.add("entity " + addString(cell.getName(), null) + " is port(" + addPortList(null, cell, 0, exportNames) + ");");
+		vhdlStrings.add("entity " + addString(cell.getName(), null) + " is port(" + addPortList(null, cell, nl /*cell.getUserNetlist()*/, 0, exportNames) + ");");
 		vhdlStrings.add("  end " + addString(cell.getName(), null)  + ";");
 
 		// now write the "architecture" line
@@ -201,7 +201,8 @@ public class GenerateVHDL
 			componentList.add(pt);
 
 			StringBuffer infstr = new StringBuffer();
-			vhdlStrings.add("  component " + addString(pt, null) + " port(" + addPortList(ni, ni.getProto(), special, null) + ");");
+			vhdlStrings.add("  component " + addString(pt, null) + " port(" +
+				addPortList(ni, ni.getProto(), nl /*ni.getParent().getUserNetlist()*/, special, null) + ");");
 			vhdlStrings.add("    end component;");
 		}
 
@@ -282,7 +283,7 @@ public class GenerateVHDL
 			// make sure the instance name doesn't conflict with a prototype name
 			if (componentList.contains(instname)) infstr.append("NV");
 
-			infstr.append(": " + addString(pt, null) + " port map(" + addRealPorts(no, special, negatedConnections, signalNames) + ");");
+			infstr.append(": " + addString(pt, null) + " port map(" + addRealPorts(no, special, negatedConnections, signalNames, nl) + ");");
 			bodyStrings.add(infstr.toString());
 		}
 
@@ -349,12 +350,11 @@ public class GenerateVHDL
 		vhdlStrings.add("end " + addString(cell.getName(), null) + "_BODY;");
 	}
 
-	private static String addRealPorts(Nodable no, int special, HashMap negatedConnections, HashSet signalNames)
+	private static String addRealPorts(Nodable no, int special, HashMap negatedConnections, HashSet signalNames, Netlist nl)
 	{
 		NodeProto np = no.getProto();
 		boolean first = false;
 		StringBuffer infstr = new StringBuffer();
-		Netlist nl = no.getParent().getUserNetlist();
 		for(int pass = 0; pass < 5; pass++)
 		{
 			for(Iterator it = np.getPorts(); it.hasNext(); )
@@ -826,7 +826,7 @@ public class GenerateVHDL
 	 * If "special" is BLOCKFLOPTR or BLOCKFLOPDR, only include input ports "i1", "ck", "clear"
 	 *    and output port "q".
 	 */
-	private static String addPortList(NodeInst ni, NodeProto np, int special, HashSet exportNames)
+	private static String addPortList(NodeInst ni, NodeProto np, Netlist nl, int special, HashSet exportNames)
 	{
 		if (special == BLOCKFLOPTS || special == BLOCKFLOPDS)
 		{
@@ -874,16 +874,16 @@ public class GenerateVHDL
 
 		String before = "";
 		StringBuffer infstr = new StringBuffer();
-		before = addThesePorts(infstr, ni, np, PortCharacteristic.IN, flaggedPorts, exportNames, before);
-		before = addThesePorts(infstr, ni, np, PortCharacteristic.OUT, flaggedPorts, exportNames, before);
-		before = addThesePorts(infstr, ni, np, PortCharacteristic.PWR, flaggedPorts, exportNames, before);
-		before = addThesePorts(infstr, ni, np, PortCharacteristic.GND, flaggedPorts, exportNames, before);
-		before = addThesePorts(infstr, ni, np, null, flaggedPorts, exportNames, before);
+		before = addThesePorts(infstr, ni, np, nl, PortCharacteristic.IN, flaggedPorts, exportNames, before);
+		before = addThesePorts(infstr, ni, np, nl, PortCharacteristic.OUT, flaggedPorts, exportNames, before);
+		before = addThesePorts(infstr, ni, np, nl, PortCharacteristic.PWR, flaggedPorts, exportNames, before);
+		before = addThesePorts(infstr, ni, np, nl, PortCharacteristic.GND, flaggedPorts, exportNames, before);
+		before = addThesePorts(infstr, ni, np, nl, null, flaggedPorts, exportNames, before);
 		return infstr.toString();
 	}
 
-	private static String addThesePorts(StringBuffer infstr, NodeInst ni, NodeProto np, PortCharacteristic bits,
-		HashSet flaggedPorts, HashSet exportNames, String before)
+	private static String addThesePorts(StringBuffer infstr, NodeInst ni, NodeProto np, Netlist nl,
+		PortCharacteristic bits, HashSet flaggedPorts, HashSet exportNames, String before)
 	{
 		boolean didsome = false;
 		for(Iterator it = np.getPorts(); it.hasNext(); )
@@ -908,7 +908,7 @@ public class GenerateVHDL
 			Cell cell = null;
 			if (ni != null) cell = ni.getParent(); else
 				cell = (Cell)np;
-			Netlist nl = cell.getUserNetlist();
+//			Netlist nl = cell.getUserNetlist();
 			int wid = 1;
 			if (pp instanceof Export) wid = nl.getBusWidth((Export)pp);
 			for(int i=0; i<wid; i++)

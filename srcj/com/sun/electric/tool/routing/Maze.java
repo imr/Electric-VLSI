@@ -236,7 +236,13 @@ public class Maze
 		Highlighter hi = wf.getContent().getHighlighter();
 		if (hi == null) return;
 
-		netList = cell.getUserNetlist();
+//		netList = cell.getUserNetlist();
+		netList = cell.acquireUserNetlist();
+		if (netList == null)
+		{
+			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
+			return;
+		}
 		Set nets = hi.getHighlightedNetworks();
 		if (nets.size() == 0)
 		{
@@ -266,7 +272,7 @@ public class Maze
 		for(Iterator it = arcsToRoute.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			netList = cell.getUserNetlist();
+//			netList = cell.getUserNetlist();
 			Network net = netList.getNetwork(ai, 0);
 
 			// see if there are unrouted

@@ -210,7 +210,12 @@ public class Compaction extends Listener
 			// number ports of cell "cell"
 			HashMap portIndices = new HashMap();
 			flatIndex = 1;
-			Netlist nl = cell.getUserNetlist();
+			Netlist nl = cell.acquireUserNetlist();
+			if (nl == null)
+			{
+				System.out.println("Sorry, a deadlock aborted compaction (network information unavailable).  Please try again");
+				return false;
+			}
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();

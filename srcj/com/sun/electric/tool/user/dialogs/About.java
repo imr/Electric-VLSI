@@ -63,6 +63,7 @@ public class About extends EDialog
 			new CastOfThousands("Frank Lee", 				"ROM generator"),
 			new CastOfThousands("Dmitry Nadezhin", 			"Networks, library I/O, simulation, optimizations, and more"),
 			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
+			new CastOfThousands("Thomas Valine", 			"GDS output"),
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{

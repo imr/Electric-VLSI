@@ -84,7 +84,12 @@ public final class ExportChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted your query (network information unavailable).  Please try again");
+			return;
+		}
 
 		// compute the associated cell to check
 		Cell wnp = cell.contentsView();

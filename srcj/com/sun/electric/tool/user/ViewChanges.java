@@ -324,7 +324,13 @@ public class ViewChanges
 			}
 
 			// connect electrically-equivalent ports
-			Netlist netlist = curCell.getUserNetlist();
+//			Netlist netlist = curCell.getUserNetlist();
+			Netlist netlist = curCell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted conversion (network information unavailable).  Please try again");
+				return false;
+			}
 			int numPorts = curCell.getNumPorts();
 			for(int i=0; i<numPorts; i++)
 			{

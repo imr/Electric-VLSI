@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/19/05, SMR) Cleaned up use of "getUserNetlist".
+
 IMP: (01/18/05, SMR) Improved GDS floating point output.  Code from Tom Valine <tomv@transmeta.com>.
 
 IMP/MAN: (01/18/05, SMR) Removed "Update" button from "Attributes" dialog, have only "Done".
@@ -26,7 +28,7 @@ IMP: (01/14/05, SMR) Added special properties dialog for nodes with outline info
      (shown when doing a "Properties" command on such a node).
 
 BUG: (01/14/04, DN) Thunder and lightning when highlighted networks are not ready (Bug #155).
-FIX: In "Highlighter.getHighlightedNetworks" use "acwireUserNetlist" instead of "getUserNetlist".
+FIX: In "Highlighter.getHighlightedNetworks" use "acquireUserNetlist" instead of "getUserNetlist".
      Text message is printed when getUserNetlist is called in GUI thread.
 
 ************************* Version 8.02b: *********************************

@@ -2808,7 +2808,13 @@ public class WaveformWindow implements WindowContent
 			EditWindow wnd = (EditWindow)wf.getContent();
 			Cell cell = wnd.getCell();
 			if (cell == null) continue;
-			Netlist netlist = cell.getUserNetlist();
+//			Netlist netlist = cell.getUserNetlist();
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+				return;
+			}
 			Highlighter hl = wnd.getHighlighter();
 
 			Locator loc = new Locator(wnd, this);
@@ -2831,7 +2837,14 @@ public class WaveformWindow implements WindowContent
                         if (contextStr.length() > 0) contextStr += ".";
                         if (contextStr.length() > 0 && !want.startsWith(contextStr)) {
                             if (context == VarContext.globalContext) break;
-                            netlist = context.getNodable().getParent().getUserNetlist();
+//                            netlist = context.getNodable().getParent().getUserNetlist();
+                			netlist = context.getNodable().getParent().acquireUserNetlist();
+                			if (netlist == null)
+                			{
+                				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+                				freezeWaveformHighlighting = false;
+                				return;
+                			}
                             upNodables.push(context.getNodable());
                             context = context.pop();
                             continue;
@@ -2842,7 +2855,14 @@ public class WaveformWindow implements WindowContent
                             break;
                         }
                         if (context == VarContext.globalContext) break;
-                        netlist = context.getNodable().getParent().getUserNetlist();
+//                        netlist = context.getNodable().getParent().getUserNetlist();
+            			netlist = context.getNodable().getParent().acquireUserNetlist();
+            			if (netlist == null)
+            			{
+            				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+            				freezeWaveformHighlighting = false;
+            				return;
+            			}
                         upNodables.push(context.getNodable());
                         context = context.pop();
                     }
@@ -3379,6 +3399,7 @@ public class WaveformWindow implements WindowContent
      * @param childNetwork the network in the childNodable
      * @return the network in the parent that connects to the
      * specified network, or null if no such network.
+     * null on error.
      */
     public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
         if (childNodable == null || childNetwork == null) return null;
@@ -3393,7 +3414,14 @@ public class WaveformWindow implements WindowContent
         for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
             export = (Export)it.next();
             for (i=0; i<export.getNameKey().busWidth(); i++) {
-                Network net = childCell.getUserNetlist().getNetwork(export, i);
+        		Netlist netlist = childCell.acquireUserNetlist();
+        		if (netlist == null)
+        		{
+        			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+        			return null;
+        		}
+//                Network net = childCell.getUserNetlist().getNetwork(export, i);
+                Network net = netlist.getNetwork(export, i);
                 if (net == childNetwork) { found = true; break; }
             }
             if (found) break;
@@ -3406,7 +3434,14 @@ public class WaveformWindow implements WindowContent
         // find corresponding network in parent
         Cell parentCell = childNodable.getParent();
         //if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
-        Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
+		Netlist netlist = parentCell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+			return null;
+		}
+//        Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
+        Network parentNet = netlist.getNetwork(childNodable, pp, i);
         return parentNet;
     }
 
@@ -3461,7 +3496,13 @@ public class WaveformWindow implements WindowContent
 		// if no cell in the window, stop now
 		Cell cell = sd.getCell();
 		if (cell == null) return nets;
-		Netlist netlist = cell.getUserNetlist();
+//		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+			return nets;
+		}
 
 		// look at all signal names in the cell
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -3756,7 +3797,13 @@ public class WaveformWindow implements WindowContent
 		schemWnd.clearCrossProbeLevels();
 
 		Cell cell = getCell();
-		Netlist netlist = cell.getUserNetlist();
+//		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+			return;
+		}
 
 		// reset all values on networks
 		netValues = new HashMap();

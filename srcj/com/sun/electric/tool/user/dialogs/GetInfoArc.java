@@ -279,11 +279,17 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
             // load the dialog
             type.setText(ai.getProto().describe());
-            Netlist netlist = ai.getParent().getUserNetlist();
-            int busWidth = netlist.getBusWidth(ai);
-            String netName = netlist.getNetworkName(ai);
-            if (netName != null && netName.length() > 80)
-            	netName = netName.substring(0, 80) + "...";
+//            Netlist netlist = ai.getParent().getUserNetlist();
+    		Netlist netlist = ai.getParent().acquireUserNetlist();
+            int busWidth = 1;
+            String netName = "UNKNOWN";
+    		if (netlist != null)
+    		{
+				busWidth = netlist.getBusWidth(ai);
+				netName = netlist.getNetworkName(ai);
+				if (netName != null && netName.length() > 80)
+				netName = netName.substring(0, 80) + "...";
+    		}
             network.setText(netName);
             name.setText(initialName);
             width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));

@@ -572,7 +572,13 @@ public class ToolMenu {
 
 		Set nets = highlighter.getHighlightedNetworks();
 		//highlighter.clear();
-		highlighter.showNetworks(nets, cell.getUserNetlist(), cell);
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
+			return;
+		}
+		highlighter.showNetworks(nets, netlist, cell);
         // 3D display if available
         WindowFrame.show3DHighlight(wnd);
 		highlighter.finished();
@@ -585,7 +591,13 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
-		Netlist netlist = cell.getUserNetlist();
+//		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
+			return;
+		}
 		int total = 0;
 		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 		{
@@ -639,7 +651,13 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set nets = highlighter.getHighlightedNetworks();
-        Netlist netlist = cell.getUserNetlist();
+//        Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+			return;
+		}
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
@@ -711,7 +729,13 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set nets = highlighter.getHighlightedNetworks();
-        Netlist netlist = cell.getUserNetlist();
+//        Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+			return;
+		}
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
@@ -720,9 +744,9 @@ public class ToolMenu {
             // find all exports on network "net"
             HashSet listedExports = new HashSet();
             System.out.println("  Going up the hierarchy from cell " + cell.describe() + ":");
-            findPortsUp(netlist, net, cell, listedExports);
+            if (findPortsUp(netlist, net, cell, listedExports)) break;
             System.out.println("  Going down the hierarchy from cell " + cell.describe() + ":");
-            findPortsDown(netlist, net, cell, listedExports);
+            if (findPortsDown(netlist, net, cell, listedExports)) break;
         }
     }
 
@@ -738,22 +762,29 @@ public class ToolMenu {
         Highlighter highlighter = wnd.getHighlighter();
 
         Set nets = highlighter.getHighlightedNetworks();
-        Netlist netlist = cell.getUserNetlist();
+//        Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+			return;
+		}
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
-            findPortsDown(netlist, net, cell, new HashSet());
+            if (findPortsDown(netlist, net, cell, new HashSet())) break;
         }
     }
 
     /**
      * helper method for "telltool network list-hierarchical-ports" to print all
-     * ports connected to net "net" in cell "cell", and recurse up the hierarchy
+     * ports connected to net "net" in cell "cell", and recurse up the hierarchy.
+     * @return true if an error occurred.
      */
-    private static void findPortsUp(Netlist netlist, Network net, Cell cell, HashSet listedExports)
+    private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet listedExports)
     {
         // look at every node in the cell
         for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -777,24 +808,32 @@ public class ToolMenu {
                 {
                     NodeUsage nu = (NodeUsage)uIt.next();
                     Cell superCell = nu.getParent();
-                    Netlist superNetlist = superCell.getUserNetlist();
+//                    Netlist superNetlist = superCell.getUserNetlist();
+            		Netlist superNetlist = cell.acquireUserNetlist();
+            		if (superNetlist == null)
+            		{
+            			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+            			return true;
+            		}
                     for(Iterator nIt = superNetlist.getNodables(); nIt.hasNext(); )
                     {
                         Nodable no = (Nodable)nIt.next();
                         if (no.getProto() != cell) continue;
                         Network superNet = superNetlist.getNetwork(no, pp, i);
-                        findPortsUp(superNetlist, superNet, superCell, listedExports);
+                        if (findPortsUp(superNetlist, superNet, superCell, listedExports)) return true;
                     }
                 }
             }
         }
+        return false;
     }
 
     /**
      * helper method for "telltool network list-hierarchical-ports" to print all
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
+     * @return true on error.
      */
-    private static void findPortsDown(Netlist netlist, Network net, Cell cell, HashSet listedExports)
+    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet listedExports)
     {
         // look at every node in the cell
         for(Iterator it = netlist.getNodables(); it.hasNext(); )
@@ -820,12 +859,19 @@ public class ToolMenu {
                     if (listedExports.contains(pp)) continue;
                     listedExports.add(pp);
                     System.out.println("    Export " + pp.getName() + " in cell " + subCell.describe());
-                    Netlist subNetlist = subCell.getUserNetlist();
+//                    Netlist subNetlist = subCell.getUserNetlist();
+            		Netlist subNetlist = subCell.acquireUserNetlist();
+            		if (subNetlist == null)
+            		{
+            			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+            			return true;
+            		}
                     Network subNet = subNetlist.getNetwork(pp, i);
-                    findPortsDown(subNetlist, subNet, subCell, listedExports);
+                    if (findPortsDown(subNetlist, subNet, subCell, listedExports)) return true;
                 }
             }
         }
+        return false;
     }
 
     /**
@@ -892,7 +938,13 @@ public class ToolMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        Netlist netlist = cell.getUserNetlist();
+//        Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
+			return;
+		}
         HashSet pAndG = new HashSet();
         for(Iterator it = cell.getPorts(); it.hasNext(); )
         {

@@ -170,7 +170,13 @@ public class SelectObject extends EDialog
 		} else
 		{
 			// find networks
-			Netlist netlist = cell.getUserNetlist();
+//			Netlist netlist = cell.getUserNetlist();
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
+				return;
+			}
 			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 			{
 				Network net = (Network)it.next();

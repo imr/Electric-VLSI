@@ -264,7 +264,13 @@ public class Routing extends Listener
 
 			// convert requested nets
 			Cell cell = wf.getContent().getCell();
-			Netlist netList = cell.getUserNetlist();
+//			Netlist netList = cell.getUserNetlist();
+			Netlist netList = cell.acquireUserNetlist();
+			if (netList == null)
+			{
+				System.out.println("Sorry, a deadlock aborted unrouting (network information unavailable).  Please try again");
+				return false;
+			}
 			highlighter.clear();
 
 			// make arrays of what to unroute
@@ -649,7 +655,15 @@ public class Routing extends Listener
 		}
 
 		// association made, now copy the topology
-		Netlist fNl = fromCell.getUserNetlist();
+//		Netlist fNl = fromCell.getUserNetlist();
+//		Netlist tNl = toCell.getUserNetlist();
+		Netlist fNl = fromCell.acquireUserNetlist();
+		Netlist tNl = toCell.acquireUserNetlist();
+		if (fNl == null || tNl == null)
+		{
+			System.out.println("Sorry, a deadlock aborted topology copying (network information unavailable).  Please try again");
+			return false;
+		}
 		for(Iterator tIt = toCell.getNodes(); tIt.hasNext(); )
 		{
 			NodeInst tNi = (NodeInst)tIt.next();
@@ -692,7 +706,7 @@ public class Routing extends Listener
 				if (oTPp != null) oTPi = oTNi.findPortInstFromProto(oTPp);
 				if (oTPi == null) continue;
 				// make the connection from "tni", port "tpp" to "otni" port "otpp"
-				int result = makeUnroutedConnection(tPi, oTPi, toCell);
+				int result = makeUnroutedConnection(tPi, oTPi, toCell, tNl);
 				if (result < 0) return false;
 				wiresMade += result;
 			}
@@ -753,7 +767,7 @@ public class Routing extends Listener
 				if (oPi == null) continue;
 
 				// make the connection from "tni", port "tpp" to "otni" port "otpp"
-				int result = makeUnroutedConnection(tNi.getPortInst(0), oPi, toCell);
+				int result = makeUnroutedConnection(tNi.getPortInst(0), oPi, toCell, tNl);
 				if (result < 0) return false;
 				wiresMade += result;
 			}
@@ -768,12 +782,12 @@ public class Routing extends Listener
 	 * "tpp".  If the connection is already there, the routine doesn't make another.
 	 * @return number of arcs created (-1 on error).
 	 */
-	private static int makeUnroutedConnection(PortInst fPi, PortInst tPi, Cell cell)
+	private static int makeUnroutedConnection(PortInst fPi, PortInst tPi, Cell cell, Netlist nl)
 	{
 		// see if they are already connected
 		if (fPi != null && tPi != null)
 		{
-			Netlist nl = cell.getUserNetlist();
+//			Netlist nl = cell.getUserNetlist();
 			Network fNet = nl.getNetwork(fPi);
 			Network tNet = nl.getNetwork(tPi);
 			if (fNet == tNet) return 0;

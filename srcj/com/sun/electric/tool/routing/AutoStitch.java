@@ -210,8 +210,15 @@ public class AutoStitch
 		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni.getParent().isAllLocked()) continue;
-			count += checkStitching(ni, arcCount, nodeBounds, arcLayers);
+			Cell cell = ni.getParent();
+			if (cell.isAllLocked()) continue;
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
+				break;
+			}
+			count += checkStitching(ni, arcCount, nodeBounds, arcLayers, netlist);
 		}
 
 		// report results
@@ -279,10 +286,9 @@ public class AutoStitch
 	/**
 	 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
 	 */
-	private static int checkStitching(NodeInst ni, HashMap arcCount, HashMap nodeBounds, HashMap arcLayers)
+	private static int checkStitching(NodeInst ni, HashMap arcCount, HashMap nodeBounds, HashMap arcLayers, Netlist netlist)
 	{
 		Cell cell = ni.getParent();
-		Netlist netlist = cell.getUserNetlist();
 		double [] boundArray = (double [])nodeBounds.get(ni);
 
 		// gather a list of other nodes that touch or overlap this one

@@ -44,6 +44,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -77,10 +78,13 @@ import java.util.prefs.Preferences;
  * This is the Connectivity extractor.
  * 
  * Still to do:
- *    Contact cuts larger than minimum size
+ *    Proper way to find large contacts (currently too slow)
  *    Serpentine transistors
- *    Complex wiring paths
+ *    When extracting skeletons, allow mix of narrower and wider
+ *    Cell instances in wiring paths
+ *    Implicit connections where high-level nodes overlap
  *    Nonmanhattan geometry (contacts, transistors)
+ *    In via creation, check that the cut/via is the right size
  */
 public class Connectivity
 {
@@ -252,18 +256,23 @@ public class Connectivity
 		originalMerge.addMerge(merge, new AffineTransform());
 
 		// start by extracting vias
+		System.out.print("Geometry merged, now extracting vias...");
 		extractVias();
 
 		// now extract transistors
+		System.out.print("done\nNow extracting transistors...");
 		extractTransistors();
 
 		// look for wires and pins
+		System.out.print("done\nNow making wires...");
 		makeWires();
 
 		// dump any remaining layers back in as extra pure layer nodes
+		System.out.print("done\nConverting remaining geometry...");
 		convertAllGeometry();
 
 		// show the new version
+		System.out.println("done");
 		WindowFrame.createEditWindow(newCell);
 	}
 
@@ -306,125 +315,12 @@ public class Connectivity
 				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 				{
 					PolyBase poly = (PolyBase)pIt.next();
-					if (NEWWIRES)
-					{
-						convertToWires(poly, layer, type);
-						continue;
-					}
 
-					// see what touches the layer
-					List touchingNodes = findTouchingNodes(poly);
-
-					if (touchingNodes.size() == 2)
-					{
-						// connects two nodes: run wires
-						if (poly.getBox() == null)
-						{
-							// complex shape: need to figure out path
-							continue;
-						}
-						TouchingNode tn1 = (TouchingNode)touchingNodes.get(0);
-						TouchingNode tn2 = (TouchingNode)touchingNodes.get(1);
-						double width = Math.min(tn1.width, tn2.width);
-						realizeArc(type, tn1.pi, tn2.pi, width);
-					}
-
-					if (touchingNodes.size() == 1)
-					{
-						// runs from a node to empty space
-						if (poly.getBox() == null)
-						{
-							// complex shape: need to figure out path
-							continue;
-						}
-						TouchingNode tn = (TouchingNode)touchingNodes.get(0);
-						PortInst pi1 = tn.pi;
-						
-						// find the other end
-						Point2D [] points = poly.getPoints();
-						double bestDist = 0;
-						Point2D oppositePoint = null;
-						for(int i=0; i<points.length; i++)
-						{
-							int last = i-1;
-							if (last < 0) last = points.length-1;
-							if (points[last].equals(points[i])) continue;
-							Point2D endPoint = new Point2D.Double((points[last].getX() + points[i].getX()) / 2, (points[last].getY() + points[i].getY()) / 2);
-							double dist = endPoint.distance(tn.endPt);
-							if (dist > bestDist)
-							{
-								bestDist = dist;
-								oppositePoint = endPoint;
-							}
-						}
-						PrimitiveNode pinProto = ((PrimitiveArc)type).findPinProto();
-						NodeInst ni = NodeInst.makeInstance(pinProto, oppositePoint, tn.width, tn.width, newCell);
-						PortInst pi2 = ni.getOnlyPortInst();
-						if (oppositePoint != null)
-						{
-							realizeArc(type, pi1, pi2, tn.width);
-						}
-					}
+					// convert a polygon to wires
+					convertToWires(poly, layer, type);
 				}
 			}
 		}
-	}
-
-	private List findTouchingNodes(PolyBase poly)
-	{
-		Layer layer = geometricLayer(poly.getLayer());
-		List touchingNodes = new ArrayList();
-		Rectangle2D checkBounds = poly.getBounds2D();
-		checkBounds.setRect(checkBounds.getMinX() - 1, checkBounds.getMinY() - 1, checkBounds.getWidth() + 2, checkBounds.getHeight() + 2);
-		for(Iterator it = newCell.searchIterator(checkBounds); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (!(geom instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)geom;
-			Poly [] polys = tech.getShapeOfNode(ni, null, true, true, null);
-			for(int i=0; i<polys.length; i++)
-			{
-				Poly oPoly = polys[i];
-				Layer oLayer = geometricLayer(oPoly.getLayer());
-				if (layer != oLayer) continue;
-
-				Rectangle2D oPolyBox = oPoly.getBox();
-				if (oPolyBox == null) continue;
-
-				// do the polys touch?
-				double dist = DBMath.round(poly.polyDistance(oPolyBox));
-				if (dist <= 0)
-				{
-					TouchingNode tn = new TouchingNode();
-					tn.ni = ni;
-					tn.pi = ni.findPortInstFromProto(oPoly.getPort());
-					if (tn.pi == null)
-					{
-						System.out.println("Can't find port for node "+ni.describe()+" and port "+oPoly.getPort());
-						continue;
-					}
-					
-					// see which side of this polygon touched the node
-					Point2D [] points = poly.getPoints();
-					for(int j=0; j<points.length; j++)
-					{
-						int last = j-1;
-						if (last < 0) last = points.length-1;
-						if (points[last].equals(points[j])) continue;
-						Point2D endPoint = new Point2D.Double((points[last].getX() + points[j].getX()) / 2, (points[last].getY() + points[j].getY()) / 2);
-						if (oPoly.contains(endPoint))
-						{
-							tn.width = points[last].distance(points[j]);
-							tn.endPt = endPoint;
-							break;
-						}
-					}
-					touchingNodes.add(tn);
-					break;
-				}
-			}
-		}
-		return touchingNodes;
 	}
 
 	private List findPortInstsTouchingPoint(Point2D pt, Layer layer)
@@ -436,6 +332,11 @@ public class Connectivity
 			Geometric geom = (Geometric)it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
+			if (ni.getProto() instanceof Cell)
+			{
+				// TODO: recursive algorithm needed to find connectivity to a cell instance
+				continue;
+			}
 			Poly [] polys = tech.getShapeOfNode(ni, null, true, true, null);
 			AffineTransform trans = ni.rotateOut();
 			for(int i=0; i<polys.length; i++)
@@ -448,13 +349,32 @@ public class Connectivity
 				// do the polys touch?
 				if (oPoly.contains(pt))
 				{
-					PortInst pi = ni.findPortInstFromProto(oPoly.getPort());
-					if (pi == null)
+					PrimitivePort touchingPort = (PrimitivePort)oPoly.getPort();
+					PortInst touchingPi = ni.findPortInstFromProto(touchingPort);
+					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+					Poly touchingPoly = touchingPi.getPoly();
+					double bestDist = pt.distance(new Point2D.Double(touchingPoly.getCenterX(), touchingPoly.getCenterY()));
+					for(Iterator pIt = pnp.getPorts(); pIt.hasNext(); )
+					{
+						PrimitivePort prP = (PrimitivePort)pIt.next();
+						if (prP.getTopology() == touchingPort.getTopology())
+						{
+							PortInst testPi = ni.findPortInstFromProto(prP);
+							Poly testPoly = testPi.getPoly();
+							double dist = pt.distance(new Point2D.Double(testPoly.getCenterX(), testPoly.getCenterY()));
+							if (dist < bestDist)
+							{
+								bestDist = dist;
+								touchingPi = testPi;
+							}
+						}
+					}
+					if (touchingPi == null)
 					{
 						System.out.println("Can't find port for node "+ni.describe()+" and port "+oPoly.getPort());
 						continue;
 					}
-					touchingNodes.add(pi);
+					touchingNodes.add(touchingPi);
 					break;
 				}
 			}
@@ -477,9 +397,136 @@ public class Connectivity
 		}
 	}
 
+	/**
+	 * Method to convert a piece of geometry to wires.
+	 * @param poly a polygon to convert to wires.
+	 * @param layer the layer associated with the polygon.
+	 * @param ap the type of arc to create when converting to wires.
+	 */
 	private void convertToWires(PolyBase poly, Layer layer, ArcProto ap)
 	{
-		// make a list of all parallel wires in the polygon
+		// reduce the geometry to a skeleton of centerlines
+		List lines = findCenterlines(poly, layer, ap);
+
+		// now realize the wires
+		for(Iterator it = lines.iterator(); it.hasNext(); )
+		{
+			Centerline cl = (Centerline)it.next();
+			Point2D loc1 = new Point2D.Double();
+			PortInst pi1 = locatePortOnCenterline(cl, loc1, layer, ap, true);
+			Point2D loc2 = new Point2D.Double();
+			PortInst pi2 = locatePortOnCenterline(cl, loc2, layer, ap, false);
+//System.out.println("Centerline from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+") width="+cl.width);
+//System.out.println("  will run from pi="+pi1+" at ("+loc1.getX()+","+loc1.getY()+") to pi="+pi2+" at ("+loc2.getX()+","+loc2.getY()+")");
+			realizeArc(ap, pi1, pi2, cl.width);
+		}
+	}
+
+	/**
+	 * Method to return the port and location to use for one end of a Centerline.
+	 * @param cl the Centerline to connect
+	 * @param loc1 it's location (values returned through this object!)
+	 * @param layer the layer associated with the Centerline.
+	 * @param ap the type of arc to create.
+	 * @param startSide true to 
+	 * @return
+	 */
+	private PortInst locatePortOnCenterline(Centerline cl, Point2D loc1, Layer layer, ArcProto ap, boolean startSide)
+	{
+		PortInst piRet = null;
+		boolean isHub = cl.endHub;
+		Point2D startPoint = cl.end;
+		if (startSide)
+		{
+			isHub = cl.startHub;
+			startPoint = cl.start;
+		}
+		if (!isHub)
+		{
+			int angCenterLine = GenMath.figureAngle(cl.start, cl.end);
+			List possiblePorts = findPortInstsTouchingPoint(startPoint, layer);
+			for(Iterator pIt = possiblePorts.iterator(); pIt.hasNext(); )
+			{
+				PortInst pi = (PortInst)pIt.next();
+				Poly portPoly = pi.getPoly();
+				Point2D [] points = portPoly.getPoints();
+//System.out.println((startSide?"Start":"End")+" side of centerline might connect to port "+pi.getPortProto().getName()+" of node "+pi.getNodeInst().describe()+" with "+points.length+" points");
+				if (points.length == 1)
+				{
+				    Point2D iPt = GenMath.intersect(cl.start, angCenterLine, points[0], angCenterLine+900);
+				    if (iPt != null)
+					{
+						loc1.setLocation(iPt.getX(), iPt.getY());
+						piRet = pi;
+						break;
+					}
+				} else
+				{
+					for(int i=0; i<points.length; i++)
+					{
+						int last = i-1;
+						if (last < 0) last = points.length-1;
+						Point2D portLineFrom = points[last];
+						Point2D portLineTo = points[i];
+						Point2D interPt = null;
+						if (portLineFrom.equals(portLineTo))
+						{
+							interPt = GenMath.intersect(cl.start, angCenterLine, portLineFrom, angCenterLine+900);
+						} else
+						{
+							int angPortLine = GenMath.figureAngle(portLineFrom, portLineTo);
+							interPt = GenMath.intersect(portLineFrom, angPortLine, cl.start, angCenterLine);
+							if (interPt != null)
+							{
+								if (interPt.getX() < Math.min(portLineFrom.getX(), portLineTo.getX()) ||
+									interPt.getX() > Math.max(portLineFrom.getX(), portLineTo.getX()) ||
+									interPt.getY() < Math.min(portLineFrom.getY(), portLineTo.getY()) ||
+									interPt.getY() > Math.max(portLineFrom.getY(), portLineTo.getY())) interPt = null;
+							}
+						}
+						if (interPt == null) continue;
+						loc1.setLocation(interPt.getX(), interPt.getY());
+						piRet = pi;
+						break;
+					}
+					if (piRet != null) break;
+				}
+			}
+		}
+		if (piRet == null)
+		{
+			// shrink the end inward by half-width
+			int angle = GenMath.figureAngle(cl.start, cl.end);
+			PrimitiveNode pin = ((PrimitiveArc)ap).findPinProto();
+			if (startSide)
+			{
+				if (!isHub)
+					cl.start.setLocation(cl.start.getX() + GenMath.cos(angle)*cl.width/2,
+						cl.start.getY() + GenMath.sin(angle)*cl.width/2);
+				NodeInst ni = wantNodeAt(cl.start, pin, cl.width);
+				piRet = ni.getOnlyPortInst();
+			} else
+			{
+				if (!isHub)
+					cl.end.setLocation(cl.end.getX() - GenMath.cos(angle)*cl.width/2,
+						cl.end.getY() - GenMath.sin(angle)*cl.width/2);
+				NodeInst ni = wantNodeAt(cl.end, pin, cl.width);
+				piRet = ni.getOnlyPortInst();
+			}
+		}
+		return piRet;
+	}
+
+	/**
+	 * Method to find a list of centerlines that skeletonize a polygon.
+	 * @param poly the Poly to skeletonize.
+	 * @param layer the layer on which the polygon resides.
+	 * @param ap the ArcProto to use when realizing the polygon.
+	 * @return a List of Centerline objects that describe a single "bone" of the skeleton.
+	 */
+	private List findCenterlines(PolyBase poly, Layer layer, ArcProto ap)
+	{
+		// first make a list of all parallel wires in the polygon
 		List centerlines = new ArrayList();
 		Point2D [] points = poly.getPoints();
 		for(int i=0; i<points.length; i++)
@@ -674,60 +721,11 @@ public class Connectivity
 			}
 		}
 
-//System.out.println("CENTERLINES: ===================");
-//for(int i=0; i<numCenterlines; i++)
-//{
-//	Centerline cl = lines[i];
-//	System.out.println("Centerline from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+") width="+cl.width);
-//}
-		// now realize the wires
-		PrimitiveNode pin = ((PrimitiveArc)ap).findPinProto();
+		// make a list of the final results
+		List finalCenterlines = new ArrayList();
 		for(int i=0; i<numCenterlines; i++)
-		{
-			Centerline cl = lines[i];
-			PortInst pi1 = null, pi2 = null;
-			if (!cl.startHub)
-			{
-				List possiblePorts = findPortInstsTouchingPoint(cl.start, layer);
-				if (possiblePorts.size() > 0)
-				{
-					// connect it to something
-					pi1 = (PortInst)possiblePorts.get(0);
-				} else
-				{
-					// shrink the end inward by half-width
-					int angle = GenMath.figureAngle(cl.start, cl.end);
-					cl.start.setLocation(cl.start.getX() + GenMath.cos(angle)*cl.width/2,
-						cl.start.getY() + GenMath.sin(angle)*cl.width/2);
-				}
-			}
-			if (pi1 == null)
-			{
-				NodeInst ni = wantNodeAt(cl.start, pin, cl.width);
-				pi1 = ni.getOnlyPortInst();
-			}
-			if (!cl.endHub)
-			{
-				List possiblePorts = findPortInstsTouchingPoint(cl.end, layer);
-				if (possiblePorts.size() > 0)
-				{
-					// connect it to something
-					pi2 = (PortInst)possiblePorts.get(0);
-				} else
-				{
-					// shrink the end inward by half-width
-					int angle = GenMath.figureAngle(cl.end, cl.start);
-					cl.end.setLocation(cl.end.getX() + GenMath.cos(angle)*cl.width/2,
-						cl.end.getY() + GenMath.sin(angle)*cl.width/2);
-				}
-			}
-			if (pi2 == null)
-			{
-				NodeInst ni = wantNodeAt(cl.end, pin, cl.width);
-				pi2 = ni.getOnlyPortInst();
-			}
-			realizeArc(ap, pi1, pi2, cl.width);
-		}
+			finalCenterlines.add(lines[i]);
+		return finalCenterlines;
 	}
 
 	private static class ParallelWiresByWidth implements Comparator
@@ -859,6 +857,9 @@ public class Connectivity
 	 */
 	private void extractVias()
 	{
+		// make map of PrimitiveNodes and their geometry
+		HashMap possibleAreas = new HashMap();
+
 		// look at all via layers and see if contacts can be extracted
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
@@ -876,41 +877,42 @@ public class Connectivity
 				PolyBase poly = (PolyBase)polyList.get(0);
 				double centerX = poly.getCenterX();
 				double centerY = poly.getCenterY();
-//System.out.println("Consider contact "+layer.getName()+" at ("+centerX+","+centerY+")");
+System.out.println("Consider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
 
 				// now look through the list to see if anything matches
 				for(Iterator it = possibleVias.iterator(); it.hasNext(); )
 				{
 					PossibleVia pv = (PossibleVia)it.next();
 					PrimitiveNode pNp = pv.pNp;
-//System.out.println("  Could it be "+pNp.getName());
-					// check that the cut/via is the right size
-
+					
 					// determine the range of shrinkage values for the layers in the contact
 					double largestShrink = pv.shrink[0];
-					double smallestShrink = pv.shrink[0];
 					for(int i=1; i<pv.layers.length; i++)
-					{
 						if (pv.shrink[i] > largestShrink) largestShrink = pv.shrink[i];
-						if (pv.shrink[i] < smallestShrink) smallestShrink = pv.shrink[i];
-					}
 
-					// merge all other layers and see how big the contact can be
-					originalMerge.insetLayer(pv.layers[0], tempLayer1, (largestShrink-pv.shrink[0])/2);
-//System.out.println("    Inset layer "+pv.layers[0].getName()+" by "+((largestShrink-pv.shrink[0])/2));
-					for(int i=1; i<pv.layers.length; i++)
+System.out.println("  Could it be primitive "+pNp.getName());
+					List contactArea = (List)possibleAreas.get(pNp);
+					if (contactArea == null)
 					{
+						// merge all other layers and see how big the contact can be
+						originalMerge.insetLayer(pv.layers[0], tempLayer1, (largestShrink-pv.shrink[0])/2);
+//System.out.println("    Inset layer "+pv.layers[0].getName()+" by "+((largestShrink-pv.shrink[0])/2));
+						for(int i=1; i<pv.layers.length; i++)
+						{
 //List xx = originalMerge.getMergedPoints(pv.layers[i], true);
 //System.out.println("    Inset layer "+pv.layers[i].getName()+" by "+((largestShrink-pv.shrink[i])/2)+" is "+xx);
-						originalMerge.insetLayer(pv.layers[i], tempLayer2, (largestShrink-pv.shrink[i])/2);
-						originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+							originalMerge.insetLayer(pv.layers[i], tempLayer2, (largestShrink-pv.shrink[i])/2);
+							originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+						}
+						contactArea = originalMerge.getMergedPoints(tempLayer1, true);
+						possibleAreas.put(pNp, contactArea);
 					}
-					List contactArea = originalMerge.getMergedPoints(tempLayer1, true);
-//if (contactArea == null) System.out.println("  Cannot be "+pNp.getName());
+
+					//if (contactArea == null) System.out.println("  Cannot be "+pNp.getName());
 					if (contactArea == null) continue;
 					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-largestShrink, pv.minHeight-largestShrink);
 					if (largest == null) continue;
-//System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
+System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
 					centerX = largest.getCenterX();
 					centerY = largest.getCenterY();
 					double desiredWidth = largest.getWidth() + largestShrink;
@@ -939,7 +941,7 @@ public class Connectivity
 						if (gotMinimum)
 						{
 							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0);
-//System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
+System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
 							// remove other cuts in this area
 							for(int o=1; o<polyList.size(); o++)
 							{
@@ -948,7 +950,7 @@ public class Connectivity
 								double y = oPoly.getCenterY();
 								if (largest.contains(x, y))
 								{
-//System.out.println("    and also includes cut at ("+x+","+y+")");
+System.out.println("    and also includes cut at ("+x+","+y+")");
 									polyList.remove(oPoly);
 									o--;
 								}
