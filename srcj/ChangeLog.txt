@@ -1,8 +1,13 @@
 			Java Electric change log
 
-IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
+NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.01l: *********************************
+************************* Version 8.01n: *********************************
+
+
+************************* Version 8.01m: *********************************
+
+IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
 
 IMP: (9/8/04, SMR) Waveform window lets you cross-probe at lower levels of hierarchy.
 
@@ -24,6 +29,8 @@ IMP: (9/7/04, SMR) Now save the current cell in the Preferences.
 BUG: (9/7/04, SMR) Cell extraction may create duplicate temporary names.
 FIX: In CircuitChanges.extractOneNode(), do not use existing name: use either null
      or a unique name.
+
+************************* Version 8.01l: *********************************
 
 IMP: (9/3/04, SMR) Added ".jelib" reader and writer.
 
