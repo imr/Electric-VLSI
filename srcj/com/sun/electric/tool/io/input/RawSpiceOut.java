@@ -187,7 +187,7 @@ public class RawSpiceOut extends Simulate
 							int lineNumber = TextUtils.atoi(line);
 							if (lineNumber != j)
 								System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
-							while (Character.isDigit(line.charAt(0))) line = line.substring(1);
+							while (TextUtils.isDigit(line.charAt(0))) line = line.substring(1);
 						}
 						line = line.trim();
 						if (i == 0) sd.setCommonTime(j, TextUtils.atof(line)); else

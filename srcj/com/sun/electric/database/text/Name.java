@@ -318,7 +318,7 @@ public class Name implements Comparable
 		if ((flags & SIMPLE) != 0)
 		{
 			int l = ns.length();
-			while (l > 0 && Character.isDigit(ns.charAt(l-1))) l--;
+			while (l > 0 && TextUtils.isDigit(ns.charAt(l-1))) l--;
 			if (l == ns.length())
 			{
                 base = this;
@@ -498,7 +498,7 @@ public class Name implements Comparable
 				if (ns.charAt(bracket+1) == '-') throw new NumberFormatException("has negative start of index range");
 				for (int j = bracket + 1; j < i; j++)
 				{
-					if (!Character.isDigit(ns.charAt(j)))
+					if (!TextUtils.isDigit(ns.charAt(j)))
 						 throw new NumberFormatException("has nonnumeric start of index range");
 				}
 				colon = i;
@@ -510,7 +510,7 @@ public class Name implements Comparable
 				if (ns.charAt(colon+1) == '-') throw new NumberFormatException("has negative end of index range");
 				for (int j = colon + 1; j < i; j++)
 				{
-					if (!Character.isDigit(ns.charAt(j)))
+					if (!TextUtils.isDigit(ns.charAt(j)))
 						 throw new NumberFormatException("has nonnumeric end of index range");
 				}
 				if (Integer.parseInt(ns.substring(bracket+1,colon)) == Integer.parseInt(ns.substring(colon+1,i)))

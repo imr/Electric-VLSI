@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -486,7 +487,7 @@ public class Export extends ElectricObject implements PortProto
 		for(int i=0; i<len; i++)
 		{
 			char ch = name.charAt(i);
-			if (Character.isLetterOrDigit(ch)) continue;
+			if (TextUtils.isLetterOrDigit(ch)) continue;
 			return name.substring(0, i);
 		}
 		return name;

@@ -826,10 +826,10 @@ public class Silos extends Topology
 		if (len <= 0) return p;
 		boolean defined = true;
 		for(int i=0; i<len; i++) if (!Character.isDefined(p.charAt(i))) { defined = false;   break; }
-		if (defined && !Character.isDigit(p.charAt(0))) return p;
+		if (defined && !TextUtils.isDigit(p.charAt(0))) return p;
 
 		StringBuffer sb = new StringBuffer();
-		if (Character.isDigit(p.charAt(0))) sb.append("_");
+		if (TextUtils.isDigit(p.charAt(0))) sb.append("_");
 		for(int i=0; i<len; i++)
 		{
 			char t = p.charAt(i);

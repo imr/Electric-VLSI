@@ -727,7 +727,7 @@ public class JELIB extends LibraryFiles
 				if (chr == 'V') visInside = true; else
 				if (chr == 'W') wiped = true; else
 				if (chr == 'A') hardSelect = true; else
-				if (Character.isDigit(chr))
+				if (TextUtils.isDigit(chr))
 				{
 					techSpecific = TextUtils.atoi(stateInfo.substring(i));
 					break;
@@ -890,7 +890,7 @@ public class JELIB extends LibraryFiles
 				if (chr == 'T') skipTail = true; else
 				if (chr == 'N') tailNegated = true; else
 				if (chr == 'G') headNegated = true; else
-				if (Character.isDigit(chr))
+				if (TextUtils.isDigit(chr))
 				{
 					angle = TextUtils.atoi(stateInfo.substring(i));
 					break;

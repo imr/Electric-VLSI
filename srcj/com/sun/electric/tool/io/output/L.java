@@ -459,13 +459,13 @@ public class L extends Output
 		// check for special characters
 		boolean badChars = false;
 		for(int i=0; i<name.length(); i++)
-			if (!Character.isLetterOrDigit(name.charAt(i))) badChars = true;
+			if (!TextUtils.isLetterOrDigit(name.charAt(i))) badChars = true;
 		if (!badChars) return name;
 
 		// name has special characters: remove them
 		StringBuffer sb = new StringBuffer();
 		for(int i=0; i<name.length(); i++)
-			if (Character.isLetterOrDigit(name.charAt(i))) sb.append(name.charAt(i));
+			if (TextUtils.isLetterOrDigit(name.charAt(i))) sb.append(name.charAt(i));
 		return sb.toString();
 	}
 

@@ -122,6 +122,7 @@ public class ViewChanges
 		public boolean doIt()
 		{
 			cell.setView(newView);
+			cell.setTechnology(null);
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();

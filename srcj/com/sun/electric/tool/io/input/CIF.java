@@ -1322,7 +1322,7 @@ public class CIF extends Input
 		{
 			if (atEndOfFile()) break;
 			int c = peekNextCharacter();
-			if (Character.isDigit((char)c) || Character.isUpperCase((char)c)) break;
+			if (TextUtils.isDigit((char)c) || Character.isUpperCase((char)c)) break;
 			if (c == '(' || c == ')' || c == ';' || c == '-') break;
 			getNextCharacter();
 		}
@@ -1383,7 +1383,7 @@ public class CIF extends Input
 				for (int i = 0; i<4; i++)
 				{
 					int chr = peekNextCharacter();
-					if (!Character.isUpperCase((char)chr) && !Character.isDigit((char)chr)) break;
+					if (!Character.isUpperCase((char)chr) && !TextUtils.isDigit((char)chr)) break;
 					layerName.append(getNextCharacter());
 				}
 				if (layerName.length() == 0) {errorFound = true; errorType = NOLAYER; return reportError();}
@@ -1398,7 +1398,7 @@ public class CIF extends Input
 						command = DEFSTART;
 						symbolNumber = getNumber(); if (errorFound) return reportError();
 						skipSeparators(); multiplier = divisor = 1;
-						if (Character.isDigit((char)peekNextCharacter()))
+						if (TextUtils.isDigit((char)peekNextCharacter()))
 						{
 							multiplier = getNumber(); if (errorFound) return reportError();
 							divisor = getNumber(); if (errorFound) return reportError();
@@ -1529,7 +1529,7 @@ public class CIF extends Input
 				return NULLCOMMAND;
 
 			default:
-				if (Character.isDigit((char)curChar))
+				if (TextUtils.isDigit((char)curChar))
 				{
 					userCommand = curChar - '0';
 					if (userCommand == 9)
@@ -1567,7 +1567,7 @@ public class CIF extends Input
 											for (int i = 0; i<4; i++)
 											{
 												int chr = peekNextCharacter();
-												if (!Character.isUpperCase((char)chr) && !Character.isDigit((char)chr)) break;
+												if (!Character.isUpperCase((char)chr) && !TextUtils.isDigit((char)chr)) break;
 												layName.append(getNextCharacter());
 											}
 											lName = layName.toString();
@@ -2216,7 +2216,7 @@ public class CIF extends Input
 		int ans = 0;
 		skipSpaces();
 
-		while (ans < BIGSIGNED && Character.isDigit((char)peekNextCharacter()))
+		while (ans < BIGSIGNED && TextUtils.isDigit((char)peekNextCharacter()))
 		{
 			ans *= 10; ans += getNextCharacter() - '0';
 			somedigit = true;
@@ -2227,7 +2227,7 @@ public class CIF extends Input
 			logIt(NOUNSIGNED);
 			return 0;
 		}
-		if (Character.isDigit((char)peekNextCharacter()))
+		if (TextUtils.isDigit((char)peekNextCharacter()))
 		{
 			logIt(NUMTOOBIG);
 			return 0XFFFFFFFF;
@@ -2682,14 +2682,14 @@ public class CIF extends Input
 		if (peekNextCharacter() == '-') { sign = true;   getNextCharacter(); }
 
 		boolean someDigit = false;
-		while (ans < BIGSIGNED && Character.isDigit((char)peekNextCharacter()))
+		while (ans < BIGSIGNED && TextUtils.isDigit((char)peekNextCharacter()))
 		{
 			ans *= 10; ans += getNextCharacter() - '0';
 			someDigit = true;
 		}
 
 		if (!someDigit) { logIt(NOSIGNED);   return 0; }
-		if (Character.isDigit((char)peekNextCharacter()))
+		if (TextUtils.isDigit((char)peekNextCharacter()))
 		{
 			logIt(NUMTOOBIG);
 			return sign ? -0X7FFFFFFF : 0X7FFFFFFF;
@@ -2716,7 +2716,7 @@ public class CIF extends Input
 		for(;;)
 		{
 			int c = peekNextCharacter();
-			if (!Character.isDigit((char)c) && c != '-') break;
+			if (!TextUtils.isDigit((char)c) && c != '-') break;
 			Point temp = getPoint();	  if (errorFound) break;
 			appendPoint(a, temp);
 			skipSeparators();
@@ -2751,7 +2751,7 @@ public class CIF extends Input
 				case -1:
 					return;
 				default:
-					if (Character.isDigit((char)c)) return;
+					if (TextUtils.isDigit((char)c)) return;
 					getNextCharacter();
 			}
 		}

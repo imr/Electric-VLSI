@@ -247,7 +247,7 @@ public class HSpiceOut extends Simulate
 			for(j=0; j<line.length(); j++)
 			{
 				if (line.charAt(j) == ':') break;
-				if (!Character.isDigit(line.charAt(j))) break;
+				if (!TextUtils.isDigit(line.charAt(j))) break;
 			}
 			if (j < line.length() && line.charAt(j) == ':')
 			{

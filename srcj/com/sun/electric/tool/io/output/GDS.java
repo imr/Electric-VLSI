@@ -523,7 +523,7 @@ public class GDS extends Geometry
 		{
 			char ch = str.charAt(k);
 			if (IOTool.isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
-			if (ch != '$' && !Character.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
+			if (ch != '$' && !TextUtils.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
 				ch = '_';
 			ret += ch;
 		}

@@ -903,6 +903,7 @@ public class Library extends ElectricObject
 			onlyWithName = c;
 			if (n.getView() != c.getView()) continue;
 			if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
+			if (n.getVersion() == 0 && c.getNewestVersion() != c) continue;
 			return c;
 		}
 		if (n.getView() == View.UNKNOWN && onlyWithName != null) return onlyWithName;

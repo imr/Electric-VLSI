@@ -1180,7 +1180,7 @@ public class Spice extends Topology
 		int len = name.length();
 		for(int i=0; i<len; i++)
 		{
-			if (!Character.isLetterOrDigit(name.charAt(i)))
+			if (!TextUtils.isLetterOrDigit(name.charAt(i)))
 			{
 				allAlNum = false;
 				break;
@@ -1192,7 +1192,7 @@ public class Spice extends Topology
 		for(int t=0; t<name.length(); t++)
 		{
 			char chr = name.charAt(t);
-			boolean legalChar = Character.isLetterOrDigit(chr);
+			boolean legalChar = TextUtils.isLetterOrDigit(chr);
 			if (!legalChar)
 			{
 				for(int j=0; j<legalSpiceChars.length(); j++)

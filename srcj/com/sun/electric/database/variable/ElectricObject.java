@@ -843,7 +843,7 @@ public abstract class ElectricObject
 		if (plusPlusPos >= 0)
 		{
 			int numStart = plusPlusPos;
-			while (numStart > 0 && Character.isDigit(name.charAt(numStart-1))) numStart--;
+			while (numStart > 0 && TextUtils.isDigit(name.charAt(numStart-1))) numStart--;
 			if (numStart < plusPlusPos)
 			{
 				int nextIndex = TextUtils.atoi(name.substring(numStart)) + 1;
@@ -860,7 +860,7 @@ public abstract class ElectricObject
 		if (minusMinusPos >= 0)
 		{
 			int numStart = minusMinusPos;
-			while (numStart > 0 && Character.isDigit(name.charAt(numStart-1))) numStart--;
+			while (numStart > 0 && TextUtils.isDigit(name.charAt(numStart-1))) numStart--;
 			if (numStart < minusMinusPos)
 			{
 				int nextIndex = TextUtils.atoi(name.substring(numStart)) - 1;
@@ -964,7 +964,7 @@ public abstract class ElectricObject
 				// nothing simple, but this one can be incremented
 				int i;
 				for(i=possibleEnd-1; i>possibleStart; i--)
-					if (!Character.isDigit(name.charAt(i))) break;
+					if (!TextUtils.isDigit(name.charAt(i))) break;
 				int nextIndex = TextUtils.atoi(name.substring(i+1)) + 1;
 				int startPos = i+1;
 				if (name.charAt(startPos-1) == separateChar) startPos--;
@@ -984,7 +984,7 @@ public abstract class ElectricObject
 
 		// if there is a numeric part at the end, increment that
 		String localSepString = String.valueOf(separateChar);
-		while (startPos > 0 && Character.isDigit(name.charAt(startPos-1))) startPos--;
+		while (startPos > 0 && TextUtils.isDigit(name.charAt(startPos-1))) startPos--;
 		int nextIndex = 1;
 		if (startPos >= endPos)
 		{

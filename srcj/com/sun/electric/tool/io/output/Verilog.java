@@ -960,11 +960,11 @@ public class Verilog extends Topology
 	private String nameNoIndices(String p)
 	{
 		StringBuffer sb = new StringBuffer();
-		if (Character.isDigit(p.charAt(0))) sb.append('_');
+		if (TextUtils.isDigit(p.charAt(0))) sb.append('_');
 		for(int i=0; i<p.length(); i++)
 		{
 			char chr = p.charAt(i);
-			if (!Character.isLetterOrDigit(chr) && chr != '_' && chr != '$') chr = '_';
+			if (!TextUtils.isLetterOrDigit(chr) && chr != '_' && chr != '$') chr = '_';
 			sb.append(chr);
 		}
 		return sb.toString();
@@ -1017,7 +1017,7 @@ public class Verilog extends Topology
 		if (len == 0) return name;
 		for(int i=0; i<len; i++)
 		{
-			if (!Character.isLetterOrDigit(name.charAt(i))) { allAlnum = false;   break; }
+			if (!TextUtils.isLetterOrDigit(name.charAt(i))) { allAlnum = false;   break; }
 		}
 		if (allAlnum && Character.isLetter(name.charAt(0))) return name;
 
@@ -1031,7 +1031,7 @@ public class Verilog extends Topology
 				if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
 			} else
 			{
-				if (Character.isLetterOrDigit(chr) || chr == '$')
+				if (TextUtils.isLetterOrDigit(chr) || chr == '$')
 					sb.append(chr); else
 						sb.append('_');
 			}

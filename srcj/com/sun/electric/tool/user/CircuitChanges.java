@@ -4968,7 +4968,7 @@ public class CircuitChanges
 		// increment the variable
 		int i;
 		for(i = incrPoint-1; i>0; i--)
-			if (!Character.isDigit(str.charAt(i))) break;
+			if (!TextUtils.isDigit(str.charAt(i))) break;
 		i++;
 		int curVal = TextUtils.atoi(str.substring(i));
 		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;

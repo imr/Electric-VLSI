@@ -763,7 +763,7 @@ public abstract class Topology extends Output
 				charPos = firstName.indexOf('[', charPos);
 				if (charPos < 0) break;
 				charPos++;
-				if (!Character.isDigit(firstName.charAt(charPos))) continue;
+				if (!TextUtils.isDigit(firstName.charAt(charPos))) continue;
 				index = TextUtils.atoi(firstName.substring(charPos));
 				break;
 			}
@@ -807,7 +807,7 @@ public abstract class Topology extends Output
 			char theChr = name.charAt(i);
 			if (theChr == '[') break;
 			if (theChr == ':' || theChr == ',') continue;
-			if (!Character.isDigit(theChr)) break;
+			if (!TextUtils.isDigit(theChr)) break;
 		}
 		if (name.charAt(i) != '[') return name;
 		return name.substring(0, i);

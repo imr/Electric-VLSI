@@ -140,12 +140,12 @@ public class SpiceOut extends Simulate
 			}
 			if (pastEnd && !dataMode)
 			{
-				if ((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1)))
+				if ((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && TextUtils.isDigit(line.charAt(1)))
 					dataMode = true;
 			}
 			if (pastEnd && dataMode)
 			{
-				if (!((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1))))
+				if (!((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && TextUtils.isDigit(line.charAt(1))))
 				{
 					dataMode = false;
 					pastEnd = false;

@@ -792,7 +792,7 @@ public class EDIF extends Topology
 		if (okname.length() > 0)
 		{
 			char chr = okname.charAt(0);
-			if (Character.isDigit(chr) || chr == '_')
+			if (TextUtils.isDigit(chr) || chr == '_')
 				okname = "&" + okname;
 		}
 		return okname;
@@ -812,7 +812,7 @@ public class EDIF extends Topology
 		// allow "_" and alphanumeric for others
 		for(; i<iptr.length(); i++)
 		{
-			if (Character.isLetterOrDigit(iptr.charAt(i))) continue;
+			if (TextUtils.isLetterOrDigit(iptr.charAt(i))) continue;
 			if (iptr.charAt(i) == '_') continue;
 			iptr.setCharAt(i, '_');
 		}
@@ -828,13 +828,13 @@ public class EDIF extends Topology
 	{
 		if (str.length() == 0) return str;
 		StringBuffer sb = new StringBuffer();
-		if (Character.isDigit(str.charAt(0))) sb.append('X');
+		if (TextUtils.isDigit(str.charAt(0))) sb.append('X');
 		for(int i=0; i<str.length(); i++)
 		{
 			char chr = str.charAt(i);
 			if (Character.isWhitespace(chr)) break;
 			if (chr == '[') chr = '_';
-			if (Character.isLetterOrDigit(chr) || chr == '&' || chr == '_')
+			if (TextUtils.isLetterOrDigit(chr) || chr == '&' || chr == '_')
 				sb.append(chr);
 		}
 		return sb.toString();

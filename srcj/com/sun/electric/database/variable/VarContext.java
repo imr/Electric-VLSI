@@ -172,7 +172,7 @@ public class VarContext
     private boolean isValidIdentifier(String identifier) {
     	final int len = identifier.length();
     	for (int i=0; i<len; i++) {
-    		if (!Character.isLetterOrDigit(identifier.charAt(i))) return false;
+    		if (!TextUtils.isLetterOrDigit(identifier.charAt(i))) return false;
     	}
     	return true;
     }

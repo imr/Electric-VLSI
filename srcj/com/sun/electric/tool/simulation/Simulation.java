@@ -26,6 +26,7 @@ package com.sun.electric.tool.simulation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -287,12 +288,12 @@ public class Simulation extends Tool
 					{
 						char sigChar = signalName.charAt(i);
 						char netChar = netName.charAt(i);
-						if (Character.isLetterOrDigit(sigChar) != Character.isLetterOrDigit(netChar))
+						if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar))
 						{
 							matches = false;
 							break;
 						}
-						if (Character.isLetterOrDigit(sigChar) &&
+						if (TextUtils.isLetterOrDigit(sigChar) &&
 							Character.toLowerCase(sigChar) != Character.toLowerCase(netChar))
 						{
 							matches = false;

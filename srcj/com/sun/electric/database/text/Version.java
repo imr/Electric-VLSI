@@ -99,7 +99,7 @@ public class Version
 
 			int letters;
 			for(letters = 0; letters < restOfString.length(); letters++)
-				if (!Character.isDigit(restOfString.charAt(letters))) break;
+				if (!TextUtils.isDigit(restOfString.charAt(letters))) break;
 			String minorString = restOfString.substring(0, letters);
 			minor = Integer.parseInt(minorString);
 			restOfString = restOfString.substring(letters);

@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ai: *********************************
 
+BUG: (11/2/04, DN) Library.findNodeProto should find the newest
+    version of the cell, when no version number is specified.
+FIX: Add test to "Library.findNodeProto.
+
+BUG: (11/2/04, DN) When view of a cell is changed from layout to
+    schematic, its technology (and TechPallette) remains layout.
+FIX: Clear technology in ViewChanges.ChangeCellView
+
+BUG: (11/2/04, DN) When parsing routines will meet with non-Latin
+    unicode digits, they may retuin strange numbers.
+FIX: Use TextUtils.isDigit and TextUtils.isLetterOrDigit.
+
+IMP: (11/2/04, DN) TextUtils.nameSameNumeric is made case-insensitive.
+
 BUG: (11/2/04, GVG) Rounding errors in PolyBase.halfCropBox
 FIX: Same wrapper operations as in PolyBase.cropBox.
 

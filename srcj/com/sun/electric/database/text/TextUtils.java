@@ -53,6 +53,41 @@ import java.util.Locale;
  */
 public class TextUtils
 {
+    /**
+     * Determines if the specified character is a ISO-LATIN-1 digit
+	 * (<code>'0'</code> through <code>'9'</code>).
+     * <p>
+	 * This can be method instead of Character, if we are not ready
+	 * to handle Arabi-Indic, Devanagaru and other digits.
+	 *
+     * @param   ch   the character to be tested.
+     * @return  <code>true</code> if the character is a ISO-LATIN-1 digit;
+     *          <code>false</code> otherwise.
+     * @see     java.lang.Character#isDigit(char)
+     */
+    public static boolean isDigit(char ch) {
+        return '0' <= ch && ch <= '9';
+    }
+
+    /**
+     * Determines if the specified character is a letter or digit.
+     * <p>
+     * A character is considered to be a letter or digit if either
+     * <code>Character.isLetter(char ch)</code> or
+     * <code>TextUtils.isDigit(char ch)</code> returns
+     * <code>true</code> for the character.
+     *
+     * @param   ch   the character to be tested.
+     * @return  <code>true</code> if the character is a letter or digit;
+     *          <code>false</code> otherwise.
+     * @see     TextUtils#isDigit(char)
+     * @see     java.lang.Character#isJavaLetterOrDigit(char)
+     * @see     java.lang.Character#isLetter(char)
+     */
+    public static boolean isLetterOrDigit(char ch) {
+        return isDigit(ch) || Character.isLetter(ch);
+    }
+
 	/**
 	 * Method to parse the floating-point number in a string.
 	 * <P>
@@ -104,13 +139,13 @@ public class TextUtils
 			if (end < text.length() && (text.charAt(end) == '-' || text.charAt(end) == '+')) end++;
 
 			// allow digits
-			while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+			while (end < text.length() && TextUtils.isDigit(text.charAt(end))) end++;
 
 			// allow decimal point and digits beyond it
 			if (end < text.length() && text.charAt(end) == '.')
 			{
 				end++;
-				while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+				while (end < text.length() && TextUtils.isDigit(text.charAt(end))) end++;
 			}
 
 			// allow exponent
@@ -118,7 +153,7 @@ public class TextUtils
 			{
 				end++;
 				if (end < text.length() && (text.charAt(end) == '-' || text.charAt(end) == '+')) end++;
-				while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+				while (end < text.length() && TextUtils.isDigit(text.charAt(end))) end++;
 			}
 
 			if (end <= start) {
@@ -209,7 +244,7 @@ public class TextUtils
 					num += cat - 'A' + 10;
 				continue;
 			}
-			if (!Character.isDigit(cat)) break;
+			if (!TextUtils.isDigit(cat)) break;
 			if (cat >= '8' && base == 8) break;
 			num = num * base + cat - '0';
 		}
@@ -364,7 +399,7 @@ public class TextUtils
 		boolean founddigits = false;
 		if (xflag)
 		{
-			while (i < len && (Character.isDigit(pp.charAt(i)) ||
+			while (i < len && (TextUtils.isDigit(pp.charAt(i)) ||
 				pp.charAt(i) == 'a' || pp.charAt(i) == 'A' ||
 				pp.charAt(i) == 'b' || pp.charAt(i) == 'B' ||
 				pp.charAt(i) == 'c' || pp.charAt(i) == 'C' ||
@@ -377,7 +412,7 @@ public class TextUtils
 			}
 		} else
 		{
-			while (i < len && (Character.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
+			while (i < len && (TextUtils.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
 			{
 				if (pp.charAt(i) != '.') founddigits = true;
 				i++;
@@ -393,7 +428,7 @@ public class TextUtils
 		if (i == len) return false;
 		if (pp.charAt(i) == '+' || pp.charAt(i) == '-') i++;
 		if (i == len) return false;
-		while (i < len && Character.isDigit(pp.charAt(i))) i++;
+		while (i < len && TextUtils.isDigit(pp.charAt(i))) i++;
 		if (i == len) return true;
 
 		return false;
@@ -790,7 +825,7 @@ public class TextUtils
 		{
 			char ch1 = name1.charAt(pos);
 			char ch2 = name2.charAt(pos);
-			if (Character.isDigit(ch1) && Character.isDigit(ch2))
+			if (TextUtils.isDigit(ch1) && TextUtils.isDigit(ch2))
 			{
 				// found a number: compare them numerically
 				int value1 = TextUtils.atoi(name1, pos, 10);
@@ -800,12 +835,13 @@ public class TextUtils
 				{
 					char nextCh1 = name1.charAt(pos+1);
 					char nextCh2 = name2.charAt(pos+1);
-					if (nextCh1 != nextCh2 || !Character.isDigit(nextCh1)) break;
+					if (nextCh1 != nextCh2 || !TextUtils.isDigit(nextCh1)) break;
 					pos++;
 				}					
 				continue;
 			}
-			if (ch1 != ch2) return ch1 - ch2;
+			if (ch1 != ch2 && Character.toLowerCase(ch1) != Character.toLowerCase(ch2))
+				return Character.toLowerCase(ch1) - Character.toLowerCase(ch2);
 		}
 		return len1 - len2;
 	}
