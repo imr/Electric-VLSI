@@ -649,6 +649,7 @@ public class FileMenu {
                 "Output file format for all libraries:", "Save All Libraries In Format...",
                 JOptionPane.PLAIN_MESSAGE,
                 null, formats, FileType.DEFAULTLIB);
+        if (format == null) return; // cancel operation
         FileType outType = (FileType)format;
         for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
