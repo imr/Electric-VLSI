@@ -255,6 +255,12 @@ public class TopLevel extends JFrame
 	 */
 	public StatusBar getStatusBar() { return sb; }
 
+    /**
+     * Get the tool bar associated with this TopLevel
+     * @return the ToolBar.
+     */
+    public ToolBar getToolBar() { return toolBar; }
+
 	/**
 	 * Method to return the size of the screen that Electric is on.
 	 * @return the size of the screen that Electric is on.

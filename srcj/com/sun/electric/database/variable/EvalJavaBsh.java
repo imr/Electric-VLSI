@@ -163,11 +163,13 @@ public class EvalJavaBsh extends Tool {
      * @return the evaluated object.
      */
     protected Object eval(Object obj, VarContext context, Object info) {
+        String expr = replace(obj.toString());  // change @var calls to P(var)
         try {
             if (context == null) context = VarContext.globalContext;
             contextStack.push(context);             // push context
             infoStack.push(info);                   // push info
-            String expr = replace(obj.toString());  // change @var calls to P(var)
+            //if (debug) System.out.println("Evaluating JavaBsh Expression: "+expr);
+            //if (debug) System.out.println("Evaluating JavaBsh Expression: "+expr);
             Object ret = env.eval(expr);            // ask bsh to eval
             contextStack.pop();                     // pop context
             infoStack.pop();                        // pop info

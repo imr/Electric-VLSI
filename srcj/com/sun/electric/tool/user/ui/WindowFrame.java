@@ -161,7 +161,9 @@ public class WindowFrame
 		frame.wnd.setCell(cell, VarContext.globalContext);
 
 		// accumulate a list of current windows
-		windowList.add(frame);
+		synchronized(windowList) {
+            windowList.add(frame);
+        }
 
 		setCurrentWindowFrame(frame);
 
@@ -204,6 +206,9 @@ public class WindowFrame
 			jif.addInternalFrameListener(new InternalWindowsEvents(this));
 			jif.show();
 			TopLevel.addToDesktop(jif);
+            // add tool bar as listener so it can find out state of cell history in EditWindow
+            jif.addFocusListener(TopLevel.getTopLevel().getToolBar());
+            wnd.addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
 //			frame.jif.moveToFront();
 			try
 			{
@@ -215,6 +220,9 @@ public class WindowFrame
 			jf.addWindowListener(new WindowsEvents(this));
 			jf.addWindowFocusListener(new WindowsEvents(this));
 			jf.setEditWindow(wnd);
+            // add tool bar as listener so it can find out state of cell history in EditWindow
+            wnd.addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+            wnd.addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 			jf.show();
 		}
     }
@@ -266,11 +274,19 @@ public class WindowFrame
 	 * Method to record that this WindowFrame has been closed.
 	 * This method is called from the event handlers on the windows.
 	 */
-	private void finished()
+	public void finished()
 	{
         //System.out.println(this.getClass()+" being disposed of");
         // remove references to this
-        windowList.remove(this);
+        synchronized(windowList) {
+            if (windowList.size() <= 1)
+            {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                        "Cannot close the last window");
+                return;
+            }
+            windowList.remove(this);
+        }
 		if (curWindowFrame == this) curWindowFrame = null;
 
         // tell EditWindow it's finished
@@ -282,27 +298,7 @@ public class WindowFrame
         }
     }
 
-    
-    /*
-     * Do Not use this method.  It causes bad things to happen.
-     *
-     * Moves this WindowFrame to another display defined by <code>gc</code>
-     * @param gc the GraphicsConfiguration that specifies the screen to move to
-     *
-    public void moveToDisplay(GraphicsConfiguration gc)
-    {
-        // only valid in SDI mode
-        if (TopLevel.isMDIMode()) return;
-        
-        // get rid of old frame
-        jf.dispose();
-        jf.disposeOfMenuAndToolBar();
-        jf = null;
-        
-        // create new frame on new screen, and populate it
-        createJFrame(wnd.getCell(), gc);
-        populateJFrame();
-    } */
+
     
 	/**
 	 * Method to return the scroll bar resolution.
@@ -379,7 +375,11 @@ public class WindowFrame
 	 * Method to return the number of WindowFrames.
 	 * @return the number of WindowFrames.
 	 */
-	public static int getNumWindows() { return windowList.size(); }
+	public static int getNumWindows() {
+        synchronized(windowList) {
+            return windowList.size();
+        }
+    }
 
 	/**
 	 * Method to return an Iterator over all WindowFrames.
@@ -442,14 +442,6 @@ public class WindowFrame
 
 		public void windowClosing(WindowEvent evt)
 		{
-            System.out.println("window closing");
-
-			if (windowList.size() <= 1)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Cannot close the last window");
-				return;
-			}
 			((WindowFrame)wf.get()).finished();
 		}
 	}

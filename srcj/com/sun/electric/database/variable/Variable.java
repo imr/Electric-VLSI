@@ -363,6 +363,7 @@ public class Variable
 		{
 			/* special case for code: it is a string, the type applies to the result */
 			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
+            if (context == null) context = VarContext.globalContext;
             Object val = context.evalVar(this, eobj);
             if (val == null) 
                 returnVal.append("?");

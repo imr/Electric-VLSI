@@ -92,14 +92,16 @@ public class LETool extends Tool {
      */
     public Object getdrive() {
         Object info = EvalJavaBsh.tool.getCurrentInfo();
-        if (!(info instanceof Nodable)) return "?";
+        if (!(info instanceof Nodable)) return "Not enough hierarchy";
         VarContext context = EvalJavaBsh.tool.getCurrentContext();
+        if (context == null) return "null VarContext";
         Nodable ni = (Nodable)info;
         String ledrive = LETool.makeDriveStr(context.push(ni));
-        if (ledrive == null) return "?";
+        if (ledrive == null) return "No var name";
         Variable var = ni.getVar(ledrive);
-        if (var == null) return "?";
+        if (var == null) return "No variable "+ledrive;
         Object val = var.getObject();
+        if (val == null) return "Null";
         return val;
     }
 
@@ -111,9 +113,9 @@ public class LETool extends Tool {
      */
     public Object subdrive(String nodeName, String parName) {
         Object info = EvalJavaBsh.tool.getCurrentInfo();            // when eval called on instances, info is that nodeinst
-        if (!(info instanceof Nodable)) return "subdrive(): bad info";
+        if (!(info instanceof Nodable)) return "subdrive(): Not enough hierarchy information";
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
-        if (no == null) return "subdrive(): null info";
+        if (no == null) return "subdrive(): Not enough hierarchy information";
         if (no instanceof NodeInst) {
             // networks have not been evaluated, calling no.getProto()
             // is going to give us icon cell, not equivalent schematic cell

@@ -1818,7 +1818,7 @@ public class CircuitChanges
 	{
 		double dX, dY;
 		EditWindow wnd;
-        boolean verbose = true;
+        static final boolean verbose = false;
 
 		protected ManyMove(double dX, double dY, EditWindow wnd)
 		{

@@ -61,12 +61,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.EventListener;
+import java.util.*;
 import javax.swing.*;
 
 /*
@@ -109,6 +104,11 @@ public class EditWindow extends JPanel
 
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
 
+    /** Cell navigation history */                          private List cellHistory;
+    /** Context associated with Cell nav. history */        private List cellVarContextHistory;
+    /** Location in history */                              private int cellHistoryLocation;
+    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
+    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
 
     // ************************************* CONTROL *************************************
 
@@ -125,6 +125,15 @@ public class EditWindow extends JPanel
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
 		databaseBounds = new Rectangle2D.Double();
+
+        cellHistory = new ArrayList();
+        cellVarContextHistory = new ArrayList();
+        cellHistoryLocation = -1;
+        if (cell != null) {
+            cellHistory.add(cell);
+            cellVarContextHistory.add(getVarContext());
+            cellHistoryLocation = 0;
+        }
 
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in close()
@@ -165,10 +174,18 @@ public class EditWindow extends JPanel
 	 */
 	public Cell getCell() { return cell; }
 
+
+    public void setCell(Cell cell, VarContext context)
+    {
+        // by default, record set cell changes. Only do not record
+        // if navigating back or forward through history
+        setCell(cell, context, true);
+    }
+
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	public void setCell(Cell cell, VarContext context)
+	public void setCell(Cell cell, VarContext context, boolean addToHistory)
 	{
 		this.cell = cell;
         this.cellVarContext = context;
@@ -217,6 +234,11 @@ public class EditWindow extends JPanel
 			}
 		}
 		fillScreen();
+
+        // add cell to history
+        if (addToHistory && (cell != null)) {
+            setCellHistory(cell, context);
+        }
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
 	}
@@ -772,6 +794,9 @@ public class EditWindow extends JPanel
 		}
 	}
 
+    private Rectangle2D lastOverallBounds = null;
+    private Point2D lastOffset = null;
+    private static final double scrollPagePercent = 0.2;
     /**
      * New version of setScrollPosition.  Attempts to provides means of scrolling
      * out of cell bounds.
@@ -783,55 +808,66 @@ public class EditWindow extends JPanel
         JScrollBar right = wf.getRightScrollBar();
         bottom.setEnabled(cell != null);
         right.setEnabled(cell != null);
-        if (cell != null)
-        {
-            Rectangle2D cellBounds = cell.getBounds();
-            Rectangle2D viewBounds = displayableBounds();
 
-            // get bounds of cell including what is on-screen
-            Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
+        if (cell == null) return;
 
-            // adjust scroll bars to reflect new bounds (only if not being adjusted now)
-            // newValue, newThumbSize, newMin, newMax
-            if (!bottom.getValueIsAdjusting()) {
-                bottom.getModel().setRangeProperties(
-                        (int)(offx-0.5*cellBounds.getWidth()),
-                        (int)cellBounds.getWidth(),
-                        (int)(overallBounds.getX() - 0.125*overallBounds.getWidth()),
-                        (int)((overallBounds.getX()+overallBounds.getWidth()) + 0.125*overallBounds.getWidth()),
-                        false);
-                bottom.setEnabled(false);
-                bottom.setUnitIncrement((int)(0.05*cellBounds.getWidth()));
-                bottom.setBlockIncrement((int)(0.25*cellBounds.getWidth()));
-                bottom.setEnabled(true);
-            }
-            if (!right.getValueIsAdjusting()) {
-                //System.out.println("overallBounds="+overallBounds);
-                //System.out.println("cellBounds="+cellBounds);
-                //System.out.println("offy="+offy);
-                //System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
-                //System.out.print(" extent="+(int)(cellBounds.getHeight()));
-                //System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())));
-                //System.out.println(" max="+(int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())));
-                right.getModel().setRangeProperties(
-                        (int)(-offy-0.5*cellBounds.getHeight()),
-                        (int)(cellBounds.getHeight()),
-                        (int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())),
-                        (int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())),
-                        false);
-                //System.out.println("model is "+right.getModel());
-                right.setEnabled(false);
-                right.setUnitIncrement((int)(0.05*cellBounds.getHeight()));
-                right.setBlockIncrement((int)(0.25*cellBounds.getHeight()));
-                right.setEnabled(true);
-            }
+        Rectangle2D cellBounds = cell.getBounds();
+        Rectangle2D viewBounds = displayableBounds();
+
+        // get bounds of cell including what is on-screen
+        Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
+
+        if (lastOverallBounds != null && lastOffset != null) {
+            // special case, we don't need to redraw if everything the same
+            if (lastOverallBounds.equals(overallBounds) && lastOffset.equals(getOffset()))
+                return;
+        }
+
+        // adjust scroll bars to reflect new bounds (only if not being adjusted now)
+        // newValue, newThumbSize, newMin, newMax
+        if (!bottom.getValueIsAdjusting()) {
+            bottom.getModel().setRangeProperties(
+                    (int)(offx-0.5*viewBounds.getWidth()),
+                    (int)viewBounds.getWidth(),
+                    (int)(overallBounds.getX() - scrollPagePercent*overallBounds.getWidth()),
+                    (int)((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth()),
+                    false);
+            bottom.setEnabled(false);
+            bottom.setUnitIncrement((int)(0.05*viewBounds.getWidth()));
+            bottom.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()));
+            bottom.setEnabled(true);
+        }
+        if (!right.getValueIsAdjusting()) {
+            //System.out.println("overallBounds="+overallBounds);
+            //System.out.println("cellBounds="+cellBounds);
+            //System.out.println("offy="+offy);
+            //System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
+            //System.out.print(" extent="+(int)(cellBounds.getHeight()));
+            //System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())));
+            //System.out.println(" max="+(int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())));
+            right.getModel().setRangeProperties(
+                    (int)(-offy-0.5*viewBounds.getHeight()),
+                    (int)(viewBounds.getHeight()),
+                    (int)(-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())),
+                    (int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())),
+                    false);
+            //System.out.println("model is "+right.getModel());
+            right.setEnabled(false);
+            right.setUnitIncrement((int)(0.05*viewBounds.getHeight()));
+            right.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()));
+            right.setEnabled(true);
+        }
+        if (!bottom.getValueIsAdjusting() && !right.getValueIsAdjusting()) {
+            lastOverallBounds = overallBounds;
+            lastOffset = getOffset();
         }
     }
 
     public void bottomScrollChanged(int value)
     {
         Rectangle2D cellBounds = cell.getBounds();
-        double newoffx = value+0.5*cellBounds.getWidth();           // new offset
+        Rectangle2D viewBounds = displayableBounds();
+        double newoffx = value+0.5*viewBounds.getWidth();           // new offset
         //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
         //double delta = newoffx - offx;
         //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
@@ -845,7 +881,8 @@ public class EditWindow extends JPanel
     public void rightScrollChanged(int value)
     {
         Rectangle2D cellBounds = cell.getBounds();
-        double newoffy = -(value+0.5*cellBounds.getHeight());
+        Rectangle2D viewBounds = displayableBounds();
+        double newoffy = -(value+0.5*viewBounds.getHeight());
         // annoying cause +y is down in java
         //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
         //double delta = newoffy - offy;
@@ -1013,7 +1050,82 @@ public class EditWindow extends JPanel
         setCell(cell, VarContext.globalContext);
     }
 
-	// ************************************* COORDINATES *************************************
+    // ************************** Cell History Traversal  *************************************
+
+    /**
+     * Go back in history list.
+     */
+    public void cellHistoryGoBack() {
+        if (cellHistoryLocation <= 0) return;               // at start of history
+        if (cellHistoryLocation == (cellHistory.size()-1)) {
+            // we are going to go back, fire property so to enable forward button
+            firePropertyChange(propGoForwardEnabled, false, true);
+        }
+        cellHistoryLocation--;
+        setCell((Cell)cellHistory.get(cellHistoryLocation),
+                (VarContext)cellVarContextHistory.get(cellHistoryLocation), false);
+        if (cellHistoryLocation == 0) {
+            // can't go back anymore, disable back button
+            firePropertyChange(propGoBackEnabled, true, false);
+        }
+    }
+
+    /**
+     * Go forward in history list.
+     */
+    public void cellHistoryGoForward() {
+        if (cellHistoryLocation == (cellHistory.size() - 1)) return; // at end of history
+        if (cellHistoryLocation == 0) {
+            // we are about to go forward, fire property to enable back button
+            firePropertyChange(propGoBackEnabled, false, true);
+        }
+        cellHistoryLocation++;
+        setCell((Cell)cellHistory.get(cellHistoryLocation),
+                (VarContext)cellVarContextHistory.get(cellHistoryLocation), false);
+        if (cellHistoryLocation == (cellHistory.size() - 1)) {
+            // can't go forward anymore, disable button
+            firePropertyChange(propGoForwardEnabled, true, false);
+        }
+    }
+
+    /** Returns true if we can go back in history list, false otherwise */
+    public boolean cellHistoryCanGoBack() {
+        if (cellHistoryLocation > 0) return true;
+        return false;
+    }
+
+    /** Returns true if we can go forward in history list, false otherwise */
+    public boolean cellHistoryCanGoForward() {
+        if (cellHistoryLocation < (cellHistory.size() - 1)) return true;
+        return false;
+    }
+
+    private void setCellHistory(Cell cell, VarContext context) {
+
+        if (cellHistoryLocation < (cellHistory.size() - 1)) {
+            // inserting into middle of history: get rid of history forward of this
+            for (int i=cellHistoryLocation+1; i<cellHistory.size(); i++) {
+                cellHistory.remove(i);
+                cellVarContextHistory.remove(i);
+            }
+        }
+
+        if (cellHistoryLocation == 0) {
+            // about to add, we can go back after this
+            firePropertyChange(propGoBackEnabled, false, true);
+        }
+        if (cellHistoryLocation < (cellHistory.size() - 1)) {
+            // going from somewhere in history to end of history, disable forward
+            firePropertyChange(propGoForwardEnabled, true, false);
+        }
+        // add to cell history
+        cellHistory.add(cell);
+        cellVarContextHistory.add(context);
+        cellHistoryLocation = cellHistory.size() - 1;
+    }
+
+
+    // ************************************* COORDINATES *************************************
 
 	/**
 	 * Method to convert a screen coordinate to database coordinates.

@@ -125,21 +125,8 @@ import java.awt.event.WindowEvent;
  */
 public final class MenuCommands
 {
-    
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String selectAreaName = "Area";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String selectObjectsName = "Objects";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String moveFullName = "Full";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String moveHalfName = "Half";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String moveQuarterName = "Quarter";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorClickZoomWireName = "Click/Zoom/Wire";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorSelectName = "Select";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorWiringName = "Wiring";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorPanName = "Pan";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorZoomName = "Zoom";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Outline Edit";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String specialSelectName = "Special Select";
 
-	// It is never useful for anyone to create an instance of this class
+    // It is never useful for anyone to create an instance of this class
 	private MenuCommands() {}
 
 	/**
@@ -290,17 +277,17 @@ public final class MenuCommands
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline;
-		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
+		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(ToolBar.cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
-		cursorSelect = modeSubMenuEdit.addRadioButton(cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
+		cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
-		cursorWiring = modeSubMenuEdit.addRadioButton(cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
+		cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
-		cursorPan = modeSubMenuEdit.addRadioButton(cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
+		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
-		cursorZoom = modeSubMenuEdit.addRadioButton(cursorZoomName, false, editGroup, KeyStroke.getKeyStroke('Z', 0),
+		cursorZoom = modeSubMenuEdit.addRadioButton(ToolBar.cursorZoomName, false, editGroup, KeyStroke.getKeyStroke('Z', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.zoomCommand(); } });
-		cursorOutline = modeSubMenuEdit.addRadioButton(cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
+		cursorOutline = modeSubMenuEdit.addRadioButton(ToolBar.cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.outlineEditCommand(); } });
 		ToolBar.CursorMode cm = ToolBar.getCursorMode();
         if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true); else
@@ -314,11 +301,11 @@ public final class MenuCommands
 		modeSubMenu.add(modeSubMenuMovement);
 		ButtonGroup movementGroup = new ButtonGroup();
         JMenuItem moveFull, moveHalf, moveQuarter;
-		moveFull = modeSubMenuMovement.addRadioButton(moveFullName, true, movementGroup, KeyStroke.getKeyStroke('F', 0),
+		moveFull = modeSubMenuMovement.addRadioButton(ToolBar.moveFullName, true, movementGroup, KeyStroke.getKeyStroke('F', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.fullArrowDistanceCommand(); } });
-		moveHalf = modeSubMenuMovement.addRadioButton(moveHalfName, false, movementGroup, KeyStroke.getKeyStroke('H', 0),
+		moveHalf = modeSubMenuMovement.addRadioButton(ToolBar.moveHalfName, false, movementGroup, KeyStroke.getKeyStroke('H', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.halfArrowDistanceCommand(); } });
-		moveQuarter = modeSubMenuMovement.addRadioButton(moveQuarterName, false, movementGroup, null,
+		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.quarterArrowDistanceCommand(); } });
 		double ad = ToolBar.getArrowDistance();
 		if (ad == 1.0) moveFull.setSelected(true); else
@@ -345,14 +332,14 @@ public final class MenuCommands
 		modeSubMenu.add(modeSubMenuSelect);
 		ButtonGroup selectGroup = new ButtonGroup();
         JMenuItem selectArea, selectObjects;
-		selectArea = modeSubMenuSelect.addRadioButton(selectAreaName, true, selectGroup, null,
+		selectArea = modeSubMenuSelect.addRadioButton(ToolBar.selectAreaName, true, selectGroup, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectAreaCommand(); } });
-		selectObjects = modeSubMenuSelect.addRadioButton(selectObjectsName, false, selectGroup, null,
+		selectObjects = modeSubMenuSelect.addRadioButton(ToolBar.selectObjectsName, false, selectGroup, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectObjectsCommand(); } });
 		ToolBar.SelectMode sm = ToolBar.getSelectMode();
 		if (sm == ToolBar.SelectMode.AREA) selectArea.setSelected(true); else
 			selectObjects.setSelected(true);
-		modeSubMenuSelect.addCheckBox(specialSelectName, false, null,
+		modeSubMenuSelect.addCheckBox(ToolBar.specialSelectName, false, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
 
 		Menu selListSubMenu = new Menu("Selection");
@@ -530,6 +517,10 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
 		windowPartitionSubMenu.addMenuItem("Cascade", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
+        windowMenu.addMenuItem("Close Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+                curWF.finished(); }});
+
         if (!TopLevel.isMDIMode()) {
             windowMenu.addSeparator();
             windowMenu.addMenuItem("Move to Other Display", null,
@@ -554,12 +545,13 @@ public final class MenuCommands
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
         m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
 
         m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), 4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), -4); }});
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), -4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), 4); }});
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
@@ -2014,12 +2006,13 @@ public final class MenuCommands
         Cell cell = curEdit.getCell();
         WindowFrame.createEditWindow(cell, gs[i].getDefaultConfiguration());
         // destroy old window by firing window close event
-        WindowListener listeners[] = curWF.getFrame().getWindowListeners();
-        for (int j=0; j<listeners.length; j++) {
-            WindowEvent e = new WindowEvent(curWF.getFrame(), WindowEvent.WINDOW_CLOSING);
-            WindowListener listener = listeners[j];
-            listener.windowClosing(e);
-        }
+        curWF.finished();
+        //WindowListener listeners[] = curWF.getFrame().getWindowListeners();
+        //for (int j=0; j<listeners.length; j++) {
+         //   WindowEvent e = new WindowEvent(curWF.getFrame(), WindowEvent.WINDOW_CLOSING);
+         //   WindowListener listener = listeners[j];
+         //   listener.windowClosing(e);
+        //}
         // move WindowFrame
         /*
          * Don't use the curWF.moveToDisplay code...it causes bad things to happen 
