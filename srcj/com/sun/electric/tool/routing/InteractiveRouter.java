@@ -297,8 +297,8 @@ public abstract class InteractiveRouter extends Router {
         // get valid connecting sites for start and end objects based on the objects
         // themselves, the point the user clicked, and the width of the wire that will
         // attach to each
-        Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth);
-        Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth);
+        Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth - startArc.getWidthOffset());
+        Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth - endArc.getWidthOffset());
         //Poly startPoly = getConnectingSite(startObj, clicked, 3);
         //Poly endPoly = getConnectingSite(endObj, clicked, 3);
 
