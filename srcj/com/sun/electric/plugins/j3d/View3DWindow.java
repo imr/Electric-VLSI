@@ -44,6 +44,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Primitive;
+import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.picking.PickResult;
@@ -93,8 +94,11 @@ public class View3DWindow extends JPanel
 	private PickCanvas pickCanvas;
 
 	// Done only once.
-	private static Appearance cellApp = new Appearance();
-	static {
+	/** cell has a unique appearance **/                    private static Appearance cellApp = new Appearance();
+    /** standard colors to be used by materials **/         private static Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
+	/** standard colors to be used by materials **/         private static Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+
+    static {
 
 		Color3f objColor = new Color3f(Color.GRAY);
 		ColoringAttributes ca = new ColoringAttributes();
@@ -144,8 +148,6 @@ public class View3DWindow extends JPanel
 		add("Center", canvas);
 		canvas.addMouseListener(this);
 
-		System.out.println("Canvas3D supports antialiasing " + canvas.getSceneAntialiasingAvailable());
-
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
 		u = new SimpleUniverse(canvas);
@@ -181,7 +183,8 @@ public class View3DWindow extends JPanel
 		View view = u.getViewer().getView();
 
 		// Too expensive at this point
-		//view.setSceneAntialiasingEnable(true);
+        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
+		    view.setSceneAntialiasingEnable(true);
 
 		// Setting the projection policy
 		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
@@ -261,16 +264,19 @@ public class View3DWindow extends JPanel
 			addArc((ArcInst)arcs.next(), objTrans);
 		}
 
-		// Light
-		Vector3f lightDir = new Vector3f(0.0f, 0.0f, -1.0f);
-		Color3f white = new Color3f(0.7f, 0.7f, 0.0f);
+		// Lights
+        Color3f alColor = new Color3f(0.7f, 0.7f, 0.7f);
+        AmbientLight aLgt = new AmbientLight(alColor);
+		Vector3f lightDir = new Vector3f(-1.0f, -1.0f, -1.0f);
 		DirectionalLight light = new DirectionalLight(white, lightDir);
 
 		// Setting the influencing bounds
 		light.setInfluencingBounds(infiniteBounds);
+	    aLgt.setInfluencingBounds(infiniteBounds);
 		// Allow to turn off light while the scene graph is live
 		light.setCapability(Light.ALLOW_STATE_WRITE);
 		// Add light to the env.
+        objTrans.addChild(aLgt);
 		objTrans.addChild(light);
 
 		// Picking tools
@@ -405,35 +411,37 @@ public class View3DWindow extends JPanel
 	public void addPolyhedron(Rectangle2D bounds, double distance, double thickness,
 	                          Appearance ap, TransformGroup objTrans)
 	{
-			GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
-			double height = thickness + distance;
-			Point3d[] pts = new Point3d[8];
-			pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
-			pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
-			pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
-			pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
-			pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
-			pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
-			pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
-			pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
-			int[] indices = {0, 1, 2, 3, /* bottom z */
-			                 0, 4, 5, 1, /* back y */
-			                 0, 3, 7, 4, /* back x */
-			                 1, 5, 6, 2, /* front x */
-			                 2, 6, 7, 3, /* front y */
-			                 4, 7, 6, 5}; /* top z */
-			gi.setCoordinates(pts);
-			gi.setCoordinateIndices(indices);
-			GeometryArray c = gi.getGeometryArray();
-            c.setCapability(GeometryArray.ALLOW_INTERSECT);
+        GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
+        double height = thickness + distance;
+        Point3d[] pts = new Point3d[8];
+        pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
+        pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
+        pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
+        pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
+        pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
+        pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
+        pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
+        pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
+        int[] indices = {0, 1, 2, 3, /* bottom z */
+                         0, 4, 5, 1, /* back y */
+                         0, 3, 7, 4, /* back x */
+                         1, 5, 6, 2, /* front x */
+                         2, 6, 7, 3, /* front y */
+                         4, 7, 6, 5}; /* top z */
+        gi.setCoordinates(pts);
+        gi.setCoordinateIndices(indices);
+        NormalGenerator ng = new NormalGenerator();
+        ng.generateNormals(gi);
+        GeometryArray c = gi.getGeometryArray();
+        c.setCapability(GeometryArray.ALLOW_INTERSECT);
 
-			//cubeTrans.addChild(new Shape3D(c, ap));
-			Shape3D box = new Shape3D(c, ap);
-			box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
-			box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
-            box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
-			PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
-			objTrans.addChild(box);
+        //cubeTrans.addChild(new Shape3D(c, ap));
+        Shape3D box = new Shape3D(c, ap);
+        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+        objTrans.addChild(box);
 	}
 
 	/**
@@ -475,7 +483,7 @@ public class View3DWindow extends JPanel
 				ap.setColoringAttributes(ca);
 
 				TransparencyAttributes ta = new TransparencyAttributes();
-				ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
+				ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 				ta.setTransparency(0.5f);
 				//ap.setTransparencyAttributes(ta);
 
@@ -483,7 +491,7 @@ public class View3DWindow extends JPanel
 				PolygonAttributes pa = new PolygonAttributes();
 				pa.setCullFace(PolygonAttributes.CULL_NONE);
 				//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-				//ap.setPolygonAttributes(pa);
+				ap.setPolygonAttributes(pa);
 
 				TextureAttributes texAttr = new TextureAttributes();
 				texAttr.setTextureMode(TextureAttributes.MODULATE);
@@ -494,8 +502,8 @@ public class View3DWindow extends JPanel
 				lineAttr.setLineAntialiasingEnable(true);
 				ap.setLineAttributes(lineAttr);
 
-				// Adding to internal map
-				Material mat = new Material();
+				// Adding to internal material
+				Material mat = new Material(objColor, black, objColor, white, 30.0f);
                 mat.setLightingEnable(true);
                 ap.setMaterial(mat);
 				

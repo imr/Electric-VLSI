@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP: (9/25/04, GVG) Adding ambiental light to 3D view. Antialiasing option added and
+manual was updated.
+
 BUG: (9/24/04, GVG) Geometries on Network: arcs were not transformed up to the top cell and adding export detection.
 
 IMP/MAN: (9/24/04, SMR) Added Silos netlisting.

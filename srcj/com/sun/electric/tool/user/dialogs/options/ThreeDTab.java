@@ -69,6 +69,7 @@ public class ThreeDTab extends PreferencePanel
 	public String getName() { return "3D"; }
 
 	private boolean initial3DPerspective;
+    private boolean initial3DAntialiasing; // to turn on antialising if available. No by default because of performance.
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
@@ -120,6 +121,8 @@ public class ThreeDTab extends PreferencePanel
 
 		initial3DPerspective = User.is3DPerspective();
 		threeDPerspective.setSelected(initial3DPerspective);
+        initial3DAntialiasing = User.is3DAntialiasing();
+        threeDAntialiasing.setSelected(initial3DAntialiasing);
 
 		// not yet
 		//threeDPerspective.setEnabled(false);
@@ -154,25 +157,6 @@ public class ThreeDTab extends PreferencePanel
 					lowHeight = valLow;
 				if (valHig > highHeight)
 					highHeight = valHig;
-
-				/*
-				if (first)
-				{
-					//lowHeight = distance.doubleValue() - thickness.doubleValue()/2;
-					//highHeight = distance.doubleValue() + thickness.doubleValue()/2;
-					lowHeight = valLow;
-					highHeight = valHig;
-					first = false;
-				} else
-				{
-					// lowHeight, highHeight might be never less than 0
-
-					if (distance.doubleValue() - thickness.doubleValue()/2 < lowHeight)
-						lowHeight = distance.doubleValue() - thickness.doubleValue()/2;
-					if (distance.doubleValue() + thickness.doubleValue()/2 > highHeight)
-						highHeight = distance.doubleValue() + thickness.doubleValue()/2;
-				}
-				*/
 			}
 			lowHeight -= 4;
 			highHeight += 4;
@@ -347,6 +331,10 @@ public class ThreeDTab extends PreferencePanel
 		boolean currentPerspective = threeDPerspective.isSelected();
 		if (currentPerspective != initial3DPerspective)
 			User.set3DPerspective(currentPerspective);
+
+        boolean currentAntialiasing = threeDAntialiasing.isSelected();
+		if (currentAntialiasing != initial3DAntialiasing)
+			User.set3DAntialiasing(currentAntialiasing);
 	}
 
 	/** This method is called from within the constructor to
@@ -365,6 +353,7 @@ public class ThreeDTab extends PreferencePanel
         threeDThickness = new javax.swing.JTextField();
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
+        threeDAntialiasing = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -437,6 +426,14 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDPerspective, gridBagConstraints);
 
+        threeDAntialiasing.setText("Use Antialiasing");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDAntialiasing, gridBagConstraints);
+
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -453,6 +450,7 @@ public class ThreeDTab extends PreferencePanel
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JPanel threeD;
+    private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JTextField threeDHeight;
     private javax.swing.JScrollPane threeDLayerPane;
     private javax.swing.JCheckBox threeDPerspective;
