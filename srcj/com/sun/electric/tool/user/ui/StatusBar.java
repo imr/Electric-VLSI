@@ -358,13 +358,13 @@ public class StatusBar extends JPanel implements HighlightListener
                 if (h.getName() != null)
                 {
                     if (h.getElectricObject() instanceof NodeInst)
-                        return "TEXT: Node name"; else
-                            return "TEXT: Arc name";
+                        return "TEXT: Node name "+h.getName().toString(); else
+                            return "TEXT: Arc name "+h.getName().toString();
                 } else
                 {
                     if (h.getElectricObject() instanceof Export)
-                        return "TEXT: Export name"; else
-                            return "TEXT: Cell instance name";
+                        return "TEXT: Export name "+h.getName().toString(); else
+                            return "TEXT: Cell instance name "+h.getName().toString();
                 }
             }
         }

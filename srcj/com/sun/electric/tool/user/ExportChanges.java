@@ -385,6 +385,18 @@ public final class ExportChanges
 		}
 	}
 
+    private static class PortInstsSortedByBusIndex implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            PortInst p1 = (PortInst)o1;
+            PortInst p2 = (PortInst)o2;
+            String s1 = p1.getPortProto().getName();
+            String s2 = p2.getPortProto().getName();
+            return TextUtils.nameSameNumeric(s1, s2);
+        }
+    }
+
 	/****************************** EXPORT CHANGES ******************************/
 
 	/**
@@ -473,6 +485,13 @@ public final class ExportChanges
         public boolean doIt() {
             // disallow port action if lock is on
             if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
+            // sort ports by name
+            Collections.sort(portsToExport, new PortInstsSortedByBusIndex());
+            for (Iterator it = portsToExport.iterator(); it.hasNext(); ) {
+                PortInst pi = (PortInst)it.next();
+                System.out.println(pi.getPortProto().getName());
+            }
 
             int exported = 0;
             for (Iterator it = portsToExport.iterator(); it.hasNext(); ) {
