@@ -165,8 +165,7 @@ public class LayerCoverageJob extends Job
 		private HashMap originalPolygons;
 		private Set netSet; // For network type, rest is null
         private Rectangle2D origBBox;
-        private Rectangle2D thisBBox;
-        private Area thisBBoxArea;
+        private Area origBBoxArea;   // Area is always in coordinates of top cell
 
 		/**
 		 * Determines if function of given layer is applicable for the corresponding operation
@@ -196,6 +195,7 @@ public class LayerCoverageJob extends Job
 			this.originalPolygons = original;
 			this.netSet = netSet;
             this.origBBox = bBox;
+            origBBoxArea = new Area(origBBox);
 
             if (t instanceof PolySweepMerge)
                 mode = GeometryHandler.ALGO_SWEEP;
@@ -219,9 +219,22 @@ public class LayerCoverageJob extends Job
                 if (thisInst != null) // not top cell
                 {
                     AffineTransform trans = thisInst.transformOut();
-                    DBMath.transformRect(thisBBox, trans);
+                    //DBMath.transformRect(thisBBox, trans);
                 }
             }
+        }
+
+        private boolean doesIntersectBoundingBox(Rectangle2D rect, HierarchyEnumerator.CellInfo info)
+        {
+            // Default case when no bouding box is used to crop the geometry
+            if (origBBox == null) return true;
+
+            // only because I need to transform the points.
+            PolyBase polyRect = new PolyBase(rect);
+            // To avoid transformation while traversing the hierarchy
+            polyRect.transform(info.getTransformToRoot());
+            rect = polyRect.getBounds2D();
+            return rect.intersects(origBBox);
         }
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -230,20 +243,28 @@ public class LayerCoverageJob extends Job
 			Netlist netlist = info.getNetlist();
 
             // Nothing to visit  CAREFUL WITH TRANSFORMATION IN SUBCELL!!
-            if (origBBox != null)
-            {
-                Rectangle2D rect = curCell.getBounds();
-                NodeInst thisInst = (NodeInst)info.getParentInst();
-                if (thisInst == null) // top celll
-                    thisBBox = (Rectangle2D)origBBox.clone();
-                else
-                {
-                    AffineTransform trans = thisInst.transformIn();
-                    DBMath.transformRect(thisBBox, trans);
-                }
-                if (!rect.intersects(thisBBox)) return false;
-                thisBBoxArea = new Area(thisBBox);
-            }
+            if (!doesIntersectBoundingBox(curCell.getBounds(), info))
+                return false;
+//            if (origBBox != null)
+//            {
+//                Rectangle2D rect = curCell.getBounds();
+//                // only because I need to transform the points.
+//                PolyBase polyRect = new PolyBase(rect);
+//                // To avoid transformation while traversing the hierarchy
+//                polyRect.transform(info.getTransformToRoot());
+//                rect = polyRect.getBounds2D();
+//                if (!rect.intersects(origBBox)) return false;
+//                NodeInst thisInst = (NodeInst)info.getParentInst();
+//                if (thisInst == null) // top celll
+//                    thisBBox = (Rectangle2D)origBBox.clone();
+//                else
+//                {
+//                    AffineTransform trans = thisInst.transformIn();
+//                    DBMath.transformRect(thisBBox, trans);
+//                }
+//                if (!rect.intersects(thisBBox)) return false;
+//                thisBBoxArea = new Area(thisBBox);
+//            }
 
 			// Checking if any network is found
             boolean found = (netSet == null);
@@ -303,7 +324,7 @@ public class LayerCoverageJob extends Job
 
                     storeOriginalPolygons(layer, poly);
 
-                    Shape pnode = cropGeometry(poly, thisBBoxArea);
+                    Shape pnode = cropGeometry(poly, origBBoxArea);
                     // empty intersection
                     if (pnode == null) continue;
 
@@ -352,18 +373,18 @@ public class LayerCoverageJob extends Job
 			// Its like pins, facet-center
 			if (NodeInst.isSpecialNode(node)) return (false);
 
-            boolean inside = true;
+            boolean inside = doesIntersectBoundingBox(node.getBounds(), info);
 
-            if (thisBBox != null)
-            {
-                Rectangle2D rect = node.getBounds();
-                AffineTransform trans = node.transformIn();
-                AffineTransform rTransI = node.rotateIn(node.translateIn());
-                Rectangle2D localBB = (Rectangle2D)thisBBox.clone();
-                DBMath.transformRect(localBB, trans);
-                inside = rect.intersects(localBB);
-                thisBBoxArea = new Area(localBB);
-            }
+//            if (origBBox != null)
+//            {
+//                Rectangle2D rect = node.getBounds();
+//                AffineTransform trans = node.transformIn();
+//                AffineTransform rTransI = node.rotateIn(node.translateIn());
+//                Rectangle2D localBB = (Rectangle2D)thisBBox.clone();
+//                //DBMath.transformRect(localBB, trans);
+//                inside = rect.intersects(localBB);
+//                //thisBBoxArea = new Area(localBB);
+//            }
 
 			// Its a cell
             if (np instanceof Cell) return (inside);
@@ -424,9 +445,10 @@ public class LayerCoverageJob extends Job
 
                 storeOriginalPolygons(layer, poly);
 
-                Shape pnode = cropGeometry(poly, thisBBoxArea);
+                Shape pnode = cropGeometry(poly, origBBoxArea);
                 // empty intersection
-                if (pnode == null) continue;
+                if (pnode == null)
+                    continue;
 
                 if (mode == GeometryHandler.ALGO_QTREE)
                     pnode = new PolyQTree.PolyNode(pnode);
