@@ -32,6 +32,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.technology.*;
 
 import java.awt.geom.Point2D;
@@ -62,7 +64,6 @@ import java.util.ArrayList;
 public abstract class InteractiveRouter extends Router {
 
     /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
-    /** for highlighting the end of the route */    private RouteElement finalRE;
 
     public InteractiveRouter() {
         verbose = true;
@@ -72,7 +73,7 @@ public abstract class InteractiveRouter extends Router {
 
     public abstract String toString();
 
-    protected abstract boolean planRoute(List route, Cell cell, RouteElement startRE, RouteElement endRE, Point2D hint);
+    protected abstract boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D hint);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -84,7 +85,6 @@ public abstract class InteractiveRouter extends Router {
     public void startInteractiveRoute() {
         // copy current highlights
         startRouteHighlights.clear();
-        finalRE = null;
         for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             startRouteHighlights.add(h);
@@ -114,28 +114,9 @@ public abstract class InteractiveRouter extends Router {
     public void makeRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
 
         // plan the route
-        List route = planRoute(wnd, startObj, endObj, clicked);
+        Route route = planRoute(wnd, startObj, endObj, clicked);
         // create route
-        createRoute(route, wnd.getCell(), finalRE);
-    }
-
-    /**
-     * Make a vertical route.  Will add in contacts in startPort's technology
-     * to be able to connect to endPort.  The added contacts will be placed on
-     * top of startPort.  However, the final connection to endPort is **NOT**
-     * made.
-     * @param startPort the start of the route
-     * @param endPort the end of the route
-     * @return true on success, false otherwise
-     */
-    public boolean makeVerticalRoute(PortInst startPort, PortInst endPort) {
-        RouteElement startRE = RouteElement.existingPortInst(startPort);
-        RouteElement endRE = RouteElement.existingPortInst(endPort);
-        List route = new ArrayList();
-        boolean success = routeVertically(route, startRE, endRE);
-        if (!success) return false;
-        createRoute(route, startPort.getNodeInst().getParent(), endRE);
-        return true;
+        createRoute(route, wnd.getCell());
     }
 
     /**
@@ -147,11 +128,17 @@ public abstract class InteractiveRouter extends Router {
      * @return true on sucess
      */
     public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
+        // do nothing if startPort can already connect to arc
+        if (startPort.getPortProto().connectsTo(arc)) return true;
+
         RouteElement startRE = RouteElement.existingPortInst(startPort);
-        List route = new ArrayList();
-        RouteElement endRE = routeVertically(route, startRE, arc);
-        if (endRE == null) return false;
-        createRoute(route, startPort.getNodeInst().getParent(), endRE);
+        Route route = new Route();
+        route.add(startRE); route.setRouteStart(startRE);
+        route.setRouteEnd(startRE);
+
+        Dimension2D size = getContactSize(startRE);
+        if (!routeVertically(route, arc, size, startRE.getLocation())) return false;
+        createRoute(route, startPort.getNodeInst().getParent());
         return true;
     }
 
@@ -167,7 +154,7 @@ public abstract class InteractiveRouter extends Router {
      */
     public void highlightRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         // highlight route
-        List route = planRoute(wnd, startObj, endObj, clicked);
+        Route route = planRoute(wnd, startObj, endObj, clicked);
         highlightRoute(wnd, route);
     }
 
@@ -176,7 +163,7 @@ public abstract class InteractiveRouter extends Router {
      * @param wnd the EditWindow the user is editing
      * @param route the route to be highlighted
      */
-    public void highlightRoute(EditWindow wnd, List route) {
+    public void highlightRoute(EditWindow wnd, Route route) {
         // highlight all objects in route
         Highlight.clear();
         Highlight.setHighlightList(startRouteHighlights);
@@ -200,9 +187,9 @@ public abstract class InteractiveRouter extends Router {
      * @param clicked the point where the user clicked
      * @return a List of RouteElements denoting route
      */
-    protected List planRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+    protected Route planRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
 
-        List route = new ArrayList();               // hold the route
+        Route route = new Route();               // hold the route
         Cell cell = wnd.getCell();
         if (cell == null) return route;
 
@@ -218,6 +205,26 @@ public abstract class InteractiveRouter extends Router {
             }
         }
 
+        // to make connecting to and from an ArcInst <-> PortInst a symmetric operation
+        Point2D endPoint = null;
+        if (endObj instanceof PortInst) {
+            PortInst endPort = (PortInst)endObj;
+            endPoint = new Point2D.Double(endPort.getBounds().getCenterX(),
+                                          endPort.getBounds().getCenterY());
+        }
+        if (endObj instanceof NodeInst) {
+            // find closest portinst to start from
+            PortInst endPort = ((NodeInst)endObj).findClosestPortInst(clicked);
+            if (endPort != null) {
+                endPoint = new Point2D.Double(endPort.getBounds().getCenterX(),
+                                              endPort.getBounds().getCenterY());
+            }
+        }
+
+        // contacts go at the end of the route: but we want contacts to go
+        // on the arc, if it the other connection is a node
+        boolean reverseRoute = false;
+
         // plan start of route
         if (startObj instanceof PortInst) {
             // portinst: just wrap in RouteElement
@@ -225,7 +232,9 @@ public abstract class InteractiveRouter extends Router {
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            startRE = findArcConnectingPoint(route, (ArcInst)startObj, clicked);
+            if (endPoint == null) endPoint = clicked;
+            startRE = findArcConnectingPoint(route, (ArcInst)startObj, endPoint);
+            reverseRoute = true;
         }
         if (startObj instanceof NodeInst) {
             // find closest portinst to start from
@@ -252,6 +261,7 @@ public abstract class InteractiveRouter extends Router {
                 Point2D startPoint = startRE.getLocation();
                 if (startPoint == null) startPoint = clicked;
                 endRE = findArcConnectingPoint(route, (ArcInst)endObj, startPoint);
+                reverseRoute = false;
             }
             if (endRE == null) {
                 System.out.println("  Can't route to "+endObj);
@@ -276,7 +286,7 @@ public abstract class InteractiveRouter extends Router {
             }
             if (!(useArc instanceof PrimitiveArc)) {
                 System.out.println("  Don't know how to determine pin for arc "+useArc);
-                return new ArrayList();
+                return new Route();
             }
             // make new pin to route to
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
@@ -285,16 +295,24 @@ public abstract class InteractiveRouter extends Router {
                     pn.getDefWidth(), pn.getDefHeight());
         }
 
+        // favors arcs for location of contact cuts
+        if (reverseRoute) {
+            RouteElement re = startRE;
+            startRE = endRE;
+            endRE = re;
+        }
+
         // add startRE and endRE to route
         route.add(startRE);
-        route.add(endRE);
-        finalRE = endRE;
+        route.setRouteStart(startRE);
+        route.setRouteEnd(startRE);
+        //route.add(endRE); route.setRouteEnd(endRE);
 
         // Tell Router to route between startRE and endRE
-        if (planRoute(route, cell, startRE, endRE, clicked))
+        if (planRoute(route, cell, endRE, clicked))
             return route;
         else
-            return new ArrayList();             // error, return empty route
+            return new Route();             // error, return empty route
     }
 
     // -------------------- Internal Router Utility Methods --------------------
@@ -317,7 +335,7 @@ public abstract class InteractiveRouter extends Router {
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElement findArcConnectingPoint(List route, ArcInst arc, Point2D clicked) {
+    protected RouteElement findArcConnectingPoint(Route route, ArcInst arc, Point2D clicked) {
 
         Point2D head = arc.getHead().getLocation();
         Point2D tail = arc.getTail().getLocation();
@@ -379,7 +397,7 @@ public abstract class InteractiveRouter extends Router {
         return startRE;
     }
 
-    protected boolean connectIntersectingArcs(List route, ArcInst startArc, ArcInst endArc) {
+    protected boolean connectIntersectingArcs(Route route, ArcInst startArc, ArcInst endArc) {
         // check if arcs intersect
         // equation for line 1
         // y = startSlope*x + startYint
@@ -433,10 +451,21 @@ public abstract class InteractiveRouter extends Router {
         // lines intersect, connect them
         RouteElement startRE = bisectArc(route, startArc, point);
         RouteElement endRE = bisectArc(route, endArc, point);
-        boolean success = routeVertically(route, startRE, endRE);
-        if (!success) {
-            System.out.println("Can't route vertically between "+startArc+" and "+endArc);
-            return false;
+        route.setRouteStart(startRE);
+        route.setRouteEnd(startRE);
+
+        // see if we can connect directly
+        ArcProto useArc = getArcToUse(startRE.getPortProto(), endRE.getPortProto());
+        if (useArc != null) {
+            // replace one of the bisect pins with the other
+            replaceRouteElementArcPin(route, endRE, startRE);
+            // note that endRE was never added to the route, otherwise we'd remove it here
+        } else {
+            boolean success = routeVertically(route, endRE, point);
+            if (!success) {
+                System.out.println("Can't route vertically between "+startArc+" and "+endArc);
+                return false;
+            }
         }
         return true;
     }
@@ -450,7 +479,7 @@ public abstract class InteractiveRouter extends Router {
      * @param bisectPoint point on arc from which to split it
      * @return the RouteElement from which to continue the route
      */
-    protected RouteElement bisectArc(List route, ArcInst arc, Point2D bisectPoint) {
+    protected RouteElement bisectArc(Route route, ArcInst arc, Point2D bisectPoint) {
 
         Cell cell = arc.getParent();
         // determine pin type to use if bisecting arc

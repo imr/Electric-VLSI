@@ -30,11 +30,14 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.tool.user.Highlight;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -280,6 +283,45 @@ public class RouteElement {
         return arcWidth;
     }
 
+    /**
+     * Set the arc width if this is a newArc RouteElement, otherwise does nothing.
+     */
+    public void setArcWidth(double width) {
+        if (action == RouteElementAction.newArc) {
+            arcWidth = width;
+        }
+    }
+
+    /**
+     * Return true if the new arc is a vertical arc, false otherwise
+     */
+    public boolean isNewArcVertical() {
+        if (action == RouteElementAction.newArc) {
+            // check if arc is vertical
+            Point2D head = headRE.getLocation();
+            Point2D tail = tailRE.getLocation();
+            if ((head == null) || (tail == null)) return false;
+            if (head.getX() == tail.getX()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return true if the new arc is a horizontal arc, false otherwise
+     */
+    public boolean isNewArcHorizontal() {
+        if (action == RouteElementAction.newArc) {
+            // check if arc is vertical
+            Point2D head = headRE.getLocation();
+            Point2D tail = tailRE.getLocation();
+            if ((head == null) || (tail == null)) return false;
+            if (head.getY() == tail.getY()) return true;
+        }
+        return false;
+    }
+
+
+
     /** Return string decribing the RouteElement */
     public String toString() {
         if (action == RouteElementAction.newNode) {
@@ -343,17 +385,67 @@ public class RouteElement {
 
     /**
      * Get largest arc width of newArc RouteElements attached to this
-     * RouteElement.  If none present or this is not a newNode/exisingPortInst
-     * RouteElement, returns -1.
+     * RouteElement.  If none present returns -1.
      */
-    public double getWidestConnectingArc() {
-        if (newArcs == null) return -1;
+    public double getWidestConnectingArc(ArcProto ap) {
         double width = -1;
-        for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
-            RouteElement re = (RouteElement)it.next();
-            if (re.getArcWidth() > width) width = re.getArcWidth();
+
+        if (action == RouteElementAction.existingPortInst) {
+            // find all arcs of type ap connected to this
+            for (Iterator it = existingPortInst.getConnections(); it.hasNext(); ) {
+                Connection conn = (Connection)it.next();
+                ArcInst arc = conn.getArc();
+                if (arc.getProto() == ap) {
+                    if (arc.getWidth() > width) width = arc.getWidth();
+                }
+            }
+        }
+
+        if (action == RouteElementAction.newNode) {
+            if (newArcs == null) return -1;
+            for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
+                RouteElement re = (RouteElement)it.next();
+                if (re.getArcProto() == ap) {
+                    if (re.getArcWidth() > width) width = re.getArcWidth();
+                }
+            }
+        }
+
+        if (action == RouteElementAction.newArc) {
+            if (getArcProto() == ap) {
+                if (getArcWidth() > width) return getArcWidth();
+            }
         }
         return width;
+    }
+
+    /**
+     * Get an iterator over any newArc RouteElements connected to this
+     * newNode RouteElement.  Returns an iterator over an empty list
+     * if no new arcs.
+     */
+    public Iterator getNewArcs() {
+        if (action == RouteElementAction.newNode) {
+            return newArcs.iterator();
+        }
+        ArrayList list = new ArrayList();
+        return list.iterator();
+    }
+
+    /**
+     * Get the size of a newNode, or the NodeInst an existingPortInst
+     * is attached to.
+     * @return the width,height of the node, or (-1, -1) if not a node
+     */
+    public Dimension2D.Double getNodeSize() {
+        if (action == RouteElementAction.newNode) {
+            return new Dimension2D.Double(width, height);
+        }
+        if (action == RouteElementAction.existingPortInst) {
+            NodeInst ni = existingPortInst.getNodeInst();
+            return new Dimension2D.Double(ni.getXSize(), ni.getYSize());
+        }
+        else return new Dimension2D.Double(-1, -1);
     }
 
     // -------------------------- Action/Highlight Methods ------------------------

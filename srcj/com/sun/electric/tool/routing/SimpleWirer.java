@@ -55,48 +55,18 @@ public class SimpleWirer extends InteractiveRouter {
     public String toString() { return "SimpleWirer"; }
 
 
-    protected boolean planRoute(List route, Cell cell, RouteElement startRE, RouteElement endRE, Point2D clicked) {
+    protected boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D clicked) {
 
-        // find port protos of startRE and endRE, and find connecting arc type
-        PortProto startPort = startRE.getPortProto();
-        PortProto endPort = endRE.getPortProto();
-        ArcProto useArc = getArcToUse(startPort, endPort);
-        // never use universal arcs unless the user has selected them
-        if (useArc == null) {
-            // use universal if selected
-            if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
-                useArc = Generic.tech.universal_arc;
-            else {
-                // add in contacts on startPort to be able to route to endPort
-                // route from endRE to startPort to put contact at the endRE instead
-                // of the startRE
-                RouteElement vertEndRE = routeVertically(route, endRE, startPort);
-                if (vertEndRE == null) {
-                    System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
-                    return false;
-                }
-                endRE = vertEndRE;
-                // add to new route
-                useArc = getArcToUse(endRE.getPortProto(), startPort);
-                if (useArc == null) return false;               // this should never happen
-            }
-        }
+        RouteElement startRE = route.getRouteStart();
 
-        // find arc width to use
-        double width = getArcWidthToUse(startRE, useArc);
-        double width2 = getArcWidthToUse(endRE, useArc);
-        if (width2 > width) width = width2;
-
-        // this router only draws horizontal and vertical arcs
-        // if either X or Y coords are the same, create a single arc
+        // first, find location of corner of L if routing will be an L shape
+        Point2D cornerLoc = null;
         Point2D startLoc = startRE.getLocation();
         Point2D endLoc = endRE.getLocation();
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            RouteElement arcRE = RouteElement.newArc(cell, useArc, width, startRE, endRE, null);
-            route.add(arcRE);
+            cornerLoc = endLoc;
         } else {
-            // otherwise, create new pin and two arcs for corner
             Point2D pin1 = new Point2D.Double(startLoc.getX(), endLoc.getY());
             Point2D pin2 = new Point2D.Double(endLoc.getX(), startLoc.getY());
             // find which pin to use
@@ -111,10 +81,44 @@ public class SimpleWirer extends InteractiveRouter {
             else if (pin1Quad == oppositeQuad)
                 pin1 = pin2;                // near to pin2 quad, use pin2
             // else it is near to pin1 quad, use pin1
+            cornerLoc = pin1;
+        }
 
+        // find port protos of startRE and endRE, and find connecting arc type
+        PortProto startPort = startRE.getPortProto();
+        PortProto endPort = endRE.getPortProto();
+        ArcProto useArc = getArcToUse(startPort, endPort);
+        // never use universal arcs unless the user has selected them
+        if (useArc == null) {
+            // use universal if selected
+            if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
+                useArc = Generic.tech.universal_arc;
+            else {
+                // route vertically
+                if (!routeVertically(route, endRE, cornerLoc)) {
+                    System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        // find arc width to use
+        double width = getArcWidthToUse(startRE, useArc);
+        double width2 = getArcWidthToUse(endRE, useArc);
+        if (width2 > width) width = width2;
+
+        // this router only draws horizontal and vertical arcs
+        // if either X or Y coords are the same, create a single arc
+        if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
+            // single arc
+            RouteElement arcRE = RouteElement.newArc(cell, useArc, width, startRE, endRE, null);
+            route.add(arcRE);
+        } else {
+            // otherwise, create new pin and two arcs for corner
             // make new pin of arc type
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
-            RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), pin1,
+            RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     pn.getDefWidth(), pn.getDefHeight());
             RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width, startRE, pinRE, null);
             RouteElement arcRE2 = RouteElement.newArc(cell, useArc, width, pinRE, endRE, null);
@@ -122,6 +126,9 @@ public class SimpleWirer extends InteractiveRouter {
             route.add(arcRE1);
             route.add(arcRE2);
         }
+
+        route.add(endRE);
+        route.setRouteEnd(endRE);
         return true;
     }
 
@@ -139,6 +146,7 @@ public class SimpleWirer extends InteractiveRouter {
      * @param endRE the end of the route
      * @return a RouteElement located at startRE's location, that can connect to endRE.
      */
+    /*
     protected RouteElement buildContacts(List route, Set contactsUsed, RouteElement startRE, RouteElement endRE) {
 
         PortProto startPort = startRE.getPortProto();
@@ -158,7 +166,7 @@ public class SimpleWirer extends InteractiveRouter {
             ArcProto [] arcs = pp.getConnections();
         }
         return null;
-    }
+    }*/
 
     /**
      * Determines what route quadrant pt is compared to refPoint.

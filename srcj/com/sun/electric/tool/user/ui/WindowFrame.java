@@ -57,6 +57,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.database.variable.VarContext;
 
 /**
@@ -543,8 +544,9 @@ public class WindowFrame
         synchronized(windowList) {
             if ((windowList.size() <= 1) && !TopLevel.isMDIMode())
             {
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                    "Cannot close the last window");
+                MenuCommands.quitCommand();
+                //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                //    "Cannot close the last window");
                 return;
             }
             windowList.remove(this);
