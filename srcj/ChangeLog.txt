@@ -4,6 +4,9 @@ IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
 
 ************************* Version 8.01l: *********************************
 
+FIX: (9/8/04, JKG) Turned off threading due to numerous Netlist exceptions
+     caused by clash of redraw and highlighting. Main.NOTHREADING set to TRUE.
+
 FIX: (9/8/04, JKG) Fixes to logical effort algorithms: mfactors on uncached
      alg, cap values on both algs, made compatible with diffn/diffp of old style gates
 
