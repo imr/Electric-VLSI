@@ -83,7 +83,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.CIF); } });
 		importSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.GDS); } });
-		importSubMenu.addMenuItem("Sue...", null,
+		importSubMenu.addMenuItem("SUE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.SUE); } });
 		importSubMenu.addSeparator();
 		importSubMenu.addMenuItem("ELIB...", null,

@@ -379,12 +379,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             xsizeLabel.setText("Width:");
             ysizeLabel.setText("Length:");
             double width = transSize.getDoubleWidth();
-            if (width == 0)
+            if (width == 0 && transSize.getWidth() != null)
                 xSize.setText(transSize.getWidth().toString());
             else
                 xSize.setText(TextUtils.formatDouble(width));
             double length = transSize.getDoubleLength();
-            if (length == 0)
+            if (length == 0 && transSize.getLength() != null)
                 ySize.setText(transSize.getLength().toString());
             else
                 ySize.setText(TextUtils.formatDouble(length));

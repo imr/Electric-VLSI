@@ -602,13 +602,7 @@ public class GDS extends Input
 
 	private void makeTransform(Point2D delta, int angle, boolean trans)
 	{
-		boolean mirrorY = false;
-		if (trans)
-		{
-			mirrorY = true;
-			angle = (angle + 900) % 3600;
-		}
-		AffineTransform xform = NodeInst.pureRotate(angle, false, mirrorY);
+		AffineTransform xform = NodeInst.pureRotate(angle, trans);
 		xform.transform(delta, delta);
 	}
 

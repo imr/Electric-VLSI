@@ -1402,6 +1402,23 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Method to return a transformation that rotates an object using old C-style notation.
+	 * @param angle the amount to rotate (in tenth-degrees).
+	 * @param transpose true to transpose about the diagonal after rotation.
+	 * @return a transformation that rotates by this amount.
+	 */
+	public static AffineTransform pureRotate(int angle, boolean transpose)
+	{
+		boolean mirrorY = false;
+		if (transpose)
+		{
+			mirrorY = true;
+			angle = (angle + 900) % 3600;
+		}
+		return pureRotate(angle, false, mirrorY);
+	}
+
+	/**
 	 * Method to return a transformation that rotates the same as this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
 	 * The rotation happens about the origin.

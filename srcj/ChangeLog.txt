@@ -4,9 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ae: *********************************
 
+BUG: (10/26/04, SMR) Moving a cell to a different cell group fails if there are multiple versions.
+FIX: In "Cell.setCellGroup()", move all versions at once.
+
 IMP: (10/26/04, GVG) TSMC90nm and detecting overlap between select regions. Better detection of min area for select
-regions. In case of Area errors, ErrorHighlight is valid if pp != null || geom != null otherwise area errors are not
-removed by databaseEndChangeBatch.
+     regions. In case of Area errors, ErrorHighlight is valid if pp != null || geom != null otherwise area errors are not
+     removed by databaseEndChangeBatch.
 
 BUG: (10/26/04, GVG) Again patching Cell.getName() to avoid StringIndexOutOfBoundsException.
 

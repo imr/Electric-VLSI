@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.tool.io.IOTool;
+
 import javax.swing.JPanel;
 
 
@@ -31,6 +33,8 @@ import javax.swing.JPanel;
  */
 public class SUETab extends PreferencePanel
 {
+	private boolean initialUse4PortTransistors;
+
 	/** Creates new form SUETab */
 	public SUETab(java.awt.Frame parent, boolean modal)
 	{
@@ -47,7 +51,8 @@ public class SUETab extends PreferencePanel
 	 */
 	public void init()
 	{
-		sueMake4PortTransistors.setEnabled(false);
+		initialUse4PortTransistors = IOTool.isSueUses4PortTransistors();
+		sueMake4PortTransistors.setSelected(initialUse4PortTransistors);
 	}
 
 	/**
@@ -56,6 +61,9 @@ public class SUETab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean currentUse4PortTransistors = sueMake4PortTransistors.isSelected();
+		if (currentUse4PortTransistors != initialUse4PortTransistors)
+			IOTool.setSueUses4PortTransistors(currentUse4PortTransistors);
 	}
 
 	/** This method is called from within the constructor to
@@ -69,7 +77,6 @@ public class SUETab extends PreferencePanel
 
         sue = new javax.swing.JPanel();
         sueMake4PortTransistors = new javax.swing.JCheckBox();
-        jLabel28 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -91,12 +98,6 @@ public class SUETab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         sue.add(sueMake4PortTransistors, gridBagConstraints);
 
-        jLabel28.setText("SUE INPUT IS NOT YET AVAILABLE");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        sue.add(jLabel28, gridBagConstraints);
-
         getContentPane().add(sue, new java.awt.GridBagConstraints());
 
         pack();
@@ -110,7 +111,6 @@ public class SUETab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel28;
     private javax.swing.JPanel sue;
     private javax.swing.JCheckBox sueMake4PortTransistors;
     // End of variables declaration//GEN-END:variables

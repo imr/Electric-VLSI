@@ -2833,8 +2833,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void setCellGroup(CellGroup cellGroup)
 	{
         CellGroup oldGroup = this.cellGroup;
-        lowLevelSetCellGroup(cellGroup);
-        Undo.modifyCellGroup(this, oldGroup);
+        for(Iterator it = this.getVersions(); it.hasNext(); )
+        {
+        	Cell cell = (Cell)it.next();
+        	cell.lowLevelSetCellGroup(cellGroup);
+            Undo.modifyCellGroup(cell, oldGroup);
+        }
 	}
 
     /**

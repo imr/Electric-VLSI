@@ -757,6 +757,23 @@ public class IOTool extends Tool
 	 */
 	public static void setDXFScale(int s) { cacheDXFScale.setInt(s); }
 
+	/****************************** SUE OUTPUT PREFERENCES ******************************/
+
+	private static Pref cacheSueUses4PortTransistors = Pref.makeBooleanPref("SueUses4PortTransistors", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Sue input creates 4-port transistors.
+	 * Without this, standard 3-port transistors are created.
+	 * The default is "false".
+	 * @return true if Sue input creates 4-port transistors.
+	 */
+	public static boolean isSueUses4PortTransistors() { return cacheSueUses4PortTransistors.getBoolean(); }
+	/**
+	 * Method to set whether Sue input creates 4-port transistors.
+	 * Without this, standard 3-port transistors are created.
+	 * @param on true if Sue input creates 4-port transistors.
+	 */
+	public static void setSueUses4PortTransistors(boolean on) { cacheSueUses4PortTransistors.setBoolean(on); }
+
 	/****************************** SKILL OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheSkillExcludesSubcells = Pref.makeBooleanPref("SkillExcludesSubcells", IOTool.tool.prefs, false);
