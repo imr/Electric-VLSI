@@ -399,10 +399,10 @@ public class TextUtils
 		public String toString() { return name; }
 
 		/** The smallest unit value. */					private static final int UNIT_BASE =  -3;
-		/** Describes "giga" scale (one billion). */	public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3);
-		/** Describes mega scale (one million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2);
-		/** Describes kilo scale (one thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1);
-		/** Describes unit scale (one). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0);
+		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3);
+		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2);
+		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1);
+		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0);
 		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1);
 		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2);
 		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3);

@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -69,21 +71,18 @@ public class CellProperties extends EDialog
 	private boolean initialCheckDatesDuringCreation;
 	private boolean initialAutoTechnologySwitch;
 	private boolean initialPlaceCellCenter;
+	private boolean changing = false;
 
-	private static class OldValues
+	private static class PerCellValues
 	{
-		boolean disAllMod;
-		boolean disInstMod;
-		boolean inCellLib;
-		boolean useTechEditor;
-		boolean defExpanded;
-		double charX, charY;
-		boolean disAllModChanged;
-		boolean disInstModChanged;
-		boolean inCellLibChanged;
-		boolean useTechEditorChanged;
-		boolean defExpandedChanged;
-		boolean characteristicChanged;
+		Pref disAllMod;
+		Pref disInstMod;
+		Pref inCellLib;
+		Pref useTechEditor;
+		Pref defExpanded;
+		Pref charX, charY;
+		Pref frameSize;
+		Pref designerName;
 	};
 
 	/** Creates new form Cell Properties */
@@ -101,26 +100,39 @@ public class CellProperties extends EDialog
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				OldValues ov = new OldValues();
-				ov.disAllMod = cell.isAllLocked();
-				ov.disInstMod = cell.isInstancesLocked();
-				ov.inCellLib = cell.isInCellLibrary();
-				ov.useTechEditor = cell.isInTechnologyLibrary();
-				ov.defExpanded = cell.isWantExpanded();
-				ov.charX = ov.charY = 0;
-				ov.disAllModChanged = false;
-				ov.disInstModChanged = false;
-				ov.inCellLibChanged = false;
-				ov.useTechEditorChanged = false;
-				ov.defExpandedChanged = false;
-				ov.characteristicChanged = false;
+				PerCellValues pcv = new PerCellValues();
+
+				// remember the cell's toggle flags
+				pcv.disAllMod = Pref.makeBooleanPref(null, null, cell.isAllLocked());
+				pcv.disInstMod = Pref.makeBooleanPref(null, null, cell.isInstancesLocked());
+				pcv.inCellLib = Pref.makeBooleanPref(null, null, cell.isInCellLibrary());
+				pcv.useTechEditor = Pref.makeBooleanPref(null, null, cell.isInTechnologyLibrary());
+				pcv.defExpanded = Pref.makeBooleanPref(null, null, cell.isWantExpanded());
+
+				// remember the characteristic spacing
+				double cX = 0, cY = 0;
 				Dimension spacing = cell.getCharacteristicSpacing();
 				if (spacing != null)
 				{
-					ov.charX = spacing.getWidth();
-					ov.charY = spacing.getHeight();
+					cX = spacing.getWidth();
+					cY = spacing.getHeight();
 				}
-				origValues.put(cell, ov);
+				pcv.charX = Pref.makeDoublePref(null, null, cX);
+				pcv.charY = Pref.makeDoublePref(null, null, cY);
+
+				// remember the frame size
+				String fSize = "";
+				Variable var = cell.getVar(User.FRAME_SIZE, String.class);
+				if (var != null) fSize = (String)var.getObject();
+				pcv.frameSize = Pref.makeStringPref(null, null, fSize);
+
+				// remember the designer name
+				String dName = "";
+				var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
+				if (var != null) dName = (String)var.getObject();
+				pcv.designerName = Pref.makeStringPref(null, null, dName);
+
+				origValues.put(cell, pcv);
 			}
 		}
 
@@ -134,6 +146,15 @@ public class CellProperties extends EDialog
 			public void mouseClicked(java.awt.event.MouseEvent evt) { cellListClick(); }
 		});
 
+		// initialize frame information
+		frameSize.addItem("None");
+		frameSize.addItem("Half-A-Size");
+		frameSize.addItem("A-Size");
+		frameSize.addItem("B-Size");
+		frameSize.addItem("C-Size");
+		frameSize.addItem("D-Size");
+		frameSize.addItem("E-Size");
+
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();
 		for(Iterator it = libList.iterator(); it.hasNext(); )
@@ -144,8 +165,9 @@ public class CellProperties extends EDialog
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) libraryPopup.setSelectedIndex(curIndex);
 
-		charXSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, true));
-		charYSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, false));
+		charXSpacing.getDocument().addDocumentListener(new TextFieldListener(this));
+		charYSpacing.getDocument().addDocumentListener(new TextFieldListener(this));
+		frameDesigner.getDocument().addDocumentListener(new TextFieldListener(this));
 
 		loadCellList();
 
@@ -157,6 +179,10 @@ public class CellProperties extends EDialog
 
 	protected void escapePressed() { cancel(null); }
 
+	/**
+	 * Method called when the library popup changes.
+	 * Reloads the list of cells.
+	 */
 	private void loadCellList()
 	{
 		String libName = (String)libraryPopup.getSelectedItem();
@@ -170,11 +196,29 @@ public class CellProperties extends EDialog
 			cellListModel.addElement(cell.noLibDescribe());
 			any = true;
 		}
-		if (any) cellList.setSelectedIndex(0); else
+		if (any)
+		{
+			Library curLib = Library.getCurrent();
+			if (lib == curLib && curLib.getCurCell() != null)
+			{
+//System.out.println("Setting current cell "+curLib.getCurCell().noLibDescribe());
+				cellList.setSelectedValue(curLib.getCurCell().noLibDescribe(), true);
+			} else
+			{
+				cellList.setSelectedIndex(0);
+			}
+		} else
+		{
 			cellList.setSelectedValue(null, false);
+		}
 		cellListClick();
 	}
 
+	/**
+	 * Method to figure out the current cell.
+	 * Examines the library popup and the cell list.
+	 * @return the current cell (null if none).
+	 */
 	private Cell getSelectedCell()
 	{
 		String libName = (String)libraryPopup.getSelectedItem();
@@ -185,70 +229,111 @@ public class CellProperties extends EDialog
 		return cell;
 	}
 
+	/**
+	 * Method called when a cell name is clicked in the list.
+	 * Updates the displayed values for that cell.
+	 */
 	private void cellListClick()
 	{
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		if (ov != null)
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		if (pcv == null) return;
+
+		changing = true;
+		disallowModAnyInCell.setSelected(pcv.disAllMod.getBoolean());
+		disallowModInstInCell.setSelected(pcv.disInstMod.getBoolean());
+		partOfCellLib.setSelected(pcv.inCellLib.getBoolean());
+		useTechEditor.setSelected(pcv.useTechEditor.getBoolean());
+		expandNewInstances.setSelected(pcv.defExpanded.getBoolean());
+		unexpandNewInstances.setSelected(!pcv.defExpanded.getBoolean());
+		charXSpacing.setText(Double.toString(pcv.charX.getDouble()));
+		charYSpacing.setText(Double.toString(pcv.charY.getDouble()));
+		frameDesigner.setText(pcv.designerName.getString());
+
+		frameSize.setSelectedIndex(0);
+		frameLandscape.setSelected(true);
+		frameTitleBox.setSelected(false);
+		String fs = pcv.frameSize.getString();
+		if (fs.length() > 0)
 		{
-			disallowModAnyInCell.setSelected(ov.disAllMod);
-			disallowModInstInCell.setSelected(ov.disInstMod);
-			partOfCellLib.setSelected(ov.inCellLib);
-			useTechEditor.setSelected(ov.useTechEditor);
-			expandNewInstances.setSelected(ov.defExpanded);
-			unexpandNewInstances.setSelected(!ov.defExpanded);
-			charXSpacing.setText(Double.toString(ov.charX));
-			charYSpacing.setText(Double.toString(ov.charY));
+			char chr = fs.charAt(0);
+			if (chr == 'h') frameSize.setSelectedIndex(1); else
+			if (chr == 'a') frameSize.setSelectedIndex(2); else
+			if (chr == 'b') frameSize.setSelectedIndex(3); else
+			if (chr == 'c') frameSize.setSelectedIndex(4); else
+			if (chr == 'd') frameSize.setSelectedIndex(5); else
+			if (chr == 'e') frameSize.setSelectedIndex(6);
+			frameTitleBox.setSelected(true);
+			for(int i=1; i< fs.length(); i++)
+			{
+				chr = fs.charAt(i);
+				if (chr == 'v') framePortrait.setSelected(true); else
+					if (chr == 'n') frameTitleBox.setSelected(false);
+			}
 		}
+
+		changing = false;
 	}
 
 	/**
 	 * Class to handle special changes to characteristic spacing.
 	 */
-	private static class CharSpacingListener implements DocumentListener
+	private static class TextFieldListener implements DocumentListener
 	{
 		CellProperties dialog;
-		boolean x;
 
-		CharSpacingListener(CellProperties dialog, boolean x)
+		TextFieldListener(CellProperties dialog)
 		{
 			this.dialog = dialog;
-			this.x = x;
 		}
 
-		private void change(DocumentEvent e)
+		public void changedUpdate(DocumentEvent e) { dialog.textInfoChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.textInfoChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.textInfoChanged(); }
+	}
+
+	private void textInfoChanged()
+	{
+		if (changing) return;
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+
+		// get current text fields
+		pcv.charX.setDouble(TextUtils.atof(charXSpacing.getText()));
+		pcv.charY.setDouble(TextUtils.atof(charYSpacing.getText()));
+		pcv.designerName.setString(frameDesigner.getText());
+	}
+
+	private void frameInfoChanged()
+	{
+		if (changing) return;
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+
+		// get current cell frame information
+		String currentFrameSize = "";
+		int index = frameSize.getSelectedIndex();
+		if (index > 0)
 		{
-			// get the currently selected cell
-			Cell cell = dialog.getSelectedCell();
-			if (cell == null) return;
-			OldValues ov = (OldValues)dialog.origValues.get(cell);
-
-			// get the typed value
-			Document doc = e.getDocument();
-			int len = doc.getLength();
-			String text;
-			try
+			switch (index)
 			{
-				text = doc.getText(0, len);
-			} catch (BadLocationException ex) { return; }
-			double v = TextUtils.atof(text);
-
-			// update the option
-			if (x)
-			{
-				if (ov.charX != v) ov.characteristicChanged = true;
-				ov.charX = v;
-			} else
-			{
-				if (ov.charY != v) ov.characteristicChanged = true;
-				ov.charY = v;
+				case 1: currentFrameSize = "h";   break;
+				case 2: currentFrameSize = "a";   break;
+				case 3: currentFrameSize = "b";   break;
+				case 4: currentFrameSize = "c";   break;
+				case 5: currentFrameSize = "d";   break;
+				case 6: currentFrameSize = "e";   break;
 			}
+			if (framePortrait.isSelected()) currentFrameSize += "v";
+			if (!frameTitleBox.isSelected()) currentFrameSize += "n";
+		} else
+		{
+			if (frameTitleBox.isSelected()) currentFrameSize = "x";
 		}
-
-		public void changedUpdate(DocumentEvent e) { change(e); }
-		public void insertUpdate(DocumentEvent e) { change(e); }
-		public void removeUpdate(DocumentEvent e) { change(e); }
+		pcv.frameSize.setString(currentFrameSize);
 	}
 
 	/** This method is called from within the constructor to
@@ -285,6 +370,14 @@ public class CellProperties extends EDialog
         jLabel4 = new javax.swing.JLabel();
         charYSpacing = new javax.swing.JTextField();
         libraryPopup = new javax.swing.JComboBox();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel14 = new javax.swing.JLabel();
+        frameSize = new javax.swing.JComboBox();
+        frameLandscape = new javax.swing.JRadioButton();
+        framePortrait = new javax.swing.JRadioButton();
+        frameTitleBox = new javax.swing.JCheckBox();
+        jLabel18 = new javax.swing.JLabel();
+        frameDesigner = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -309,7 +402,7 @@ public class CellProperties extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -326,7 +419,7 @@ public class CellProperties extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -353,7 +446,7 @@ public class CellProperties extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 8;
+        gridBagConstraints.gridheight = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -631,8 +724,133 @@ public class CellProperties extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(libraryPopup, gridBagConstraints);
 
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Cell Frame"));
+        jLabel14.setText("Size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        jPanel1.add(jLabel14, gridBagConstraints);
+
+        frameSize.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                frameSizeActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(frameSize, gridBagConstraints);
+
+        frameLandscape.setText("Landscape");
+        frameLandscape.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                frameLandscapeActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
+        jPanel1.add(frameLandscape, gridBagConstraints);
+
+        framePortrait.setText("Portrait");
+        framePortrait.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                framePortraitActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        jPanel1.add(framePortrait, gridBagConstraints);
+
+        frameTitleBox.setText("Title Box");
+        frameTitleBox.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                frameTitleBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(frameTitleBox, gridBagConstraints);
+
+        jLabel18.setText("Designer Name:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 0);
+        jPanel1.add(jLabel18, gridBagConstraints);
+
+        frameDesigner.setColumns(15);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
+        jPanel1.add(frameDesigner, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(jPanel1, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+	private void frameTitleBoxActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_frameTitleBoxActionPerformed
+	{//GEN-HEADEREND:event_frameTitleBoxActionPerformed
+		frameInfoChanged();
+	}//GEN-LAST:event_frameTitleBoxActionPerformed
+
+	private void framePortraitActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_framePortraitActionPerformed
+	{//GEN-HEADEREND:event_framePortraitActionPerformed
+		frameInfoChanged();
+	}//GEN-LAST:event_framePortraitActionPerformed
+
+	private void frameLandscapeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_frameLandscapeActionPerformed
+	{//GEN-HEADEREND:event_frameLandscapeActionPerformed
+		frameInfoChanged();
+	}//GEN-LAST:event_frameLandscapeActionPerformed
+
+	private void frameSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_frameSizeActionPerformed
+	{//GEN-HEADEREND:event_frameSizeActionPerformed
+		frameInfoChanged();
+	}//GEN-LAST:event_frameSizeActionPerformed
 
 	private void unexpandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unexpandNewInstancesActionPerformed
 	{//GEN-HEADEREND:event_unexpandNewInstancesActionPerformed
@@ -643,10 +861,8 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_expandNewInstancesActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		boolean expanded = expandNewInstances.isSelected();
-		if (ov.defExpanded != expanded) ov.defExpandedChanged = true;
-		ov.defExpanded = expanded;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		pcv.defExpanded.setBoolean(expandNewInstances.isSelected());
 	}//GEN-LAST:event_expandNewInstancesActionPerformed
 
 	private void libraryPopupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_libraryPopupActionPerformed
@@ -658,40 +874,32 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_useTechEditorActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		boolean techEditor = useTechEditor.isSelected();
-		if (ov.useTechEditor != techEditor) ov.useTechEditorChanged = true;
-		ov.useTechEditor = techEditor;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		pcv.useTechEditor.setBoolean(useTechEditor.isSelected());
 	}//GEN-LAST:event_useTechEditorActionPerformed
 
 	private void partOfCellLibActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_partOfCellLibActionPerformed
 	{//GEN-HEADEREND:event_partOfCellLibActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		boolean cellLib = partOfCellLib.isSelected();
-		if (ov.inCellLib != cellLib) ov.inCellLibChanged = true;
-		ov.inCellLib = cellLib;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		pcv.inCellLib.setBoolean(partOfCellLib.isSelected());
 	}//GEN-LAST:event_partOfCellLibActionPerformed
 
 	private void disallowModInstInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disallowModInstInCellActionPerformed
 	{//GEN-HEADEREND:event_disallowModInstInCellActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		boolean disallow = disallowModInstInCell.isSelected();
-		if (ov.disInstMod != disallow) ov.disInstModChanged = true;
-		ov.disInstMod = disallow;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		pcv.disInstMod.setBoolean(disallowModInstInCell.isSelected());
 	}//GEN-LAST:event_disallowModInstInCellActionPerformed
 
 	private void disallowModAnyInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disallowModAnyInCellActionPerformed
 	{//GEN-HEADEREND:event_disallowModAnyInCellActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		OldValues ov = (OldValues)origValues.get(cell);
-		boolean disallow = disallowModAnyInCell.isSelected();
-		if (ov.disAllMod != disallow) ov.disAllModChanged = true;
-		ov.disAllMod = disallow;
+		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		pcv.disAllMod.setBoolean(disallowModAnyInCell.isSelected());
 	}//GEN-LAST:event_disallowModAnyInCellActionPerformed
 
 	private void clearUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearUseTechEditorActionPerformed
@@ -701,9 +909,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (ov.useTechEditor) ov.useTechEditorChanged = true;
-			ov.useTechEditor = false;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.useTechEditor.setBoolean(false);
 		}
 		cellListClick();
 	}//GEN-LAST:event_clearUseTechEditorActionPerformed
@@ -715,9 +922,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (!ov.useTechEditor) ov.useTechEditorChanged = true;
-			ov.useTechEditor = true;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.useTechEditor.setBoolean(true);
 		}
 		cellListClick();
 	}//GEN-LAST:event_setUseTechEditorActionPerformed
@@ -729,9 +935,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (ov.inCellLib) ov.inCellLibChanged = true;
-			ov.inCellLib = false;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.inCellLib.setBoolean(false);
 		}
 		cellListClick();
 	}//GEN-LAST:event_clearPartOfCellLibActionPerformed
@@ -743,9 +948,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (!ov.inCellLib) ov.inCellLibChanged = true;
-			ov.inCellLib = true;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.inCellLib.setBoolean(true);
 		}
 		cellListClick();
 	}//GEN-LAST:event_setPartOfCellLibActionPerformed
@@ -757,9 +961,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (ov.disInstMod) ov.disInstModChanged = true;
-			ov.disInstMod = false;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.disInstMod.setBoolean(false);
 		}
 		cellListClick();
 	}//GEN-LAST:event_clearDisallowModInstInCellActionPerformed
@@ -771,9 +974,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (!ov.disInstMod) ov.disInstModChanged = true;
-			ov.disInstMod = true;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.disInstMod.setBoolean(true);
 		}
 		cellListClick();
 	}//GEN-LAST:event_setDisallowModInstInCellActionPerformed
@@ -785,9 +987,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (ov.disAllMod) ov.disAllModChanged = true;
-			ov.disAllMod = false;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.disAllMod.setBoolean(false);
 		}
 		cellListClick();
 	}//GEN-LAST:event_clearDisallowModAnyInCellActionPerformed
@@ -799,9 +1000,8 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			OldValues ov = (OldValues)origValues.get(cell);
-			if (!ov.disAllMod) ov.disAllModChanged = true;
-			ov.disAllMod = true;
+			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			pcv.disAllMod.setBoolean(true);
 		}
 		cellListClick();
 	}//GEN-LAST:event_setDisallowModAnyInCellActionPerformed
@@ -839,30 +1039,39 @@ public class CellProperties extends EDialog
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
-					OldValues ov = (OldValues)dialog.origValues.get(cell);
-					if (ov.disAllModChanged)
+					PerCellValues pcv = (PerCellValues)dialog.origValues.get(cell);
+					if (pcv.disAllMod.getBoolean() != pcv.disAllMod.getBooleanFactoryValue())
 					{
-						if (ov.disAllMod) cell.setAllLocked(); else cell.clearAllLocked();
+						if (pcv.disAllMod.getBoolean()) cell.setAllLocked(); else cell.clearAllLocked();
 					}
-					if (ov.disInstModChanged)
+					if (pcv.disInstMod.getBoolean() != pcv.disInstMod.getBooleanFactoryValue())
 					{
-						if (ov.disInstMod) cell.setInstancesLocked(); else cell.clearInstancesLocked();
+						if (pcv.disInstMod.getBoolean()) cell.setInstancesLocked(); else cell.clearInstancesLocked();
 					}
-					if (ov.inCellLibChanged)
+					if (pcv.inCellLib.getBoolean() != pcv.inCellLib.getBooleanFactoryValue())
 					{
-						if (ov.inCellLib) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+						if (pcv.inCellLib.getBoolean()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
 					}
-					if (ov.useTechEditorChanged)
+					if (pcv.useTechEditor.getBoolean() != pcv.useTechEditor.getBooleanFactoryValue())
 					{
-						if (ov.useTechEditor) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
+						if (pcv.useTechEditor.getBoolean()) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
 					}
-					if (ov.defExpandedChanged)
+					if (pcv.defExpanded.getBoolean() != pcv.defExpanded.getBooleanFactoryValue())
 					{
-						if (ov.defExpanded) cell.setWantExpanded(); else cell.clearWantExpanded();
+						if (pcv.defExpanded.getBoolean()) cell.setWantExpanded(); else cell.clearWantExpanded();
 					}
-					if (ov.characteristicChanged)
+					if (pcv.charX.getDouble() != ((Double)pcv.charX.getFactoryValue()).doubleValue() ||
+						pcv.charY.getDouble() != ((Double)pcv.charY.getFactoryValue()).doubleValue())
 					{
-						cell.setCharacteristicSpacing(ov.charX, ov.charY);
+						cell.setCharacteristicSpacing(pcv.charX.getDouble(), pcv.charY.getDouble());
+					}
+					if (!pcv.frameSize.getString().equals(pcv.frameSize.getFactoryValue()))
+					{
+						cell.newVar(User.FRAME_SIZE, pcv.frameSize.getString());
+					}
+					if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
+					{
+						cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
 					}
 				}
 			}
@@ -890,10 +1099,18 @@ public class CellProperties extends EDialog
     private javax.swing.JCheckBox disallowModInstInCell;
     private javax.swing.JRadioButton expandNewInstances;
     private javax.swing.ButtonGroup expansion;
+    private javax.swing.JTextField frameDesigner;
+    private javax.swing.JRadioButton frameLandscape;
+    private javax.swing.JRadioButton framePortrait;
+    private javax.swing.JComboBox frameSize;
+    private javax.swing.JCheckBox frameTitleBox;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JComboBox libraryPopup;
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox partOfCellLib;

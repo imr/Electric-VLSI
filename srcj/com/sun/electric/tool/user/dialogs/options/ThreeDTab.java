@@ -1,0 +1,485 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: ThreeDTab.java
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.user.dialogs.options;
+
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.GraphicsEnvironment;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Point2D;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
+import javax.swing.JOptionPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JSplitPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+
+/**
+ * Class to handle the "3D" tab of the Preferences dialog.
+ */
+public class ThreeDTab extends PreferencePanel
+{
+	private Technology curTech = Technology.getCurrent();
+
+	/** Creates new form ThreeDTab */
+	public ThreeDTab(java.awt.Frame parent, boolean modal)
+	{
+		super(parent, modal);
+		initComponents();
+	}
+
+	public JPanel getPanel() { return threeD; }
+
+	public String getName() { return "3D"; }
+
+	private boolean initial3DPerspective;
+	private boolean initial3DTextChanging = false;
+	private JList threeDLayerList;
+	private DefaultListModel threeDLayerModel;
+	private HashMap threeDThicknessMap, threeDHeightMap;
+	private JPanel threeDSideView;
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the 3D tab.
+	 */
+	public void init()
+	{
+		threeDTechnology.setText("Layer heights for technology " + curTech.getTechName());
+		threeDLayerModel = new DefaultListModel();
+		threeDLayerList = new JList(threeDLayerModel);
+		threeDLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		threeDLayerPane.setViewportView(threeDLayerList);
+		threeDLayerList.clearSelection();
+		threeDLayerList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { threeDClickedLayer(); }
+		});
+		threeDThicknessMap = new HashMap();
+		threeDHeightMap = new HashMap();
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			threeDLayerModel.addElement(layer.getName());
+			threeDThicknessMap.put(layer, new EMath.MutableDouble(layer.getThickness()));
+			threeDHeightMap.put(layer, new EMath.MutableDouble(layer.getHeight()));
+		}
+		threeDLayerList.setSelectedIndex(0);
+		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
+		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
+
+		threeDSideView = new ThreeDSideView(this);
+		threeDSideView.setMinimumSize(new java.awt.Dimension(200, 450));
+		threeDSideView.setPreferredSize(new java.awt.Dimension(200, 450));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 2;       gbc.gridy = 1;
+		gbc.gridwidth = 2;   gbc.gridheight = 4;
+		gbc.weightx = 0.5;   gbc.weighty = 1.0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		threeD.add(threeDSideView, gbc);
+
+		threeDClickedLayer();
+
+		initial3DPerspective = User.is3DPerspective();
+		threeDPerspective.setSelected(initial3DPerspective);
+	}
+
+	private class ThreeDSideView extends JPanel
+		implements MouseMotionListener, MouseListener
+	{
+		ThreeDTab dialog;
+		double lowHeight, highHeight;
+
+		ThreeDSideView(ThreeDTab dialog)
+		{
+			this.dialog = dialog;
+			addMouseListener(this);
+			addMouseMotionListener(this);
+			boolean first = true;
+			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				if (first)
+				{
+					lowHeight = height.doubleValue() - thickness.doubleValue()/2;
+					highHeight = height.doubleValue() + thickness.doubleValue()/2;
+					first = false;
+				} else
+				{
+					if (height.doubleValue() - thickness.doubleValue()/2 < lowHeight)
+						lowHeight = height.doubleValue() - thickness.doubleValue()/2;
+					if (height.doubleValue() + thickness.doubleValue()/2 > highHeight)
+						highHeight = height.doubleValue() + thickness.doubleValue()/2;
+				}
+			}
+			lowHeight -= 4;
+			highHeight += 4;
+		}
+
+		/**
+		 * Method to repaint this ThreeDSideView.
+		 */
+		public void paint(Graphics g)
+		{
+			Dimension dim = getSize();
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, dim.width, dim.height);
+			g.setColor(Color.BLACK);
+			g.drawLine(0, 0, 0, dim.height-1);
+			g.drawLine(0, dim.height-1, dim.width-1, dim.height-1);
+			g.drawLine(dim.width-1, dim.height-1, dim.width-1, 0);
+			g.drawLine(dim.width-1, 0, 0, 0);
+
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer selectedLayer = dialog.curTech.findLayer(layerName);
+			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer == selectedLayer) g.setColor(Color.RED); else
+					g.setColor(Color.BLACK);
+				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+				int yHeight = (int)(thickness.doubleValue() / (highHeight - lowHeight) * dim.height + 0.5);
+				if (yHeight == 0)
+				{
+					g.drawLine(0, yValue, dim.width/3, yValue);
+				} else
+				{
+					yHeight -= 4;
+					int firstPart = dim.width / 6;
+					int pointPos = dim.width / 4;
+					g.drawLine(0, yValue-yHeight/2, firstPart, yValue-yHeight/2);
+					g.drawLine(0, yValue+yHeight/2, firstPart, yValue+yHeight/2);
+					g.drawLine(firstPart, yValue-yHeight/2, pointPos, yValue);
+					g.drawLine(firstPart, yValue+yHeight/2, pointPos, yValue);
+					g.drawLine(pointPos, yValue, dim.width/3, yValue);
+				}
+				String string = layer.getName();
+				Font font = new Font(User.getDefaultFont(), Font.PLAIN, 9);
+				g.setFont(font);
+				FontRenderContext frc = new FontRenderContext(null, true, true);
+				GlyphVector gv = font.createGlyphVector(frc, string);
+				LineMetrics lm = font.getLineMetrics(string, frc);
+				Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+				double txtWidth = rect.width;
+				double txtHeight = lm.getHeight();
+				Graphics2D g2 = (Graphics2D)g;
+				g2.drawGlyphVector(gv, dim.width/3 + 1, (float)(yValue + txtHeight/2) - lm.getDescent());
+			}
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			Dimension dim = getSize();
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer selectedLayer = dialog.curTech.findLayer(layerName);
+			EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(selectedLayer);
+			int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+			if (Math.abs(yValue - evt.getY()) > 5)
+			{
+				int bestDist = dim.height;
+				for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
+				{
+					Layer layer = (Layer)it.next();
+					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+					height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+					int dist = Math.abs(yValue - evt.getY());
+					if (dist < bestDist)
+					{
+						bestDist = dist;
+						selectedLayer = layer;
+					}
+				}
+				dialog.threeDLayerList.setSelectedValue(selectedLayer.getName(), true);
+				dialog.threeDClickedLayer();
+			}
+		}
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		// the MouseMotionListener events
+		public void mouseMoved(MouseEvent evt) {}
+		public void mouseDragged(MouseEvent evt)
+		{
+			Dimension dim = getSize();
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer layer = dialog.curTech.findLayer(layerName);
+			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			double newHeight = (double)(dim.height - evt.getY()) / dim.height * (highHeight - lowHeight) + lowHeight;
+			if (height.doubleValue() != newHeight)
+			{
+				height.setValue(newHeight);
+				dialog.threeDHeight.setText(TextUtils.formatDouble(newHeight));
+				repaint();
+			}
+		}
+	}
+
+	/**
+	 * Class to handle changes to the thickness or height.
+	 */
+	private static class ThreeDInfoDocumentListener implements DocumentListener
+	{
+		ThreeDTab dialog;
+
+		ThreeDInfoDocumentListener(ThreeDTab dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+	}
+
+	private void threeDValuesChanged()
+	{
+		if (initial3DTextChanging) return;
+		String layerName = (String)threeDLayerList.getSelectedValue();
+		Layer layer = curTech.findLayer(layerName);
+		if (layer == null) return;
+		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		thickness.setValue(TextUtils.atof(threeDThickness.getText()));
+		height.setValue(TextUtils.atof(threeDHeight.getText()));
+		threeDSideView.repaint();
+	}
+
+	private void threeDClickedLayer()
+	{
+		initial3DTextChanging = true;
+		String layerName = (String)threeDLayerList.getSelectedValue();
+		Layer layer = curTech.findLayer(layerName);
+		if (layer == null) return;
+		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
+		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+		initial3DTextChanging = false;
+		threeDSideView.repaint();
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the 3D tab.
+	 */
+	public void term()
+	{
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			if (thickness.doubleValue() != layer.getThickness())
+				layer.setThickness(thickness.doubleValue());
+			if (height.doubleValue() != layer.getHeight())
+				layer.setHeight(height.doubleValue());
+		}
+
+		boolean currentPerspective = threeDPerspective.isSelected();
+		if (currentPerspective != initial3DPerspective)
+			User.set3DPerspective(currentPerspective);
+	}
+
+	/** This method is called from within the constructor to
+	 * initialize the form.
+	 * WARNING: Do NOT modify this code. The content of this method is
+	 * always regenerated by the Form Editor.
+	 */
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        threeD = new javax.swing.JPanel();
+        threeDTechnology = new javax.swing.JLabel();
+        threeDLayerPane = new javax.swing.JScrollPane();
+        jLabel45 = new javax.swing.JLabel();
+        jLabel47 = new javax.swing.JLabel();
+        threeDThickness = new javax.swing.JTextField();
+        threeDHeight = new javax.swing.JTextField();
+        threeDPerspective = new javax.swing.JCheckBox();
+
+        getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        setTitle("Edit Options");
+        setName("");
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                closeDialog(evt);
+            }
+        });
+
+        threeD.setLayout(new java.awt.GridBagLayout());
+
+        threeDTechnology.setText("Layer heights for technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDTechnology, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDLayerPane, gridBagConstraints);
+
+        jLabel45.setText("Thickness:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(jLabel45, gridBagConstraints);
+
+        jLabel47.setText("Height:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(jLabel47, gridBagConstraints);
+
+        threeDThickness.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDThickness, gridBagConstraints);
+
+        threeDHeight.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDHeight, gridBagConstraints);
+
+        threeDPerspective.setText("Use Perspective");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDPerspective, gridBagConstraints);
+
+        getContentPane().add(threeD, new java.awt.GridBagConstraints());
+
+        pack();
+    }//GEN-END:initComponents
+
+	/** Closes the dialog */
+	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	{
+		setVisible(false);
+		dispose();
+	}//GEN-LAST:event_closeDialog
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel45;
+    private javax.swing.JLabel jLabel47;
+    private javax.swing.JPanel threeD;
+    private javax.swing.JTextField threeDHeight;
+    private javax.swing.JScrollPane threeDLayerPane;
+    private javax.swing.JCheckBox threeDPerspective;
+    private javax.swing.JLabel threeDTechnology;
+    private javax.swing.JTextField threeDThickness;
+    // End of variables declaration//GEN-END:variables
+	
+}

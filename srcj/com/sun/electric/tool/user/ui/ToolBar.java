@@ -29,9 +29,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.dialogs.EditOptions;
-import com.sun.electric.tool.user.dialogs.IOOptions;
-import com.sun.electric.tool.user.dialogs.ToolOptions;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.Component;
@@ -332,31 +330,31 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		// a separator
 		toolbar.addSeparator();
 
-		// the "Options" buttons
-		ToolBarButton editOptionButton = ToolBarButton.newInstance("Edit Options",
-            new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
-		editOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { EditOptions.editOptionsCommand(); } });
-		editOptionButton.setToolTipText("Edit Options");
-        editOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.add(editOptionButton);
+		// the "Preferences" buttons
+		ToolBarButton preferencesButton = ToolBarButton.newInstance("Preferences",
+            new ImageIcon(toolbar.getClass().getResource("ButtonPreferences.gif")));
+		preferencesButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
+		preferencesButton.setToolTipText("Preferences");
+		preferencesButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.add(preferencesButton);
 
-
-		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options",
-            new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
-		toolOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
-		toolOptionButton.setToolTipText("Tool Options");
-        toolOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-		toolbar.add(toolOptionButton);
-
-		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options",
-            new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
-		ioOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
-		ioOptionButton.setToolTipText("I/O Options");
-        ioOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-		toolbar.add(ioOptionButton);
+//
+//		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options",
+//            new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
+//		toolOptionButton.addActionListener(
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
+//		toolOptionButton.setToolTipText("Tool Options");
+//        toolOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+//		toolbar.add(toolOptionButton);
+//
+//		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options",
+//            new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
+//		ioOptionButton.addActionListener(
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
+//		ioOptionButton.setToolTipText("I/O Options");
+//        ioOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+//		toolbar.add(ioOptionButton);
 
         toolbar.addSeparator();
 

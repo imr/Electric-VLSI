@@ -306,7 +306,7 @@ public class DRC extends Tool
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			Quick.doCheck(cell, 0, null, null, justArea);
+			Quick.checkDesignRules(cell, 0, null, null, justArea);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");

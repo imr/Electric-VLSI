@@ -211,7 +211,8 @@ public class Pref
 		this.type = BOOLEAN;
 		this.meaning = null;
 		this.factoryObj = new Integer(factory ? 1 : 0);
-		this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0);
+		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
+			this.cachedObj = new Integer(factory ? 1 : 0);
 		allPrefs.add(this);
 	}
 	/**
@@ -242,7 +243,8 @@ public class Pref
 		this.type = INTEGER;
 		this.meaning = null;
 		this.factoryObj = new Integer(factory);
-		this.cachedObj = new Integer(prefs.getInt(name, factory));
+		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
+			this.cachedObj = new Integer(factory);
 		allPrefs.add(this);
 	}
 	/**
@@ -273,7 +275,8 @@ public class Pref
 		this.type = LONG;
 		this.meaning = null;
 		this.factoryObj = new Long(factory);
-		this.cachedObj = new Long(prefs.getLong(name, factory));
+		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
+			this.cachedObj = new Long(factory);
 		allPrefs.add(this);
 	}
 	/**
@@ -304,7 +307,8 @@ public class Pref
 		this.type = DOUBLE;
 		this.meaning = null;
 		this.factoryObj = new Double(factory);
-		this.cachedObj = new Double(prefs.getDouble(name, factory));
+		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
+			this.cachedObj = new Double(factory);
 		allPrefs.add(this);
 	}
 	/**
@@ -335,7 +339,8 @@ public class Pref
 		this.type = STRING;
 		this.meaning = null;
 		this.factoryObj = new String(factory);
-		this.cachedObj = new String(prefs.get(name, factory));
+		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
+			this.cachedObj = new String(factory);
 		allPrefs.add(this);
 	}
 
@@ -388,6 +393,42 @@ public class Pref
 	public String getString() { return (String)cachedObj; }
 
 	/**
+	 * Method to get the factory-default value of this Pref object.
+	 * @return the factory-default value of this Pref object.
+	 */
+	public Object getFactoryValue() { return factoryObj; }
+
+	/**
+	 * Method to get the factory-default boolean value of this Pref object.
+	 * @return the factory-default boolean value of this Pref object.
+	 */
+	public boolean getBooleanFactoryValue() { return ((Integer)factoryObj).intValue() != 0 ? true : false; }
+
+	/**
+	 * Method to get the factory-default integer value of this Pref object.
+	 * @return the factory-default integer value of this Pref object.
+	 */
+	public int getIntFactoryValue() { return ((Integer)factoryObj).intValue(); }
+
+	/**
+	 * Method to get the factory-default long value of this Pref object.
+	 * @return the factory-default long value of this Pref object.
+	 */
+	public long getLongFactoryValue() { return ((Long)factoryObj).longValue(); }
+
+	/**
+	 * Method to get the factory-default double value of this Pref object.
+	 * @return the factory-default double value of this Pref object.
+	 */
+	public double getDoubleFactoryValue() { return ((Double)factoryObj).doubleValue(); }
+
+	/**
+	 * Method to get the factory-default String value of this Pref object.
+	 * @return the factory-default String value of this Pref object.
+	 */
+	public String getStringFactoryValue() { return (String)factoryObj; }
+
+	/**
 	 * Method to get the name of this Pref object.
 	 * @return the name of this Pref object.
 	 */
@@ -400,12 +441,6 @@ public class Pref
 	 * @return the Object value of this Pref object.
 	 */
 	public Object getValue() { return cachedObj; }
-
-	/**
-	 * Method to get the factory-default value of this Pref object.
-	 * @return the factory-default value of this Pref object.
-	 */
-	public Object getFactoryValue() { return factoryObj; }
 
 	/**
 	 * Method to get the type of this Pref object.
@@ -438,8 +473,11 @@ public class Pref
 		if (v != cachedBool)
 		{
 			cachedObj = new Integer(v ? 1 : 0);
-			prefs.putBoolean(name, v);
-			flushOptions();
+			if (prefs != null)
+			{
+				prefs.putBoolean(name, v);
+				flushOptions();
+			}
 		}
 		setSideEffect();
 	}
@@ -454,8 +492,11 @@ public class Pref
 		if (v != cachedInt)
 		{
 			cachedObj = new Integer(v);
-			prefs.putInt(name, v);
-			flushOptions();
+			if (prefs != null)
+			{
+				prefs.putInt(name, v);
+				flushOptions();
+			}
 		}
 		setSideEffect();
 	}
@@ -470,8 +511,11 @@ public class Pref
 		if (v != cachedLong)
 		{
 			cachedObj = new Long(v);
-			prefs.putLong(name, v);
-			flushOptions();
+			if (prefs != null)
+			{
+				prefs.putLong(name, v);
+				flushOptions();
+			}
 		}
 		setSideEffect();
 	}
@@ -486,8 +530,11 @@ public class Pref
 		if (v != cachedDouble)
 		{
 			cachedObj = new Double(v);
-			prefs.putDouble(name, v);
-			flushOptions();
+			if (prefs != null)
+			{
+				prefs.putDouble(name, v);
+				flushOptions();
+			}
 		}
 		setSideEffect();
 	}
@@ -502,8 +549,11 @@ public class Pref
 		if (!str.equals(cachedString))
 		{
 			cachedObj = new String(str);
-			prefs.put(name, str);
-			flushOptions();
+			if (prefs != null)
+			{
+				prefs.put(name, str);
+				flushOptions();
+			}
 		}
 		setSideEffect();
 	}

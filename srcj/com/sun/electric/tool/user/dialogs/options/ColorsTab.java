@@ -1,0 +1,440 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: ColorsTab.java
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.user.dialogs.options;
+
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.GraphicsEnvironment;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Point2D;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
+import javax.swing.JOptionPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JSplitPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+
+/**
+ * Class to handle the "Colors" tab of the Preferences dialog.
+ */
+public class ColorsTab extends PreferencePanel
+{
+	private Technology curTech = Technology.getCurrent();
+
+	/** Creates new form ColorsTab */
+	public ColorsTab(java.awt.Frame parent, boolean modal)
+	{
+		super(parent, modal);
+		initComponents();
+	}
+
+	public JPanel getPanel() { return colors; }
+
+	public String getName() { return "Colors"; }
+
+	private JList colorLayerList;
+	private DefaultListModel colorLayerModel;
+	private HashMap transAndSpecialMap;
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the Colors tab.
+	 */
+	public void init()
+	{
+		transAndSpecialMap = new HashMap();
+		colorLayerModel = new DefaultListModel();
+		colorLayerList = new JList(colorLayerModel);
+		colorLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		colorLayerPane.setViewportView(colorLayerList);
+		colorLayerList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { colorClickedLayer(); }
+		});
+
+		// look at all layers, pull out the transparent ones
+		HashMap transparentLayers = new HashMap();
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EGraphics graphics = layer.getGraphics();
+			int transparentLayer = graphics.getTransparentLayer();
+			if (transparentLayer == 0) continue;
+
+			StringBuffer layers = (StringBuffer)transparentLayers.get(new Integer(transparentLayer));
+			if (layers == null)
+			{
+				layers = new StringBuffer();
+				layers.append(layer.getName());
+				transparentLayers.put(new Integer(transparentLayer), layers);
+			} else
+			{
+				layers.append(", " + layer.getName());
+			}
+		}
+
+		// sort and display the transparent layers
+		Color [] currentMap = curTech.getColorMap();
+		List transparentSet = new ArrayList();
+		for(Iterator it = transparentLayers.keySet().iterator(); it.hasNext(); )
+			transparentSet.add(it.next());
+		Collections.sort(transparentSet, new TransparentSort());
+		for(Iterator it = transparentSet.iterator(); it.hasNext(); )
+		{
+			Integer layerNumber = (Integer)it.next();
+			StringBuffer layerNames = (StringBuffer)transparentLayers.get(layerNumber);
+			colorLayerModel.addElement("Transparent " + layerNumber.intValue() + ": " + layerNames.toString());
+			int color = currentMap[1 << (layerNumber.intValue()-1)].getRGB();
+			transAndSpecialMap.put(layerNumber, new EMath.MutableInteger(color));
+		}
+
+		// add the nontransparent layers
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EGraphics graphics = layer.getGraphics();
+			if (graphics.getTransparentLayer() > 0) continue;
+
+			colorLayerModel.addElement(layer.getName());
+
+//			ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
+//			int color = layer.getGraphics().getColor().getRGB();
+//			colorMap.put(layer, new EMath.MutableInteger(color));
+		}
+
+		// add the special colors
+		int color = User.getColorBackground();
+		String name = "Special: BACKGROUND";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorGrid();
+		name = "Special: GRID";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorHighlight();
+		name = "Special: HIGHLIGHT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorPortHighlight();
+		name = "Special: PORT HIGHLIGHT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorText();
+		name = "Special: TEXT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorInstanceOutline();
+		name = "Special: INSTANCE OUTLINES";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+
+		// finish initialization
+		colorLayerList.setSelectedIndex(0);
+		colorChooser.getSelectionModel().addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent e) { colorChanged(); }
+		});
+		colorClickedLayer();
+	}
+
+	private static class TransparentSort implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Integer i1 = (Integer)o1;
+			Integer i2 = (Integer)o2;
+			return i1.intValue() - i2.intValue();
+		}
+	}
+
+	private Object colorGetCurrent()
+	{
+		String layerName = (String)colorLayerList.getSelectedValue();
+		if (layerName.startsWith("Transparent "))
+		{
+			int layerNumber = TextUtils.atoi(layerName.substring(12));
+			return (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
+		}
+		if (layerName.startsWith("Special: "))
+		{
+			return (EMath.MutableInteger)transAndSpecialMap.get(layerName);
+		}
+		Layer layer = curTech.findLayer(layerName);
+		if (layer == null) return null;
+		ColorPatternPanel.Info li = (ColorPatternPanel.Info)LayersTab.layerMap.get(layer);
+		return li;
+//		return (EMath.MutableInteger)colorMap.get(layer);
+	}
+
+	private void colorChanged()
+	{
+		Object colorObj = colorGetCurrent();
+		if (colorObj == null) return;
+		if (colorObj instanceof EMath.MutableInteger)
+		{
+			((EMath.MutableInteger)colorObj).setValue(colorChooser.getColor().getRGB());
+		} else if (colorObj instanceof ColorPatternPanel.Info)
+		{
+			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
+			ci.red = colorChooser.getColor().getRed();
+			ci.green = colorChooser.getColor().getGreen();
+			ci.blue = colorChooser.getColor().getBlue();
+		}
+	}
+
+	private void colorClickedLayer()
+	{
+		Object colorObj = colorGetCurrent();
+		if (colorObj == null) return;
+		if (colorObj instanceof EMath.MutableInteger)
+		{
+			colorChooser.setColor(new Color(((EMath.MutableInteger)colorObj).intValue()));
+		} else  if (colorObj instanceof ColorPatternPanel.Info)
+		{
+			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
+			colorChooser.setColor(new Color(ci.red, ci.green, ci.blue));
+		}
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the Colors tab.
+	 */
+	public void term()
+	{
+		Color [] currentMap = curTech.getColorMap();
+		boolean colorChanged = false;
+		boolean mapChanged = false;
+		Color [] transparentLayerColors = new Color[curTech.getNumTransparentLayers()];
+		for(int i=0; i<colorLayerModel.getSize(); i++)
+		{
+			String layerName = (String)colorLayerModel.get(i);
+			if (layerName.startsWith("Transparent "))
+			{
+				int layerNumber = TextUtils.atoi(layerName.substring(12));
+				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
+				transparentLayerColors[layerNumber-1] = new Color(color.intValue());
+				int mapIndex = 1 << (layerNumber-1);
+				int origColor = currentMap[mapIndex].getRGB();
+				if (color.intValue() != origColor)
+				{
+					currentMap[mapIndex] = new Color(color.intValue());
+					mapChanged = colorChanged = true;
+				}
+			} else if (layerName.startsWith("Special: "))
+			{
+				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(layerName);
+				if (layerName.equals("Special: BACKGROUND"))
+				{
+					if (color.intValue() != User.getColorBackground())
+					{
+						User.setColorBackground(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: GRID"))
+				{
+					if (color.intValue() != User.getColorGrid())
+					{
+						User.setColorGrid(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: HIGHLIGHT"))
+				{
+					if (color.intValue() != User.getColorHighlight())
+					{
+						User.setColorHighlight(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: PORT HIGHLIGHT"))
+				{
+					if (color.intValue() != User.getColorPortHighlight())
+					{
+						User.setColorPortHighlight(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: TEXT"))
+				{
+					if (color.intValue() != User.getColorText())
+					{
+						User.setColorText(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: INSTANCE OUTLINES"))
+				{
+					if (color.intValue() != User.getColorInstanceOutline())
+					{
+						User.setColorInstanceOutline(color.intValue());
+						colorChanged = true;
+					}
+				}
+//			} else
+//			{
+//				Layer layer = curTech.findLayer(layerName);
+//				if (layer == null) continue;
+//				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layer);
+//				int origColor = layer.getGraphics().getColor().getRGB();
+//				if (color.intValue() != origColor)
+//				{
+//					layer.getGraphics().setColor(new Color(color.intValue()));
+//					colorChanged = true;
+//				}
+			}
+		}
+		if (mapChanged)
+		{
+			// rebuild color map from primaries
+			curTech.setColorMapFromLayers(transparentLayerColors);
+		}
+		if (colorChanged)
+		{
+			EditWindow.repaintAllContents();
+			TopLevel.getPaletteFrame().loadForTechnology();
+		}
+	}
+
+	/** This method is called from within the constructor to
+	 * initialize the form.
+	 * WARNING: Do NOT modify this code. The content of this method is
+	 * always regenerated by the Form Editor.
+	 */
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        colors = new javax.swing.JPanel();
+        colorChooser = new javax.swing.JColorChooser();
+        colorLayerPane = new javax.swing.JScrollPane();
+
+        getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        setTitle("Edit Options");
+        setName("");
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                closeDialog(evt);
+            }
+        });
+
+        colors.setLayout(new java.awt.GridBagLayout());
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        colors.add(colorChooser, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        colors.add(colorLayerPane, gridBagConstraints);
+
+        getContentPane().add(colors, new java.awt.GridBagConstraints());
+
+        pack();
+    }//GEN-END:initComponents
+
+	/** Closes the dialog */
+	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	{
+		setVisible(false);
+		dispose();
+	}//GEN-LAST:event_closeDialog
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JColorChooser colorChooser;
+    private javax.swing.JScrollPane colorLayerPane;
+    private javax.swing.JPanel colors;
+    // End of variables declaration//GEN-END:variables
+	
+}

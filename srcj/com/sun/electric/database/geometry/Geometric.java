@@ -48,6 +48,28 @@ public abstract class Geometric extends ElectricObject
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
 
+	/**
+	 * Class to search a given area of a Cell.
+	 * This class acts like an Iterator, returning Geometric objects that are inside the selected area.
+	 * <P>
+	 * For example, here is the code to search cell "myCell" in the area "bounds" (in database coordinates):
+	 * <P>
+	 * <PRE>
+	 * for(Geometric.Search sea = <B>new Geometric.Search(bounds, cell)</B>; sea.hasNext(); )
+	 * {
+	 *     Geometric geom = (Geometric)sea.next();
+	 *     if (geom instanceof NodeInst)
+	 *     {
+	 *         NodeInst ni = (NodeInst)geom;
+	 *         // process NodeInst ni in the selected area
+	 *     } else
+	 *     {
+	 *         ArcInst ai = (ArcInst)geom;
+	 *         // process ArcInst ai in the selected area
+	 *     }
+	 * }
+	 * </PRE>
+	 */
 	public static class Search implements Iterator
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;

@@ -117,7 +117,7 @@ public class Quick
 		int multiplier;
 		int offset;
 	};
-	private static HashMap checkInsts = null;
+	private HashMap checkInsts = null;
 
 
 	/**
@@ -136,8 +136,8 @@ public class Quick
 		/** list of instances in a particular parent */					List nodesInCell;
 		/** netlist of this cell */										Netlist netlist;
 	};
-	private static HashMap checkProtos = null;
-	private static HashMap networkLists = null;
+	private HashMap checkProtos = null;
+	private HashMap networkLists = null;
 
 
 	/*
@@ -175,7 +175,7 @@ public class Quick
 		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
 		/** distance from instance 1 to instance 2 */	double dx, dy;	
 	};
-	private static List instanceInteractionList = new ArrayList();
+	private List instanceInteractionList = new ArrayList();
 
 
 	/**
@@ -186,29 +186,29 @@ public class Quick
 		Cell cell;
 		Poly poly;
 	};
-	private static List exclusionList = new ArrayList();
+	private List exclusionList = new ArrayList();
 
 
-	/** number of processes for doing DRC */					private static int numberOfThreads;
-	/** true to report only 1 error per Cell. */				private static boolean onlyFirstError;
-	/** true to ignore center cuts in large contacts. */		private static boolean ignoreCenterCuts;
-	/** maximum area to examine (the worst spacing rule). */	private static double worstInteractionDistance;
-	/** time stamp for numbering networks. */					private static int checkTimeStamp;
-	/** for numbering networks. */								private static int checkNetNumber;
-	/** total errors found in all threads. */					private static int totalErrorsFound;
-	/** a NodeInst that is too tiny for its connection. */		private static NodeInst tinyNodeInst;
-	/** the other Geometric in "tiny" errors. */				private static Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					private static HashMap goodDRCDate = new HashMap();
-	/** for tracking the time of good DRC. */					private static boolean haveGoodDRCDate;
+	/** number of processes for doing DRC */					private int numberOfThreads;
+	/** true to report only 1 error per Cell. */				private boolean onlyFirstError;
+	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
+	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
+	/** time stamp for numbering networks. */					private int checkTimeStamp;
+	/** for numbering networks. */								private int checkNetNumber;
+	/** total errors found in all threads. */					private int totalErrorsFound;
+	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
+	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
+	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
+	/** for tracking the time of good DRC. */					private boolean haveGoodDRCDate;
 
 	/* for figuring out which layers are valid for DRC */
-	private static Technology layersValidTech = null;
-	private static boolean [] layersValid;
+	private Technology layersValidTech = null;
+	private boolean [] layersValid;
 
 	/* for tracking which layers interact with which nodes */
-	private static Technology layerInterTech = null;
-	private static HashMap layersInterNodes = null;
-	private static HashMap layersInterArcs = null;
+	private Technology layerInterTech = null;
+	private HashMap layersInterNodes = null;
+	private HashMap layersInterArcs = null;
 
 	/**
 	 * This is the entry point for DRC.
@@ -219,7 +219,13 @@ public class Quick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * If "justArea" is TRUE, only check in the selected area.
 	 */
-	public static void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
+	public static void checkDesignRules(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
+	{
+		Quick q = new Quick();
+		q.doCheck(cell, count, nodesToCheck, validity, justArea);
+	}
+
+	private void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -406,7 +412,7 @@ public class Quick
 	 * Method to check the contents of cell "cell" with global network index "globalIndex".
 	 * Returns positive if errors are found, zero if no errors are found, negative on internal error.
 	 */
-	private static int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
+	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
@@ -441,7 +447,7 @@ public class Quick
 //			if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
 			int retval = checkThisCell((Cell)np, localIndex, subBounds);
 //			if (!dr_quickparalleldrc) uphierarchy();
-			if (retval < 0) return(-1);
+			if (retval < 0) return -1;
 			if (retval > 0) allSubCellsStillOK = false;
 		}
 
@@ -522,7 +528,7 @@ public class Quick
 	 * Method to check the design rules about nodeinst "ni".
 	 * Returns true if an error was found.
 	 */
-	private static boolean checkNodeInst(NodeInst ni, int globalIndex)
+	private boolean checkNodeInst(NodeInst ni, int globalIndex)
 	{
 		Cell cell = ni.getParent();
 		Netlist netlist = getCheckProto(cell).netlist;
@@ -579,7 +585,7 @@ public class Quick
 //					reportError(LAYERSURROUNDERROR, layersValidTech, 0, cell, surdist[i], 0,
 //						surrules[i], poly, ni->geom, poly->layer, NONET,
 //							NOPOLYGON, NOGEOM, surlayers[i], NONET);
-//					if (onlyFirstError) return(TRUE);
+//					if (onlyFirstError) return TRUE;
 //					errorsFound = TRUE;
 //				}
 //			}
@@ -614,7 +620,7 @@ public class Quick
 	 * Method to check the design rules about arcinst "ai".
 	 * Returns true if errors were found.
 	 */
-	private static boolean checkArcInst(CheckProto cp, ArcInst ai, int globalIndex)
+	private boolean checkArcInst(CheckProto cp, ArcInst ai, int globalIndex)
 	{
 		// ignore arcs with no topology
 		JNetwork net = cp.netlist.getNetwork(ai, 0);
@@ -665,7 +671,7 @@ public class Quick
 	 * instances, and only check the parts of each that are within striking range.
 	 * Returns true if an error was found.
 	 */
-	private static boolean checkCellInst(NodeInst ni, int globalIndex)
+	private boolean checkCellInst(NodeInst ni, int globalIndex)
 	{
 		// get current position in traversal hierarchy
 //		gethierarchicaltraversal(state->hierarchybasesnapshot);
@@ -724,7 +730,7 @@ public class Quick
 	 * They are then compared with objects in "oNi" (which is in that top-level cell),
 	 * which has global index "topGlobalIndex".
 	 */
-	private static boolean checkCellInstContents(Rectangle2D bounds, Cell cell,
+	private boolean checkCellInstContents(Rectangle2D bounds, Cell cell,
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
 		boolean errorsFound = false;
@@ -824,7 +830,7 @@ public class Quick
 	 * which is in cell "cell" and has global index "globalIndex".
 	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex". 
 	 */
-	private static boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
+	private boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
 		int globalIndex, Cell cell, NodeInst oNi, int topGlobalIndex)
 	{
 		// see how far around the box it is necessary to search
@@ -877,7 +883,7 @@ public class Quick
 	 * Returns TRUE if a spacing error is found relative to anything surrounding it at or below
 	 * this hierarchical level.
 	 */
-	private static boolean badBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom,
+	private boolean badBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom,
 		AffineTransform trans, Cell cell, int globalIndex)
 	{
 		// see how far around the box it is necessary to search
@@ -915,7 +921,7 @@ public class Quick
 	 *
 	 * Returns TRUE if errors are found.
 	 */
-	private static boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
+	private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
 		int globalIndex,
 		Rectangle2D bounds, Cell cell, int cellGlobalIndex,
 		Cell topCell, int topGlobalIndex, AffineTransform topTrans, double minSize, boolean baseMulti,
@@ -1126,7 +1132,7 @@ public class Quick
 	 *
 	 * Returns TRUE if an error has been found.
 	 */
-	private static boolean checkDist(Technology tech, Cell cell, int globalIndex,
+	private boolean checkDist(Technology tech, Cell cell, int globalIndex,
 		Poly poly1, Layer layer1, int net1, Geometric geom1, AffineTransform trans1, int globalIndex1,
 		Poly poly2, Layer layer2, int net2, Geometric geom2, AffineTransform trans2, int globalIndex2,
 		boolean con, double dist, boolean edge, String rule)
@@ -1241,29 +1247,35 @@ public class Quick
 					}
 				}
 			}
-
 			// crop out parts of any arc that is covered by an adjoining node
 			trueBox1 = new Rectangle2D.Double(trueBox1.getMinX(), trueBox1.getMinY(), trueBox1.getWidth(), trueBox1.getHeight());
 			trueBox2 = new Rectangle2D.Double(trueBox2.getMinX(), trueBox2.getMinY(), trueBox2.getWidth(), trueBox2.getHeight());
+boolean debug = false;
+//if (tech.sameLayer(layer1, layer2) && layer1.getName().equals("P-Active")) debug = true;
+if (debug) System.out.println("Cropping box that is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			if (geom1 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
 					trueBox1, layer2, net2, geom2, trueBox2))
 						return false;
+if (debug) System.out.println("   Node1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1))
 					return false;
+if (debug) System.out.println("   Arc1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
 					trueBox2, layer1, net1, geom1, trueBox1))
 						return false;
+if (debug) System.out.println("   Node2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2))
 					return false;
+if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
 //if (debug)
 //{
@@ -1392,7 +1404,7 @@ public class Quick
 	 * Method to examine, in cell "cell", the "count" instances in "nodesToCheck".
 	 * If they are DRC clean, set the associated entry in "validity" to TRUE.
 	 */
-	private static void checkTheseInstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
+	private void checkTheseInstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
 	{
 		int globalIndex = 0;
 		Netlist netlist = getCheckProto(cell).netlist;
@@ -1475,7 +1487,7 @@ public class Quick
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
-	private static boolean checkGeomAgainstInstance(Netlist netlist, Geometric geom, NodeInst ni)
+	private boolean checkGeomAgainstInstance(Netlist netlist, Geometric geom, NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
 		int globalIndex = 0;
@@ -1558,7 +1570,7 @@ public class Quick
 	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
 	 * return TRUE.  If not found, add to the list and return FALSE.
 	 */
-	private static boolean checkInteraction(NodeInst ni1, NodeInst ni2)
+	private boolean checkInteraction(NodeInst ni1, NodeInst ni2)
 	{
 		// must recheck parameterized instances always
 		CheckProto cp = getCheckProto((Cell)ni1.getProto());
@@ -1611,7 +1623,7 @@ public class Quick
 	/**
 	 * Method to remove all instance interaction information.
 	 */
-	private static void clearInstanceCache()
+	private void clearInstanceCache()
 	{
 		instanceInteractionList.clear();
 	}
@@ -1620,7 +1632,7 @@ public class Quick
 	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
 	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
 	 */ 
-	private static boolean findInteraction(InstanceInter dii)
+	private boolean findInteraction(InstanceInter dii)
 	{
 		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
 		{
@@ -1640,7 +1652,7 @@ public class Quick
 	 * Method to recursively examine the hierarchy below cell "cell" and create
 	 * CheckProto and CheckInst objects on every cell instance.
 	 */
-	private static CheckProto checkEnumerateProtos(Cell cell, Netlist netlist)
+	private CheckProto checkEnumerateProtos(Cell cell, Netlist netlist)
 	{
 		CheckProto cp = getCheckProto(cell);
 		if (cp != null) return cp;
@@ -1689,7 +1701,7 @@ public class Quick
 	 * @param cell Cell to get its CheckProto.
 	 * @return CheckProto of a Cell.
 	 */
-	private static final CheckProto getCheckProto(Cell cell)
+	private final CheckProto getCheckProto(Cell cell)
 	{
 		return (CheckProto) checkProtos.get(cell);
 	}
@@ -1699,7 +1711,7 @@ public class Quick
 	 * CheckInst objects on every cell instance.  Uses the CheckProto objects
 	 * to keep track of cell usage.
 	 */
-	private static void checkEnumerateInstances(Cell cell)
+	private void checkEnumerateInstances(Cell cell)
 	{
 		// number all of the instances in this cell
 		checkTimeStamp++;
@@ -1753,7 +1765,7 @@ public class Quick
 		}
 	}
 
-	private static void checkEnumerateNetworks(Cell cell, CheckProto cp, int globalIndex, HashMap enumeratedNets)
+	private void checkEnumerateNetworks(Cell cell, CheckProto cp, int globalIndex, HashMap enumeratedNets)
 	{
 		// store all network information in the appropriate place
 		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
@@ -1810,7 +1822,7 @@ public class Quick
 	 * in the vicinity are checked to be sure it is indeed an error.  Returns true
 	 * if an error is found.
 	 */
-	private static boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, Technology tech)
+	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, Technology tech)
 	{
 		Cell cell = geom.getParent();
 		DRC.Rule minWidthRule = DRC.getMinWidth(layer);
@@ -1943,7 +1955,7 @@ public class Quick
 	/*
 	 * Method to determine whether node "ni" is a multiple cut contact.
 	 */
-	private static boolean isMultiCut(NodeInst ni)
+	private boolean isMultiCut(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
 		if (np instanceof Cell) return false;
@@ -1961,7 +1973,7 @@ public class Quick
 	 * touch directly (that is, an arcinst connected to a nodeinst).  The method
 	 * returns true if they touch
 	 */
-	private static boolean objectsTouch(Geometric geom1, Geometric geom2)
+	private boolean objectsTouch(Geometric geom1, Geometric geom2)
 	{
 		if (geom1 instanceof NodeInst)
 		{
@@ -1989,7 +2001,7 @@ public class Quick
 	 * Returns 1 if only one of the reported points needs to be filled (because the polygons meet
 	 * at a point).  Returns 2 if both reported points need to be filled.
 	 */
-	private static int findInterveningPoints(Poly poly1, Poly poly2, Point2D pt1, Point2D pt2)
+	private int findInterveningPoints(Poly poly1, Poly poly2, Point2D pt1, Point2D pt2)
 	{
 		Rectangle2D isBox1 = poly1.getBox();
 		Rectangle2D isBox2 = poly2.getBox();
@@ -2100,7 +2112,7 @@ public class Quick
 	 * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
 	 * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
 	 */
-	private static boolean lookForPoints(Point2D pt1, Point2D pt2, Layer layer, Cell cell, boolean needBoth)
+	private boolean lookForPoints(Point2D pt1, Point2D pt2, Layer layer, Cell cell, boolean needBoth)
 	{
 		Point2D pt3 = new Point2D.Double((pt1.getX()+pt2.getX()) / 2, (pt1.getY()+pt2.getY()) / 2);
 
@@ -2131,7 +2143,7 @@ public class Quick
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
 	 * If all locations are found, returns true.
 	 */
-	private static boolean lookForLayer(Cell cell, Layer layer, AffineTransform moreTrans,
+	private boolean lookForLayer(Cell cell, Layer layer, AffineTransform moreTrans,
 		Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
 	{
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
@@ -2201,7 +2213,7 @@ public class Quick
 	 * sides of a field-effect transistor that resides inside of the box area.
 	 * Returns true if so.
 	 */
-	private static boolean activeOnTransistor(Poly poly1, Layer layer1, int net1,
+	private boolean activeOnTransistor(Poly poly1, Layer layer1, int net1,
 		Poly poly2, Layer layer2, int net2, Technology tech, Cell cell, int globalIndex)
 	{
 		// networks must be different
@@ -2227,7 +2239,7 @@ public class Quick
 		return activeOnTransistorRecurse(bounds1, net1, net2, cell, globalIndex, EMath.MATID);
 	}
 
-	private static boolean activeOnTransistorRecurse(Rectangle2D bounds,
+	private boolean activeOnTransistorRecurse(Rectangle2D bounds,
 		int net1, int net2, Cell cell, int globalIndex, AffineTransform trans)
 	{
 		Netlist netlist = getCheckProto(cell).netlist;
@@ -2304,42 +2316,44 @@ public class Quick
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
 	 * returns -1.  Otherwise the box is cropped and zero is returned
 	 */
-	private static int cropBox(Rectangle2D bounds, Rectangle2D PUBox, Rectangle2D nBounds)
+	private int cropBox(Rectangle2D bounds, Rectangle2D PUBox)
 	{
 		// if the two boxes don't touch, just return
+		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
+		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-		if (PUBox.getMinX() >= hX || PUBox.getMinY() >= hY || PUBox.getMaxX() <= lX || PUBox.getMaxY() <= lY) return(0);
+		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
 
 		// if the box to be cropped is within the other, say so
-		if (PUBox.getMinX() <= lX && PUBox.getMaxX() >= hX && PUBox.getMinY() <= lY && PUBox.getMaxY() >= hY) return(1);
+		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
 
 		// see which direction is being cropped
-		double xoverlap = Math.min(hX, PUBox.getMaxX()) - Math.max(lX, PUBox.getMinX());
-		double yoverlap = Math.min(hY, PUBox.getMaxY()) - Math.max(lY, PUBox.getMinY());
+		double xoverlap = Math.min(hX, uX) - Math.max(lX, bX);
+		double yoverlap = Math.min(hY, uY) - Math.max(lY, bY);
 		if (xoverlap > yoverlap)
 		{
 			// one above the other: crop in Y
-			if (PUBox.getMinX() <= lX && PUBox.getMaxX() >= hX)
+			if (bX <= lX && uX >= hX)
 			{
 				// it covers in X...do the crop
-				if (PUBox.getMaxY() >= hY) hY = PUBox.getMinY();
-				if (PUBox.getMinY() <= lY) lY = PUBox.getMaxY();
-				if (hY <= lY) return(1);
+				if (uY >= hY) hY = bY;
+				if (bY <= lY) lY = uY;
+				if (hY <= lY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return(0);
+				return 0;
 			}
 		} else
 		{
 			// one next to the other: crop in X
-			if (PUBox.getMinY() <= lY && PUBox.getMaxY() >= hY)
+			if (bY <= lY && uY >= hY)
 			{
 				// it covers in Y...crop in X
-				if (PUBox.getMaxX() >= hX) hX = PUBox.getMinX();
-				if (PUBox.getMinX() <= lX) lX = PUBox.getMaxX();
-				if (hX <= lX) return(1);
+				if (uX >= hX) hX = bX;
+				if (bX <= lX) lX = uX;
+				if (hX <= lX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return(0);
+				return 0;
 			}
 		}
 		return -1;
@@ -2351,7 +2365,7 @@ public class Quick
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
 	 * returns -1.  Otherwise the box is cropped and zero is returned
 	 */
-	private static int halfCropBox(Rectangle2D bounds, Rectangle2D limit)
+	private int halfCropBox(Rectangle2D bounds, Rectangle2D limit)
 	{
 		double bX = limit.getMinX();    double uX = limit.getMaxX();
 		double bY = limit.getMinY();    double uY = limit.getMaxY();
@@ -2359,7 +2373,7 @@ public class Quick
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
 
 		// if the two boxes don't touch, just return
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return(0);
+		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
 
 		// if the box to be cropped is within the other, figure out which half to remove
 		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
@@ -2428,7 +2442,7 @@ public class Quick
 	 * are checked.  Returns true if the bounds are reduced
 	 * to nothing.
 	 */
-	private static boolean cropNodeInst(NodeInst ni, int globalIndex,
+	private boolean cropNodeInst(NodeInst ni, int globalIndex,
 		AffineTransform trans, Rectangle2D nBound,
 		Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
@@ -2487,7 +2501,7 @@ public class Quick
 				// warning: does not handle arbitrary polygons, only boxes
 				Rectangle2D polyBox = poly.getBox();
 				if (polyBox == null) continue;
-				int temp = cropBox(bound, polyBox, nBound);
+				int temp = cropBox(bound, polyBox);
 				if (temp > 0) { allgone = true;   break; }
 				if (temp < 0)
 				{
@@ -2505,7 +2519,7 @@ public class Quick
 	 * are in the reference parameters (lx-hx, ly-hy).  Returns false
 	 * normally, 1 if the arcinst is cropped into oblivion.
 	 */
-	private static boolean cropArcInst(ArcInst ai, Layer lay, AffineTransform inTrans, Rectangle2D bounds)
+	private boolean cropArcInst(ArcInst ai, Layer lay, AffineTransform inTrans, Rectangle2D bounds)
 	{
 		for(int i=0; i<2; i++)
 		{
@@ -2556,7 +2570,7 @@ public class Quick
 	 * Method to see if polygons in "pList" (describing arc "ai") should be cropped against a
 	 * connecting transistor.  Crops the polygon if so.
 	 */
-	private static void cropActiveArc(ArcInst ai, Poly [] pList)
+	private void cropActiveArc(ArcInst ai, Poly [] pList)
 	{
 		// look for an active layer in this arc
 		int tot = pList.length;
@@ -2576,9 +2590,13 @@ public class Quick
 		Rectangle2D polyBounds = poly.getBox();
 		if (polyBounds == null) return;
 		polyBounds = new Rectangle2D.Double(polyBounds.getMinX(), polyBounds.getMinY(), polyBounds.getWidth(), polyBounds.getHeight());
+//boolean debug = false;
+//if (ai.getProto().getName().equals("P-Active")) debug = true;
+//if (debug) System.out.println("Cropping arc that is "+polyBounds.getMinX()+"<=X<="+polyBounds.getMaxX()+" and "+polyBounds.getMinY()+"<=Y<="+polyBounds.getMaxY());
 
 		// search for adjoining transistor in the cell
 		boolean cropped = false;
+		boolean halved = false;
 		for(int i=0; i<2; i++)
 		{
 			Connection con = ai.getConnection(i);
@@ -2598,13 +2616,25 @@ public class Quick
 				nPoly.transform(trans);
 				Rectangle2D nPolyBounds = nPoly.getBox();
 				if (nPolyBounds == null) continue;
-				if (halfCropBox(polyBounds, nPolyBounds) == 1)
+//if (debug) System.out.println("  End "+i+" is "+nPolyBounds.getMinX()+"<=X<="+nPolyBounds.getMaxX()+" and "+nPolyBounds.getMinY()+"<=Y<="+nPolyBounds.getMaxY());
+				int result;
+				if (halved)
 				{
+					result = cropBox(polyBounds, nPolyBounds);
+				} else
+				{
+					result = halfCropBox(polyBounds, nPolyBounds);
+				}
+				if (result == 1)
+				{
+//if (debug) System.out.println("    Cropped to oblivion");
 					// remove this polygon from consideration
 					poly.setLayer(null);
 					return;
 				}
+//if (debug) System.out.println("    Cropped to be "+polyBounds.getMinX()+"<=X<="+polyBounds.getMaxX()+" and "+polyBounds.getMinY()+"<=Y<="+polyBounds.getMaxY());
 				cropped = true;
+				halved = true;
 			}
 		}
 		if (cropped)
@@ -2624,7 +2654,7 @@ public class Quick
 	 * @param ni the NodeInst being converted.
 	 * @param pList an array of Polys with Layer information for the NodeInst.
 	 */
-	private static void convertPseudoLayers(NodeInst ni, Poly [] pList)
+	private void convertPseudoLayers(NodeInst ni, Poly [] pList)
 	{
 		if (ni.getProto().getFunction() != NodeProto.Function.PIN) return;
 		if (ni.getNumConnections() != 0) return;
@@ -2644,7 +2674,7 @@ public class Quick
 	/**
 	 * Method to determine which layers in a Technology are valid.
 	 */
-	private static void cacheValidLayers(Technology tech)
+	private void cacheValidLayers(Technology tech)
 	{
 		if (tech == null) return;
 		if (layersValidTech == tech) return;
@@ -2685,7 +2715,7 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private static DRC.Rule getAdjustedMinDist(Technology tech, Layer layer1, double size1,
+	private DRC.Rule getAdjustedMinDist(Technology tech, Layer layer1, double size1,
 		Layer layer2, double size2, boolean con, boolean multi)
 	{
 		// if they are implant on the same layer, they connect
@@ -2713,7 +2743,7 @@ public class Quick
 	 * Method to return the network number for port "pp" on node "ni", given that the node is
 	 * in a cell with global index "globalIndex".
 	 */
-	private static int getDRCNetNumber(Netlist netlist, PortProto pp, NodeInst ni, int globalIndex)
+	private int getDRCNetNumber(Netlist netlist, PortProto pp, NodeInst ni, int globalIndex)
 	{
 		if (pp == null) return -1;
 
@@ -2730,7 +2760,7 @@ public class Quick
 	 * Method to build the internal data structures that tell which layers interact with
 	 * which primitive nodes in technology "tech".
 	 */
-	private static void buildLayerInteractions(Technology tech)
+	private void buildLayerInteractions(Technology tech)
 	{
 		if (layerInterTech == tech) return;
 
@@ -2788,7 +2818,7 @@ public class Quick
 	 * Method to determine whether layer "layer" interacts in any way with a node of type "np".
 	 * If not, returns FALSE.
 	 */
-	private static boolean checkLayerWithNode(Layer layer, NodeProto np)
+	private boolean checkLayerWithNode(Layer layer, NodeProto np)
 	{
 		buildLayerInteractions(np.getTechnology());
 
@@ -2802,7 +2832,7 @@ public class Quick
 	 * Method to determine whether layer "layer" interacts in any way with an arc of type "ap".
 	 * If not, returns FALSE.
 	 */
-	private static boolean checkLayerWithArc(Layer layer, ArcProto ap)
+	private boolean checkLayerWithArc(Layer layer, ArcProto ap)
 	{
 		buildLayerInteractions(ap.getTechnology());
 
@@ -2816,7 +2846,7 @@ public class Quick
 	 * Method to recursively scan cell "cell" (transformed with "trans") searching
 	 * for DRC Exclusion nodes.  Each node is added to the global list "exclusionList".
 	 */
-	private static void accumulateExclusion(Cell cell, AffineTransform trans)
+	private void accumulateExclusion(Cell cell, AffineTransform trans)
 	{
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -2860,7 +2890,7 @@ public class Quick
 	/*********************************** QUICK DRC ERROR REPORTING ***********************************/
 
 	/* Adds details about an error to the error list */
-	private static void reportError(int errorType, Technology tech, String msg,
+	private void reportError(int errorType, Technology tech, String msg,
 		Cell cell, double limit, double actual, String rule,
 		Poly poly1, Geometric geom1, Layer layer1, int net1,
 		Poly poly2, Geometric geom2, Layer layer2, int net2)

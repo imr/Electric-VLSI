@@ -927,6 +927,8 @@ public class EditWindow extends JPanel
 			String designerName = User.getFrameDesignerName();
 			Variable dVar = cell.getLibrary().getVar(User.FRAME_DESIGNER_NAME, String.class);
 			if (dVar != null) designerName = (String)dVar.getObject();
+			dVar = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
+			if (dVar != null) designerName = (String)dVar.getObject();
 			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7.5/15);
 			showFrameText(g, point0, height, xLogoBox, yLogoBox*3/15, designerName);
 

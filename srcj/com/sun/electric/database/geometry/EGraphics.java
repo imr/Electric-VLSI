@@ -189,6 +189,7 @@ public class EGraphics
 	{
 		this.layer = layer;
 		Technology tech = layer.getTechnology();
+		if (tech == null) return;
 
 		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
 			Technology.getTechnologyPreferences(), displayPatterned);

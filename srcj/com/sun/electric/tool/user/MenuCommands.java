@@ -192,9 +192,6 @@ public final class MenuCommands
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 
-		fileMenu.addMenuItem("I/O Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
-
 		fileMenu.addSeparator();
 
 		fileMenu.addMenuItem("Close Library", null,
@@ -237,9 +234,12 @@ public final class MenuCommands
 		fileMenu.addMenuItem("Print...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
+		fileMenu.addSeparator();
+		fileMenu.addMenuItem("Preferences...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
+
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
-			fileMenu.addSeparator();
 			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
@@ -336,8 +336,6 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Edit Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { EditOptions.editOptionsCommand(); } });
 		editMenu.addMenuItem("Key Bindings...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 
@@ -974,8 +972,6 @@ public final class MenuCommands
 
 		toolMenu.addSeparator();
 
-		toolMenu.addMenuItem("Tool Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
 		toolMenu.addMenuItem("List Tools",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
 		Menu languagesSubMenu = new Menu("Languages");
