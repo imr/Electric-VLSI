@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP: (03/09/05, GVG) New strategy for collision during key navigation (3D)
+
 BUG: (03/08/05, GVG) Wrong transistor names in TechPalette (Bug #218)
 FIX: Switch i by j during palette information is collected in MoCMOS.java
 

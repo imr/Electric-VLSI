@@ -36,6 +36,9 @@ package com.sun.electric.plugins.j3d;
 import java.awt.AWTEvent;
 import java.awt.event.*;
 import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.Collections;
+
 import com.sun.j3d.utils.universe.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
@@ -52,15 +55,9 @@ public class J3DKeyBehavior extends Behavior
 	protected WakeupCondition keyCriterion;
     public Vector3d positionVector = null;
 
-	private double rotateXAmount = Math.PI / 16.0;
-	private double rotateYAmount = Math.PI / 16.0;
-	private double rotateZAmount = Math.PI / 16.0;
-
+	private double rotateAmount = Math.PI / 16.0;
 	private double moveRate = 5;
 	private double speed = NORMAL_SPEED;
-
-	private final double kMoveForwardScale = 1.1;
-	private final double kMoveBackwardScale = 0.9;
 
 	private int forwardKey = KeyEvent.VK_UP;
 	private int backKey = KeyEvent.VK_DOWN;
@@ -134,75 +131,69 @@ public class J3DKeyBehavior extends Behavior
 	private void standardMove( int keycode )
 	{
 		if(keycode == forwardKey)
-			moveAlongZ(1);
+			moveAlong(Z, 1);
 		else if(keycode == backKey)
-			moveAlongZ(-1);
+			moveAlong(Z, -1);
 		else if(keycode == leftKey)
-			rotAlongY(1);
+			rotAlong(Y, 1);
 		else if(keycode == rightKey)
-			rotAlongY(-1);
+			rotAlong(Y, -1);
 	}
-
 
 	//moves left right, rotate up down
 	protected void altMove( int keycode )
 	{
 		if(keycode == forwardKey)
-			rotAlongX(1);
+			rotAlong(X, 1);
 		else if(keycode == backKey)
-			rotAlongX(-1);
+			rotAlong(X, -1);
 		else if(keycode == leftKey)
-			moveAlongX(-1);
+			moveAlong(X, -1);
 		else if(keycode == rightKey)
-			moveAlongX(1);
+			moveAlong(X, 1);
 	}
 
 	//move up down, rot left right
 	protected void controlMove( int keycode )
 	{
 		if(keycode == forwardKey)	
-			moveAlongY(1);
+			moveAlong(Y, 1);
 		else if(keycode == backKey)
-			moveAlongY(-1);
+			moveAlong(Y, -1);
 		else if(keycode == leftKey)
-			rotAlongZ(1);
+			rotAlong(Z, 1);
 		else if(keycode == rightKey)
-			rotAlongZ(-1);
+			rotAlong(Z, -1);
 	}
 
-	private void moveAlongZ(int dir)
+    private static double[] values = new double[3];
+    private static Vector3d move = new Vector3d();
+
+	private void moveAlong(int axis, int dir)
 	{
-		doMove( new Vector3d( 0.0,0.0, dir * kMoveForwardScale * speed ) );
+        Arrays.fill(values, 0);
+        values[axis] = dir * getMovementRate();
+        move.set(values);
+        // If move gets a collision, then move back
+		if (!doMove(move, false))
+        {
+            values[axis] = -dir * getMovementRate();
+            move.set(values);
+            doMove(move, true);
+        }
 	}
 
-    private void moveAlongX(int dir)
+	protected void rotAlong(int axis, int dir)
 	{
-		doMove( new Vector3d( dir * getMovementRate( ) ,0.0,0.0 ) );
+        double radian = rotateAmount * speed;
+        // in case of collision, move the opposite direction
+		if (!doRotate(axis, dir * radian, false))
+           doRotate(axis, -dir * radian, true);
 	}
 
-    private void moveAlongY(int dir)
+	protected boolean updateTransform(boolean force)
 	{
-		doMove( new Vector3d( 0.0, dir * getMovementRate( ) ,0.0 ) );
-	}
-
-	protected void rotAlongX(int dir)
-	{
-		doRotateX(dir * rotateXAmount * speed);
-	}
-
-	protected void rotAlongY(int dir)
-	{
-		doRotateY(dir * rotateYAmount * speed);
-	}
-
-	protected void rotAlongZ(int dir)
-	{
-		doRotateZ(dir * rotateZAmount * speed);
-	}
-
-	protected boolean updateTransform( )
-	{
-		transformGroup.setTransform( transform3D );
+		transformGroup.setTransform(transform3D);
         return true;
 	}
 
@@ -221,66 +212,53 @@ public class J3DKeyBehavior extends Behavior
 //        }
     }
 
-	protected boolean doRotateY( double radians )
+    private static final int X = 0;
+    private static final int Y = 1;
+    private static final int Z = 2;
+
+    /**
+     * Method that rotates along given axis
+     * @param axis
+     * @param radians
+     * @return True if there was no collision
+     */
+	protected boolean doRotate(int axis, double radians, boolean force)
 	{
-		transformGroup.getTransform( transform3D );
-		Transform3D toMove = new Transform3D( );
-		toMove.rotY( radians );
-		transform3D.mul( toMove );
+		transformGroup.getTransform(transform3D);
+		Transform3D toMove = new Transform3D();
+        switch(axis)
+        {
+            case X:
+                toMove.rotX(radians);
+                break;
+            case Y:
+                toMove.rotY(radians);
+                break;
+            case Z:
+                toMove.rotZ(radians);
+                break;
+        }
+		transform3D.mul(toMove);
         // Need to move in opposite direction to avoid collision
-        boolean noCollision = updateTransform();
+        boolean noCollision = updateTransform(force);
         rotateAxes(toMove);
         return (noCollision);
 	}
 
-	protected void doRotateX( double radians )
+	private static Transform3D toMove = new Transform3D();
+    protected boolean doMove(Vector3d theMove, boolean force)
 	{
-		transformGroup.getTransform( transform3D );
-		Transform3D toMove = new Transform3D( );
-		toMove.rotX( radians );
-		transform3D.mul( toMove );
-		updateTransform( );
-        rotateAxes(toMove);
-	}
-
-	protected void doRotateZ( double radians )
-	{
-		transformGroup.getTransform( transform3D );
-		Transform3D toMove = new Transform3D( );
-		toMove.rotZ( radians );
-		transform3D.mul( toMove );
-		updateTransform( );
-        rotateAxes(toMove);
-	}
-
-	protected void doMove( Vector3d theMove )
-	{
-		transformGroup.getTransform( transform3D );
-		Transform3D toMove = new Transform3D( );
-		toMove.setTranslation( theMove );
+		transformGroup.getTransform(transform3D);
+        toMove.setIdentity();
+		toMove.setTranslation(theMove);
         positionVector.add (theMove);
 		transform3D.mul( toMove );
-		updateTransform( );
+		return updateTransform(force);
 	}
 
 	protected double getMovementRate( )
 	{
 		return moveRate * speed;
-	}
-
-	public void setRotateXAmount( double radians )
-	{
-		rotateXAmount = radians;
-	}
-
-	public void setRotateYAmount( double radians )
-	{
-		rotateYAmount = radians;
-	}
-
-	public void setRotateZAmount( double radians )
-	{
-		rotateZAmount = radians;
 	}
 
 	public void setMovementRate( double meters )

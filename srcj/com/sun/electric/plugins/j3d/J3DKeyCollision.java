@@ -50,12 +50,18 @@ public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
 		m_CollisionChecker = new J3DCollisionChecker( tg, collisionDetector, true );
 	}
 
-	protected boolean updateTransform( )
+    /**
+     * Method to apply given transformation
+     * @return true if there was no collision
+     */
+	protected boolean updateTransform(boolean force)
 	{
-        boolean collision = m_CollisionChecker.isCollision( transform3D );
+        boolean collision = false;
+        if (!force)
+            collision = m_CollisionChecker.isCollision( transform3D );
 		if( collision == false )
 			transformGroup.setTransform( transform3D );
-        return collision;
+        return !collision;
 	}
 
 //	// dissallow rotation up or down

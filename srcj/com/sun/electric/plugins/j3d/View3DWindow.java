@@ -190,6 +190,12 @@ public class View3DWindow extends JPanel
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 
+        //
+        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
+		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
+		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+        config = gd[0].getBestConfiguration( gc3D );
+
 		canvas = new J3DCanvas3D(config); //Canvas3D(config);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
@@ -414,29 +420,6 @@ public class View3DWindow extends JPanel
         // lights
         J3DUtils.createLights(objRoot, objTrans);
 
-		// Lights
-//        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
-//        AmbientLight aLgt = new AmbientLight(alColor); //J3DUtils.white);
-//        AmbientLight ambLight = new AmbientLight( true, new Color3f( 1.0f, 1.0f, 1.0f ) );
-//		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
-//        Vector3f lightDir2 = new Vector3f(1.0f, 1.0f, 1.0f);
-//		DirectionalLight light1 = new DirectionalLight(J3DUtils.white, lightDir1);
-//        DirectionalLight light2 = new DirectionalLight(J3DUtils.white, lightDir2);
-//        DirectionalLight headLight = new DirectionalLight( );
-//
-//		// Setting the influencing bounds
-//		light1.setInfluencingBounds(infiniteBounds);
-//        light2.setInfluencingBounds(infiniteBounds);
-//        ambLight.setInfluencingBounds(infiniteBounds);
-//	    aLgt.setInfluencingBounds(infiniteBounds);
-//        headLight.setInfluencingBounds(infiniteBounds);
-//		// Allow to turn off light while the scene graph is live
-//		light1.setCapability(Light.ALLOW_STATE_WRITE);
-//		// Add light to the env.
-//        objRoot.addChild(aLgt);
-//		objTrans.addChild(light1);
-//        //objTrans.addChild(light2);
-
         // Create Axes
         Rectangle2D cellBnd = cell.getBounds();
         double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
@@ -456,27 +439,13 @@ public class View3DWindow extends JPanel
 //        objRoot.addChild(axesq);
 
 		// Picking tools
-        //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
-        //objRoot.addChild(behavior2);
 		pickCanvas = new PickCanvas(canvas, objRoot);
-		//pickCanvas.setMode(PickCanvas.BOUNDS);
         pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
         pickCanvas.setTolerance(4.0f);
 
         setInterpolator(infiniteBounds);
 
-        // Key
-//        TransformGroup keyB = new TransformGroup( );
-//		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_WRITE );
-//		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_READ );
-
-		// attach a navigation behavior to the position of the viewer
-//		KeyNavigatorBehavior key = new KeyNavigatorBehavior(objTrans);
-//		key.setSchedulingBounds(infiniteBounds);
-//		key.setEnable( true );
-//		objRoot.addChild( key );
-
-        // create the KeyBehavior and attach
+        // create the KeyBehavior and attach main transformation group
 		keyBehavior = new J3DKeyCollision(objTrans, null, this);
 		keyBehavior.setSchedulingBounds(infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
@@ -910,47 +879,6 @@ public class View3DWindow extends JPanel
             return; // done
         }
     }
-
-    /**
-	 * Method to connect 2D and 3D highlights.
-	 * @param view2D
-	 */
-//	public static void show3DHighlight(WindowContent view2D)
-//	{
-//		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = (WindowFrame)it.next();
-//			WindowContent content = wf.getContent();
-//			if (!(content instanceof View3DWindow)) continue;
-//			View3DWindow wnd = (View3DWindow)content;
-//
-//			// Undo previous highlight
-//			wnd.selectObject(false, false);
-//
-//			if (wnd.view2D == view2D)
-//			{
-//				Highlighter highlighter2D = view2D.getHighlighter();
-//                List geomList = highlighter2D.getHighlightedEObjs(true, true);
-//
-//				for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
-//				{
-//					ElectricObject eobj = (ElectricObject)hIt.next();
-//
-//					List list = (List)wnd.electricObjectMap.get(eobj);
-//
-//					if (list == null || list.size() == 0) continue;
-//
-//					for (Iterator lIt = list.iterator(); lIt.hasNext();)
-//					{
-//						Shape3D shape = (Shape3D)lIt.next();
-//						wnd.highlighter.addObject(shape, Highlight.Type.SHAPE3D, wnd.cell);
-//					}
-//				}
-//				wnd.selectObject(true, false);
-//				return; // done
-//			}
-//		}
-//	}
 
     /**
      * Method to change Z values in elements
@@ -1595,20 +1523,14 @@ public class View3DWindow extends JPanel
 		return false;
 	}
 
-    // returns true if the given x,z location in the world corresponds to a wall section
+    /**
+     * Method to detect if give x, y location in the world collides with geometry
+     * @param worldCoord
+     * @return
+     */
 	protected boolean isCollision( Vector3d worldCoord )
 	{
 		Point2d point = convertToMapCoordinate( worldCoord );
-//		int nImageWidth = (int)cell.getBounds().getWidth();
-//		int nImageHeight = (int)cell.getBounds().getHeight();
-
-        int nImageWidth = getPanel().getWidth();
-		int nImageHeight = getPanel().getHeight();
-
-		// outside of image
-//		if( point.x < 0 || point.x >= nImageWidth ||
-//			point.y < 0 || point.y >= nImageHeight )
-//			return true;
 
 //        PickTool pickTool = new PickTool(scene);
 //				pickTool.setMode( PickTool.BOUNDS );
@@ -1646,23 +1568,20 @@ public class View3DWindow extends JPanel
         if (result != null && result.getNode(PickResult.SHAPE3D) != null)
         {
              Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
-             //shape.setAppearance(J3DAppearance.highligtAp);
+             shape.setAppearance(J3DAppearance.highligtApp);
             for (int i = 0; i < result.numIntersections(); i++)
             {
                 PickIntersection inter = result.getIntersection(i);
-            System.out.println("Collision " + inter.getDistance() + " " + inter.getPointCoordinates() + " normal " + inter.getPointNormal());
-                 System.out.println("Point  " + point + " world " + worldCoord);
+//            System.out.println("Collision " + inter.getDistance() + " " + inter.getPointCoordinates() + " normal " + inter.getPointNormal());
+//                 System.out.println("Point  " + point + " world " + worldCoord);
                 GeometryArray geo = inter.getGeometryArray();
 
-                if (inter.getDistance() < 6) return (true); // collision
+                if (inter.getDistance() < 6) 
+                    return (true); // collision
             }
         }
 
         return (false);
-//		int color = m_MapImage.getRGB( (int) point.x, (int) point.y );
-//
-//		// we can't walk through walls or bookcases
-//		return( color == m_ColorWall || color == m_ColorBookcase );
 	}
 
     public J3DUtils.ThreeDDemoKnot addFrame()
