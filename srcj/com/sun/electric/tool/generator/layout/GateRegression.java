@@ -72,6 +72,7 @@ public class GateRegression extends Job {
 
 	private static void aPass(double x, StdCellParams stdCell) {
 		tracePass(x);
+		
 		MullerC_sy.makePart(x, stdCell); traceGate();
 		Nms1.makePart(x, stdCell); traceGate();
 		Nms2.makePart(x, stdCell); traceGate();
@@ -135,6 +136,21 @@ public class GateRegression extends Job {
 			} 
 		}
 	}
+	/** build inverter library for Justin */
+	private void doJustin(StdCellParams stdCell) {
+		stdCell.setVddY(21);
+		stdCell.setGndY(-21);
+		stdCell.setNmosWellHeight(42);
+		stdCell.setPmosWellHeight(42);
+		InvV.makePart(24.4467, 25.3333, stdCell);	// 3x13x50000
+		InvV.makePart(51.4667, 53.3333, stdCell);	// 3x13x50000D
+		InvV.makePart(25.7333, 26.6667, stdCell);	// 3x13x70850
+		InvV.makePart(28.95, 30, stdCell);			// 3x3x33330
+		InvV.makePart(32.1667, 33.3333, stdCell);	// 3x3x50000
+		InvV.makePart(69.1583, 71.6667, stdCell);	// 3x3x50000D
+		InvV.makePart(23.8033, 24.6667, stdCell);	// 3x7x50000
+		InvV.makePart(26.3767, 27.3333, stdCell);	// 3x7x60000
+	}
 
 	public void doIt() {
 		System.out.println("begin execution of Gates");
@@ -157,10 +173,14 @@ public class GateRegression extends Job {
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 
+		// generate inverters for Justin
+		//doJustin(stdCell);
+		
 		// a normal run
-		allSizes(stdCell);
-		//aPass(500, stdCell);
-
+		//allSizes(stdCell);
+		
+		aPass(50, stdCell);
+		
 		// test the ability to move ground bus
 		stdCell.setGndY(stdCell.getGndY() - 7);
 		//allSizes(stdCell);

@@ -702,6 +702,18 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.FillLibGen();
 			}
 		});
+		russMenu.addMenuItem("Gate Generator Regression", null, 
+		                     new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.GateRegression();
+			}
+		});
+		russMenu.addMenuItem("Generate Justin's inverter library", null, 
+							 new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.Justin();
+			}
+		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -710,11 +722,6 @@ public final class MenuCommands
 		russMenu.addMenuItem("layout flat", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.LayFlat();
-			}
-		});
-		russMenu.addMenuItem("gate regression", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
 		russMenu.addMenuItem("Jemini", null, new ActionListener() {
