@@ -79,7 +79,7 @@ public class FileMenu {
 
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
-		importSubMenu.addMenuItem("Version 7 ELIB...", null,
+		importSubMenu.addMenuItem("ELIB...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.ELIB); } });
 		importSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.READABLEDUMP); } });
