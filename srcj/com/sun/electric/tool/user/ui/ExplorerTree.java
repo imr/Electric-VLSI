@@ -46,6 +46,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.*;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Iterator;
@@ -68,7 +71,7 @@ import javax.swing.tree.TreePath;
 /**
  * Class to display a cell explorer tree-view of the database.
  */
-public class ExplorerTree extends JTree 
+public class ExplorerTree extends JTree implements DragGestureListener, DragSourceListener
 {
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
@@ -123,6 +126,8 @@ public class ExplorerTree extends JTree
 		super(treeModel);
 		this.rootNode = rootNode;
 		this.treeModel = treeModel;
+
+		initDND();
 
 //		setEditable(true);
 //		setDragEnabled(true);
@@ -414,6 +419,54 @@ public class ExplorerTree extends JTree
 		return nodeInfo.toString();
 	}
 
+	// *********************************** DRAG AND DROP ***********************************
+
+	// general: http://www.javaworld.com/javaworld/jw-03-1999/jw-03-dragndrop.html
+	// JTree:   http://www.javaworld.com/javatips/jw-javatip97.html
+
+	/** Variables needed for DnD */
+	private DragSource dragSource = null;
+	private DefaultMutableTreeNode selectedNode;
+
+	private void initDND()
+	{
+		dragSource = DragSource.getDefaultDragSource();
+		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK, this);
+
+		/* Eliminates right mouse clicks as valid actions - useful especially
+		 * if you implement a JPopupMenu for the JTree
+		 */
+//		dgr.setSourceActions(dgr.getSourceActions() & ~InputEvent.BUTTON3_MASK);
+	}
+
+	public void dragGestureRecognized(DragGestureEvent e)
+	{
+		if (selectedNode == null) return;
+		if (selectedNode.getUserObject() instanceof Simulate.SimSignal)
+		{
+			// Get the Transferable Object
+			Simulate.SimSignal sSig = (Simulate.SimSignal)selectedNode.getUserObject();
+			String sigName = sSig.getSignalContext();
+			if (sigName == null) sigName = sSig.getSignalName(); else
+				sigName += sSig.getSignalName();
+			Transferable transferable = new StringSelection(sigName);
+
+			// begin the drag
+			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		}
+	}
+
+	public void dragEnter(DragSourceDragEvent e) {}
+
+	public void dragOver(DragSourceDragEvent e) {}
+
+	public void dragExit(DragSourceEvent e) {}
+
+	public void dragDropEnd(DragSourceDropEvent e) {}
+
+	public void dropActionChanged (DragSourceDragEvent e) {}
+
+
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
 		public MyRenderer()
@@ -639,6 +692,7 @@ public class ExplorerTree extends JTree
 			if (currentPath == null) { currentSelectedObject = null;   return; }
 			tree.setSelectionPath(currentPath);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
+			tree.selectedNode = node;
 			currentSelectedObject = node.getUserObject();
 
 			// determine the source of this event

@@ -2,6 +2,10 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/23/04, SMR) Preferences panel opens the tree to the proper place (and uses single-click to open them).
+
+IMP: (6/23/04, SMR) Implemented drag-and-drop for signal names into the waveform viewer.
+
 IMP: (6/22/04, RK) Added NCC attribute: exportsConnectedByParent
 
 IMP: (6/21/04, SMR) Implemented Spice2 / GNUCap output reader.

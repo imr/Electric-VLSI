@@ -54,7 +54,7 @@ public class SmartSpiceOut extends Simulate
 		// open the file
 		InputStream stream = TextUtils.getURLStream(fileURL);
 		if (stream == null) return null;
-		if (openBinaryInput(fileURL, stream)) return null;
+		if (openTextInput(fileURL, stream)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("SmartSpice output", fileURL.getFile());
@@ -73,106 +73,89 @@ public class SmartSpiceOut extends Simulate
 	private SimData readRawSmartSpiceFile(Cell cell)
 		throws IOException
 	{
-//		first = TRUE;
+		boolean first = true;
+		String sim_spice_cellname = null;
 //		numend = NONUMBERS;
-//		sim_spice_signals = -1;
-//		rowcount = -1;
-//		for(;;)
-//		{
-//			if (stopping(STOPREASONSPICE)) return(-1);
-//			if (sim_spice_getlinefromsimulator(line)) break;
-//			if (sim_spice_filelen > 0)
-//				DiaSetProgress(dia, sim_spice_filepos, sim_spice_filelen);
-//			if (first)
-//			{
-//				// check the first line for HSPICE format possibility
-//				first = FALSE;
-//				if (estrlen(line) >= 20 && line[16] == '9' && line[17] == '0' &&
-//					line[18] == '0' && line[19] == '7')
-//				{
-//					ttyputerr(_("This is an HSPICE file, not a RAWFILE file"));
-//					ttyputerr(_("Change the SPICE format and reread"));
-//					return(-1);
-//				}
-//			}
-//
-//			if (running != 0)
-//			{
-//				if (outputfile == NULL)
-//				{
-//					if (parsemode == SIMRUNYESPARSE) ttyputmsg(x_("%s"), line);
-//				} else sim_spice_xprintf(outputfile, FALSE, x_("%s\n"), line);
-//			}
-//
-//			// find the ":" separator
-//			for(ptr = line; *ptr != 0; ptr++) if (*ptr == ':') break;
-//			if (*ptr == 0) continue;
-//			*ptr++ = 0;
-//			while (*ptr == ' ' || *ptr == '\t') ptr++;
-//
-//			if (namesame(line, x_("Plotname")) == 0)
-//			{
-//				if (sim_spice_cellname[0] == '\0')
-//					estrcpy(sim_spice_cellname, ptr);
-//				continue;
-//			}
-//
-//			if (namesame(line, x_("No. Variables")) == 0)
-//			{
-//				sim_spice_signals = eatoi(ptr) - 1;
-//				continue;
-//			}
-//
-//			if (namesame(line, x_("No. Points")) == 0)
-//			{
-//				rowcount = eatoi(ptr);
-//				continue;
-//			}
-//
-//			if (namesame(line, x_("Variables")) == 0)
-//			{
-//				if (sim_spice_signals < 0)
-//				{
-//					ttyputerr(_("Missing variable count in file"));
-//					return(-1);
-//				}
-//				sim_spice_signames = (CHAR **)emalloc(sim_spice_signals * (sizeof (CHAR *)),
-//					sim_tool->cluster);
-//				if (sim_spice_signames == 0) return(-1);
-//				for(i=0; i<=sim_spice_signals; i++)
-//				{
-//					if (stopping(STOPREASONSPICE)) return(-1);
-//					if (i != 0)
-//					{
-//						if (sim_spice_getlinefromsimulator(line))
-//						{
-//							ttyputerr(_("Error: end of file during signal names"));
-//							return(-1);
-//						}
-//						ptr = line;
-//					}
-//					while (*ptr == ' ' || *ptr == '\t') ptr++;
-//					if (myatoi(ptr) != i)
-//						ttyputerr(_("Warning: Variable %ld has number %ld"),
-//							i, myatoi(ptr));
-//					while (*ptr != 0 && *ptr != ' ' && *ptr != '\t') ptr++;
-//					while (*ptr == ' ' || *ptr == '\t') ptr++;
-//					start = ptr;
-//					while (*ptr != 0 && *ptr != ' ' && *ptr != '\t') ptr++;
-//					*ptr = 0;
-//					if (i == 0)
-//					{
-//						if (namesame(start, x_("time")) != 0)
-//							ttyputerr(_("Warning: the first variable should be time, is '%s'"),
-//								start);
-//					} else
-//					{
-//						(void)allocstring(&sim_spice_signames[i-1], start, sim_tool->cluster);
-//					}
-//				}
-//				continue;
-//			}
-//			if (namesame(line, x_("Values")) == 0)
+		int sim_spice_signals = -1;
+		String [] sim_spice_signames;
+		int rowcount = -1;
+		for(;;)
+		{
+			String line = getLine();
+			if (line == null) break;
+			if (first)
+			{
+				// check the first line for HSPICE format possibility
+				first = false;
+				if (line.length() >= 20 && line.substring(16,20).equals("9007"))
+				{
+					System.out.println("This is an HSPICE file, not a SPICE2 file");
+					System.out.println("Change the SPICE format and reread");
+					return null;
+				}
+			}
+
+			// find the ":" separator
+			int colonPos = line.indexOf(':');
+			if (colonPos < 0) continue;
+			String keyWord = line.substring(0, colonPos);
+			String restOfLine = line.substring(colonPos+1).trim();
+
+			if (keyWord.equals("Plotname"))
+			{
+				if (sim_spice_cellname == null) sim_spice_cellname = restOfLine;
+				continue;
+			}
+
+			if (keyWord.equals("No. Variables"))
+			{
+				sim_spice_signals = TextUtils.atoi(restOfLine) - 1;
+				continue;
+			}
+
+			if (keyWord.equals("No. Points"))
+			{
+				rowcount = TextUtils.atoi(restOfLine);
+				continue;
+			}
+
+			if (keyWord.equals("Variables"))
+			{
+				if (sim_spice_signals < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				sim_spice_signames = new String[sim_spice_signals];
+				for(int i=0; i<=sim_spice_signals; i++)
+				{
+					if (i != 0)
+					{
+						restOfLine = getLine();
+						if (restOfLine == null) break;
+						restOfLine = restOfLine.trim();
+					}
+					int indexOnLine = TextUtils.atoi(restOfLine);
+					if (indexOnLine != i)
+						System.out.println("Warning: Variable " + i + " has number " + indexOnLine);
+					int nameStart = 0;
+					while (nameStart < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameStart))) nameStart++;
+					while (nameStart < restOfLine.length() && Character.isWhitespace(restOfLine.charAt(nameStart))) nameStart++;
+					int nameEnd = nameStart;
+					while (nameEnd < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameEnd))) nameEnd++;
+					String name = restOfLine.substring(nameStart, nameEnd);
+					if (i == 0)
+					{
+						if (!name.equals("time"))
+							System.out.println("Warning: the first variable should be time, is '" + name + "'");
+					} else
+					{
+						sim_spice_signames[i-1] = name;
+					}
+				}
+				continue;
+			}
+//			if (keyWord.equals("Values"))
 //			{
 //				if (sim_spice_signals < 0)
 //				{
@@ -219,23 +202,22 @@ public class SmartSpiceOut extends Simulate
 //					}
 //				}
 //			}
-//			if (namesame(line, x_("Binary")) == 0)
+//			if (keyWord.equals("Binary"))
 //			{
 //				if (sim_spice_signals < 0)
 //				{
-//					ttyputerr(_("Missing variable count in file"));
-//					return(-1);
+//					System.out.println("Missing variable count in file");
+//					return null;
 //				}
 //				if (rowcount < 0)
 //				{
-//					ttyputerr(_("Missing point count in file"));
-//					return(-1);
+//					System.out.println("Missing point count in file");
+//					return null;
 //				}
-//				inputbuffer = (double *)emalloc(sim_spice_signals * (sizeof (double)), sim_tool->cluster);
-//				if (inputbuffer == 0) return(-1);
+//				double [] inputbuffer = new double[sim_spice_signals];
 //
 //				// read the data
-//				for(j=0; j<rowcount; j++)
+//				for(int j=0; j<rowcount; j++)
 //				{
 //					num = sim_spice_allocnumbers(sim_spice_signals);
 //					if (num == NONUMBERS) return(-1);
@@ -244,14 +226,10 @@ public class SmartSpiceOut extends Simulate
 //					num->nextnumbers = NONUMBERS;
 //					numend = num;
 //
-//					if (sim_spice_filelen > 0 )
-//						DiaSetProgress(dia, sim_spice_filepos, sim_spice_filelen);
-//
-//					if (stopping(STOPREASONSPICE)) return(-1);
 //					i = xfread((UCHAR1 *)(&num->time), sizeof(double), 1, sim_spice_streamfromsim);
 //					if (i != 1)
 //					{
-//						ttyputerr(_("Error: end of file during data points (read %ld out of %ld)"),
+//						System.out.println("Error: end of file during data points (read %ld out of %ld)"),
 //							j, rowcount);
 //						return(-1);
 //					}
@@ -262,7 +240,7 @@ public class SmartSpiceOut extends Simulate
 //					i = xfread((UCHAR1 *)inputbuffer, sizeof(double), sim_spice_signals, sim_spice_streamfromsim);
 //					if (i != sim_spice_signals)
 //					{
-//						ttyputerr(_("Error: end of file during data points (read only %ld of %ld signals on row %ld out of %ld)"),
+//						System.out.println("Error: end of file during data points (read only %ld of %ld signals on row %ld out of %ld)"),
 //							i, sim_spice_signals, j, rowcount);
 //						return(-1);
 //					}
@@ -282,7 +260,7 @@ public class SmartSpiceOut extends Simulate
 //				}
 //				efree((CHAR *)inputbuffer);
 //			}
-//		}
+		}
 //
 //		if (sim_spice_signals > 0)
 //		{

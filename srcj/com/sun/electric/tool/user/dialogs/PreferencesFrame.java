@@ -56,7 +56,8 @@ public class PreferencesFrame extends EDialog
 
 	List optionPanes = new ArrayList();
 
-	/** The name of the current tab in this dialog. */	private static String currentTabName = "General";
+	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
+	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
 
 	/**
 	 * This method implements the command to show the PreferencesFrame dialog.
@@ -91,7 +92,7 @@ public class PreferencesFrame extends EDialog
 
 
 		// the "General" section of the Preferences
-		DefaultMutableTreeNode generalSet = new DefaultMutableTreeNode("General");
+		DefaultMutableTreeNode generalSet = new DefaultMutableTreeNode("General ");
 		rootNode.add(generalSet);
 
 		GeneralTab gt = new GeneralTab(parent, modal);
@@ -120,7 +121,7 @@ public class PreferencesFrame extends EDialog
 
 
 		// the "Display" section of the Preferences
-		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display");
+		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display ");
 		rootNode.add(displaySet);
 
 		LayersTab lt = new LayersTab(parent, modal);
@@ -153,7 +154,7 @@ public class PreferencesFrame extends EDialog
 
 
 		// the "I/O" section of the Preferences
-		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O");
+		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O ");
 		rootNode.add(ioSet);
 
 		CIFTab cit = new CIFTab(parent, modal);
@@ -186,7 +187,7 @@ public class PreferencesFrame extends EDialog
 
 
 		// the "Tools" section of the Preferences
-		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools");
+		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools ");
 		rootNode.add(toolSet);
 
 		AntennaRulesTab art = new AntennaRulesTab(parent, modal);
@@ -235,7 +236,7 @@ public class PreferencesFrame extends EDialog
 
 
 		// the "Technology" section of the Preferences
-		DefaultMutableTreeNode techSet = new DefaultMutableTreeNode("Technology");
+		DefaultMutableTreeNode techSet = new DefaultMutableTreeNode("Technology ");
 		rootNode.add(techSet);
 
 		TechnologyTab tect = new TechnologyTab(parent, modal);
@@ -263,7 +264,7 @@ public class PreferencesFrame extends EDialog
 		optionTree.expandPath(topPath);
 		topPath = optionTree.getPathForRow(1);
 		optionTree.expandPath(topPath);
-		topPath = optionTree.getPathForRow(2);
+		topPath = optionTree.getNextMatch(currentSectionName, 0, null);
 		optionTree.expandPath(topPath);
 
 		// the left side of the options dialog: a tree
@@ -401,7 +402,14 @@ public class PreferencesFrame extends EDialog
 			dialog.optionTree.setSelectionPath(currentPath);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
 			currentTabName = (String)node.getUserObject();
-			dialog.loadOptionPanel();
+			dialog.optionTree.expandPath(currentPath);
+			if (currentTabName.endsWith(" "))
+			{
+				currentSectionName = currentTabName;
+			} else
+			{
+				dialog.loadOptionPanel();
+			}
 			dialog.pack();
 		}
 

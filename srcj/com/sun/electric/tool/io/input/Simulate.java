@@ -465,8 +465,7 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 			if (isAnalog)
 			{
 				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
-				if (isAnalog) wp.setValueRange(lowValue, highValue);
-//				WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
+				wp.setValueRange(lowValue, highValue);
 			}
 		}
 		ww.getPanel().validate();
