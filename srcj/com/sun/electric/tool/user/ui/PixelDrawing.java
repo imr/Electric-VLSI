@@ -201,7 +201,7 @@ public class PixelDrawing
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 
 	// the full-depth image
-    /** the offscreen opaque image of the window */			private Image img;
+    /** the offscreen opaque image of the window */			private BufferedImage img;
 	/** opaque layer of the window */						private int [] opaqueData;
 	/** size of the opaque layer of the window */			private int total;
 	/** the background color of the offscreen image */		private int backgroundColor;
@@ -289,7 +289,7 @@ public class PixelDrawing
 	 * Method for obtaining the rendered image after "drawImage" has finished.
 	 * @return an Image for this edit window.
 	 */
-	public Image getImage() { return img; }
+	protected BufferedImage getBufferedImage() { return img; }
 
 	/**
 	 * Method to clear the cache of expanded subcells.

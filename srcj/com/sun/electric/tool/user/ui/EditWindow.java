@@ -691,7 +691,7 @@ public class EditWindow extends JPanel
 		}
 
 		// show the image
-		Image img = offscreen.getImage();
+		BufferedImage img = offscreen.getBufferedImage();
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
 
 		// overlay other things if there is a valid cell
@@ -2908,7 +2908,7 @@ public class EditWindow extends JPanel
 			PixelDrawing offscreen = w.getOffscreen();
 			offscreen.setBackgroundColor(Color.WHITE);
 			offscreen.drawImage(null);
-			img = offscreen.getImage();
+			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 		}
 
