@@ -867,20 +867,19 @@ public class TextUtils
 				{
 					int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
 
-					// Skip leading zeros
-					boolean skipZeros = true;
-					if (digit1 < 0 || digit2 < 0)
+					// One char is digit, another is not. Is previous digit ?
+					int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+					if (digit < 0 && (digit1 < 0 || digit2 < 0))
 					{
-						// One char is digit, another is not. Is previous digit ?
-						int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
-						if (digit < 0) return digit2 - digit1;
-						// Are previus digits all zeros ?
-						while (digit == 0)
-							digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
-						if (digit > 0) skipZeros = false; // If no, don't skip
+						// Previos is not digit. Number is less than non-number.
+						return digit2 - digit1;
 					}
-					if (skipZeros)
+					// Are previus digits all zeros ?
+					while (digit == 0)
+						digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+					if (digit < 0)
 					{
+						// All previos digits are zeros. Skip zeros further.
 						while (digit1 == 0)
 							digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
 						while (digit2 == 0)
@@ -913,51 +912,53 @@ public class TextUtils
 	/**
 	 * Test of nameSameNumeric.
 	 */
-	private static String[] numericStrings = {
-		"",           // { }
-		"0",          // {  0, '0' }
-		"0-0",        // {  0, '0', '-', 0, '0' }
-		"00",         // {  0, '0', '0' }
-		"0a",         // {  0, '0', 'a' }
-		"01",         // {  1, '0', '1' }
-		"1",          // {  1, '1' }
-		"9",          // {  9, '9' }
-		"10",         // { 10, '1', '0' }
-		"2147483648", // { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
-		" ",          // { ' ' }
-		"-",          // { '-' }
-		"-1",         // { '-', 1, '1' }
-		"-2",         // { '-', 2, '2' }
-		"a",          // { 'a' }
-		"a0",         // { 'a',  0, '0' }
-		"a0-0",       // { 'a',  0, '0', '-', 0, '0' }
-		"a00",        // { 'a',  0, '0', '0' }
-		"a0a",        // { 'a',  0, '0', 'a' }
-		"a01",        // { 'a',  1, '0', '1' }
-		"a1",         // { 'a',  1, '1' }
-		"in",         // { 'i', 'n' }
-		"in1",        // { 'i', 'n',  1, '1' }
-		"in1a",       // { 'i', 'n',  1, '1', 'a' }
-		"in9",        // { 'i', 'n',  9, '9' }
-		"in10",       // { 'i', 'n', 10, '1', '0' }
-		"in!",        // { 'i', 'n', '!' }
-		"ina"         // { 'i , 'n', 'a' }
-	};
+// 	private static String[] numericStrings = {
+// 		"",           // { }
+// 		"0",          // {  0, '0' }
+// 		"0-0",        // {  0, '0', '-', 0, '0' }
+// 		"00",         // {  0, '0', '0' }
+// 		"0a",         // {  0, '0', 'a' }
+// 		"01",         // {  1, '0', '1' }
+// 		"1",          // {  1, '1' }
+// 		"9",          // {  9, '9' }
+// 		"10",         // { 10, '1', '0' }
+// 		"12",         // { 12, '1', '2' }
+// 		"102",        // { 102, '1', '0', '2' }
+// 		"2147483648", // { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+// 		" ",          // { ' ' }
+// 		"-",          // { '-' }
+// 		"-1",         // { '-', 1, '1' }
+// 		"-2",         // { '-', 2, '2' }
+// 		"a",          // { 'a' }
+// 		"a0",         // { 'a',  0, '0' }
+// 		"a0-0",       // { 'a',  0, '0', '-', 0, '0' }
+// 		"a00",        // { 'a',  0, '0', '0' }
+// 		"a0a",        // { 'a',  0, '0', 'a' }
+// 		"a01",        // { 'a',  1, '0', '1' }
+// 		"a1",         // { 'a',  1, '1' }
+// 		"in",         // { 'i', 'n' }
+// 		"in1",        // { 'i', 'n',  1, '1' }
+// 		"in1a",       // { 'i', 'n',  1, '1', 'a' }
+// 		"in9",        // { 'i', 'n',  9, '9' }
+// 		"in10",       // { 'i', 'n', 10, '1', '0' }
+// 		"in!",        // { 'i', 'n', '!' }
+// 		"ina"         // { 'i , 'n', 'a' }
+// 	};
 
-	static {
-		for (int i = 0; i < numericStrings.length; i++)
-		{
-			for (int j = 0; j < numericStrings.length; j++)
-			{
-				String s1 = numericStrings[i];
-				String s2 = numericStrings[j];
-				int cmp = nameSameNumeric(s1, s2);
-				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
-					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
-						s1 + "\", \"" + s2 + "\") = " + cmp);
-			}
-		}
-	}
+// 	static {
+// 		for (int i = 0; i < numericStrings.length; i++)
+// 		{
+// 			for (int j = 0; j < numericStrings.length; j++)
+// 			{
+// 				String s1 = numericStrings[i];
+// 				String s2 = numericStrings[j];
+// 				int cmp = nameSameNumeric(s1, s2);
+// 				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
+// 					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
+// 						s1 + "\", \"" + s2 + "\") = " + cmp);
+// 			}
+// 		}
+// 	}
 
 	/**
 	 * Method to convert a file path to a URL.
