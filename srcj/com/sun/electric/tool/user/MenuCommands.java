@@ -164,10 +164,14 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
 		fileMenu.addMenuItem("Open Library", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
+
 		Menu importSubMenu = new Menu("Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
+		importSubMenu.addMenuItem("Text Cell Contents...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
+
 		fileMenu.addMenuItem("I/O Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
 
@@ -181,6 +185,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
 		fileMenu.addMenuItem("Save All Libraries",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
+
 		Menu exportSubMenu = new Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
@@ -189,6 +194,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
 		exportSubMenu.addMenuItem("PostScript", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
+		exportSubMenu.addMenuItem("Text Cell Contents...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP); } });
 
@@ -230,33 +237,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(); } });
         editMenu.addMenuItem("Duplicate", KeyStroke.getKeyStroke('M', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.duplicate(); } });
-
-		editMenu.addSeparator();
-
-		Menu arcSubMenu = new Menu("Arc", 'A');
-		editMenu.add(arcSubMenu);
-		arcSubMenu.addMenuItem("Rigid", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcRigidCommand(); }});
-		arcSubMenu.addMenuItem("Not Rigid", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotRigidCommand(); }});
-		arcSubMenu.addMenuItem("Fixed Angle", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcFixedAngleCommand(); }});
-		arcSubMenu.addMenuItem("Not Fixed Angle", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotFixedAngleCommand(); }});
-		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Toggle Directionality", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Ends Extension", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcEndsExtendCommand(); }});
-		arcSubMenu.addMenuItem("Reverse", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcReverseCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Head-Skip", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipHeadCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Tail-Skip", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipTailCommand(); }});
-		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Rip Bus", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
 
 		editMenu.addSeparator();
 
@@ -318,16 +298,15 @@ public final class MenuCommands
 		moveSubMenu.addMenuItem("Align Vertically to Center", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(false, 2); }});
 
-		editMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
-
 		editMenu.addSeparator();
 
 		m=editMenu.addMenuItem("Erase", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), null);
-		editMenu.addMenuItem("Erase Geometry", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelectedGeometry(); } });
+		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
+		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
 		editMenu.addSeparator();
 
@@ -338,23 +317,55 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Get Info...", KeyStroke.getKeyStroke('I', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
 		Menu editInfoSubMenu = new Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
-		editInfoSubMenu.addMenuItem("Attributes...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
-		editInfoSubMenu.addMenuItem("See All Parameters on Node", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
-		editInfoSubMenu.addMenuItem("Hide All Parameters on Node", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
-		editInfoSubMenu.addMenuItem("Default Parameter Visibility", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
-		editInfoSubMenu.addSeparator();
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(false); } });
+		editInfoSubMenu.addMenuItem("Show Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+		editInfoSubMenu.addMenuItem("Describe this Technology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 
-		editMenu.addSeparator();
+		Menu editPropertiesSubMenu = new Menu("Properties", 'V');
+		editMenu.add(editPropertiesSubMenu);
+		editPropertiesSubMenu.addMenuItem("Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
+		editPropertiesSubMenu.addMenuItem("Attribute Properties...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
+		editPropertiesSubMenu.addSeparator();
+		editPropertiesSubMenu.addMenuItem("See All Parameters on Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
+		editPropertiesSubMenu.addMenuItem("Hide All Parameters on Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
+		editPropertiesSubMenu.addMenuItem("Default Parameter Visibility", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
+
+		Menu arcSubMenu = new Menu("Arc", 'A');
+		editMenu.add(arcSubMenu);
+		arcSubMenu.addMenuItem("Rigid", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcRigidCommand(); }});
+		arcSubMenu.addMenuItem("Not Rigid", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotRigidCommand(); }});
+		arcSubMenu.addMenuItem("Fixed Angle", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcFixedAngleCommand(); }});
+		arcSubMenu.addMenuItem("Not Fixed Angle", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotFixedAngleCommand(); }});
+		arcSubMenu.addSeparator();
+		arcSubMenu.addMenuItem("Toggle Directionality", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Ends Extension", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcEndsExtendCommand(); }});
+		arcSubMenu.addMenuItem("Reverse", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcReverseCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Head-Skip", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipHeadCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Tail-Skip", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipTailCommand(); }});
+		arcSubMenu.addSeparator();
+		arcSubMenu.addMenuItem("Insert Jog In Arc", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
+		arcSubMenu.addMenuItem("Rip Bus", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
 
 		Menu modeSubMenu = new Menu("Modes");
 		editMenu.add(modeSubMenu);
@@ -417,23 +428,12 @@ public final class MenuCommands
 		modeSubMenuSelect.addCheckBox(ToolBar.specialSelectName, false, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
 
-		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
-		editMenu.addMenuItem("Insert Jog In Arc", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
-		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
-
 		Menu textSubMenu = new Menu("Text");
 		editMenu.add(textSubMenu);
 		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
 		textSubMenu.addMenuItem("Change Text Size...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ChangeText.changeTextDialog(); }});
-		textSubMenu.addMenuItem("Read Text Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
-		textSubMenu.addMenuItem("Save Text Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 
 		Menu cleanupSubMenu = new Menu("Cleanup Cell");
 		editMenu.add(cleanupSubMenu);
@@ -446,13 +446,10 @@ public final class MenuCommands
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		Menu specialSubMenu = new Menu("Special Function");
+		Menu specialSubMenu = new Menu("Technology Specific");
 		editMenu.add(specialSubMenu);
-		specialSubMenu.addMenuItem("Show Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
-		m = specialSubMenu.addMenuItem("Show Cursor Coordinates", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
-		m.setEnabled(false);
+		specialSubMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
 		m = specialSubMenu.addMenuItem("Artwork Appearance...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
 		m.setEnabled(false);
@@ -500,12 +497,12 @@ public final class MenuCommands
 		Menu cellMenu = new Menu("Cell", 'C');
 		menuBar.add(cellMenu);
 
+		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
         cellMenu.addMenuItem("Edit Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.editCell); }});
         cellMenu.addMenuItem("Place Cell Instance...", KeyStroke.getKeyStroke('N', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.newInstance); }});
-        cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
         cellMenu.addMenuItem("Rename Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.renameCell); }});
         cellMenu.addMenuItem("Duplicate Cell...", null,
@@ -515,11 +512,7 @@ public final class MenuCommands
 
         cellMenu.addSeparator();
 
-		cellMenu.addMenuItem("Delete Current Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
-        cellMenu.addMenuItem("Cell Control...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
-		cellMenu.addMenuItem("Cross-Library Copy...", null,
+ 		cellMenu.addMenuItem("Cross-Library Copy...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 
 		cellMenu.addSeparator();
@@ -543,20 +536,24 @@ public final class MenuCommands
 
 		cellMenu.addSeparator();
 
-		cellMenu.addMenuItem("Describe this Cell", null,
+		Menu cellInfotSubMenu = new Menu("Cell Info");
+		cellMenu.add(cellInfotSubMenu);
+		cellInfotSubMenu.addMenuItem("Describe this Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
-		cellMenu.addMenuItem("General Cell Lists...", null,
+		cellInfotSubMenu.addMenuItem("General Cell Lists...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
-		Menu specListSubMenu = new Menu("Special Cell Lists");
-		cellMenu.add(specListSubMenu);
-		specListSubMenu.addMenuItem("List Nodes in this Cell", null,
+		cellInfotSubMenu.addSeparator();
+		cellInfotSubMenu.addMenuItem("List Nodes in this Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-		specListSubMenu.addMenuItem("List Cell Instances", null,
+		cellInfotSubMenu.addMenuItem("List Cell Instances", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-		specListSubMenu.addMenuItem("List Cell Usage", null,
+		cellInfotSubMenu.addMenuItem("List Cell Usage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
-		cellMenu.addMenuItem("Cell Parameters...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
+		cellMenu.addMenuItem("Cell Properties...", null,
+			 new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
+
+//		cellMenu.addMenuItem("Cell Parameters...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
 
 		cellMenu.addSeparator();
 
@@ -751,7 +748,7 @@ public final class MenuCommands
 
         windowMenu.addMenuItem("Layer Visibility...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
-		Menu colorSubMenu = new Menu("Color");
+		Menu colorSubMenu = new Menu("Color Schemes");
 		windowMenu.add(colorSubMenu);
 		colorSubMenu.addMenuItem("Restore Default Colors", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultBackgroundCommand(); }});
@@ -963,9 +960,6 @@ public final class MenuCommands
 		}
 		helpMenu.addMenuItem("Help Index", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
-		helpMenu.addSeparator();
-		helpMenu.addMenuItem("Describe this Technology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
@@ -2298,16 +2292,6 @@ public final class MenuCommands
         CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, action);
         dialog.show();
     }
-
-	/**
-	 * This method implements the command to delete the current Cell.
-	 */
-	public static void deleteCellCommand()
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		CircuitChanges.deleteCell(curCell, true);
-	}
 
 	/**
 	 * This method implements the command to do cross-library copies.

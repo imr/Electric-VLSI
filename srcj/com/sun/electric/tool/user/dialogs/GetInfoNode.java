@@ -1071,7 +1071,7 @@ public class GetInfoNode extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Node Information");
+        setTitle("Node Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -1238,7 +1238,7 @@ public class GetInfoNode extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(mirrorX, gridBagConstraints);
 
-        more.setText("Less"); // Dialog is expanded by default.
+        more.setText("More");
         more.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

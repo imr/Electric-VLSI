@@ -8,7 +8,7 @@
     </Component>
   </NonVisualComponents>
   <Properties>
-    <Property name="title" type="java.lang.String" value="Export Information"/>
+    <Property name="title" type="java.lang.String" value="Export Properties"/>
     <Property name="name" type="java.lang.String" value=""/>
   </Properties>
   <SyntheticProperties>

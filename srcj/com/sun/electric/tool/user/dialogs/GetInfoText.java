@@ -254,7 +254,7 @@ public class GetInfoText extends EDialog {
 
        getContentPane().setLayout(new java.awt.GridBagLayout());
 
-       setTitle("Text Information");
+       setTitle("Text Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {

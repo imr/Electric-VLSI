@@ -526,7 +526,7 @@ public class GetInfoMulti extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Multi-Object Get Info");
+        setTitle("Multi-Object Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {

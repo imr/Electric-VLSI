@@ -250,7 +250,7 @@ public class GetInfoArc extends EDialog
         skipHead = new javax.swing.JCheckBox();
         attributes = new javax.swing.JButton();
 
-        setTitle("Arc Information");
+        setTitle("Arc Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {

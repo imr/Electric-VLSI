@@ -644,7 +644,7 @@ public class WindowFrame
 	static class WindowsEvents extends WindowAdapter
 	{
         /** A weak reference to the WindowFrame */
-		WeakReference wf;               
+		WeakReference wf;
 
 		WindowsEvents(WindowFrame wf)
 		{
@@ -669,7 +669,7 @@ public class WindowFrame
 	static class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
-		WeakReference wf;               
+		WeakReference wf;
 
 		InternalWindowsEvents(WindowFrame wf)
 		{

@@ -386,6 +386,7 @@ public class TopLevel extends JFrame
 
 		public void windowClosing(WindowEvent evt) { MenuCommands.quitCommand(); }
 	}
+
     /**
      * Overwrites original JFrame::processWindowEvent to
      * avoid quit if cancel button is pressed.

@@ -290,7 +290,7 @@ public class CellOptions extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Cell Control");
+        setTitle("Cell Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -735,7 +735,7 @@ public class CellOptions extends EDialog
 	}//GEN-LAST:event_renameActionPerformed
 
 	private void deleteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteActionPerformed
-	{//GEN-HEADEREND:event_deleteActionPerformed
+	{
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
 		String cellName = (String)cellList.getSelectedValue();
@@ -749,10 +749,10 @@ public class CellOptions extends EDialog
 			cellListModel.remove(index);
 //			loadCellList();
 		}
-	}//GEN-LAST:event_deleteActionPerformed
+	}
 
 	private void editCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editCellActionPerformed
-	{//GEN-HEADEREND:event_editCellActionPerformed
+	{
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
 		String cellName = (String)cellList.getSelectedValue();
@@ -760,7 +760,7 @@ public class CellOptions extends EDialog
 		Cell cell = lib.findNodeProto(cellName);
 		WindowFrame.createEditWindow(cell);
 		ok(null);
-	}//GEN-LAST:event_editCellActionPerformed
+	}
 
 	private void unexpandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unexpandNewInstancesActionPerformed
 	{//GEN-HEADEREND:event_unexpandNewInstancesActionPerformed
@@ -1005,7 +1005,7 @@ public class CellOptions extends EDialog
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify
     private JButton cancel;
     private JTextField cellName;
     private JScrollPane cellPane;

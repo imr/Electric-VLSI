@@ -59,6 +59,7 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.geom.AffineTransform;
@@ -1153,14 +1154,135 @@ public class CircuitChanges
 		}
 	}
 
-	/****************************** DELETE SELECTED GEOMETRY ******************************/
+	/****************************** DELETE SELECTED OBJECTS ******************************/
 
 	/**
 	 * Method to delete all selected objects.
 	 */
-	public static void deleteSelectedGeometry()
+	public static void deleteSelected()
 	{
-		DeleteSelectedGeometry job = new DeleteSelectedGeometry();
+		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
+		{
+			DeleteSelectedGeometry job = new DeleteSelectedGeometry();
+		} else
+		{
+	        DeleteSelected job = new DeleteSelected();
+		}
+	}
+
+	private static class DeleteSelected extends Job
+	{
+		protected DeleteSelected()
+		{
+			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			if (Highlight.getNumHighlights() == 0) return false;
+			List highlightedText = Highlight.getHighlightedText(true);
+			List deleteList = new ArrayList();
+			Cell cell = null;
+			Geometric oneGeom = null;
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst)
+					eobj = ((PortInst)eobj).getNodeInst();
+				if (!(eobj instanceof Geometric)) continue;
+				if (cell == null) cell = h.getCell(); else
+				{
+					if (cell != h.getCell())
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"All objects to be deleted must be in the same cell",
+								"Delete failed", JOptionPane.ERROR_MESSAGE);
+						return false;
+					}
+				}
+				oneGeom = (Geometric)eobj;
+				deleteList.add(eobj);
+			}
+
+			// clear the highlighting
+			Highlight.clear();
+			Highlight.finished();
+
+			// if just one node is selected, see if it can be deleted with "pass through"
+			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
+			{
+				Reconnect re = Reconnect.erasePassThru((NodeInst)oneGeom, false);
+				if (re != null)
+				{
+					ArcInst ai = re.reconnectArcs();
+					Highlight.addElectricObject(ai, cell);
+					Highlight.finished();
+					return true;
+				}
+			}
+
+			// delete the text
+			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
+			{
+				Highlight high = (Highlight)it.next();
+
+				// disallow erasing if lock is on
+				Cell np = high.getCell();
+				if (np != null)
+				{
+					if (cantEdit(np, null, true)) continue;
+				}
+
+//				// do not deal with text on an object if the object is already in the list
+//				if (high.fromgeom != NOGEOM)
+//				{
+//					for(j=0; list[j] != NOGEOM; j++)
+//						if (list[j] == high.fromgeom) break;
+//					if (list[j] != NOGEOM) continue;
+//				}
+
+				// deleting variable on object
+				Variable var = high.getVar();
+				ElectricObject eobj = high.getElectricObject();
+				if (var != null)
+				{
+					eobj.delVar(var.getKey());
+				} else
+				{
+					if (high.getName() != null)
+					{
+						if (eobj instanceof Geometric)
+						{
+							Geometric geom = (Geometric)eobj;
+							if (geom instanceof NodeInst)
+							{
+								NodeInst ni = (NodeInst)geom;
+								ni.setName(null);
+								ni.modifyInstance(0, 0, 0, 0, 0);
+							} else
+							{
+								ArcInst ai = (ArcInst)geom;
+								ai.setName(null);
+								ai.modify(0, 0, 0, 0, 0);
+							}
+						}
+					} else
+					{
+						if (eobj instanceof Export)
+						{
+							Export pp = (Export)eobj;
+							pp.kill();
+						}
+					}
+				}
+			}
+			if (cell != null)
+				eraseObjectsInList(cell, deleteList);
+			return true;
+		}
 	}
 
 	private static class DeleteSelectedGeometry extends Job
@@ -1280,131 +1402,6 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)nIt.next();
 				eraseNodeInst(ni);		
 			}
-			return true;
-		}
-	}
-
-	/****************************** DELETE SELECTED OBJECTS ******************************/
-
-	/**
-	 * Method to delete all selected objects.
-	 */
-	public static void deleteSelected()
-	{
-        DeleteSelected job = new DeleteSelected();
-	}
-
-	private static class DeleteSelected extends Job
-	{
-		protected DeleteSelected()
-		{
-			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			if (Highlight.getNumHighlights() == 0) return false;
-			List highlightedText = Highlight.getHighlightedText(true);
-			List deleteList = new ArrayList();
-			Cell cell = null;
-			Geometric oneGeom = null;
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst)
-					eobj = ((PortInst)eobj).getNodeInst();
-				if (!(eobj instanceof Geometric)) continue;
-				if (cell == null) cell = h.getCell(); else
-				{
-					if (cell != h.getCell())
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"All objects to be deleted must be in the same cell",
-								"Delete failed", JOptionPane.ERROR_MESSAGE);
-						return false;
-					}
-				}
-				oneGeom = (Geometric)eobj;
-				deleteList.add(eobj);
-			}
-
-			// clear the highlighting
-			Highlight.clear();
-			Highlight.finished();
-
-			// if just one node is selected, see if it can be deleted with "pass through"
-			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
-			{
-				Reconnect re = Reconnect.erasePassThru((NodeInst)oneGeom, false);
-				if (re != null)
-				{
-					ArcInst ai = re.reconnectArcs();
-					Highlight.addElectricObject(ai, cell);
-					Highlight.finished();
-					return true;
-				}
-			}
-
-			// delete the text
-			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
-			{
-				Highlight high = (Highlight)it.next();
-
-				// disallow erasing if lock is on
-				Cell np = high.getCell();
-				if (np != null)
-				{
-					if (cantEdit(np, null, true)) continue;
-				}
-
-//				// do not deal with text on an object if the object is already in the list
-//				if (high.fromgeom != NOGEOM)
-//				{
-//					for(j=0; list[j] != NOGEOM; j++)
-//						if (list[j] == high.fromgeom) break;
-//					if (list[j] != NOGEOM) continue;
-//				}
-
-				// deleting variable on object
-				Variable var = high.getVar();
-				ElectricObject eobj = high.getElectricObject();
-				if (var != null)
-				{
-					eobj.delVar(var.getKey());
-				} else
-				{
-					if (high.getName() != null)
-					{
-						if (eobj instanceof Geometric)
-						{
-							Geometric geom = (Geometric)eobj;
-							if (geom instanceof NodeInst)
-							{
-								NodeInst ni = (NodeInst)geom;
-								ni.setName(null);
-								ni.modifyInstance(0, 0, 0, 0, 0);
-							} else
-							{
-								ArcInst ai = (ArcInst)geom;
-								ai.setName(null);
-								ai.modify(0, 0, 0, 0, 0);
-							}
-						}
-					} else
-					{
-						if (eobj instanceof Export)
-						{
-							Export pp = (Export)eobj;
-							pp.kill();
-						}
-					}
-				}
-			}
-			if (cell != null)
-				eraseObjectsInList(cell, deleteList);
 			return true;
 		}
 	}
