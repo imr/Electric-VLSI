@@ -24,6 +24,8 @@
 
 package com.sun.electric.tool.simulation.interval;
 
+import java.math.BigDecimal;
+
 /**
  * Mutable class for representation of intervals X = [a, b]. a and b are double 
  * precision floation point numbers with a <= b. 
@@ -323,16 +325,16 @@ public class Interval
 	 * Assigns the interval from string.
 	 */
 	public Interval assign(String s) {
-		//		return stringToInterval(s);
-		return assignEntire();
+		parse(s);
+		return this;
 	}
 
 	/**
 	 * Assigns the interval from character array.
 	 */
 	public Interval assign(char[] b) {
-		//		return bufToInterval(b);
-		return assignEntire();
+		parse(new String(b));
+		return this;
 	}
 
 	/**
@@ -1388,15 +1390,134 @@ public class Interval
 		return this;
 	}
 
+	// -----------------------------------------------------------------------
+	// I/O
+	// -----------------------------------------------------------------------
+
 	/**
 	 * Return string representation.
 	 */
 
 	public String toString() {
-		final int precision = 16;
 		if (isEmpty())
-			return "[Empty]";
-		return "[" + DirectedFloatingDecimal.toStringInf(inf, precision) + "," + DirectedFloatingDecimal.toStringSup(sup, precision) + "]";
+			return "[EMPTY                                          ]";
+		StringBuffer buf = new StringBuffer(49);
+		buf.append('[');
+		append(buf, inf, false);
+		buf.append(',');
+		append(buf, sup, true);
+		buf.append(']');
+		return buf.toString();
+	}
+
+	private static void append(StringBuffer buf, double x, boolean isSup) {
+		final int d = 16; // digits after floating point
+		if (x == Double.NEGATIVE_INFINITY)
+			buf.append("              -Infinity");
+		else if (x == Double.POSITIVE_INFINITY)
+			buf.append("               Infinity");
+		else if (x == 0 && !isSup)
+			buf.append("-0.0000000000000000E000");
+		else if (x == 0 && isSup)
+			buf.append(" 0.0000000000000000E000");
+		else {
+			BigDecimal bx = new BigDecimal(x);
+			String s = bx.unscaledValue().abs().toString();
+			int drop = 0;
+			if (s.length() > d + 1) {
+				drop = s.length() - (d + 1);
+				bx = bx.setScale(bx.scale() - drop, isSup ? BigDecimal.ROUND_CEILING : BigDecimal.ROUND_FLOOR);
+			}
+			s = bx.unscaledValue().abs().toString();
+			if (s.length() > d + 1) {
+				assert s.length() == d + 2 && s.charAt(s.length() - 1) == '0';
+				drop++;
+				bx = bx.setScale(bx.scale() - 1, BigDecimal.ROUND_UNNECESSARY);
+				s = bx.unscaledValue().abs().toString();
+			}
+		
+			buf.append(bx.signum() < 0 ? '-' : ' ');
+			buf.append(s.charAt(0));
+			buf.append('.');
+			buf.append(s.substring(1));
+			buf.append('E');
+			int exp = d - bx.scale();
+			if (exp >= 0)
+				buf.append('+');
+			else {
+				buf.append('-');
+				exp = -exp;
+			}
+			assert (exp < 1000);
+			buf.append('0' + exp/100);
+			exp %= 100;
+			buf.append('0' + exp/10);
+			exp %= 10;
+			buf.append('0' + exp);
+		}
+	}
+
+	private void parse(String s) {
+		s = s.trim();
+		if (s.length() < 2 || s.charAt(0) != '[' || s.charAt(s.length() - 1) != ']')
+			throw new NumberFormatException();
+		int comma = s.indexOf(',');
+		String ls = s.substring(1, comma < 0 ? s.length() - 1 : comma).trim();
+		BigDecimal lb = null;
+		if (ls.equals("NaN") || ls.equals("+NaN") || ls.equals("-NaN"))
+			inf = Double.NaN;
+		else if (ls.equals("Infinity") || ls.equals("+Infinity"))
+			inf = Double.POSITIVE_INFINITY;
+		else if (ls.equals("-Infinity"))
+			inf = Double.NEGATIVE_INFINITY;
+		else {
+			lb = new BigDecimal(ls);
+			inf = lb.doubleValue();
+		}
+		if (comma >= 0) {
+			String rs = s.substring(comma + 1, s.length() - 1);
+			BigDecimal rb = null;
+			if (rs.equals("NaN") || rs.equals("+NaN") || rs.equals("-NaN"))
+				sup = Double.NaN;
+			else if (rs.equals("Infinity") || rs.equals("+Infinity"))
+				sup = Double.POSITIVE_INFINITY;
+			else if (rs.equals("-Infinity"))
+				sup = Double.NEGATIVE_INFINITY;
+			else {
+				rb = new BigDecimal(rs);
+				sup = rb.doubleValue();
+				if (inf >= sup && (inf > sup || lb.compareTo(rb) > 0)) {
+					assignEntire();
+					return;
+				}
+				sup = correct(rb, sup, true);
+			}
+		} else {
+			sup = correct(lb, inf, true);
+		}
+		inf = correct(lb, inf, false);
+		if (inf != inf || sup != sup || inf > sup) {
+			assignEntire();
+			return;
+		}
+		if (inf == Double.POSITIVE_INFINITY)
+			inf = Double.MAX_VALUE;
+		if (sup == Double.NEGATIVE_INFINITY)
+			sup = -Double.MAX_VALUE;
+	}
+
+	private static double correct(BigDecimal b, double d, boolean isSup) {
+		if (b == null || Double.isInfinite(d))
+			return d;
+		int diff = b.compareTo(new BigDecimal(d));
+		if (isSup) {
+			if (diff > 0)
+				d = next(d);
+		} else {
+			if (diff < 0)
+				d = prev(d);
+		}
+		return d;
 	}
 
 	// -----------------------------------------------------------------------
