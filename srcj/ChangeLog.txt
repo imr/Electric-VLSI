@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/17/04, SMR) Mimic stitch is faster, and interactive mode lets you zoom/pan window.
+
 IMP: (11/17/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
 
 BUG: (11/16/04, SMR) Cross-library copy does not update cell references properly.
