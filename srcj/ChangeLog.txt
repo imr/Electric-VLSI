@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+BUG: (02/17/05, DN) Version related methods of Cell causes ConcurrentModificationException (Bug #209)
+FIX: Synchronize these methods by "lib.cells"
+
 ************************* Version 8.02h: *********************************
 
 IMP/MAN: (02/14/05, SMR) Added "Windows / Saved Views".

@@ -2989,11 +2989,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		int count = 0;
 		String protoName = getName();
 		View view = getView();
-		for (Iterator it = getVersionsTail(); it.hasNext(); )
-		{
-			Cell c = (Cell)it.next();
-			if (!c.getName().equals(protoName) || c.getView() != view) break;
-			count++;
+		sybchronized (lib.cells) {
+			for (Iterator it = getVersionsTail(); it.hasNext(); )
+			{
+				Cell c = (Cell)it.next();
+				if (!c.getName().equals(protoName) || c.getView() != view) break;
+				count++;
+			}
 		}
 		return count;
 	}
@@ -3007,11 +3009,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		ArrayList/*<Cell>*/ versions = new ArrayList/*<Cell>*/();
 		String protoName = getName();
 		View view = getView();
-		for (Iterator it = getVersionsTail(); it.hasNext(); )
-		{
-			Cell c = (Cell)it.next();
-			if (!c.getName().equals(protoName) || c.getView() != view) break;
-			versions.add(c);
+		synchronized (lib.cells) {
+			for (Iterator it = getVersionsTail(); it.hasNext(); )
+			{
+				Cell c = (Cell)it.next();
+				if (!c.getName().equals(protoName) || c.getView() != view) break;
+				versions.add(c);
+			}
 		}
 		return versions.iterator();
 	}
@@ -3022,11 +3026,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public Cell getNewestVersion()
 	{
-		Iterator it = getVersionsTail();
-		if (it.hasNext())
-		{
-			Cell c = (Cell)it.next();
-			if (c.getName().equals(getName()) && c.getView() == getView()) return c;
+		synchronized (lib.cells) {
+			Iterator it = getVersionsTail();
+			if (it.hasNext())
+			{
+				Cell c = (Cell)it.next();
+				if (c.getName().equals(getName()) && c.getView() == getView()) return c;
+			}
 		}
 		return null;
 	}
