@@ -1352,38 +1352,27 @@ public class Quick
 			// crop out parts of any arc that is covered by an adjoining node
 			trueBox1 = new Rectangle2D.Double(trueBox1.getMinX(), trueBox1.getMinY(), trueBox1.getWidth(), trueBox1.getHeight());
 			trueBox2 = new Rectangle2D.Double(trueBox2.getMinX(), trueBox2.getMinY(), trueBox2.getWidth(), trueBox2.getHeight());
-//boolean debug = false;
-//if (tech.sameLayer(layer1, layer2) && layer1.getName().equals("P-Active")) debug = true;
-//if (debug) System.out.println("Cropping box that is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+
 			if (geom1 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
 					trueBox1, layer2, net2, geom2, trueBox2))
 						return false;
-//if (debug) System.out.println("   Node1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1))
 					return false;
-//if (debug) System.out.println("   Arc1 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
 					trueBox2, layer1, net1, geom1, trueBox1))
 						return false;
-//if (debug) System.out.println("   Node2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			} else
 			{
 				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2))
 					return false;
-//if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
 			}
-//if (debug)
-//{
-// System.out.println("   Cropped layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
-// System.out.println("       and layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
-//}
 			poly1 = new Poly(trueBox1);
 			poly1.setStyle(Poly.Type.FILLED);
 			poly2 = new Poly(trueBox2);
@@ -1991,8 +1980,8 @@ public class Quick
 		Rectangle2D bounds = poly.getBox();
 		if (bounds != null)
 		{
-			boolean tooSmallWidth = DBMath.isGreater(minWidthRule.value, bounds.getWidth());
-			boolean tooSmallHeight = DBMath.isGreater(minWidthRule.value, bounds.getHeight());
+			boolean tooSmallWidth = DBMath.isGreaterThan(minWidthRule.value, bounds.getWidth());
+			boolean tooSmallHeight = DBMath.isGreaterThan(minWidthRule.value, bounds.getHeight());
 			/*
 			if (bounds.getWidth() >= minWidthRule.value && bounds.getHeight() >= minWidthRule.value)
 			{
@@ -2198,8 +2187,8 @@ public class Quick
 
 						if (actual >= 0) continue;
                         */
-						// isGreater doesn't consider equals condition therefore negate condition is used
-						if (!DBMath.isGreater(minRule.value, area)) continue;
+						// isGreaterThan doesn't consider equals condition therefore negate condition is used
+						if (!DBMath.isGreaterThan(minRule.value, area)) continue;
 
 						errorFound = true;
 						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
@@ -3200,7 +3189,7 @@ public class Quick
 		int numLayers = tech.getNumLayers();
 
 		// build the node table
-        if (layersInterNodes != null)
+        if (layersInterNodes != null && Main.getDebug())
             System.out.println("Redoing the job again?");
 
 		layersInterNodes = new HashMap();

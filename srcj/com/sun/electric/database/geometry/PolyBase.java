@@ -1561,10 +1561,19 @@ public class PolyBase implements Shape
 		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
+
+		// !DBMath.isGreaterThan(hX, bX) == bX >= hX
+		if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
+		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return 0;
+		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
 
 		// if the box to be cropped is within the other, say so
-		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+		boolean blX = !DBMath.isGreaterThan(bX, lX);
+		boolean uhX = !DBMath.isGreaterThan(hX, uX);
+		boolean blY = !DBMath.isGreaterThan(bY, lY);
+		boolean uhY = !DBMath.isGreaterThan(hY, uY);
+		//if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+		if (blX && uhX && blY && uhY) return 1;
 
 		// see which direction is being cropped
 		double xoverlap = Math.min(hX, uX) - Math.max(lX, bX);
@@ -1572,24 +1581,32 @@ public class PolyBase implements Shape
 		if (xoverlap > yoverlap)
 		{
 			// one above the other: crop in Y
-			if (bX <= lX && uX >= hX)
+			if (blX && uhX)
+			//if (bX <= lX && uX >= hX)
 			{
 				// it covers in X...do the crop
-				if (uY >= hY) hY = bY;
-				if (bY <= lY) lY = uY;
-				if (hY <= lY) return 1;
+				//if (uY >= hY) hY = bY;
+				if (!DBMath.isGreaterThan(hY, uY)) hY = bY;
+				//if (bY <= lY) lY = uY;
+				if (blY) lY = uY;
+				//if (hY <= lY) return 1;
+				if (!DBMath.isGreaterThan(hY, lY)) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
 		} else
 		{
 			// one next to the other: crop in X
-			if (bY <= lY && uY >= hY)
+			if (blY && uhY)
+			//if (bY <= lY && uY >= hY)
 			{
 				// it covers in Y...crop in X
-				if (uX >= hX) hX = bX;
-				if (bX <= lX) lX = uX;
-				if (hX <= lX) return 1;
+				//if (uX >= hX) hX = bX;
+				if (!DBMath.isGreaterThan(hX, uX)) hX = bX;
+				//if (bX <= lX) lX = uX;
+				if (blX) lX = uX;
+				//if (hX <= lX) return 1;
+				if (!DBMath.isGreaterThan(hX, lX)) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}

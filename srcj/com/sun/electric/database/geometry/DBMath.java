@@ -85,7 +85,7 @@ public class DBMath extends GenMath {
 	 * @param b the second number.
 	 * @return true if first number is greater.
 	 */
-	public static boolean isGreater(double a, double b) {
+	public static boolean isGreaterThan(double a, double b) {
 		double actual = DBMath.round(a - b);
 		return (actual > 0);
 	}
