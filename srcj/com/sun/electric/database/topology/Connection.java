@@ -36,14 +36,16 @@ import java.awt.geom.Point2D;
  * To find the arc(s) associated with a particular port on a node, ask
  * the node for a list of its connections.  The connections that point
  * to the portproto are also connected to the wires of interest.
+ *
+ * This class is thread-safe.
  */
 public class Connection
 {
 	// ------------------------- private data --------------------------------
 
-	/** the arc on one side of this Connection */	private ArcInst arc;
-	/** the PortInst on the connected node */		private PortInst portInst;
-	/** the location of this Connection */			private Point2D location;
+	/** the arc on one side of this Connection */	private final ArcInst arc;
+	/** the PortInst on the connected node */		private final PortInst portInst;
+	/** the location of this Connection */			private final Point2D location;
 	/** flags for this Connection */				private short flags;
 
 	/** the shrinkage is from 0 to 90 */			private static final int SHRINKAGE = 0177;
@@ -81,31 +83,31 @@ public class Connection
 	 * Method to return the location on this Connection.
 	 * @return the location on this Connection.
 	 */
-	public Point2D getLocation() { return location; }
+	public synchronized Point2D getLocation() { return (Point2D)location.clone(); }
 
 	/**
 	 * Method to set the location on this Connection.
 	 * @param pt the location on this Connection.
 	 */
-	public void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
+	public synchronized void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
 
 	/**
 	 * Method to return the shrinkage happening because of angled arcs on this Connection.
 	 * @return the shrinkage for this Connection.
 	 */
-	public int getEndShrink() { return (int)(flags & SHRINKAGE); }
+	public synchronized int getEndShrink() { return (int)(flags & SHRINKAGE); }
 
 	/**
 	 * Method to set the shrinkage happening because of angled arcs on this Connection.
 	 * @param endShrink the shrinkage for this Connection.
 	 */
-	public void setEndShrink(int endShrink) { flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE)); }
+	public synchronized void setEndShrink(int endShrink) { flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE)); }
 
 	/**
 	 * Method to tell whether this connection is negated.
 	 * @return true if this connection is negated.
 	 */
-	public boolean isNegated() { return (flags & NEGATED) != 0; }
+	public synchronized boolean isNegated() { return (flags & NEGATED) != 0; }
 
 	/**
 	 * Method to set whether this connection is negated.
@@ -127,14 +129,22 @@ public class Connection
 						characteristic != PortProto.Characteristic.OUT) return;
 
 					// negate the connection
-					flags |= NEGATED;
+                    setNegatedSafe(true);
 				}
 			}
 		} else
 		{
-			flags &= ~NEGATED;
+            setNegatedSafe(false);
 		}
 	}
+
+    private synchronized void setNegatedSafe(boolean negated)
+    {
+        if (negated)
+            flags |= NEGATED;
+        else
+            flags &= ~NEGATED;
+    }
 
 	/**
 	 * Method to determine whether this Connection is on the head end of the ArcInst.
