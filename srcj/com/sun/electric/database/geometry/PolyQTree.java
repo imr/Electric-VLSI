@@ -37,6 +37,7 @@ import java.util.List;
 public class PolyQTree implements GeometryHandler
 {
 	private static int MAX_NUM_CHILDREN = 4;
+	private static int MAX_NUM_NODES = 10;
 	//private static int MAX_DEPTH = 10;
     private HashMap layers = new HashMap();
 	private Rectangle2D rootBox;
@@ -147,6 +148,7 @@ public class PolyQTree implements GeometryHandler
 		};
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
+
 		Set removedElems = new HashSet();
 		if (!root.findAndRemoveObjects(rootBox, obj, areaBB, fasterAlgorithm, removedElems))
 		{
@@ -179,8 +181,9 @@ public class PolyQTree implements GeometryHandler
 			for(Iterator i = set.iterator(); i.hasNext(); )
 			{
 				PolyNode geo = (PolyNode)i.next();
-				geo.transform(trans);
-				add(layer, geo, false);
+				PolyNode clone = new PolyNode(geo); // Only clone can be transformed.
+				clone.transform(trans);
+				add(layer, clone, false);
 			}
 		}
 	}
@@ -845,7 +848,7 @@ public class PolyQTree implements GeometryHandler
 			}
 			boolean inserted = false;
 
-			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
+			if (nodes.size() < PolyQTree.MAX_NUM_NODES)
 			{
 				inserted = nodes.add(obj);
 				// still might have references to previous nodes that were merged.
