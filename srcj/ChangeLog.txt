@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP: (9/27/04, GVG) ERC profiling: removal of 3 fields in WellArea/WellCon (15% reduction in WellArea, 20% in WellCon).
+
 IMP: (9/25/04, GVG) Adding ambiental light to 3D view. Antialiasing option added and
 manual was updated.
 

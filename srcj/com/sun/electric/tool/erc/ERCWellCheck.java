@@ -67,22 +67,22 @@ public class ERCWellCheck
 		int                netNum;
 		boolean            onProperRail;
 		NodeProto.Function fun;
-		NodeProto          np;
+		//NodeProto          np;
 		int                index;
 	};
-	private static List wellCons;
+	private static List wellCons = new ArrayList();
 	private static int wellConIndex;
 
 	// well areas
 	static class WellArea
 	{
-		Rectangle2D bounds;
+		//Rectangle2D bounds;
 		Poly        poly;
-		Layer       layer;
+		//Layer       layer;
 		int         netNum;
 		int         index;
 	};
-	private static List wellAreas;
+	private static List wellAreas = new ArrayList();
 
 	private static HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
 	private static HashMap doneCells = new HashMap(); // Mark if cells are done already.
@@ -126,7 +126,7 @@ public class ERCWellCheck
 			System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 
 			// make a list of well and substrate contacts
-			wellCons = new ArrayList();
+			wellCons.clear();
 			wellConIndex = 0;
 
 			doneCells.clear();
@@ -140,7 +140,7 @@ public class ERCWellCheck
 	        if (checkForAbort()) return (false);
 
 			// make a list of well and substrate areas
-			wellAreas = new ArrayList();
+			wellAreas.clear();
 			int wellIndex = 0;
 
 			GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
@@ -168,8 +168,8 @@ public class ERCWellCheck
 					wa.poly = poly;
 					wa.poly.setLayer(layer);
 					wa.poly.setStyle(Poly.Type.FILLED);
-					wa.bounds = wa.poly.getBounds2D();
-					wa.layer = layer;
+					//wa.bounds = wa.poly.getBounds2D();
+					//wa.layer = layer;
 					wa.index = wellIndex++;
 					wellAreas.add(wa);
 				}
@@ -191,7 +191,7 @@ public class ERCWellCheck
 			{
 				WellArea wa = (WellArea)it.next();
 
-				int wellType = getWellLayerType(wa.layer);
+				int wellType = getWellLayerType(wa.poly.getLayer()); // wa.layer);
 				if (wellType != ERCPWell && wellType != ERCNWell) continue;
 
 				// presume N-well
@@ -213,7 +213,8 @@ public class ERCWellCheck
 				{
 					WellCon wc = (WellCon)cIt.next();
 					if (wc.fun != desiredContact) continue;
-					if (!wa.bounds.contains(wc.ctr)) continue;
+					//if (!wa.bounds.contains(wc.ctr)) continue;
+					if (!wa.poly.getBounds2D().contains(wc.ctr)) continue;
 					if (!wa.poly.contains(wc.ctr)) continue;
 					wa.netNum = wc.netNum;
 					found = true;
@@ -327,34 +328,36 @@ public class ERCWellCheck
 
 					WellArea oWa = (WellArea)oIt.next();
 					if (wa.index <= oWa.index) continue;
-					if (wa.layer != oWa.layer) continue;
+					Layer waLayer = wa.poly.getLayer();
+					if (waLayer != oWa.poly.getLayer()) continue;
+					//if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRCRules.DRCRule rule = (con)?
-					        (DRCRules.DRCRule)rulesCon.get(wa.layer):
-					        (DRCRules.DRCRule)rulesNonCon.get(wa.layer);
+					        (DRCRules.DRCRule)rulesCon.get(waLayer):
+					        (DRCRules.DRCRule)rulesNonCon.get(waLayer);
 					// Might s
 					if (rule == null)
 					{
-						rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
 						if (con)
-							rulesCon.put(wa.layer, rule);
+							rulesCon.put(waLayer, rule);
 						else
-							rulesNonCon.put(wa.layer, rule);
+							rulesNonCon.put(waLayer, rule);
 					}
 					//DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
 					if (rule == null || rule.value < 0) continue;
-					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
-						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
-						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||
-						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.value) continue;
+					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value ||
+						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value ||
+						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value ||
+						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value) continue;
 					double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
 					if (dist > 0 && dist < rule.value)
 					{
-						int layertype = getWellLayerType(wa.layer);
+						int layertype = getWellLayerType(waLayer);
 						if (layertype == ERCPSEUDO) continue;
 
-						MessageLog err = errorLogger.logError(wa.layer.getName() + " areas too close (are "
+						MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
 						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
@@ -377,9 +380,9 @@ public class ERCWellCheck
 				{
 					WellArea wa = (WellArea)it.next();
 
-					int wellType = getWellLayerType(wa.layer);
+					int wellType = getWellLayerType(wa.poly.getLayer());
 					//if (wellType != ERCPWell && wellType != ERCNWell) continue;
-					if (!isERCLayerRelated(wa.layer)) continue;
+					if (!isERCLayerRelated(wa.poly.getLayer())) continue;
 					NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
 					if (wellType == ERCPWell) desiredContact = NodeProto.Function.WELL;
 
@@ -408,7 +411,7 @@ public class ERCWellCheck
 						{
 							WellCon wc = (WellCon)cIt.next();
 							if (wc.fun != desiredContact) continue;
-							if (!wa.bounds.contains(wc.ctr)) continue;
+							if (!wa.poly.getBounds2D().contains(wc.ctr)) continue;
 							if (!wa.poly.contains(wc.ctr)) continue;
 							double dist = testPoint.distance(wc.ctr);
 							if (first || dist < bestDist)
@@ -469,6 +472,8 @@ public class ERCWellCheck
 			{
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
+			wellAreas.clear();
+			wellCons.clear();
 			errorLogger.termLogging(true);
 			return true;
 		}
@@ -628,7 +633,7 @@ public class ERCWellCheck
 				wc.ctr = ni.getTrueCenter();
 				trans.transform(wc.ctr, wc.ctr);
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
-				wc.np = ni.getProto();
+				//wc.np = ni.getProto();
 				wc.fun = fun;
 				wc.index = wellConIndex++;
 				PortInst pi = ni.getOnlyPortInst();
