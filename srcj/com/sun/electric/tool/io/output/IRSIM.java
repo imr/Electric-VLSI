@@ -164,10 +164,10 @@ public class IRSIM extends Output
 				printWriter.print(" g=S_vdd");
 
 			// no parasitics yet
-            double sourceArea = 0;
-            double sourcePerim = 0;
-            double drainArea = 0;
-            double drainPerim = 0;
+            double sourceArea = dim.getDoubleWidth() * 6;
+            double sourcePerim = dim.getDoubleWidth() + 12;
+            double drainArea = dim.getDoubleWidth() * 6;
+            double drainPerim = dim.getDoubleWidth() + 12;
 			printWriter.print(" s=A_" + sourceArea + ",P_" + sourcePerim);
 			printWriter.print(" d=A_" + drainArea + ",P_" + drainPerim);
 			printWriter.println();
