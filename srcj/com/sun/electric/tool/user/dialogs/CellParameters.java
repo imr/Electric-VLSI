@@ -187,8 +187,7 @@ public class CellParameters extends javax.swing.JDialog
 				return;
 			}
 			String value = dialog.defaultValue.getText();
-			Variable oldVar = dialog.curCell.getVar("ATTR_" + name);
-			Variable var = dialog.curCell.newVar("ATTR_" + name, value);
+			Variable var = dialog.curCell.updateVar("ATTR_" + name, value);
 			if (var != null)
 			{
 				var.setDisplay();
@@ -196,21 +195,6 @@ public class CellParameters extends javax.swing.JDialog
 				td.setParam();
 				td.setInherit();
 				td.setDispPart(TextDescriptor.DispPos.NAMEVALINH);
-				if (oldVar != null)
-				{
-					// copy other factors too
-					TextDescriptor oldTd = oldVar.getTextDescriptor();
-					if (oldTd.getSize().isAbsolute()) td.setAbsSize((int)oldTd.getSize().getSize()); else
-						td.setRelSize(oldTd.getSize().getSize());
-					if (oldTd.isBold()) td.setBold();
-					if (oldTd.isItalic()) td.setItalic();
-					if (oldTd.isUnderline()) td.setUnderline();
-					if (oldTd.isInterior()) td.setInterior();
-					td.setFace(oldTd.getFace());
-					td.setOff(oldTd.getXOff(), oldTd.getYOff());
-					td.setPos(oldTd.getPos());
-					td.setRotation(oldTd.getRotation());
-				}
 
 				int currentLanguage = dialog.language.getSelectedIndex();
 				if (currentLanguage == 3) var.setJava();

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -32,15 +33,16 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.User;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
-import javax.swing.JPanel;
+
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 
 
@@ -194,7 +196,8 @@ public class StatusBar extends JPanel
 				if (nodeCount == 1)
                 {
                     if (thePort != null)
-                        selectedMsg = "SELECTED PORT: \""+thePort.getPortProto().getProtoName()+"\" of NODE: \""+theNode.describe()+"\"";
+                        selectedMsg = "SELECTED NODE: " + theNode.describe() +
+							" PORT: \"" + thePort.getPortProto().getProtoName() + "\"";
                     else
                         selectedMsg = "SELECTED NODE: " + theNode.describe();
                 } else

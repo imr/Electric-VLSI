@@ -757,7 +757,7 @@ public class Attributes extends javax.swing.JDialog
 			if (newAttribute || !currentText.equals(dialog.initialValue))
 			{
 				Object obj = dialog.getVariableObject(currentText);
-				var = dialog.selectedObject.newVar(varName, obj);
+				var = dialog.selectedObject.updateVar(varName, obj);
 				if (var == null)
 				{
 					System.out.println("Error setting the attribute");

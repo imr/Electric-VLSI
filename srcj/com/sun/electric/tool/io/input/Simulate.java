@@ -59,14 +59,26 @@ public class Simulate extends Input
 		public static final int GATE_STRENGTH = 010;
 		public static final int VDD_STRENGTH  = 014;
 
-		public Cell cell;
-		public List signals;
-		public double [] commonTime;
+		private Cell cell;
+		private List signals;
+		private double [] commonTime;
 
 		public SimData()
 		{
 			signals = new ArrayList();
 		}
+
+		public List getSignals() { return signals; }
+
+		public void addSignal(SimSignal ws) { signals.add(ws); }
+
+		public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
+
+		public void setCommonTime(int index, double time) { commonTime[index] = time; }
+
+		public void setCell(Cell cell) { this.cell = cell; }
+
+		public Cell getCell() { return cell; }
 
 		/**
 		 * Method to compute the time and value bounds of this simulation data.
@@ -87,8 +99,7 @@ public class Simulate extends Input
 					for(int i=0; i<as.values.length; i++)
 					{
 						double time = 0;
-						if (sig.useCommonTime) time = commonTime[i]; else
-							time = as.time[i];
+						time = as.getTime(i);
 						if (first)
 						{
 							first = false;
@@ -109,8 +120,7 @@ public class Simulate extends Input
 					for(int i=0; i<ds.state.length; i++)
 					{
 						double time = 0;
-						if (sig.useCommonTime) time = commonTime[i]; else
-							time = ds.time[i];
+						time = ds.getTime(i);
 						if (first)
 						{
 							first = false;
@@ -136,26 +146,84 @@ public class Simulate extends Input
 			this.signalColor = Color.RED;
 		}
 
-		public String signalName;
-		public String signalContext;
-		public Color signalColor;
-		public SimData sd;
-		public boolean useCommonTime;
-		public double [] time;
-		public List bussedSignals;
+		private String signalName;
+		private String signalContext;
+		private Color signalColor;
+		private SimData sd;
+		private boolean useCommonTime;
+		private double [] time;
+		private List bussedSignals;
 		public List tempList;
+
+		public void setSignalName(String signalName) { this.signalName = signalName; }
+
+		public String getSignalName() { return signalName; }
+
+		public void setSignalContext(String signalContext) { this.signalContext = signalContext; }
+
+		public String getSignalContext() { return signalContext; }
+
+		public void setSignalColor(Color signalColor) { this.signalColor = signalColor; }
+
+		public Color getSignalColor() { return signalColor; }
+
+		public int getNumEvents() { return 0; }
+
+		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
+
+		public List getBussedSignals() { return bussedSignals; }
+
+		public void addToBussedSignalList(SimSignal ws) { bussedSignals.add(ws); }
+
+		public void setCommonTimeUse(boolean useCommonTime) { this.useCommonTime = useCommonTime; }
+
+		public void buildTime(int numEvents) { time = new double[numEvents]; }
+
+		public double getTime(int index)
+		{
+			if (useCommonTime) return sd.commonTime[index];
+			return time[index];
+		}
+
+		public double [] getTimeVector() { return time; }
+
+		public void setTimeVector(double [] time) { this.time = time; }
+
+		public void setTime(int index, double t) { time[index] = t; }
 	}
 
 	public static class SimAnalogSignal extends SimSignal
 	{
+		private double [] values;
+
 		public SimAnalogSignal(SimData sd) { super(sd); }
-		public double [] values;
+
+		public void buildValues(int numEvents) { values = new double[numEvents]; }
+
+		public void setValue(int index, double value) { values[index] = value; }
+
+		public double getValue(int index) { return values[index]; }
+
+		public int getNumEvents() { return values.length; }
 	}
 
 	public static class SimDigitalSignal extends SimSignal
 	{
+		private int [] state;
+
 		public SimDigitalSignal(SimData sd) { super(sd); }
-		public int [] state;
+
+		public void buildState(int numEvents) { state = new int[numEvents]; }
+
+		public void setState(int index, int st) { state[index] = st; }
+
+		public int getState(int index) { return state[index]; }
+
+		public int [] getStateVector() { return state; }
+
+		public void setStateVector(int [] state) { this.state = state; }
+
+		public int getNumEvents() { return state.length; }
 	}
 
 	Simulate() {}

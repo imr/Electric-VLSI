@@ -1216,6 +1216,56 @@ public class PaletteFrame
 			} else
 			{
 				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
+				if (np == Schematics.tech.resistorNode)
+				{
+					Variable var = newNi.newVar("SCHEM_resistance", "100");
+					var.setDisplay();
+					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+					var.setTextDescriptor(td);
+				} else if (np == Schematics.tech.capacitorNode)
+				{
+					Variable var = newNi.newVar("SCHEM_capacitance", "100M");
+					var.setDisplay();
+					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+					var.setTextDescriptor(td);
+				} else if (np == Schematics.tech.inductorNode)
+				{
+					Variable var = newNi.newVar("SCHEM_inductance", "100");
+					var.setDisplay();
+					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+					var.setTextDescriptor(td);
+				} else if (np == Schematics.tech.diodeNode)
+				{
+					Variable var = newNi.newVar("SCHEM_diode", "10");
+					var.setDisplay();
+					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+					var.setTextDescriptor(td);
+				} else if (np == Schematics.tech.transistorNode)
+				{
+					if (newNi.isFET())
+					{
+						Variable var = newNi.newVar("ATTR_width", "2");
+						var.setDisplay();
+						TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+						td.setOff(0.5, -1);
+						var.setTextDescriptor(td);
+
+						var = newNi.newVar("ATTR_length", "2");
+						var.setDisplay();
+						td = TextDescriptor.newNodeArcDescriptor(null);
+						td.setOff(-0.5, -1);
+						if (td.getSize().isAbsolute())
+							td.setAbsSize((int)(td.getSize().getSize() - 2)); else
+								td.setRelSize(td.getSize().getSize() - 0.5);
+						var.setTextDescriptor(td);
+					} else
+					{
+						Variable var = newNi.newVar("ATTR_area", "10");
+						var.setDisplay();
+						TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
+						var.setTextDescriptor(td);
+					}
+				}
 				Highlight.addElectricObject(newNi, cell);
 			}
 			Highlight.finished();

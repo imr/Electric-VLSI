@@ -24,50 +24,51 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.User;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JScrollPane;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JButton;
-import javax.swing.BoxLayout;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -89,22 +90,22 @@ public class WaveformWindow implements WindowContent
 		// make the waveform data
 		Simulate.SimData sd = new Simulate.SimData();
 		double timeStep = 0.0000000001;
-		sd.commonTime = new double[100];
+		sd.buildCommonTime(100);
 		for(int i=0; i<100; i++)
-			sd.commonTime[i] = i * timeStep;
+			sd.setCommonTime(i, i * timeStep);
 		for(int i=0; i<18; i++)
 		{
 			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
-			as.signalName = "Signal"+(i+1);
-			as.signalColor = colorArray[i % colorArray.length];
-			as.useCommonTime = true;
-			as.values = new double[100];
+			as.setSignalName("Signal"+(i+1));
+			as.setSignalColor(colorArray[i % colorArray.length]);
+			as.setCommonTimeUse(true);
+			as.buildValues(100);
 			for(int k=0; k<100; k++)
 			{
-				as.values[k] = Math.sin((k+i*10) / (2.0+i*2)) * 4;
+				as.setValue(k, Math.sin((k+i*10) / (2.0+i*2)) * 4);
 			}
 		}
-		sd.cell = null;
+		sd.setCell(null);
 
 		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
@@ -120,7 +121,7 @@ public class WaveformWindow implements WindowContent
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
-				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(j);
+				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(j);
 				Signal wsig = new Signal(wp, as);
 			}
 		}
@@ -150,7 +151,6 @@ public class WaveformWindow implements WindowContent
 		/** the cell that is in the window */					private Cell cell;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
-		/** true if the waveform is being panned */				private boolean draggingPan;
 		/** true if this waveform panel is selected */			private boolean selected;
 		/** true if this waveform panel is analog */			private boolean isAnalog;
 		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
@@ -389,6 +389,9 @@ public class WaveformWindow implements WindowContent
 			removeMouseWheelListener(this);
 		}
 
+		private Font waveWindowFont;
+		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
+
 		/**
 		 * Method to repaint this WaveformWindow.
 		 */
@@ -404,25 +407,24 @@ public class WaveformWindow implements WindowContent
 			int hei = sz.height;
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, wid, hei);
+			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 
 			// look at all traces in this panel
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				g.setColor(ws.sSig.signalColor);
+				g.setColor(ws.sSig.getSignalColor());
 				if (ws.sSig instanceof Simulate.SimAnalogSignal)
 				{
 					// draw analog trace
 					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
-					int numEvents = as.values.length;
+					int numEvents = as.getNumEvents();
 					for(int i=0; i<numEvents; i++)
 					{
-						double time = 0;
-						if (ws.sSig.useCommonTime) time = waveWindow.sd.commonTime[i]; else
-							time = ws.sSig.time[i];
+						double time = ws.sSig.getTime(i);
 						int x = scaleTimeToX(time);
-						int y = scaleValueToY(as.values[i]);
+						int y = scaleValueToY(as.getValue(i));
 						if (i != 0)
 						{
 							drawALine(g, lx, ly, x, y, ws.highlighted);
@@ -435,10 +437,11 @@ public class WaveformWindow implements WindowContent
 				{
 					// draw digital traces
 					Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
-					if (ds.bussedSignals != null)
+					List bussedSignals = ds.getBussedSignals();
+					if (bussedSignals != null)
 					{
 						// a digital bus trace
-						int busWidth = ds.bussedSignals.size();
+						int busWidth = bussedSignals.size();
 						long curValue = 0;
 						double curTime = 0;
 						int lastX = VERTLABELWIDTH;
@@ -447,19 +450,17 @@ public class WaveformWindow implements WindowContent
 							double nextTime = Double.MAX_VALUE;
 							int bit = 0;
 							boolean curDefined = true;
-							for(Iterator bIt = ds.bussedSignals.iterator(); bIt.hasNext(); )
+							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 							{
 								Simulate.SimDigitalSignal subDS = (Simulate.SimDigitalSignal)bIt.next();
-								int numEvents = subDS.state.length;
+								int numEvents = subDS.getNumEvents();
 								boolean undefined = false;
 								for(int i=0; i<numEvents; i++)
 								{
-									double time = 0;
-									if (subDS.useCommonTime) time = waveWindow.sd.commonTime[i]; else
-										time = subDS.time[i];
+									double time = subDS.getTime(i);
 									if (time <= curTime)
 									{
-										switch (subDS.state[i] & Simulate.SimData.LOGIC)
+										switch (subDS.getState(i) & Simulate.SimData.LOGIC)
 										{
 											case Simulate.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
 											case Simulate.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
@@ -497,11 +498,8 @@ public class WaveformWindow implements WindowContent
 								}
 								String valString = "XX";
 								if (curDefined) valString = Long.toString(curValue);
-	
-								Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
-								g.setFont(font);
-								FontRenderContext frc = new FontRenderContext(null, false, false);
-								GlyphVector gv = font.createGlyphVector(frc, valString);
+								g.setFont(waveWindowFont);
+								GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, valString);
 								Rectangle2D glyphBounds = gv.getVisualBounds();
 								int textHei = (int)glyphBounds.getHeight();
 								g.drawString(valString, x+2, hei/2+textHei/2);
@@ -522,16 +520,14 @@ public class WaveformWindow implements WindowContent
 					// a simple digital signal
 					int lastx = VERTLABELWIDTH;
 					int lastState = 0;
-					if (ds.state == null) continue;
-					int numEvents = ds.state.length;
+					if (ds.getStateVector() == null) continue;
+					int numEvents = ds.getNumEvents();
 					for(int i=0; i<numEvents; i++)
 					{
-						double time = 0;
-						if (ds.useCommonTime) time = waveWindow.sd.commonTime[i]; else
-							time = ds.time[i];
+						double time = ds.getTime(i);
 						int x = scaleTimeToX(time);
 						int lowy = 0, highy = 0;
-						int state = ds.state[i] & Simulate.SimData.LOGIC;
+						int state = ds.getState(i) & Simulate.SimData.LOGIC;
 						switch (state)
 						{
 							case Simulate.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
@@ -576,9 +572,7 @@ public class WaveformWindow implements WindowContent
 				if (ss.separation != 0.0)
 				{
 					double value = ss.low;
-					Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
-					g.setFont(font);
-					FontRenderContext frc = new FontRenderContext(null, false, false);
+					g.setFont(waveWindowFont);
 					for(;;)
 					{
 						if (value >= displayedLow)
@@ -587,7 +581,7 @@ public class WaveformWindow implements WindowContent
 							int y = scaleValueToY(value);
 							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
-							GlyphVector gv = font.createGlyphVector(frc, yValue);
+							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
 							Rectangle2D glyphBounds = gv.getVisualBounds();
 							int height = (int)glyphBounds.getHeight();
 							int yPos = y + height / 2;
@@ -621,6 +615,66 @@ public class WaveformWindow implements WindowContent
 				g.drawLine(lowX, highY, highX, highY);
 				g.drawLine(highX, highY, highX, lowY);
 				g.drawLine(highX, lowY, lowX, lowY);
+				if (ToolBar.getCursorMode() != ToolBar.CursorMode.ZOOM &&
+					ToolBar.getCursorMode() != ToolBar.CursorMode.PAN)
+				{
+					// show dimensions while dragging
+					double lowTime = scaleXToTime(lowX);
+					double highTime = scaleXToTime(highX);
+					double lowValue = scaleYToValue(highY);
+					double highValue = scaleYToValue(lowY);
+					g.setFont(waveWindowFont);
+
+					// show the low time value
+					String lowTimeString = convertToEngineeringNotation(lowTime, "s", 9999);
+					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowTimeString);
+					Rectangle2D glyphBounds = gv.getVisualBounds();
+					int textWid = (int)glyphBounds.getWidth();
+					int textHei = (int)glyphBounds.getHeight();
+					g.drawString(lowTimeString, lowX-textWid-2, (lowY+highY)/2+textHei/2);
+
+					// show the high time value
+					String highTimeString = convertToEngineeringNotation(highTime, "s", 9999);
+					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highTimeString);
+					glyphBounds = gv.getVisualBounds();
+					textWid = (int)glyphBounds.getWidth();
+					textHei = (int)glyphBounds.getHeight();
+					g.drawString(highTimeString, highX+2, (lowY+highY)/2+textHei/2);
+
+					// show the difference time value
+					String timeDiffString = convertToEngineeringNotation(highTime-lowTime, "s", 9999);
+					gv = waveWindowFont.createGlyphVector(waveWindowFRC, timeDiffString);
+					glyphBounds = gv.getVisualBounds();
+					textWid = (int)glyphBounds.getWidth();
+					textHei = (int)glyphBounds.getHeight();
+					g.drawString(timeDiffString, lowX+(highX-lowX)/4 - textWid/2, highY-2);
+					if (isAnalog)
+					{
+						// show the low value
+						String lowValueString = TextUtils.formatDouble(lowValue);
+						gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowValueString);
+						glyphBounds = gv.getVisualBounds();
+						textWid = (int)glyphBounds.getWidth();
+						textHei = (int)glyphBounds.getHeight();
+						g.drawString(lowValueString, (lowX+highX)/2 - textWid/2, highY + textHei + 3);
+	
+						// show the high value
+						String highValueString = TextUtils.formatDouble(highValue);
+						gv = waveWindowFont.createGlyphVector(waveWindowFRC, highValueString);
+						glyphBounds = gv.getVisualBounds();
+						textWid = (int)glyphBounds.getWidth();
+						textHei = (int)glyphBounds.getHeight();
+						g.drawString(highValueString, (lowX+highX)/2 - textWid/2, lowY - 2);
+	
+						// show the value difference
+						String valueDiffString = TextUtils.formatDouble(highValue - lowValue);
+						gv = waveWindowFont.createGlyphVector(waveWindowFRC, valueDiffString);
+						glyphBounds = gv.getVisualBounds();
+						textWid = (int)glyphBounds.getWidth();
+						textHei = (int)glyphBounds.getHeight();
+						g.drawString(valueDiffString, lowX + 2, lowY+(highY-lowY)/4+textHei/2);
+					}
+				}
 			}
 		}
 
@@ -759,14 +813,12 @@ public class WaveformWindow implements WindowContent
 					// search analog trace
 					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					double lastXd = 0, lastYd = 0;
-					int numEvents = as.values.length;
+					int numEvents = as.getNumEvents();
 					for(int i=0; i<numEvents; i++)
 					{
-						double time = 0;
-						if (ws.sSig.useCommonTime) time = waveWindow.sd.commonTime[i]; else
-							time = as.time[i];
+						double time = ws.sSig.getTime(i);
 						double x = scaleTimeToX(time);
-						double y = scaleValueToY(as.values[i]);
+						double y = scaleValueToY(as.getValue(i));
 						if (i != 0)
 						{
 							// should see if the line is in the area
@@ -830,16 +882,58 @@ public class WaveformWindow implements WindowContent
 				selected = true;
 				repaint();
 			}
+	
+			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
+				if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
+					mousePressedSelect(evt);
+		}
 
+		public void mouseReleased(MouseEvent evt)
+		{
+			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (mode == ToolBar.CursorMode.ZOOM) mouseReleasedZoom(evt); else
+				if (mode == ToolBar.CursorMode.PAN) mouseReleasedPan(evt); else
+					mouseReleasedSelect(evt);
+		}
+
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		// the MouseMotionListener events
+		public void mouseMoved(MouseEvent evt)
+		{
+			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (mode == ToolBar.CursorMode.ZOOM) mouseMovedZoom(evt); else
+				if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt); else
+					mouseMovedSelect(evt);
+		}
+		public void mouseDragged(MouseEvent evt)
+		{
+			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (mode == ToolBar.CursorMode.ZOOM) mouseDraggedZoom(evt); else
+				if (mode == ToolBar.CursorMode.PAN) mouseDraggedPan(evt); else
+					mouseDraggedSelect(evt);
+		}
+
+		// the MouseWheelListener events
+		public void mouseWheelMoved(MouseWheelEvent evt) {}
+
+		// the KeyListener events
+		public void keyPressed(KeyEvent evt) {}
+		public void keyReleased(KeyEvent evt) {}
+		public void keyTyped(KeyEvent evt) {}
+
+		// ****************************** SELECTION IN WAVEFORM WINDOW ******************************
+
+		/**
+		 * Method to implement the Mouse Pressed event for selection.
+		 */ 
+		public void mousePressedSelect(MouseEvent evt)
+		{
 			// see if the time cursors are selected
-			draggingMain = draggingExt = draggingArea = draggingPan = false;
-			if (ToolBar.getCursorMode() == ToolBar.CursorMode.PAN)
-			{
-				draggingPan = true;
-				dragStartX = evt.getX();
-				dragStartY = evt.getY();
-				return;
-			}
+			draggingMain = draggingExt = draggingArea = false;
 			int mainX = scaleTimeToX(waveWindow.mainTime);
 			if (Math.abs(mainX - evt.getX()) < 5)
 			{
@@ -852,50 +946,56 @@ public class WaveformWindow implements WindowContent
 				draggingExt = true;
 				return;
 			}
-
+	
 			// drag area
 			draggingArea = true;
 			dragStartX = dragEndX = evt.getX();
 			dragStartY = dragEndY = evt.getY();
 		}
-
-		public void mouseReleased(MouseEvent evt)
+	
+		/**
+		 * Method to implement the Mouse Released event for selection.
+		 */ 
+		public void mouseReleasedSelect(MouseEvent evt)
 		{
 			if (draggingArea)
 			{
-				draggingArea = false;
 				Panel wp = (Panel)evt.getSource();
-				List foundList = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
-				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
+				if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 				{
-					// standard click: add this as the only trace
-					clearHighlightedSignals();
-					for(Iterator it = foundList.iterator(); it.hasNext(); )
+					draggingArea = false;
+					List foundList = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
+					if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 					{
-						Signal ws = (Signal)it.next();
-						wp.addHighlightedSignal(ws);
+						// standard click: add this as the only trace
+						clearHighlightedSignals();
+						for(Iterator it = foundList.iterator(); it.hasNext(); )
+						{
+							Signal ws = (Signal)it.next();
+							wp.addHighlightedSignal(ws);
+						}
+					} else
+					{
+						// shift click: add or remove to list of highlighted traces
+						for(Iterator it = foundList.iterator(); it.hasNext(); )
+						{
+							Signal ws = (Signal)it.next();
+							if (ws.highlighted) removeHighlightedSignal(ws); else
+								wp.addHighlightedSignal(ws);
+						}
 					}
 				} else
 				{
-					// shift click: add or remove to list of highlighted traces
-					for(Iterator it = foundList.iterator(); it.hasNext(); )
-					{
-						Signal ws = (Signal)it.next();
-						if (ws.highlighted) removeHighlightedSignal(ws); else
-							wp.addHighlightedSignal(ws);
-					}
+					// just leave this highlight and show dimensions
 				}
 			}
 			repaint();
 		}
-
-		public void mouseClicked(MouseEvent evt) {}
-		public void mouseEntered(MouseEvent evt) {}
-		public void mouseExited(MouseEvent evt) {}
-
-		// the MouseMotionListener events
-		public void mouseMoved(MouseEvent evt) {}
-		public void mouseDragged(MouseEvent evt)
+	
+		/**
+		 * Method to implement the Mouse Dragged event for selection.
+		 */ 
+		public void mouseDraggedSelect(MouseEvent evt)
 		{
 			if (draggingMain)
 			{
@@ -907,32 +1007,6 @@ public class WaveformWindow implements WindowContent
 				double time = scaleXToTime(evt.getX());
 				waveWindow.setExtensionTimeCursor(time);
 				waveWindow.redrawAll();
-			} else if (draggingPan)
-			{
-				dragEndX = evt.getX();
-				dragEndY = evt.getY();
-				double dTime = scaleDeltaXToTime(dragEndX - dragStartX);
-				double dValue = scaleDeltaYToValue(dragEndY - dragStartY);
-				dragStartX = dragEndX;
-				dragStartY = dragEndY;
-				minTime -= dTime;
-				maxTime -= dTime;
-				analogLowValue -= dValue;
-				analogHighValue -= dValue;
-				timePanel.repaint();
-				repaint();
-				if (waveWindow.timeLocked)
-				{
-					for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
-					{
-						Panel wp = (Panel)it.next();
-						if (wp == this) continue;
-						wp.minTime -= dTime;
-						wp.maxTime -= dTime;
-						wp.timePanel.repaint();
-						wp.repaint();
-					}
-				}
 			} else if (draggingArea)
 			{
 				dragEndX = evt.getX();
@@ -941,13 +1015,133 @@ public class WaveformWindow implements WindowContent
 			}
 		}
 
-		// the MouseWheelListener events
-		public void mouseWheelMoved(MouseWheelEvent evt) {}
+		public void mouseMovedSelect(MouseEvent evt) {}
 
-		// the KeyListener events
-		public void keyPressed(KeyEvent evt) {}
-		public void keyReleased(KeyEvent evt) {}
-		public void keyTyped(KeyEvent evt) {}
+		// ****************************** ZOOMING IN WAVEFORM WINDOW ******************************
+	
+		/**
+		 * Method to implement the Mouse Pressed event for zooming.
+		 */ 
+		public void mousePressedZoom(MouseEvent evt)
+		{
+			dragStartX = evt.getX();
+			dragStartY = evt.getY();
+			ZoomAndPanListener.setProperCursor(evt);
+			draggingArea = true;
+		}
+		
+		/**
+		 * Method to implement the Mouse Released event for zooming.
+		 */ 
+		public void mouseReleasedZoom(MouseEvent evt)
+		{
+			ZoomAndPanListener.setProperCursor(evt);
+			draggingArea = false;
+			double lowTime = this.scaleXToTime(Math.min(dragEndX, dragStartX));
+			double highTime = this.scaleXToTime(Math.max(dragEndX, dragStartX));
+			double timeRange = highTime - lowTime;
+			lowTime -= timeRange / 8;
+			highTime += timeRange / 8;
+			double lowValue = this.scaleYToValue(Math.max(dragEndY, dragStartY));
+			double highValue = this.scaleYToValue(Math.min(dragEndY, dragStartY));
+			double valueRange = highValue - lowValue;
+			lowValue -= valueRange / 8;
+			highValue += valueRange / 8;
+			for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (!waveWindow.timeLocked && wp != this) continue;
+				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
+				{
+					// standard click: zoom in
+					wp.minTime = lowTime;
+					wp.maxTime = highTime;
+					if (wp == this)
+					{
+						wp.setValueRange(lowValue, highValue);
+					}
+				} else
+				{
+					// shift-click: zoom out
+					double oldRange = wp.maxTime - wp.minTime;
+					wp.minTime = (lowTime + highTime) / 2 - oldRange;
+					wp.maxTime = (lowTime + highTime) / 2 + oldRange;
+					if (wp == this)
+					{
+						wp.setValueRange((lowValue + highValue) / 2 - wp.analogRange,
+							(lowValue + highValue) / 2 + wp.analogRange);
+					}
+				}
+				wp.timePanel.repaint();
+				wp.repaint();
+			}
+		}
+		
+		/**
+		 * Method to implement the Mouse Dragged event for zooming.
+		 */ 
+		public void mouseDraggedZoom(MouseEvent evt)
+		{
+			ZoomAndPanListener.setProperCursor(evt);
+			if (draggingArea)
+			{
+				dragEndX = evt.getX();
+				dragEndY = evt.getY();
+				repaint();
+			}
+		}
+
+		public void mouseMovedZoom(MouseEvent evt)
+		{
+			ZoomAndPanListener.setProperCursor(evt);
+		}
+
+		// ****************************** PANNING IN WAVEFORM WINDOW ******************************
+	
+		/**
+		 * Method to implement the Mouse Pressed event for panning.
+		 */ 
+		public void mousePressedPan(MouseEvent evt)
+		{
+			dragStartX = evt.getX();
+			dragStartY = evt.getY();
+		}
+		
+		/**
+		 * Method to implement the Mouse Released event for panning.
+		 */ 
+		public void mouseReleasedPan(MouseEvent evt)
+		{
+		}
+		
+		/**
+		 * Method to implement the Mouse Dragged event for panning.
+		 */ 
+		public void mouseDraggedPan(MouseEvent evt)
+		{
+			dragEndX = evt.getX();
+			dragEndY = evt.getY();
+			double dTime = scaleDeltaXToTime(dragEndX - dragStartX);
+			double dValue = scaleDeltaYToValue(dragEndY - dragStartY);
+
+			for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (!waveWindow.timeLocked && wp != this) continue;
+				wp.minTime -= dTime;
+				wp.maxTime -= dTime;
+				if (wp == this)
+				{
+					setValueRange(analogLowValue - dValue, analogHighValue - dValue);
+				}
+				wp.timePanel.repaint();
+				wp.repaint();
+			}
+			dragStartX = dragEndX;
+			dragStartY = dragEndY;
+		}
+
+		public void mouseMovedPan(MouseEvent evt) {}
 	}
 
 	// ************************************* TIME GRID ALONG THE TOP OF EACH PANEL *************************************
@@ -1024,10 +1218,12 @@ public class WaveformWindow implements WindowContent
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
 			this.highlighted = false;
-			sigButton = new JButton(sSig.signalName);
+			String sigName = sSig.getSignalName();
+			if (sSig.getSignalContext() != null) sigName = sSig.getSignalContext() + "." + sigName;
+			sigButton = new JButton(sigName);
 			sigButton.setBorderPainted(false);
 			sigButton.setDefaultCapable(false);
-			sigButton.setForeground(sSig.signalColor);
+			sigButton.setForeground(sSig.getSignalColor());
 			wavePanel.signalButtons.add(sigButton);
 			wavePanel.waveSignals.put(sigButton, this);
 			sigButton.addActionListener(new ActionListener()
@@ -1197,13 +1393,13 @@ public class WaveformWindow implements WindowContent
 
 	public JPanel getPanel() { return overall; }
 
-	public void setCell(Cell cell, VarContext context) { sd.cell = cell; }
+	public void setCell(Cell cell, VarContext context) { sd.setCell(cell); }
 
 	/**
 	 * Method to return the cell that is shown in this window.
 	 * @return the cell that is shown in this window.
 	 */
-	public Cell getCell() { return sd.cell; }
+	public Cell getCell() { return sd.getCell(); }
 
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
 	{
@@ -1229,20 +1425,25 @@ public class WaveformWindow implements WindowContent
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
 		HashMap contextMap = new HashMap();
 		contextMap.put("", signalsExplorerTree);
-		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
+		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
 			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
-			if (sSig.signalContext != null)
+			if (sSig.getSignalContext() != null)
 			{
-				thisTree = (DefaultMutableTreeNode)contextMap.get(sSig.signalContext);
+				thisTree = (DefaultMutableTreeNode)contextMap.get(sSig.getSignalContext());
 				if (thisTree == null)
 				{
-					thisTree = new DefaultMutableTreeNode(sSig.signalContext);
-					contextMap.put(sSig.signalContext, thisTree);
-					int dotPos = sSig.signalContext.lastIndexOf('.');
+					String branchName = sSig.getSignalContext();
 					String parent = "";
-					if (dotPos >= 0) parent = sSig.signalContext.substring(0, dotPos);
+					int dotPos = branchName.lastIndexOf('.');
+					if (dotPos >= 0)
+					{
+						parent = branchName.substring(0, dotPos);
+						branchName = branchName.substring(dotPos+1);
+					}
+					thisTree = new DefaultMutableTreeNode(branchName);
+					contextMap.put(sSig.getSignalContext(), thisTree);
 					DefaultMutableTreeNode parentTree = (DefaultMutableTreeNode)contextMap.get(parent);
 					if (parentTree != null)
 						parentTree.add(thisTree);
@@ -1297,14 +1498,14 @@ public class WaveformWindow implements WindowContent
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		if (sd.cell == null)
+		if (sd.getCell() == null)
 		{
 			wf.setTitle("***WAVEFORM WITH NO CELL***");
 			return;
 		}
 
-		String title = "Waveform for " + sd.cell.describe();
-		if (sd.cell.getLibrary() != Library.getCurrent())
+		String title = "Waveform for " + sd.getCell().describe();
+		if (sd.getCell().getLibrary() != Library.getCurrent())
 			title += " - Current library: " + Library.getCurrent().getLibName();
 		wf.setTitle(title);
 	}
@@ -1590,12 +1791,13 @@ public class WaveformWindow implements WindowContent
 			{
 				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sig;
 				double lowValue = 0, highValue = 0;
-				for(int i=0; i<as.values.length; i++)
+				for(int i=0; i<as.getNumEvents(); i++)
 				{
-					if (i == 0) lowValue = highValue = as.values[i]; else
+					double val = as.getValue(i);
+					if (i == 0) lowValue = highValue = val; else
 					{
-						if (as.values[i] < lowValue) lowValue = as.values[i];
-						if (as.values[i] > highValue) highValue = as.values[i];
+						if (val < lowValue) lowValue = val;
+						if (val > highValue) highValue = val;
 					}
 				}
 				double range = highValue - lowValue;
@@ -1711,9 +1913,7 @@ public class WaveformWindow implements WindowContent
 			{
 				if (wp.minTime != lowValue || wp.maxTime != highValue)
 				{
-					wp.analogLowValue = lowValue;
-					wp.analogHighValue = highValue;
-					wp.analogRange = highValue - lowValue;
+					wp.setValueRange(lowValue, highValue);
 					repaint = true;
 				}
 			}

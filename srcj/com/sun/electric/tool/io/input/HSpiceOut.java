@@ -287,8 +287,16 @@ public class HSpiceOut extends Simulate
 		for(int k=0; k<numSignals; k++)
 		{
 			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
-			as.useCommonTime = true;
-			as.signalName = signalNames[k];
+			as.setCommonTimeUse(true);
+			int lastDotPos = signalNames[k].lastIndexOf('.');
+			if (lastDotPos >= 0)
+			{
+				as.setSignalContext(signalNames[k].substring(0, lastDotPos));
+				as.setSignalName(signalNames[k].substring(lastDotPos+1));
+			} else
+			{
+				as.setSignalName(signalNames[k]);
+			}
 			as.tempList = new ArrayList();
 		}
 		for(;;)
@@ -305,7 +313,7 @@ public class HSpiceOut extends Simulate
 				if (eofReached) break;
 				int l = k - nodcnt;
 				if (k < nodcnt) l = k + numnoi - 1;
-				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(l);
+				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(l);
 				as.tempList.add(new Double(value));
 			}
 			if (eofReached) break;
@@ -314,15 +322,15 @@ public class HSpiceOut extends Simulate
 
 		// convert lists to arrays
 		int numEvents = timeValues.size();
-		sd.commonTime = new double[numEvents];
+		sd.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
-			sd.commonTime[i] = ((Double)timeValues.get(i)).doubleValue();
+			sd.setCommonTime(i, ((Double)timeValues.get(i)).doubleValue());
 		for(int j=0; j<numSignals; j++)
 		{
-			Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(j);
-			as.values = new double[numEvents];
+			Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(j);
+			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
-				as.values[i] = ((Double)as.tempList.get(i)).doubleValue();
+				as.setValue(i, ((Double)as.tempList.get(i)).doubleValue());
 			as.tempList = null;
 		}
 		return sd;

@@ -187,8 +187,8 @@ public class VerilogOut extends Simulate
 					numSignals++;
 
 					Simulate.SimDigitalSignal sig = new Simulate.SimDigitalSignal(null);
-					sig.signalName = signalName + index;
-					sig.signalContext = currentScope;
+					sig.setSignalName(signalName + index);
+					sig.setSignalContext(currentScope);
 					sig.tempList = new ArrayList();
 
 					if (index.length() > 0 && width == 1)
@@ -196,20 +196,20 @@ public class VerilogOut extends Simulate
 						curArray.add(sig);
 					} else
 					{
-						sd.signals.add(sig);
+						sd.addSignal(sig);
 					}
 
 					if (width > 1)
 					{
 						// create fake signals for the individual entries
-						sig.bussedSignals = new ArrayList();
+						sig.buildBussedSignalList();
 						for(int i=0; i<width; i++)
 						{
 							Simulate.SimDigitalSignal subSig = new Simulate.SimDigitalSignal(null);
-							subSig.signalName = signalName + "[" + i + "]";
-							subSig.signalContext = currentScope;
+							subSig.setSignalName(signalName + "[" + i + "]");
+							subSig.setSignalContext(currentScope);
 							subSig.tempList = new ArrayList();
-							sig.bussedSignals.add(subSig);
+							sig.addToBussedSignalList(subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
 							numSignals++;
 						}
@@ -289,7 +289,7 @@ public class VerilogOut extends Simulate
 						if (entry instanceof List) entry = ((List)entry).get(0);
 						Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)entry;
 						int i = 0;
-						for(Iterator it = sig.bussedSignals.iterator(); it.hasNext(); )
+						for(Iterator it = sig.getBussedSignals().iterator(); it.hasNext(); )
 						{
 							Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)it.next();
 							char bit = restOfLine.charAt(i++);
@@ -325,15 +325,15 @@ public class VerilogOut extends Simulate
 			Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)entry;
 			int numStimuli = sig.tempList.size();
 			if (numStimuli == 0) continue;
-			sig.time = new double[numStimuli];
-			sig.state = new int[numStimuli];
+			sig.buildTime(numStimuli);
+			sig.buildState(numStimuli);
 			int i = 0;
 			for(Iterator sIt = sig.tempList.iterator(); sIt.hasNext(); )
 			{
 				VerilogStimuli vs = (VerilogStimuli)sIt.next();
-				sig.useCommonTime = false;
-				sig.time[i] = vs.time;
-				sig.state[i] = vs.state;
+				sig.setCommonTimeUse(false);
+				sig.setTime(i, vs.time);
+				sig.setState(i, vs.state);
 				i++;
 			}
 			sig.tempList = null;
@@ -342,9 +342,9 @@ public class VerilogOut extends Simulate
 				for(Iterator lIt = fullList.iterator(); lIt.hasNext(); )
 				{
 					Simulate.SimDigitalSignal oSig = (Simulate.SimDigitalSignal)lIt.next();
-					if (oSig.time == null) oSig.time = sig.time;
-					if (oSig.state == null) oSig.state = sig.state;
-					oSig.useCommonTime = false;
+					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
+					if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
+					oSig.setCommonTimeUse(false);
 				}
 			}
 		}
@@ -364,29 +364,29 @@ public class VerilogOut extends Simulate
 		for(int j=0; j<numSignalsInArray; j++)
 		{
 			Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)curArray.get(j);
-			int squarePos = sig.signalName.indexOf('[');
+			int squarePos = sig.getSignalName().indexOf('[');
 			if (squarePos < 0) continue;
-			String purename = sig.signalName.substring(0, squarePos);
-			int index = TextUtils.atoi(sig.signalName.substring(squarePos+1));
+			String purename = sig.getSignalName().substring(0, squarePos);
+			int index = TextUtils.atoi(sig.getSignalName().substring(squarePos+1));
 			if (last == null)
 			{
 				firstEntry = j;
 				last = purename;
 				firstIndex = lastIndex = index;
-				scope = sig.signalContext;
+				scope = sig.getSignalContext();
 			} else
 			{
 				if (last.equals(purename)) lastIndex = index; else
 				{
 					Simulate.SimDigitalSignal arraySig = new Simulate.SimDigitalSignal(sd);
-					arraySig.signalName = last + "[" + firstIndex + ":" + lastIndex + "]";
-					arraySig.signalContext = scope;
-					arraySig.bussedSignals = new ArrayList();
+					arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
+					arraySig.setSignalContext(scope);
+					arraySig.buildBussedSignalList();
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
 					{
 						Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)curArray.get(firstEntry+i);
-						arraySig.bussedSignals.add(subSig);
+						arraySig.addToBussedSignalList(subSig);
 					}
 					last = null;
 				}
@@ -395,14 +395,14 @@ public class VerilogOut extends Simulate
 		if (last != null)
 		{
 			Simulate.SimDigitalSignal arraySig = new Simulate.SimDigitalSignal(sd);
-			arraySig.signalName = last + "[" + firstIndex + ":" + lastIndex + "]";
-			arraySig.signalContext = scope;
-			arraySig.bussedSignals = new ArrayList();
+			arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
+			arraySig.setSignalContext(scope);
+			arraySig.buildBussedSignalList();
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)
 			{
 				Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)curArray.get(firstEntry+i);
-				arraySig.bussedSignals.add(subSig);
+				arraySig.addToBussedSignalList(subSig);
 			}
 		}
 	}

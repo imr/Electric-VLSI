@@ -70,9 +70,9 @@ public class ZoomAndPanListener
 		setProperCursor(evt);
 	}
 	
-	private void setProperCursor(MouseEvent evt)
+	public static void setProperCursor(MouseEvent evt)
 	{
-		if (mode == ToolBar.CursorMode.ZOOM)
+		if (ToolBar.getCursorMode() == ToolBar.CursorMode.ZOOM)
 		{
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
 			{
@@ -119,10 +119,6 @@ public class ZoomAndPanListener
 			}
 			lastX = newX;
 			lastY = newY;
-		} else if (evt.getSource() instanceof EditWindow.CircuitPart)
-		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
 		}
 	}
 

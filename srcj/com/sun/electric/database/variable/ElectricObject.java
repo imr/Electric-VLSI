@@ -395,6 +395,48 @@ public class ElectricObject
 	}
 
 	/**
+	 * Method to update a Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param name the name of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateVar(String name, Object value) { return updateVar(newKey(name), value); }
+
+	/**
+	 * Method to update a Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateVar(Variable.Key key, Object value)
+	{
+		Variable var = getVar(key);
+		if (var == null)
+		{
+			return newVar(key, value);
+		}
+		boolean oldCantSet = var.isCantSet();
+		boolean oldJava = var.isJava();
+		boolean oldDisplay = var.isDisplay();
+		boolean oldTemporary = var.isDontSave();
+		TextDescriptor td = var.getTextDescriptor();
+
+		// set the variable
+		Variable newVar = newVar(key, value);
+		if (newVar == null) return null;
+
+		// restore values
+		newVar.setTextDescriptor(td);
+		if (oldCantSet) newVar.setCantSet();
+		if (oldJava) newVar.setJava();
+		if (oldDisplay) newVar.setDisplay();
+		if (oldTemporary) newVar.setDontSave();
+		return newVar;
+	}
+
+	/**
 	 * Method to delete a Variable from this ElectricObject.
 	 * @param key the key of the Variable to delete.
 	 */

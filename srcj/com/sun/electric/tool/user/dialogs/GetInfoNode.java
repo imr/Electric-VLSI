@@ -763,7 +763,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_diode", currentTextField);
+					ni.updateVar("SCHEM_diode", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -773,7 +773,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_resistance", currentTextField);
+					ni.updateVar("SCHEM_resistance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -783,7 +783,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_capacitance", currentTextField);
+					ni.updateVar("SCHEM_capacitance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -793,7 +793,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_inductance", currentTextField);
+					ni.updateVar("SCHEM_inductance", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -803,7 +803,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_function", currentTextField);
+					ni.updateVar("SCHEM_function", currentTextField);
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -816,13 +816,11 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					Variable oldVar = ni.getVar("SCHEM_global_name");
-					Variable var = ni.newVar("SCHEM_global_name", currentTextField);
-					if (var != null)
-					{
-						var.setDisplay();
-						if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
-					}
+					Variable var = ni.updateVar("SCHEM_global_name", currentTextField);
+//					if (var != null)
+//					{
+//						var.setDisplay();
+//					}
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -880,13 +878,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allParameters.get(index);
-					Variable oldVar = ni.getVar(avp.key);
-					TextDescriptor oldTD = oldVar.getTextDescriptor();
-					Variable var = ni.newVar(avp.key, currentTextField);
-					var.lowLevelSetFlags(oldVar.lowLevelGetFlags());
+					Variable var = ni.updateVar(avp.key, currentTextField);
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
-					TextDescriptor td = var.getTextDescriptor();
-					td.lowLevelSet(oldTD.lowLevelGet0(), oldTD.lowLevelGet1());
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;
 					changed = true;
@@ -901,13 +894,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allAttributes.get(index);
-					Variable oldVar = ni.getVar(avp.key);
-					TextDescriptor oldTD = oldVar.getTextDescriptor();
-					Variable var = ni.newVar(avp.key, currentTextField);
-					var.lowLevelSetFlags(oldVar.lowLevelGetFlags());
+					Variable var = ni.updateVar(avp.key, currentTextField);
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
-					TextDescriptor td = var.getTextDescriptor();
-					td.lowLevelSet(oldTD.lowLevelGet0(), oldTD.lowLevelGet1());
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;
 					changed = true;

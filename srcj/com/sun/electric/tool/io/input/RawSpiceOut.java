@@ -107,7 +107,7 @@ public class RawSpiceOut extends Simulate
 				for(int i=0; i<numSignals; i++)
 				{
 					signals[i] = new Simulate.SimAnalogSignal(sd);
-					signals[i].useCommonTime = true;
+					signals[i].setCommonTimeUse(true);
 				}
 				continue;
 			}
@@ -115,9 +115,9 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Points"))
 			{
 				eventCount = TextUtils.atoi(postColon);
-				sd.commonTime = new double[eventCount];
+				sd.buildCommonTime(eventCount);
 				for(int i=0; i<numSignals; i++)
-					signals[i].values = new double[eventCount];
+					signals[i].buildValues(eventCount);
 				continue;
 			}
 
@@ -154,7 +154,7 @@ public class RawSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						signals[i-1].signalName = name;
+						signals[i-1].setSignalName(name);
 					}
 				}
 				continue;
@@ -189,8 +189,8 @@ public class RawSpiceOut extends Simulate
 							while (Character.isDigit(line.charAt(0))) line = line.substring(1);
 						}
 						line = line.trim();
-						if (i == 0) sd.commonTime[j] = TextUtils.atof(line); else
-							signals[i-1].values[j] = TextUtils.atof(line);
+						if (i == 0) sd.setCommonTime(j, TextUtils.atof(line)); else
+							signals[i-1].setValue(j, TextUtils.atof(line));
 					}
 				}
 			}
@@ -210,9 +210,9 @@ public class RawSpiceOut extends Simulate
 				// read the data
 				for(int j=0; j<eventCount; j++)
 				{
-					sd.commonTime[j] = dataInputStream.readDouble();
+					sd.setCommonTime(j, dataInputStream.readDouble());
 					for(int i=0; i<numSignals; i++)
-						signals[i].values[j] = dataInputStream.readDouble();
+						signals[i].setValue(j, dataInputStream.readDouble());
 				}
 			}
 		}

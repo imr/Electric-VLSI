@@ -769,6 +769,31 @@ public class IOOptions extends javax.swing.JDialog
 	private String initialPrinter;
 
 	/**
+	 * Class to find printers in a separate thread.
+	 * This can take a long time if there are many printers, so it
+	 * is done asynchronously.
+	 */
+	private static class FindPrintersThread extends Thread
+	{
+		IOOptions dialog;
+
+		FindPrintersThread(IOOptions dialog)
+		{
+			super("Database");
+			this.dialog = dialog;
+			start();
+		}
+
+		public void run()
+		{
+			PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
+			for(int i=0; i<printers.length; i++)
+			dialog.printDefaultPrinter.addItem(printers[i].getName());
+			dialog.printDefaultPrinter.setSelectedItem(dialog.initialPrinter);
+		}
+	}
+
+	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Printing tab.
 	 */
@@ -785,13 +810,9 @@ public class IOOptions extends javax.swing.JDialog
 		initialPrintDate = IOTool.isPlotDate();
 		printPlotDateInCorner.setSelected(initialPrintDate);
 
-		// get list of printers
+		// get list of printers (do it in a separate thread because it takes a long time)
 		initialPrinter = IOTool.getPrinterName();
-		PrintService [] printers = User.getPrinters();
-		PrintService printerToUse = null;
-		for(int i=0; i<printers.length; i++)
-			printDefaultPrinter.addItem(printers[i].getName());
-		printDefaultPrinter.setSelectedItem(initialPrinter);
+		new FindPrintersThread(this);
 
 		initialPrintEncapsulated = IOTool.isPrintEncapsulated();
 		printEncapsulated.setSelected(initialPrintEncapsulated);

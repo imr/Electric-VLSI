@@ -3183,19 +3183,12 @@ public class CircuitChanges
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
 		// set the attribute
-		newVar = ni.newVar(var.getKey(), inheritAddress(np, posVar));
+		newVar = ni.updateVar(var.getKey(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
-			newVar.setTextDescriptor(var.getTextDescriptor());
 			TextDescriptor newDescript = newVar.getTextDescriptor();
-			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
 			if (newDescript.isInterior())
 				newVar.clearDisplay();
-			if (var.isDontSave()) newVar.setDontSave(); else newVar.clearDontSave();
-			newVar.clearCode();
-			if (var.isJava()) newVar.setJava();
-			if (var.isLisp()) newVar.setLisp();
-			if (var.isTCL()) newVar.setTCL();
 			newDescript.clearInherit();
 			newDescript.setOff(xc, yc);
 			if (newDescript.isParam())

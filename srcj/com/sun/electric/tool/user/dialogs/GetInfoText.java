@@ -493,10 +493,7 @@ public class GetInfoText extends javax.swing.JDialog
 			TextDescriptor td = null;
 			Variable var = text.getVar();
 			ElectricObject eobj = text.getElectricObject();
-			if (var != null)
-			{
-				td = var.getTextDescriptor();
-			} else
+			if (var == null)
 			{
 				if (text.getName() != null && eobj instanceof Geometric)
 				{
@@ -515,10 +512,6 @@ public class GetInfoText extends javax.swing.JDialog
 				changed = true;
 				if (var != null)
 				{
-					boolean oldCantSet = var.isCantSet();
-					boolean oldJava = var.isJava();
-					boolean oldDisplay = var.isDisplay();
-					boolean oldTemporary = var.isDontSave();
 					Variable newVar = null;
 					int currentLineCount = dialog.theText.getLineCount();
 					if (currentLineCount > 1)
@@ -536,20 +529,15 @@ public class GetInfoText extends javax.swing.JDialog
 							{
 							}
 						}
-						newVar = eobj.newVar(var.getKey(), textArray);
+						newVar = eobj.updateVar(var.getKey(), textArray);
 					} else
 					{
 						// change variable
-						newVar = eobj.newVar(var.getKey(), currentText);
+						newVar = eobj.updateVar(var.getKey(), currentText);
 					}
 					if (newVar != null)
 					{
 						dialog.shownText.setVar(newVar);
-						newVar.setTextDescriptor(td);
-						if (oldCantSet) newVar.setCantSet();
-						if (oldJava) newVar.setJava();
-						if (oldDisplay) newVar.setDisplay();
-						if (oldTemporary) newVar.setDontSave();
 					}
 				} else
 				{

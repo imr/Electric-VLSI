@@ -241,7 +241,7 @@ public class WindowFrame
     {
 		WindowFrame frame = new WindowFrame();
 		WaveformWindow wWnd = new WaveformWindow(sd, frame);
-		frame.buildWindowStructure(wWnd, sd.cell, null);
+		frame.buildWindowStructure(wWnd, sd.getCell(), null);
 		setCurrentWindowFrame(frame);
 		frame.populateJFrame();
 		wWnd.fillScreen();
@@ -353,7 +353,7 @@ public class WindowFrame
             jif.getContentPane().remove(js);
             jif.removeInternalFrameListener(internalWindowsEvents);
             jif.removeInternalFrameListener(TopLevel.getTopLevel().getToolBar());
-            // TODO: TopLevel.removeFromDesktop(jif);
+            // TopLevel.removeFromDesktop(jif);
             content.getPanel().removePropertyChangeListener(TopLevel.getTopLevel().getToolBar());
         } else {
             jf.getContentPane().remove(js);
