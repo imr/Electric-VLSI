@@ -647,6 +647,11 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             el.index = ++errs;
         }
 
+        // Set as assigned before removing it
+        synchronized(allLoggers) {
+            currentLogger = this;
+        }
+
         if (errs == 0) {
             delete();
             return;
@@ -683,9 +688,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {WindowFrame.wantToRedoErrorTree(); }
         });
-        synchronized(allLoggers) {
-            currentLogger = this;
-        }
 
         terminated = true;
     }

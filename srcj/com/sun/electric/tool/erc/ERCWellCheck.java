@@ -113,10 +113,10 @@ public class ERCWellCheck
 			long startTime = System.currentTimeMillis();
 			errorLogger = ErrorLogger.newInstance("ERC Well Check ");
 
+			System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 			// announce start of analysis
 			if (Main.getDebug())
 			{
-				System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 				System.out.println("Free v/s Total Memory " +
 						Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 			}
@@ -349,7 +349,8 @@ public class ERCWellCheck
 					}
 				}
 			}
-            System.out.println("Free v/s Total Memory Intermediate step 2: " +
+            if (Main.getDebug())
+                System.out.println("Free v/s Total Memory Intermediate step 2: " +
 			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
 			// compute edge distance if requested
