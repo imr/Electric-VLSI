@@ -130,11 +130,17 @@ public class OutputGDS extends OutputGeometry
 		boolean error = false;
 		OutputGDS out = new OutputGDS();
 		if (out.openBinaryOutputStream(filePath)) error = true;
-		BloatVisitor visitor = out.makeBloatVisitor(cell);
+		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
 		if (out.writeCell(cell, visitor)) error = true;
 		if (out.closeBinaryOutputStream()) error = true;
 		if (!error) System.out.println(filePath + " written");
 		return error;
+	}
+
+	private BloatVisitor makeBloatVisitor(int maxDepth)
+	{
+		BloatVisitor visitor = new BloatVisitor(this, maxDepth);
+		return visitor;
 	}
 
 	/**
@@ -383,39 +389,30 @@ public class OutputGDS extends OutputGeometry
 
 		// write a call to a cell
 		// now origin, normal placement
-		AffineTransform trans = ni.rotateOut();
-		Rectangle2D niBounds = ni.getBounds();
-		Rectangle2D cellBounds = subCell.getBounds();
-		Point2D pt = new Point2D.Double(niBounds.getMinX() - cellBounds.getMinX(), niBounds.getMinY() - cellBounds.getMinY());
-		trans.transform(pt, pt);
+//		Rectangle2D niBounds = ni.getBounds();
+//		Rectangle2D cellBounds = subCell.getBounds();
+//		AffineTransform trans = ni.rotateOut();
+//		Point2D pt = new Point2D.Double(niBounds.getMinX() - cellBounds.getMinX(), niBounds.getMinY() - cellBounds.getMinY());
+//		trans.transform(pt, pt);
+		Point2D pt = ni.getGrabCenter();
 
 		// Generate a symbol reference 
 		outputHeader(HDR_SREF, 0);
 		String name = (String)cellNames.get(subCell);
 		outputName(HDR_SNAME, name, HDR_M_SNAME);
 		int transvalue = 0;
-		int angle = ni.getAngle();
-//		if (ni->transpose != 0)
-//		{
-//			// Angles are reversed
-//			transvalue |= STRANS_REFLX;
-//			angle = (3600 - angle)%3600;
-//		}
+		if (ni.isXMirrored() != ni.isYMirrored()) transvalue |= STRANS_REFLX;
 
+//System.out.println("instance at ("+pt.getX()+","+pt.getY()+"), angle "+angle+", trans "+transvalue);
 		// always output the angle and transvalue
 		outputHeader(HDR_STRANS, transvalue);
-		outputAngle(angle);
+		outputAngle(ni.getAngle());
 		outputShort((short)12);
 		outputShort(HDR_XY);
 		outputInt((int)(scaleFactor*pt.getX()));
 		outputInt((int)(scaleFactor*pt.getY()));
 		outputHeader(HDR_ENDEL, 0);
     }
-
-	public OutputGDS.BloatVisitor makeBloatVisitor(Cell cell)
-	{
-		return new OutputGDS.BloatVisitor(this, getMaxHierDepth(cell));
-	}
 
 	/*************************** GDS OUTPUT ROUTINES ***************************/
 
@@ -424,7 +421,6 @@ public class OutputGDS extends OutputGeometry
 	{
 		blockCount = 0;
 		bufferPosition = 0;
-//		io_gds_set_layer(0);
 
 		// all zeroes
 		for (int i=0; i<DSIZE; i++) emptyBuffer[i] = 0;

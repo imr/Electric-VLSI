@@ -141,8 +141,9 @@ public abstract class OutputGeometry extends Output {
 
     public class Visitor extends HierarchyEnumerator.Visitor
     {
-        /** OutputGeometry object this Visitor is enumerating for */    private OutputGeometry outGeom;
+        /** OutputGeometry object this Visitor is enumerating for */	private OutputGeometry outGeom;
         /** Current cellGeom */                                         protected CellGeom cellGeom = null;
+        /** OutputGeometry stack when descending hierarchy */			private CellGeom [] outGeomStack;
         /** hierarchy max depth */                                      private int maxHierDepth;
         /** current hierarchy depth */                                  private int curHierDepth;
 
@@ -150,11 +151,13 @@ public abstract class OutputGeometry extends Output {
         {
             this.outGeom = outGeom;
             this.maxHierDepth = maxHierDepth;
+			this.outGeomStack = new CellGeom[maxHierDepth+1];
             curHierDepth = 0;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) 
         {
+			outGeomStack[curHierDepth] = cellGeom;
             if (cellGeoms.containsKey(info.getCell())) return false;    // already processed this Cell
             cellGeom = new CellGeom();
             cellGeom.cell = info.getCell();
@@ -179,7 +182,7 @@ public abstract class OutputGeometry extends Output {
             outGeom.writeCellGeom(cellGeom);
             
             curHierDepth--;
-            cellGeom = null;
+            cellGeom = outGeomStack[curHierDepth];
         }
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
