@@ -541,6 +541,9 @@ public class View3DWindow extends JPanel
 		// add the node
 		NodeProto nProto = no.getProto();
 		Technology tech = nProto.getTechnology();
+		int gate = -1;
+		int count = 0;
+		int poly = -1;
 
 		// Skipping Special nodes
         if (NodeInst.isSpecialNode(no)) return;
@@ -572,9 +575,6 @@ public class View3DWindow extends JPanel
             if (nProto.getFunction().isTransistor())
             {
                 int[] active = new int[2];
-                int gate = -1;
-                int count = 0;
-                int poly = -1;
                 boxList = new ArrayList(4);
 
                 // Merge active regions
@@ -609,87 +609,88 @@ public class View3DWindow extends JPanel
                         polys[active[1]] = polys[last];
                     polys[last] = null;
                 }
-                if (gate != -1 && poly != -1)
-                {
-                    Rectangle2D rect1 = polys[gate].getBounds2D();
-	                boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
-
-	                Poly gateP = new Poly(rect1);
-	                gateP.transform(transform);
-	                rect1 = gateP.getBounds2D();
-                    Point3d [] pts = new Point3d[8];
-	                double max, delta;
-
-	                if (alongX)
-	                {
-						max = rect1.getMaxX();
-						delta = rect1.getWidth()/10;
-	                }
-	                else
-	                {
-		                max = rect1.getMaxY();
-						delta = rect1.getHeight()/10;
-	                }
-                    double cutGate = (max - delta);
-                    double cutPoly = (max + delta);
-                    Layer layer = polys[gate].getLayer();
-                    double dist = (layer.getDistance() + layer.getThickness()) * scale;
-                    //double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
-                    double distPoly = (polys[poly].getLayer().getDistance()) * scale;
-	                if (alongX)
-	                {
-						pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
-						pts[1] = new Point3d(max, rect1.getMinY(), dist);
-						pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-						pts[3] = new Point3d(max, rect1.getMinY(), distPoly);
-						pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
-						pts[5] = new Point3d(max, rect1.getMaxY(), dist);
-						pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-						pts[7] = new Point3d(max, rect1.getMaxY(), distPoly);
-	                }
-	                else
-	                {
-						pts[0] = new Point3d(rect1.getMaxX(), cutGate, dist);
-		                pts[1] = new Point3d(rect1.getMinX(), cutGate, dist);
-						pts[2] = new Point3d(rect1.getMinX(), max, dist);
-						pts[3] = new Point3d(rect1.getMaxX(), max, dist);
-						pts[4] = new Point3d(rect1.getMaxX(), max, distPoly);
-						pts[5] = new Point3d(rect1.getMinX(), max, distPoly);
-						pts[6] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
-						pts[7] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
-	                }
-                    // First connection
-                    boxList.add(addShape3D(pts, 4, getAppearance(layer)));
-                    max = (alongX) ? rect1.getMinX() : rect1.getMinY();
-                    cutGate = (max + delta);
-                    cutPoly = (max - delta);
-	                if (alongX)
-	                {
-						pts[0] = new Point3d(max, rect1.getMinY(), dist);
-						pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
-						pts[2] = new Point3d(max, rect1.getMinY(), distPoly);
-						pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-						pts[4] = new Point3d(max, rect1.getMaxY(), dist);
-						pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
-						pts[6] = new Point3d(max, rect1.getMaxY(), distPoly);
-						pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-	                }
-	                else
-	                {
-						pts[0] = new Point3d(rect1.getMaxX(), max, dist);
-						pts[1] = new Point3d(rect1.getMinX(), max, dist);
-						pts[2] = new Point3d(rect1.getMinX(), cutGate, dist);
-						pts[3] = new Point3d(rect1.getMaxX(), cutGate, dist);
-						pts[4] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
-						pts[5] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
-						pts[6] = new Point3d(rect1.getMinX(), max, distPoly);
-						pts[7] = new Point3d(rect1.getMaxX(), max, distPoly);
-	                }
-	                // Second connection
-                    boxList.add(addShape3D(pts, 4, getAppearance(layer)));
-                }
             }
-			list = addPolys(polys, transform /*no.rotateOut()*/, objTrans);
+			list = addPolys(polys, transform, objTrans);
+
+			// Adding extra layers after polygons are rotated.
+            if (nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
+            {
+				Rectangle2D rect1 = polys[gate].getBounds2D();
+				boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
+
+				Poly gateP = new Poly(rect1);
+				rect1 = gateP.getBounds2D();
+				Point3d [] pts = new Point3d[8];
+				double max, delta;
+
+				if (alongX)
+				{
+					max = rect1.getMaxX();
+					delta = rect1.getWidth()/10;
+				}
+				else
+				{
+					max = rect1.getMaxY();
+					delta = rect1.getHeight()/10;
+				}
+				double cutGate = (max - delta);
+				double cutPoly = (max + delta);
+				Layer layer = polys[gate].getLayer();
+				double dist = (layer.getDistance() + layer.getThickness()) * scale;
+				//double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
+				double distPoly = (polys[poly].getLayer().getDistance()) * scale;
+				if (alongX)
+				{
+					pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
+					pts[1] = new Point3d(max, rect1.getMinY(), dist);
+					pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+					pts[3] = new Point3d(max, rect1.getMinY(), distPoly);
+					pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
+					pts[5] = new Point3d(max, rect1.getMaxY(), dist);
+					pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+					pts[7] = new Point3d(max, rect1.getMaxY(), distPoly);
+				}
+				else
+				{
+					pts[0] = new Point3d(rect1.getMaxX(), cutGate, dist);
+					pts[1] = new Point3d(rect1.getMinX(), cutGate, dist);
+					pts[2] = new Point3d(rect1.getMinX(), max, dist);
+					pts[3] = new Point3d(rect1.getMaxX(), max, dist);
+					pts[4] = new Point3d(rect1.getMaxX(), max, distPoly);
+					pts[5] = new Point3d(rect1.getMinX(), max, distPoly);
+					pts[6] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
+					pts[7] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
+				}
+				// First connection
+				boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+				max = (alongX) ? rect1.getMinX() : rect1.getMinY();
+				cutGate = (max + delta);
+				cutPoly = (max - delta);
+				if (alongX)
+				{
+					pts[0] = new Point3d(max, rect1.getMinY(), dist);
+					pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
+					pts[2] = new Point3d(max, rect1.getMinY(), distPoly);
+					pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+					pts[4] = new Point3d(max, rect1.getMaxY(), dist);
+					pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
+					pts[6] = new Point3d(max, rect1.getMaxY(), distPoly);
+					pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+				}
+				else
+				{
+					pts[0] = new Point3d(rect1.getMaxX(), max, dist);
+					pts[1] = new Point3d(rect1.getMinX(), max, dist);
+					pts[2] = new Point3d(rect1.getMinX(), cutGate, dist);
+					pts[3] = new Point3d(rect1.getMaxX(), cutGate, dist);
+					pts[4] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
+					pts[5] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
+					pts[6] = new Point3d(rect1.getMinX(), max, distPoly);
+					pts[7] = new Point3d(rect1.getMaxX(), max, distPoly);
+				}
+				// Second connection
+				boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+            }
             if (boxList != null) list.addAll(boxList);
         }
 		electricObjectMap.put(no, list);
