@@ -2199,7 +2199,18 @@ public class NodeInst extends Geometric implements Nodable
             return true;
         return false;
     }
-   
+
+    /**
+     * Method to see if this NodeInst is a Serpentine Transistor.
+     * @return true if NodeInst is a serpentine transistor.
+     */
+    public boolean isSerpentineTransistor() {
+        if (!isPrimitiveTransistor()) return false;
+        PrimitiveNode pn = (PrimitiveNode)getProto();
+        if (pn.getSpecialType() == PrimitiveNode.SERPTRANS) return true;
+        return false;
+    }
+
 	/**
 	 * Method to tell whether this NodeInst is a field-effect transtor.
 	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
@@ -2279,6 +2290,11 @@ public class NodeInst extends Geometric implements Nodable
 		}
 		return -1;
 	}
+
+    public void setSerpentineTransistorLength(double length)
+    {
+        updateVar(TRANSISTOR_LENGTH_KEY, new Double(length));
+    }
 
     /**
      * Method to return a gate PortInst for this transistor NodeInst.

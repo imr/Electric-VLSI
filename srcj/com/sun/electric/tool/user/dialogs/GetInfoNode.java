@@ -445,22 +445,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		// if there is outline information on a transistor, remember that
 		initialTextField = null;
-		double serpWidth = -1;
-		NodeProto.Function fun = ni.getFunction();
-		if ((fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS ||
-			fun == NodeProto.Function.TRAPMOS) && holdsOutline)
-		{
-			// serpentine transistor: show width, edit length
-			serpWidth = 0;
-			TransistorSize size = ni.getTransistorSize(null);
-			if (size.getDoubleWidth() > 0 && size.getDoubleLength() > 0)
-			{
-				textFieldLabel.setText("Width=" + size.getDoubleWidth() + "; Length:");
-				initialTextField = new String(Double.toString(size.getDoubleLength()));
-				serpWidth = size.getDoubleLength();
-				textField.setEditable(true);
-			}
-		}
+        boolean lengthEditable = false;
+        if (ni.isSerpentineTransistor())
+            lengthEditable = true;
 
 		// set the expansion button
 		if (np instanceof Cell)
@@ -482,7 +469,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             ySize.setEditable(true);
         } else {
             xSize.setEditable(false);
-            ySize.setEditable(false);
+            ySize.setEditable(lengthEditable);
         }
 
 		// load visible-outside-cell state
@@ -501,6 +488,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		// load special node information
 
+        NodeProto.Function fun = ni.getFunction();
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
             /*
@@ -1083,15 +1071,24 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 } else
                 {
                     // this is a layout transistor
-                    double initialWidth = ni.getTransistorSize(null).getDoubleWidth();
-                    double initialLength = ni.getTransistorSize(null).getDoubleLength();
-                    double width = TextUtils.atof(dialog.xSize.getText(), new Double(initialWidth));
-                    double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
-                    if (!DBMath.doublesEqual(width, initialWidth) ||
-                        !DBMath.doublesEqual(length, initialLength))
-                    {
-                        // set transistor size
-                        ni.setTransistorSize(width, length);
+                    if (ni.isSerpentineTransistor()) {
+                        // serpentine transistors can only set length
+                        double initialLength = ni.getSerpentineTransistorLength();
+                        double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
+                        if (length != initialLength)
+                            ni.setSerpentineTransistorLength(length);
+                    } else {
+                        // set length and width by node size for layout transistors
+                        double initialWidth = ni.getTransistorSize(null).getDoubleWidth();
+                        double initialLength = ni.getTransistorSize(null).getDoubleLength();
+                        double width = TextUtils.atof(dialog.xSize.getText(), new Double(initialWidth));
+                        double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
+                        if (!DBMath.doublesEqual(width, initialWidth) ||
+                            !DBMath.doublesEqual(length, initialLength))
+                        {
+                            // set transistor size
+                            ni.setTransistorSize(width, length);
+                        }
                     }
                 }
                 // ignore size change, but retain mirroring change (sign)
