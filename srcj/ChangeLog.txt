@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ap: *********************************
+
 ************************* Version 8.01ao: *********************************
 
 IMP: (11/15/04, GVG) Prevent NullException in clearSetBit
