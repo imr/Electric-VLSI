@@ -23,8 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
-//import com.sun.electric.database.change.Undo;
-//import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 
 import java.util.List;
@@ -42,7 +41,7 @@ import java.util.Collections;
  * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
-public class View /* extends ElectricObject */
+public class View implements Comparable
 {
 	// -------------------------- private data -----------------------------
 
@@ -416,6 +415,20 @@ public class View /* extends ElectricObject */
 			return v1.getOrder() - v2.getOrder();
 		}
 	}
+
+    /**
+     * Compares two <code>View</code> objects.
+     * @param   o   the object to be compared.
+     * @return	the result of comparision.
+     */
+    public int compareTo(Object o) {
+		View v = (View)o;
+
+		if (isPermanentView() || v.isPermanentView())
+			return getOrder() - v.getOrder();
+		else
+			return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
+    }
 
 	/**
 	 * Returns a printable version of this View.

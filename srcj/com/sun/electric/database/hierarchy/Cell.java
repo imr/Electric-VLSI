@@ -2119,6 +2119,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public String getName() { return protoName; }
 
 	/**
+	 * Method to return the CellName object describing this Cell.
+	 * @return the CellName object describing this Cell.
+	 */
+	public CellName getCellName()
+	{
+		return CellName.parseName(protoName + ";" + version + "{" + view.getAbbreviation() + "}");
+	}
+
+	/**
 	 * Method to describe this cell.
 	 * The description has the form: cell;version{view}
 	 * If the cell is not from the current library, prepend the library name.

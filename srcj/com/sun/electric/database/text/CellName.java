@@ -132,7 +132,7 @@ public class CellName implements Comparable
 		int cmp = TextUtils.nameSameNumeric(name, n.name);
 		if (cmp != 0) return cmp;
 
-		cmp = view.getOrder() - n.view.getOrder();
+		cmp = view.compareTo(n.view);
 		if (cmp != 0) return cmp;
 
 		if (version > 0)

@@ -236,17 +236,20 @@ public class TextUtils
 		for(; pos < len; pos++)
 		{
 			char cat = s.charAt(pos);
-			if ((cat >= 'a' && cat <= 'f') || (cat >= 'A' && cat <= 'F'))
-			{
-				if (base != 16) break;
-				num = num * 16;
-				if (cat >= 'a' && cat <= 'f') num += cat - 'a' + 10; else
-					num += cat - 'A' + 10;
-				continue;
-			}
-			if (!TextUtils.isDigit(cat)) break;
-			if (cat >= '8' && base == 8) break;
-			num = num * base + cat - '0';
+			int digit = Character.digit(cat, base);
+			if (digit < 0) break;
+			num = num * base + digit;
+// 			if ((cat >= 'a' && cat <= 'f') || (cat >= 'A' && cat <= 'F'))
+// 			{
+// 				if (base != 16) break;
+// 				num = num * 16;
+// 				if (cat >= 'a' && cat <= 'f') num += cat - 'a' + 10; else
+// 					num += cat - 'A' + 10;
+// 				continue;
+// 			}
+//			if (!TextUtils.isDigit(cat)) break;
+//			if (cat >= '8' && base == 8) break;
+//			num = num * base + cat - '0';
 		}
 		return(num * sign);
 	}
@@ -821,27 +824,28 @@ public class TextUtils
 		int len1 = name1.length();
 		int len2 = name2.length();
 		int extent = Math.min(len1, len2);
-		for(int pos = 0; pos < extent; pos++)
+		for (int pos = 0; pos < extent; )
 		{
 			char ch1 = name1.charAt(pos);
 			char ch2 = name2.charAt(pos);
-			if (TextUtils.isDigit(ch1) && TextUtils.isDigit(ch2))
+			if (Character.isDigit(ch1) && Character.isDigit(ch2))
 			{
 				// found a number: compare them numerically
 				int value1 = TextUtils.atoi(name1, pos, 10);
 				int value2 = TextUtils.atoi(name2, pos, 10);
-				if (value1 != value2) return value1 - value2;
-				while (pos < extent-1)
+				if (value1 != value2) return value1 > value2 ? 1 : -1;
+				// compare numbers as strings
+				while (pos < extent)
 				{
-					char nextCh1 = name1.charAt(pos+1);
-					char nextCh2 = name2.charAt(pos+1);
-					if (nextCh1 != nextCh2 || !TextUtils.isDigit(nextCh1)) break;
+					char nextCh1 = name1.charAt(pos);
+					char nextCh2 = name2.charAt(pos);
+					if (nextCh1 != nextCh2 || !Character.isDigit(nextCh1)) break;
 					pos++;
-				}					
+				}
 				continue;
 			}
-			if (ch1 != ch2 && Character.toLowerCase(ch1) != Character.toLowerCase(ch2))
-				return Character.toLowerCase(ch1) - Character.toLowerCase(ch2);
+			if (ch1 != ch2) return ch1 - ch2;
+			pos++;
 		}
 		return len1 - len2;
 	}
@@ -1103,7 +1107,9 @@ public class TextUtils
 			String s2 = n2.getName();
 			if (s1 == null) s1 = "";
 			if (s2 == null) s2 = "";
-			return TextUtils.nameSameNumeric(s1, s2);
+			int cmp = TextUtils.nameSameNumeric(s1, s2);
+			if (cmp != 0) return cmp;
+			return n1.getNodeIndex() - n2.getNodeIndex();
 		}
 	}
 
@@ -1117,7 +1123,9 @@ public class TextUtils
 			String s2 = a2.getName();
 			if (s1 == null) s1 = "";
 			if (s2 == null) s2 = "";
-			return nameSameNumeric(s1, s2);
+			int cmp = nameSameNumeric(s1, s2);
+			if (cmp != 0) return cmp;
+			return a1.getArcIndex() - a2.getArcIndex();
 		}
 	}
 
