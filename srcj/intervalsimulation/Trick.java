@@ -76,11 +76,36 @@ public class Trick {
    }
 
     static double Gd = 1;
-    static Matrix C, Gon, Goff;
+    static Matrix C, C1, Goff, Gon;
     static Matrix Aon, Don, Von, Von1;
     static Matrix Aoff, Doff, Voff, Voff1;
     static double[] donr, doni;
     static double[] doffr, doffi;
+
+    private static Matrix prepareA(double gd)
+    {
+	Matrix G = Goff.copy(); 
+	G.set(0,0,gd);
+	return C1.times(G).uminus();
+    }
+
+    private static IntervalMatrix prepareIA(double gd_min, double gd_max)
+    {
+	Matrix a_min = prepareA(gd_min);
+	Matrix a_max = prepareA(gd_max);
+	int n = a_min.getRowDimension();
+	Matrix c = new Matrix(n,n);
+	Matrix d = new Matrix(n,n);
+	for (int i = 0; i < n; i++) {
+	    for (int j = 0; j < n; j++) {
+		double a_min_ij = a_min.get(i, j);
+		double a_max_ij = a_max.get(i, j);
+		c.set(i, j, (a_min_ij + a_max_ij)*0.5);
+		d.set(i, j, Math.abs((a_max_ij - a_min_ij))*0.5);
+	    }
+	}
+	return new IntervalMatrix(c, d);
+    }
 
     private static void prepare () {
 	
@@ -98,12 +123,13 @@ public class Trick {
 	    {-1,      1,   0}};
 	
 	C = new Matrix(C_val);
-	Matrix C1 = C.inverse();
+	C1 = C.inverse();
 	Goff = new Matrix(Goff_val);
-	Gon = new Matrix(Gon_val);
+	Gon = Goff.copy();
+	Gon.set(0,0,Gd);
 	
-	Aon = C1.times(Gon).uminus();
-	Aoff = C1.times(Goff).uminus();
+	Aoff = prepareA(0.0);
+	Aon = prepareA(Gd);
 
 	EigenvalueDecomposition Eon =
 	    new EigenvalueDecomposition(Aon);
@@ -162,6 +188,32 @@ public class Trick {
 	return Voff.times(expDt).times(Voff1);
     }
 
+    static double lam = 0.4929625;
+    //static double lam = 0.49;
+    static IntervalMatrix ID;
+
+    static boolean checkEnergy(double gd_min, double gd_max, int maxDepth)
+    {
+	IntervalMatrix IA = prepareIA( gd_min, gd_max);
+	IntervalMatrix IY = IA.transpose().times(ID).plus(ID.times(IA)).plus(ID.times(lam));
+
+	//int[] permute = {1,2,0}; 
+	int[] permute = {0,1,2}; 
+	if (IY.times(-1).isPositive(permute))
+	{
+	    System.out.println("["+gd_min+","+gd_max+"]");
+	    return true;
+	}
+	if (maxDepth == 0) {
+	    System.out.println("?["+gd_min+","+gd_max+"]");
+	    return false;
+	}
+	boolean ok = true;
+	if (!checkEnergy(gd_min, 0.5*(gd_min+gd_max), maxDepth - 1)) ok = false;
+	if (!checkEnergy(0.5*(gd_min+gd_max), gd_max, maxDepth - 1)) ok = false;
+	return ok;
+    }
+
     static void energy()
     {
 	double E[] = new double[3];
@@ -190,14 +242,62 @@ public class Trick {
 	Matrix Xon = S.inverse().times(Aon).times(S);
 	eigens("Xon", Xon.plus(Xon.transpose()));
 
-	double lam = 0.4929626;
-
 	Matrix Yoff = Aoff.transpose().times(D).plus(D.times(Aoff)).plus(D.times(lam));
 	eigens("Yoff",Yoff);
 
 	Matrix Yon = Aon.transpose().times(D).plus(D.times(Aon)).plus(D.times(lam));
 	eigens("Yon",Yon);
 
+	ID = new IntervalMatrix(D);
+
+	checkEnergy(0, Gd, 20);
+	//int[] permute = {1,2,0}; 
+	//System.out.println("IY.isPositive="+ IY.times(-1).isPositive(permute));
+
+    }
+
+    static void exponent() {
+	int dim = 3;
+	int pow = 10;
+	int n = 1 << pow;
+	double T = 0.02;
+	double minT = T / n;
+	Matrix soff = expAofft(minT);
+	Matrix son = expAont(minT);
+
+	IntervalMatrix s = IntervalMatrix.newLoHi(soff, son);
+	eigens("soff", soff);
+	eigens("son", son);
+	for (int i = 0; i < pow; i++) {
+	    System.out.println("dt="+ minT*(1 << i));
+	    printM("Sc", s.center);
+	    printM("Sd", s.delta);
+	    eigens("mag", s.mag());
+	    s = s.times(s);
+	}
+
+	Matrix S = Matrix.identity(dim,dim);
+	IntervalMatrix Si = new IntervalMatrix(S);
+	IntervalMatrix Si2 = null;;
+	Matrix[] Sa = new Matrix[n+1];
+	Matrix[] Sm = new Matrix[n+1];
+	Sa[0] = abs(S);
+	Sm[0] = Si.mag();
+	for (int i = 0; i < n; i++) {
+	    S = s.center.times(S);
+	    Sa[i+1] = abs(S);
+	    Si = s.times(Si);
+	    
+	    Matrix Sum = new Matrix(dim,dim);
+	    for (int j = 0; j < i; j++) {
+		Sum = Sum.plus(Sm[j].times(s.delta).times(Sa[i-j]));
+	    }
+	    Si2 = new IntervalMatrix(S, Sum);
+	    Sm[i+1] = Si2.mag();
+	}
+
+	printM("Si2.c", Si2.center);
+	printM("Si2.d", Si2.delta);
     }
 
     static double omega = 2*Math.PI*50.0;
@@ -513,7 +613,8 @@ public class Trick {
        }
        printM("Voff=", Voff);
        printM("Voff1=", Voff1);
-       energy();
+       //energy();
+       exponent();
        excitement();
       
        makeList();

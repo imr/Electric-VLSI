@@ -22,6 +22,13 @@ class IntervalMatrix {
 	this.center = center;
 	this.delta = new Matrix(center.getRowDimension(), center.getColumnDimension());
     }
+    static IntervalMatrix newLoHi(Matrix lo, Matrix hi) {
+	if (lo.getRowDimension() != hi.getRowDimension() ||
+	    lo.getColumnDimension() != hi.getColumnDimension()) {
+	    throw new IllegalArgumentException("Interval Matrix inner dimensions must agree.");
+	}
+	return new IntervalMatrix(lo.plus(hi).times(0.5), abs(hi.minus(lo).times(0.5)));
+    }
     int getRowDimension() { return center.getRowDimension(); }
     int getColumnDimension() { return center.getColumnDimension(); }
     Matrix mag() {
@@ -39,6 +46,18 @@ class IntervalMatrix {
 		xr[j] = Math.abs(cr[j]) + dr[j];
 	}
 	return x;
+    }
+    static Matrix abs(Matrix S) {
+	int m = S.getRowDimension();
+	int n = S.getColumnDimension();
+	Matrix A = new Matrix(m,n);
+	for (int i = 0; i < m; i++)
+	    for (int j = 0; j < n; j++)
+		A.set(i, j, Math.abs(S.get(i,j)));
+	return A;
+    }
+    IntervalMatrix transpose() {
+	return new IntervalMatrix(center.transpose(), delta.transpose());
     }
     IntervalMatrix plus(IntervalMatrix B) {
 	return new IntervalMatrix(center.plus(B.center), delta.plus(B.delta));
@@ -97,7 +116,7 @@ class IntervalMatrix {
 	return new IntervalMatrix(center.times(s), delta.times(Math.abs(s)));
     }
 
-    boolean isPositive()
+    boolean isPositive(int[] permute)
 	/* try to prove that summetric interval matrix is always positively defined
 	   using Cholesky's algorithm
 	*/
@@ -106,17 +125,17 @@ class IntervalMatrix {
 	    throw new IllegalArgumentException("Square matrix expected");
 	}
 	int n = getColumnDimension();
+	if (permute != null && permute.length != n) {
+	    throw new IllegalArgumentException("Permute length");
+	}
 	double[][] c = center.getArray();
 	double[][] d = delta.getArray();
 
 	RealInterval l[][] = new RealInterval[n][n];
 	for (int i = 0; i < n; i++) {
 	    for (int j = 0; j <= i; j++) {
-		double cij = c[i][j];
-		double dij = d[i][j];
-		if (c[j][i] != cij || d[j][i] != dij) {
-		    throw new IllegalArgumentException("Symmetric matrix expected");
-		}
+		double cij = permute != null ? c[permute[i]][permute[j]] : c[i][j];
+		double dij = permute != null ? d[permute[i]][permute[j]] : d[i][j];
 		l[i][j] = new RealInterval(cij - dij, cij + dij);
 	    }
 	}
