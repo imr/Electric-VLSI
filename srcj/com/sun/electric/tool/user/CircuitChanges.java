@@ -5131,22 +5131,8 @@ public class CircuitChanges
 				if (oLib.isChangedMajor()) continue;
 	
 				// see if any cells in this library reference the renamed one
-				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = (Cell)cIt.next();
-					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
-					{
-						NodeInst ni = (NodeInst)nIt.next();
-						if (!(ni.getProto() instanceof Cell)) continue;
-						Cell subCell = (Cell)ni.getProto();
-						if (subCell.getLibrary() == lib)
-						{
-							oLib.setChangedMajor();
-							break;
-						}
-					}
-					if (oLib.isChangedMajor()) break;
-				}
+                if (oLib.referencesLib(lib))
+                    oLib.setChangedMajor();
 			}
 			return true;
 		}

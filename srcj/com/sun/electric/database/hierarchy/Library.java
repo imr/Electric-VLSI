@@ -381,6 +381,20 @@ public class Library extends ElectricObject
     }
 
     /**
+     * Returns true if this Library directly references the specified Library 'lib'.
+     * It does not return true if the library is referenced through another library.
+     * @param lib the possible referenced library
+     * @return true if the library is directly referenced by this library, false otherwise
+     */
+    public boolean referencesLib(Library lib) {
+        synchronized(referencedLibs) {
+            if (referencedLibs.contains(lib))
+                return true;
+        }
+        return false;
+    }
+
+    /**
      * Checks to see if lib is referenced by this library, or by
      * any libraries this library references, recursively.
      * @param lib the lib to check if it is a referenced lib

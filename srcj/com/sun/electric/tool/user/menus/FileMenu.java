@@ -476,6 +476,18 @@ public class FileMenu {
             fileName = OpenFile.chooseOutputFile(OpenFile.Type.libraryTypes, null, lib.getName() + "." + extension);
             if (fileName == null) return false;
             type = getLibraryFormat(fileName, type);
+            // mark for saving, all libraries that depend on this
+            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library oLib = (Library)it.next();
+                if (oLib.isHidden()) continue;
+                if (oLib == lib) continue;
+                if (oLib.isChangedMajor()) continue;
+
+                // see if any cells in this library reference the renamed one
+                if (oLib.referencesLib(lib))
+                    oLib.setChangedMajor();
+            }
         }
         SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6);
         return true;
