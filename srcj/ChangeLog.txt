@@ -4,14 +4,25 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ax: *********************************
 
+IMP: (12/21/04, SMR) When going down hierarchy, only ask for entry in arrayed node if waveform is present.
+
+IMP: (12/21/04, SMR) Added Help/Load Built-in Libraries/MOSIS CMOS Pads to get the pads library.
+
+BUG: (12/20/04, SMR) Offset text on rotated nodes is not drawn right.
+FIX: In Geometric.addDisplayableVariables(), handle style rotation and style offset.
+     In ElectricObject.getPolyList(), handle style offset.
+     In ElectricObject.addDisplayableVariables(), handle style rotation.
+     In PolyBase.rotateType(), handle transposed rotation better.
+     In Technology.getShapeOfNode(), use untransformed bounds of node for text location.
+
 BUG: (12/20/04, GVG) Extra polyehedra to describe gate channel were wrong if transistors were rotated (Bug #124)
 FIX: Extra geometries are created after polygons are rotated.
 
 IMP: (12/20/04, GVG) Ability to open libraries without providing extension. Extension will be added based on
-DEFAULTELIB variable. (Bug #95)
+     DEFAULTELIB variable. (Bug #95)
 
 IMP: (12/20/04, GVG) Adding error logger to ELIB/ELIB1 if readNodeInst/readArcInst returns true
-otherwise users might skip the error.
+     otherwise users might skip the error.
 
 BUG: (12/20/04, SMR) "Dragging must enclose objects" doesn't work right (Bug #131).
 FIX: In Highlighter.checkOutObject()" must consider only essential part of node or arc.

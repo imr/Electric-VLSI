@@ -2115,6 +2115,7 @@ public class PixelDrawing
 	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// quit if string is null
+		if (s == null) return;
 		int len = s.length();
 		if (len == 0) return;
 

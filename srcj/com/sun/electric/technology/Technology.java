@@ -1727,7 +1727,8 @@ public class Technology
 		// add in the displayable variables
 		if (wnd != null)
 		{
-			Rectangle2D rect = ni.getBounds();
+//			Rectangle2D rect = ni.getBounds();
+			Rectangle2D rect = ni.getUntransformedBounds();
 			ni.addDisplayableVariables(rect, polys, fillPoly, wnd, true);
 		}
 		return polys;

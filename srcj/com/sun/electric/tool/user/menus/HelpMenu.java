@@ -24,13 +24,20 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.lib.LibFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
+import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
+
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Help" pulldown menu.
@@ -57,6 +64,11 @@ public class HelpMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
 		helpMenu.addMenuItem("Load Samples Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
+
+		MenuBar.Menu builtInLibSubMenu = new MenuBar.Menu("Load Built-in Libraries", 'B');
+		helpMenu.add(builtInLibSubMenu);
+		builtInLibSubMenu.addMenuItem("MOSIS CMOS Pads", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { loadBuiltInLibraryCommand("pads4u"); } });
 		return helpMenu;
     }
 
@@ -72,6 +84,13 @@ public class HelpMenu {
 	{
 		ManualViewer dialog = new ManualViewer(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
+	}
+
+	private static void loadBuiltInLibraryCommand(String libName)
+	{
+		if (Library.findLibrary(libName) != null) return;
+		URL url = LibFile.getLibFile(libName + ".jelib");
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 
 }

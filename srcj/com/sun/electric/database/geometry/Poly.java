@@ -237,6 +237,7 @@ public class Poly extends PolyBase {
 		}
 
 		Type style = getStyle();
+		style = rotateType(style, eObj);
 		Font font = wnd.getFont(descript);
 		if (font == null)
 		{
@@ -265,7 +266,6 @@ public class Poly extends PolyBase {
 		double hY = bounds.getMaxY();
 		GlyphVector gv = wnd.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		style = rotateType(style, eObj);
 
 		// adjust to place text in the center
 		double textScale = getTextScale(wnd, gv, style, lX, hX, lY, hY);

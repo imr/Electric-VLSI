@@ -2552,17 +2552,29 @@ public class EditWindow extends JPanel
 		}
 		if (possibleNodables.size() > 1)
 		{
-			String [] manyOptions = new String[possibleNodables.size()];
-			int i = 0;
-			for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
-				manyOptions[i++] = ((Nodable)it.next()).getName();
-	        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
-	            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
-	        if (chosen == null) return;
-			for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+			desiredNO = (Nodable)possibleNodables.get(0);
+
+			// see if there are any waveform windows
+			boolean hasWaveform = false;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				Nodable no = (Nodable)it.next();
-				if (no.getName().equals(chosen)) { desiredNO = no;   break; }
+				WindowFrame wf = (WindowFrame)it.next();
+				if (wf.getContent() instanceof WaveformWindow) { hasWaveform = true;   break; }
+			}
+			if (hasWaveform)
+			{
+				String [] manyOptions = new String[possibleNodables.size()];
+				int i = 0;
+				for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+					manyOptions[i++] = ((Nodable)it.next()).getName();
+		        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
+		            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
+		        if (chosen == null) return;
+				for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+				{
+					Nodable no = (Nodable)it.next();
+					if (no.getName().equals(chosen)) { desiredNO = no;   break; }
+				}
 			}
 		}
 		

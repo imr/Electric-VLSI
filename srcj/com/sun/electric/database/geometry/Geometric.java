@@ -1138,6 +1138,14 @@ public abstract class Geometric extends ElectricObject
 			TextDescriptor.Position pos = nameDescriptor.getPos();
 			Poly.Type style = pos.getPolyType();
 
+			TextDescriptor td = nameDescriptor;
+			if (this instanceof NodeInst && (offX != 0 || offY != 0))
+			{
+				td = new TextDescriptor(null, nameDescriptor);
+				td.setOff(0, 0);
+			    style = Poly.rotateType(style, this);
+			}
+
 			Point2D [] pointList = null;
 			if (style == Poly.Type.TEXTBOX)
 			{
@@ -1150,7 +1158,7 @@ public abstract class Geometric extends ElectricObject
 			polys[start] = new Poly(pointList);
 			polys[start].setStyle(style);
 			polys[start].setString(name.toString());
-			polys[start].setTextDescriptor(nameDescriptor);
+			polys[start].setTextDescriptor(td);
 			polys[start].setLayer(null);
 			//polys[start].setVariable(var); ???
 			polys[start].setName(name);

@@ -311,6 +311,7 @@ public abstract class ElectricObject
 			{
 				int index = start + numAddedVariables;
 				polys[index] = polyList[i];
+polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 				numAddedVariables++;
 			}
 		}
@@ -461,6 +462,11 @@ public abstract class ElectricObject
 		int varLength = var.getLength();
 		double height = 0;
 		Poly.Type style = td.getPos().getPolyType();
+		if (this instanceof NodeInst && (offX != 0 || offY != 0))
+		{
+			td = new TextDescriptor(null, td);
+			td.setOff(0, 0);
+		}
 		boolean headerString = false;
 		Font font = null;
 		double scale = 1;

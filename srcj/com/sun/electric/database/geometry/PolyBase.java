@@ -602,16 +602,19 @@ public class PolyBase implements Shape
 		// can only rotate anchor when node is in a manhattan orientation
 		if ((nodeAngle%900) != 0) return origType;
 
-		// rotate the anchor
-		int angle = origType.getTextAngle();
+		// determine angle of original style
+		int origAngle = origType.getTextAngle();
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
+
+		// determine change in angle because of node rotation
 		AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
 		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
-		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
-			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
-		angle = (angle + xAngle) % 3600;
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 450)) xAngle += 900;
 
+		// determine new angle and style
+		int angle = (origAngle + xAngle) % 3600;
 		Poly.Type style = Poly.Type.getTextTypeFromAngle(angle);
 		return style;
 	}
