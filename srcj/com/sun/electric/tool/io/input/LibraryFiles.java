@@ -56,7 +56,7 @@ import java.util.Set;
 /**
  * This class reads Library files (ELIB or readable dump) format.
  */
-public class LibraryFiles extends Input
+public abstract class LibraryFiles extends Input
 {
 	// the cell information
 	/** The number of Cells in the file. */									protected int nodeProtoCount;
@@ -66,7 +66,7 @@ public class LibraryFiles extends Input
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
 	/** a List of scaled Cells that got created */							protected List scaledCells;
 	/** a List of wrong-size Cells that got created */						protected List skewedCells;
-//	/** The Electric version in the library file. */						protected int emajor, eminor, edetail;
+	/** Number of errors in this LibraryFile */								protected int errorCount;
 	/** the Electric version in the library file. */						protected Version version;
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
 	/** true to scale lambda by 20 */										protected boolean scaleLambdaBy20;
@@ -100,6 +100,8 @@ public class LibraryFiles extends Input
 	public static void initializeLibraryInput()
 	{
 		libsBeingRead = new ArrayList();
+		if (NEWJELIB)
+			LibraryContents.initializeLibraryInput();
 	}
 
 	public boolean readInputLibrary()
@@ -194,6 +196,7 @@ public class LibraryFiles extends Input
 	{
 		// get the path to the library file
 		URL url = TextUtils.makeURLToFile(theFileName);
+		String legalLibName = TextUtils.getFileNameWithoutExtension(url);
 		String fileName = url.getFile();
 		File libFile = new File(fileName);
 
@@ -211,7 +214,6 @@ public class LibraryFiles extends Input
 			libFileName = libFileName.substring(charPos+1);
 			libFilePath = "";
 		}
-		OpenFile.Type oldimportType = defaultType;
 		String libName = libFileName;
 		OpenFile.Type importType = OpenFile.getOpenFileType(libName, defaultType);
 
@@ -221,21 +223,17 @@ public class LibraryFiles extends Input
 		} else if (libName.endsWith(".jelib"))
 		{
 			libName = libName.substring(0, libName.length()-6);
-			oldimportType = OpenFile.Type.JELIB;
 		} else if (libName.endsWith(".txt"))
 		{
 			libName = libName.substring(0, libName.length()-4);
-			oldimportType = OpenFile.Type.READABLEDUMP;
 		} else
 		{
 			// no recognizable extension, add one to the file name
 			libFileName += "." + defaultType.getExtensions()[0];
 		}
 
-		if (oldimportType != importType) System.out.println("Error in LibraryFiles.readExternalLibraryFromFilename()");
-
 		// first try the pure library name with no path information
-		Library elib = Library.findLibrary(libName);
+		Library elib = Library.findLibrary(legalLibName);
 		if (elib != null) return elib;
 
         StringBuffer errmsg = new StringBuffer();
@@ -285,19 +283,7 @@ public class LibraryFiles extends Input
 		{
 			System.out.println("Reading referenced library " + externalURL.getFile());
             importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
-			OpenFile.Type oldimport = defaultType;
-            if (externalURL.getFile().endsWith(".elib"))
-            {
-                oldimport = OpenFile.Type.ELIB;
-            } else if (externalURL.getFile().endsWith(".jelib"))
-            {
-                oldimport = OpenFile.Type.JELIB;
-            } else if (externalURL.getFile().endsWith(".txt"))
-            {
-                oldimport = OpenFile.Type.READABLEDUMP;
-            }
-			if (oldimportType != importType) System.out.println("Error in LibraryFiles.readExternalLibraryFromFilename");
-            elib = Library.newInstance(libName, externalURL);
+            elib = Library.newInstance(legalLibName, externalURL);
 		}
 
         if (elib != null)
@@ -307,7 +293,7 @@ public class LibraryFiles extends Input
             if (progress != null)
             {
                 progress.setProgress(0);
-                progress.setNote("Reading referenced library " + libName + "...");
+                progress.setNote("Reading referenced library " + legalLibName + "...");
             }
 
             elib = readALibrary(externalURL, elib, importType);
@@ -318,8 +304,8 @@ public class LibraryFiles extends Input
         if (elib == null)
         {
             System.out.println("Error: cannot find referenced library " + libFile.getPath());
-            System.out.println("...Creating new "+libName+" Library instead");
-            elib = Library.newInstance(libName, null);
+            System.out.println("...Creating new "+legalLibName+" Library instead");
+            elib = Library.newInstance(legalLibName, null);
             elib.setLibFile(TextUtils.makeURLToFile(theFileName));
             elib.clearFromDisk();
         }
@@ -498,6 +484,8 @@ public class LibraryFiles extends Input
 //		convertOldLibraries();
         // clean up init (free LibraryFiles for garbage collection)
         libsBeingRead.clear();
+		if (NEWJELIB)
+			LibraryContents.terminateLibraryInput();
 	}
 
 // 	private static void convertOldLibraries()
@@ -527,7 +515,7 @@ public class LibraryFiles extends Input
 					buf = new StringBuffer();
 					buf.append(s.substring(0, i));
 				}
-				buf.append('_');
+				buf.append('-');
 				continue;
 			} else if (buf != null)
 			{
@@ -541,6 +529,35 @@ public class LibraryFiles extends Input
 			return newS;
 		}
 		return s;
+	}
+
+	/**
+	 * Set line number for following errors and warnings.
+	 * @param lineNumber line numnber for following erros and warnings.
+	 */
+	void setLineNumber(int lineNumber) {}
+
+	/**
+	 * Issue error message.
+	 * @param message message string.
+	 * @return MessageLog object for attaching further geometry details.
+	 */
+	ErrorLogger.MessageLog logError(String message)
+	{
+		errorCount++;
+		System.out.println(message);
+		return errorLogger.logError(message, null, -1);
+	}
+
+	/**
+	 * Issue warning message.
+	 * @param message message string.
+	 * @return MessageLog object for attaching further geometry details.
+	 */
+	ErrorLogger.MessageLog logWarning(String message)
+	{
+		System.out.println(message);
+		return errorLogger.logWarning(message, null, -1);
 	}
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************

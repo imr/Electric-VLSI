@@ -58,6 +58,9 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.tool.io.input.ELIB1;
+import com.sun.electric.tool.io.input.JELIB1;
+import com.sun.electric.tool.io.input.LibraryStatistics;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -201,8 +204,14 @@ public class DebugMenus {
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
-	    dimaMenu.addMenuItem("Show tech vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showTechnologyVariablesCommand(); } });
+	    dimaMenu.addMenuItem("Lib test", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { libTestCommand(); } });
+	    dimaMenu.addMenuItem("Scan home dirs", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { homeDirsCommand(); } });
+	    dimaMenu.addMenuItem("Read home libs", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { homeLibsCommand(); } });
+	    dimaMenu.addMenuItem("Var names", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { varNamesCommand(); } });
     }
 
 	// ---------------------- For Regression Testing -----------------
@@ -1404,49 +1413,137 @@ public class DebugMenus {
 
 	// ---------------------- Dima's Stuff MENU -----------------
 
-	private static void showTechnologyVariablesCommand()
+	private static void libTestCommand()
 	{
-		ShowTechnologyVariables job = new ShowTechnologyVariables();
+        String fileName = OpenFile.chooseInputFile(OpenFile.Type.LIBRARYFORMATS, null);
+        //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
+        if (fileName == null) return;
+		// start a job to do the input
+		OpenFile.Type type = OpenFile.getOpenFileType(fileName, OpenFile.Type.JELIB);
+		URL fileURL = TextUtils.makeURLToFile(fileName);
+		LibTestJob job = new LibTestJob(fileURL, type);
 	}
 
 	/**
-	 * Class to show variables of Technology objects.
+	 * Class to test library file.
 	 */
-	private static class ShowTechnologyVariables extends Job
+	private static class LibTestJob extends Job
 	{
-		protected ShowTechnologyVariables()
+		URL fileURL;
+		OpenFile.Type type;
+
+		protected LibTestJob(URL fileURL, OpenFile.Type type)
 		{
-			super("Show technology variables", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Lib test", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.fileURL = fileURL;
+			this.type = type;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-// 			System.out.println("Technology variables.");
-// 			for (Iterator tit = Technology.getTechnologies(); tit.hasNext();)
-// 			{
-// 				Technology tech = (Technology)tit.next();
-// 				System.out.println(tech + ":");
-// 				for (Iterator vit = tech.getVariables(); vit.hasNext();)
-// 				{
-// 					Variable var = (Variable)vit.next();
-// 					System.out.println("tech has " + var);
-// 				}
-// 			}
-// 			System.out.println("Tool variables.");
-// 			for (Iterator tit = Tool.getTools(); tit.hasNext();)
-// 			{
-// 				Tool tool = (Tool)tit.next();
-// 				System.out.println(tool + ":");
-// 				for (Iterator vit = tool.getVariables(); vit.hasNext();)
-// 				{
-// 					Variable var = (Variable)vit.next();
-// 					System.out.println("tool has " + var);
-// 				}
-// 			}
+			if (type == OpenFile.Type.JELIB)
+				JELIB1.convertLibrary(fileURL, "test.jelib");
+			else if (type == OpenFile.Type.ELIB);
+				ELIB1.convertLibrary(fileURL, "test.jelib");
 			return true;
 		}
 	}
 
 
+	private static String homeRegressionDir = "/home/nad/electric/regression";
+
+	private static void homeDirsCommand()
+	{
+		String[] dirNames = { "/home/nad" };
+		new HomeDirsJob(dirNames, homeRegressionDir);
+	}
+
+	/**
+	 * Class to scan home directories.
+	 */
+	private static class HomeDirsJob extends Job
+	{
+		String[] dirNames;
+		String regressionDir;
+
+		protected HomeDirsJob(String[] dirNames, String regressionDir)
+		{
+			super("Scan home dirs", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.dirNames = dirNames;
+			this.regressionDir = regressionDir;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			LibraryStatistics stat = LibraryStatistics.scanDirectories(dirNames);
+			stat.writeList(regressionDir + "/data/home.list");
+			stat.reportFileLength();
+			return true;
+		}
+	}
+
+	private static void homeLibsCommand()
+	{
+		new HomeLibsJob(homeRegressionDir);
+	}
+
+	/**
+	 * Class to read home library files.
+	 */
+	private static class HomeLibsJob extends Job
+	{
+		String regressionDir;
+
+		protected HomeLibsJob(String regressionDir)
+		{
+			super("Read Libs", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.regressionDir = regressionDir;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			LibraryStatistics stat = LibraryStatistics.readList(regressionDir + "/data/home.list");
+			stat.readLibraries();
+			stat.writeSerialized(regressionDir + "/tools/IO/output/home.ser");
+			stat.reportFileLength();
+			stat.reportMemoryUsage();
+			stat.reportJelib(regressionDir + "/tools/IO/output/home.jlib");
+			stat.reportVariableNames(regressionDir + "/tools/IO/output/home.var");
+
+			LibraryStatistics stat1 = LibraryStatistics.readSerialized(regressionDir + "/tools/IO/output/home.ser");
+			stat1.writeList(regressionDir + "/data/home.list");
+			stat1.reportFileLength();
+
+			return true;
+		}
+	}
+
+	private static void varNamesCommand()
+	{
+		new VarNamesJob(homeRegressionDir);
+	}
+
+	/**
+	 * Class to read home library files.
+	 */
+	private static class VarNamesJob extends Job
+	{
+		String regressionDir;
+
+		protected VarNamesJob(String regressionDir)
+		{
+			super("Var names", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.regressionDir = regressionDir;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			LibraryStatistics.readVariableNames(regressionDir + "/tools/IO/output/proj.var");
+			return true;
+		}
+	}
 }

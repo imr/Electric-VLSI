@@ -48,6 +48,7 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * This class is a collection of text utilities.
@@ -341,15 +342,27 @@ public class TextUtils
 	}
 
 	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
+	private static SimpleDateFormat simpleDateFormatPST = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
+	static { simpleDateFormatPST.setTimeZone(TimeZone.getTimeZone("PST")); }
 
 	/**
-	 * Method to convert a Date to a String.
+	 * Method to convert a Date to a String using Locale TimeZone.
 	 * @param date the date to format.
 	 * @return the string representation of the date.
 	 */
 	public static String formatDate(Date date)
 	{
 		return simpleDateFormat.format(date);
+	}
+
+	/**
+	 * Method to convert a Date to a String using PST TimeZone.
+	 * @param date the date to format.
+	 * @return the string representation of the date.
+	 */
+	public static String formatDatePST(Date date)
+	{
+		return simpleDateFormatPST.format(date);
 	}
 
 	/**
@@ -1008,13 +1021,43 @@ public class TextUtils
 	public static String getFileNameWithoutExtension(URL url)
 	{
 		String fileName = url.getFile();
+
+		// special case if the library path came from a different computer system and still has separators
+		int backSlashPos = fileName.lastIndexOf('\\');
+		int colonPos = fileName.lastIndexOf(':');
 		int slashPos = fileName.lastIndexOf('/');
-		if (slashPos >= 0)
-		{
-			fileName = fileName.substring(slashPos+1);
-		}
+		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
+		if (charPos >= 0)
+			fileName = fileName.substring(charPos+1);
+
 		int dotPos = fileName.lastIndexOf('.');
 		if (dotPos >= 0) fileName = fileName.substring(0, dotPos);
+
+		// make sure the file name is legal
+		StringBuffer buf = null;
+		for (int i = 0; i < fileName.length(); i++)
+		{
+			char ch = fileName.charAt(i);
+			if (ch == '\n' || ch == '|' || ch == ':' || ch == ' ' || ch == '{' || ch == '}' || ch == ';')
+			{
+				if (buf == null)
+				{
+					buf = new StringBuffer();
+					buf.append(fileName.substring(0, i));
+				}
+				buf.append('-');
+				continue;
+			} else if (buf != null)
+			{
+				buf.append(ch);
+			}
+		}
+		if (buf != null)
+		{
+			String newS = buf.toString();
+			System.out.println("File name " + fileName + " was converted to " + newS);
+			return newS;
+		}
 		return fileName;
 	}
 

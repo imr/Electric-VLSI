@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -33,6 +34,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
@@ -58,6 +60,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,13 +68,14 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class keeps contents of disk library file.
  */
 public class LibraryContents
 {
-	private abstract class ObjectRef
+	private abstract class ObjectRef implements Comparable
 	{
 		private final String name;
 		private int tempInt;
@@ -80,7 +84,8 @@ public class LibraryContents
 		{
 			if (name == null) throw new IllegalArgumentException();
 			this.name = name;
-			tempInt = reader.lineReader.getLineNumber();
+			if (reader.lineReader != null)
+				tempInt = reader.lineReader.getLineNumber();
 		}
 
 		/**
@@ -107,6 +112,11 @@ public class LibraryContents
 // 			return false;
 // 		}
 
+		public int compareTo(Object o)
+		{
+			return TextUtils.nameSameNumeric(name, ((ObjectRef)o).name);
+		}
+
 		String getName() { return name; }
 
 		String getFullName() { return name; }
@@ -122,7 +132,7 @@ public class LibraryContents
 
 		PortProtoRef findPortProtoRef(String portName) { return (PortProtoRef)ports.get(portName); }
 
-		private PortProtoRef getPortProtoRef(String portName)
+		PortProtoRef getPortProtoRef(String portName)
 		{
 			PortProtoRef ppRef = (PortProtoRef)ports.get(portName);
 			if (ppRef == null)
@@ -154,7 +164,7 @@ public class LibraryContents
 		{
 			super(name);
 			this.nodeProtoRef = nodeProtoRef;
-			nodeProtoRef.ports.put(name, nodeProtoRef);
+			nodeProtoRef.ports.put(name, this);
 		}
 
 		abstract PortProto getPortProto();
@@ -171,6 +181,7 @@ public class LibraryContents
 		ToolRef(String name) { super(name); toolRefs.put(name, this); }
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
 
 		Tool getTool()
@@ -189,31 +200,56 @@ public class LibraryContents
 			if (getVars() != null)
 				LibraryContents.this.addMeaningPrefs(getTool(), getVars());
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("O" + getName());
+			printJelibVars(out, vars);
+			out.println();
+		}
 	}
 
 	class ViewRef extends ObjectRef
 	{
+		private String fullName;
 		private VariableContents[] vars;
 
 		private View view;
 
-		ViewRef(String name) { super(name); viewRefs.put(name, this); }
+		ViewRef(String name, String fullName)
+		{
+			super(name);
+			viewRefs.put(name, this);
+			this.fullName = fullName;
+		}
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("V" + (fullName != null ? convertJelibString(fullName) : "") + "|" + getName());
+			printJelibVars(out, vars);
+			out.println();
+		}
 	}
 
 	class TechnologyRef extends ObjectRef
 	{
 		private final LinkedHashMap primitiveNodes/*<String,PrimitiveNodeRef>*/ = new LinkedHashMap();
 		private final LinkedHashMap arcProtos/*<String,ArcProtoRef>*/ = new LinkedHashMap();
+		private int lambda;
 		private VariableContents[] vars;
 
 		private Technology tech;
 
 		private TechnologyRef(String name) { super(name); technologyRefs.put(name, this); }
 
+		void setLambda(int lambda) { this.lambda = lambda; }
+		
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
 
 		PrimitiveNodeRef newPrimitiveNodeRef(String pnName)
@@ -278,6 +314,30 @@ public class LibraryContents
 			if (getVars() != null)
 				LibraryContents.this.addMeaningPrefs(getTechnology(), getVars());
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.println();
+			out.print("# Technology " + getName());
+			if (lambda != 0)
+				out.print(" lambda " + lambda*0.5);
+			out.println();
+			out.print("T" + getName());
+			printJelibVars(out, vars);
+			out.println();
+
+			for (Iterator it = primitiveNodes.values().iterator(); it.hasNext(); )
+			{
+				PrimitiveNodeRef primitiveNodeRef = (PrimitiveNodeRef)it.next();
+				primitiveNodeRef.printJelib(out);
+			}
+
+			for (Iterator it = arcProtos.values().iterator(); it.hasNext(); )
+			{
+				ArcProtoRef arcProtoRef = (ArcProtoRef)it.next();
+				arcProtoRef.printJelib(out);
+			}
+		}
 	}
 
 	class PrimitiveNodeRef extends NodeProtoRef
@@ -295,6 +355,7 @@ public class LibraryContents
 		}
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
 
 		String getFullName() { return techRef.getName() + ":" + getName(); }
@@ -321,6 +382,19 @@ public class LibraryContents
 			}
 			return pn;
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("D" + getName());
+			printJelibVars(out, vars);
+			out.println();
+
+			for (Iterator it = getPorts(); it.hasNext(); )
+			{
+				PrimitivePortRef primitivePortRef = (PrimitivePortRef)it.next();
+				primitivePortRef.printJelib(out);
+			}
+		}
 	}
 
 	class PrimitivePortRef extends PortProtoRef
@@ -332,12 +406,20 @@ public class LibraryContents
 		PrimitivePortRef(PrimitiveNodeRef primitiveNodeRef, String name) { super(primitiveNodeRef, name); }
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
 
 		PortProto getPortProto()
 		{
 			logError("Cannot identify primitive port " + getName());
 			return pp;
+		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("P" + getName());
+			printJelibVars(out, vars);
+			out.println();
 		}
 	}
 
@@ -356,6 +438,7 @@ public class LibraryContents
 		}
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 		VariableContents[] getVars() { return vars; }
 
 		String getFullName() { return techRef.getName() + ":" + getName(); }
@@ -364,6 +447,13 @@ public class LibraryContents
 		{
 			logError("Cannot identify primitive arc " + getName());
 			return ap;
+		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("W" + getName());
+			printJelibVars(out, vars);
+			out.println();
 		}
 	}
 
@@ -381,7 +471,9 @@ public class LibraryContents
 			libraryRefs.put(name, this);
 		}
 
-		boolean isExternal() { return this != curLib; }
+		boolean isExternal() { return this != myLibraryRef; }
+
+		String getFileName() { return fileName; }
 
 		CellRef newExternalCellRef(String cellName, double lowX, double lowY, double highX, double highY)
 		{
@@ -399,7 +491,7 @@ public class LibraryContents
 			return extCell;
 		}
 
-		CellContents newCellContents(String cellName, long creationDate, long revisionDate)
+		private CellContents newCellContents(String cellName, long creationDate, long revisionDate)
 		{
 			assert !isExternal();
 			CellRef cellRef = (CellRef)cells.get(cellName);
@@ -434,25 +526,26 @@ public class LibraryContents
 			return cellRef;
 		}
 
-		Library getLibrary()
+		Library getLibrary() { return lib; }
+
+		void printJelib(PrintWriter out)
 		{
-			if (lib == null)
+			out.println("L" + getName() + "|" + convertJelibString(fileName));
+			for(Iterator cIt = cells.values().iterator(); cIt.hasNext(); )
 			{
-				lib = Library.findLibrary(getName());
-				if (lib == null)
-				{
-					//logError("Unknown Library: " + name);
-					logError("Creating dummy library " + getName());
-					lib = Library.newInstance(getName(), null);
-				}
+				CellRef cellRef = (CellRef)cIt.next();
+				cellRef.printJelib(out);
 			}
-			return lib;
 		}
 	}
 
 	class CellRef extends NodeProtoRef
 	{
 		private LibraryRef libraryRef;
+
+		private String protoName;
+		private ViewRef viewRef;
+		private int version;
 
 		private long creationDate;
 		private long revisionDate;
@@ -467,6 +560,59 @@ public class LibraryContents
 		{
 			super(name);
 			this.libraryRef = libraryRef;
+
+			protoName = getName();
+			String viewName = "";
+			int openCurly = protoName.indexOf('{');
+			int closeCurly = protoName.indexOf('}');
+			int semiColon = protoName.indexOf(';');
+			if (protoName.lastIndexOf('{') == openCurly &&
+				protoName.lastIndexOf('}') == closeCurly &&
+				protoName.lastIndexOf(';') == semiColon &&
+				protoName.indexOf('\n') < 0 &&
+				protoName.indexOf('|') < 0 &&
+				protoName.indexOf(':') < 0 &&
+				protoName.indexOf(' ') < 0 &&
+				openCurly <= closeCurly &&
+				(closeCurly < 0 || closeCurly == protoName.length() - 1) &&
+				(semiColon < 0 || openCurly < 0 || semiColon < openCurly))
+			{
+				if (openCurly >= 0)
+				{
+					viewName = protoName.substring(openCurly + 1, closeCurly);
+					protoName = protoName.substring(0, openCurly);
+				}
+				if (semiColon >= 0)
+				{
+					try {
+						version = Integer.parseInt(protoName.substring(semiColon + 1));
+					} catch (NumberFormatException e)
+					{
+						logError("Bad version number of cell " + protoName);
+					}
+					protoName = protoName.substring(0, semiColon);
+				}
+			} else
+			{
+				logError("Badly formed cell name " + protoName);
+			}
+			viewRef = getViewRef(viewName);
+		}
+
+		public int compareTo(Object o)
+		{
+			CellRef c = (CellRef)o;
+
+			int cmp = TextUtils.nameSameNumeric(protoName, c.protoName);
+			if (cmp != 0) return cmp;
+
+			cmp = viewRef.compareTo(c.viewRef);
+			if (cmp != 0) return cmp;
+
+			if (version > 0)
+				return c.version > 0 ? c.version - version : 1;
+			else
+				return c.version > 0 ? -1 : 0;
 		}
 
 		void setBounds(double loX, double loY, double hiX, double hiY)
@@ -536,6 +682,18 @@ public class LibraryContents
 // 			cc.cell.newVar(Input.IO_DUMMY_OBJECT, getName());
 // 			return cc.cell;
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			Rectangle2D bounds = getBounds();
+			out.print("R" + protoName + "|" + viewRef.getName() + "|" + version +
+				"|" + bounds.getMinX() + "|" + bounds.getMaxX() + "|" + bounds.getMinY() + "|" + bounds.getMaxY());
+			for (Iterator eIt = getPorts(); eIt.hasNext(); )
+			{
+				ExportRef exportRef = (ExportRef)eIt.next();
+				exportRef.printJelib(out);
+			}
+		}
 	}
 
 	class ExportRef extends PortProtoRef
@@ -547,6 +705,31 @@ public class LibraryContents
 		PortProto getPortProto() {
 			logError("Cannot identify export " + getName());
 			return export;
+		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("#" + getName());
+			if (export != null)
+			{
+				out.print("|" + describeJelibDescriptor(null, export.getTextDescriptor()));
+				PortOriginal po = new PortOriginal(export.getOriginalPort());
+				PrimitivePort pp = po.getBottomPortProto();
+				PrimitiveNode pn = (PrimitiveNode)pp.getParent();
+				out.print("|" + pn.getFullName() + "|");
+				if (pn.getNumPorts() > 1)
+					out.print(pp.getName());
+				// port information
+				Poly poly = export.getOriginalPort().getPoly();
+				out.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
+						  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
+				int angle = po.getAngleToTop();
+				out.print(angle != 0 ? "|" + angle : "|");
+				out.print("|" + export.getCharacteristic().getShortName());
+				if (export.isAlwaysDrawn()) out.print("/A");
+				if (export.isBodyOnly()) out.print("/B");
+			}
+			out.println();
 		}
 	}
 
@@ -604,10 +787,8 @@ public class LibraryContents
 		void setInCellLibrary(boolean value) { inCellLibrary = value; }
 		void setInTechnologyLibrary(boolean value) { inTechnologyLibrary = value; }
 
-		void setVars(VariableContents[] vars)
-		{
-			this.vars = vars;
-		}
+		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 
 		void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
 
@@ -623,9 +804,9 @@ public class LibraryContents
 			return new ArcContents(apRef, name, textDescriptor, width);
 		}
 
-		ExportContents newExportContents(String name, String textDescriptor, NodeContents node, String portName, double x, double y)
+		ExportContents newExportContents(String name, String textDescriptor, NodeContents node, PortProtoRef port, double x, double y)
 		{
-			return new ExportContents(name, textDescriptor, node, portName, x, y);
+			return new ExportContents(name, textDescriptor, node, port, x, y);
 		}
 
 
@@ -643,24 +824,28 @@ public class LibraryContents
 		 * @param cell the Cell to instantiate.
 		 * @param cc the contents of that cell (the strings from the file).
 		 */
-		private void instantiate()
+		void instantiate()
 		{
 			// instantiate all subcells
-			for (int i = 0; i < nodes.length; i++)
-			{
-				currentCellContents = this;
-				LibraryContents.this.setLineNumber(nodes[i].lineNumber);
-				nodes[i].protoRef.getNodeProto();
-			}
+// 			for (int i = 0; i < nodes.length; i++)
+// 			{
+// 				currentCellContents = this;
+// 				LibraryContents.this.setLineNumber(nodes[i].lineNumber);
+// 				nodes[i].protoRef.getNodeProto();
+// 			}
 
-			cell = Cell.newInstance(myCellRef.getLibraryRef().getLibrary(), getName());
+// 			cell = Cell.newInstance(myCellRef.getLibraryRef().getLibrary(), getName());
+// 			if (cell == null)
+// 			{
+// 				logError("Unable to create cell " + getName());
+// 				return;
+// 			}
+
 			if (cell == null)
-			{
-				logError("Unable to create cell " + getName());
-				return;
-			}
-
+				allocateCell();
+			if (cell == null) return;
 			currentCellContents = this;
+
 			// place all nodes
 			for (int i = 0; i < nodes.length; i++)
 				nodes[i].instantiate(cell);
@@ -673,22 +858,77 @@ public class LibraryContents
 			for (int i = 0; i < exports.length; i++)
 				exports[i].instantiate(cell);
 
+// 			cell.lowLevelSetCreationDate(new Date(creationDate));
+// 			cell.lowLevelSetRevisionDate(new Date(revisionDate));
+// 			cell.setTechnology(techRef.getTechnology());
+
+// 			if (wantExpanded) cell.setWantExpanded(); else cell.clearWantExpanded();
+// 			if (allLocked) cell.setAllLocked(); else cell.clearAllLocked();
+// 			if (instancesLocked) cell.setInstancesLocked(); else cell.clearInstancesLocked();
+// 			if (inCellLibrary) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+// 			if (inTechnologyLibrary) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
+
+// 			addVariables(cell, vars);
+
+
+			filledIn = true;
+			nodes = null;
+			arcs = null;
+		}
+
+		private void allocateCell()
+		{
+			cell = Cell.newInstance(myCellRef.libraryRef.getLibrary(), getName());
+			if (cell == null)
+			{
+				logError("Unable to create cell " + getName());
+				return;
+			}
+			Cell.CellGroup cellGroup = (Cell.CellGroup)cellGroups.get(this);
+			if (cellGroup != null)
+				cell.setCellGroup(cellGroup);
+			Technology myTech = Technology.findTechnology(techRef.getName());
+			cell.setTechnology(myTech);
 			cell.lowLevelSetCreationDate(new Date(creationDate));
 			cell.lowLevelSetRevisionDate(new Date(revisionDate));
-			cell.setTechnology(techRef.getTechnology());
 
 			if (wantExpanded) cell.setWantExpanded(); else cell.clearWantExpanded();
 			if (allLocked) cell.setAllLocked(); else cell.clearAllLocked();
 			if (instancesLocked) cell.setInstancesLocked(); else cell.clearInstancesLocked();
 			if (inCellLibrary) cell.setInCellLibrary(); else cell.clearInCellLibrary();
 			if (inTechnologyLibrary) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
-
+		
+			// add variables in fields 7 and up
 			addVariables(cell, vars);
+		}
 
+		void printJelib(PrintWriter out)
+		{
+			out.println();
+			out.println("# Cell " + getName()); // cell.describe()
+			out.print("C" + myCellRef.protoName + "|" + myCellRef.viewRef.getName() + "|" + myCellRef.version);
+			out.print("|" + techRef.getName());
+			out.print("|" + creationDate);
+			out.print("|" + revisionDate);
+			out.print("|");
+			if (inCellLibrary) out.print("C");
+			if (wantExpanded) out.print("E");
+			if (instancesLocked) out.print("I");
+			if (allLocked) out.print("L");
+			if (inTechnologyLibrary) out.print("T");
+			printJelibVars(out, vars);
+			out.println();
 
-			filledIn = true;
-			nodes = null;
-			arcs = null;
+			for (int i = 0; i < nodes.length; i++)
+				nodes[i].printJelib(out);
+
+			for (int i = 0; i < arcs.length; i++)
+				arcs[i].printJelib(out);
+
+			for (int i = 0; i < exports.length; i++)
+				exports[i].printJelib(out);
+
+			out.println("X");
 		}
 	}
 
@@ -718,10 +958,10 @@ public class LibraryContents
 		private char firstChar;
 
 		private NodeInst ni;
+		private String jelibName;
 
 		NodeContents(NodeProtoRef protoRef, String name, String textDescriptor, double x, double y)
 		{
-			this.firstChar = firstChar;
 			this.protoRef = protoRef;
 			this.name = name;
 			this.textDescriptor = textDescriptor;
@@ -761,6 +1001,7 @@ public class LibraryContents
 		}
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 
 		void setLineNumber(int lineNumber, char firstChar)
 		{
@@ -768,21 +1009,86 @@ public class LibraryContents
 			this.firstChar = firstChar;
 		}
 
+		void setJelibName(String jelibName) { this.jelibName = jelibName; }
 
 		private void instantiate(Cell cell)
 		{
 			showProgress(lineNumber);
 
-			NodeProto np = protoRef.getNodeProto();
-			if (np == null) return;
-			if (firstChar != 'N' && revision >= 1)
+// 			NodeProto np = protoRef.getNodeProto();
+// 			if (np == null) return;
+// 			if (firstChar != 'N' && revision >= 1)
+// 			{
+// 				Rectangle2D bounds = ((Cell)np).getBounds();
+// 				wid = bounds.getWidth();
+// 				hei = bounds.getHeight();
+// 			}
+// 			if (mirX) wid = -wid;
+// 			if (mirY) hei = -hei;
+
+			String prefixName = myLibraryRef.getName();
+			String protoName;
+			Library cellLib = reader.lib;
+			NodeProto np = null;
+			if (protoRef instanceof PrimitiveNodeRef)
 			{
-				Rectangle2D bounds = ((Cell)np).getBounds();
-				wid = bounds.getWidth();
-				hei = bounds.getHeight();
+				protoName = ((PrimitiveNodeRef)protoRef).techRef.getName() + ":" + protoRef.getName();
+				Technology tech = Technology.findTechnology(((PrimitiveNodeRef)protoRef).techRef.getName());
+				if (tech != null)
+					np = tech.findNodeProto(protoRef.getName());
+			} else {
+				protoName = ((CellRef)protoRef).libraryRef.getName() + ":" + protoRef.getName();
+				CellContents subCC = (CellContents)allCells.get(protoName);
+
+				// make sure the subcell has been instantiated
+				if (subCC != null)
+				{
+					if (!subCC.filledIn)
+						subCC.instantiate();
+				}
+
+				cellLib = Library.findLibrary(((CellRef)protoRef).libraryRef.getName());
+				if (cellLib != null)
+					np = cellLib.findNodeProto(protoRef.getName());
 			}
+
+			double wid = this.wid;
+			double hei = this.hei;
 			if (mirX) wid = -wid;
 			if (mirY) hei = -hei;
+
+			if (np == null)
+			{
+				if (cellLib == null)
+				{
+					logError("Creating dummy library " + prefixName);
+					cellLib = Library.newInstance(prefixName, null);
+				}
+				Cell dummyCell = Cell.makeInstance(cellLib, protoName);
+				if (dummyCell == null)
+				{
+					logError("Unable to create dummy cell " + protoName + " in library " + cellLib.getName());
+					return;
+				}
+				logError("Creating dummy cell " + protoName + " in library " + cellLib.getName());
+				Rectangle2D bounds = null;
+				if (protoRef instanceof CellRef)
+					bounds = ((CellRef)protoRef).getBounds();
+				if (bounds == null)
+				{
+					logError("Warning: cannot find information about external cell " + protoName);
+					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, dummyCell);
+				} else
+				{
+					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
+						bounds.getWidth(), bounds.getHeight(), dummyCell);
+				}
+
+				// mark this as a dummy cell
+				dummyCell.newVar(IOTool.IO_TRUE_LIBRARY, prefixName);
+				dummyCell.newVar(Input.IO_DUMMY_OBJECT, protoName);
+				np = dummyCell;
+			}
 
 			// create the node
 			ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, cell, angle, name, techSpecific);
@@ -818,7 +1124,7 @@ public class LibraryContents
 		 * @param yPos the Y coordinate of the port on the node.
 		 * @return the PortInst specified (null if none can be found).
 		 */
-		private PortInst figureOutPortInst(Cell cell, String portName, double xPos, double yPos)
+		private PortInst figureOutPortInst(Cell cell, PortProtoRef port, double xPos, double yPos)
 		{
 			if (ni == null)
 			{
@@ -827,6 +1133,7 @@ public class LibraryContents
 			}
 
 			PortInst pi = null;
+			String portName = port.getName();
 			if (portName.length() == 0)
 			{
 				if (ni.getNumPortInsts() > 0)
@@ -851,7 +1158,7 @@ public class LibraryContents
 					ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
 						pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 					log.addPoint(headPt.getX(), headPt.getY(), cell);
-					if (np instanceof Export)
+					if (np instanceof Cell)
 						pi = null;
 				}
 			}
@@ -900,6 +1207,29 @@ public class LibraryContents
 
 			return pi;
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			char firstChar = protoRef instanceof CellRef ? 'I' : 'N';
+			out.print(firstChar + protoRef.getFullName());
+			out.print("|" + convertJelibString(jelibName) + "|");
+			if (textDescriptor != null)
+				out.print(textDescriptor);
+			out.print("|" + jelibDouble(x) + "|" + jelibDouble(y));
+			out.print("|" + jelibDouble(mirX ? -wid : wid) + "|" + jelibDouble(mirY ? -hei : hei) + "|" + angle + "|");
+			if (hardSelect) out.print("A");
+			if (expanded) out.print("E");
+			if (locked) out.print("L");
+			if (shortened) out.print("S");
+			if (visInside) out.print("V");
+			if (wiped) out.print("W");
+			if (techSpecific != 0) out.print(techSpecific);
+			out.print("|");
+			if (protoTextDescriptor != null)
+				out.print(protoTextDescriptor);
+			printJelibVars(out, vars);
+			out.println();
+		}
 	}
 
 	class ArcContents
@@ -910,11 +1240,11 @@ public class LibraryContents
 		private double width;
 
 		private NodeContents headNode;
-		private String headPort;
+		private PortProtoRef headPort;
 		private double headX, headY;
 
 		private NodeContents tailNode;
-		private String tailPort;
+		private PortProtoRef tailPort;
 		private double tailX, tailY;
 
 		private boolean rigid;
@@ -944,7 +1274,7 @@ public class LibraryContents
 
 		String getName() { return name; }
 
-		void setEnd(boolean tail, NodeContents node, String port, double x, double y)
+		void setEnd(boolean tail, NodeContents node, PortProtoRef port, double x, double y)
 		{
 			if (tail)
 			{
@@ -976,6 +1306,7 @@ public class LibraryContents
 		void setAngle(int angle) { this.angle = angle; }
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 
 		void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
 
@@ -989,16 +1320,20 @@ public class LibraryContents
 			PortInst tailPI = tailNode.figureOutPortInst(cell, tailPort, tailX, tailY);
 			if (tailPI == null) return;
 
-			ArcProto ap = apRef.getArcProto();
-			ArcInst ai = null;
-			if (ap != null)
+			String protoName = apRef.getFullName();
+			ArcProto ap = ArcProto.findArcProto(protoName);
+			if (ap == null)
 			{
-				ai = ArcInst.newInstance(ap, width, headPI, tailPI, new Point2D.Double(headX, headY),
-										 new Point2D.Double(tailX, tailY), name, angle);
+				logError("cannot find arc " + protoName);
+				return;
 			}
+//			ArcProto ap = apRef.getArcProto();
+
+			ArcInst ai = ArcInst.newInstance(ap, width, headPI, tailPI, new Point2D.Double(headX, headY),
+											 new Point2D.Double(tailX, tailY), name, angle);
 			if (ai == null)
 			{
-				ErrorLogger.MessageLog log = logError("cannot create arc " + apRef.getName());
+				ErrorLogger.MessageLog log = logError("cannot create arc " + apRef.getFullName());
 				log.addGeom(headPI.getNodeInst(), true, cell, null);
 				log.addGeom(tailPI.getNodeInst(), true, cell, null);
 				return;
@@ -1022,6 +1357,39 @@ public class LibraryContents
 
 			addVariables(ai, vars);
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("A" + apRef.getFullName() + "|" + convertJelibString(name) + "|");
+			if (textDescriptor != null)
+				out.print(textDescriptor);
+			out.print("|" + jelibDouble(width) + "|");
+			if (hardSelect) out.print("A");
+			if (directional) out.print("D");
+			if (!extended) out.print("E");
+			if (!fixedAngle) out.print("F");
+			if (headNegated) out.print("G");
+			if (skipHead) out.print("H");
+			if (tailNegated) out.print("N");
+			if (rigid) out.print("R");
+			if (slidable) out.print("S");
+			if (skipTail) out.print("T");
+			if (reverseEnds) out.print("V");
+			out.print(angle);
+
+			out.print("|" + convertJelibString(headNode.jelibName) + "|" + convertJelibString(headPort.getName()));
+			out.print("|" + jelibDouble(headX) + "|" + jelibDouble(headY));
+
+			out.print("|" + convertJelibString(tailNode.jelibName) + "|" + convertJelibString(tailPort.getName()));
+			out.print("|" + jelibDouble(tailX) + "|" + jelibDouble(tailY));
+
+// 			PortProto pp = con.getPortInst().getPortProto();
+// 			if (ni.getProto().getNumPorts() > 1)
+// 				printWriter.print(convertString(pp.getName()));
+
+			printJelibVars(out, vars);
+			out.println();
+		}
 	}
 
 	class ExportContents
@@ -1029,7 +1397,7 @@ public class LibraryContents
 		private String name;
 		private String textDescriptor;
 		private NodeContents node;
-		private String portName;
+		private PortProtoRef port;
 		private double x, y;
 		private PortCharacteristic characteristic;
 		private boolean alwaysDrawn;
@@ -1037,12 +1405,12 @@ public class LibraryContents
 		private VariableContents[] vars;
 		private int lineNumber;
 
-		ExportContents(String name, String textDescriptor, NodeContents node, String portName, double x, double y)
+		ExportContents(String name, String textDescriptor, NodeContents node, PortProtoRef port, double x, double y)
 		{
 			this.name = name;
 			this.textDescriptor = textDescriptor;
 			this.node = node;
-			this.portName = portName;
+			this.port = port;
 			this.x = x;
 			this.y = y;
 		}
@@ -1058,6 +1426,7 @@ public class LibraryContents
 		void setBodyOnly(boolean value) { bodyOnly = value; }
 
 		void setVars(VariableContents[] vars) { this.vars = vars; }
+		void addVars(VariableContents[] vars) { this.vars = LibraryContents.this.addVars(this.vars, vars); }
 
 		void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
 
@@ -1066,7 +1435,7 @@ public class LibraryContents
 			showProgress(lineNumber);
 
 			// parse the export line
-			PortInst pi = node.figureOutPortInst(cell, portName, x, y);
+			PortInst pi = node.figureOutPortInst(cell, port, x, y);
 			if (pi == null) return;
 
 			// create the export
@@ -1088,27 +1457,328 @@ public class LibraryContents
 
 			addVariables(pp, vars);
 		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("E" + convertJelibString(getName()) + "|" + textDescriptor);
+			out.print("|" + convertJelibString(node.jelibName) + "|" + convertJelibString(port.getName()));
+// 			if (subNI.getProto().getNumPorts() > 1)
+// 				printWriter.print(convertString(subPP.getName()));
+
+			// port information
+			out.print("|" + jelibDouble(x) + "|" + jelibDouble(y));
+			out.print("|" + characteristic.getShortName());
+			if (alwaysDrawn) out.print("/A");
+			if (bodyOnly) out.print("/B");
+
+			printJelibVars(out, vars);
+			out.println();
+		}
 	}
 
-	static class VariableContents
+	class VariableContents
 	{
-		private String piece;
+		VariableKeyRef variableKeyRef;
+		String varBits;
+		char type;
+		Object value;
 
-		VariableContents(String piece)
+		VariableContents(VariableKeyRef variableKeyRef, String varBits, char type, Object value)
 		{
-			this.piece = piece;
+			this.variableKeyRef = variableKeyRef;
+			this.varBits = varBits;
+			this.type = type;
+			this.value = value;
 		}
 
-// 		String name;
-// 		String varBits;
-// 		Object value;
+		/**
+		 * Method to add this variable to an ElectricObject from a List of strings.
+		 * @param eObj the ElectricObject to augment with Variables.
+		 */
+		private void addVariable(ElectricObject eObj)
+		{
+			if (eObj == null) return;
+			Variable.Key varKey = variableKeyRef.getVariableKey();
+			if (eObj.isDeprecatedVariable(varKey)) return;
+			Object obj = null;
+			if (value instanceof Object[])
+			{
+				Object[] objList = (Object[])value;
+				int limit = objList.length;
+				Object [] objArray = null;
+				switch (type)
+				{
+// 					case 'A': objArray = new ArcInst[limit];        break;
+					case 'B': objArray = new Boolean[limit];        break;
+					case 'C': objArray = new Cell[limit];           break;
+					case 'D': objArray = new Double[limit];         break;
+					case 'E': objArray = new Export[limit];         break;
+					case 'F': objArray = new Float[limit];          break;
+					case 'G': objArray = new Long[limit];           break;
+					case 'H': objArray = new Short[limit];          break;
+					case 'I': objArray = new Integer[limit];        break;
+					case 'L': objArray = new Library[limit];        break;
+// 					case 'N': objArray = new NodeInst[limit];       break;
+					case 'O': objArray = new Tool[limit];           break;
+					case 'P': objArray = new PrimitiveNode[limit];  break;
+					case 'R': objArray = new ArcProto[limit];       break;
+					case 'S': objArray = new String[limit];         break;
+					case 'T': objArray = new Technology[limit];     break;
+					case 'V': objArray = new Point2D[limit];        break;
+					case 'Y': objArray = new Byte[limit];           break;
+				}
+				for(int j=0; j<limit; j++)
+					objArray[j] = convertValue(objList[j]);
+				obj = objArray;
+			} else
+			{
+				// a scalar Variable
+				obj = convertValue(value);
+			}
 
-// 		VariableContents(String name, String varBits, Object value)
-// 		{
-// 			this.name = name;
-// 			this.varBits = varBits;
-// 			this.value = value;
-// 		}
+			// create the variable
+			Variable newVar = eObj.newVar(varKey, obj);
+			if (newVar == null)
+			{
+				logError("Cannot create variable: " + variableKeyRef.getName());
+				return;
+			}
+
+			// add in extra information
+			TextDescriptor td = newVar.getTextDescriptor();
+			loadTextDescriptor(td, newVar, varBits);
+		}
+
+		/**
+		 * Method to add meaning preferences to an ElectricObject from a List of strings.
+		 * @param obj the Object to augment with meaning preferences.
+		 * @param vars the array of VariableContents objects that described the Object.
+		 */
+		void addMeaningPref(Object obj)
+		{
+			if (obj == null) return;
+			switch (type)
+			{
+				case 'D': // Double
+				case 'F': // Float
+				case 'G': // Long
+				case 'I': // Integer
+				case 'S': // String
+					break; // break from switch
+				default:
+					logError("Meaning preference type invalid: " + type);
+					return;
+			}
+			// a scalar Variable
+			Object v = convertValue(value);
+
+			// change "meaning option"
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, variableKeyRef.getName());
+			if (meaning != null)
+			{
+				Pref.changedMeaningVariable(meaning, v);
+			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(variableKeyRef.getName(), v)))
+			{
+// 				logError("Meaning preference unknown: " + piece);
+			}
+		}
+
+		/**
+		 * Method to convert a String to an Object so that it can be stored in a Variable.
+		 * @param piece the String to be converted.
+		 * @param objectPos the character number in the string to consider.
+		 * Note that the string may be larger than the object description, both by having characters
+		 * before it, and also by having characters after it.
+		 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
+		 * @param varType the type of the object to convert (a letter from the file).
+		 * @return the Object representation of the given String.
+		 */
+		private Object convertValue(Object value)
+		{
+			switch (type)
+			{
+				case 'C':		// Cell (should delay analysis until database is built!!!)
+					return ((CellRef)value).getNodeProto();
+				case 'E':		// Export (should delay analysis until database is built!!!)
+					return ((ExportRef)value).getPortProto();
+				case 'L':		// Library (should delay analysis until database is built!!!)
+					return ((LibraryRef)value).getLibrary();
+				case 'O':		// Tool
+					return ((ToolRef)value).getTool();
+				case 'P':		// PrimitiveNode
+					return ((PrimitiveNodeRef)value).getNodeProto();
+				case 'R':		// ArcProto
+					return ((ArcProtoRef)value).getArcProto();
+				case 'T':		// Technology
+					return ((TechnologyRef)value).getTechnology();
+// 				case 'A':		// ArcInst (should delay analysis until database is built!!!)
+				case 'B':		// Boolean
+				case 'D':		// Double
+				case 'F':		// Float
+				case 'G':		// Long
+				case 'H':		// Short
+				case 'I':		// Integer
+// 				case 'N':		// NodeInst (should delay analysis until database is built!!!)
+				case 'S':		// String
+				case 'V':		// Point2D
+				case 'Y':		// Byte
+					return value;
+			}
+			return null;
+		}
+
+		/**
+		 * Method to make a string from the value in "addr" which has a type in
+		 * "type".
+		 */
+		private void makeStringVar(PrintWriter out, Object obj)
+		{
+			if (obj instanceof Integer)
+			{
+				out.print(((Integer)obj).intValue());
+				return;
+			}
+			if (obj instanceof Short)
+			{
+				out.print(((Short)obj).shortValue());
+				return;
+			}
+			if (obj instanceof Byte)
+			{
+				out.print(((Byte)obj).byteValue());
+				return;
+			}
+			if (obj instanceof String)
+			{
+				out.print("\"");
+				out.print(convertJelibQuotedString((String)obj));
+				out.print("\"");
+				return;
+			}
+			if (obj instanceof Float)
+			{
+				out.print(((Float)obj).floatValue());
+				return;
+			}
+			if (obj instanceof Double)
+			{
+				out.print(((Double)obj).doubleValue());
+				return;
+			}
+			if (obj instanceof Boolean)
+			{
+				out.print(((Boolean)obj).booleanValue() ? "T" : "F");
+				return;
+			}
+			if (obj instanceof Long)
+			{
+				out.print(((Long)obj).longValue());
+				return;
+			}
+			if (obj instanceof Point2D)
+			{
+				Point2D pt2 = (Point2D)obj;
+				out.print(jelibDouble(pt2.getX()) + "/" + jelibDouble(pt2.getY()));
+				return;
+			}
+			if (obj instanceof TechnologyRef)
+			{
+				TechnologyRef techRef = (TechnologyRef)obj;
+				out.print(techRef.getFullName());
+				return;
+			}
+			if (obj instanceof LibraryRef)
+			{
+				LibraryRef libRef = (LibraryRef)obj;
+				out.print(libRef.getFullName());
+				return;
+			}
+			if (obj instanceof ToolRef)
+			{
+				ToolRef toolRef = (ToolRef)obj;
+				out.print(toolRef.getFullName());
+				return;
+			}
+// 			if (obj instanceof NodeInst)
+// 			{
+// 				NodeInst ni = (NodeInst)obj;
+// 				infstr.append(convertString(ni.getParent().libDescribe()) + ":" + convertString(ni.getName()));
+// 				return;
+// 			}
+// 			if (obj instanceof ArcInst)
+// 			{
+// 				ArcInst ai = (ArcInst)obj;
+// 				String arcName = ai.getName();
+// 				if (arcName == null)
+// 				{
+// 					System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe() + ":" + ai.describe());
+// 				}
+// 				infstr.append(convertString(ai.getParent().libDescribe()) + ":" + convertString(arcName));
+// 				return;
+// 			}
+			if (obj instanceof CellRef)
+			{
+				CellRef cellRef = (CellRef)obj;
+				out.print(cellRef.getFullName());
+				return;
+			}
+			if (obj instanceof PrimitiveNodeRef)
+			{
+				PrimitiveNodeRef npRef = (PrimitiveNodeRef)obj;
+				out.print(npRef.getFullName());
+				return;
+			}
+			if (obj instanceof ArcProtoRef)
+			{
+				ArcProtoRef apRef = (ArcProtoRef)obj;
+				out.print(apRef.getFullName());
+				return;
+			}
+			if (obj instanceof ExportRef)
+			{
+				ExportRef ppRef = (ExportRef)obj;
+				out.print(convertJelibString(ppRef.getFullName()));
+				return;
+			}
+		}
+
+		void printJelib(PrintWriter out)
+		{
+			out.print("|" + convertJelibVariableName(variableKeyRef.getName()) + "(" + varBits + ")" + type);
+			if (value instanceof Object[])
+			{
+				Object [] objArray = (Object [])value;
+				int len = objArray.length;
+				for(int i=0; i<len; i++)
+				{
+					Object oneObj = objArray[i];
+					out.print(i != 0 ? ',' : '[');
+					makeStringVar(out, oneObj);
+				}
+				out.print("]");
+			} else
+			{
+				makeStringVar(out, value);
+			}
+		}
+	}
+
+	class VariableKeyRef extends ObjectRef
+	{
+		Variable.Key variableKey;
+
+		VariableKeyRef(String name)
+		{
+			super(name);
+			variableKeyRefs.put(name, this);
+		}
+
+		Variable.Key getVariableKey()
+		{
+			if (variableKey == null)
+				variableKey = ElectricObject.newKey(getName());
+			return variableKey;
+		}
 	}
 
 	static final VariableContents[] NULL_VARS_ARRAY = {};
@@ -1119,16 +1789,20 @@ public class LibraryContents
 	private static List/*<LibraryContents>*/ allLibraryContents;
 	private static HashMap/*<String,CellContents>*/ allCells;
 
-	private JELIB1 reader;
-	private List/*<String>*/ variableNames;
-	private LinkedHashMap toolRefs/*<String,ToolRef>*/ = new LinkedHashMap();
-	private LinkedHashMap viewRefs/*<String,ViewRef>*/ = new LinkedHashMap();
-	private LinkedHashMap technologyRefs/*<String,TechnologyRef>*/ = new LinkedHashMap();
-	private LinkedHashMap libraryRefs/*<String,LibraryRef>*/ = new LinkedHashMap();
-	private List/*<CellContents>*/ cellContentses = new ArrayList();
-	LibraryRef curLib;
-	private VariableContents[] curLibVars;
-	private HashMap/*<CellContents,CellGroup>*/ cellGroups = new HashMap();
+	private LibraryFiles reader;
+	private ELIB1.Header elibHeader;
+	LinkedHashMap/*<String,VariableKeyRef>*/ variableKeyRefs = new LinkedHashMap/*<String,VariableKeyRef>*/();;
+	private LinkedHashMap toolRefs/*<String,ToolRef>*/ = new LinkedHashMap/*<String,ToolRef>*/();
+	private LinkedHashMap viewRefs/*<String,ViewRef>*/ = new LinkedHashMap/*<String,ViewRef>*/();
+	private LinkedHashMap technologyRefs/*<String,TechnologyRef>*/ = new LinkedHashMap/*<String,TechnologyRef>*/();
+	private LinkedHashMap libraryRefs/*<String,LibraryRef>*/ = new LinkedHashMap/*<String,LibraryRef>*/();
+	private List/*<CellContents>*/ cellContentses = new ArrayList/*<CellContents>*/();
+	private List/*<CellRef[]>*/ jelibCellGroups;
+	LibraryRef myLibraryRef;
+	private VariableContents[] vars;
+	private VariableContents[] fakeVars;
+	private int userBits;
+	private HashMap/*<CellContents,Cell.CellGroup>*/ cellGroups = new HashMap/*<CellContents,Cell.CellGroup>*/();
 
 	private Version version;
 	private int revision = 0; //
@@ -1137,10 +1811,33 @@ public class LibraryContents
 	private boolean needLocalDeclarations = false; // ELIB; Dump
 	private CellContents currentCellContents;
 
-	LibraryContents(JELIB1 reader)
+	LibraryContents(String name, LibraryFiles reader)
 	{
 		this.reader = reader;
+		myLibraryRef = new LibraryRef(name, reader.filePath);
 	}
+
+	void setElibHeader(ELIB1.Header header)
+	{
+		elibHeader = header;
+		needDeclarations = true;
+		needLibraryDeclarations = false;
+		needLocalDeclarations = true;
+	}
+
+	public static void initializeLibraryInput()
+	{
+		allLibraryContents = new ArrayList();
+		allCells = new HashMap();
+	}
+
+	public static void terminateLibraryInput()
+	{
+		allLibraryContents = null;
+		allCells = null;
+	}
+
+	LibraryRef getMyLibraryRef() { return myLibraryRef; }
 
 	ToolRef newToolRef(String toolName)
 	{
@@ -1152,11 +1849,23 @@ public class LibraryContents
 		return toolRef;
 	}
 
-	ViewRef newViewRef(String viewName)
+	ToolRef getToolRef(String toolName)
+	{
+		ToolRef toolRef = (ToolRef)toolRefs.get(toolName);
+		if (toolRef == null)
+		{
+			if (needDeclarations)
+				logError("Unknown tool: " + toolName);
+			toolRef = new ToolRef(toolName);
+		}
+		return toolRef;
+	}
+
+	ViewRef newViewRef(String viewName, String fullName)
 	{
 		ViewRef viewRef = (ViewRef)viewRefs.get(viewName);
 		if (viewRef == null)
-			viewRef = new ViewRef(viewName);
+			viewRef = new ViewRef(viewName, fullName);
 		else
 			logError("View " + viewRef.getFullName() + " declared twice");
 		return viewRef;
@@ -1169,7 +1878,7 @@ public class LibraryContents
 		{
 			if (needDeclarations)
 				logError("Unknown view: " + viewName);
-			viewRef = new ViewRef(viewName);
+			viewRef = new ViewRef(viewName, null);
 		}
 		return viewRef;
 	}
@@ -1250,10 +1959,15 @@ public class LibraryContents
 		return techRef.getArcProtoRef(name);
 	}
 
+	CellContents newCellContents(String cellName, long creationDate, long revisionDate)
+	{
+		return myLibraryRef.newCellContents(cellName, creationDate, revisionDate);
+	}
+
 	CellRef getCellRef(String name)
 	{
 		int colonPos = name.indexOf(':');
-		LibraryRef libRef = curLib;
+		LibraryRef libRef = myLibraryRef;
 		if (colonPos >= 0)
 		{
 			String libName = name.substring(0, colonPos);
@@ -1263,28 +1977,121 @@ public class LibraryContents
 		return libRef.getCellRef(name);
 	}
 
-	void setCurLib(LibraryRef curLibRef, VariableContents[] curLibVars)
+	VariableKeyRef newVariableKeyRef(String varName)
 	{
-		this.curLib = curLibRef;
-		this.curLibVars = curLibVars;
+		VariableKeyRef variableKeyRef = (VariableKeyRef)variableKeyRefs.get(varName);
+		if (variableKeyRef == null)
+			variableKeyRef = new VariableKeyRef(varName);
+		else
+			logError("Variable key \"" + variableKeyRef.getName() + "\" declared twice");
+		return variableKeyRef;
+	}
+
+	VariableKeyRef getVariableKeyRef(String varName)
+	{
+		VariableKeyRef variableKeyRef = (VariableKeyRef)variableKeyRefs.get(varName);
+		if (variableKeyRef == null)
+		{
+// 			if (needDeclarations)
+// 				logError("Unknown variable key: " + varName);
+			variableKeyRef = new VariableKeyRef(varName);
+		}
+		return variableKeyRef;
+	}
+
+	VariableContents newVariableContents(VariableKeyRef variableKeyRef, String varBits, char type, Object value)
+	{
+		return new VariableContents(variableKeyRef, varBits, type, value);
+	}
+
+	void setVars(VariableContents[] vars) { this.vars = vars; }
+	void addVars(VariableContents[] vars) { this.vars = addVars(this.vars, vars); }
+
+	void addFakeVars(VariableContents[] vars) { fakeVars = addVars(this.fakeVars, vars); }
+
+	private VariableContents[] addVars(VariableContents[] a, VariableContents[] b)
+	{
+		if (b == null) return a;
+	varLoop:
+		for (int i = 0; i < b.length; i++)
+		{
+			VariableContents v = b[i];
+			if (v == null) continue;
+			if (a == null)
+			{
+				a = new VariableContents[1];
+				a[0] = new VariableContents(getVariableKeyRef(v.variableKeyRef.getName()), v.varBits, v.type, v.value);
+				continue;
+			}
+			String vs = v.variableKeyRef.getName();
+
+			int low = 0;
+			int high = a.length-1;
+
+			while (low <= high) {
+				int mid = (low + high) >> 1;
+				VariableContents midVal = a[mid];
+
+				int cmp = midVal.variableKeyRef.getName().compareTo(vs);
+				if (cmp < 0)
+					low = mid + 1;
+				else if (cmp > 0)
+					high = mid - 1;
+				else
+					continue varLoop; // key found
+			}
+			VariableContents[] newA = new VariableContents[a.length+1];
+			for (int j = 0; j < low; j++) newA[j] = a[j];
+			newA[low] = new VariableContents(getVariableKeyRef(v.variableKeyRef.getName()), v.varBits, v.type, v.value);
+
+			for (int j = low; j < a.length; j++) newA[j+1] = a[j];
+			a = newA;
+		}
+		return a;
+	}
+
+	void setVersion(Version version) { this.version = version; }
+
+	Version getVersion() { return version; }
+
+	void setUserBits(int userBits) { this.userBits = userBits; }
+
+	void addCellGroup(CellRef[] cellList)
+	{
+		if (jelibCellGroups == null) jelibCellGroups = new ArrayList();
+		jelibCellGroups.add(cellList);
 	}
 
 	/**
 	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
-	List/*<CellContents>*/ readTheLibrary(Library lib, boolean topLevelLibrary)
+	List/*<CellContents>*/ checkTheLibrary(Library lib, boolean topLevelLibrary)
 		throws IOException
 	{
-		if (topLevelLibrary)
+		// Check undeclared LibraryRefs and external CellRefs.
+		for (Iterator lit = libraryRefs.values().iterator(); lit.hasNext();)
 		{
-			allLibraryContents = new ArrayList();
-			allCells = new HashMap();
+			LibraryRef libRef = (LibraryRef)lit.next();
+			if (libRef.fileName == null || libRef.fileName.equals(""))
+			{
+				logError("Undeclared library " + libRef.getName());
+				return null;
+			}
+
+			if (libRef == myLibraryRef) continue;
+
+			for (Iterator cit = libRef.cells.values().iterator(); cit.hasNext();)
+			{
+				CellRef cellRef = (CellRef)cit.next();
+			}
 		}
+
 		allLibraryContents.add(this);
-		curLib.lib = lib;
-		curLib.lib.erase();
-		addVariables(curLib.lib, curLibVars);
+		myLibraryRef.lib = lib;
+		lib.erase();
+		addVariables(lib, vars);
+		lib.setVersion(version);
 
 
 		for (Iterator it = toolRefs.values().iterator(); it.hasNext();)
@@ -1299,6 +2106,21 @@ public class LibraryContents
 			// get additional meaning preferences starting at position 1
 			if (topLevelLibrary)
 				toolRef.addMeaningPrefs();
+		}
+
+		for (Iterator it = viewRefs.values().iterator(); it.hasNext();)
+		{
+			ViewRef viewRef = (ViewRef)it.next();
+			View view = View.findView(viewRef.getName());
+			if (view == null)
+			{
+				view = View.newInstance(viewRef.getName(), viewRef.fullName);
+				if (view == null)
+				{
+					logError("Cannot create view " + viewRef.getName());
+					continue;
+				}
+			}
 		}
 
 		for (Iterator tit = technologyRefs.values().iterator(); tit.hasNext();)
@@ -1351,13 +2173,9 @@ public class LibraryContents
 		for (Iterator lit = libraryRefs.values().iterator(); lit.hasNext();)
 		{
 			LibraryRef libRef = (LibraryRef)lit.next();
-			if (libRef == curLib) continue;
-			Library elib = Library.findLibrary(libRef.getName());
-			if (elib == null)
-			{
-				reader.readExternalLibraryFromFilename(libRef.fileName, OpenFile.Type.JELIB);
-				elib = Library.findLibrary(libRef.getName());
-			}
+			if (libRef == myLibraryRef) continue;
+			libRef.lib = reader.readExternalLibraryFromFilename(libRef.fileName, OpenFile.Type.JELIB);
+			assert libRef.lib != null;
 
 			for (Iterator cit = libRef.cells.values().iterator(); cit.hasNext();)
 			{
@@ -1366,7 +2184,7 @@ public class LibraryContents
 			}
 		}
 
-		for (Iterator cit = curLib.cells.values().iterator(); cit.hasNext();)
+		for (Iterator cit = myLibraryRef.cells.values().iterator(); cit.hasNext();)
 		{
 			CellRef cellRef = (CellRef)cit.next();
 			CellContents cc = cellRef.cc;
@@ -1375,7 +2193,7 @@ public class LibraryContents
 			allCells.put(cellRef.getFullName(), cc);
 		}
 
-// 		for (Iterator cit = curLib.cells.values().iterator(); cit.hasNext();)
+// 		for (Iterator cit = myLibraryRef.cells.values().iterator(); cit.hasNext();)
 // 		{
 // 			CellRef cellRef = (CellRef)cit.next();
 // 			CellContents cc = cellRef.cc;
@@ -1407,24 +2225,35 @@ public class LibraryContents
 		// collect the cells by common protoName and by "nextInGroup" relation
 		TransitiveRelation transitive = new TransitiveRelation();
 		HashMap/*<String,String>*/ protoNames = new HashMap();
-		for (Iterator cit = curLib.cells.values().iterator(); cit.hasNext();)
+		for (Iterator cit = myLibraryRef.cells.values().iterator(); cit.hasNext();)
 		{
 			CellRef cellRef = (CellRef)cit.next();
-			CellName cellName = CellName.parseName(cellRef.getName());
-			if (cellName != null)
+			String protoName = (String)protoNames.get(cellRef.protoName);
+			if (protoName == null)
 			{
-				String protoName = (String)protoNames.get(cellName.getName());
-				if (protoName == null)
-				{
-					protoName = cellName.getName();
-					protoNames.put(protoName, protoName);
-				}
-				transitive.theseAreRelated(cellRef, protoName);
+				protoName = cellRef.protoName;
+				protoNames.put(protoName, protoName);
 			}
+			transitive.theseAreRelated(cellRef, protoName);
+
 			CellRef otherCellRef = cellRef.nextInGroup;
 			if (otherCellRef != null && !otherCellRef.isExternal())
 				transitive.theseAreRelated(cellRef, otherCellRef);
 		}
+		for (Iterator git = jelibCellGroups.iterator(); git.hasNext(); )
+		{
+			CellRef[] group = (CellRef[])git.next();
+			CellRef firstCell = null;
+			for (int i = 0; i < group.length; i++)
+			{
+				if (group[i] == null) continue;
+				if (firstCell == null)
+					firstCell = group[i];
+				else
+					transitive.theseAreRelated(firstCell, group[i]);
+			}
+		}
+
 		// create the cell groups
 		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
 		{
@@ -1442,7 +2271,8 @@ public class LibraryContents
 
 		for (int i = 0; i < cellContentses.size(); i++)
 		{
-			allocateCell((CellContents)cellContentses.get(i));
+			CellContents cc = (CellContents)cellContentses.get(i);
+			cc.allocateCell();
 		}
 
 		lib.clearChangedMajor();
@@ -1465,7 +2295,7 @@ public class LibraryContents
 		for(Iterator lit = allLibraryContents.iterator(); lit.hasNext(); )
 		{
 			LibraryContents libraryContents = (LibraryContents)lit.next();
-			for (Iterator cit = libraryContents.curLib.cells.values().iterator(); cit.hasNext();)
+			for (Iterator cit = libraryContents.myLibraryRef.cells.values().iterator(); cit.hasNext();)
 			{
 				CellRef cellRef = (CellRef)cit.next();
 				CellContents cc = cellRef.cc;
@@ -1479,348 +2309,17 @@ public class LibraryContents
 		for(Iterator lit = allLibraryContents.iterator(); lit.hasNext(); )
 		{
 			LibraryContents libraryContents = (LibraryContents)lit.next();
-			for (Iterator cit = libraryContents.curLib.cells.values().iterator(); cit.hasNext();)
+			for (Iterator cit = libraryContents.myLibraryRef.cells.values().iterator(); cit.hasNext();)
 			{
 				CellRef cellRef = (CellRef)cit.next();
 				CellContents cc = cellRef.cc;
 				if (cc == null) continue;
-				if (cc.filledIn) continue;
-				libraryContents.instantiateCellContent(cc);
+				cc.instantiate();
 			}
 		}
 
 		allLibraryContents = null;
 		allCells = null;
-	}
-
-	private Cell allocateCell(CellContents cc)
-	{
-		Cell cell = cc.cell = Cell.newInstance(cc.myCellRef.libraryRef.getLibrary(), cc.getName());
-		if (cell == null)
-		{
-			logError("Unable to create cell " + cc.getName());
-			return null;
-		}
-		Cell.CellGroup cellGroup = (Cell.CellGroup)cellGroups.get(cc);
-		if (cellGroup != null)
-			cell.setCellGroup(cellGroup);
-		Technology myTech = Technology.findTechnology(cc.techRef.getName());
-		cell.setTechnology(myTech);
-		cell.lowLevelSetCreationDate(new Date(cc.creationDate));
-		cell.lowLevelSetRevisionDate(new Date(cc.revisionDate));
-		
-		if (cc.wantExpanded) cell.setWantExpanded(); else cell.clearWantExpanded();
-		if (cc.allLocked) cell.setAllLocked(); else cell.clearAllLocked();
-		if (cc.instancesLocked) cell.setInstancesLocked(); else cell.clearInstancesLocked();
-		if (cc.inCellLibrary) cell.setInCellLibrary(); else cell.clearInCellLibrary();
-		if (cc.inTechnologyLibrary) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
-		
-		// add variables in fields 7 and up
-		addVariables(cell, cc.vars);
-
-		return cell;
-	}
-
-	/**
-	 * Method called after all libraries have been read to instantiate a single Cell.
-	 * @param cell the Cell to instantiate.
-	 * @param cc the contents of that cell (the strings from the file).
-	 */
-	void instantiateCellContent(CellContents cc)
-	{
-		if (cc == null) return; // ????
-		if (cc.filledIn) return;
-		CellRef cellRef = cc.myCellRef;
-		Cell cell = cc.cell;
-		if (cell == null)
-			cell = allocateCell(cc);
-		for (int i = 0; i < cc.nodes.length; i++)
-		{
-			NodeContents nc = cc.nodes[i];
-			showProgress(nc.lineNumber);
-
-			String prefixName = curLib.getName();
-			String protoName;
-			Library cellLib = reader.lib;
-			NodeProto np = null;
-			if (nc.protoRef instanceof PrimitiveNodeRef)
-			{
-				protoName = ((PrimitiveNodeRef)nc.protoRef).techRef.getName() + ":" + nc.protoRef.getName();
-				Technology tech = Technology.findTechnology(((PrimitiveNodeRef)nc.protoRef).techRef.getName());
-				if (tech != null)
-					np = tech.findNodeProto(nc.protoRef.getName());
-			} else {
-				protoName = ((CellRef)nc.protoRef).libraryRef.getName() + ":" + nc.protoRef.getName();
-				CellContents subCC = (CellContents)allCells.get(protoName);
-
-				// make sure the subcell has been instantiated
-				if (subCC != null)
-				{
-					if (!subCC.filledIn)
-						subCC.getLibraryContents().instantiateCellContent(subCC);
-				}
-
-				cellLib = Library.findLibrary(((CellRef)nc.protoRef).libraryRef.getName());
-				if (cellLib != null)
-					np = cellLib.findNodeProto(nc.protoRef.getName());
-			}
-
-			double wid = nc.wid;
-			double hei = nc.hei;
-			if (nc.mirX) wid = -wid;
-			if (nc.mirY) hei = -hei;
-
-			if (np == null)
-			{
-				if (cellLib == null)
-				{
-					logError("Creating dummy library " + prefixName);
-					cellLib = Library.newInstance(prefixName, null);
-				}
-				Cell dummyCell = Cell.makeInstance(cellLib, protoName);
-				if (dummyCell == null)
-				{
-					logError("Unable to create dummy cell " + protoName + " in library " + cellLib.getName());
-					continue;
-				}
-				logError("Creating dummy cell " + protoName + " in library " + cellLib.getName());
-				Rectangle2D bounds = null;
-				if (nc.protoRef instanceof CellRef)
-					bounds = ((CellRef)nc.protoRef).getBounds();
-				if (bounds == null)
-				{
-					logError("Warning: cannot find information about external cell " + protoName);
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, dummyCell);
-				} else
-				{
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
-						bounds.getWidth(), bounds.getHeight(), dummyCell);
-				}
-
-				// mark this as a dummy cell
-				dummyCell.newVar(IOTool.IO_TRUE_LIBRARY, prefixName);
-				dummyCell.newVar(Input.IO_DUMMY_OBJECT, protoName);
-				np = dummyCell;
-			}
-
-			// make sure the subcell has been instantiated
-// 			if (np instanceof Cell)
-// 			{
-// 				Cell subCell = (Cell)np;
-// 				CellContents subCC = (CellContents)allCells.get(subCell);
-// 				if (subCC != null)
-// 				{
-// 					if (!subCC.filledIn)
-// 						instantiateCellContent(subCC);
-// 				}
-// 			}
-
-			// create the node
-			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(nc.x, nc.y), wid, hei, cell, nc.angle, nc.getName(), nc.techSpecific);
-			nc.ni = ni;
-			if (ni == null)
-			{
-				logError("cannot create node " + protoName);
-				continue;
-			}
-
-			// get the node name text descriptor
-			loadTextDescriptor(ni.getNameTextDescriptor(), null, nc.textDescriptor);
-
-			// add state bits
-			if (nc.expanded) ni.setExpanded(); else ni.clearExpanded();
-			if (nc.locked) ni.setLocked(); else ni.clearLocked();
-			if (nc.shortened) ni.setShortened(); else ni.clearShortened();
-			if (nc.visInside) ni.setVisInside(); else ni.clearVisInside();
-			if (nc.wiped) ni.setWiped(); else ni.clearWiped();
-			if (nc.hardSelect) ni.setHardSelect(); else ni.clearHardSelect();
-
-			// get text descriptor for cell instance names
-			if (nc.protoTextDescriptor != null)
-				loadTextDescriptor(ni.getProtoTextDescriptor(), null, nc.protoTextDescriptor);
-
-			// add variables in fields 10 and up
-			addVariables(ni, nc.vars);
-		}
-
-		// place all exports
-		for(int i = 0; i < cc.exports.length; i++)
-		{
-			ExportContents ec = cc.exports[i];
-			showProgress(ec.lineNumber);
-
-			PortInst pi = figureOutPortInst(cell, ec.portName, ec.node, ec.x, ec.y, cc.getFileName(), ec.lineNumber);
-			if (pi == null) continue;
-
-			// create the export
-			Export pp = Export.newInstance(cell, pi, ec.getName(), false);
-			if (pp == null)
-			{
-				ErrorLogger.MessageLog log = logError("cannot create export " + ec.getName());
-				log.addGeom(pi.getNodeInst(), true, cell, null);
-				continue;
-			}
-
-			// get text descriptor in field 1
-			loadTextDescriptor(pp.getTextDescriptor(), null, ec.textDescriptor);
-
-			// parse state information in field 6
-			if (ec.alwaysDrawn) pp.setAlwaysDrawn();
-			if (ec.bodyOnly) pp.setBodyOnly();
-			pp.setCharacteristic(ec.characteristic);
-
-			// add variables in fields 7 and up
-			addVariables(pp, ec.vars);
-		}
-
-		// next place all arcs
-		for(int i = 0; i < cc.arcs.length; i++)
-		{
-			ArcContents ac = cc.arcs[i];
-			showProgress(ac.lineNumber);
-
-			String protoName = ac.apRef.techRef.getName() + ":" + ac.apRef.getName();
-			ArcProto ap = ArcProto.findArcProto(protoName);
-			if (ap == null)
-			{
-				logError("cannot find arc " + protoName);
-				continue;
-			}
-			PortInst headPI = figureOutPortInst(cell, ac.headPort, ac.headNode, ac.headX, ac.headY, cc.getFileName(), ac.lineNumber);
-			if (headPI == null) continue;
-
-			PortInst tailPI = figureOutPortInst(cell, ac.tailPort, ac.tailNode, ac.tailX, ac.tailY, cc.getFileName(), ac.lineNumber);
-			if (tailPI == null) continue;
-
-			ArcInst ai = ArcInst.newInstance(ap, ac.width, headPI, tailPI, new Point2D.Double(ac.headX, ac.headY),
-				new Point2D.Double(ac.tailX, ac.tailY), ac.getName(), ac.angle);
-			if (ai == null)
-			{
-				ErrorLogger.MessageLog log = logError("cannot create arc " + protoName);
-                log.addGeom(headPI.getNodeInst(), true, cell, null);
-                log.addGeom(tailPI.getNodeInst(), true, cell, null);
-				continue;
-			}
-
-			// get the ard name text descriptor
-			loadTextDescriptor(ai.getNameTextDescriptor(), null, ac.textDescriptor);
-
-			// add state bits
-			ai.setRigid(ac.rigid);
-			ai.setFixedAngle(ac.fixedAngle);
-			ai.setSlidable(ac.slidable);
-			ai.setExtended(ac.extended);
-			ai.setDirectional(ac.directional);
-			ai.setReverseEnds(ac.reverseEnds);
-			ai.setHardSelect(ac.hardSelect);
-			ai.setSkipHead(ac.skipHead);
-			ai.setSkipTail(ac.skipTail);
-			ai.getHead().setNegated(ac.headNegated);
-			ai.getTail().setNegated(ac.tailNegated);
-
-			// add variables in fields 13 and up
-			addVariables(ai, ac.vars);
-		}
-		cc.filledIn = true;
-		cc.nodes = null;
-		cc.arcs = null;
-	}
-
-	/**
-	 * Method to find the proper PortInst for a specified port on a node, at a given position.
-	 * @param cell the cell in which this all resides.
-	 * @param portName the name of the port (may be an empty string if there is only 1 port).
-	 * @param nodeName the name of the node.
-	 * @param xPos the X coordinate of the port on the node.
-	 * @param yPos the Y coordinate of the port on the node.
-	 * @param diskName a HashMap that maps node names to actual nodes.
-	 * @param lineNumber the line number in the file being read (for error reporting).
-	 * @return the PortInst specified (null if none can be found).
-	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, NodeContents node, double xPos, double yPos, String fileName, int lineNumber)
-	{
-		NodeInst ni = node.ni;
-		if (ni == null)
-		{
-			Input.errorLogger.logError("cannot find node " + node.getName(), cell, -1);
-			return null;
-		}
-
-		PortInst pi = null;
-		if (portName.length() == 0)
-		{
-			if (ni.getNumPortInsts() > 0)
-				pi = ni.getPortInst(0);
-		} else
-		{
-			pi = ni.findPortInst(portName);
-		}
-
-		// primitives use the name match
-//		NodeProto np = ni.getProto();
-//		if (np instanceof PrimitiveNode) return pi;
-
-		// make sure the port can handle the position
-		Point2D headPt = new Point2D.Double(xPos, yPos);
-		if (pi != null)
-		{
-			Poly poly = pi.getPoly();
-			if (!(poly.isInside(headPt) || poly.polyDistance(xPos, yPos) < LibraryFiles.TINYDISTANCE))
-			{
-				NodeProto np = ni.getProto();
-				ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
-					pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
-				log.addPoint(headPt.getX(), headPt.getY(), cell);
-				if (np instanceof Export)
-					pi = null;
-			}
-		}
-		if (pi != null) return pi;
-
-		// see if this is a dummy cell
-		Cell subCell = (Cell)ni.getProto();
-		Variable var = subCell.getVar(IOTool.IO_TRUE_LIBRARY);
-		if (var == null)
-		{
-			// not a dummy cell: create a pin at the top level
-			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, cell);
-			if (portNI == null)
-			{
-				logError("Unable to create dummy node in cell " + cell.describe() + " (cannot create source node)");
-				return null;
-			}
-			ErrorLogger.MessageLog log = logError("Arc end and port discrepancy at ("+headPt.getX()+","+headPt.getY()+"), port "+portName+" on node "+node.getName()+" in cell " + cell.describe());
-            log.addGeom(portNI, true, cell, null);
-			return portNI.getOnlyPortInst();
-		}
-
-		// a dummy cell: create a dummy export on it to fit this
-		String name = portName;
-		if (name.length() == 0) name = "X";
-		AffineTransform unRot = ni.rotateIn();
-		unRot.transform(headPt, headPt);
-		AffineTransform unTrans = ni.translateIn();
-		unTrans.transform(headPt, headPt);
-		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, subCell);
-		if (portNI == null)
-		{
-			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Unable to create export " + name + " on dummy cell " + subCell.describe() + " (cannot create source node)", cell, -1);
-			return null;
-		}
-		PortInst portPI = portNI.getOnlyPortInst();
-		Export pp = Export.newInstance(subCell, portPI, name, false);
-		if (pp == null)
-		{
-			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Unable to create export " + name + " on dummy cell " + subCell.describe(), cell, -1);
-			return null;
-		}
-		pi = ni.findPortInstFromProto(pp);
-		Input.errorLogger.logError(fileName + ", line " + lineNumber +
-			", Creating export " + name + " on dummy cell " + subCell.describe(), cell, -1);
-
-		return pi;
 	}
 
 	private void setLineNumber(int lineNumber)
@@ -1855,155 +2354,10 @@ public class LibraryContents
 	 */
 	private void addVariables(ElectricObject eObj, VariableContents[] vars)
 	{
-		if (eObj == null || vars == null) return;
+		if (vars == null) return;
 		for(int i = 0; i < vars.length; i++)
 		{
-			String piece = vars[i].piece;
-			int openPos = 0;
-			for(; openPos < piece.length(); openPos++)
-			{
-				char chr = piece.charAt(openPos);
-				if (chr == '^') { openPos++;   continue; }
-				if (chr == '(') break;
-			}
-			if (openPos >= piece.length())
-			{
-				logError("Badly formed variable (no open parenthesis): " + piece);
-				continue;
-			}
-			String varName = piece.substring(0, openPos);
-			Variable.Key varKey = ElectricObject.newKey(varName);
-			if (eObj.isDeprecatedVariable(varKey)) continue;
-			int closePos = piece.indexOf(')', openPos);
-			if (closePos < 0)
-			{
-				logError("Badly formed variable (no close parenthesis): " + piece);
-				continue;
-			}
-			String varBits = piece.substring(openPos+1, closePos);
-			int objectPos = closePos + 1;
-			if (objectPos >= piece.length())
-			{
-				logError("Variable type missing: " + piece);
-				continue;
-			}
-			char varType = piece.charAt(objectPos++);
-			switch (varType)
-			{
-				case 'B':
-				case 'C':
-				case 'D':
-				case 'E':
-				case 'F':
-				case 'G':
-				case 'H':
-				case 'I':
-				case 'L':
-				case 'O':
-				case 'P':
-				case 'R':
-				case 'S':
-				case 'T':
-				case 'V':
-				case 'Y':
-					break; // break from switch
-				default:
-					logError("Variable type invalid: " + piece);
-					continue; // continue loop
-			}
-			if (objectPos >= piece.length())
-			{
-				logError("Variable value missing: " + piece);
-				continue;
-			}
-			Object obj = null;
-			if (piece.charAt(objectPos) == '[')
-			{
-				List objList = new ArrayList();
-				objectPos++;
-				while (objectPos < piece.length())
-				{
-					int start = objectPos;
-					boolean inQuote = false;
-					while (objectPos < piece.length())
-					{
-						if (inQuote)
-						{
-							if (piece.charAt(objectPos) == '^')
-							{
-								objectPos++;
-							} else if (piece.charAt(objectPos) == '"')
-							{
-								inQuote = false;
-							}
-							objectPos++;
-							continue;
-						}
-						if (piece.charAt(objectPos) == ',' || piece.charAt(objectPos) == ']') break;
-						if (piece.charAt(objectPos) == '"')
-						{
-							inQuote = true;
-						}
-						objectPos++;
-					}
-					Object oneObj = getVariableValue(piece.substring(start, objectPos), 0, varType);
-					objList.add(oneObj);
-					if (piece.charAt(objectPos) == ']') break;
-					objectPos++;
-				}
-				if (objectPos >= piece.length())
-				{
-					logError("Badly formed array (no closed bracket): " + piece);
-					continue;
-				}
-				else if (objectPos < piece.length() - 1)
-				{
-					logError("Badly formed array (extra characters after closed bracket): " + piece);
-					continue;
-				}
-				int limit = objList.size();
-				Object [] objArray = null;
-				switch (varType)
-				{
-// 					case 'A': objArray = new ArcInst[limit];        break;
-					case 'B': objArray = new Boolean[limit];        break;
-					case 'C': objArray = new Cell[limit];           break;
-					case 'D': objArray = new Double[limit];         break;
-					case 'E': objArray = new Export[limit];         break;
-					case 'F': objArray = new Float[limit];          break;
-					case 'G': objArray = new Long[limit];           break;
-					case 'H': objArray = new Short[limit];          break;
-					case 'I': objArray = new Integer[limit];        break;
-					case 'L': objArray = new Library[limit];        break;
-// 					case 'N': objArray = new NodeInst[limit];       break;
-					case 'O': objArray = new Tool[limit];           break;
-					case 'P': objArray = new PrimitiveNode[limit];  break;
-					case 'R': objArray = new ArcProto[limit];       break;
-					case 'S': objArray = new String[limit];         break;
-					case 'T': objArray = new Technology[limit];     break;
-					case 'V': objArray = new Point2D[limit];        break;
-					case 'Y': objArray = new Byte[limit];           break;
-				}
-				for(int j=0; j<limit; j++)
-					objArray[j] = objList.get(j);
-				obj = objArray;
-			} else
-			{
-				// a scalar Variable
-				obj = getVariableValue(piece, objectPos, varType);
-			}
-
-			// create the variable
-			Variable newVar = eObj.newVar(varKey, obj);
-			if (newVar == null)
-			{
-				logError("Cannot create variable: " + piece);
-				continue;
-			}
-
-			// add in extra information
-			TextDescriptor td = newVar.getTextDescriptor();
-			loadTextDescriptor(td, newVar, varBits);
+			if (vars[i] != null) vars[i].addVariable(eObj);
 		}
 	}
 
@@ -2014,70 +2368,10 @@ public class LibraryContents
 	 */
 	void addMeaningPrefs(Object obj, VariableContents[] vars)
 	{
-		if (obj == null || vars == null) return;
+		if (vars == null) return;
 		for(int i = 0; i < vars.length; i++)
 		{
-			String piece = vars[i].piece;
-			int openPos = 0;
-			for(; openPos < piece.length(); openPos++)
-			{
-				char chr = piece.charAt(openPos);
-				if (chr == '^') { openPos++;   continue; }
-				if (chr == '(') break;
-			}
-			if (openPos >= piece.length())
-			{
-				logError("Badly formed meaning preference (no open parenthesis): " + piece);
-				continue;
-			}
-			String varName = piece.substring(0, openPos);
-			int closePos = piece.indexOf(')', openPos);
-			if (closePos < 0)
-			{
-				logError("Badly formed meaning preference (no close parenthesis): " + piece);
-				continue;
-			}
-			int objectPos = closePos + 1;
-			if (objectPos >= piece.length())
-			{
-				logError("Meaning preference type missing: " + piece);
-				continue;
-			}
-			char varType = piece.charAt(objectPos++);
-			switch (varType)
-			{
-				case 'D': // Double
-				case 'F': // Float
-				case 'G': // Long
-				case 'I': // Integer
-				case 'S': // String
-					break; // break from switch
-				default:
-					logError("Meaning preference type invalid: " + piece);
-					continue; // continue loop
-			}
-			if (objectPos >= piece.length())
-			{
-				logError("Meaning preference value missing: " + piece);
-				continue;
-			}
-			if (piece.charAt(objectPos) == '[')
-			{
-				logError("Meaning preference has array value: " + piece);
-				continue;
-			}
-			// a scalar Variable
-			Object value = getVariableValue(piece, objectPos, varType);
-
-			// change "meaning option"
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
-			if (meaning != null)
-			{
-				Pref.changedMeaningVariable(meaning, value);
-			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(varName, value)))
-			{
-// 				logError("Meaning preference unknown: " + piece);
-			}
+			if (vars[i] != null) vars[i].addMeaningPref(obj);
 		}
 	}
 
@@ -2260,233 +2554,505 @@ public class LibraryContents
 		td.setOff(xoff, yoff);
 	}
 
-	/**
-	 * Method to convert a String to an Object so that it can be stored in a Variable.
-	 * @param piece the String to be converted.
-	 * @param objectPos the character number in the string to consider.
-	 * Note that the string may be larger than the object description, both by having characters
-	 * before it, and also by having characters after it.
-	 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
-	 * @param varType the type of the object to convert (a letter from the file).
-	 * @return the Object representation of the given String.
-	 */
-	private Object getVariableValue(String piece, int objectPos, char varType)
+	void fillStat(LibraryStatistics.FileContents fc, LibraryContents total)
 	{
-		int colonPos;
-		String libName;
-		Library lib;
-		int secondColonPos;
-		String cellName;
-		Cell cell;
-		int commaPos;
-
-		switch (varType)
+		for (Iterator tit = toolRefs.values().iterator(); tit.hasNext(); )
 		{
-// 			case 'A':		// ArcInst (should delay analysis until database is built!!!)
-// 				int colonPos = piece.indexOf(':', objectPos);
-// 				if (colonPos < 0)
-// 				{
-// 					logError("Badly formed Export (missing library colon): " + piece);
-// 					break;
-// 				}
-// 				String libName = piece.substring(objectPos, colonPos);
-// 				Library lib = Library.findLibrary(libName);
-// 				if (lib == null)
-// 				{
-// 					logError("Unknown library: " + libName);
-// 					break;
-// 				}
-// 				int secondColonPos = piece.indexOf(':', colonPos+1);
-// 				if (secondColonPos < 0)
-// 				{
-// 					logError("Badly formed Export (missing cell colon): " + piece);
-// 					break;
-// 				}
-// 				String cellName = piece.substring(colonPos+1, secondColonPos);
-// 				Cell cell = lib.findNodeProto(cellName);
-// 				if (cell == null)
-// 				{
-// 					logError("Unknown Cell: " + piece);
-// 					break;
-// 				}
-// 				String arcName = piece.substring(secondColonPos+1);
-// 				int commaPos = arcName.indexOf(',');
-// 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
-// 				ArcInst ai = cell.findArc(arcName);
-// 				if (ai == null)
-// 					logError("Unknown ArcInst: " + piece);
-// 				return ai;
-			case 'B':		// Boolean
-				return new Boolean(piece.charAt(objectPos)=='T' ? true : false);
-			case 'C':		// Cell (should delay analysis until database is built!!!)
-				colonPos = piece.indexOf(':', objectPos);
-				if (colonPos < 0)
-				{
-					logError("Badly formed ArcProto (missing colon): " + piece);
-					break;
-				}
-				libName = piece.substring(objectPos, colonPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					logError("Unknown library: " + libName);
-					break;
-				}
-				cellName = piece.substring(colonPos+1);
-				commaPos = cellName.indexOf(',');
-				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
-				cell = lib.findNodeProto(cellName);
-				if (cell == null)
-					logError("Unknown Cell: " + piece);
-				return cell;
-			case 'D':		// Double
-				return new Double(TextUtils.atof(piece.substring(objectPos)));
-			case 'E':		// Export (should delay analysis until database is built!!!)
-				colonPos = piece.indexOf(':', objectPos);
-				if (colonPos < 0)
-				{
-					logError("Badly formed Export (missing library colon): " + piece);
-					break;
-				}
-				libName = piece.substring(objectPos, colonPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					logError("Unknown library: " + libName);
-					break;
-				}
-				secondColonPos = piece.indexOf(':', colonPos+1);
-				if (secondColonPos < 0)
-				{
-					logError("Badly formed Export (missing cell colon): " + piece);
-					break;
-				}
-				cellName = piece.substring(colonPos+1, secondColonPos);
-				cell = lib.findNodeProto(cellName);
-				if (cell == null)
-				{
-					logError("Unknown Cell: " + piece);
-					break;
-				}
-				String exportName = piece.substring(secondColonPos+1);
-				commaPos = exportName.indexOf(',');
-				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
-				Export pp = cell.findExport(exportName);
-				if (pp == null)
-					logError("Unknown Export: " + piece);
-				return pp;
-			case 'F':		// Float
-				return new Float((float)TextUtils.atof(piece.substring(objectPos)));
-			case 'G':		// Long
-				return new Long(TextUtils.atoi(piece.substring(objectPos)));
-			case 'H':		// Short
-				return new Short((short)TextUtils.atoi(piece.substring(objectPos)));
-			case 'I':		// Integer
-				return new Integer(TextUtils.atoi(piece.substring(objectPos)));
-			case 'L':		// Library (should delay analysis until database is built!!!)
-				libName = piece.substring(objectPos);
-				commaPos = libName.indexOf(',');
-				if (commaPos >= 0) libName = libName.substring(0, commaPos);
-				LibraryRef libRef = getLibraryRef(libName);
-				return libRef.getLibrary();
-// 			case 'N':		// NodeInst (should delay analysis until database is built!!!)
-// 				colonPos = piece.indexOf(':', objectPos);
-// 				if (colonPos < 0)
-// 				{
-// 					logError("Badly formed Export (missing library colon): " + piece);
-// 					break;
-// 				}
-// 				libName = piece.substring(objectPos, colonPos);
-// 				lib = Library.findLibrary(libName);
-// 				if (lib == null)
-// 				{
-// 					logError("Unknown library: " + libName);
-// 					break;
-// 				}
-// 				secondColonPos = piece.indexOf(':', colonPos+1);
-// 				if (secondColonPos < 0)
-// 				{
-// 					logError("Badly formed Export (missing cell colon): " + piece);
-// 					break;
-// 				}
-// 				cellName = piece.substring(colonPos+1, secondColonPos);
-// 				cell = lib.findNodeProto(cellName);
-// 				if (cell == null)
-// 				{
-// 					logError("Unknown Cell: " + piece);
-// 					break;
-// 				}
-// 				String nodeName = piece.substring(secondColonPos+1);
-// 				commaPos = nodeName.indexOf(',');
-// 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
-// 				NodeInst ni = cell.findNode(nodeName);
-// 				if (ni == null)
-// 					logError("Unknown NodeInst: " + piece);
-// 				return ni;
-			case 'O':		// Tool
-				String toolName = piece.substring(objectPos);
-				commaPos = toolName.indexOf(',');
-				if (commaPos >= 0) toolName = toolName.substring(0, commaPos);
-				Tool tool = Tool.findTool(toolName);
-				if (tool == null)
-					logError("Unknown Tool: " + piece);
-				return tool;
-			case 'P':		// PrimitiveNode
-				String pnName = piece.substring(objectPos);
-				commaPos = pnName.indexOf(',');
-				if (commaPos >= 0) pnName = pnName.substring(0, commaPos);
-				PrimitiveNodeRef pnRef = getPrimitiveNodeRef(null, pnName);
-				return pnRef.getNodeProto();
-			case 'R':		// ArcProto
-				String apName = piece.substring(objectPos);
-				commaPos = apName.indexOf(',');
-				if (commaPos >= 0) apName = apName.substring(0, commaPos);
-				ArcProtoRef apRef = getArcProtoRef(null, apName);
-				return apRef.getArcProto();
-			case 'S':		// String
-				if (piece.charAt(objectPos) != '"')
-				{
-					logError("Badly formed string variable (missing open quote): " + piece);
-					break;
-				}
-				StringBuffer sb = new StringBuffer();
-				int len = piece.length();
-				while (objectPos < len)
-				{
-					objectPos++;
-					if (piece.charAt(objectPos) == '"') break;
-					if (piece.charAt(objectPos) == '^')
-					{
-						objectPos++;
-						if (objectPos <= len - 2 && piece.charAt(objectPos) == '\\' && piece.charAt(objectPos+1) == 'n')
-						{
-							sb.append('\n');
-							objectPos++;
-							continue;
-						}
-					}
-					sb.append(piece.charAt(objectPos));
-				}
-				return sb.toString();
-			case 'T':		// Technology
-				String techName = piece.substring(objectPos);
-				commaPos = techName.indexOf(',');
-				if (commaPos >= 0) techName = techName.substring(0, commaPos);
-				TechnologyRef techRef = getTechnologyRef(techName);
-				return techRef.getTechnology();
-			case 'V':		// Point2D
-				double x = TextUtils.atof(piece.substring(objectPos));
-				int slashPos = piece.indexOf('/', objectPos);
-				if (slashPos < 0)
-				{
-					logError("Badly formed Point2D variable (missing slash): " + piece);
-					break;
-				}
-				double y = TextUtils.atof(piece.substring(slashPos+1));
-				return new Point2D.Double(x, y);
-			case 'Y':		// Byte
-				return new Byte((byte)TextUtils.atoi(piece.substring(objectPos)));
+			ToolRef toolRef = (ToolRef)tit.next();
+			fc.toolCount++;
+			fc.nameLength += toolRef.getName().length();
+			ToolRef totalToolRef = total.getToolRef(toolRef.getName());
+			totalToolRef.addVars(toolRef.vars);
 		}
-		return null;
+		for (Iterator tit = technologyRefs.values().iterator(); tit.hasNext(); )
+		{
+			TechnologyRef technologyRef = (TechnologyRef)tit.next();
+			fc.techCount++;
+			fc.nameLength += technologyRef.getName().length();
+			TechnologyRef totalTechnologyRef = total.getTechnologyRef(technologyRef.getName());
+			totalTechnologyRef.addVars(technologyRef.vars);
+			for (Iterator nit = technologyRef.primitiveNodes.values().iterator(); nit.hasNext(); )
+			{
+				PrimitiveNodeRef primitiveNodeRef = (PrimitiveNodeRef)nit.next();
+				fc.primNodeProtoCount++;
+				fc.nameLength += primitiveNodeRef.getName().length();
+				PrimitiveNodeRef totalPrimitiveNodeRef = totalTechnologyRef.getPrimitiveNodeRef(primitiveNodeRef.getName());
+				totalPrimitiveNodeRef.addVars(primitiveNodeRef.vars);
+				for (Iterator pit = primitiveNodeRef.getPorts(); pit.hasNext(); )
+				{
+					PrimitivePortRef primitivePortRef = (PrimitivePortRef)pit.next();
+					fc.primPortProtoCount++;
+					fc.nameLength += primitivePortRef.getName().length();
+					PrimitivePortRef totalPrimitivePortRef = (PrimitivePortRef)totalPrimitiveNodeRef.getPortProtoRef(primitivePortRef.getName());
+					totalPrimitivePortRef.addVars(primitivePortRef.vars);
+				}
+			}
+			for (Iterator ait = technologyRef.arcProtos.values().iterator(); ait.hasNext(); )
+			{
+				ArcProtoRef arcProtoRef = (ArcProtoRef)ait.next();
+				fc.arcProtoCount++;
+				fc.nameLength += arcProtoRef.getName().length();
+				ArcProtoRef totalArcProtoRef = totalTechnologyRef.getArcProtoRef(arcProtoRef.getName());
+				totalArcProtoRef.addVars(arcProtoRef.vars);
+			}
+		}
+		for (Iterator vit = viewRefs.values().iterator(); vit.hasNext(); )
+		{
+			ViewRef viewRef = (ViewRef)vit.next();
+			fc.viewCount++;
+			fc.nameLength += viewRef.getName().length();
+			fc.nameLength += viewRef.fullName.length();
+			ViewRef totalViewRef = total.getViewRef(viewRef.getName());
+			totalViewRef.addVars(viewRef.vars);
+		}
+		for (Iterator vit = variableKeyRefs.values().iterator(); vit.hasNext(); )
+		{
+			VariableKeyRef variableKeyRef = (VariableKeyRef)vit.next();
+			fc.varNameCount++;
+			fc.varNameLength += variableKeyRef.getName().length();
+			total.getVariableKeyRef(variableKeyRef.getName());
+		}
+		fc.userBits |= userBits;
+		total.userBits |= userBits;
+		total.addVars(vars);
+		total.addFakeVars(fakeVars);
+	}
+			
+	void printJelib(PrintWriter out)
+	{
+		out.print("# header information:");
+		if (elibHeader != null) out.print(" " + elibHeader);
+		if (userBits != 0) out.print(" " + userBits);
+		out.println();
+		out.print("H" + convertJelibString(myLibraryRef.getName()) + "|" + version);
+		printJelibVars(out, vars);
+		out.println();
+		if (fakeVars != null)
+		{
+			out.print("# ");
+			printJelibVars(out, vars);
+			out.println();
+		}
+
+		if (viewRefs.size() > 0)
+		{
+			out.println();
+			out.println("# Views:");
+			for(Iterator it = viewRefs.values().iterator(); it.hasNext(); )
+			{
+				ViewRef viewRef = (ViewRef)it.next();
+				viewRef.printJelib(out);
+			}
+		}
+
+		if (libraryRefs.size() > 1)
+		{
+			out.println();
+			out.println("# External Libraries and cells:");
+			for(Iterator it = libraryRefs.values().iterator(); it.hasNext(); )
+			{
+				LibraryRef libraryRef = (LibraryRef)it.next();
+				if (libraryRef == myLibraryRef) continue;
+				libraryRef.printJelib(out);
+			}
+		}
+
+		if (toolRefs.size() > 0)
+		{
+			out.println();
+			out.println("# Tools:");
+			for(Iterator it = toolRefs.values().iterator(); it.hasNext(); )
+			{
+				ToolRef toolRef = (ToolRef)it.next();
+				toolRef.printJelib(out);
+			}
+		}
+
+		for (Iterator it = technologyRefs.values().iterator(); it.hasNext(); )
+		{
+			TechnologyRef technologyRef = (TechnologyRef)it.next();
+			technologyRef.printJelib(out);
+		}
+
+// 		out.println();
+// 		out.println("# Variable Keys");
+// 		for (Iterator it = variableKeyRefs.values().iterator(); it.hasNext(); )
+// 		{
+// 			VariableKeyRef variableKeyRef = (VariableKeyRef)it.next();
+// 			out.println("#" + convertJelibVariableName(variableKeyRef.getName()));
+// 		}
+
+		for (int i = 0; i < cellContentses.size(); i++)
+		{
+			CellContents cc = (CellContents)cellContentses.get(i);
+			cc.printJelib(out);
+		}
+
+		// Cellect cell groups and reference counts.
+// 		HashMap/*<CellRef,CellRef>*/ cellRoots = new HashMap();
+// 		HashMap/*<CellRef,GenMath.MutableInteger>*/ cellCounts = new HashMap();
+// 		HashMap/*<CellRef,List<CellRef>>*/ groups = new HashMap();
+// 		for (Iterator it = myLibraryRef.cells.values().iterator(); it.hasNext(); )
+// 		{
+// 			CellRef cellRef = (CellRef)it.next();
+// 			CellRef root = (CellRef)cellRoots.get(cellRef);
+// 			if (root != null || cellRef.nextInGroup == null) continue;
+// 			GenMath.MutableInteger count = (GenMath.MutableInteger)cellCounts.get(cellRef.nextInGroup);
+// 			if (count == null)
+// 			{
+// 				count = new GenMath.MutableInteger(0);
+// 				cellCounts.put(cellRef, count);
+// 			}
+// 			count.increment();
+
+// 			CellRef c = cellRef;
+// 			while (c.nextInGroup != null)
+// 			{
+// 				root = (CellRef)cellRoots.get(c);
+// 				if (root != null) break;
+// 				cellRoots.put(c, cellRef);
+// 				c = c.nextInGroup;
+// 			}
+// 			if (root == cellRef)
+// 			{
+// 				// Cycle. Find the least CellRef in it.
+// 				root = c;
+// 				while (c.nextInGroup != root)
+// 				{
+// 					if (c.compareTo(root) < 0)
+// 						root = c;
+// 					c = c.nextInGroup;
+// 				}
+// 				ArrayList group = new ArrayList();
+// 				for (c = root; ; c = c.nextInGroup)
+// 				{
+// 					cellRoots.put(c, root);
+// 					group.add(c);
+// 					GenMath.MutableInteger count = (GenMath.MutableInteger)cellCounts.get(c);
+// 					count.setValue(-1);
+// 				}
+// 				groups.add(group);
+// 			} else if (root == null)
+// 			{
+// 				root = c;
+// 			}
+// 			for (c = cellRef; c != null; c = c.nextInGroup)
+// 			{
+// 				if (cellRoots.get(c) == root) break;
+// 				cellRoots.put(c, root);
+// 			}
+// 		}
+
+		// Output groups.
+		if (jelibCellGroups != null)
+		{
+			out.println();
+			out.println("# Groups:");
+			for (int i = 0; i < jelibCellGroups.size(); i++)
+			{
+				CellRef[] group = (CellRef[])jelibCellGroups.get(i);
+				out.print("G");
+				for (int j = 0; j < group.length; j++)
+				{
+					if (j > 0) out.print("|");
+					if (group[j] == null) continue;
+					out.print(group[j].getFullName());
+				}
+				out.println();
+			}
+		}
+// 		for (Iterator it = myLibraryRef.cells.values().iterator(); it.hasNext(); )
+// 		{
+// 			CellRef cellRef = (CellRef)it.next();
+// 			CellRef root = (CellRef)cellRoots.get(cellRef);
+// 			GenMath.MutableInteger count = (GenMath.MutableInteger)cellCounts.get(cellRef);
+// 			out.print("G" + cellRef.getName() + "|");
+// 			if (count != null) out.print(count.intValue());
+// 			if (root != null)
+// 			{
+// 				out.print("|" + root.getName());
+// 			}
+// 			out.println();
+// 		}
+
+// 		for (Iterator it = myLibraryRef.cells.values().iterator(); it.hasNext(); )
+// 		{
+// 			CellRef cellRef = (CellRef)it.next();
+// 			CellRoot root = (CellRef)cellRoots.get(cellRef);
+// 			if (root != cellRef) continue;
+			
+// 			GenMath.MutableInteger count = (GenMath.MutableInteger)cellCounts.get(cellRef);
+// 			if (root == cellRef)
+// 			{
+// 				ArrayList group = new ArrayList();
+// 				continue;
+// 			}
+// 			if (count == null || count.intValue() != 1)
+// 			Lisy/*<CellRef>*/ group = (List/*<CellRef>*/)groups.get(cellRoot);
+// 			if (group == null) group = new ArrayList();
+// 			group.add(cellRef);
+// 		}
+// 		ArrayList sortedGroups/*<CellRef>*/ = new ArrayList(groups.keySet());
+// 		Collections.sort(sortedGroups);
+// 		for (Iterator it = sortedGroups.iterator(); it.hasNext(); )
+// 		{
+// 			CellRef root = (CellRef)it.next();
+// 			HashSet group = (HashSet)groups.get(root);
+// 			out.print("G");
+// 			if (
+// 		}
+
+	}
+
+	private static void printJelibVars(PrintWriter out, VariableContents[] vars)
+	{
+		if (vars == null) return;
+		for (int i = 0; i < vars.length; i++)
+			if (vars[i] != null) vars[i].printJelib(out);
+	}
+
+	void printJelibVariableNames(PrintWriter out)
+	{
+		TreeSet sortedName = new TreeSet(variableKeyRefs.keySet());
+		for (Iterator it = sortedName.iterator(); it.hasNext(); )
+		{
+			String s = (String)it.next();
+			out.println(convertToJavaString(s));
+		}
+	}
+	
+	String convertToJavaString(String s)
+	{
+		int i = 0;
+		while (i < s.length() && s.charAt(i) >= ' ' && s.charAt(i) != '\\') i++;
+		if (i == s.length()) return s;
+		String s1 = s.substring(0, i);
+		for(; i < s.length(); i++)
+		{
+			char c = s.charAt(i);
+			if (c == '\\')
+			{
+				s1 += "\\\\";
+				continue;
+			}
+			if (c < ' ')
+			{
+				String s2 = Integer.toOctalString((int)c);
+				while (s2.length() < 3) s2 = "0" + s2;
+				s1 += "\\" + s2;
+				continue;
+			}
+			s1 += c;
+		}
+		return s1;
+	}
+
+	/**
+	 * Method to convert a variable to a string that describes its TextDescriptor
+	 * @param var the Variable being described (may be null).
+	 * @param td the TextDescriptor being described.
+	 * @return a String describing the variable/textdescriptor.
+	 * The string has these fields:
+	 *    Asize; for absolute size
+	 *    B if bold
+	 *    Cindex; if color index
+	 *    Dx for display position (2=bottom 8=top 4=left 6=right 7=upleft 9=upright 1=downleft 3=downright 5=centered 0=boxed)
+	 *    FfontName; if a nonstandard font
+	 *    Gsize; for relative (grid unit) size
+	 *    H if inherit
+	 *    I if italic
+	 *    L if underline
+	 *    N if name=value;
+	 *    Ol for language (J=Java L=Lisp T=TCL)
+	 *    P if parameter
+	 *    R/RR/RRR if rotated (90, 180, 270)
+	 *    T if interior
+	 *    Ux for units (R=resistance C=capacitance I=inductance A=current V=voltage D=distance T=time)
+	 *    Xoffset; for X offset
+	 *    Yoffset; for Y offset
+	 */
+	private String describeJelibDescriptor(Variable var, TextDescriptor td)
+	{
+		StringBuffer ret = new StringBuffer();
+		boolean display = false;
+		if (var == null || var.isDisplay()) display = true;
+
+		if (display)
+		{
+			// write size
+			TextDescriptor.Size size = td.getSize();
+			if (size.isAbsolute()) ret.append("A" + (int)size.getSize() + ";");
+
+			// write bold
+			if (td.isBold()) ret.append("B");
+
+			// write color
+			int color = td.getColorIndex();
+			if (color != 0)
+				ret.append("C" + color + ";");
+
+			// displayable: write display position
+			ret.append("D");
+			TextDescriptor.Position pos = td.getPos();
+			if (pos == TextDescriptor.Position.UP) ret.append("8"); else
+			if (pos == TextDescriptor.Position.DOWN) ret.append("2"); else
+			if (pos == TextDescriptor.Position.LEFT) ret.append("4"); else
+			if (pos == TextDescriptor.Position.RIGHT) ret.append("6"); else
+			if (pos == TextDescriptor.Position.UPLEFT) ret.append("7"); else
+			if (pos == TextDescriptor.Position.UPRIGHT) ret.append("9"); else
+			if (pos == TextDescriptor.Position.DOWNLEFT) ret.append("1"); else
+			if (pos == TextDescriptor.Position.DOWNRIGHT) ret.append("3"); else
+			if (pos == TextDescriptor.Position.BOXED) ret.append("0"); else
+				ret.append("5");
+
+			// write font
+			int font = td.getFace();
+			if (font != 0)
+			{
+				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(font);
+				ret.append("F" + convertJelibString(af.toString()) + ";");
+			}
+
+			if (!size.isAbsolute()) ret.append("G" + TextUtils.formatDouble(size.getSize()) + ";");
+		}
+
+		// write inherit
+		if (td.isInherit()) ret.append("H");
+
+		if (display)
+		{
+			// write italic
+			if (td.isItalic()) ret.append("I");
+
+			// write underline
+			if (td.isUnderline()) ret.append("L");
+
+			// write display type
+			TextDescriptor.DispPos dispPos = td.getDispPart();
+			if (dispPos == TextDescriptor.DispPos.NAMEVALUE) ret.append("N");
+		}
+
+		// write language
+		if (var != null && var.isCode())
+		{
+			Variable.Code codeType = var.getCode();
+			if (codeType == Variable.Code.JAVA) ret.append("OJ"); else
+			if (codeType == Variable.Code.LISP) ret.append("OL"); else
+			if (codeType == Variable.Code.TCL) ret.append("OT");
+		}
+
+		// write parameter
+		if (td.isParam()) ret.append("P");
+
+		if (display)
+		{
+			// write rotation
+			TextDescriptor.Rotation rot = td.getRotation();
+			if (rot == TextDescriptor.Rotation.ROT90) ret.append("R"); else
+			if (rot == TextDescriptor.Rotation.ROT180) ret.append("RR"); else
+			if (rot == TextDescriptor.Rotation.ROT270) ret.append("RRR");
+		}
+
+		// write interior
+		if (td.isInterior()) ret.append("T");
+
+		// write units
+		TextDescriptor.Unit unit = td.getUnit();
+		if (unit == TextDescriptor.Unit.RESISTANCE) ret.append("UR"); else
+		if (unit == TextDescriptor.Unit.CAPACITANCE) ret.append("UC"); else
+		if (unit == TextDescriptor.Unit.INDUCTANCE) ret.append("UI"); else
+		if (unit == TextDescriptor.Unit.CURRENT) ret.append("UA"); else
+		if (unit == TextDescriptor.Unit.VOLTAGE) ret.append("UV"); else
+		if (unit == TextDescriptor.Unit.DISTANCE) ret.append("UD"); else
+		if (unit == TextDescriptor.Unit.TIME) ret.append("UT");
+
+		if (display)
+		{
+			// write offset
+			double offX = td.getXOff();
+			if (offX != 0) ret.append("X" + TextUtils.formatDouble(offX, 0) + ";");
+			double offY = td.getYOff();
+			if (offY != 0) ret.append("Y" + TextUtils.formatDouble(offY, 0) + ";");
+		}
+
+		return ret.toString();
+	}
+
+	/**
+	 * Method convert a string that is not going to be quoted.
+	 * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
+	 * Converts newlines to spaces.
+	 * @param str the string to convert.
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private static String convertJelibString(String str)
+	{
+		StringBuffer infstr = new StringBuffer();
+		int len = str.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '\n') ch = ' ';
+			if (ch == '|' || ch == '^' || ch == '"')
+				infstr.append('^');
+			infstr.append(ch);
+		}
+		return infstr.toString();
+	}
+
+	/**
+	 * Method convert a string that is going to be quoted.
+	 * Inserts the quote character (^) before any quotation character (") or quote character (^) in the string.
+	 * Converts newlines to "^\n" (makeing the "\" and "n" separate characters).
+	 * @param str the string to convert.
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private static String convertJelibQuotedString(String str)
+	{
+		StringBuffer infstr = new StringBuffer();
+		int len = str.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '\n') { infstr.append("^\\n");   continue; }
+			if (ch == '"' || ch == '^')
+				infstr.append('^');
+			infstr.append(ch);
+		}
+		return infstr.toString();
+	}
+
+	/**
+	 * Method convert a string that is a variable name.
+	 * Inserts a quote character (^) before any separator (|), quotation character ("), open parenthesis, or quote character (^) in the string.
+	 * Converts newlines to spaces.
+	 * @param str the string to convert.
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private static String convertJelibVariableName(String str)
+	{
+		StringBuffer infstr = new StringBuffer();
+		int len = str.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '\n') ch = ' ';
+			if (ch == '|' || ch == '^' || ch == '"' || ch == '(')
+				infstr.append('^');
+			infstr.append(ch);
+		}
+		return infstr.toString();
+	}
+
+	private static String jelibDouble(double x)
+	{
+		int i = (int)x;
+		if (i == x)
+			return i == 0 && 1/x < 0 ? "-0" : Integer.toString(i);
+		else
+			return Double.toString(x);
 	}
 }

@@ -62,9 +62,12 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,16 +91,8 @@ public class JELIB1 extends LibraryFiles
 	private static final LibraryContents.ArcContents[] NULL_ARCS_ARRAY = {};
 	private static final LibraryContents.ExportContents[] NULL_EXPORTS_ARRAY = {};
 
-	private LibraryContents libraryContents = new LibraryContents(this);
+	private LibraryContents libraryContents;
 	private HashMap/*<Cell,CellContents>*/ cellToContents = new HashMap();
-
-//	private static HashMap allCells;
-
-//	private HashMap technologyRefs/*<String,TechnologyRef>*/ = new HashMap();
-//	private HashMap libraryRefs/*<String,LibraryRef>*/ = new HashMap();
-	private LibraryContents.LibraryRef curLib;
-//	private String[] curLibVars;
-//	private List/*<String>*/ groups = new ArrayList();
 
 	private Version version;
 	private int revision;
@@ -114,20 +109,37 @@ public class JELIB1 extends LibraryFiles
 	}
 
 	/**
-	 * Ugly hack.
-	 * Overrides LibraryFiles so that recursive library reads get to the proper place.
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @return the read Library, or null if an error occurred.
 	 */
-//  	public boolean readInputLibrary()
-//  	{
-// //		if (topLevelLibrary) allCells = new HashMap();
-// 		boolean error = readLib();
-// 		if (topLevelLibrary)
-// 		{
-// 			if (!error) instantiateCellContents();
-// //			allCells = null;
-// 		}
-// 		return error;
-// 	}
+	public static synchronized void convertLibrary(URL fileURL, String outFilePath)
+	{
+		errorLogger = ErrorLogger.newInstance("Library Convert");
+		try {
+			JELIB1 in = new JELIB1();
+			if (in.openTextInput(fileURL)) return;
+			// read the library
+			boolean error = in.readTheLibrary();
+			in.closeInput();
+			errorLogger.termLogging(true);
+			if (error)
+			{
+				System.out.println("Error reading library " + fileURL);
+				if (in.topLevelLibrary) mainLibDirectory = null;
+				return;
+			}
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFilePath)));
+			in.libraryContents.printJelib(printWriter);
+			printWriter.close();
+			System.out.println("Written " + outFilePath);
+        } catch (IOException e)
+		{
+            System.out.println("Error opening " + outFilePath);
+        }
+    }
 
 	/**
 	 * Method to read a Library in new library file (.jelib) format.
@@ -138,7 +150,8 @@ public class JELIB1 extends LibraryFiles
 		try
 		{
 			if (readTheLibrary()) return true;
-			List cellContentses = libraryContents.readTheLibrary(lib, topLevelLibrary);
+			List cellContentses = libraryContents.checkTheLibrary(lib, topLevelLibrary);
+			if (cellContentses == null) return true;
 			nodeProtoCount = cellContentses.size();
 			nodeProtoList = new Cell[nodeProtoCount];
 			cellLambda = new double[nodeProtoCount];
@@ -219,7 +232,7 @@ public class JELIB1 extends LibraryFiles
 			char first = line.charAt(0);
 			if (first == '#') continue;
 
-			if (curLib == null && first != 'H')
+			if (libraryContents == null && first != 'H')
 			{
 				logError("Header line is omitted. Stop reading");
 				return true;
@@ -242,7 +255,7 @@ public class JELIB1 extends LibraryFiles
 				LibraryContents.TechnologyRef techRef = getTechnologyRef(nextPiece());
 				long creationDate = Long.parseLong(nextPiece());
 				long revisionDate = Long.parseLong(nextPiece());
-				LibraryContents.CellContents cc = curLib.newCellContents(name, creationDate, revisionDate);
+				LibraryContents.CellContents cc = libraryContents.newCellContents(name, creationDate, revisionDate);
 				cc.setTechRef(techRef);
 				cc.setLineNumber(lineReader.getLineNumber() + 1);
 
@@ -272,6 +285,17 @@ public class JELIB1 extends LibraryFiles
 			    if (parseLine(line, "QQ")) continue;
 				String libName = nextPiece();
 				String fileName = nextPiece();
+				if (libName.equals(""))
+				{
+					logError("No library name in " + line);
+					continue;
+				}
+				if (libName.indexOf(':') >= 0)
+				{
+					logError("Library name " + libName + " contains semicolon");
+					continue;
+				}
+				if (fileName.equals("")) fileName = libName;
 				curExternalLib = libraryContents.newLibraryRef(libName, fileName);
 				continue;
 			}
@@ -298,13 +322,23 @@ public class JELIB1 extends LibraryFiles
 			{
 				// parse header
 				if (parseLine(line, "Qs")) continue;
-				if (curLib != null)
+				if (libraryContents != null)
 				{
 					logError("Second header line ignored " + line);
 					continue;
 				}
 				String curLibName = nextPiece();
 				String versionString = nextPiece();
+				if (curLibName.equals(""))
+				{
+					logError("No library name in Header line " + line);
+					return true;
+				}
+				if (curLibName.indexOf(':') >= 0)
+				{
+					logError("Library name " + curLibName + " contains semicolon");
+					return true;
+				}
 				version = Version.parseVersion(versionString);
 				if (version != null)
 				{
@@ -321,9 +355,10 @@ public class JELIB1 extends LibraryFiles
 				{
 					logError("Badly formed version: " + versionString);
 				}
-
-				curLib = libraryContents.newLibraryRef(curLibName, filePath);
-				libraryContents.setCurLib(curLib, varPieces());
+				
+				libraryContents = new LibraryContents(curLibName, this);
+				libraryContents.setVars(varPieces());
+				libraryContents.setVersion(version);
 				continue;
 			}
 
@@ -341,19 +376,9 @@ public class JELIB1 extends LibraryFiles
 			{
 				// parse View information
 				if (parseLine(line, "QQ")) continue;
-				String viewName = nextPiece();
-				View view = View.findView(viewName);
-				if (view == null)
-				{
-					String viewAbbr = nextPiece();
-					view = View.newInstance(viewName, viewAbbr);
-					if (view == null)
-					{
-						logError("Cannot create view " + viewName);
-						continue;
-					}
-				}
-
+				String viewFullName = nextPiece();
+				String viewAbbr = nextPiece();
+				libraryContents.newViewRef(viewAbbr, viewFullName);
 //				// get additional variables starting at position 2
 //				addVariables(view, varPieces());
 				continue;
@@ -419,46 +444,44 @@ public class JELIB1 extends LibraryFiles
 				// group information
 				if (parseLine(line, "")) continue;
 				String[] pieces = stringPieces();
-
-				// If first cell is nonempty, relate cells linearily
-				// If first cell is empty, relate cells circularily
-				LibraryContents.CellRef firstC = null;
-				LibraryContents.CellRef prevC = null;
+				LibraryContents.CellRef[] cellRefs = new LibraryContents.CellRef[pieces.length];
 				for (int i = 0; i < pieces.length; i++)
 				{
-					LibraryContents.CellRef nextC = null;
-					for (; nextC == null && i < pieces.length; i++)
-					{
-						String cellName = pieces[i];
-						if (cellName.length() == 0) continue;
-						int colonPos = cellName.indexOf(':');
-						if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
-						nextC = curLib.getCellRef(cellName);
-					}
-					if (nextC == null) break;
-					if (firstC == null)	firstC = nextC;
-					if (i == 0) continue;
-					if (prevC != null) prevC.setNextInGroup(nextC);
-					prevC = nextC;
+					if (pieces[i].equals("")) continue;
+					cellRefs[i] = libraryContents.getCellRef(pieces[i]);
+//					if (cellRefs[i].libraryRef);  // check from this library
 				}
-				if (prevC != null) prevC.setNextInGroup(firstC);
-
-// 				Cell firstCell = null;
-// 				for(int i=0; i<pieces.length; i++)
-// 				{
-// 					String cellName = pieces[i];
-// 					if (cellName.length() == 0) continue;
-// 					int colonPos = cellName.indexOf(':');
-// 					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
-// 					cellRefs[i] = curLib.getCellRef(cellName);
-// 				}
-// 				libraryContents.addGroup(cellRefs);
+				libraryContents.addCellGroup(cellRefs);
 				continue;
+
+// 				// If first cell is nonempty, relate cells linearily
+// 				// If first cell is empty, relate cells circularily
+// 				LibraryContents.CellRef firstC = null;
+// 				LibraryContents.CellRef prevC = null;
+// 				for (int i = 0; i < pieces.length; i++)
+// 				{
+// 					LibraryContents.CellRef nextC = null;
+// 					for (; nextC == null && i < pieces.length; i++)
+// 					{
+// 						String cellName = pieces[i];
+// 						if (cellName.length() == 0) continue;
+// 						int colonPos = cellName.indexOf(':');
+// 						if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
+// 						nextC = libraryContents.getMyLibraryRef().getCellRef(cellName);
+// 					}
+// 					if (nextC == null) break;
+// 					if (firstC == null)	firstC = nextC;
+// 					if (i == 0) continue;
+// 					if (prevC != null) prevC.setNextInGroup(nextC);
+// 					prevC = nextC;
+// 				}
+// 				if (prevC != null) prevC.setNextInGroup(firstC);
+// 				continue;
 			}
 
 			logError("Unrecognized line: " + line);
 		}
-		return false;
+		return errorCount != 0;
 	}
 
 	/**
@@ -504,7 +527,7 @@ public class JELIB1 extends LibraryFiles
 			if (parseLine(line, format)) continue;
 
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String protoName = convertCellName(nextPiece());
+			String protoName = nextPiece();
 			LibraryContents.NodeProtoRef protoRef;
 			if (first == 'I')
 			{
@@ -536,6 +559,8 @@ public class JELIB1 extends LibraryFiles
 			double y = TextUtils.atof(nextPiece());
 
 			LibraryContents.NodeContents nc = cc.newNodeContents(protoRef, nodeName, textDescriptorInfo, x, y);
+			nodes.add(nc);
+			nc.setJelibName(diskNodeName);
 			nc.setLineNumber(lineReader.getLineNumber(), first);
 
 			if (first == 'N' || revision < 1)
@@ -592,7 +617,7 @@ public class JELIB1 extends LibraryFiles
 			// insert into map of disk names
 			diskName.put(diskNodeName, nc);
 		}
-		cc.nodes = (LibraryContents.NodeContents[])diskName.values().toArray(NULL_NODES_ARRAY);
+		cc.nodes = (LibraryContents.NodeContents[])nodes.toArray(NULL_NODES_ARRAY);
 
 		List arcs = new ArrayList();
 	ArcLoop:
@@ -651,9 +676,10 @@ public class JELIB1 extends LibraryFiles
 					continue ArcLoop;
 				}
 				String portName = nextPiece();
+				LibraryContents.PortProtoRef portProtoRef = node.getNodeProtoRef().getPortProtoRef(portName);
 				double x = TextUtils.atof(nextPiece());
 				double y = TextUtils.atof(nextPiece());
-				ac.setEnd(i != 0, node, portName, x, y);
+				ac.setEnd(i != 0, node, portProtoRef, x, y);
 			}
 
 			ac.setVars(varPieces());
@@ -685,10 +711,11 @@ public class JELIB1 extends LibraryFiles
 			}
 
 			String portName = nextPiece();
+			LibraryContents.PortProtoRef portProtoRef = node.getNodeProtoRef().getPortProtoRef(portName);
 			double x = TextUtils.atof(nextPiece());
 			double y = TextUtils.atof(nextPiece());
 
-			LibraryContents.ExportContents ec = cc.newExportContents(exportName, textDescriptorInfo, node, portName, x, y);
+			LibraryContents.ExportContents ec = cc.newExportContents(exportName, textDescriptorInfo, node, portProtoRef, x, y);
 			ec.setLineNumber(lineReader.getLineNumber());
 
 			// parse state information
@@ -758,7 +785,7 @@ public class JELIB1 extends LibraryFiles
 
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
-		libraryContents.instantiateCellContent(cc);
+		cc.instantiate();
 	}
 
 	/**
@@ -827,9 +854,343 @@ public class JELIB1 extends LibraryFiles
 		if (curPiece >= stringPieces.size()) return LibraryContents.NULL_VARS_ARRAY;
 		LibraryContents.VariableContents[] vars = new LibraryContents.VariableContents[stringPieces.size() - curPiece];
 		for (int i = 0; i < vars.length; i++)
-			vars[i] = new LibraryContents.VariableContents((String)stringPieces.get(curPiece + i));
+		{
+			String piece = (String)stringPieces.get(curPiece + i);
+			int openPos = 0;
+			for(; openPos < piece.length(); openPos++)
+			{
+				char chr = piece.charAt(openPos);
+				if (chr == '^') { openPos++;   continue; }
+				if (chr == '(') break;
+			}
+			if (openPos >= piece.length())
+			{
+				logError("Badly formed variable (no open parenthesis): " + piece);
+				continue;
+			}
+			String varName = piece.substring(0, openPos);
+			int closePos = piece.indexOf(')', openPos);
+			if (closePos < 0)
+			{
+				logError("Badly formed variable (no close parenthesis): " + piece);
+				continue;
+			}
+			String varBits = piece.substring(openPos+1, closePos);
+			int objectPos = closePos + 1;
+			if (objectPos >= piece.length())
+			{
+				logError("Variable type missing: " + piece);
+				continue;
+			}
+			char varType = piece.charAt(objectPos++);
+			switch (varType)
+			{
+				case 'B':
+				case 'C':
+				case 'D':
+				case 'E':
+				case 'F':
+				case 'G':
+				case 'H':
+				case 'I':
+				case 'L':
+				case 'O':
+				case 'P':
+				case 'R':
+				case 'S':
+				case 'T':
+				case 'V':
+				case 'Y':
+					break; // break from switch
+				default:
+					logError("Variable type invalid: " + piece);
+					continue; // continue loop
+			}
+			if (objectPos >= piece.length())
+			{
+				logError("Variable value missing: " + piece);
+				continue;
+			}
+			Object obj;
+			if (piece.charAt(objectPos) == '[')
+			{
+				List objList = new ArrayList();
+				objectPos++;
+				while (objectPos < piece.length())
+				{
+					int start = objectPos;
+					boolean inQuote = false;
+					while (objectPos < piece.length())
+					{
+						if (inQuote)
+						{
+							if (piece.charAt(objectPos) == '^')
+							{
+								objectPos++;
+							} else if (piece.charAt(objectPos) == '"')
+							{
+								inQuote = false;
+							}
+							objectPos++;
+							continue;
+						}
+						if (piece.charAt(objectPos) == ',' || piece.charAt(objectPos) == ']') break;
+						if (piece.charAt(objectPos) == '"')
+						{
+							inQuote = true;
+						}
+						objectPos++;
+					}
+					Object oneObj = getVariableValue(piece.substring(start, objectPos), 0, varType);
+					objList.add(oneObj);
+					if (piece.charAt(objectPos) == ']') break;
+					objectPos++;
+				}
+				if (objectPos >= piece.length())
+				{
+					logError("Badly formed array (no closed bracket): " + piece);
+					continue;
+				}
+				else if (objectPos < piece.length() - 1)
+				{
+					logError("Badly formed array (extra characters after closed bracket): " + piece);
+					continue;
+				}
+				int limit = objList.size();
+				Object[] objArray = new Object[limit];
+				for(int j=0; j<limit; j++)
+					objArray[j] = objList.get(j);
+				obj = objArray;
+			} else
+			{
+				// a scalar Variable
+				obj = getVariableValue(piece, objectPos, varType);
+			}
+			vars[i] = libraryContents.newVariableContents(libraryContents.getVariableKeyRef(varName), varBits, varType, obj);
+		}
 		curPiece = stringPieces.size();
 		return vars;
+	}
+
+	/**
+	 * Method to convert a String to an Object so that it can be stored in a Variable.
+	 * @param piece the String to be converted.
+	 * @param objectPos the character number in the string to consider.
+	 * Note that the string may be larger than the object description, both by having characters
+	 * before it, and also by having characters after it.
+	 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
+	 * @param varType the type of the object to convert (a letter from the file).
+	 * @return the Object representation of the given String.
+	 */
+	private Object getVariableValue(String piece, int objectPos, char varType)
+	{
+		int colonPos;
+		String libName;
+		LibraryContents.LibraryRef libRef;
+		int secondColonPos;
+		String cellName;
+		LibraryContents.CellRef cellRef;
+		int commaPos;
+
+		switch (varType)
+		{
+// 			case 'A':		// ArcInst (should delay analysis until database is built!!!)
+// 				int colonPos = piece.indexOf(':', objectPos);
+// 				if (colonPos < 0)
+// 				{
+// 					logError("Badly formed Export (missing library colon): " + piece);
+// 					break;
+// 				}
+// 				String libName = piece.substring(objectPos, colonPos);
+// 				Library lib = Library.findLibrary(libName);
+// 				if (lib == null)
+// 				{
+// 					logError("Unknown library: " + libName);
+// 					break;
+// 				}
+// 				int secondColonPos = piece.indexOf(':', colonPos+1);
+// 				if (secondColonPos < 0)
+// 				{
+// 					logError("Badly formed Export (missing cell colon): " + piece);
+// 					break;
+// 				}
+// 				String cellName = piece.substring(colonPos+1, secondColonPos);
+// 				Cell cell = lib.findNodeProto(cellName);
+// 				if (cell == null)
+// 				{
+// 					logError("Unknown Cell: " + piece);
+// 					break;
+// 				}
+// 				String arcName = piece.substring(secondColonPos+1);
+// 				int commaPos = arcName.indexOf(',');
+// 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
+// 				ArcInst ai = cell.findArc(arcName);
+// 				if (ai == null)
+// 					logError("Unknown ArcInst: " + piece);
+// 				return ai;
+			case 'B':		// Boolean
+				return new Boolean(piece.charAt(objectPos)=='T' ? true : false);
+			case 'C':		// Cell (should delay analysis until database is built!!!)
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					logError("Badly formed ArcProto (missing colon): " + piece);
+					break;
+				}
+				libName = piece.substring(objectPos, colonPos);
+				libRef = libraryContents.getLibraryRef(libName);
+				if (libRef == null)
+				{
+					logError("Unknown library: " + libName);
+					break;
+				}
+				cellName = piece.substring(colonPos+1);
+				commaPos = cellName.indexOf(',');
+				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
+				cellRef = libRef.getCellRef(cellName);
+				if (cellRef == null)
+					logError("Unknown Cell: " + piece);
+				return cellRef;
+			case 'D':		// Double
+				return new Double(TextUtils.atof(piece.substring(objectPos)));
+			case 'E':		// Export (should delay analysis until database is built!!!)
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					logError("Badly formed Export (missing library colon): " + piece);
+					break;
+				}
+				libName = piece.substring(objectPos, colonPos);
+				libRef = libraryContents.getLibraryRef(libName);
+				if (libRef == null)
+				{
+					logError("Unknown library: " + libName);
+					break;
+				}
+				secondColonPos = piece.indexOf(':', colonPos+1);
+				if (secondColonPos < 0)
+				{
+					logError("Badly formed Export (missing cell colon): " + piece);
+					break;
+				}
+				cellName = piece.substring(colonPos+1, secondColonPos);
+				cellRef = libRef.getCellRef(cellName);
+				if (cellRef == null)
+				{
+					logError("Unknown Cell: " + piece);
+					break;
+				}
+				String exportName = piece.substring(secondColonPos+1);
+				commaPos = exportName.indexOf(',');
+				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
+				return cellRef.getPortProtoRef(exportName);
+			case 'F':		// Float
+				return new Float((float)TextUtils.atof(piece.substring(objectPos)));
+			case 'G':		// Long
+				return new Long(TextUtils.atoi(piece.substring(objectPos)));
+			case 'H':		// Short
+				return new Short((short)TextUtils.atoi(piece.substring(objectPos)));
+			case 'I':		// Integer
+				return new Integer(TextUtils.atoi(piece.substring(objectPos)));
+			case 'L':		// Library (should delay analysis until database is built!!!)
+				libName = piece.substring(objectPos);
+				commaPos = libName.indexOf(',');
+				if (commaPos >= 0) libName = libName.substring(0, commaPos);
+				libRef = getLibraryRef(libName);
+				return libRef;
+// 			case 'N':		// NodeInst (should delay analysis until database is built!!!)
+// 				colonPos = piece.indexOf(':', objectPos);
+// 				if (colonPos < 0)
+// 				{
+// 					logError("Badly formed Export (missing library colon): " + piece);
+// 					break;
+// 				}
+// 				libName = piece.substring(objectPos, colonPos);
+// 				lib = Library.findLibrary(libName);
+// 				if (lib == null)
+// 				{
+// 					logError("Unknown library: " + libName);
+// 					break;
+// 				}
+// 				secondColonPos = piece.indexOf(':', colonPos+1);
+// 				if (secondColonPos < 0)
+// 				{
+// 					logError("Badly formed Export (missing cell colon): " + piece);
+// 					break;
+// 				}
+// 				cellName = piece.substring(colonPos+1, secondColonPos);
+// 				cell = lib.findNodeProto(cellName);
+// 				if (cell == null)
+// 				{
+// 					logError("Unknown Cell: " + piece);
+// 					break;
+// 				}
+// 				String nodeName = piece.substring(secondColonPos+1);
+// 				commaPos = nodeName.indexOf(',');
+// 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
+// 				NodeInst ni = cell.findNode(nodeName);
+// 				if (ni == null)
+// 					logError("Unknown NodeInst: " + piece);
+// 				return ni;
+			case 'O':		// Tool
+				String toolName = piece.substring(objectPos);
+				commaPos = toolName.indexOf(',');
+				if (commaPos >= 0) toolName = toolName.substring(0, commaPos);
+				return libraryContents.getToolRef(toolName);
+			case 'P':		// PrimitiveNode
+				String pnName = piece.substring(objectPos);
+				commaPos = pnName.indexOf(',');
+				if (commaPos >= 0) pnName = pnName.substring(0, commaPos);
+				return getPrimitiveNodeRef(null, pnName);
+			case 'R':		// ArcProto
+				String apName = piece.substring(objectPos);
+				commaPos = apName.indexOf(',');
+				if (commaPos >= 0) apName = apName.substring(0, commaPos);
+				return getArcProtoRef(null, apName);
+			case 'S':		// String
+				if (piece.charAt(objectPos) != '"')
+				{
+					logError("Badly formed string variable (missing open quote): " + piece);
+					break;
+				}
+				StringBuffer sb = new StringBuffer();
+				int len = piece.length();
+				while (objectPos < len)
+				{
+					objectPos++;
+					if (piece.charAt(objectPos) == '"') break;
+					if (piece.charAt(objectPos) == '^')
+					{
+						objectPos++;
+						if (objectPos <= len - 2 && piece.charAt(objectPos) == '\\' && piece.charAt(objectPos+1) == 'n')
+						{
+							sb.append('\n');
+							objectPos++;
+							continue;
+						}
+					}
+					sb.append(piece.charAt(objectPos));
+				}
+				return sb.toString();
+			case 'T':		// Technology
+				String techName = piece.substring(objectPos);
+				commaPos = techName.indexOf(',');
+				if (commaPos >= 0) techName = techName.substring(0, commaPos);
+				return getTechnologyRef(techName);
+			case 'V':		// Point2D
+				double x = TextUtils.atof(piece.substring(objectPos));
+				int slashPos = piece.indexOf('/', objectPos);
+				if (slashPos < 0)
+				{
+					logError("Badly formed Point2D variable (missing slash): " + piece);
+					break;
+				}
+				double y = TextUtils.atof(piece.substring(slashPos+1));
+				return new Point2D.Double(x, y);
+			case 'Y':		// Byte
+				return new Byte((byte)TextUtils.atoi(piece.substring(objectPos)));
+		}
+		return null;
 	}
 
 	/**

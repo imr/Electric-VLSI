@@ -26,6 +26,8 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * General Math Functions. If you are working in Database Units, you
@@ -69,6 +71,57 @@ public class GenMath
          */
         public String toString() { return Integer.toString(value); }
     }
+
+    /**
+     * Increments count to object in a bag.
+	 * If object was not in a bag, it will be added.
+     * @param bag Map implementing Bag.
+     * @param key object to add to bag.
+     */
+	public static void addToBag(Map/*<Object,MutableInteger>*/ bag, Object key)
+	{
+		addToBag(bag, key, 1);
+	}
+
+    /**
+     * Adds to bag another bag.
+     * @param bag bag to update.
+     * @param otherBag bag used for update.
+     */
+	public static void addToBag(Map/*<Object,MutableInteger>*/ bag,
+						 Map/*<Object,MutableInteger>*/ otherBag)
+	{
+		for (Iterator it = otherBag.entrySet().iterator(); it.hasNext(); )
+		{
+			Map.Entry e = (Map.Entry)it.next();
+			MutableInteger count = (MutableInteger)e.getValue();
+			addToBag(bag, e.getKey(), count.intValue());
+		}
+	}
+
+    /**
+     * Adds to count of object in a bag.
+	 * If object was not in a bag, it will be added.
+     * @param bag Map implementing Bag.
+     * @param key object in a bag.
+	 * @param count count to add to bag.
+     */
+	public static void addToBag(Map/*<Object,MutableInteger>*/ bag, Object key, int c)
+	{
+		MutableInteger count = (MutableInteger)bag.get(key);
+		if (count == null)
+		{
+			count = new MutableInteger(0);
+			bag.put(key, count);
+		}
+		count.setValue(count.intValue() + c);
+	}
+
+	public static int countInBag(Map/*<Object,MutableInteger>*/ bag, Object key)
+	{
+		MutableInteger count = (MutableInteger)bag.get(key);
+		return count != null ? count.intValue() : 0;
+	}
 
     /**
      * Class to define an Double-like object that can be modified.
