@@ -70,9 +70,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     /** the number of palette entries. */				private int menuX = -1, menuY = -1;
     /** the size of a palette entry. */					private int entrySize;
-    /** the list of objects in the palette. */			private List inPalette;
+    /** the list of objects in the palette. */			private List inPalette = new ArrayList();
     /** the currently selected Node object. */			private Object highlightedNode;
     /** the current canvas */                           private EditWindow wnd;
+	/** to collect all types of P transistors */        private List pTransistorList = new ArrayList();
+    /** to collect all types of N transistors */        private List nTransistorList = new ArrayList();
 
     TechPalette()
     {
@@ -90,7 +92,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      */
     public Dimension loadForTechnology(Technology tech)
     {
-        inPalette = new ArrayList();
+        inPalette.clear();
+	    pTransistorList.clear();
+	    nTransistorList.clear();
+
         if (tech == Schematics.tech)
         {
             menuX = 2;
@@ -172,6 +177,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add("Cell");
             inPalette.add("Misc.");
             inPalette.add("Pure");
+	        List nTransistors = new ArrayList();
             for(Iterator it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
@@ -181,13 +187,24 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     pinTotal++;
                     inPalette.add(np);
-                } else if (fun == NodeProto.Function.NODE) pureTotal++; else
+                } else if (fun == NodeProto.Function.NODE)
+	                pureTotal++;
+                else
                 {
-                    compTotal++;
-                    inPalette.add(np);
+	                if (fun == NodeProto.Function.TRANMOS)
+	                    nTransistorList.add(np);
+	                else if (fun == NodeProto.Function.TRAPMOS)
+	                    pTransistorList.add(np);
+	                // Leaving standard transistors
+	                if (np.getSpecialType() != PrimitiveNode.SPECIALTRANS)
+	                {
+                        compTotal++;
+		                inPalette.add(np);
+	                }
                 }
             }
             if (pinTotal + compTotal == 0) pinTotal = pureTotal;
+            menuY = arcTotal + pinTotal + compTotal + 3;
             menuY = arcTotal + pinTotal + compTotal + 3;
             menuX = 1;
             if (menuY > 40)
@@ -232,9 +249,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         TechPalette panel = (TechPalette)e.getSource();
         panel.requestFocus();
         Object obj = getObjectUnderCursor(e);
+        JMenuItem menuItem;
+
         if (obj instanceof NodeProto || obj instanceof NodeInst)
         {
-            JMenuItem menuItem;
             if (obj == Schematics.tech.diodeNode)
             {
                 JPopupMenu menu = new JPopupMenu("Diode");
@@ -340,6 +358,24 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     return;
                 }
             }
+			if (obj instanceof PrimitiveNode)
+			{
+				// Dealing with special transistors
+				List list = null;
+				if (nTransistorList.contains(obj)) list = nTransistorList;
+				else if (pTransistorList.contains(obj)) list = pTransistorList;
+				if (list == null) return; // do nothing. Not sure if case would occurr
+				JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
+
+				for (Iterator it = list.iterator(); it.hasNext();)
+				{
+				   PrimitiveNode np = (PrimitiveNode)it.next();
+				   menu.add(menuItem = new JMenuItem(np.getName()));
+				   menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
+				}
+				menu.show(panel, e.getX(), e.getY());
+				return;
+			}
             PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof PrimitiveArc)
         {
@@ -355,7 +391,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 for(Iterator it = sortedCells.iterator(); it.hasNext(); )
                 {
                     Cell cell = (Cell)it.next();
-                    JMenuItem menuItem = new JMenuItem(cell.describe());
+                    menuItem = new JMenuItem(cell.describe());
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                     cellMenu.add(menuItem);
                 }
@@ -365,7 +401,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } else if (msg.equals("Misc."))
             {
                 JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
-                JMenuItem menuItem = new JMenuItem("Cell Instance...");
+                menuItem = new JMenuItem("Cell Instance...");
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
                 specialMenu.add(menuItem);
 
@@ -428,7 +464,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;
                     if (np.getFunction() != NodeProto.Function.NODE) continue;
-                    JMenuItem menuItem = new JMenuItem(np.describe());
+                    menuItem = new JMenuItem(np.describe());
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
                     pureMenu.add(menuItem);
                 }
@@ -449,7 +485,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     for(Iterator it = spiceLib.getCells(); it.hasNext(); )
                     {
                         Cell cell = (Cell)it.next();
-                        JMenuItem menuItem = new JMenuItem(cell.getName());
+                        menuItem = new JMenuItem(cell.getName());
                         menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                         cellMenu.add(menuItem);
                     }
@@ -458,7 +494,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } if (msg.equals("Export"))
             {
                 JPopupMenu specialMenu = new JPopupMenu("Export");
-                JMenuItem menuItem = new JMenuItem("Wire");
+                menuItem = new JMenuItem("Wire");
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("wire"); } });
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Bus");
@@ -636,6 +672,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 // put the Image in the proper place
                 int imgX = x * (entrySize+1)+1;
                 int imgY = (menuY-y-1) * (entrySize+1)+1;
+
+	            // Draw at the end
                 if (img != null)
                 {
                     g.drawImage(img, imgX, imgY, this);
@@ -654,16 +692,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 }
                 if (toDraw instanceof NodeProto || toDraw instanceof NodeInst)
                 {
-                    g.setColor(Color.BLUE);
-                    g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
-                    NodeProto np = null;
-                    if (toDraw instanceof NodeProto) np = (NodeProto)toDraw; else
-                        np = ((NodeInst)toDraw).getProto();
-                    if (toDraw == highlightedNode)
-                    {
-                        g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
-                        g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
-                    }
                     boolean drawArrow = false;
                     if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
                         toDraw == Schematics.tech.flipflopNode) drawArrow = true;
@@ -671,8 +699,32 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     {
                         NodeInst ni = (NodeInst)toDraw;
                         if (ni.getFunction() == NodeProto.Function.TRAPNP ||
-                            ni.getFunction() == NodeProto.Function.TRA4PNP) drawArrow = true;
+                            ni.getFunction() == NodeProto.Function.TRA4PNP)
+	                        drawArrow = true;
                     }
+
+					if (toDraw instanceof PrimitiveNode)
+					{
+						PrimitiveNode np = (PrimitiveNode)toDraw;
+						   // Don't draw them
+						/*
+						if (np.getSpecialType() == PrimitiveNode.SPECIALTRANS)
+							continue;
+							*/
+					}
+	                // Searching for transistor type...
+	                if (!drawArrow)
+	                    drawArrow = ((nTransistorList.size() > 1 && nTransistorList.contains(toDraw)) ||
+	                        (pTransistorList.size() > 1 && pTransistorList.contains(toDraw)));
+
+                    g.setColor(Color.BLUE);
+                    g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
+                    if (toDraw == highlightedNode)
+                    {
+                        g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
+                        g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
+                    }
+
                     if (drawArrow) drawArrow(g, x, y);
                 }
                 if (toDraw instanceof String)

@@ -45,6 +45,7 @@ public class PrimitiveNode extends NodeProto
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
+	/** Defines a special transistor */             public static final int SPECIALTRANS =  4;
 
 	// --------------------- private data -----------------------------------
 	

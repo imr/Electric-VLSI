@@ -489,8 +489,8 @@ public class DRC extends Listener
 		DRCRules rules = getRules(tech);
 		if (rules == null)
         {
-            if (Main.getDebug()) System.out.println("Is -1 a valid number? in DRC::getWorstSpacingDistance");
-            return -1;
+            if (Main.getDebug()) System.out.println("Is -1 a valid number? in DRC::getWorstSpacingDistance. Zero now!");
+            return 0;
         }
 		return (rules.getWorstSpacingDistance());
 	}
