@@ -54,6 +54,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.generator.PadGenerator;
+import com.sun.electric.tool.generator.layout.Loco;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Output;
@@ -221,9 +222,9 @@ public final class MenuCommands
 		editMenu.addSeparator();
 
 		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
         editMenu.addMenuItem("Show Undo List", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
@@ -748,6 +749,9 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.Loco();
 			}
 		});
+        russMenu.addMenuItem("Generate layout for current cell", null, new ActionListener() {
+            public void actionPerformed(ActionEvent e) { generateLayoutCommand(); }
+        });
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -1294,12 +1298,14 @@ public final class MenuCommands
 
 	// ---------------------- THE EDIT MENU -----------------
 
+    public static void undoCommand() { new UndoCommand(); }
+
 	/**
 	 * This class implement the command to undo the last change.
 	 */
-	protected static class UndoCommand extends Job
+	private static class UndoCommand extends Job
 	{
-		protected UndoCommand()
+		private UndoCommand()
 		{
 			super("Undo", User.tool, Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
 			startJob();
@@ -1314,12 +1320,14 @@ public final class MenuCommands
 		}
 	}
 
+    public static void redoCommand() { new RedoCommand(); }
+
 	/**
 	 * This class implement the command to undo the last change (Redo).
 	 */
-	protected static class RedoCommand extends Job
+	private static class RedoCommand extends Job
 	{
-		protected RedoCommand()
+		private RedoCommand()
 		{
 			super("Redo", User.tool, Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
 			startJob();
@@ -2873,6 +2881,13 @@ public final class MenuCommands
 //		OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //		oThread.start();
 	}
+
+    public static void generateLayoutCommand() {
+        EditWindow wnd = EditWindow.getCurrent();
+        Cell cell = wnd.getCell();
+        Library outLib = cell.getLibrary();
+        Loco.generateCommand(cell, outLib);
+    }
 
 	public static void whitDiffieCommand()
 	{

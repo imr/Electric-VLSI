@@ -317,6 +317,22 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
         toolbar.addSeparator();
 
+        JButton undo = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonUndo.gif")));
+        undo.addActionListener(
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.undoCommand(); } });
+        undo.setToolTipText("Undo");
+        undo.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.add(undo);
+
+        JButton redo = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonRedo.gif")));
+        redo.addActionListener(
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.redoCommand(); } });
+        redo.setToolTipText("Redo");
+        redo.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.add(redo);
+
+        toolbar.addSeparator();
+
         toolbar.goBackButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonGoBack.gif")));
         toolbar.goBackButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { goBackButtonCommand(); } });

@@ -139,7 +139,7 @@ public class Loco extends Job {
 		return outLib;
 	}
 	
-	StdCellParams locoParams(Library outLib) {
+	private static StdCellParams locoParams(Library outLib) {
 		StdCellParams stdCell = new StdCellParams(outLib);
 //		stdCell.enableNCC(
 //			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
@@ -180,6 +180,31 @@ public class Loco extends Job {
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();
 	}
+
+
+    public static void generateCommand(Cell cell, Library outputLib) {
+        GenerateLayout job = new GenerateLayout(cell, outputLib);
+    }
+
+    private static class GenerateLayout extends Job {
+        private Cell cell;
+        private Library outputLib;
+
+        private GenerateLayout(Cell cell, Library outputLib) {
+            super("Generate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.outputLib = outputLib;
+            startJob();
+        }
+
+        public void doIt() {
+            StdCellParams stdCell = locoParams(outputLib);
+            GenerateLayoutForGatesInSchematic visitor =
+                    new GenerateLayoutForGatesInSchematic("redFour", new HashSet(), stdCell);
+            HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
+        }
+    }
+
 }
 
 /** Traverse a schematic hierarchy and generate Cells that we recognize. */
