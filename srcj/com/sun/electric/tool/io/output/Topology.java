@@ -803,7 +803,7 @@ public abstract class Topology extends Output
 	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
 	 * libraries.
 	 */
-	private String getUniqueCellName(Cell cell)
+	protected String getUniqueCellName(Cell cell)
 	{
 		String name = (String)cellNameMap.get(cell);
 		return name;

@@ -92,6 +92,9 @@ public class Spice extends Topology
 	/** Template Key for current spice engine */	private Variable.Key preferedEgnineTemplateKey;
 	/** Spice type: 2, 3, H, P, etc */				private int spiceEngine;
 
+    /** map of "parameterized" cells that are not covered by Topology */    private Map uniquifyCells;
+    /** uniqueID */                                                         private int uniqueID;
+
 	private static class SpiceNet
 	{
 		/** network object associated with this */	JNetwork      network;
@@ -265,6 +268,11 @@ public class Spice extends Topology
 		maskScale = 1.0;
 //		Variable scaleVar = layoutTechnology.getVar("SIM_spice_mask_scale");
 //		if (scaleVar != null) maskScale = TextUtils.atof(scaleVar.getObject().toString());
+
+        // set up the parameterized cells
+        uniquifyCells = new HashMap();
+        uniqueID = 0;
+        checkIfParameterized(topCell);
 
 		// setup the legal characters
 		legalSpiceChars = SPICELEGALCHARS;
@@ -1052,6 +1060,88 @@ public class Spice extends Topology
 			multiLinePrint(false, ".ENDS " + cni.getParameterizedName() + "\n");
 		}
 	}
+
+    /**
+     * Check if the specified cell is parameterized. Note that this
+     * recursively checks all cells below this cell as well, and marks
+     * all cells that contain LE gates, or whose subcells contain LE gates,
+     * as parameterized.
+     * @return true if cell has been marked as parameterized
+     */
+    private boolean checkIfParameterized(Cell cell) {
+        //System.out.println("Checking Cell "+cell.describe());
+        boolean mark = false;
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (!(ni.getProto() instanceof Cell)) continue;
+            if (ni.isIconOfParent()) continue;
+            if (ni.getVar("ATTR_LEGATE") != null) { mark = true; continue; }
+            if (ni.getVar("ATTR_LEKEEPER") != null) { mark = true; continue; }
+            Cell proto = ((Cell)ni.getProto()).contentsView();
+            if (proto == null) proto = (Cell)ni.getProto();
+            if (checkIfParameterized(proto)) { mark = true; }
+        }
+        if (mark)
+            uniquifyCells.put(cell, cell);
+        //System.out.println("---> "+cell.describe()+" is marked "+mark);
+        return mark;
+    }
+
+    /*
+     * Method to create a parameterized name for node instance "ni".
+     * If the node is not parameterized, returns zero.
+     * If it returns a name, that name must be deallocated when done.
+     */
+    protected String parameterizedName(Nodable no, VarContext context)
+    {
+        Cell cell = (Cell)no.getProto();
+        StringBuffer uniqueCellName = new StringBuffer(getUniqueCellName(cell));
+
+        if (uniquifyCells.get(cell) != null) {
+            // if this cell is marked to be make unique, make a unique name out of the var context
+            VarContext vc = context.push(no);
+            uniqueCellName.append("_"+vc.getInstPath("."));
+        } else {
+            if (canParameterizeNames() &&
+                no.getProto() instanceof Cell)
+            {
+                // if there are parameters, append them to this name
+                HashMap paramValues = new HashMap();
+                for(Iterator it = no.getVariables(); it.hasNext(); )
+                {
+                    Variable var = (Variable)it.next();
+                    if (!var.getTextDescriptor().isParam()) continue;
+                    paramValues.put(var.getKey(), var);
+                }
+                for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )
+                {
+                    Variable.Key key = (Variable.Key)it.next();
+                    Variable var = no.getVar(key.getName());
+                    String eval = var.describe(context, no.getNodeInst());
+                    //Object eval = context.evalVar(var, no);
+                    if (eval == null) continue;
+                    //uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
+                    uniqueCellName.append("-" + eval.toString());
+                }
+            }
+        }
+
+        // if it is over the length limit, truncate it
+        int limit = maxNameLength();
+        if (limit > 0 && uniqueCellName.length() > limit)
+        {
+            int ckSum = 0;
+            for(int i=0; i<uniqueCellName.length(); i++)
+                ckSum += (int)uniqueCellName.charAt(i);
+            ckSum = (ckSum % 9999);
+            uniqueCellName = uniqueCellName.delete(limit-10, uniqueCellName.length());
+            uniqueCellName.append("-TRUNC"+ckSum);
+        }
+
+        // make it safe
+        return getSafeCellName(uniqueCellName.toString());
+    }
+
 
 	/****************************** SUBCLASSED METHODS FOR THE TOPOLOGY ANALYZER ******************************/
 
