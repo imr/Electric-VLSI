@@ -77,7 +77,7 @@ import com.apple.eawt.ApplicationEvent;
 public final class Main
 {
     private static boolean DEBUG;   // global debug flag
-    public static final boolean NOTHREADING = false;             // to turn off Job threading
+    public static boolean NOTHREADING = true;             // to turn off Job threading
 
 	private Main() {}
 
@@ -114,6 +114,7 @@ public final class Main
 	        System.out.println("\t-s <script name>: bean shell script to execute");
 	        System.out.println("\t-version: version information");
 	        System.out.println("\t-debug: debug mode. Extra information is available");
+            System.out.println("\t-NOTHREADING: turn off Job threading.");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -130,6 +131,7 @@ public final class Main
 
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
+        if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
