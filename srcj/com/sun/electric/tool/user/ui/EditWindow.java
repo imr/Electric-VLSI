@@ -2246,7 +2246,7 @@ public class EditWindow extends JPanel
         CellHistory history = (CellHistory)cellHistory.get(location);
 
         // see if cell still valid part of database. If not, nullify entry
-        if (!cell.isLinked()) {
+        if (history.cell == null || !history.cell.isLinked()) {
             history.cell = null;
             history.context = VarContext.globalContext;
             history.offset = new Point2D.Double(0,0);
