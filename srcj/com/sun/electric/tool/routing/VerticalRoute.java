@@ -407,8 +407,9 @@ public class VerticalRoute {
         }
 
         ds.append("  ");
-        if (searchNumber > SEARCHLIMIT) { throw new Error("Search limit reached in VerticalRoute"); }
         searchNumber++;
+        if (searchNumber == SEARCHLIMIT) { System.out.println("Search limit reached in VerticalRoute"); }
+        if (searchNumber >= SEARCHLIMIT) { return; }
         Technology tech = startArc.getTechnology();
 
         // see if we can find a port in the current technology
