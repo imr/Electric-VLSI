@@ -220,6 +220,7 @@ public class FileMenu {
                 // close no name library
                 mainLib.kill();
                 WindowFrame.wantToRedoLibraryTree();
+                EditWindow.repaintAll();
                 EditWindow.repaintAllContents();
             }
             return true;
