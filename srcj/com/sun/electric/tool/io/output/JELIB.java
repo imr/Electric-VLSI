@@ -329,7 +329,7 @@ public class JELIB extends Output
 				printWriter.print("N");
 				StringBuffer nodeTypeName = (StringBuffer)abbreviationMap.get(np);
 				printWriter.print(nodeTypeName.toString());
-				printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
+				printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getNameTextDescriptor()));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
@@ -388,7 +388,7 @@ public class JELIB extends Output
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst ni = con.getPortInst().getNodeInst();
-					printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
+					printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");
 					PortProto pp = con.getPortInst().getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
@@ -413,7 +413,7 @@ public class JELIB extends Output
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();
 				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + getNodeName(subNI, sortedNodeIndices) + "|");
+				printWriter.print("|" + convertString(getNodeName(subNI, sortedNodeIndices)) + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
 
@@ -880,7 +880,7 @@ public class JELIB extends Output
 
 	/**
 	 * Method convert a string that is going to be quoted.
-	 * Inserts the quote character ("^") before any quotes or quote characters in the string.
+	 * Inserts the quote character (^) before any quotation character (") or quote character (^) in the string.
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
@@ -901,7 +901,7 @@ public class JELIB extends Output
 
 	/**
 	 * Method convert a string that is not going to be quoted.
-	 * Inserts the quote character ("^") before any separator ("|") or quote characters in the string.
+	 * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
@@ -914,7 +914,7 @@ public class JELIB extends Output
 		{
 			char ch = str.charAt(i);
 			if (ch == '\n') continue;
-			if (ch == '|' || ch == '^')
+			if (ch == '|' || ch == '^' || ch == '"')
 				infstr.append('^');
 			infstr.append(ch);
 		}

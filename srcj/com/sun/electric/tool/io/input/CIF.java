@@ -82,12 +82,12 @@ public class CIF extends Input
 {
 	static class CIFCELL
 	{
-		int           cindex;		/** cell index given in the define statement */
-		int           l, r, t, b;	/** bounding box of cell */
-		Cell      addr;			/** the address of the cif cell */
+		/** cell index given in the define statement */	int  cindex;
+		/** bounding box of cell */						int  l, r, t, b;
+		/** the address of the cif cell */				Cell addr;
 	};
 
-	/* values for CIFLIST->identity */
+	// values for CIFLIST->identity
 	private static final int C_START =   0;
 	private static final int C_END =     1;
 	private static final int C_WIRE =    2;
@@ -101,72 +101,69 @@ public class CIF extends Input
 
 	static class CIFLIST
 	{
-		int           identity;		/** specifies the nature of the entry */
-		Object            member;		/** will point to member's structure */
-		CIFLIST next;			/** next entry in list */
+		/** specifies the nature of the entry */	int     identity;
+		/** will point to member's structure */		Object  member;
+		/** next entry in list */					CIFLIST next;
 	};
-
-	private CIFLIST io_ciflist = null;	/** head of the list */
-	private CIFLIST io_curlist;				/** current location in list */
 
 	static class CFSTART
 	{
-		int cindex;					/** cell index */
-		String  name;					/** cell name */
-		int l, r, t, b;				/** bounding box of cell */
+		/** cell index */							int    cindex;
+		/** cell name */							String name;
+		/** bounding box of cell */					int    l, r, t, b;
 	};
 
 	static class CBOX
 	{
-		Layer lay;						/** the corresponding layer number */
-		int length, width;			/** dimensions of box */
-		int cenx, ceny;				/** center point of box */
-		int xrot, yrot;				/** box direction */
+		/** the corresponding layer number */		Layer lay;
+		/** dimensions of box */					int   length, width;
+		/** center point of box */					int   cenx, ceny;
+		/** box direction */						int   xrot, yrot;
 	};
 
 	static class CPOLY
 	{
-		Layer  lay;					/** the corresponding layer number */
-		int [] x, y;					/** list of points */
-		int  lim;					/** number of points in list */
+		/** the corresponding layer number */		Layer  lay;
+		/** list of points */						int [] x, y;
+		/** number of points in list */				int    lim;
 	};
 
 	static class CGNAME
 	{
-		Layer lay;						/** the corresponding layer number */
-		int x, y;					/** location of name */
-		String  geoname;					/** the geo name */
+		/** the corresponding layer number */		Layer  lay;
+		/** location of name */						int    x, y;
+		/** the geo name */							String geoname;
 	};
 
 	static class CLABEL
 	{
-		int x, y;					/** location of label */
-		String  label;					/** the label */
+		/** location of label */					int    x, y;
+		/** the label */							String label;
 	};
 
 	static class CCALL
 	{
-		int          cindex;			/** index of cell called */
-		String           name;			/** name of cell called */
-		CTRANS list;			/** list of transformations */
+		/** index of cell called */					int    cindex;
+		/** name of cell called */					String name;
+		/** list of transformations */				CTRANS list;
 	};
 
-	/* values for the transformation type */
-	private static final int MIRX  = 1;					/** mirror in x */
-	private static final int MIRY  = 2;					/** mirror in y */
-	private static final int TRANS = 3;					/** translation */
-	private static final int ROT   = 4;					/** rotation */
+	// values for the transformation type
+	/** mirror in x */	private static final int MIRX  = 1;
+	/** mirror in y */	private static final int MIRY  = 2;
+	/** translation */	private static final int TRANS = 3;
+	/** rotation */		private static final int ROT   = 4;
 
 	static class CTRANS
 	{
-		int          type;			/** type of transformation */
-		int          x, y;			/** not required for the mirror types */
-		CTRANS next;			/** next element in list */
+		/** type of transformation */				int    type;
+		/** not required for the mirror types */	int    x, y;
+		/** next element in list */					CTRANS next;
 	};
 
 	private CTRANS io_curctrans;				/** current transformation description */
 
-	/*	specific syntax errors	*/
+	//	specific syntax errors
 	private static final int NOERROR    = 100;
 	private static final int NUMTOOBIG  = 101;
 	private static final int NOUNSIGNED = 102;
@@ -188,7 +185,7 @@ public class CIF extends Input
 	private static final int NOSPACE    = 118;
 	private static final int NONAME     = 119;
 
-	/* enumerated types for cif 2.0 parser */
+	// enumerated types for cif 2.0 parser
 	private static final int SEMANTICERROR = 0;
 	private static final int SYNTAXERROR   = 1;
 	private static final int WIRECOM       = 2;
@@ -210,7 +207,7 @@ public class CIF extends Input
 	private static final int GEONAME       = 18;
 	private static final int LABELCOM      = 19;
 
-	/* types for tlists */
+	// types for tlists
 	static class ttype {}
 	private ttype MIRROR = new ttype();
 	private ttype TRANSLATE = new ttype();
@@ -224,7 +221,7 @@ public class CIF extends Input
 		int xrot, yrot;
 	};
 
-	/* error codes for reporting errors */
+	// error codes for reporting errors
 	private static final int FATALINTERNAL = 0;
 	private static final int FATALSYNTAX   = 1;
 	private static final int FATALSEMANTIC = 2;
@@ -232,27 +229,18 @@ public class CIF extends Input
 	private static final int ADVISORY      = 4;
 	private static final int OTHER         = 5;			/* OTHER must be last */
 
-	/* structures for the interpreter */
+	// structures for the interpreter
 	private static final int REL       = 0;
 	private static final int NOREL     = 1;
 	private static final int SAME      = 2;
 	private static final int DONTCARE  = 3;
-
-	private static final int RECTANGLE = 1;		/* codes for object types */
-	private static final int POLY      = 2;
-	private static final int WIRE      = 3;
-	private static final int FLASH     = 4;
-	private static final int CALL      = 5;
-	private static final int MBOX      = 6;		/* manhattan box */
-	private static final int NAME      = 7;		/* geometry name */
-	private static final int LABEL     = 8;		/* label type */
 
 	private static final int TIDENT     = 0;
 	private static final int TROTATE    = 1;
 	private static final int TTRANSLATE = 2;
 	private static final int TMIRROR    = 4;
 
-	/* data types for transformation package */
+	/** data types for transformation package */
 	static class tmatrix
 	{
 		double a11, a12, a21, a22, a31, a32, a33;
@@ -261,111 +249,25 @@ public class CIF extends Input
 		boolean multiplied;
 	};
 
+	/** bounding box */
 	static class bbrecord
 	{
 		int l,r,b,t;
-	};						/* bounding box */
+	};
 
 	static class stentry
 	{
-		int st_symnumber;		/** symbol number for this entry */
-		stentry st_overflow;	/** bucket ovflo */
-		boolean st_expanded,st_frozen,st_defined,st_dumped;
-		bbrecord st_bb;				/** bb as if this symbol were called by itself */
+		/** symbol number for this entry */					int st_symnumber;
+		boolean st_expanded, st_frozen, st_defined, st_dumped;
+		/** bb as if this symbol were called by itself */	bbrecord st_bb;
 		boolean st_bbvalid;
 		String st_name;
-		int st_ncalls;			/** number of calls made by this symbol */
-		Object st_guts;			/** pointer to linked list of objects */
-	};
-
-	static class symcall
-	{
-		int sy_type;				/* type of object, must come first */
-		bbrecord sy_bb;				/* bb must be next */
-		Object sy_next;			/* for ll */
-									/* layer is next, if applicable */
-		int sy_symnumber;		/* rest is noncritical */
-		stentry sy_unid;
-		String sy_name;
-		tmatrix sy_tm;
-		tlist sy_tlist;				/* trans list for this call */
-	};						/* symbol call object */
-
-	/* hack structure for referencing first fields of any object */
-	static class cifhack
-	{
-		int kl_type;
-		bbrecord kl_bb;
-		cifhack kl_next;	/* for ll */
-	};
-
-	static class gname
-	{
-		int gn_type;				/* geometry name */
-		bbrecord gn_bb;
-		Object gn_next;
-		Layer gn_layer;
-		String gn_name;
-		Point gn_pos;
-	};
-
-	static class label
-	{
-		int la_type;
-		bbrecord la_bb;
-		Object la_next;
-		String la_name;
-		Point la_pos;
-	};
-
-	static class box
-	{
-		int bo_type;				/* type comes first */
-		bbrecord bo_bb;				/* then bb */
-		Object bo_next;			/* then link for ll */
-		Layer bo_layer;			/* then layer */
-		int bo_length,bo_width;
-		Point bo_center;
-		int bo_xrot,bo_yrot;
-	};
-
-	static class mbox
-	{
-		int mb_type;				/* type comes first */
-		bbrecord mb_bb;				/* then bb */
-		Object mb_next;			/* then link for ll */
-		Layer mb_layer;			/* then layer */
-	};
-
-	static class flash
-	{
-		int fl_type;
-		bbrecord fl_bb;
-		Object fl_next;			/* for ll */
-		Layer fl_layer;
-		Point fl_center;
-		int fl_diameter;
-	};
-
-	static class polygon
-	{
-		int po_type;
-		bbrecord po_bb;
-		Object po_next;			/* for ll */
-		Layer po_layer;
-		int po_numpts;			/* length of path, points follow */
-		Point [] po_p;				/* array of points in path */
-	};
-
-	static class wire
-	{
-		int wi_type;
-		bbrecord wi_bb;
-		Object wi_next;			/* for ll */
-		Layer wi_layer;
-		int wi_width;
-		int wi_numpts;			/* length of path, points follow */
-		Point [] wi_p;				/* array of points in path */
+		/** number of calls made by this symbol */			int st_ncalls;
+		/** pointer to linked list of objects */			CifBase st_guts;
+		stentry()
+		{
+			st_bb = new bbrecord();
+		}
 	};
 
 	static class linkedpoint
@@ -380,7 +282,6 @@ public class CIF extends Input
 		int plength;
 	};
 
-	/* types for tlists */
 	static class linkedtentry
 	{
 		tentry tvalue;
@@ -393,73 +294,138 @@ public class CIF extends Input
 		int tlength;
 	};
 
-	static class itementry					/* items in item tree */
+	/** items in item tree */
+	static class itementry
 	{
-		int      it_type;			/* redundant indicator of obj type */
-		itementry it_rel;				/* links for tree */
-		itementry it_norel;			/* links for tree */
-		itementry it_same;			/* links for tree */
-		Object       it_what;			/* pointer into symbol structure */
-		int      it_level;			/* level of nest, from root (= 0) */
-		int      it_context;			/* what trans context to use */
-		int      it_left;			/* bb on chip */
-		int      it_right;			/* bb on chip */
-		int      it_bottom;			/* bb on chip */
-		int      it_top;				/* bb on chip */
+		/** links for tree */					itementry it_rel;
+		/** links for tree */					itementry it_norel;
+		/** links for tree */					itementry it_same;
+		/** pointer into symbol structure */	CifBase   it_what;
+		/** level of nest, from root (= 0) */	int       it_level;
+		/** what trans context to use */		int       it_context;
+		/** bb on chip */						int       it_left;
+		/** bb on chip */						int       it_right;
+		/** bb on chip */						int       it_bottom;
+		/** bb on chip */						int       it_top;
 	};
 
 	static class context
 	{
-		tmatrix base;				/* bottom of stack */
-		int    refcount;			/* not inuse if = 0 */
-		tmatrix ctop;				/* current top */
+		/** bottom of stack */		tmatrix base;
+		/** not inuse if = 0 */		int     refcount;
+		/** current top */			tmatrix ctop;
 	};
 
-	private static final int CONTSIZE = 50;		/* initial number of contexts */
-	private static final int MAXMMSTACK = 50;		/* max depth of minmax stack */
+	/** hack structure for referencing first fields of any object */
+	static class CifBase
+	{
+		/** bounding box */				bbrecord bb;
+		/** for ll */					CifBase  next;
+		/** layer for this object */	Layer layer;
+		CifBase()
+		{
+			bb = new bbrecord();
+		}
+	};
 
-	private context  [] io_cifcarray;		/* pointer to the first context */
-	private itementry io_cifilist;		/* head of item list */
-	private double io_cifscalefactor;		/* A/B from DS */
-	private stentry io_cifcurrent;		/* current symbol being defined */
-	private Layer io_cifbackuplayer;	/* place to save layer during def */
-	private int io_cifbinst;			/* inst count for default names */
-	private boolean   io_cifnamed;			/* symbol has been named */
-	private boolean io_ciferrorfound;			/* flag for error encountered */
-	private int io_ciferrortype;			/* what it was */
-	private boolean   io_cifdefinprog;		/* definition in progress flag */
-	private boolean   io_cifendisseen;			/* end command flag */
-	private int  io_ciflinecount;				/* line count */
-	private int  io_cifcharcount;				/* number of chars in buffer */
-	private boolean    io_cifresetbuffer;			/* flag to reset buffer */
-	private int [] io_cifecounts;
-	private int io_nulllayererrors;	/* null layer errors encountered */
-	private boolean io_cifignore;			/* ignore statements until DF */
-	private boolean   io_cifnamepending;	/* 91 pending */
-	private boolean   io_cifendcom;			/* end command flag */
-	private Layer io_cifcurlayer;		/* current layer */
-	private int io_cifinstance;		/* inst count for default names */
-	private int io_cifmmptr;			/* stack pointer */
-	private HashMap io_cifstable;	/* symbol table */
-	private tmatrix io_cifstacktop;	/* the top of stack */
-	private int  io_cifnextchar;				/* lookahead character */
-	private int io_cifstatesince;		/* # statements since 91 com */
-	private String  io_cifnstored;		/* name saved from 91 */
+	/** symbol call object */
+	static class symcall extends CifBase
+	{
+		/** rest is noncritical */				int sy_symnumber;
+		stentry sy_unid;
+		String sy_name;
+		tmatrix sy_tm;
+		/** trans list for this call */			tlist sy_tlist;
+	};
+
+	static class gname extends CifBase
+	{
+		String gn_name;
+		Point gn_pos;
+	};
+
+	static class label extends CifBase
+	{
+		String la_name;
+		Point la_pos;
+	};
+
+	static class box extends CifBase
+	{
+		/** then layer */			Layer bo_layer;
+		int bo_length, bo_width;
+		Point bo_center;
+		int bo_xrot, bo_yrot;
+	};
+
+	static class mbox extends CifBase
+	{
+	};
+
+	static class flash extends CifBase
+	{
+		Point fl_center;
+		int fl_diameter;
+	};
+
+	static class polygon extends CifBase
+	{
+		/** array of points in path */			Point [] po_p;
+	};
+
+	static class wire extends CifBase
+	{
+		int wi_width;
+		/** length of path, points follow */	int wi_numpts;
+		/** array of points in path */			Point [] wi_p;
+	};
+
+	/** initial number of contexts */		private static final int CONTSIZE = 50;
+	/** max depth of minmax stack */		private static final int MAXMMSTACK = 50;
+
+	/** head of the list */					private CIFLIST io_ciflist = null;
+	/** current location in list */			private CIFLIST io_curlist;
+	/** pointer to the first context */		private context  [] io_cifcarray;
+	/** head of item list */				private itementry io_cifilist;
+	/** A/B from DS */						private double io_cifscalefactor;
+	/** current symbol being defined */		private stentry io_cifcurrent;
+	/** place to save layer during def */	private Layer io_cifbackuplayer;
+	/** inst count for default names */		private int io_cifbinst;
+	/** symbol has been named */			private boolean   io_cifnamed;
+	/** flag for error encountered */		private boolean io_ciferrorfound;
+	/** what it was */						private int io_ciferrortype;
+	/** definition in progress flag */		private boolean   io_cifdefinprog;
+	/** end command flag */					private boolean   io_cifendisseen;
+	/** line count */						private int  io_ciflinecount;
+	/** number of chars in buffer */		private int  io_cifcharcount;
+	/** flag to reset buffer */				private boolean    io_cifresetbuffer;
+											private int [] io_cifecounts;
+	/** null layer errors encountered */	private int io_nulllayererrors;
+	/** ignore statements until DF */		private boolean io_cifignore;
+	/** 91 pending */						private boolean   io_cifnamepending;
+	/** end command flag */					private boolean   io_cifendcom;
+	/** current layer */					private Layer io_cifcurlayer;
+	/** inst count for default names */		private int io_cifinstance;
+	/** stack pointer */					private int io_cifmmptr;
+	/** symbol table */						private HashMap io_cifstable;
+	/** the top of stack */					private tmatrix io_cifstacktop;
+	/** lookahead character */				private int  io_cifnextchar;
+	/** # statements since 91 com */		private int io_cifstatesince;
+	/** name saved from 91 */				private String  io_cifnstored;
 	private int [] io_cifmmleft;
 	private int [] io_cifmmright;
 	private int [] io_cifmmbottom;
 	private int [] io_cifmmtop;
-	private int    io_cifcurcontext;	/* current context */
+	/** current context */					private int    io_cifcurcontext;
 
 	private HashMap cifCellMap;
-	private CIFCELL  io_curcell;			/* the current cell */
+	/** the current cell */					private CIFCELL  io_curcell;
 	private Technology curTech;
 	private HashMap cifLayerNames;
-	private Cell  io_incell;				/* address of cell being defined */
-	private String io_curnodeprotoname;		/* name of the current cell */
+	/** address of cell being defined */	private Cell  io_incell;
+	/** name of the current cell */			private String io_curnodeprotoname;
 
 	private StringBuffer io_ciflinebuffer;
-	private LineNumberReader lineReader;
 
 	/**
 	 * Method to import a library from disk.
@@ -468,7 +434,7 @@ public class CIF extends Input
 	 */
 	protected boolean importALibrary(Library lib)
 	{
-		// initialize all lists and the searching routines */
+		// initialize all lists and the searching routines
 		cifCellMap = new HashMap();
 
 		if (io_initfind()) return true;
@@ -498,10 +464,7 @@ public class CIF extends Input
 					if (io_incell == null) return true;
 					break;
 				case C_END:
-					// make cell size right
-//					db_boundcell(io_incell, &io_incell->lowx, &io_incell->highx,
-//						&io_incell->lowy, &io_incell->highy);
-//					lib->curnodeproto = io_incell;
+					lib.setCurCell(io_incell);
 					io_incell = null;
 					break;
 				case C_BOX:
@@ -520,12 +483,6 @@ public class CIF extends Input
 
 	private boolean io_nodes_call()
 	{
-//		CIFCELL *cell;
-//		CCALL *cc;
-//		CTRANS *ctrans;
-//		INTBIG l, r, t, b, rot, trans, hlen, hwid, cenx, ceny, temp;
-//		INTBIG deg;
-
 		CCALL cc = (CCALL)io_curlist.member;
 		CIFCELL cell = io_findcifcell(cc.cindex);
 		if (cell == null)
@@ -567,18 +524,19 @@ public class CIF extends Input
 					rot += ((trans) ? -deg : deg);
 				}
 		}
-		while(rot >= 3600) rot -= 3600;
-		while(rot < 0) rot += 3600;
-//		NodeInst ni = NodeInst.makeInstance(typ, ctr, wid, hei, io_curcell.addr);
-//		if (newnodeinst((NODEPROTO *)(cell.addr), scalefromdispunit((float)l, DISPUNITCMIC),
-//			scalefromdispunit((float)r, DISPUNITCMIC), scalefromdispunit((float)b, DISPUNITCMIC),
-//				scalefromdispunit((float)t, DISPUNITCMIC), trans, rot, io_curcell.addr) ==
-//					null)
-//		{
-//			System.out.println("Problems creating an instance of cell %s in cell %s"),
-//				describenodeproto(cell.addr), describenodeproto(io_curcell.addr));
-//			return true;
-//		}
+		// TODO: should account for mirroring (have trans factor, use it!)
+		while (rot >= 3600) rot -= 3600;
+		while (rot < 0) rot += 3600;
+		double x = TextUtils.convertFromDistance((l + r) / 2, curTech, TextUtils.UnitScale.MICRO) / 100;
+		double y = TextUtils.convertFromDistance((b + t) / 2, curTech, TextUtils.UnitScale.MICRO) / 100;
+		double sX = TextUtils.convertFromDistance(r-l, curTech, TextUtils.UnitScale.MICRO) / 100;
+		double sY = TextUtils.convertFromDistance(t-b, curTech, TextUtils.UnitScale.MICRO) / 100;
+		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, io_curcell.addr, rot, null, 0);
+		if (ni == null)
+		{
+			System.out.println("Problems creating an instance of cell " + cell.addr.describe() + " in cell " + io_curcell.addr.describe());
+			return true;
+		}
 		return false;
 	}
 
@@ -646,12 +604,12 @@ public class CIF extends Input
 		}
 		return cifcell.addr;
 	}
-	
+
 	private void io_rotatelayer(Point pt, int deg)
 	{
 		// trivial test to prevent atan2 domain errors
 		if (pt.x == 0 && pt.y == 0) return;
-		switch (deg)	// do the manhattan cases directly (SRP)*/
+		switch (deg)	// do the manhattan cases directly
 		{
 			case 0:
 			case 3600:	// just in case
@@ -665,7 +623,7 @@ public class CIF extends Input
 			case 2700:
 				temp = pt.x;   pt.x = pt.y;   pt.y = -temp;
 				break;
-			default: // this old code only permits rotation by integer angles (SRP)*/
+			default: // this old code only permits rotation by integer angles
 				double factx = 1, facty = 1;
 				while(Math.abs(pt.x/factx) > 1000) factx *= 10.0;
 				while(Math.abs(pt.y/facty) > 1000) facty *= 10.0;
@@ -729,7 +687,7 @@ public class CIF extends Input
 	{
 		io_initparser();
 		io_initinterpreter();
-		io_infromfile(lineReader);
+		io_infromfile();
 		int comcount = io_parsefile();		// read in the cif
 		io_doneparser();
 
@@ -858,19 +816,19 @@ public class CIF extends Input
 		io_pushtrans();
 		while (h != null)
 		{
-			cifhack obj = (cifhack)h.it_what;
+			CifBase obj = h.it_what;
 			Point temp = new Point();
-			temp.x = obj.kl_bb.l;
-			temp.y = obj.kl_bb.b;
+			temp.x = obj.bb.l;
+			temp.y = obj.bb.b;
 			Point comperror = io_transpoint(temp);
 			io_initmm(comperror);
-			temp.x = obj.kl_bb.r;
+			temp.x = obj.bb.r;
 			comperror = io_transpoint(temp);
 			io_minmax(comperror);
-			temp.y = obj.kl_bb.t;
+			temp.y = obj.bb.t;
 			comperror = io_transpoint(temp);
 			io_minmax(comperror);
-			temp.x = obj.kl_bb.l;
+			temp.x = obj.bb.l;
 			comperror = io_transpoint(temp);
 			io_minmax(comperror);
 
@@ -917,89 +875,86 @@ public class CIF extends Input
 	 */
 	private void io_outitem(itementry thing)
 	{
-		switch (thing.it_type)
+		if (thing.it_what instanceof polygon)
 		{
-			case POLY:
-				io_swapcontext(thing.it_context);
-				int length = ((polygon) (thing.it_what)).po_numpts;
-				path ppath = io_makepath();
-				for (int i = 0; i < length; i++)
-					if (io_appendpoint(ppath, ((polygon)(thing.it_what)).po_p[i])) return;
-				io_outputpolygon(((polygon)thing.it_what).po_layer, ppath);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case WIRE:
-				io_swapcontext(thing.it_context);
-				length = ((wire) (thing.it_what)).wi_numpts;
-				ppath = io_makepath();
-				for (int i = 0; i < length; i++)
-					if (io_appendpoint(ppath, ((wire) (thing.it_what)).wi_p[i])) return;
-				io_outputwire(((wire)thing.it_what).wi_layer,
-					((wire) (thing.it_what)).wi_width, ppath);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case FLASH:
-				io_swapcontext(thing.it_context);
-				io_outputflash(((flash) (thing.it_what)).fl_layer,
-					((flash) (thing.it_what)).fl_diameter, ((flash) (thing.it_what)).fl_center);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case RECTANGLE:
-				io_swapcontext(thing.it_context); // get right frame of ref
-				io_outputbox(((box) (thing.it_what)).bo_layer,
-					((box) (thing.it_what)).bo_length, ((box) (thing.it_what)).bo_width,
-						((box) (thing.it_what)).bo_center, ((box) (thing.it_what)).bo_xrot,
-							((box) (thing.it_what)).bo_yrot);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case MBOX:
-				io_swapcontext(thing.it_context); // get right frame of ref
-				Point temp = new Point();
-				temp.x = (((mbox) (thing.it_what)).mb_bb.r+
-					((mbox) (thing.it_what)).mb_bb.l)/2;
-				temp.y = (((mbox) (thing.it_what)).mb_bb.t+
-					((mbox) (thing.it_what)).mb_bb.b)/2;
-				io_outputbox(
-					((mbox) (thing.it_what)).mb_layer,
-					((mbox) (thing.it_what)).mb_bb.r-
-					((mbox) (thing.it_what)).mb_bb.l,
-					((mbox) (thing.it_what)).mb_bb.t-
-					((mbox) (thing.it_what)).mb_bb.b,
-					temp, 1, 0);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case CALL:
-				io_swapcontext(thing.it_context);
-				io_pushtrans();
-				io_applylocal((((symcall) (thing.it_what)).sy_tm));
-				tlist t_list = io_maketlist();
-				io_dupetlist((tlist)((symcall) (thing.it_what)).sy_tlist, (tlist)t_list);
-				io_dumpdef(((symcall) (thing.it_what)).sy_unid);
-				io_outputcall(((symcall) (thing.it_what)).sy_symnumber,
-					((symcall) (thing.it_what)).sy_unid.st_name, t_list);
-				io_swapcontext(thing.it_context);
-				io_poptrans();
-				io_decrefcount(thing.it_context);
-				break;
-
-			case NAME:
-				io_swapcontext(thing.it_context);
-				io_outputgeoname(((gname) (thing.it_what)).gn_name,
-					((gname) (thing.it_what)).gn_pos, ((gname)thing.it_what).gn_layer);
-				io_decrefcount(thing.it_context);
-				break;
-
-			case LABEL:
-				io_swapcontext(thing.it_context);
-				io_outputlabel(((label) (thing.it_what)).la_name,
-					((label) (thing.it_what)).la_pos);
-				io_decrefcount(thing.it_context);
-				break;
+			io_swapcontext(thing.it_context);
+			polygon po = (polygon)thing.it_what;
+			path ppath = io_makepath();
+			for (int i = 0; i < po.po_p.length; i++)
+				if (io_appendpoint(ppath, po.po_p[i])) return;
+			io_outputpolygon(po.layer, ppath);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof wire)
+		{
+			io_swapcontext(thing.it_context);
+			wire wi = (wire)thing.it_what;
+			int length = wi.wi_numpts;
+			path ppath = io_makepath();
+			for (int i = 0; i < length; i++)
+				if (io_appendpoint(ppath, wi.wi_p[i])) return;
+			io_outputwire(wi.layer, wi.wi_width, ppath);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof flash)
+		{
+			io_swapcontext(thing.it_context);
+			flash fl = (flash)thing.it_what;
+			io_outputflash(fl.layer, fl.fl_diameter, fl.fl_center);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof box)
+		{
+			io_swapcontext(thing.it_context); // get right frame of ref
+			box bo = (box)thing.it_what;
+			io_outputbox(bo.layer, bo.bo_length, bo.bo_width, bo.bo_center, bo.bo_xrot, bo.bo_yrot);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof mbox)
+		{
+			io_swapcontext(thing.it_context); // get right frame of ref
+			Point temp = new Point();
+			mbox mb = (mbox)thing.it_what;
+			temp.x = (mb.bb.r + mb.bb.l)/2;
+			temp.y = (mb.bb.t + mb.bb.b)/2;
+			io_outputbox(mb.layer, mb.bb.r-mb.bb.l, mb.bb.t-mb.bb.b, temp, 1, 0);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof symcall)
+		{
+			io_swapcontext(thing.it_context);
+			io_pushtrans();
+			symcall sc = (symcall)thing.it_what;
+			io_applylocal(sc.sy_tm);
+			tlist t_list = io_maketlist();
+			io_dupetlist((tlist)sc.sy_tlist, (tlist)t_list);
+			io_dumpdef(sc.sy_unid);
+			io_outputcall(sc.sy_symnumber, sc.sy_unid.st_name, t_list);
+			io_swapcontext(thing.it_context);
+			io_poptrans();
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof gname)
+		{
+			io_swapcontext(thing.it_context);
+			gname gn = (gname)thing.it_what;
+			io_outputgeoname(gn.gn_name, gn.gn_pos, gn.layer);
+			io_decrefcount(thing.it_context);
+			return;
+		}
+		if (thing.it_what instanceof label)
+		{
+			io_swapcontext(thing.it_context);
+			label la = (label)thing.it_what;
+			io_outputlabel(la.la_name, la.la_pos);
+			io_decrefcount(thing.it_context);
+			return;
 		}
 	}
 
@@ -1067,16 +1022,15 @@ public class CIF extends Input
 		{
 			int count = sym.st_ncalls;
 
-			Object ro = sym.st_guts;
+			CifBase ro = sym.st_guts;
 			while (ro != null && count > 0)
 			{
-				cifhack ch = (cifhack)ro;
-				if (ch.kl_type == CALL)
+				if (ro instanceof symcall)
 				{
-					io_dumpdef(((symcall) ro).sy_unid);
+					io_dumpdef(((symcall)ro).sy_unid);
 					count--;
 				}
-				ro = ch.kl_next;
+				ro = ro.next;
 			}
 		}
 		io_shipcontents(sym);
@@ -1085,61 +1039,56 @@ public class CIF extends Input
 
 	private void io_shipcontents(stentry sym)
 	{
-		Object ro = sym.st_guts;
-		io_outputds(sym.st_symnumber, sym.st_name,
-			sym.st_bb.l, sym.st_bb.r, sym.st_bb.b, sym.st_bb.t);
+		CifBase ro = sym.st_guts;
+		io_outputds(sym.st_symnumber, sym.st_name, sym.st_bb.l, sym.st_bb.r, sym.st_bb.b, sym.st_bb.t);
 		while (ro != null)
 		{
-			cifhack ch = (cifhack)ro;
-			switch (ch.kl_type)
+			if (ro instanceof polygon)
 			{
-				case POLY:
-					int length = ((polygon)ro).po_numpts;
-					path ppath = io_makepath();
-					for (int i = 0; i < length; i++)
-						if (io_appendpoint(ppath, ((polygon)ro).po_p[i])) return;
-					io_outputpolygon(((polygon)ro).po_layer, ppath);
-					break;
-				case WIRE:
-					length = ((wire)ro).wi_numpts;
-					ppath = io_makepath();
-					for (int i = 0; i < length; i++)
-						if (io_appendpoint(ppath, ((wire)ro).wi_p[i])) return;
-					io_outputwire(((wire)ro).wi_layer, ((wire)ro).wi_width,
-						ppath);
-					break;
-				case FLASH:
-					io_outputflash(((flash)ro).fl_layer, ((flash)ro).fl_diameter,
-						((flash)ro).fl_center);
-					break;
-				case RECTANGLE:
-					io_outputbox(((box)ro).bo_layer, ((box)ro).bo_length,
-						((box)ro).bo_width, ((box)ro).bo_center,
-							((box)ro).bo_xrot, ((box)ro).bo_yrot);
-					break;
-				case MBOX:
-					Point temp = new Point();
-					temp.x = (((mbox)ro).mb_bb.r + ((mbox) ro).mb_bb.l)/2;
-					temp.y = (((mbox)ro).mb_bb.t + ((mbox) ro).mb_bb.b)/2;
-					io_outputbox(((mbox)ro).mb_layer,
-						((mbox)ro).mb_bb.r-((mbox)ro).mb_bb.l,
-							((mbox)ro).mb_bb.t-((mbox)ro).mb_bb.b, temp, 1, 0);
-					break;
-				case CALL:
-					tlist t_list = io_maketlist();
-					io_dupetlist((tlist)((symcall)ro).sy_tlist, (tlist)t_list);
-					io_outputcall(((symcall)ro).sy_symnumber,
-						((symcall)ro).sy_unid.st_name, t_list);
-					break;
-				case NAME:
-					io_outputgeoname(((gname)ro).gn_name,
-						((gname)ro).gn_pos, ((gname)ro).gn_layer);
-					break;
-				case LABEL:
-					io_outputlabel(((label)ro).la_name, ((label)ro).la_pos);
-					break;
+				polygon po = (polygon)ro;
+				path ppath = io_makepath();
+				for (int i = 0; i < po.po_p.length; i++)
+					if (io_appendpoint(ppath, po.po_p[i])) return;
+				io_outputpolygon(po.layer, ppath);
+			} else if (ro instanceof wire)
+			{
+				wire wi = (wire)ro;
+				int length = wi.wi_numpts;
+				path ppath = io_makepath();
+				for (int i = 0; i < length; i++)
+					if (io_appendpoint(ppath, wi.wi_p[i])) return;
+				io_outputwire(wi.layer, wi.wi_width, ppath);
+			} else if (ro instanceof flash)
+			{
+				flash fl = (flash)ro;
+				io_outputflash(fl.layer, fl.fl_diameter, fl.fl_center);
+			} else if (ro instanceof box)
+			{
+				box bo = (box)ro;
+				io_outputbox(bo.layer, bo.bo_length, bo.bo_width, bo.bo_center, bo.bo_xrot, bo.bo_yrot);
+			} else if (ro instanceof mbox)
+			{
+				mbox mb = (mbox)ro;
+				Point temp = new Point();
+				temp.x = (((mbox)ro).bb.r + ((mbox) ro).bb.l)/2;
+				temp.y = (((mbox)ro).bb.t + ((mbox) ro).bb.b)/2;
+				io_outputbox(mb.layer, mb.bb.r-mb.bb.l, mb.bb.t-mb.bb.b, temp, 1, 0);
+			} else if (ro instanceof symcall)
+			{
+				symcall sc = (symcall)ro;
+				tlist t_list = io_maketlist();
+				io_dupetlist((tlist)sc.sy_tlist, (tlist)t_list);
+				io_outputcall(sc.sy_symnumber, sc.sy_unid.st_name, t_list);
+			} else if (ro instanceof gname)
+			{
+				gname gn = (gname)ro;
+				io_outputgeoname(gn.gn_name, gn.gn_pos, gn.layer);
+			} else if (ro instanceof label)
+			{
+				label la = (label)ro;
+				io_outputlabel(la.la_name, la.la_pos);
 			}
-			ro = ch.kl_next;
+			ro = ro.next;
 		}
 		io_outputdf();
 	}
@@ -1356,6 +1305,7 @@ public class CIF extends Input
 		io_cifstacktop.multiplied = true;
 
 		io_cifcarray = new context[CONTSIZE];
+		for(int i=0; i<CONTSIZE; i++) io_cifcarray[i] = new context();
 		io_cifcarray[0].base = io_cifstacktop;
 		io_cifcarray[0].refcount = 1;	// this context will never go away
 		io_cifcarray[0].ctop = io_cifstacktop;
@@ -1376,9 +1326,8 @@ public class CIF extends Input
 		mat.type = TIDENT;   mat.multiplied = false;
 	}
 
-	private void io_infromfile(LineNumberReader lr)
+	private void io_infromfile()
 	{
-		lineReader = lr;
 		try
 		{
 			io_cifnextchar = lineReader.read();
@@ -1398,7 +1347,7 @@ public class CIF extends Input
 		}
 
 		int c = io_cifnextchar;
-		if (c < 0)
+		if (c >= 0)
 		{
 			if (c == '\n') io_ciflinecount++;
 			if (c != '\n')
@@ -1507,7 +1456,7 @@ public class CIF extends Input
 				{
 					int chr = io_peek();
 					if (!Character.isUpperCase((char)chr) && !Character.isDigit((char)chr)) break;
-					layerName.append((char)chr);
+					layerName.append(io_getch());
 				}
 				if (layerName.length() == 0) {io_ciferrorfound = true; io_ciferrortype = NOLAYER; return reportError();}
 				lname = layerName.toString();
@@ -1694,7 +1643,7 @@ public class CIF extends Input
 											{
 												int chr = io_peek();
 												if (!Character.isUpperCase((char)chr) && !Character.isDigit((char)chr)) break;
-												layName.append((char)chr);
+												layName.append(io_getch());
 											}
 											lname = layName.toString();
 											break;
@@ -1791,7 +1740,6 @@ public class CIF extends Input
 			return;
 		}
 		label obj = new label();
-		obj.la_type = LABEL;
 		if (io_cifdefinprog && io_cifscalefactor != 1.0)
 		{
 			pt.x = (int)(io_cifscalefactor * pt.x);
@@ -1803,15 +1751,15 @@ public class CIF extends Input
 		io_pushtrans();
 		Point temp = io_transpoint(pt);
 		io_poptrans();
-		obj.la_bb.l = temp.x;
-		obj.la_bb.r = temp.x;
-		obj.la_bb.b = temp.y;
-		obj.la_bb.t = temp.y;
+		obj.bb.l = temp.x;
+		obj.bb.r = temp.x;
+		obj.bb.b = temp.y;
+		obj.bb.t = temp.y;
 
 		if (io_cifdefinprog)
 		{
 			// insert into symbol's guts
-			obj.la_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 		} else io_item(obj);		// stick into item list
 	}
@@ -1826,8 +1774,7 @@ public class CIF extends Input
 			return;
 		}
 		gname obj = new gname();
-		obj.gn_type = NAME;
-		obj.gn_layer = lay;
+		obj.layer = lay;
 		if (io_cifdefinprog && io_cifscalefactor != 1.0)
 		{
 			pt.x = (int)(io_cifscalefactor * pt.x);
@@ -1839,15 +1786,15 @@ public class CIF extends Input
 		io_pushtrans();
 		Point temp = io_transpoint(pt);
 		io_poptrans();
-		obj.gn_bb.l = temp.x;
-		obj.gn_bb.r = temp.x;
-		obj.gn_bb.b = temp.y;
-		obj.gn_bb.t = temp.y;
+		obj.bb.l = temp.x;
+		obj.bb.r = temp.x;
+		obj.bb.b = temp.y;
+		obj.bb.t = temp.y;
 
 		if (io_cifdefinprog)
 		{
 			// insert into symbol's guts
-			obj.gn_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 		} else io_item(obj);		// stick into item list
 	}
@@ -1922,32 +1869,30 @@ public class CIF extends Input
 		)
 		{
 			mbox obj = new mbox();
-			obj.mb_type = MBOX;
-			obj.mb_layer = io_cifcurlayer;
+			obj.layer = io_cifcurlayer;
 			if (yr == 0)
 			{
-				obj.mb_bb.l = tl;
-				obj.mb_bb.r = tr;
-				obj.mb_bb.b = tb;
-				obj.mb_bb.t = tt;
+				obj.bb.l = tl;
+				obj.bb.r = tr;
+				obj.bb.b = tb;
+				obj.bb.t = tt;
 			} else
 			{
 				// this assumes that bb is unaffected by rotation
-				obj.mb_bb.l = center.x-halfw;
-				obj.mb_bb.r = center.x+halfw;
-				obj.mb_bb.b = center.y-halfl;
-				obj.mb_bb.t = center.y+halfl;
+				obj.bb.l = center.x-halfw;
+				obj.bb.r = center.x+halfw;
+				obj.bb.b = center.y-halfl;
+				obj.bb.t = center.y+halfl;
 			}
 			if (io_cifdefinprog)
 			{
 				// insert into symbol's guts
-				obj.mb_next = io_cifcurrent.st_guts;
+				obj.next = io_cifcurrent.st_guts;
 				io_cifcurrent.st_guts = obj;
 			} else io_item(obj);		// stick into item list
 		} else
 		{
 			box obj = new box();
-			obj.bo_type = RECTANGLE;
 			obj.bo_layer = io_cifcurlayer;
 			obj.bo_length = length;
 			obj.bo_width = width;
@@ -1955,14 +1900,14 @@ public class CIF extends Input
 			obj.bo_xrot = xr;
 			obj.bo_yrot = yr;
 
-			obj.bo_bb.l = tl;
-			obj.bo_bb.r = tr;
-			obj.bo_bb.b = tb;
-			obj.bo_bb.t = tt;
+			obj.bb.l = tl;
+			obj.bb.r = tr;
+			obj.bb.b = tb;
+			obj.bb.t = tt;
 			if (io_cifdefinprog)
 			{
 				// insert into symbol's guts
-				obj.bo_next = io_cifcurrent.st_guts;
+				obj.next = io_cifcurrent.st_guts;
 				io_cifcurrent.st_guts = obj;
 			} else io_item(obj);		// stick into item list
 		}
@@ -1984,8 +1929,7 @@ public class CIF extends Input
 		}
 
 		flash obj = new flash();
-		obj.fl_type = FLASH;
-		obj.fl_layer = io_cifcurlayer;
+		obj.layer = io_cifcurlayer;
 		if (io_cifdefinprog && io_cifscalefactor != 1.0)
 		{
 			diameter = (int) (io_cifscalefactor * diameter);
@@ -1996,15 +1940,15 @@ public class CIF extends Input
 		obj.fl_center = center;
 
 		Rectangle box = io_bbflash(diameter, center);
-		obj.fl_bb.l = box.x;
-		obj.fl_bb.r = box.x + box.width;
-		obj.fl_bb.b = box.y;
-		obj.fl_bb.t = box.y + box.height;
+		obj.bb.l = box.x;
+		obj.bb.r = box.x + box.width;
+		obj.bb.b = box.y;
+		obj.bb.t = box.y + box.height;
 
 		if (io_cifdefinprog)
 		{
 			// insert into symbol's guts
-			obj.fl_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 		} else io_item(obj);		// stick into item list
 	}
@@ -2077,7 +2021,6 @@ public class CIF extends Input
 		}
 
 		symcall obj = new symcall();
-		obj.sy_type = CALL;
 		obj.sy_tm = io_getlocal();
 		io_poptrans();		// return to previous state
 
@@ -2099,7 +2042,7 @@ public class CIF extends Input
 		if (io_cifdefinprog)
 		{
 			// insert into guts of symbol
-			obj.sy_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 			io_cifcurrent.st_ncalls++;
 		} else io_item(obj);
@@ -2274,8 +2217,7 @@ public class CIF extends Input
 		wire obj = new wire();
 		path tpath = a;
 		path spath = null;			// path in case of scaling
-		obj.wi_type = WIRE;
-		obj.wi_layer = io_cifcurlayer;
+		obj.layer = io_cifcurlayer;
 		obj.wi_numpts = length;
 		if (io_cifdefinprog && io_cifscalefactor != 1.0)
 		{
@@ -2288,15 +2230,14 @@ public class CIF extends Input
 
 		path bbpath = io_makepath();		// get a new path for bb use
 		io_copypath(tpath, bbpath);
-		Rectangle box = io_bbwire(width, bbpath); 
-		//, &(obj.wi_bb.l), &(obj.wi_bb.r), &(obj.wi_bb.b), &(obj.wi_bb.t));
+		Rectangle box = io_bbwire(width, bbpath);
 		obj.wi_p = new Point[length];
 		for (int i = 0; i < length; i++) obj.wi_p[i] = io_removepoint(tpath);
 
 		if (io_cifdefinprog)
 		{
 			// insert into symbol's guts
-			obj.wi_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 		} else io_item(obj);		// stick into item list
 	}
@@ -2440,9 +2381,7 @@ public class CIF extends Input
 		polygon obj = new polygon();
 		path tpath = a;
 		path spath = null;			// path in case of scaling
-		obj.po_type = POLY;
-		obj.po_layer = io_cifcurlayer;
-		obj.po_numpts = length;
+		obj.layer = io_cifcurlayer;
 		if (io_cifdefinprog && io_cifscalefactor != 1.0)
 		{
 			spath = io_makepath();		// create a new path
@@ -2453,17 +2392,17 @@ public class CIF extends Input
 		path bbpath = io_makepath();		// get a new path for bb use
 		io_copypath(tpath, bbpath);
 		Rectangle box = io_bbpolygon(bbpath);
-		obj.po_bb.l = box.x;
-		obj.po_bb.r = box.x + box.width;
-		obj.po_bb.b = box.y;
-		obj.po_bb.t = box.y + box.height;
+		obj.bb.l = box.x;
+		obj.bb.r = box.x + box.width;
+		obj.bb.b = box.y;
+		obj.bb.t = box.y + box.height;
 		obj.po_p = new Point[length];
 		for (int i = 0; i < length; i++) obj.po_p[i] = io_removepoint(tpath);
 
 		if (io_cifdefinprog)
 		{
 			// insert into symbol's guts
-			obj.po_next = io_cifcurrent.st_guts;
+			obj.next = io_cifcurrent.st_guts;
 			io_cifcurrent.st_guts = obj;
 		} else io_item(obj);		// stick into item list
 	}
@@ -2471,17 +2410,15 @@ public class CIF extends Input
 	/**
 	 * a bare item has been found
 	 */
-	private void io_item(Object object)
+	private void io_item(CifBase object)
 	{
 		if (object == null)
 		{
 			io_report("item: null object", FATALINTERNAL);
 			return;
 		}
-		cifhack obj = (cifhack)object;
 
 		itementry newitem = io_newnode();
-		newitem.it_type = obj.kl_type;
 		newitem.it_rel = null;
 		newitem.it_norel = null;
 		newitem.it_same = io_cifilist;		// hook into linked list
@@ -2492,7 +2429,7 @@ public class CIF extends Input
 		io_increfcount(0);
 
 		// symbol calls only
-		if (obj.kl_type == CALL) io_findcallbb((symcall)object);
+		if (object instanceof symcall) io_findcallbb((symcall)object);
 	}
 
 	/**
@@ -2537,8 +2474,8 @@ public class CIF extends Input
 		comperror = io_transpoint(temp);
 		io_minmax(comperror);
 
-		object.sy_bb.l = io_minx();   object.sy_bb.r = io_maxx();
-		object.sy_bb.b = io_miny();   object.sy_bb.t = io_maxy();
+		object.bb.l = io_minx();   object.bb.r = io_maxx();
+		object.bb.b = io_miny();   object.bb.t = io_maxy();
 		io_donemm();		// object now has transformed bb of the symbol
 		io_poptrans();
 
@@ -2551,7 +2488,7 @@ public class CIF extends Input
 	private void io_findbb(stentry sym)
 	{
 		boolean first = true;
-		Object ob = sym.st_guts;
+		CifBase ob = sym.st_guts;
 
 		if (sym.st_bbvalid) return;			// already done
 		if (ob == null)			// empty symbol
@@ -2567,15 +2504,14 @@ public class CIF extends Input
 		while (ob != null)
 		{
 			// find bb for symbol calls, all primitive are done already
-			cifhack ch = (cifhack)ob;
-			if (ch.kl_type == CALL) io_findcallbb((symcall)ob);
+			if (ob instanceof symcall) io_findcallbb((symcall)ob);
 			Point temp = new Point();
-			temp.x = ch.kl_bb.l;   temp.y = ch.kl_bb.b;
+			temp.x = ob.bb.l;   temp.y = ob.bb.b;
 			if (first) {first = false; io_initmm(temp);}
 				else io_minmax(temp);
-			temp.x = ch.kl_bb.r;   temp.y = ch.kl_bb.t;
+			temp.x = ob.bb.r;   temp.y = ob.bb.t;
 			io_minmax(temp);
-			ob = ch.kl_next;
+			ob = ob.next;
 		}
 		sym.st_bb.l = io_minx();   sym.st_bb.r = io_maxx();
 		sym.st_bb.b = io_miny();   sym.st_bb.t = io_maxy();
@@ -2606,7 +2542,6 @@ public class CIF extends Input
 	private void io_newstentry(stentry ptr, int num)
 	{
 		ptr.st_symnumber = num;
-		ptr.st_overflow = null;
 		ptr.st_expanded = false;
 		ptr.st_frozen = false;
 		ptr.st_defined = false;
@@ -2958,7 +2893,9 @@ public class CIF extends Input
 		return a.plength;
 	}
 
-	/* returns nonzero on memory error */
+	/**
+	 * returns true on memory error
+	 */
 	private boolean io_appendpoint(path a, Point p)
 	{
 		linkedpoint temp;

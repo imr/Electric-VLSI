@@ -165,7 +165,7 @@ public class JELIB extends LibraryFiles
 						", Cell declaration needs 7 fields: " + line, null, -1);
 					continue;
 				}
-				String name = pieces.get(0) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+				String name = unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
 				Cell newCell = Cell.newInstance(lib, name);
 				if (newCell == null)
 				{
@@ -173,7 +173,7 @@ public class JELIB extends LibraryFiles
 						", Unable to create cell " + name, null, -1);
 					continue;
 				}
-				Technology tech = Technology.findTechnology((String)pieces.get(3));
+				Technology tech = Technology.findTechnology(unQuote((String)pieces.get(3)));
 				newCell.setTechnology(tech);
 				long cDate = Long.parseLong((String)pieces.get(4));
 				long rDate = Long.parseLong((String)pieces.get(5));
@@ -232,11 +232,11 @@ public class JELIB extends LibraryFiles
 						", External library declaration needs 2 fields: " + line, null, -1);
 					continue;
 				}
-				curExternalLibName = (String)pieces.get(0);
+				curExternalLibName = unQuote((String)pieces.get(0));
 				if (Library.findLibrary(curExternalLibName) != null) continue;
 
 				// recurse
-				readExternalLibraryFromFilename((String)pieces.get(1), OpenFile.Type.JELIB);
+				readExternalLibraryFromFilename(unQuote((String)pieces.get(1)), OpenFile.Type.JELIB);
 				continue;
 			}
 
@@ -255,7 +255,7 @@ public class JELIB extends LibraryFiles
 				double lowY = TextUtils.atof((String)pieces.get(3));
 				double highY = TextUtils.atof((String)pieces.get(4));
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
-				String cellName = curExternalLibName + ":" + (String)pieces.get(0);
+				String cellName = curExternalLibName + ":" + unQuote((String)pieces.get(0));
 				externalCells.put(cellName, bounds);
 				continue;
 			}
@@ -270,7 +270,7 @@ public class JELIB extends LibraryFiles
 						", Library declaration needs 2 fields: " + line, null, -1);
 					continue;
 				}
-				curLibName = (String)pieces.get(0);
+				curLibName = unQuote((String)pieces.get(0));
 				version = (String)pieces.get(1);
 				continue;
 			}
@@ -279,7 +279,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Tool information
 				List pieces = parseLine(line);
-				String toolName = (String)pieces.get(0);
+				String toolName = unQuote((String)pieces.get(0));
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
 				{
@@ -297,7 +297,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Technology information
 				List pieces = parseLine(line);
-				String techName = (String)pieces.get(0);
+				String techName = unQuote((String)pieces.get(0));
 				curTech = Technology.findTechnology(techName);
 				if (curTech == null)
 				{
@@ -316,7 +316,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitiveNode information
 				List pieces = parseLine(line);
-				String primName = (String)pieces.get(0);
+				String primName = unQuote((String)pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -340,7 +340,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitivePort information
 				List pieces = parseLine(line);
-				String primPortName = (String)pieces.get(0);
+				String primPortName = unQuote((String)pieces.get(0));
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -365,7 +365,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse ArcProto information
 				List pieces = parseLine(line);
-				String arcName = (String)pieces.get(0);
+				String arcName = unQuote((String)pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -392,7 +392,7 @@ public class JELIB extends LibraryFiles
 				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
-					String cellName = (String)pieces.get(i);
+					String cellName = unQuote((String)pieces.get(i));
 					int colonPos = cellName.indexOf(':');
 					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
 					Cell cell = lib.findNodeProto(cellName);
@@ -481,7 +481,7 @@ public class JELIB extends LibraryFiles
 					", Node instance needs 10 fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = (String)pieces.get(0);
+			String protoName = unQuote((String)pieces.get(0));
 			double x = TextUtils.atof((String)pieces.get(3));
 			double y = TextUtils.atof((String)pieces.get(4));
 			double wid = TextUtils.atof((String)pieces.get(5));
@@ -556,7 +556,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = (String)pieces.get(1);
+			String diskNodeName = unQuote((String)pieces.get(1));
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -636,9 +636,9 @@ public class JELIB extends LibraryFiles
 					", Export needs 7 fields, has " + pieces.size() + ": " + cellString, cell, -1);
 				continue;
 			}
-			String exportName = (String)pieces.get(0);
-			String nodeName = (String)pieces.get(2);
-			String portName = (String)pieces.get(3);
+			String exportName = unQuote((String)pieces.get(0));
+			String nodeName = unQuote((String)pieces.get(2));
+			String portName = unQuote((String)pieces.get(3));
 			double x = TextUtils.atof((String)pieces.get(4));
 			double y = TextUtils.atof((String)pieces.get(5));
 			PortInst pi = figureOutPortInst(cell, portName, nodeName, x, y, diskName, cc.fileName, cc.lineNumber + line);
@@ -694,7 +694,7 @@ public class JELIB extends LibraryFiles
 					", Arc instance needs 13 fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = (String)pieces.get(0);
+			String protoName = unQuote((String)pieces.get(0));
 			ArcProto ap = ArcProto.findArcProto(protoName);
 			if (ap == null)
 			{
@@ -702,18 +702,18 @@ public class JELIB extends LibraryFiles
 					" (cell " + cell.describe() + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
-			String arcName = (String)pieces.get(1);
+			String arcName = unQuote((String)pieces.get(1));
 			double wid = TextUtils.atof((String)pieces.get(3));
 
-			String headNodeName = (String)pieces.get(5);
-			String headPortName = (String)pieces.get(6);
+			String headNodeName = unQuote((String)pieces.get(5));
+			String headPortName = unQuote((String)pieces.get(6));
 			double headX = TextUtils.atof((String)pieces.get(7));
 			double headY = TextUtils.atof((String)pieces.get(8));
 			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, headX, headY, diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
-			String tailNodeName = (String)pieces.get(9);
-			String tailPortName = (String)pieces.get(10);
+			String tailNodeName = unQuote((String)pieces.get(9));
+			String tailPortName = unQuote((String)pieces.get(10));
 			double tailX = TextUtils.atof((String)pieces.get(11));
 			double tailY = TextUtils.atof((String)pieces.get(12));
 			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, tailX, tailY, diskName, cc.fileName, cc.lineNumber + line);
@@ -909,6 +909,25 @@ public class JELIB extends LibraryFiles
 		return stringPieces;
 	}
 
+	private String unQuote(String line)
+	{
+		if (line.indexOf('^') < 0) return line;
+		StringBuffer sb = new StringBuffer();
+		int len = line.length();
+		for(int i=0; i<len; i++)
+		{
+			char chr = line.charAt(i);
+			if (chr == '^')
+			{
+				i++;
+				if (i >= len) break;
+				chr = line.charAt(i);
+			}
+			sb.append(chr);
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * Method to add variables to an ElectricObject from a List of strings.
 	 * @param eObj the ElectricObject to augment with Variables.
@@ -1045,9 +1064,6 @@ public class JELIB extends LibraryFiles
 	}
 
 	/**
-	 * Cell redFour:nor2en_2p{sch}, node redFour:nor2en_2p{ic}[nor2en_2@0] is 5.0x4.25, but prototype is 10.48 x 12.0 ****REPAIRED****
-	 * file:/C:/DevelE/Electric/TESTLIBS/ivan/redFour.jelib, line 4038 (cell redFour:nor2en_2p{sch}) cannot create node redFour:nor2en_2p;1{ic}
-
 	 * Method to load a TextDescriptor from a String description of it.
 	 * @param td the TextDescriptor to load.
 	 * @param var the Variable that this TextDescriptor resides on.

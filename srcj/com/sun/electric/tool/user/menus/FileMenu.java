@@ -79,6 +79,9 @@ public class FileMenu {
 
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
+		importSubMenu.addMenuItem("CIF...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.CIF); } });
+		importSubMenu.addSeparator();
 		importSubMenu.addMenuItem("ELIB...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.ELIB); } });
 		importSubMenu.addMenuItem("Readable Dump...", null,
@@ -281,7 +284,14 @@ public class FileMenu {
     /** Opens a library */
     private static boolean openALibrary(URL fileURL, OpenFile.Type type)
     {
-        Library lib = Input.readLibrary(fileURL, type);
+    	Library lib = null;
+    	if (type == OpenFile.Type.ELIB || type == OpenFile.Type.JELIB || type == OpenFile.Type.READABLEDUMP)
+        {
+    		lib = Input.readLibrary(fileURL, type);
+        } else
+        {
+    		lib = Input.importLibrary(fileURL, type);
+        }
         if (lib != null)
         {
             // new library open: check for default "noname" library and close if empty
