@@ -3808,7 +3808,7 @@ public class Quick
 				if (np instanceof PrimitiveNode)
 				{
 					if (NodeInst.isSpecialNode(ni)) return (false);
-					forceChecking = pNp.isPureImplantNode(); // forcing the checking
+					forceChecking = pNp.isPureSubstrateNode(); // forcing the checking
 				}
 
 				boolean notExported = false;
@@ -3825,7 +3825,7 @@ public class Quick
 				}
 				// Substrate layers are special so we must check node regardless network
 				notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
-				if (!found)
+				if (!found && !forceChecking)
 				{
 					if (notExportedNodes != null && notExported)
 					{
@@ -3866,8 +3866,8 @@ public class Quick
 				if (jNet != null)
 				{
 					PortProto pp = poly.getPort();
-					found = forceChecking && layer.getFunction().isImplant();
-					if (!found && pp != null)
+					found = forceChecking && layer.getFunction().isSubstrate();
+                    if (!found && pp != null)
 					{
 						Network net = info.getNetlist().getNetwork(ni, pp, 0);
 						found = searchNetworkInParent(net, info);

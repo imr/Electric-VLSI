@@ -1291,17 +1291,17 @@ public class PrimitiveNode implements NodeProto, Comparable
 	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
     /**
-     * Method to determine if PrimitiveNode represents pure implant node
-     * @return true if this PrimitiveNode is a pure implant node
+     * Method to determine if PrimitiveNode represents substrate node
+     * @return true if this PrimitiveNode is a substrate node
      */
-	public boolean isPureImplantNode()
+	public boolean isPureSubstrateNode()
 	{
 	    // Not even looking at
 		if (function != PrimitiveNode.Function.NODE) return false;
 	    // only one layer
 	    if (layers.length != 1) return false;
 	    Layer layer = (Layer)layers[0].getLayer();
-	    return (layer.getFunction().isImplant());
+	    return (layer.getFunction().isSubstrate());
 	}
 
 // 	/**
