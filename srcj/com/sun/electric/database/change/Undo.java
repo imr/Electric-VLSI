@@ -336,8 +336,8 @@ public class Undo
 			{
 				// get information about the node as it is now
 				NodeInst ni = (NodeInst)obj;
-				double oldCX = ni.getGrabCenterX();
-				double oldCY = ni.getGrabCenterY();
+				double oldCX = ni.getAnchorCenterX();
+				double oldCY = ni.getAnchorCenterY();
 				double oldSX = ni.getXSize();
 				double oldSY = ni.getYSize();
 				int oldRot = ni.getAngle();

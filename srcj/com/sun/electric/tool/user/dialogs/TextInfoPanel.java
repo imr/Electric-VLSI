@@ -183,8 +183,8 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // set the offset
         if (ni != null) {
-            initialXOffset = ni.getGrabCenterX();
-            initialYOffset = ni.getGrabCenterY();
+            initialXOffset = ni.getAnchorCenterX();
+            initialYOffset = ni.getAnchorCenterY();
         } else {
             initialXOffset = td.getXOff();
             initialYOffset = td.getYOff();
@@ -475,8 +475,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (owner instanceof NodeInst) {
                 NodeInst ni = (NodeInst)owner;
                 if (ni.getProto() == Generic.tech.invisiblePinNode) {
-                    double dX = xoffset - ni.getGrabCenterX();
-                    double dY = yoffset - ni.getGrabCenterY();
+                    double dX = xoffset - ni.getAnchorCenterX();
+                    double dY = yoffset - ni.getAnchorCenterY();
                     ni.modifyInstance(dX, dY, 0, 0, 0);
                 } else td.setOff(xoffset, yoffset);
             } else {

@@ -148,18 +148,18 @@ public class GetInfoMulti extends EDialog
 					NodeInst ni = (NodeInst)eobj;
 					if (numNodes != 0)
 					{
-						xPositionLow = Math.min(xPositionLow, ni.getGrabCenterX());
-						xPositionHigh = Math.max(xPositionHigh, ni.getGrabCenterX());
-						yPositionLow = Math.min(yPositionLow, ni.getGrabCenterY());
-						yPositionHigh = Math.max(yPositionHigh, ni.getGrabCenterY());
+						xPositionLow = Math.min(xPositionLow, ni.getAnchorCenterX());
+						xPositionHigh = Math.max(xPositionHigh, ni.getAnchorCenterX());
+						yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
+						yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
 						xSizeLow = Math.min(xSizeLow, ni.getXSize());
 						xSizeHigh = Math.max(xSizeHigh, ni.getXSize());
 						ySizeLow = Math.min(ySizeLow, ni.getYSize());
 						ySizeHigh = Math.max(ySizeHigh, ni.getYSize());
 					} else
 					{
-						xPositionLow = xPositionHigh = ni.getGrabCenterX();
-						yPositionLow = yPositionHigh = ni.getGrabCenterY();
+						xPositionLow = xPositionHigh = ni.getAnchorCenterX();
+						yPositionLow = yPositionHigh = ni.getAnchorCenterY();
 						xSizeLow = xSizeHigh = ni.getXSize();
 						ySizeLow =  ySizeHigh = ni.getYSize();
 					}
@@ -223,9 +223,9 @@ public class GetInfoMulti extends EDialog
 		{
 			listModel.addElement("---------------------------");
 			Point2D firstPt = firstGeom.getTrueCenter();
-			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getGrabCenter();
+			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getAnchorCenter();
 			Point2D secondPt = secondGeom.getTrueCenter();
-			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getGrabCenter();
+			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getAnchorCenter();
 			listModel.addElement("Distance between centers is " + firstPt.distance(secondPt));
 		}
 		if (numNodes != 0)
@@ -409,9 +409,9 @@ public class GetInfoMulti extends EDialog
 					NodeInst ni = (NodeInst)eobj;
 					nis[index] = ni;
 					if (currentXPosition.equals("")) dXP[index] = 0; else
-						dXP[index] = newXPosition - ni.getGrabCenterX();
+						dXP[index] = newXPosition - ni.getAnchorCenterX();
 					if (currentYPosition.equals("")) dYP[index] = 0; else
-						dYP[index] = newYPosition - ni.getGrabCenterY();
+						dYP[index] = newYPosition - ni.getAnchorCenterY();
 					if (currentXSize.equals("")) dXS[index] = 0; else
 						dXS[index] = newXSize - ni.getXSize();
 					if (currentYSize.equals("")) dYS[index] = 0; else

@@ -1615,8 +1615,8 @@ public class Quick
 		dii.mirrorX2 = ni2.isMirroredAboutXAxis();
 		dii.mirrorY2 = ni2.isMirroredAboutYAxis();
 
-		dii.dx = ni2.getGrabCenterX() - ni1.getGrabCenterX();
-		dii.dy = ni2.getGrabCenterY() - ni1.getGrabCenterY();
+		dii.dx = ni2.getAnchorCenterX() - ni1.getAnchorCenterX();
+		dii.dy = ni2.getAnchorCenterY() - ni1.getAnchorCenterY();
 
 		// if found, stop now
 		if (findInteraction(dii)) return true;

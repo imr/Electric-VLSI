@@ -802,7 +802,7 @@ public class Change extends EDialog
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getGrabCenter(), xS, yS, 0, cell, null);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, 0, cell, null);
 				if (newNi == null) return;
 				newNi.clearBit(marked);
 				ni.setTempObj(newNi);

@@ -292,7 +292,7 @@ public class CIF extends Geometry
 		String line = "C " + cellNum + " R " + rotx + " " + roty;
 		if (ni.isMirroredAboutXAxis()) line += " M Y";
 		if (ni.isMirroredAboutYAxis()) line += " M X";
-		line += " T " + scale(ni.getGrabCenterX()) + " " + scale(ni.getGrabCenterY());
+		line += " T " + scale(ni.getAnchorCenterX()) + " " + scale(ni.getAnchorCenterY());
 		writeLine(line + ";");
 	}
 

@@ -181,8 +181,8 @@ class OutlineListener
 			for(int i=0; i<origPoints.length; i++)
 			{
 				if (i == pt) continue;
-				newPoints[j] = new Point2D.Double(outlineNode.getGrabCenterX() + origPoints[i].getX(),
-					outlineNode.getGrabCenterY() + origPoints[i].getY());
+				newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[i].getY());
 				trans.transform(newPoints[j], newPoints[j]);
 				j++;
 			}
@@ -212,15 +212,15 @@ class OutlineListener
 			if (origPoints == null)
 			{
 				Point2D [] newPoints = new Point2D[1];
-				newPoints[0] = new Point2D.Double(outlineNode.getGrabCenterX(), outlineNode.getGrabCenterY());
+				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX(), outlineNode.getAnchorCenterY());
 				setNewPoints(newPoints, 0);
 				return;
 			}
 			if (origPoints.length == 1)
 			{
 				Point2D [] newPoints = new Point2D[2];
-				newPoints[0] = new Point2D.Double(outlineNode.getGrabCenterX() + origPoints[0].getX(),
-					outlineNode.getGrabCenterY() + origPoints[0].getY());
+				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[0].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[0].getY());
 				trans.transform(newPoints[0], newPoints[0]);
 				newPoints[1] = new Point2D.Double(newPoints[0].getX() + 2, newPoints[0].getY() + 2);
 				setNewPoints(newPoints, 1);
@@ -231,8 +231,8 @@ class OutlineListener
 			for(int i=0; i<origPoints.length; i++)
 			{
 				// copy the original point
-				newPoints[j++] = new Point2D.Double(outlineNode.getGrabCenterX() + origPoints[i].getX(),
-					outlineNode.getGrabCenterY() + origPoints[i].getY());
+				newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[i].getY());
 				if (i == point)
 				{
 					// found the selected point, make the insertion
@@ -242,19 +242,19 @@ class OutlineListener
 						if (outlineNode.traceWraps())
 						{
 							// outline wraps: make this between here and first point
-							newPoints[j++] = new Point2D.Double(outlineNode.getGrabCenterX() + (origPoints[i].getX() + origPoints[0].getX()) / 2,
-								outlineNode.getGrabCenterY() + (origPoints[i].getY() + origPoints[0].getY()) / 2);
+							newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[0].getX()) / 2,
+								outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[0].getY()) / 2);
 						} else
 						{
 							// outline does not wrap: make new one be relative to previous one
-							newPoints[j++] = new Point2D.Double(outlineNode.getGrabCenterX() + origPoints[i].getX()*2 + origPoints[i-1].getX(),
-								outlineNode.getGrabCenterY() + origPoints[i].getY()*2 + origPoints[i-1].getY());
+							newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX()*2 + origPoints[i-1].getX(),
+								outlineNode.getAnchorCenterY() + origPoints[i].getY()*2 + origPoints[i-1].getY());
 						}
 					} else
 					{
 						// there is a "next" point, make this one between here and there
-						newPoints[j++] = new Point2D.Double(outlineNode.getGrabCenterX() + (origPoints[i].getX() + origPoints[i+1].getX()) / 2,
-							outlineNode.getGrabCenterY() + (origPoints[i].getY() + origPoints[i+1].getY()) / 2);
+						newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[i+1].getX()) / 2,
+							outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[i+1].getY()) / 2);
 					}
 				}
 			}
@@ -290,8 +290,8 @@ class OutlineListener
 		Point2D [] newPoints = new Point2D[origPoints.length];
 		for(int i=0; i<origPoints.length; i++)
 		{
-			newPoints[i] = new Point2D.Double(outlineNode.getGrabCenterX() + origPoints[i].getX(),
-				outlineNode.getGrabCenterY() + origPoints[i].getY());
+			newPoints[i] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+				outlineNode.getAnchorCenterY() + origPoints[i].getY());
 		}
 		AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
 		trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
@@ -348,7 +348,7 @@ class OutlineListener
 
 			// update the points
 			ni.newVar(NodeInst.TRACE, newPoints);
-			ni.modifyInstance(newCX-ni.getGrabCenterX(),newCY-ni.getGrabCenterY(), newSX-ni.getXSize(),
+			ni.modifyInstance(newCX-ni.getAnchorCenterX(),newCY-ni.getAnchorCenterY(), newSX-ni.getXSize(),
 				newSY-ni.getYSize(), -ni.getAngle());
 			listener.high.setPoint(listener.point = newPoint);
 		}

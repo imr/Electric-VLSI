@@ -483,7 +483,7 @@ public class CellLists extends EDialog
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					if (ni.getProto() != cell) continue;
-					line += " (" + ni.getGrabCenterX() + "," + ni.getGrabCenterY() + ")";
+					line += " (" + ni.getAnchorCenterX() + "," + ni.getAnchorCenterY() + ")";
 				}
 				System.out.println(line);
 			}

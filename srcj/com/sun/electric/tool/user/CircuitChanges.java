@@ -1259,13 +1259,13 @@ public class CircuitChanges
 				ArcInst ai = con.getArc();
 				if (ai.getHead().getPortInst().getNodeInst() == ni)
 				{
-					if (ai.getHead().getLocation().getX() != ni.getGrabCenterX()) { arcsInCenter = false;   break; }
-					if (ai.getHead().getLocation().getY() != ni.getGrabCenterY()) { arcsInCenter = false;   break; }
+					if (ai.getHead().getLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getHead().getLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
 				}
 				if (ai.getTail().getPortInst().getNodeInst() == ni)
 				{
-					if (ai.getTail().getLocation().getX() != ni.getGrabCenterX()) { arcsInCenter = false;   break; }
-					if (ai.getTail().getLocation().getY() != ni.getGrabCenterY()) { arcsInCenter = false;   break; }
+					if (ai.getTail().getLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getTail().getLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
 				}
 			}
 			if (!arcsInCenter) continue;
@@ -2382,7 +2382,7 @@ public class CircuitChanges
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(flag);
-				ni.setTempObj(new Point2D.Double(ni.getGrabCenterX(), ni.getGrabCenterY()));
+				ni.setTempObj(new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
@@ -2479,7 +2479,7 @@ public class CircuitChanges
 						if (k == 0) ni = ai.getHead().getPortInst().getNodeInst(); else
 							ni = ai.getTail().getPortInst().getNodeInst();
 						Point2D nPt = (Point2D)ni.getTempObj();
-						if (ni.getGrabCenterX() != nPt.getX() || ni.getGrabCenterY() != nPt.getY()) continue;
+						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
 						for(Iterator oIt = Highlight.getHighlights(); oIt.hasNext(); )
@@ -2501,8 +2501,8 @@ public class CircuitChanges
 								Layout.setTempRigid(oai, true);
 							}
 						}
-						ni.modifyInstance(dX - (ni.getGrabCenterX() - nPt.getX()),
-							dY - (ni.getGrabCenterY() - nPt.getY()), 0, 0, 0);
+						ni.modifyInstance(dX - (ni.getAnchorCenterX() - nPt.getX()),
+							dY - (ni.getAnchorCenterY() - nPt.getY()), 0, 0, 0);
 					}
 					continue;
 				}
@@ -2636,13 +2636,13 @@ public class CircuitChanges
 
 		private void adjustTextDescriptor(TextDescriptor td, NodeInst ni)
 		{
-			Point2D curLoc = new Point2D.Double(ni.getGrabCenterX()+td.getXOff(), ni.getGrabCenterY()+td.getYOff());
+			Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
 			AffineTransform rotateOut = ni.rotateOut();
 			rotateOut.transform(curLoc, curLoc);
 			curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
 			AffineTransform rotateIn = ni.rotateIn();
 			rotateIn.transform(curLoc, curLoc);
-			td.setOff(curLoc.getX()-ni.getGrabCenterX(), curLoc.getY()-ni.getGrabCenterY());
+			td.setOff(curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
 		}
 	}
 

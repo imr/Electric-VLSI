@@ -435,8 +435,8 @@ public class Array extends EDialog
 					if (Array.lastLinearDiagonal && Array.lastXRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
 					if (Array.lastLinearDiagonal && Array.lastYRepeat == 1) yPos = cY + yOverlap * xIndex;
-					double xOff = ni.getGrabCenterX() - cX;
-					double yOff = ni.getGrabCenterY() - cY;
+					double xOff = ni.getAnchorCenterX() - cX;
+					double yOff = ni.getAnchorCenterY() - cY;
 					if ((xIndex&1) != 0 && Array.lastXStagger) yPos += yOverlap/2;
 					if ((yIndex&1) != 0 && Array.lastYStagger) xPos += xOverlap/2;
 					int ro = ni.getAngle();
@@ -492,13 +492,13 @@ public class Array extends EDialog
 					Geometric geom = (Geometric)it.next();
 					if (!(geom instanceof ArcInst)) continue;
 					ArcInst ai = (ArcInst)geom;
-					double cX0 = ai.getHead().getPortInst().getNodeInst().getGrabCenterX();
-					double cY0 = ai.getHead().getPortInst().getNodeInst().getGrabCenterY();
+					double cX0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterX();
+					double cY0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterY();
 					double xOff0 = ai.getHead().getLocation().getX() - cX0;
 					double yOff0 = ai.getHead().getLocation().getY() - cY0;
 
-					double cX1 = ai.getTail().getPortInst().getNodeInst().getGrabCenterX();
-					double cY1 = ai.getTail().getPortInst().getNodeInst().getGrabCenterY();
+					double cX1 = ai.getTail().getPortInst().getNodeInst().getAnchorCenterX();
+					double cY1 = ai.getTail().getPortInst().getNodeInst().getAnchorCenterY();
 					double xOff1 = ai.getTail().getLocation().getX() - cX1;
 					double yOff1 = ai.getTail().getLocation().getY() - cY1;
 
@@ -515,10 +515,10 @@ public class Array extends EDialog
 
 					NodeInst ni0 = (NodeInst)ai.getHead().getPortInst().getNodeInst().getTempObj();
 					NodeInst ni1 = (NodeInst)ai.getTail().getPortInst().getNodeInst().getTempObj();
-					cX0 = ni0.getGrabCenterX();
-					cY0 = ni0.getGrabCenterY();
-					cX1 = ni1.getGrabCenterX();
-					cY1 = ni1.getGrabCenterY();
+					cX0 = ni0.getAnchorCenterX();
+					cY0 = ni0.getAnchorCenterY();
+					cX1 = ni1.getAnchorCenterX();
+					cY1 = ni1.getAnchorCenterY();
 					PortInst pi0 = ni0.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,

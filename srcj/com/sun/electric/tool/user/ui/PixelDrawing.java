@@ -2009,7 +2009,7 @@ public class PixelDrawing
 	/**
 	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param gv the GlyphVector describing the text.
-	 * @param style the grab-point information about where the text is anchored.
+	 * @param style the anchor information for the text.
 	 * @param rect the bounds of the polygon containing the text.
 	 * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise, 2=180, 3=90 clockwise).
 	 * @return the coordinates of the lower-left corner of the text.

@@ -741,7 +741,16 @@ public class ELIB extends LibraryFiles
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
-//System.out.println("Technology " + techList[index].getTechName()+" has l=");
+			if (topLevelLibrary)
+			{
+				String varName = tech.getScaleVariableName();
+				Pref.Meaning meaning = Pref.getMeaningVariable(tech, varName);
+				if (meaning != null)
+				{
+					Variable var = tech.newVar(varName, new Double(lambda/2));
+					Pref.changedMeaningVariable(meaning);
+				}
+			}
 		}
 
 		// read the global namespace
@@ -1430,7 +1439,7 @@ public class ELIB extends LibraryFiles
 					double scaleY = height / bounds.getHeight();
 					String scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX +
 						"{" + subCell.getView().getAbbreviation() + "}";
-					if (scaleX != scaleY)
+					if (!EMath.doublesClose(scaleX, scaleY))
 					{
 						// nonuniform scaling: library inconsistency detected
 						scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +

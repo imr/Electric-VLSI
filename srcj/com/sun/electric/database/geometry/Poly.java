@@ -834,7 +834,7 @@ public class Poly implements Shape
 	 * Method to return the scaling factor between database and screen for the given text.
 	 * @param wnd the window with the text.
 	 * @param gv the GlyphVector describing the text.
-	 * @param style the grab-point information about where the text is anchored.
+	 * @param style the anchor information for the text.
 	 * @param lX the low X bound of the polygon containing the text.
 	 * @param hX the high X bound of the polygon containing the text.
 	 * @param lY the low Y bound of the polygon containing the text.
@@ -861,7 +861,7 @@ public class Poly implements Shape
 	 * Method to return the coordinates of the lower-left corner of text in a window.
 	 * @param wnd the window with the text.
 	 * @param gv the GlyphVector describing the text.
-	 * @param style the grab-point information about where the text is anchored.
+	 * @param style the anchor information for the text.
 	 * @param lX the low X bound of the polygon containing the text.
 	 * @param hX the high X bound of the polygon containing the text.
 	 * @param lY the low Y bound of the polygon containing the text.

@@ -539,7 +539,7 @@ public class Cell extends NodeProto
 			NodeProto lnt = (NodeProto)ni.getTempObj();
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
-			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getGrabCenterX(), ni.getGrabCenterY()),
+			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
 				scaleX, scaleY, ni.getAngle(), newCell, ni.getName());
 			if (toNi == null) return null;
 
@@ -1099,8 +1099,8 @@ public class Cell extends NodeProto
 		checkChanging();
 
 		// if there is no change, stop now
-		double cX = referencePointNode.getGrabCenterX();
-		double cY = referencePointNode.getGrabCenterY();
+		double cX = referencePointNode.getAnchorCenterX();
+		double cY = referencePointNode.getAnchorCenterY();
 		if (cX == 0 && cY == 0) return;
 
 		// move reference point by (dx,dy)

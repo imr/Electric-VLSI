@@ -415,7 +415,7 @@ public class Test extends Job {
 		NodeInst lowInst = 
 			NodeInst.newInstance(lowCell, new Point2D.Double(0,0), b.getWidth(),
 								 b.getHeight(), 0, hiCell, null);
-		System.out.println("Instance coordinates: "+lowInst.getGrabCenter());
+		System.out.println("Instance coordinates: "+lowInst.getAnchorCenter());
 		NodeInst lowInst2 = 
 			NodeInst.newInstance(lowCell, new Point2D.Double(0,0), b.getWidth(),
 								 b.getHeight(), 0, hiCell2, null);

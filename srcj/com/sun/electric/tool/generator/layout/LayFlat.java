@@ -242,7 +242,7 @@ public class LayFlat extends Job {
 		NodeInst lowInst = 
 		NodeInst.newInstance(lowCell, new Point2D.Double(0,0),
 							 b.getWidth(), b.getHeight(), 0, hiCell, null);
-		System.out.println(lowInst.getGrabCenter());
+		System.out.println(lowInst.getAnchorCenter());
 		
 //		WindowFrame window1 = WindowFrame.createEditWindow(flatCell);
 //		Flattener flattener = new Flattener(flatCell);

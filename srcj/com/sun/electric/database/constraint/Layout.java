@@ -331,8 +331,8 @@ public class Layout extends Constraints
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
-		double oldCX = ni.getGrabCenterX();
-		double oldCY = ni.getGrabCenterY();
+		double oldCX = ni.getAnchorCenterX();
+		double oldCY = ni.getAnchorCenterY();
 		double oldSX = ni.getXSizeWithMirror();
 		double oldSY = ni.getYSizeWithMirror();
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
@@ -544,12 +544,12 @@ public class Layout extends Constraints
 				double othY = dy - onoPt.getY();
 
 				// figure out the new location of the other nodeinst
-				src.setLocation(ono.getGrabCenterX()-ox, ono.getGrabCenterY()-oy);
+				src.setLocation(ono.getAnchorCenterX()-ox, ono.getAnchorCenterY()-oy);
 				Point2D ptD = new Point2D.Double();
 				trans.transform(src, ptD);
 				dx = ptD.getX();   dy = ptD.getY();
-				dx = dx - ono.getGrabCenterX() - othX;
-				dy = dy - ono.getGrabCenterY() - othY;
+				dx = dx - ono.getAnchorCenterX() - othX;
+				dy = dy - ono.getAnchorCenterY() - othY;
 
 				// move the other nodeinst
 				int nextAngle = dAngle;
@@ -1122,8 +1122,8 @@ public class Layout extends Constraints
 		double m01 = trans.getShearX();
 		double m11 = trans.getScaleY();
 		double m10 = trans.getShearY();
-		double m02 = ni.getGrabCenterX();
-		double m12 = ni.getGrabCenterY();
+		double m02 = ni.getAnchorCenterX();
+		double m12 = ni.getAnchorCenterY();
 		Undo.Change change = ni.getChange();
 		if (change.getA3() * ni.getXSizeWithMirror() >= 0 && change.getA4() * ni.getYSizeWithMirror() >= 0 && change.getI1() == ni.getAngle())
 		{
@@ -1221,8 +1221,8 @@ public class Layout extends Constraints
 	private static AffineTransform makeOldTrans(NodeInst ni)
 	{
 		// get current values
-		double cX = ni.getGrabCenterX();
-		double cY = ni.getGrabCenterY();
+		double cX = ni.getAnchorCenterX();
+		double cY = ni.getAnchorCenterY();
 
 		// set to previous values if they changed
 		Undo.Change change = ni.getChange();

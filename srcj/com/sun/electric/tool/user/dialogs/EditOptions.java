@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
@@ -292,7 +293,13 @@ public class EditOptions extends EDialog
 	 */
 	private void termNewNodes()
 	{
-		NewNodeUpdate job = new NewNodeUpdate(this);
+		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
+			if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
+				np.setDefSize(pni.wid, pni.hei);
+		}
 
 		boolean currentCheckCellDates = nodeCheckCellDates.isSelected();
 		if (currentCheckCellDates != initialNewNodesCheckDatesDuringCreation)
@@ -317,32 +324,6 @@ public class EditOptions extends EDialog
 		boolean currentCopyExports = nodeCopyExports.isSelected();
 		if (currentCopyExports != initialNewNodesDupCopiesExports)
 			User.setDupCopiesExports(currentCopyExports);
-	}
-
-	/**
-	 * Class to update primitive node information.
-	 */
-	protected static class NewNodeUpdate extends Job
-	{
-		EditOptions dialog;
-
-		protected NewNodeUpdate(EditOptions dialog)
-		{
-			super("Update Primitive Node Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			startJob();
-		}
-
-		public void doIt()
-		{
-			for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				PrimNodeInfo pni = (PrimNodeInfo)dialog.initialNewNodesPrimInfo.get(np);
-				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
-					np.setDefSize(pni.wid, pni.hei);
-			}
-		}
 	}
 
 	//******************************** NEW ARCS ********************************
@@ -505,47 +486,27 @@ public class EditOptions extends EDialog
 	 */
 	private void termNewArcs()
 	{
-		NewArcUpdate job = new NewArcUpdate(this);
-	}
-
-	/**
-	 * Class to update primitive node information.
-	 */
-	protected static class NewArcUpdate extends Job
-	{
-		EditOptions dialog;
-
-		protected NewArcUpdate(EditOptions dialog)
+		for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
 		{
-			super("Update Primitive Arc Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			startJob();
-		}
-
-		public void doIt()
-		{
-			for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
+			if (pai.rigid != pai.initialRigid)
+				ap.setRigid(pai.rigid);
+			if (pai.fixedAngle != pai.initialFixedAngle)
+				ap.setFixedAngle(pai.fixedAngle);
+			if (pai.slidable != pai.initialSlidable)
+				ap.setSlidable(pai.slidable);
+			if (pai.directional != pai.initialDirectional)
+				ap.setDirectional(pai.directional);
+			if (pai.endsExtend != pai.initialEndsExtend)
+				ap.setExtended(pai.endsExtend);
+			if (pai.wid != pai.initialWid)
+				ap.setDefaultWidth(pai.wid);
+			if (pai.angleIncrement != pai.initialAngleIncrement)
+				ap.setAngleIncrement(pai.angleIncrement);
+			if (pai.pin != pai.initialPin)
 			{
-				PrimitiveArc ap = (PrimitiveArc)it.next();
-				PrimArcInfo pai = (PrimArcInfo)dialog.initialNewArcsPrimInfo.get(ap);
-				if (pai.rigid != pai.initialRigid)
-					ap.setRigid(pai.rigid);
-				if (pai.fixedAngle != pai.initialFixedAngle)
-					ap.setFixedAngle(pai.fixedAngle);
-				if (pai.slidable != pai.initialSlidable)
-					ap.setSlidable(pai.slidable);
-				if (pai.directional != pai.initialDirectional)
-					ap.setDirectional(pai.directional);
-				if (pai.endsExtend != pai.initialEndsExtend)
-					ap.setExtended(pai.endsExtend);
-				if (pai.wid != pai.initialWid)
-					ap.setDefaultWidth(pai.wid);
-				if (pai.angleIncrement != pai.initialAngleIncrement)
-					ap.setAngleIncrement(pai.angleIncrement);
-				if (pai.pin != pai.initialPin)
-				{
-					ap.setPinProto(pai.pin);
-				}
+				ap.setPinProto(pai.pin);
 			}
 		}
 	}
@@ -659,24 +620,111 @@ public class EditOptions extends EDialog
 
 	//******************************** FRAME ********************************
 
+	private String initialFrameCompanyName;
+	private String initialFrameDesignerName;
+	private String initialFrameProjectName;
+
+	private static class LibraryFrameInfo
+	{
+		String initialCompanyName, currentCompanyName;
+		String initialDesignerName, currentDesignerName;
+		String initialProjectName, currentProjectName;
+	}
+	private HashMap frameLibInfo;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Frame tab.
 	 */
 	private void initFrame()
 	{
-		frameCellName.setEnabled(false);
-		frameSize.setEnabled(false);
-		frameLandscape.setEnabled(false);
-		framePortrait.setEnabled(false);
-		frameTitleBox.setEnabled(false);
-		frameLibrary.setEnabled(false);
-		frameDefaultCompany.setEditable(false);
-		frameLibraryCompany.setEditable(false);
-		frameDefaultDesigner.setEditable(false);
-		frameLibraryDesigner.setEditable(false);
-		frameDefaultProject.setEditable(false);
-		frameLibraryProject.setEditable(false);
+		// cache text in each library
+		frameLibInfo = new HashMap();
+		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			LibraryFrameInfo lfi = new LibraryFrameInfo();
+			lfi.initialCompanyName = lfi.initialDesignerName = lfi.initialProjectName = "";
+			Variable var = lib.getVar("USER_drawing_company_name", String.class);
+			if (var != null) lfi.initialCompanyName = (String)var.getObject();
+			var = lib.getVar("USER_drawing_designer_name", String.class);
+			if (var != null) lfi.initialDesignerName = (String)var.getObject();
+			var = lib.getVar("USER_drawing_project_name", String.class);
+			if (var != null) lfi.initialProjectName = (String)var.getObject();
+			lfi.currentCompanyName = lfi.initialCompanyName;
+			lfi.currentDesignerName = lfi.initialDesignerName;
+			lfi.currentProjectName = lfi.initialProjectName;
+			frameLibInfo.put(lib, lfi);
+			frameLibrary.addItem(lib.getLibName());
+		}
+		frameLibrary.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { loadFrameLibInfo(); }
+		});
+		frameLibraryCompany.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
+		frameLibraryDesigner.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
+		frameLibraryProject.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
+		frameLibrary.setSelectedItem(Library.getCurrent().getLibName());
+
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell == null)
+		{
+			frameCellName.setText("No current cell");
+			frameSize.setEnabled(false);
+			frameLandscape.setEnabled(false);
+			framePortrait.setEnabled(false);
+			frameTitleBox.setEnabled(false);
+		} else
+		{
+			frameCellName.setText("For cell " + cell.describe());
+
+			// not yet
+			frameSize.setEnabled(false);
+			frameLandscape.setEnabled(false);
+			framePortrait.setEnabled(false);
+			frameTitleBox.setEnabled(false);
+		}
+
+		initialFrameCompanyName = User.getFrameCompanyName();
+		frameDefaultCompany.setText(initialFrameCompanyName);
+		initialFrameDesignerName = User.getFrameDesignerName();
+		frameDefaultDesigner.setText(initialFrameDesignerName);
+		initialFrameProjectName = User.getFrameProjectName();
+		frameDefaultProject.setText(initialFrameProjectName);
+	}
+
+	private void loadFrameLibInfo()
+	{
+		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(Library.getCurrent());
+		if (lfi == null) return;
+		frameLibraryCompany.setText(lfi.currentCompanyName);
+		frameLibraryDesigner.setText(lfi.currentDesignerName);
+		frameLibraryProject.setText(lfi.currentProjectName);
+	}
+
+	private void updateFrameLibInfo()
+	{
+		String libName = (String)frameLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
+		if (lfi == null) return;
+		lfi.currentCompanyName = frameLibraryCompany.getText();
+		lfi.currentDesignerName = frameLibraryDesigner.getText();
+		lfi.currentProjectName = frameLibraryProject.getText();
+	}
+
+	/**
+	 * Class to handle special changes to per-primitive node options.
+	 */
+	private static class NewFrameLibInfoListener implements DocumentListener
+	{
+		EditOptions dialog;
+
+		NewFrameLibInfoListener(EditOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.updateFrameLibInfo(); }
+		public void insertUpdate(DocumentEvent e) { dialog.updateFrameLibInfo(); }
+		public void removeUpdate(DocumentEvent e) { dialog.updateFrameLibInfo(); }
 	}
 
 	/**
@@ -685,6 +733,30 @@ public class EditOptions extends EDialog
 	 */
 	private void termFrame()
 	{
+		// save default title box info
+		String currentCompanyName = frameDefaultCompany.getText();
+		if (!currentCompanyName.equals(initialFrameCompanyName))
+			User.setFrameCompanyName(currentCompanyName);
+		String currentDesignerName = frameDefaultDesigner.getText();
+		if (!currentDesignerName.equals(initialFrameDesignerName))
+			User.setFrameDesignerName(currentDesignerName);
+		String currentProjectName = frameDefaultProject.getText();
+		if (!currentProjectName.equals(initialFrameProjectName))
+			User.setFrameProjectName(currentProjectName);
+
+		// save per-library title box info
+		for(Iterator it = frameLibInfo.keySet().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
+			if (lfi == null) continue;
+			if (!lfi.currentCompanyName.equals(lfi.initialCompanyName))
+				lib.newVar("USER_drawing_company_name", lfi.currentCompanyName);
+			if (!lfi.currentDesignerName.equals(lfi.initialDesignerName))
+				lib.newVar("USER_drawing_designer_name", lfi.currentDesignerName);
+			if (!lfi.currentProjectName.equals(lfi.initialProjectName))
+				lib.newVar("USER_drawing_project_name", lfi.currentProjectName);
+		}
 	}
 
 	//******************************** ICON ********************************
@@ -1368,109 +1440,89 @@ public class EditOptions extends EDialog
 	 */
 	private void termTechnology()
 	{
-		NewTechUpdate job = new NewTechUpdate(this);
-	}
+		boolean redrawPalette = false;
+		boolean redrawWindows = false;
 
-	/**
-	 * Class to update technology information.
-	 */
-	protected static class NewTechUpdate extends Job
-	{
-		EditOptions dialog;
+		// MOCMOS
+		int currentNumMetals = techMOCMOSMetalLayers.getSelectedIndex() + 2;
+		int currentRules = MoCMOS.SCMOSRULES;
+		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
+			if (techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
 
-		protected NewTechUpdate(EditOptions dialog)
+		switch (currentNumMetals)
 		{
-			super("Update Technology Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			startJob();
+			// cannot use deep rules if less than 5 layers of metal
+			case 2:
+			case 3:
+			case 4:
+				if (currentRules == MoCMOS.DEEPRULES)
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
+					currentRules = MoCMOS.SUBMRULES;
+				}
+				break;
+
+			// cannot use scmos rules if more than 4 layers of metal
+			case 5:
+			case 6:
+				if (currentRules == MoCMOS.SCMOSRULES)
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
+					currentRules = MoCMOS.SUBMRULES;
+				}
+				break;
 		}
 
-		public void doIt()
+		if (currentNumMetals != initialTechNumMetalLayers)
+			MoCMOS.setNumMetal(currentNumMetals);
+		if (currentRules != initialTechRules)
+			MoCMOS.setRuleSet(currentRules);
+
+		boolean currentSecondPolys = techMOCMOSSecondPoly.isSelected();
+		if (currentSecondPolys != initialTechSecondPolyLayers)
+			MoCMOS.setSecondPolysilicon(currentSecondPolys);
+
+		boolean currentNoStackedVias = techMOCMOSDisallowStackedVias.isSelected();
+		if (currentNoStackedVias != initialTechNoStackedVias)
+			MoCMOS.setDisallowStackedVias(currentNoStackedVias);
+
+		boolean currentAlternateContact = techMOCMOSAlternateContactRules.isSelected();
+		if (currentAlternateContact != initialTechAlternateContactRules)
+			MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
+
+		boolean currentSpecialTransistors = techMOCMOSShowSpecialTrans.isSelected();
+		if (currentSpecialTransistors != initialTechSpecialTransistors)
 		{
-			boolean redrawPalette = false;
-			boolean redrawWindows = false;
+			MoCMOS.setSpecialTransistors(currentSpecialTransistors);
+			redrawPalette = true;
+		}
 
-			// MOCMOS
-			int currentNumMetals = dialog.techMOCMOSMetalLayers.getSelectedIndex() + 2;
-			int currentRules = MoCMOS.SCMOSRULES;
-			if (dialog.techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
-				if (dialog.techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
+		boolean currentStickFigures = techMOCMOSStickFigures.isSelected();
+		if (currentStickFigures != initialTechStickFigures)
+		{
+			MoCMOS.setStickFigures(currentStickFigures);
+			redrawPalette = redrawWindows = true;
+		}
 
-			switch (currentNumMetals)
-			{
-				// cannot use deep rules if less than 5 layers of metal
-				case 2:
-				case 3:
-				case 4:
-					if (currentRules == MoCMOS.DEEPRULES)
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
-						currentRules = MoCMOS.SUBMRULES;
-					}
-					break;
+		// Schematics
+		String currentTech = (String)technologyPopup.getSelectedItem();
+		if (!currentTech.equals(initialSchematicTechnology))
+			User.setSchematicTechnology(currentTech);
 
-				// cannot use scmos rules if more than 4 layers of metal
-				case 5:
-				case 6:
-					if (currentRules == MoCMOS.SCMOSRULES)
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
-						currentRules = MoCMOS.SUBMRULES;
-					}
-					break;
-			}
+		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
+		if (currentNegatingBubbleSize != initialTechNegatingBubbleSize)
+			Schematics.setNegatingBubbleSize(currentNegatingBubbleSize);
 
-			if (currentNumMetals != dialog.initialTechNumMetalLayers)
-				MoCMOS.setNumMetal(currentNumMetals);
-			if (currentRules != dialog.initialTechRules)
-				MoCMOS.setRuleSet(currentRules);
-
-			boolean currentSecondPolys = dialog.techMOCMOSSecondPoly.isSelected();
-			if (currentSecondPolys != dialog.initialTechSecondPolyLayers)
-				MoCMOS.setSecondPolysilicon(currentSecondPolys);
-
-			boolean currentNoStackedVias = dialog.techMOCMOSDisallowStackedVias.isSelected();
-			if (currentNoStackedVias != dialog.initialTechNoStackedVias)
-				MoCMOS.setDisallowStackedVias(currentNoStackedVias);
-
-			boolean currentAlternateContact = dialog.techMOCMOSAlternateContactRules.isSelected();
-			if (currentAlternateContact != dialog.initialTechAlternateContactRules)
-				MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
-
-			boolean currentSpecialTransistors = dialog.techMOCMOSShowSpecialTrans.isSelected();
-			if (currentSpecialTransistors != dialog.initialTechSpecialTransistors)
-			{
-				MoCMOS.setSpecialTransistors(currentSpecialTransistors);
-				redrawPalette = true;
-			}
-
-			boolean currentStickFigures = dialog.techMOCMOSStickFigures.isSelected();
-			if (currentStickFigures != dialog.initialTechStickFigures)
-			{
-				MoCMOS.setStickFigures(currentStickFigures);
-				redrawPalette = redrawWindows = true;
-			}
-
-			// Schematics
-			String currentTech = (String)dialog.technologyPopup.getSelectedItem();
-			if (!currentTech.equals(dialog.initialSchematicTechnology))
-				User.setSchematicTechnology(currentTech);
-
-			double currentNegatingBubbleSize = TextUtils.atof(dialog.techSchematicsNegatingSize.getText());
-			if (currentNegatingBubbleSize != dialog.initialTechNegatingBubbleSize)
-				Schematics.setNegatingBubbleSize(currentNegatingBubbleSize);
-
-			// update the display
-			if (redrawPalette)
-			{
-				TopLevel.getPaletteFrame().loadForTechnology();
-			}
-			if (redrawWindows)
-			{
-				EditWindow.repaintAllContents();
-			}
+		// update the display
+		if (redrawPalette)
+		{
+			TopLevel.getPaletteFrame().loadForTechnology();
+		}
+		if (redrawWindows)
+		{
+			EditWindow.repaintAllContents();
 		}
 	}
 
@@ -3505,22 +3557,42 @@ public class EditOptions extends EDialog
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
-		termGeneral();			// terminate the General Options panel
-		termNewNodes();			// terminate the New Nodes Options panel
-		termNewArcs();			// terminate the New Arcs Options panel
-		termSelection();		// terminate the Selection Options panel
-		termPorts();			// terminate the Ports Options panel
-		termFrame();			// terminate the Frame Options panel
-		termIcon();				// terminate the Icon Options panel
-		termGrid();				// terminate the Grid Options panel
-		termLayers();			// terminate the Layers Options panel
-		termColors();			// terminate the Colors Options panel
-		termText();				// terminate the Text Options panel
-		term3D();				// terminate the 3D Options panel
-		termTechnology();		// terminate the Technology Options panel
-		closeDialog(null);
+		OKUpdate job = new OKUpdate(this);
 	}//GEN-LAST:event_okActionPerformed
-	
+
+	/**
+	 * Class to update primitive node information.
+	 */
+	protected static class OKUpdate extends Job
+	{
+		EditOptions dialog;
+
+		protected OKUpdate(EditOptions dialog)
+		{
+			super("Update Edit Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			dialog.termGeneral();		// terminate the General Options panel
+			dialog.termNewNodes();		// terminate the New Nodes Options panel
+			dialog.termNewArcs();		// terminate the New Arcs Options panel
+			dialog.termSelection();		// terminate the Selection Options panel
+			dialog.termPorts();			// terminate the Ports Options panel
+			dialog.termFrame();			// terminate the Frame Options panel
+			dialog.termIcon();			// terminate the Icon Options panel
+			dialog.termGrid();			// terminate the Grid Options panel
+			dialog.termLayers();		// terminate the Layers Options panel
+			dialog.termColors();		// terminate the Colors Options panel
+			dialog.termText();			// terminate the Text Options panel
+			dialog.term3D();			// terminate the 3D Options panel
+			dialog.termTechnology();	// terminate the Technology Options panel
+			dialog.closeDialog(null);
+		}
+	}
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{

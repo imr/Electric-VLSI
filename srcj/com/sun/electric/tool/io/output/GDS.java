@@ -356,8 +356,8 @@ public class GDS extends Geometry
 		outputAngle(angle);
 		outputShort((short)12);
 		outputShort(HDR_XY);
-		outputInt((int)(scaleFactor*ni.getGrabCenterX()));
-		outputInt((int)(scaleFactor*ni.getGrabCenterY()));
+		outputInt((int)(scaleFactor*ni.getAnchorCenterX()));
+		outputInt((int)(scaleFactor*ni.getAnchorCenterY()));
 		outputHeader(HDR_ENDEL, 0);
 	}
 

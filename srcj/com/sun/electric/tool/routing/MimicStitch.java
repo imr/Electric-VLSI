@@ -148,8 +148,8 @@ public class MimicStitch
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefx = lastActivity.createdNodes[0].getGrabCenterX() - (x0+x1) / 2;
-					prefy = lastActivity.createdNodes[0].getGrabCenterY() - (y0+y1) / 2;
+					prefx = lastActivity.createdNodes[0].getAnchorCenterX() - (x0+x1) / 2;
+					prefy = lastActivity.createdNodes[0].getAnchorCenterY() - (y0+y1) / 2;
 				} else if (lastActivity.numCreatedNodes == 2)
 				{
 					Poly portPoly0 = ends[0].getPortInst().getPoly();
@@ -158,11 +158,11 @@ public class MimicStitch
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefx = (lastActivity.createdNodes[0].getGrabCenterX() +
-						lastActivity.createdNodes[1].getGrabCenterX()) / 2 -
+					prefx = (lastActivity.createdNodes[0].getAnchorCenterX() +
+						lastActivity.createdNodes[1].getAnchorCenterX()) / 2 -
 							(x0+x1) / 2;
-					prefy = (lastActivity.createdNodes[0].getGrabCenterY() +
-						lastActivity.createdNodes[1].getGrabCenterY()) / 2 -
+					prefy = (lastActivity.createdNodes[0].getAnchorCenterY() +
+						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 -
 							(y0+y1) / 2;
 				}
 				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefx, prefy, forced);

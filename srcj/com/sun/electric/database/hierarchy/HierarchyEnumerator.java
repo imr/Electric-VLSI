@@ -380,7 +380,7 @@ public final class HierarchyEnumerator {
 		 */
 //		public AffineTransform getPositionAsTransform(NodeInst ni) {
 //			AffineTransform at = new AffineTransform();
-//			at.setToTranslation(getGrabCenterX(), getGrabCenterY());
+//			at.setToTranslation(getAnchorCenterX(), getAnchorCenterY());
 //			boolean transpose = sX<0 ^ sY<0;
 //			if (transpose){
 //				at.scale(1, -1);
@@ -487,7 +487,7 @@ public final class HierarchyEnumerator {
 //								+ "    dy: " + centY + "\n"
 //								+ "}\n");
 //
-//			modifyInstance(centX-getGrabCenterX(), centY-getGrabCenterY(), sizeX-sX,
+//			modifyInstance(centX-getAnchorCenterX(), centY-getAnchorCenterY(), sizeX-sX,
 //						   sizeY-sY, (int)Math.round(newAngle*10)-angle);
 //		}
 

@@ -418,7 +418,6 @@ public class ELIB extends Output
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-System.out.println("Tech "+tech.getTechName()+" l="+tech.getScale());
 			writeBigInteger((int)tech.getScale()*2);
 		}
 
@@ -727,10 +726,10 @@ System.out.println("Tech "+tech.getTechName()+" l="+tech.getScale());
 			highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		} else
 		{
-			lowX = (int)((ni.getGrabCenterX() - ni.getXSize()/2) * tech.getScale()*2);
-			highX = (int)((ni.getGrabCenterX() + ni.getXSize()/2) * tech.getScale()*2);
-			lowY = (int)((ni.getGrabCenterY() - ni.getYSize()/2) * tech.getScale()*2);
-			highY = (int)((ni.getGrabCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+			lowX = (int)((ni.getAnchorCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+			highX = (int)((ni.getAnchorCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+			lowY = (int)((ni.getAnchorCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+			highY = (int)((ni.getAnchorCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		}
 		writeBigInteger(lowX);
 		writeBigInteger(lowY);

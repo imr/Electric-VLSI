@@ -259,8 +259,8 @@ public class GetInfoText extends EDialog
 		yOffset.setEditable(true);
 		if (posNotOffset)
 		{
-			initialXOffset = ni.getGrabCenterX();
-			initialYOffset = ni.getGrabCenterY();
+			initialXOffset = ni.getAnchorCenterX();
+			initialYOffset = ni.getAnchorCenterY();
 		} else
 		{
 			initialXOffset = td.getXOff();
@@ -606,8 +606,8 @@ public class GetInfoText extends EDialog
 				if (dialog.posNotOffset)
 				{
 					NodeInst ni = (NodeInst)eobj;
-					double dX = currentXOffset - ni.getGrabCenterX();
-					double dY = currentYOffset - ni.getGrabCenterY();
+					double dX = currentXOffset - ni.getAnchorCenterX();
+					double dY = currentYOffset - ni.getAnchorCenterY();
 					ni.modifyInstance(dX, dY, 0, 0, 0);
 				} else
 				{

@@ -160,8 +160,8 @@ public class IRSIMTool extends Tool {
             float m = iinfo.getMFactor();
             System.out.print(dim.getHeight() + " ");                // length
             System.out.print((double)m * dim.getWidth() + " ");     // width
-            System.out.print(ni.getGrabCenterX()+" ");              // xpos
-            System.out.print(ni.getGrabCenterY()+" ");              // ypos
+            System.out.print(ni.getAnchorCenterX()+" ");              // xpos
+            System.out.print(ni.getAnchorCenterY()+" ");              // ypos
             if (isNMOS)
                 System.out.print("g=S_gnd ");
             else 

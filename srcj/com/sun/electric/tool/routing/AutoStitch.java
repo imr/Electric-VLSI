@@ -163,8 +163,8 @@ public class AutoStitch
 							trans = rNi.rotateOut();
 							trans.preConcatenate(temp);
 						}
-						Rectangle2D bounds = new Rectangle2D.Double(rNi.getGrabCenterX() - rNi.getXSize()/2, 
-							rNi.getGrabCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
+						Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2, 
+							rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
 						EMath.transformRect(bounds, trans);
 						bbArray[i++] = bounds.getMinX();
 						bbArray[i++] = bounds.getMaxX();
@@ -410,8 +410,8 @@ public class AutoStitch
 					AffineTransform trans = ni.rotateOut();
 
 					// save information about the other node
-					double oX = oNi.getGrabCenterX();
-					double oY = oNi.getGrabCenterY();
+					double oX = oNi.getAnchorCenterX();
+					double oY = oNi.getAnchorCenterY();
 
 					// look at all polygons on this nodeinst
 					boolean usePortPoly = false;

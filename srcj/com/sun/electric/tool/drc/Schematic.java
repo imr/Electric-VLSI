@@ -219,7 +219,7 @@ public class Schematic
 				{
 					ErrorLog err = ErrorLog.logError("Invisible pin has text in different location", cell, 0);
 					err.addGeom(geom, true, 0, null);
-					err.addLine(ni.getGrabCenterX(), ni.getGrabCenterY(), pinLoc.getX(), pinLoc.getY());
+					err.addLine(ni.getAnchorCenterX(), ni.getAnchorCenterY(), pinLoc.getX(), pinLoc.getY());
 					return;
 				}
 			}

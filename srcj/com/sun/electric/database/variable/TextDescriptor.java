@@ -98,11 +98,11 @@ public class TextDescriptor
 
 	/**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
-	 * The Position describes the "grab point" of the text,
+	 * The Position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
 	 * For example, when the Position is CENT, then the center of the text is fixed,
 	 * and as the text grows, it expands uniformly about the center.
-	 * When the Position is UP, the text is centered above the grab point, and as the text grows
+	 * When the Position is UP, the text is centered above the anchor point, and as the text grows
 	 * it expands upward from the bottom-center point.
 	 */
 	public static class Position
@@ -128,7 +128,7 @@ public class TextDescriptor
 
 		/**
 		 * Method to return the Poly.Type to use for this Position.
-		 * The Poly.Type will vary through the 9 "grab point" locations:
+		 * The Poly.Type will vary through the 9 "anchor point" locations:
 		 * center, left, right, up, down, up-left, up-right, down-left, down-right.
 		 * @return the Poly.Type to use for this Position.
 		 */
@@ -984,7 +984,7 @@ public class TextDescriptor
 
 	/**
 	 * Method to return the text position of the TextDescriptor.
-	 * The text position describes the "grab point" of the text,
+	 * The text position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the TextDescriptor.
 	 */
@@ -997,7 +997,7 @@ public class TextDescriptor
 
 	/**
 	 * Method to set the text position of the TextDescriptor.
-	 * The text position describes the "grab point" of the text,
+	 * The text position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @param p the text position of the TextDescriptor.
 	 */

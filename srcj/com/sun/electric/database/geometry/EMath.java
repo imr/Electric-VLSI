@@ -414,7 +414,7 @@ public class EMath
 
 	/** smallest such that 1.0+DBL_EPSILON != 1.0 */	private static double DBL_EPSILON = 2.2204460492503131e-016;
 
-	/*
+	/**
 	 * Method to compare two double-precision numbers within an acceptable epsilon.
 	 * @param a the first number.
 	 * @param b the second number.
@@ -423,6 +423,25 @@ public class EMath
 	public static boolean doublesEqual(double a, double b)
 	{
 		if (Math.abs(a-b) <= DBL_EPSILON) return true;
+		return false;
+	}
+
+	/**
+	 * Method to compare two double-precision numbers within an approximate epsilon.
+	 * @param a the first number.
+	 * @param b the second number.
+	 * @return true if the numbers are approximately equal (to a few decimal places).
+	 */
+	public static boolean doublesClose(double a, double b)
+	{
+		if (a == 0 || b == 0)
+		{
+			if (Math.abs(a-b) < 0.001) return true;
+		} else
+		{
+			double ratio = a / b;
+			if (ratio < 1.01 && ratio > 0.99) return true;
+		}
 		return false;
 	}
 	

@@ -557,11 +557,11 @@ public class Clipboard
 		Iterator nit = theNodes.iterator();
 		NodeInst niFirst = (NodeInst)nit.next();
 		Point2D corner = new Point2D.Double();
-		corner.setLocation(niFirst.getGrabCenter());
+		corner.setLocation(niFirst.getAnchorCenter());
 		for(; nit.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nit.next();
-			Point2D pt = ni.getGrabCenter();
+			Point2D pt = ni.getAnchorCenter();
 			if (pt.getX() < corner.getY()) corner.setLocation(pt.getX(), corner.getY());
 			if (pt.getY() < corner.getY()) corner.setLocation(corner.getX(), pt.getY());
 		}
@@ -600,7 +600,7 @@ public class Clipboard
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-				new Point2D.Double(ni.getGrabCenterX()+dX, ni.getGrabCenterY()+dY),
+				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
 					width, height, ni.getAngle(), toCell, name);
 			if (newNi == null)
 			{

@@ -1474,9 +1474,9 @@ public class Technology extends ElectricObject
 			{
 				// prepare for the multiple contact cut locations
 				cutBaseX = (cutAreaWidth-cutIndent*2 - cutSizeX*cutsX -
-					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + ni.getGrabCenterX() - ni.getXSize() / 2;
+					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
 				cutBaseY = (cutAreaHeight-cutIndent*2 - cutSizeY*cutsY -
-					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + ni.getGrabCenterY() - ni.getYSize() / 2;
+					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
@@ -2198,6 +2198,18 @@ public class Technology extends ElectricObject
 	}
 
 	/**
+	 * Method to obtain the Variable name for scaling this Technology.
+	 * Do not use this for arbitrary use.
+	 * The method exists so that ELIB readers can handle the unusual location
+	 * of scale information in the ELIB files.
+	 * @return the Variable name for scaling this Technology.
+	 */
+	public String getScaleVariableName()
+	{
+		return "ScaleFOR" + getTechName();
+	}
+
+	/**
 	 * Sets the factory scale of this technology.
 	 * The technology's scale is for manufacturing output, which must convert
 	 * the unit-based values in Electric to real-world values (in nanometers).
@@ -2205,7 +2217,7 @@ public class Technology extends ElectricObject
 	 */
 	public void setFactoryScale(double factory)
 	{
-		prefScale = Pref.makeDoublePref("ScaleFOR" + getTechName(), prefs, factory);
+		prefScale = Pref.makeDoublePref(getScaleVariableName(), prefs, factory);
 		prefScale.attachToObject(this, "IO Options, Scale tab", getTechShortName() + " scale");
 	}
 
@@ -2218,7 +2230,6 @@ public class Technology extends ElectricObject
 	public void setScale(double scale)
 	{
 		if (scale == 0) return;
-//		System.out.println("SETTING SCALE FOR "+techName+" TO "+scale);
 		prefScale.setDouble(scale);
 	}
 

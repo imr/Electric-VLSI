@@ -369,7 +369,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// get the location of the cell-center on the old NodeInst
-		Point2D oldCenter = getGrabCenter();
+		Point2D oldCenter = getAnchorCenter();
 
 		// create the new NodeInst
 		double newXS = np.getDefWidth();
@@ -707,7 +707,7 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 
 		// make the change
-		center.setLocation(EMath.smooth(getGrabCenterX() + dX), EMath.smooth(getGrabCenterY() + dY));
+		center.setLocation(EMath.smooth(getAnchorCenterX() + dX), EMath.smooth(getAnchorCenterY() + dY));
 
 		sX = EMath.smooth(this.sX + dXSize);
 		sY = EMath.smooth(this.sY + dYSize);
@@ -771,19 +771,19 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return the center point of this NodeInst object.
 	 * @return the center point of this NodeInst object.
 	 */
-	public Point2D getGrabCenter() { return center; }
+	public Point2D getAnchorCenter() { return center; }
 
 	/**
 	 * Method to return the center X coordinate of this NodeInst.
 	 * @return the center X coordinate of this NodeInst.
 	 */
-	public double getGrabCenterX() { return center.getX(); }
+	public double getAnchorCenterX() { return center.getX(); }
 
 	/**
 	 * Method to return the center Y coordinate of this NodeInst.
 	 * @return the center Y coordinate of this NodeInst.
 	 */
-	public double getGrabCenterY() { return center.getY(); }
+	public double getAnchorCenterY() { return center.getY(); }
 
 	/**
 	 * Method to return the X size of this NodeInst.
@@ -881,7 +881,7 @@ public class NodeInst extends Geometric implements Nodable
 		// if zero size, set the bounds directly
 		if (sX == 0 && sY == 0)
 		{
-			visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
+			visBounds.setRect(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
 			return;
 		}
 
@@ -911,7 +911,7 @@ public class NodeInst extends Geometric implements Nodable
 			double [] angles = getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
-				Point2D [] pointList = Artwork.fillEllipse(getGrabCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+				Point2D [] pointList = Artwork.fillEllipse(getAnchorCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
 				poly.transform(rotateOut());
@@ -925,7 +925,7 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			if (pinUseCount())
 			{
-				visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
+				visBounds.setRect(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
 				return;
 			}
 		}
@@ -939,8 +939,8 @@ public class NodeInst extends Geometric implements Nodable
 				Point2D [] pointList = new Point2D.Double[outline.length];
 				for(int i=0; i<outline.length; i++)
 				{
-					pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i].getX(),
-						getGrabCenterY() + outline[i].getY());
+					pointList[i] = new Point2D.Double(getAnchorCenterX() + outline[i].getX(),
+					getAnchorCenterY() + outline[i].getY());
 				}
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
@@ -1108,8 +1108,8 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		// to transform out of this node instance, translate inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
-		double dx = getGrabCenterX();
-		double dy = getGrabCenterY();
+		double dx = getAnchorCenterX();
+		double dy = getAnchorCenterY();
 		AffineTransform transform = new AffineTransform();
 		transform.translate(-dx, -dy);
 		return transform;
@@ -1127,8 +1127,8 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		// to transform out of this node instance, translate inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
-		double dx = getGrabCenterX();
-		double dy = getGrabCenterY();
+		double dx = getAnchorCenterX();
+		double dy = getAnchorCenterY();
 		AffineTransform transform = new AffineTransform();
 		transform.translate(dx, dy);
 		return transform;
@@ -1235,7 +1235,7 @@ public class NodeInst extends Geometric implements Nodable
 		if (sY < 0) numFlips++;
 		int rotAngle = angle;
 		if (numFlips != 1) rotAngle = -rotAngle;
-		return rotateAbout(rotAngle, getGrabCenterX(), getGrabCenterY(), sX, sY);
+		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), sX, sY);
 	}
 
 	/**
@@ -1247,7 +1247,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public AffineTransform rotateOut()
 	{
-		return rotateAbout(angle, getGrabCenterX(), getGrabCenterY(), sX, sY);
+		return rotateAbout(angle, getAnchorCenterX(), getAnchorCenterY(), sX, sY);
 	}
 
 	/**
@@ -1959,7 +1959,7 @@ public class NodeInst extends Geometric implements Nodable
 			TextDescriptor td = pp.getTextDescriptor();
 			if (td.getXOff() != 0 || td.getYOff() != 0)
 			{
-				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
+				Point2D retVal = new Point2D.Double(getAnchorCenterX() + td.getXOff(), getAnchorCenterY() +td.getYOff());
 				if (repair) td.setOff(0, 0);
 				return retVal;
 			}
@@ -1971,7 +1971,7 @@ public class NodeInst extends Geometric implements Nodable
 			TextDescriptor td = var.getTextDescriptor();
 			if (var.isDisplay() && (td.getXOff() != 0 || td.getYOff() != 0))
 			{
-				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
+				Point2D retVal = new Point2D.Double(getAnchorCenterX() + td.getXOff(), getAnchorCenterY() +td.getYOff());
 				if (repair) td.setOff(0, 0);
 				return retVal;
 			}

@@ -738,12 +738,59 @@ public class User extends Listener
 	 */
 	public static void setDefaultFont(String f) { cacheDefaultFont.setString(f); }
 
+	/****************************** FRAME PREFERENCES ******************************/
+
+	private static Pref cacheFrameCompanyName = Pref.makeStringPref("FrameCompanyName", User.tool.prefs, "");
+	/**
+	 * Method to return the company name to use in schematic frames.
+	 * The company information sits in a block in the lower-right corner.
+	 * The default is "".
+	 * @return the company name to use in schematic frames.
+	 */
+	public static String getFrameCompanyName() { return cacheFrameCompanyName.getString(); }
+	/**
+	 * Method to set the company name to use in schematic frames.
+	 * The company information sits in a block in the lower-right corner.
+	 * @param c the company name to use in schematic frames.
+	 */
+	public static void setFrameCompanyName(String c) { cacheFrameCompanyName.setString(c); }
+
+	private static Pref cacheFrameDesignerName = Pref.makeStringPref("FrameDesignerName", User.tool.prefs, "");
+	/**
+	 * Method to return the designer name to use in schematic frames.
+	 * The designer information sits in a block in the lower-right corner.
+	 * The default is "".
+	 * @return the designer name to use in schematic frames.
+	 */
+	public static String getFrameDesignerName() { return cacheFrameDesignerName.getString(); }
+	/**
+	 * Method to set the designer name to use in schematic frames.
+	 * The designer information sits in a block in the lower-right corner.
+	 * @param c the designer name to use in schematic frames.
+	 */
+	public static void setFrameDesignerName(String c) { cacheFrameDesignerName.setString(c); }
+
+	private static Pref cacheFrameProjectName = Pref.makeStringPref("FrameProjectName", User.tool.prefs, "");
+	/**
+	 * Method to return the project name to use in schematic frames.
+	 * The project information sits in a block in the lower-right corner.
+	 * The default is "".
+	 * @return the project name to use in schematic frames.
+	 */
+	public static String getFrameProjectName() { return cacheFrameProjectName.getString(); }
+	/**
+	 * Method to set the project name to use in schematic frames.
+	 * The project information sits in a block in the lower-right corner.
+	 * @param c the project name to use in schematic frames.
+	 */
+	public static void setFrameProjectName(String c) { cacheFrameProjectName.setString(c); }
+
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
-    static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Schematics use scale values from this technology"); }
+	static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Schematics use scale values from this technology"); }
 	/**
-	 * Method to the technology to use when schematics are found.
+	 * Method to choose the layout technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
@@ -752,7 +799,7 @@ public class User extends Listener
 	 */
 	public static String getSchematicTechnology() { return cacheSchematicTechnology.getString(); }
 	/**
-	 * Method to set the technology to use when schematics are found.
+	 * Method to set the layout technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.

@@ -262,8 +262,8 @@ public class GetInfoNode extends EDialog
 		apply.setEnabled(true);
 
 		initialName = ni.getName();
-		initialXPos = ni.getGrabCenterX();
-		initialYPos = ni.getGrabCenterY();
+		initialXPos = ni.getAnchorCenterX();
+		initialYPos = ni.getAnchorCenterY();
 		SizeOffset so = Technology.getSizeOffset(ni);
 		initialXSize = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		if (ni.isXMirrored()) initialXSize = -initialXSize;

@@ -1681,8 +1681,8 @@ public class Schematics extends Technology
 						}
 
 						// fill the polygon with that point
-						double x = ni.getGrabCenterX() + xPosition * lambda;
-						double y = ni.getGrabCenterY() + yPosition * lambda;
+						double x = ni.getAnchorCenterX() + xPosition * lambda;
+						double y = ni.getAnchorCenterY() + yPosition * lambda;
 
 						// check for duplication
 						boolean found = false;

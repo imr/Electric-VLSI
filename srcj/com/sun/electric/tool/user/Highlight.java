@@ -974,8 +974,8 @@ public class Highlight
 				if (points != null)
 				{
 					boolean showWrap = ni.traceWraps();
-					double x = ni.getGrabCenterX() + points[point].getX();
-					double y = ni.getGrabCenterY() + points[point].getY();
+					double x = ni.getAnchorCenterX() + points[point].getX();
+					double y = ni.getAnchorCenterY() + points[point].getY();
 					Point2D thisPt = new Point2D.Double(x, y);
 					trans.transform(thisPt, thisPt);
 					Point cThis = wnd.databaseToScreen(thisPt);
@@ -989,8 +989,8 @@ public class Highlight
 					if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
 					if (prevPoint >= 0)
 					{
-						prevPt = new Point2D.Double(ni.getGrabCenterX() + points[prevPoint].getX(),
-							ni.getGrabCenterY() + points[prevPoint].getY());
+						prevPt = new Point2D.Double(ni.getAnchorCenterX() + points[prevPoint].getX(),
+							ni.getAnchorCenterY() + points[prevPoint].getY());
 						trans.transform(prevPt, prevPt);
 						if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
 						{
@@ -1006,8 +1006,8 @@ public class Highlight
 					}
 					if (nextPoint >= 0)
 					{
-						nextPt = new Point2D.Double(ni.getGrabCenterX() + points[nextPoint].getX(),
-							ni.getGrabCenterY() + points[nextPoint].getY());
+						nextPt = new Point2D.Double(ni.getAnchorCenterX() + points[nextPoint].getX(),
+							ni.getAnchorCenterY() + points[nextPoint].getY());
 						trans.transform(nextPt, nextPt);
 						if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
 						{
@@ -1688,8 +1688,8 @@ public class Highlight
 						AffineTransform trans = ni.rotateOutAboutTrueCenter();
 						for(int i=0; i<points.length; i++)
 						{
-							Point2D pt = new Point2D.Double(ni.getGrabCenterX() + points[i].getX(),
-								ni.getGrabCenterY() + points[i].getY());
+							Point2D pt = new Point2D.Double(ni.getAnchorCenterX() + points[i].getX(),
+								ni.getAnchorCenterY() + points[i].getY());
 							trans.transform(pt, pt);
 							dist = pt.distance(cursor);
 							if (dist < bestDist)
@@ -1794,18 +1794,18 @@ public class Highlight
 
 			// get the bounds of the node in a polygon
 			SizeOffset so = Technology.getSizeOffset(ni);
-			double lX = ni.getGrabCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-			double hX = ni.getGrabCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-			double lY = ni.getGrabCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-			double hY = ni.getGrabCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+			double lX = ni.getAnchorCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+			double hX = ni.getAnchorCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+			double lY = ni.getAnchorCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+			double hY = ni.getAnchorCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 			nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
 		} else
 		{
 			// cell instance
 			Cell subCell = (Cell)np;
 			Rectangle2D instBounds = subCell.getBounds();
-			nodePoly = new Poly(ni.getGrabCenterX() + instBounds.getCenterX(),
-				ni.getGrabCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
+			nodePoly = new Poly(ni.getAnchorCenterX() + instBounds.getCenterX(),
+				ni.getAnchorCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
 		}
 
 		AffineTransform pureTrans = ni.rotateOut();

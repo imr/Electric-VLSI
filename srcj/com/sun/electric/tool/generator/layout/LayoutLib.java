@@ -397,7 +397,7 @@ public class LayoutLib {
 			AffineTransform xForm = ni.transformOut();
 			return xForm.transform(new Point2D.Double(0, 0), null);
 		} else {
-			return ni.getGrabCenter();
+			return ni.getAnchorCenter();
 		}
 	}
 	/**

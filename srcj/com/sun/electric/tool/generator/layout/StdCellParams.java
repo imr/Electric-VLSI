@@ -612,14 +612,14 @@ public class StdCellParams {
 		NodeInst first = (NodeInst) row.get(row.size() - 1);
 		double rowMinX = first.getBounds().getMinX();
 		if (rowMinX < minX) {
-			addPmosWell(minX, rowMinX, first.getGrabCenterY(), cell);
-			addNmosWell(minX, rowMinX, first.getGrabCenterY(), cell);
+			addPmosWell(minX, rowMinX, first.getAnchorCenterY(), cell);
+			addNmosWell(minX, rowMinX, first.getAnchorCenterY(), cell);
 		}
 		NodeInst last = (NodeInst) row.get(row.size() - 1);
 		double rowMaxX = last.getBounds().getMaxX();
 		if (rowMaxX < maxX) {
-			addPmosWell(rowMaxX, maxX, first.getGrabCenterY(), cell);
-			addNmosWell(rowMaxX, maxX, first.getGrabCenterY(), cell);
+			addPmosWell(rowMaxX, maxX, first.getAnchorCenterY(), cell);
+			addNmosWell(rowMaxX, maxX, first.getAnchorCenterY(), cell);
 		}
 	}
 
