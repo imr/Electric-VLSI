@@ -36,6 +36,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 
@@ -61,7 +63,7 @@ public class DEF extends Input
 	private String    io_defline;
 	private String   io_deffilename;
 	private int  io_deflinepos;
-//	static INTBIG  io_defunits;
+	private double  io_defunits;
 	private VIADEF io_deffirstviadef;
 
 	private static class VIADEF
@@ -83,7 +85,7 @@ public class DEF extends Input
 		io_deffilename = lib.getLibFile().toString();
 		io_deflinepos = 0;
 		io_defline = "";
-//		io_defunits = 1000;
+		io_defunits = 1000;
 		io_deffirstviadef = null;
 	
 		// read the file
@@ -168,13 +170,6 @@ public class DEF extends Input
 	private boolean io_defreadfile(Library lib)
 		throws IOException
 	{
-//		REGISTER CHAR *key, *cellname;
-//		REGISTER INTBIG *options;
-//		CHAR curkey[200];
-//		REGISTER NODEPROTO *cell;
-	
-//		options = io_getstatebits();
-
 		Cell cell = null;
 		for(;;)
 		{
@@ -188,12 +183,12 @@ public class DEF extends Input
 				key.equalsIgnoreCase("HISTORY") || key.equalsIgnoreCase("TECHNOLOGY"))
 			{
 				String curkey = key;
-//				if (io_defignoretosemicolon(curkey)) return true;
+				if (io_defignoretosemicolon(curkey)) return true;
 				continue;
 			}
 			if (key.equalsIgnoreCase("DEFAULTCAP") || key.equalsIgnoreCase("REGIONS"))
 			{
-//				if (io_defignoreblock(key)) return true;
+				if (io_defignoreblock(key)) return true;
 				continue;
 			}
 			if (key.equalsIgnoreCase("DESIGN"))
@@ -212,13 +207,13 @@ public class DEF extends Input
 	
 			if (key.equalsIgnoreCase("UNITS"))
 			{
-//				if (io_defreadunits()) return true;
+				if (io_defreadunits()) return true;
 				continue;
 			}
 	
 			if (key.equalsIgnoreCase("PROPERTYDEFINITIONS"))
 			{
-//				if (io_defreadpropertydefinitions()) return true;
+				if (io_defreadpropertydefinitions()) return true;
 				continue;
 			}
 	
@@ -242,13 +237,13 @@ public class DEF extends Input
 	
 			if (key.equalsIgnoreCase("SPECIALNETS"))
 			{
-//				if (io_defreadnets(cell, true, options[0])) return true;
+//				if (io_defreadnets(cell, true)) return true;
 				continue;
 			}
 	
 			if (key.equalsIgnoreCase("NETS"))
 			{
-//				if (io_defreadnets(cell, false, options[0])) return true;
+//				if (io_defreadnets(cell, false)) return true;
 				continue;
 			}
 	
@@ -260,6 +255,104 @@ public class DEF extends Input
 		}
 		return false;
 	}
+	
+	private boolean io_defignoreblock(String command)
+		throws IOException
+	{
+		for(;;)
+		{
+			// get the next keyword
+			String key = io_defmustgetkeyword(command);
+			if (key == null) return true;
+	
+			if (key.equalsIgnoreCase("END"))
+			{
+				io_defgetkeyword();
+				break;
+			}
+		}
+		return false;
+	}
+//	
+//	BOOLEAN io_defreadorientation(FILE *f, INTSML *rot, INTSML *trans)
+//	{
+//		REGISTER CHAR *key;
+//	
+//		key = io_defmustgetkeyword(f, _("orientation"));
+//		if (key == 0) return(TRUE);
+//		if (namesame(key, x_("N"))  == 0) { *rot = 0;    *trans = 0; } else
+//		if (namesame(key, x_("S"))  == 0) { *rot = 1800; *trans = 0; } else
+//		if (namesame(key, x_("E"))  == 0) { *rot = 2700; *trans = 0; } else
+//		if (namesame(key, x_("W"))  == 0) { *rot = 900;  *trans = 0; } else
+//		if (namesame(key, x_("FN")) == 0) { *rot = 900;  *trans = 1; } else
+//		if (namesame(key, x_("FS")) == 0) { *rot = 2700; *trans = 1; } else
+//		if (namesame(key, x_("FE")) == 0) { *rot = 1800; *trans = 1; } else
+//		if (namesame(key, x_("FW")) == 0) { *rot = 0;    *trans = 1; } else
+//		{
+//			io_definerror(_("Unknown orientation (%s)"), key);
+//			return(TRUE);
+//		}
+//		return false;
+//	}
+
+	private Point2D io_defreadcoordinate()
+		throws IOException
+	{
+		// get "("
+		String key = io_defmustgetkeyword("coordinate");
+		if (key == null) return null;
+		if (!key.equals("("))
+		{
+			io_definerror("Expected '(' in coordinate");
+			return null;
+		}
+	
+		// get X
+		key = io_defmustgetkeyword("coordinate");
+		if (key == null) return null;
+		double x = TextUtils.atof(key) / io_defunits;
+//		*x = scalefromdispunit(v, DISPUNITMIC);
+	
+		// get Y
+		key = io_defmustgetkeyword("coordinate");
+		if (key == null) return null;
+		double y = TextUtils.atof(key) / io_defunits;
+//		*y = scalefromdispunit(v, DISPUNITMIC);
+	
+		// get ")"
+		key = io_defmustgetkeyword("coordinate");
+		if (key == null) return null;
+		if (!key.equals(")"))
+		{
+			io_definerror("Expected ')' in coordinate");
+			return null;
+		}
+		return new Point2D.Double(x, y);
+	}
+	
+	private Cell io_defgetnodeproto(String name, Library curlib)
+	{
+		// first see if this cell is in the current library
+		Cell cell = curlib.findNodeProto(name);
+		if (cell != null) return cell;
+	
+		// now look in other libraries
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			if (lib == curlib) continue;
+			cell = lib.findNodeProto(name);
+//			if (cell != null)
+//			{
+//				// must copy the cell
+//				Cell newCell = us_copyrecursively(cell, cell->protoname, curlib, cell->cellview,
+//					FALSE, FALSE, "", FALSE, FALSE, FALSE);
+//				return newCell;
+//			}
+		}
+		return null;
+	}
 
 	private static class GetLayerInformation
 	{
@@ -269,18 +362,6 @@ public class DEF extends Input
 
 		GetLayerInformation(String name)
 		{
-//		/* returns nonzero on error */
-//		void io_defgetlayernodes(CHAR *name, NODEPROTO **pin, NODEPROTO **pure, ARCPROTO **arc)
-//		{
-//			REGISTER INTBIG laynum, i, j, lfunc;
-//			REGISTER INTBIG afunc, afunc1, afunc2, ap1found, ap2found, vialayer;
-//			REGISTER ARCPROTO *ap, *ap1, *ap2;
-//			REGISTER NODEPROTO *np;
-//			REGISTER NODEINST *ni;
-//			NODEINST node;
-//			REGISTER PORTPROTO *pp;
-//			static POLYGON *poly = NOPOLYGON;
-		
 			// initialize
 			pin = null;
 			pure = null;
@@ -339,24 +420,19 @@ public class DEF extends Input
 				// find the pure layer node that is the via contact
 				if (pin != null)
 				{
-//					// find the layer on this node that is of type "contact"
-//					ni = &node;   initdummynode(ni);
-//					ni->proto = np;
-//					ni->lowx = 0;   ni->highx = 1000;
-//					ni->lowy = 0;   ni->highy = 1000;
-//					j = nodepolys(ni, 0, NOWINDOWPART);
-//					for(i=0; i<j; i++)
-//					{
-//						shapenodepoly(ni, i, poly);
-//						vialayer = poly->layer;
-//						lfunc = layerfunction(el_curtech, vialayer) & LFTYPE;
-//						if (layeriscontact(lfunc)) break;
-//					}
-//					if (i >= j) return;
-//		
-//					// now find the pure layer node that has this layer
-//					np = getpurelayernode(el_curtech, vialayer, 0);
-//					*pure = np;
+					// find the layer on this node that is of type "contact"
+					PrimitiveNode pNp = (PrimitiveNode)pin;
+					Technology.NodeLayer [] nl = pNp.getLayers();
+					Layer viaLayer = null;
+					for(int i=0; i<nl.length; i++)
+					{
+						Technology.NodeLayer nLay = nl[i];
+						Layer lay = nLay.getLayer();
+						Layer.Function fun = lay.getFunction();
+						if (fun.isContact()) { viaLayer = lay;   break; }
+					}
+					if (viaLayer == null) return;
+					pure = viaLayer.getPureLayerNode();
 				}
 				return;
 			}
@@ -368,44 +444,139 @@ public class DEF extends Input
 					if (name.startsWith("M")) j = 1;
 			if (j != 0)
 			{
-//				int laynum = TextUtils.atoi(name.substring(j));
-//				ArcProto.Function afunc = ArcProto.Function.UNKNOWN;
-//				Layer.Function lfunc = Layer.Function.UNKNOWN;
-//				afunc = ArcProto.Function.getMetal(laynum);
-//				
-//				switch (laynum)
-//				{
-//					case 1:  afunc = APMETAL1;   lfunc = LFMETAL1;   break;
-//					case 2:  afunc = APMETAL2;   lfunc = LFMETAL2;   break;
-//					case 3:  afunc = APMETAL3;   lfunc = LFMETAL3;   break;
-//					case 4:  afunc = APMETAL4;   lfunc = LFMETAL4;   break;
-//					case 5:  afunc = APMETAL5;   lfunc = LFMETAL5;   break;
-//					case 6:  afunc = APMETAL6;   lfunc = LFMETAL6;   break;
-//					case 7:  afunc = APMETAL7;   lfunc = LFMETAL7;   break;
-//					case 8:  afunc = APMETAL8;   lfunc = LFMETAL8;   break;
-//					case 9:  afunc = APMETAL9;   lfunc = LFMETAL9;   break;
-//					case 10: afunc = APMETAL10;  lfunc = LFMETAL10;  break;
-//					case 11: afunc = APMETAL11;  lfunc = LFMETAL11;  break;
-//					case 12: afunc = APMETAL12;  lfunc = LFMETAL12;  break;
-//				}
-//				if (afunc == APUNKNOWN || lfunc == LFUNKNOWN) return;
-//		
-//				// find the arc with this function
-//				for(ap = el_curtech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//					if ((INTBIG)((ap->userbits&AFUNCTION)>>AFUNCTIONSH) == afunc) break;
-//				if (ap != NOARCPROTO)
-//				{
-//					*arc = ap;
-//					*pin = getpinproto(ap);
-//				}
-//		
-//				// find the pure layer node with this function
-//				np = getpurelayernode(el_curtech, -1, lfunc);
-//				*pure = np;
-//				return;
+				int laynum = TextUtils.atoi(name.substring(j));
+				ArcProto.Function afunc = ArcProto.Function.getMetal(laynum);
+				Layer.Function lfunc = Layer.Function.getMetal(laynum);
+				if (afunc == null || lfunc == null) return;
+		
+				// find the arc with this function
+				for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+				{
+					ArcProto ap = (ArcProto)it.next();
+					if (ap.getFunction() == afunc)
+					{
+						arc = ap;
+						pin = ((PrimitiveArc)ap).findPinProto();
+						break;
+					}
+				}
+		
+				// find the pure layer node with this function
+				for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+				{
+					Layer lay = (Layer)it.next();
+					if (lay.getFunction() == lfunc)
+					{
+						pure = lay.getPureLayerNode();
+						break;
+					}
+				}
+				return;
 			}
 		}
 	}
+
+	/*************** COMPONENTS ***************/
+	
+	private boolean io_defreadcomponents(Cell cell)
+		throws IOException
+	{
+		if (io_defignoretosemicolon("COMPONENTS")) return true;
+		for(;;)
+		{
+			// get the next keyword
+			String key = io_defmustgetkeyword("COMPONENTs");
+			if (key == null) return true;
+			if (key.equals("-"))
+			{
+				if (io_defreadcomponent(cell)) return true;
+				continue;
+			}
+	
+			if (key.equalsIgnoreCase("END"))
+			{
+				key = io_defgetkeyword();
+				break;
+			}
+	
+			// ignore the keyword
+			if (io_defignoretosemicolon(key)) return true;
+		}
+		return false;
+	}
+	
+	private boolean io_defreadcomponent(Cell cell)
+		throws IOException
+	{
+//		REGISTER CHAR *key;
+//		INTBIG x, y, cx, cy;
+//		INTBIG sx, sy;
+//		REGISTER INTBIG lx, hx, ly, hy;
+//		REGISTER NODEINST *ni;
+//		REGISTER NODEPROTO *np;
+//		REGISTER VARIABLE *var;
+//		INTSML rot, trans;
+//		CHAR compname[200], modelname[200];
+	
+		// get the component name and model name
+		String key = io_defmustgetkeyword("COMPONENT");
+		if (key == null) return true;
+		String compname = key;
+		key = io_defmustgetkeyword("COMPONENT");
+		if (key == null) return true;
+		String modelname = key;
+	
+		// find the named cell
+		Cell np = io_defgetnodeproto(modelname, cell.getLibrary());
+		if (np == null)
+		{
+			io_definerror("Unknown cell (" + modelname + ")");
+			return true;
+		}
+	
+		for(;;)
+		{
+			// get the next keyword
+			key = io_defmustgetkeyword("COMPONENT");
+			if (key == null) return true;
+			if (key.equals("+"))
+			{
+				key = io_defmustgetkeyword("COMPONENT");
+				if (key == null) return true;
+				if (key.equalsIgnoreCase("PLACED") || key.equalsIgnoreCase("FIXED"))
+				{
+					// handle placement
+					Point2D pt = io_defreadcoordinate();
+					if (pt == null) return true;
+//					if (io_defreadcoordinate(f, &x, &y)) return true;
+//					if (io_defreadorientation(f, &rot, &trans)) return true;
+//	
+//					// place the node
+//					defaultnodesize(np, &sx, &sy);
+//					corneroffset(NONODEINST, np, 0, 0, &cx, &cy, FALSE);
+//					lx = x - cx;   hx = lx + sx;
+//					ly = y - cy;   hy = ly + sy;
+//					ni = newnodeinst(np, lx, hx, ly, hy, trans, rot, cell);
+//					if (ni == NONODEINST)
+//					{
+//						io_definerror(_("Unable to create node"));
+//						return true;
+//					}
+//					endobjectchange((INTBIG)ni, VNODEINST);
+//					var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
+//						(INTBIG)compname, VSTRING|VDISPLAY);
+//					if (var != NOVARIABLE)
+//						defaulttextsize(3, var->textdescript);
+					continue;
+				}
+				continue;
+			}
+	
+			if (key.equals(";")) break;
+		}
+		return false;
+	}
+	
 
 	/*************** VIAS ***************/
 	
@@ -440,12 +611,6 @@ public class DEF extends Input
 	private boolean io_defreadvia()
 		throws IOException
 	{
-//		REGISTER CHAR *key;
-//		INTBIG lx, hx, ly, hy;
-//		NODEPROTO *pin, *pure;
-//		ARCPROTO *ap;
-//		REGISTER VIADEF *vd;
-	
 		// get the via name
 		String key = io_defmustgetkeyword("VIA");
 		if (key == null) return true;
@@ -473,29 +638,30 @@ public class DEF extends Input
 					// handle definition of a via rectangle
 					key = io_defmustgetkeyword("VIA");
 					if (key == null) return true;
-//					io_defgetlayernodes(key, &pin, &pure, &ap);
-//					if (pure == null)
-//					{
-//						io_definerror("Layer " + key + " not in current technology");
-//						pure = NONODEPROTO;
-//					}
-//					if (key.startsWith("VIA"))
-//					{
-//						if (pin == null) pin = gen_univpinprim;
-//						vd.via = pin;
-//					}
-//					if (key.startsWith("METAL"))
-//					{
-//						if (ap == null) ap = Generic.tech.universal_arc;
-//						if (vd.lay1 == null) vd.lay1 = ap; else
-//							vd.lay2 = ap;
-//					}
-//					if (io_defreadcoordinate(&lx, &ly)) return true;
-//					if (io_defreadcoordinate(&hx, &hy)) return true;
-//	
-//					// accumulate largest contact size
-//					if (hx-lx > vd.sx) vd.sx = hx - lx;
-//					if (hy-ly > vd.sy) vd.sy = hy - ly;
+					GetLayerInformation li = new GetLayerInformation(key);
+					if (li.pure == null)
+					{
+						io_definerror("Layer " + key + " not in current technology");
+					}
+					if (key.startsWith("VIA"))
+					{
+						if (li.pin == null) li.pin = Generic.tech.universalPinNode;
+						vd.via = li.pin;
+					}
+					if (key.startsWith("METAL"))
+					{
+						if (li.arc == null) li.arc = Generic.tech.universal_arc;
+						if (vd.lay1 == null) vd.lay1 = li.arc; else
+							vd.lay2 = li.arc;
+					}
+					Point2D ll = io_defreadcoordinate();
+					if (ll == null) return true;
+					Point2D ur = io_defreadcoordinate();
+					if (ur == null) return true;
+	
+					// accumulate largest contact size
+					if (ur.getX()-ll.getX() > vd.sx) vd.sx = ur.getX() - ll.getX();
+					if (ur.getY()-ll.getY() > vd.sy) vd.sy = ur.getY() - ll.getY();
 					continue;
 				}
 				continue;
@@ -511,109 +677,62 @@ public class DEF extends Input
 		return false;
 	}
 	
+	/*************** PROPERTY DEFINITIONS ***************/
+	
+	private boolean io_defreadpropertydefinitions()
+		throws IOException
+	{
+		for(;;)
+		{
+			// get the next keyword
+			String key = io_defmustgetkeyword("PROPERTYDEFINITION");
+			if (key == null) return true;
+			if (key.equalsIgnoreCase("END"))
+			{
+				key = io_defgetkeyword();
+				break;
+			}
+	
+			// ignore the keyword
+			if (io_defignoretosemicolon(key)) return true;
+		}
+		return false;
+	}
+
+	/*************** UNITS ***************/
+	
+	private boolean io_defreadunits()
+		throws IOException
+	{	
+		// get the "DISTANCE" keyword
+		String key = io_defmustgetkeyword("UNITS");
+		if (key == null) return true;
+		if (!key.equalsIgnoreCase("DISTANCE"))
+		{
+			io_definerror("Expected 'DISTANCE' after 'UNITS'");
+			return true;
+		}
+	
+		// get the "MICRONS" keyword
+		key = io_defmustgetkeyword("UNITS");
+		if (key == null) return true;
+		if (!key.equalsIgnoreCase("MICRONS"))
+		{
+			io_definerror("Expected 'MICRONS' after 'UNITS'");
+			return true;
+		}
+	
+		// get the amount
+		key = io_defmustgetkeyword("UNITS");
+		if (key == null) return true;
+		io_defunits = TextUtils.atof(key);
+	
+		// ignore the keyword
+		if (io_defignoretosemicolon("UNITS")) return true;
+		return false;
+	}
+
 }
-//	/*************** COMPONENTS ***************/
-//	
-//	BOOLEAN io_defreadcomponents(FILE *f, NODEPROTO *cell)
-//	{
-//		REGISTER CHAR *key;
-//		CHAR curkey[200];
-//	
-//		if (io_defignoretosemicolon(f, _("COMPONENTS"))) return(1);
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("COMPONENTs"));
-//			if (key == 0) return true;
-//			if (namesame(key, x_("-")) == 0)
-//			{
-//				if (io_defreadcomponent(f, cell)) return true;
-//				continue;
-//			}
-//	
-//			if (namesame(key, x_("END")) == 0)
-//			{
-//				key = io_defgetkeyword(f);
-//				break;
-//			}
-//	
-//			// ignore the keyword
-//			estrcpy(curkey, key);
-//			if (io_defignoretosemicolon(f, curkey)) return true;
-//		}
-//		return false;
-//	}
-//	
-//	BOOLEAN io_defreadcomponent(FILE *f, NODEPROTO *cell)
-//	{
-//		REGISTER CHAR *key;
-//		INTBIG x, y, cx, cy;
-//		INTBIG sx, sy;
-//		REGISTER INTBIG lx, hx, ly, hy;
-//		REGISTER NODEINST *ni;
-//		REGISTER NODEPROTO *np;
-//		REGISTER VARIABLE *var;
-//		INTSML rot, trans;
-//		CHAR compname[200], modelname[200];
-//	
-//		// get the component name and model name
-//		key = io_defmustgetkeyword(f, x_("COMPONENT"));
-//		if (key == 0) return true;
-//		estrcpy(compname, key);
-//		key = io_defmustgetkeyword(f, x_("COMPONENT"));
-//		if (key == 0) return true;
-//		estrcpy(modelname, key);
-//	
-//		// find the named cell
-//		np = io_defgetnodeproto(modelname, cell->lib);
-//		if (np == NONODEPROTO)
-//		{
-//			io_definerror(_("Unknown cell (%s)"), modelname);
-//			return true;
-//		}
-//	
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("COMPONENT"));
-//			if (key == 0) return true;
-//			if (namesame(key, x_("+")) == 0)
-//			{
-//				key = io_defmustgetkeyword(f, x_("COMPONENT"));
-//				if (key == 0) return true;
-//				if (namesame(key, x_("PLACED")) == 0 || namesame(key, x_("FIXED")) == 0)
-//				{
-//					// handle placement
-//					if (io_defreadcoordinate(f, &x, &y)) return true;
-//					if (io_defreadorientation(f, &rot, &trans)) return true;
-//	
-//					// place the node
-//					defaultnodesize(np, &sx, &sy);
-//					corneroffset(NONODEINST, np, 0, 0, &cx, &cy, FALSE);
-//					lx = x - cx;   hx = lx + sx;
-//					ly = y - cy;   hy = ly + sy;
-//					ni = newnodeinst(np, lx, hx, ly, hy, trans, rot, cell);
-//					if (ni == NONODEINST)
-//					{
-//						io_definerror(_("Unable to create node"));
-//						return true;
-//					}
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//					var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//						(INTBIG)compname, VSTRING|VDISPLAY);
-//					if (var != NOVARIABLE)
-//						defaulttextsize(3, var->textdescript);
-//					continue;
-//				}
-//				continue;
-//			}
-//	
-//			if (namesame(key, x_(";")) == 0)
-//				break;
-//		}
-//		return false;
-//	}
-//	
 //	/*************** PINS ***************/
 //	
 //	BOOLEAN io_defreadpins(FILE *f, NODEPROTO *cell)
@@ -774,7 +893,7 @@ public class DEF extends Input
 //	
 //	/*************** NETS ***************/
 //	
-//	BOOLEAN io_defreadnets(FILE *f, NODEPROTO *cell, BOOLEAN special, INTBIG options)
+//	BOOLEAN io_defreadnets(FILE *f, NODEPROTO *cell, BOOLEAN special)
 //	{
 //		REGISTER CHAR *key;
 //		CHAR curkey[200];
@@ -786,7 +905,7 @@ public class DEF extends Input
 //			if (key == 0) return(TRUE);
 //			if (namesame(key, x_("-")) == 0)
 //			{
-//				if (io_defreadnet(f, cell, special, options)) return(TRUE);
+//				if (io_defreadnet(f, cell, special)) return(TRUE);
 //				continue;
 //			}
 //			if (namesame(key, x_("END")) == 0)
@@ -802,7 +921,7 @@ public class DEF extends Input
 //		return false;
 //	}
 //	
-//	BOOLEAN io_defreadnet(FILE *f, NODEPROTO *cell, BOOLEAN special, INTBIG options)
+//	BOOLEAN io_defreadnet(FILE *f, NODEPROTO *cell, BOOLEAN special)
 //	{
 //		REGISTER CHAR *key;
 //		INTBIG lx, hx, ly, hy, plx, ply, phx, phy, sx, sy, fx, fy, tx, ty;
@@ -963,7 +1082,7 @@ public class DEF extends Input
 //					return(TRUE);
 //				}
 //	
-//				if (lastlogni != NONODEINST && (options&DEFNOLOGICAL) == 0)
+//				if (lastlogni != NONODEINST && !IOTool.isDEFLogicalPlacement())
 //				{
 //					portposition(ni, pp, &fx, &fy);
 //	
@@ -1062,7 +1181,7 @@ public class DEF extends Input
 //			}
 //	
 //			// stop now if not placing physical nets
-//			if ((options&DEFNOPHYSICAL) != 0)
+//			if (IOTool.isDEFPhysicalPlacement())
 //			{
 //				// ignore the next keyword if a via name is coming
 //				if (vd != NOVIADEF)
@@ -1297,172 +1416,5 @@ public class DEF extends Input
 //		endobjectchange((INTBIG)ni, VNODEINST);
 //		*theni = ni;
 //		*thepp = ni->proto->firstportproto;
-//		return false;
-//	}
-//	
-//	/*************** UNITS ***************/
-//	
-//	BOOLEAN io_defreadunits(FILE *f)
-//	{
-//		REGISTER CHAR *key;
-//	
-//		// get the "DISTANCE" keyword
-//		key = io_defmustgetkeyword(f, x_("UNITS"));
-//		if (key == 0) return(TRUE);
-//		if (namesame(key, x_("DISTANCE")) != 0)
-//		{
-//			io_definerror(_("Expected 'DISTANCE' after 'UNITS'"));
-//			return(TRUE);
-//		}
-//	
-//		// get the "MICRONS" keyword
-//		key = io_defmustgetkeyword(f, x_("UNITS"));
-//		if (key == 0) return(TRUE);
-//		if (namesame(key, x_("MICRONS")) != 0)
-//		{
-//			io_definerror(_("Expected 'MICRONS' after 'UNITS'"));
-//			return(TRUE);
-//		}
-//	
-//		// get the amount
-//		key = io_defmustgetkeyword(f, x_("UNITS"));
-//		if (key == 0) return(TRUE);
-//		io_defunits = eatoi(key);
-//	
-//		// ignore the keyword
-//		if (io_defignoretosemicolon(f, _("UNITS"))) return(TRUE);
-//		return false;
-//	}
-//	
-//	/*************** PROPERTY DEFINITIONS ***************/
-//	
-//	BOOLEAN io_defreadpropertydefinitions(FILE *f)
-//	{
-//		REGISTER CHAR *key;
-//		CHAR curkey[200];
-//	
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("PROPERTYDEFINITION"));
-//			if (key == 0) return(TRUE);
-//			if (namesame(key, x_("END")) == 0)
-//			{
-//				key = io_defgetkeyword(f);
-//				break;
-//			}
-//	
-//			// ignore the keyword
-//			estrcpy(curkey, key);
-//			if (io_defignoretosemicolon(f, curkey)) return(TRUE);
-//		}
-//		return false;
-//	}
-//	
-//	/*************** DATABASE SUPPORT ***************/
-//	
-//	NODEPROTO *io_defgetnodeproto(CHAR *name, LIBRARY *curlib)
-//	{
-//		REGISTER NODEPROTO *np, *newnp;
-//		REGISTER LIBRARY *lib;
-//	
-//		// first see if this cell is in the current library
-//		for(np = curlib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			if (namesame(name, np->protoname) == 0) return(np);
-//	
-//		// now look in other libraries
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			if (lib == curlib) continue;
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				if (namesame(name, np->protoname) == 0) break;
-//			if (np != NONODEPROTO)
-//			{
-//				// must copy the cell
-//				newnp = us_copyrecursively(np, np->protoname, curlib, np->cellview,
-//					FALSE, FALSE, x_(""), FALSE, FALSE, FALSE);
-//				return(newnp);
-//			}
-//		}
-//		return(NONODEPROTO);
-//	}
-//	
-//	
-//	/*************** FILE SUPPORT ***************/
-//	
-//	BOOLEAN io_defreadcoordinate(FILE *f, INTBIG *x, INTBIG *y)
-//	{
-//		CHAR *key;
-//		float v;
-//	
-//		// get "("
-//		key = io_defmustgetkeyword(f, _("coordinate"));
-//		if (key == 0) return(TRUE);
-//		if (estrcmp(key, x_("(")) != 0)
-//		{
-//			io_definerror(_("Expected '(' in coordinate"));
-//			return(TRUE);
-//		}
-//	
-//		// get X
-//		key = io_defmustgetkeyword(f, _("coordinate"));
-//		if (key == 0) return(TRUE);
-//		v = (float)eatof(key) / (float)io_defunits;
-//		*x = scalefromdispunit(v, DISPUNITMIC);
-//	
-//		// get Y
-//		key = io_defmustgetkeyword(f, _("coordinate"));
-//		if (key == 0) return(TRUE);
-//		v = (float)eatof(key) / (float)io_defunits;
-//		*y = scalefromdispunit(v, DISPUNITMIC);
-//	
-//		// get ")"
-//		key = io_defmustgetkeyword(f, _("coordinate"));
-//		if (key == 0) return(TRUE);
-//		if (estrcmp(key, x_(")")) != 0)
-//		{
-//			io_definerror(_("Expected ')' in coordinate"));
-//			return(TRUE);
-//		}
-//		return false;
-//	}
-//	
-//	BOOLEAN io_defreadorientation(FILE *f, INTSML *rot, INTSML *trans)
-//	{
-//		REGISTER CHAR *key;
-//	
-//		key = io_defmustgetkeyword(f, _("orientation"));
-//		if (key == 0) return(TRUE);
-//		if (namesame(key, x_("N"))  == 0) { *rot = 0;    *trans = 0; } else
-//		if (namesame(key, x_("S"))  == 0) { *rot = 1800; *trans = 0; } else
-//		if (namesame(key, x_("E"))  == 0) { *rot = 2700; *trans = 0; } else
-//		if (namesame(key, x_("W"))  == 0) { *rot = 900;  *trans = 0; } else
-//		if (namesame(key, x_("FN")) == 0) { *rot = 900;  *trans = 1; } else
-//		if (namesame(key, x_("FS")) == 0) { *rot = 2700; *trans = 1; } else
-//		if (namesame(key, x_("FE")) == 0) { *rot = 1800; *trans = 1; } else
-//		if (namesame(key, x_("FW")) == 0) { *rot = 0;    *trans = 1; } else
-//		{
-//			io_definerror(_("Unknown orientation (%s)"), key);
-//			return(TRUE);
-//		}
-//		return false;
-//	}
-//	
-//	BOOLEAN io_defignoreblock(FILE *f, CHAR *command)
-//	{
-//		REGISTER CHAR *key;
-//	
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, command);
-//			if (key == 0) return(TRUE);
-//	
-//			if (namesame(key, x_("END")) == 0)
-//			{
-//				(void)io_defgetkeyword(f);
-//				break;
-//			}
-//		}
 //		return false;
 //	}

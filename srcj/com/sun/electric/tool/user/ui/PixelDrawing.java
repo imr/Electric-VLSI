@@ -636,11 +636,12 @@ public class PixelDrawing
 				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
 
-				if (expandedCellCached(subCell, subTrans, expandBounds)) return;
-
-				// just draw it directly
-				drawCell(subCell, expandBounds, subTrans, false);
-				showCellPorts(ni, trans, Color.BLACK);
+				if (!expandedCellCached(subCell, subTrans, expandBounds))
+				{
+					// just draw it directly
+					drawCell(subCell, expandBounds, subTrans, false);
+					showCellPorts(ni, trans, Color.BLACK);
+				}
 			} else
 			{
 				// draw the black box of the instance

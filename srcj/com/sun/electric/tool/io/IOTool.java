@@ -318,6 +318,34 @@ public class IOTool extends Tool
 	 */
 	public static void setCIFInSquaresWires(boolean s) { cacheCIFInSquaresWires.setBoolean(s); }
 
+	/****************************** DEF PREFERENCES ******************************/
+
+	private static Pref cacheDEFLogicalPlacement = Pref.makeBooleanPref("DEFLogicalPlacement", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether DEF Input makes logical placement.
+	 * The default is "true" (do the logical placement).
+	 * @return true if  DEF Input makes logical placement.
+	 */
+	public static boolean isDEFLogicalPlacement() { return cacheDEFLogicalPlacement.getBoolean(); }
+	/**
+	 * Method to set whether  DEF Input makes logical placement.
+	 * @param on true if  DEF Input makes logical placement.
+	 */
+	public static void setDEFLogicalPlacement(boolean on) { cacheDEFLogicalPlacement.setBoolean(on); }
+
+	private static Pref cacheDEFPhysicalPlacement = Pref.makeBooleanPref("DEFPhysicalPlacement", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether DEF Input makes physical placement.
+	 * The default is "true" (do the physical placement).
+	 * @return true if  DEF Input makes physical placement.
+	 */
+	public static boolean isDEFPhysicalPlacement() { return cacheDEFPhysicalPlacement.getBoolean(); }
+	/**
+	 * Method to set whether  DEF Input makes physical placement.
+	 * @param on true if  DEF Input makes physical placement.
+	 */
+	public static void setDEFPhysicalPlacement(boolean on) { cacheDEFPhysicalPlacement.setBoolean(on); }
+
 	/****************************** GDS PREFERENCES ******************************/
 
 	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanPref("GDSMergesBoxes", IOTool.tool.prefs, false);

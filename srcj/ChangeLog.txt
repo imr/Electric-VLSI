@@ -9,6 +9,9 @@ Fix: put back the slow code
 
 IMP: (11/11/04, RK) Undebugged implementation of NCC net equivalence reporting
 
+BUG: (11/11/04, SMR) Exports on expanded cell instances are not always drawn.
+FIX: In PixelDrawing.drawNode(), draw exports when instances are cached.
+
 ************************* Version 8.01am: *********************************
 
 BUG: (11/11/04, SMR) Arraying crashes.

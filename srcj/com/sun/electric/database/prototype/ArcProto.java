@@ -58,10 +58,10 @@ public abstract class ArcProto
 		private static HashMap metalLayers = new HashMap();
 		private static HashMap polyLayers = new HashMap();
 
-		private Function(String name, int metalLlevel, int polyLevel)
+		private Function(String name, int metalLevel, int polyLevel)
 		{
 			this.name = name;   this.level = 0;
-			if (metalLlevel != 0) metalLayers.put(new Integer(this.level = metalLlevel), this);
+			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
 			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
 		}
 

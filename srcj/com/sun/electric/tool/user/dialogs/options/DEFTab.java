@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.io.IOTool;
+
 import javax.swing.JPanel;
 
 
@@ -31,6 +34,9 @@ import javax.swing.JPanel;
  */
 public class DEFTab extends PreferencePanel
 {
+	private boolean initialLogicalPlacement;
+	private boolean initialPhysicalPlacement;
+
 	/** Creates new form DEFTab */
 	public DEFTab(java.awt.Frame parent, boolean modal)
 	{
@@ -47,8 +53,10 @@ public class DEFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		defPlacePhysical.setEnabled(false);
-		defPlaceLogical.setEnabled(false);
+		initialLogicalPlacement = IOTool.isDEFLogicalPlacement();
+		defPlaceLogical.setSelected(initialLogicalPlacement);
+		initialPhysicalPlacement = IOTool.isDEFPhysicalPlacement();
+		defPlacePhysical.setSelected(initialPhysicalPlacement);
 	}
 
 	/**
@@ -57,6 +65,13 @@ public class DEFTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean currentLogicalPlacement = defPlaceLogical.isSelected();
+		if (currentLogicalPlacement != initialLogicalPlacement)
+			IOTool.setDEFLogicalPlacement(currentLogicalPlacement);
+
+		boolean currentPhysicalPlacement = defPlacePhysical.isSelected();
+		if (currentPhysicalPlacement != initialPhysicalPlacement)
+			IOTool.setDEFPhysicalPlacement(currentPhysicalPlacement);
 	}
 
 	/** This method is called from within the constructor to
@@ -71,7 +86,6 @@ public class DEFTab extends PreferencePanel
         def = new javax.swing.JPanel();
         defPlacePhysical = new javax.swing.JCheckBox();
         defPlaceLogical = new javax.swing.JCheckBox();
-        jLabel24 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -103,12 +117,6 @@ public class DEFTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         def.add(defPlaceLogical, gridBagConstraints);
 
-        jLabel24.setText("DEF I/O IS NOT YET AVAILABLE");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        def.add(jLabel24, gridBagConstraints);
-
         getContentPane().add(def, new java.awt.GridBagConstraints());
 
         pack();
@@ -125,7 +133,6 @@ public class DEFTab extends PreferencePanel
     private javax.swing.JPanel def;
     private javax.swing.JCheckBox defPlaceLogical;
     private javax.swing.JCheckBox defPlacePhysical;
-    private javax.swing.JLabel jLabel24;
     // End of variables declaration//GEN-END:variables
 	
 }

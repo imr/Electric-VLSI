@@ -395,17 +395,20 @@ public class OpenFile
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				File file = dialog.getSelectedFile();
-                Type selectedType = Type.getType(dialog.getFileFilter());
                 String fileName = file.getPath();
-                int dotPos = fileName.lastIndexOf('.');
-                String extension = selectedType.getExtensions()[0];
-                if (dotPos < 0) fileName += "." + extension; else
+                Type selectedType = Type.getType(dialog.getFileFilter());
+                if (selectedType != null)
                 {
-                    if (!fileName.substring(dotPos+1).equals(extension))
-                    {
-                        //fileName = fileName.substring(0, dotPos) + "." + extension;
-                        fileName = fileName + "." + extension;
-                    }
+	                String extension = selectedType.getExtensions()[0];
+	                int dotPos = fileName.lastIndexOf('.');
+	                if (dotPos < 0) fileName += "." + extension; else
+	                {
+	                    if (!fileName.substring(dotPos+1).equals(extension))
+	                    {
+	                        //fileName = fileName.substring(0, dotPos) + "." + extension;
+	                        fileName = fileName + "." + extension;
+	                    }
+	                }
                 }
 				return fileName;
 			}
