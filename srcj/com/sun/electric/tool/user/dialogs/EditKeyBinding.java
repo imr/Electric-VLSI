@@ -248,7 +248,10 @@ public class EditKeyBinding extends javax.swing.JDialog {
     }//GEN-END:initComponents
 
     private void initDialog() {
-        header.setText("Add Key Binding for:  "+MenuBar.getDescription(menuItem));
+        String description;
+        if (menuItem instanceof MenuBar.MenuItem) description = ((MenuBar.MenuItem)menuItem).getDescription();
+        else description = menuItem.getText();
+        header.setText("Add Key Binding for:  "+description);
         pack();
     }
 

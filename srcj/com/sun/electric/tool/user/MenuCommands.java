@@ -79,6 +79,7 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.user.dialogs.ToolTips.ToolTip;
 import com.sun.electric.tool.user.ui.MenuBar;
 import com.sun.electric.tool.user.ui.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.MenuBar.MenuItem;
@@ -295,6 +296,9 @@ public final class MenuCommands
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline;
 		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(ToolBar.cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
+        ToolBar.CursorMode cm = ToolBar.getCursorMode();
+        if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true);
+        if (ToolBar.secondaryInputModes) {
 		cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
 		cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
@@ -303,15 +307,16 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
 		cursorZoom = modeSubMenuEdit.addRadioButton(ToolBar.cursorZoomName, false, editGroup, KeyStroke.getKeyStroke('Z', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.zoomCommand(); } });
+        }
 		cursorOutline = modeSubMenuEdit.addRadioButton(ToolBar.cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.outlineEditCommand(); } });
-		ToolBar.CursorMode cm = ToolBar.getCursorMode();
-        if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true); else
+        if (ToolBar.secondaryInputModes) {
 		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true); else
 		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true); else
 		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true); else
 		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true); else
 			cursorOutline.setSelected(true);
+        }
 
 		Menu modeSubMenuMovement = new Menu("Movement");
 		modeSubMenu.add(modeSubMenuMovement);
@@ -701,6 +706,8 @@ public final class MenuCommands
 			helpMenu.addMenuItem("About Electric...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
+        helpMenu.addMenuItem("Tool Tips", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
@@ -1304,9 +1311,7 @@ public final class MenuCommands
 
     public static void duplicateCommand()
     {
-        Clipboard.copy();
-        Highlight.clear();
-        Clipboard.paste();
+        Clipboard.duplicate();
     }
 	/**
 	 * This method sets the highlighted arcs to Rigid
@@ -2377,6 +2382,12 @@ public final class MenuCommands
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
+
+    public static void toolTipsCommand()
+    {
+        ToolTip dialog = new ToolTip(TopLevel.getCurrentJFrame(), false, null);
+        dialog.show();
+    }
 
 	public static void checkAndRepairCommand()
 	{

@@ -35,6 +35,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.dialogs.ToolTips.ToolTip;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -48,6 +49,7 @@ import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -244,6 +246,14 @@ public final class Main
 
 			// remove the splash screen
 			sw.removeNotify();
+
+            // pop up the tool tips window
+            Preferences prefs = Preferences.userNodeForPackage(ToolTip.class);
+            boolean showToolTips = prefs.getBoolean(ToolTip.showOnStartUp, true);
+            if (showToolTips) {
+                ToolTip tip = new ToolTip(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
+                tip.show();
+            }
 		}
 	}
 

@@ -2,6 +2,19 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/14/04, JKG) Tool Tips added. HTML based tips can be browsed by user.
+
+IMP: (5/14/04, JKG) Commented out code to access other Interface modes except
+     ClickZoomWire and OutlineEdit.
+
+IMP: (5/14/04, JKG) Copy/Paste now uses mouse offset.  Paste arc to arc broken, fixed.
+     Added "Duplicate" command.
+
+BUG: (5/14/04, JKG) Key Bindings stored by menu name caused conflict.
+FIX: Now stored by menu path.
+
+BUG: (5/14/04, JKG) Menu shortcut key not updated in menu.  Fixed.
+
 BUG: (5/11/04, SR) Node "Get Info" dialog does not handle SizeOffset right, displays sizes too large.
 FIX: Use SizeOffset.
 

@@ -1,0 +1,25 @@
+<html>
+<head><title>Library Directory Management</title>
+</head>
+
+<body>
+<h2>Library Directory Management</h2>
+
+<p>By default Electric searches for Libraries in the working
+directory, absolute file path references, and Electric's LIB directory.
+
+<p>Users can specify additional directories to search for Libraries using
+a file called "LIBDIRS" placed in the working directory.  <font color=blue>The LIBDIR file specifies
+additional paths to search for library files</font>.
+
+<p>The LIBDIR file has the following syntax:
+<br>
+<pre>
+<code>
+* <i>&lt;comments&gt;</i>
+include <i>&lt;another_LIBDIRS_file&gt;</i>
+<i>&lt;library_directory&gt;</i>
+</code>
+</pre>
+
+<p>Paths may be absolute or relative.

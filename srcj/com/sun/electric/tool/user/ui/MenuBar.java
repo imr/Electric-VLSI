@@ -154,9 +154,7 @@ public class MenuBar extends JMenuBar
         public void setParentMenu(JComponent menu);
         /** Get the parent Menu (may also return a MenuBar if top-level menu) */
         public JComponent getParentMenu();
-
-//        public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke);
-//        public KeyBindings getKeyBindings();
+        public String getDescription();
     }
 
     /**
@@ -173,10 +171,7 @@ public class MenuBar extends JMenuBar
 
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }
-//        public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
-//            MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
-//        }
-//        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
+        public String getDescription() { return MenuBar.getDescription(this); }
     }
 
     public static class RadioButtonMenuItem extends JRadioButtonMenuItem implements MenuItemInterface
@@ -187,10 +182,7 @@ public class MenuBar extends JMenuBar
         
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }
-//        public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
-//            MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
-//        }
-//        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
+        public String getDescription() { return MenuBar.getDescription(this); }
     }
     
 
@@ -202,10 +194,7 @@ public class MenuBar extends JMenuBar
         
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }
-//        public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
-//            MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
-//        }
-//        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
+        public String getDescription() { return MenuBar.getDescription(this); }
     }
 
     /**
@@ -222,10 +211,7 @@ public class MenuBar extends JMenuBar
 
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }
-//        public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
-//            MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
-//        }
-//        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
+        public String getDescription() { return MenuBar.getDescription(this); }
 
         /**
          * Override the default method to add a JMenuItem to this Menu.
@@ -348,8 +334,6 @@ public class MenuBar extends JMenuBar
 
     public JMenu add(JMenu c) {
         super.add(c);
-        // set parent to this
-        ((Menu)c).setParentMenu(this);
         // If this menu has an menu items already added to it,
         // we need to integrate them via itemAdded()
         menuAdded(c);
@@ -370,22 +354,30 @@ public class MenuBar extends JMenuBar
 
     // When a menu is added to the MenuBar, we need to integrate the items in the menu
     private void menuAdded(JMenu c) {
+        // set parent to this
+        ((Menu)c).setParentMenu(this);
 
         for (int i=0; i<c.getItemCount(); i++) {
             JMenuItem m = c.getItem(i);
             if (m == null) continue;            // ignore separators
             if (m instanceof JMenu)
                 menuAdded((JMenu)m);
-            else if (m instanceof JMenuItem)
-                itemAdded((JMenuItem)m);
+            else if (m instanceof MenuItem)
+                itemAdded((MenuItem)m);
         }
     }
 
     // When an item is added to the MenuBar, we must update the key binding manager
     // and action listeners as part of the MenuBarGroup.
     private void itemAdded(JMenuItem item) {
+
+        if (!(item instanceof MenuItemInterface)) {
+            System.out.println("Can't add Menu Item "+item.getText()+" to Menu, it is not a MenuItemInterface");
+            return;
+        }
+
         synchronized(menuBarGroup) {
-            String key = item.getText();
+            String key = ((MenuItemInterface)item).getDescription();
             KeyStroke accelerator = item.getAccelerator();
             // look up list of associated menuitems already in hash table
             ArrayList list = (ArrayList)menuBarGroup.menuItems.get(key);
@@ -398,23 +390,19 @@ public class MenuBar extends JMenuBar
                 //System.out.println("added key binding for "+item.getText()+": "+accelerator);
                 // add listener that will perform same thing as if user clicked on menu
                 // this is needed to change the state of button and fire off to listeners
-                menuBarGroup.keyBindingManager.addActionListener(item.getText(), new ActionListener() {
+                menuBarGroup.keyBindingManager.addActionListener(((MenuItemInterface)item).getDescription(), new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         JMenuItem m = (JMenuItem)e.getSource(); m.doClick(); }
                 });
-                // add action listeners to keyBindingManager so it will activate them
-                // on a shortcut key or key-combo activation.
-                //keyBindingManager.addActionListener(item.getText(), action);
-                //keyBindingManager.addActionListener(item.getText(), MenuManager.updater);
-                //keyBindingManager.addActionListener(item.getText(), ToolBarButton.updater);
-                menuBarGroup.keyBindingManager.setEventSource(item.getText(), item);
+                // fake event source so it looks like event generated from menuitem
+                menuBarGroup.keyBindingManager.setEventSource(((MenuItemInterface)item).getDescription(), item);
             }
             list.add(item);
         }
         item.addActionListener(menuBarGroup);
         item.addActionListener(ToolBarButton.updater);
         // update with any user defined bindings
-        updateAccelerator(item.getText());
+        updateAccelerator(((MenuItemInterface)item).getDescription());
     }
 
     /**
@@ -454,20 +442,20 @@ public class MenuBar extends JMenuBar
      * @return key bindings for the menu item, or null if no item or no bindings.
      */
     public KeyBindings getKeyBindings(JMenuItem item) {
-        return menuBarGroup.keyBindingManager.getKeyBindings(item.getText());
+        return menuBarGroup.keyBindingManager.getKeyBindings(((MenuItemInterface)item).getDescription());
     }
 
     /**
      * Adds a default key binding to the MenuItem.  Default key bindings are overridden
      * by any user stored key bindings, but may be restored via the Edit Key Bindings dialog.
-     * @param m the MenuItem to add a default key binding
+     * @param item the MenuItem to add a default key binding
      * @param stroke the key stroke
      * @param prefixStroke an optional prefix stroke (may be null)
      */
-    public void addDefaultKeyBinding(JMenuItem m, KeyStroke stroke, KeyStroke prefixStroke) {
+    public void addDefaultKeyBinding(JMenuItem item, KeyStroke stroke, KeyStroke prefixStroke) {
         // avoid adding the same binding multiple times when multiple menus are generated
         synchronized (menuBarGroup) {
-            List list = (List)menuBarGroup.menuItems.get(m.getText());
+            List list = (List)menuBarGroup.menuItems.get(((MenuItemInterface)item).getDescription());
             if (list != null) {
                 // if more than one item created already, ignore this request,
                 // as it has already been performed
@@ -475,33 +463,35 @@ public class MenuBar extends JMenuBar
             }
         }
         // add default key binding
-        menuBarGroup.keyBindingManager.addDefaultKeyBinding(m.getText(), KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
+        menuBarGroup.keyBindingManager.addDefaultKeyBinding(((MenuItemInterface)item).getDescription(),
+                KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
         // update accelerator
-        updateAccelerator(m.getText());
+        updateAccelerator(((MenuItemInterface)item).getDescription());
     }
 
     /**
      * Add a user defined Key binding. This gets stored to preferences.
-     * @param m the menu item
+     * @param item the menu item
      * @param stroke the key stroke bound to menu item
      * @param prefixStroke an option prefix stroke (may be null)
      */
-    public void addUserKeyBinding(JMenuItem m, KeyStroke stroke, KeyStroke prefixStroke) {
+    public void addUserKeyBinding(JMenuItem item, KeyStroke stroke, KeyStroke prefixStroke) {
         // add user key binding (gets stored to prefs, overrides default bindings)
-        menuBarGroup.keyBindingManager.addUserKeyBinding(m.getText(), KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
+        menuBarGroup.keyBindingManager.addUserKeyBinding(((MenuItemInterface)item).getDescription(),
+                KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
         // update accelerator
-        updateAccelerator(m.getText());
+        updateAccelerator(((MenuItemInterface)item).getDescription());
     }
 
     /**
-     * Sets <ocde>item<code> back to default Key Bindings
+     * Sets <code>item<code> back to default Key Bindings
      * @param item the item to reset to default bindings
      */
     public void resetKeyBindings(JMenuItem item) {
         // tell KeyBindingManager to reset to default KeyBindings
-        menuBarGroup.keyBindingManager.resetKeyBindings(item.getText());
+        menuBarGroup.keyBindingManager.resetKeyBindings(((MenuItemInterface)item).getDescription());
         // update accelerator
-        updateAccelerator(item.getText());
+        updateAccelerator(((MenuItemInterface)item).getDescription());
     }
 
     /**
@@ -533,7 +523,7 @@ public class MenuBar extends JMenuBar
 
     /**
      * Updates a menu item's accelerator.  Menu item is specified by
-     * actionDesc (MenuItem.getText()).  This is usually called after a menu item's bindings
+     * actionDesc (MenuItem.getDescription()).  This is usually called after a menu item's bindings
      * have changed (binding removed, added, or reset to default). This
      * updates the accelerator to a valid binding, which is displayed when
      * the user opens the menu.
@@ -605,7 +595,7 @@ public class MenuBar extends JMenuBar
             item.removeActionListener(listener);
         }
         synchronized(menuBarGroup) {
-            ArrayList list = (ArrayList)menuBarGroup.menuItems.get(item.getText());
+            ArrayList list = (ArrayList)menuBarGroup.menuItems.get(((MenuItemInterface)item).getDescription());
             if (list == null) return;
             // remove reference to item
             list.remove(item);
@@ -630,13 +620,11 @@ public class MenuBar extends JMenuBar
      * @param item The item to get a description for
      * @return a string of the description.
      */
-    public static String getDescription(JMenuItem item) {
+    private static String getDescription(JMenuItem item) {
         Stack parents = new Stack();
         JComponent parent = ((MenuItemInterface)item).getParentMenu();
-        JComponent previousParent = null;
-        while ((parent != null) && (!(parent instanceof JMenuBar))) {
+        while ((parent != null) && (parent instanceof JMenuItem)) {
             parents.push(parent);
-            previousParent = parent;            // store for checking later
             parent = ((MenuItemInterface)parent).getParentMenu();
         }
         StringBuffer buf = new StringBuffer();
@@ -648,11 +636,11 @@ public class MenuBar extends JMenuBar
         // not in it's final container, and subsequent calls to this method
         // may return a different String.  Because this string is used as a
         // key into hash tables, that would be very bad.  So issue an error.
-        if ((previousParent == null) || !(previousParent.getParent() instanceof JMenuBar)) {
-            System.out.println("  ERROR: Menu "+buf.toString()+" not in JMenuBar.");
+        if ((parent == null) || !(parent instanceof JMenuBar)) {
+            System.out.println("  PROGRAMMER ERROR: Menu "+buf.toString()+" not in JMenuBar.");
             //System.out.println("  Menus must be built top-down or inconsistencies in key bindings will result");
-            Throwable t = new Throwable();
-            t.printStackTrace(System.out);
+            //Throwable t = new Throwable();
+            //t.printStackTrace(System.out);
         }
         return buf.toString();
     }

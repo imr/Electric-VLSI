@@ -42,6 +42,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
@@ -167,10 +168,12 @@ public class Clipboard
 			clear();
 
             // get offset of highlighted objects from mouse
-            
+            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            EditWindow.gridAlign(mouseDB);
 
 			// copy objects to clipboard
-			copyListToCell(wnd, geoms, parent, clipCell, false, 0, 0);
+			copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
 		}
 	}
 
@@ -205,13 +208,63 @@ public class Clipboard
 			// remove contents of clipboard
 			clear();
 
+            // get offset of highlighted objects from mouse
+            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            EditWindow.gridAlign(mouseDB);
+
 			// copy objects to clipboard
-			copyListToCell(wnd, geoms, parent, clipCell, false, 0, 0);
+			copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
 
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, geoms);
 		}
 	}
+
+    public static void duplicate()
+    {
+        DuplicateObjects job = new DuplicateObjects();
+    }
+
+    protected static class DuplicateObjects extends Job
+    {
+        protected DuplicateObjects()
+        {
+            super("Duplicate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public void doIt()
+        {
+            // get objects to copy
+            List geoms = Highlight.getHighlighted(true, true);
+            if (geoms.size() == 0)
+            {
+                System.out.println("First select objects to copy");
+                return;
+            }
+
+            // determine the cell with these geometrics
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd == null) return;
+            Cell parent = wnd.getCell();
+
+            // remove contents of clipboard
+            clear();
+
+            // get offset of highlighted objects from mouse
+            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            EditWindow.gridAlign(mouseDB);
+
+            // copy objects to clipboard
+            copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
+
+            Highlight.clear();
+
+            paste();
+        }
+    }
 
 	public static void paste()
 	{
@@ -286,15 +339,19 @@ public class Clipboard
 		if (!dupDistSet)
 		{
 			dupDistSet = true;
-			dupX = dupY = 10;
+            dupX = dupY = 2;
 		}
-		if (User.isMoveAfterDuplicate())
+        if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener));
 		} else
 		{
-		    PasteObjects job = new PasteObjects(pasteList, dupX, dupY);
+            // get offset of highlighted objects from mouse
+            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            EditWindow.gridAlign(mouseDB);
+		    PasteObjects job = new PasteObjects(pasteList, -dupX - mouseDB.getX(), -dupY - mouseDB.getY());
 		}
 	}
 
@@ -302,7 +359,7 @@ public class Clipboard
 	{
 		ArcInst src, dst;
 
-		protected PasteArcToArc(ArcInst src, ArcInst dst)
+		protected PasteArcToArc(ArcInst dst, ArcInst src)
 		{
 			super("Paste Arc to Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
@@ -412,10 +469,15 @@ public class Clipboard
 	/**
 	 * Method to copy the list of objects in "list" (NOGEOM terminated) from "fromCell"
 	 * to "toCell".  If "highlight" is true, highlight the objects in the new cell.
+     * mouseX and mouseY are the coordinates of the mouse if copying, or the negative
+     * coordinates of the mouse if pasting.
 	 */
 	private static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell, boolean highlight,
-		double dX, double dY)
+		double mouseX, double mouseY)
 	{
+        double dX = -mouseX;
+        double dY = -mouseY;
+
 		// make sure the destination cell can be modified
 		if (CircuitChanges.cantEdit(toCell, null, true)) return;
 
@@ -812,8 +874,8 @@ public class Clipboard
 		private EditWindow wnd;
 		private List pasteList;
 		private EventListener currentListener;
-		private int origX, origY;
-		private double oX, oY;
+		private int origX, origY;                   // screen units
+		private double oX, oY;                      // database units
 
 		public PasteListener(EditWindow wnd, List pasteList, EventListener currentListener)
 		{
@@ -822,7 +884,14 @@ public class Clipboard
 			this.currentListener = currentListener;
 
 			// determine the initial offset of the objects
-			oX = oY = 1;
+			//oX = oY = 1;
+            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+            origX = (int)mouse.getX(); origY = (int)mouse.getY();
+            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            EditWindow.gridAlign(mouseDB);
+            oX = mouseDB.getX();
+            oY = mouseDB.getY();
+
 			showList();
 		}
 
@@ -898,16 +967,27 @@ public class Clipboard
 
 		public void mousePressed(MouseEvent evt)
 		{
+            Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+            EditWindow.gridAlign(mouseDB);
+            oX = mouseDB.getX();
+            oY = mouseDB.getY();
+            showList();
+
+            WindowFrame.setListener(currentListener);
+            PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
+/*
 			origX = evt.getX();
 			origY = evt.getY();
             if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
             EditWindow.CircuitPart source = (EditWindow.CircuitPart)evt.getSource();
 			EditWindow wnd = source.getEditWindow();
 			wnd.repaint();
+*/
 		}
 
 		public void mouseDragged(MouseEvent evt)
 		{
+/*
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D delta = wnd.deltaScreenToDatabase(newX - origX, newY - origY);
@@ -916,10 +996,12 @@ public class Clipboard
 			oY = delta.getY();
 			showList();
 			wnd.repaint();
+*/
 		}
 
 		public void mouseReleased(MouseEvent evt)
 		{
+/*
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D delta = wnd.deltaScreenToDatabase(newX - origX, newY - origY);
@@ -930,9 +1012,18 @@ public class Clipboard
 
 			WindowFrame.setListener(currentListener);
 		    PasteObjects job = new PasteObjects(pasteList, oX, oY);
+*/
 		}
 
-		public void mouseMoved(MouseEvent evt) {}
+		public void mouseMoved(MouseEvent evt)
+        {
+            Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+            EditWindow.gridAlign(mouseDB);
+            oX = mouseDB.getX();
+            oY = mouseDB.getY();
+            showList();
+            wnd.repaint();
+        }
 		public void mouseClicked(MouseEvent evt) {}
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}

@@ -71,6 +71,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Go back button */           private JButton goBackButton;
     /** Go forward button */        private JButton goForwardButton;
 
+    public static final boolean secondaryInputModes = false;
+
     /**
 	 * Mode is a typesafe enum class that describes the current editing mode (select, zoom, etc).
 	 */
@@ -127,7 +129,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
 	}
 
-	private static CursorMode curMode = CursorMode.SELECT;
+	private static CursorMode curMode = CursorMode.CLICKZOOMWIRE;
 	private static ArrowDistance curArrowDistance = ArrowDistance.FULL;
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
 
@@ -170,6 +172,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.add(clickZoomWireButton);
         modeGroup.add(clickZoomWireButton);
 
+        if (secondaryInputModes) {
+            
 		selectButton = ToolBarButton.newInstance(cursorSelectName,
             new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 		selectButton.addActionListener(
@@ -204,6 +208,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		zoomButton.setToolTipText("Zoom");
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
+
+        }
 
 		// the "Outline edit mode" button
 		outlineButton = ToolBarButton.newInstance(cursorOutlineName,
