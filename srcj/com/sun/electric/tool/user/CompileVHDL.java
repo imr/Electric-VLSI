@@ -1319,7 +1319,7 @@ public class CompileVHDL
 		newtoken.token = TOKEN_STRING;
 	
 		// merge two adjacent double quotes
-		newstring.replace("\"\"", "\"");
+		newstring.replaceAll("\"\"", "\"");
 		newtoken.pointer = newstring;
 		newtoken.line_num = line_num;
 		newtoken.space = true;
