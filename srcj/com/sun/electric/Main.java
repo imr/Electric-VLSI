@@ -192,22 +192,21 @@ public final class Main
     /** open any libraries specified on the command line.  This method should be 
      * called after any valid options have been parsed out
      */
-    private static boolean openCommandLineLibs(List argsList)
+    private static void openCommandLineLibs(List argsList)
     {
-        boolean openedALib = false;
+        List fileURLs = new ArrayList();
         for (int i=0; i<argsList.size(); i++) {
             String arg = (String)argsList.get(i);
             if (arg.startsWith("-")) {
                 System.out.println("Command line option "+arg+" not understood, ignoring.");
                 continue;
             }
-            System.out.println("Opening library "+arg);
 			URL url = TextUtils.makeURLToFile(arg);
             if (url == null) continue;
-    		MenuCommands.ReadELIB job = new MenuCommands.ReadELIB(url);
-            openedALib = true;
+            fileURLs.add(url);
         }
-        return openedALib;
+        // open any libraries
+        MenuCommands.ReadInitialELIBs job = new MenuCommands.ReadInitialELIBs(fileURLs);
     }
 
 	/**
@@ -249,12 +248,7 @@ public final class Main
                 DEBUG = true;
             }
 			String beanShellScript = getCommandLineOption(argsList, "-s");
-			if (!openCommandLineLibs(argsList)) {
-				// open default library (or maybe open none at all?)
-				Library mainLib = Library.newInstance("noname", null);
-				mainLib.setCurrent();
-				WindowFrame window1 = WindowFrame.createEditWindow(null);
-			}
+			openCommandLineLibs(argsList);
 
 			// run script
 			if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);

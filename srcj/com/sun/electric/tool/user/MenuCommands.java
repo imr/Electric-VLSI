@@ -1135,35 +1135,74 @@ public final class MenuCommands
 
 		public boolean doIt()
 		{
-			Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
-			Undo.noUndoAllowed();
-			if (lib == null) return false;
-			lib.setCurrent();
-			Cell cell = lib.getCurCell();
-			if (cell == null)
-				System.out.println("No current cell in this library");
-			else
-			{
-				// check if edit window open with null cell, use that one if exists
-				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-				{
-					WindowFrame wf = (WindowFrame)it.next();
-					WindowContent content = wf.getContent();
-					if (content.getCell() == null)
-					{
-						wf.setCellWindow(cell);
-						WindowFrame.setCurrentWindowFrame(wf);
-						TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-						return true;
-					}
-				}
-				WindowFrame.createEditWindow(cell);
-				// no clean for now.
-				TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-			}
-			return true;
+            return openALibrary(fileURL);
 		}
 	}
+
+    public static class ReadInitialELIBs extends Job
+    {
+        List fileURLs;
+
+        public ReadInitialELIBs(List fileURLs) {
+            super("Read Initial Libraries", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.fileURLs = fileURLs;
+            startJob();
+        }
+
+        public boolean doIt() {
+            // open no name library first
+            Library mainLib = Library.newInstance("noname", null);
+            if (mainLib == null) return false;
+            mainLib.setCurrent();
+            WindowFrame window1 = WindowFrame.createEditWindow(null);
+
+            // try to open initial libraries
+            boolean success = false;
+            for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
+                URL file = (URL)it.next();
+                if (openALibrary(file)) success = true;
+            }
+            if (success) {
+                // close no name library
+                mainLib.kill();
+                WindowFrame.wantToRedoLibraryTree();
+                EditWindow.repaintAll();
+            }
+            return true;
+        }
+    }
+
+    /** Opens a library */
+    private static boolean openALibrary(URL fileURL) {
+        Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
+        Undo.noUndoAllowed();
+        if (lib == null) return false;
+        lib.setCurrent();
+        Cell cell = lib.getCurCell();
+        if (cell == null)
+            System.out.println("No current cell in this library");
+        else
+        {
+            // check if edit window open with null cell, use that one if exists
+            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+            {
+                WindowFrame wf = (WindowFrame)it.next();
+                WindowContent content = wf.getContent();
+                if (content.getCell() == null)
+                {
+                    wf.setCellWindow(cell);
+                    WindowFrame.setCurrentWindowFrame(wf);
+                    TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+                    return true;
+                }
+            }
+            WindowFrame.createEditWindow(cell);
+            // no clean for now.
+            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+        }
+        return true;
+
+    }
 
 	/**
 	 * This method implements the command to import a library (Readable Dump format).

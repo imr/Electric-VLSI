@@ -300,6 +300,7 @@ public class TopLevel extends JFrame
  		} else
         {
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+            if (wf == null) return null;
 			return wf.getFrame();
         }
 	}
