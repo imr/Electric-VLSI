@@ -115,22 +115,22 @@ public abstract class InteractiveRouter extends Router {
     /**
      * Make a route between startObj and endObj in the EditWindow wnd.
      * Uses the point where the user clicked as a parameter to set the route.
-     * @param wnd the EditWindow the user is editing
+     * @param cell the cell in which to create the route
      * @param startObj a PortInst or ArcInst from which to start the route
      * @param endObj a PortInst or ArcInst to end the route on. May be null
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      */
-    public void makeRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+    public void makeRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute();
         // plan the route
-        Route route = planRoute(wnd, startObj, endObj, clicked);
+        Route route = planRoute(cell, startObj, endObj, clicked);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         Highlight.clear();
         Highlight.setHighlightList(startRouteHighlights);
         // create route
-        createRoute(route, wnd.getCell());
+        createRoute(route, cell);
         started = false;
     }
 
@@ -168,25 +168,24 @@ public abstract class InteractiveRouter extends Router {
 
     /**
      * Make a route and highlight it in the window.
-     * @param wnd the EditWindow the user is editing
+     * @param cell the cell in which to create the route
      * @param startObj a PortInst or ArcInst from which to start the route
      * @param endObj a PortInst or ArcInst to end the route on. May be null
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      */
-    public void highlightRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+    public void highlightRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute();
         // highlight route
-        Route route = planRoute(wnd, startObj, endObj, clicked);
-        highlightRoute(wnd, route);
+        Route route = planRoute(cell, startObj, endObj, clicked);
+        highlightRoute(route);
     }
 
     /**
      * Highlight a route in the window
-     * @param wnd the EditWindow the user is editing
      * @param route the route to be highlighted
      */
-    public void highlightRoute(EditWindow wnd, Route route) {
+    public void highlightRoute(Route route) {
         if (!started) startInteractiveRoute();
         // highlight all objects in route
         Highlight.clear();
@@ -204,17 +203,16 @@ public abstract class InteractiveRouter extends Router {
     /**
      * Plan a route from startObj to endObj, taking into account
      * where the user clicked in the cell.
-     * @param wnd the EditWindow the user is editing
+     * @param cell the cell in which to create the arc
      * @param startObj a PortInst or ArcInst from which to start the route
      * @param endObj a PortInst or ArcInst to end the route on. May be null
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      * @return a List of RouteElements denoting route
      */
-    protected Route planRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+    protected Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
 
         Route route = new Route();               // hold the route
-        Cell cell = wnd.getCell();
         if (cell == null) return route;
 
         RouteElement startRE = null;                // denote start of route

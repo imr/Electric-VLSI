@@ -280,7 +280,7 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
 	                        endObj = h2.getElectricObject();
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(wnd, h1.getElectricObject(), h2.getElectricObject(), dbClick);
+	                        router.highlightRoute(cell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
 	                        return;
 	                    }
 	                }
@@ -305,7 +305,7 @@ public class ClickZoomWireListener
                                 endObj = h2.getElectricObject();
                             }
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(wnd, h1.getElectricObject(), endObj, dbClick);
+	                        router.highlightRoute(cell, h1.getElectricObject(), endObj, dbClick);
 	                        return;
 	                    }
 	                }
@@ -509,7 +509,7 @@ public class ClickZoomWireListener
 	                    }
 	                    EditWindow.gridAlign(dbMouse);
 	                }
-	                router.highlightRoute(wnd, startObj, endObj, dbMouse);
+	                router.highlightRoute(cell, startObj, endObj, dbMouse);
 	                // clear any previous popup cloud
 	                /*
 	                wnd.clearShowPopupCloud();
@@ -548,12 +548,12 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-	                router.highlightRoute(wnd, startObj, endObj, dbMouse);
+	                router.highlightRoute(cell, startObj, endObj, dbMouse);
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     // wire only to point in space
                     EditWindow.gridAlign(dbMouse);
-                    router.highlightRoute(wnd, startObj, null, dbMouse);
+                    router.highlightRoute(cell, startObj, null, dbMouse);
                 }
 	        }
 	
@@ -689,7 +689,7 @@ public class ClickZoomWireListener
 	                    endObj = h2.getElectricObject();
 	                }*/
 	                EditWindow.gridAlign(dbMouse);
-	                router.makeRoute(wnd, startObj, endObj, dbMouse);
+	                router.makeRoute(cell, startObj, endObj, dbMouse);
 	                // clear any popup cloud we had
 	                //wnd.clearShowPopupCloud();
 	                // clear last switched to highlight
@@ -697,12 +697,12 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-	                router.makeRoute(wnd, startObj, endObj, dbMouse);
+	                router.makeRoute(cell, startObj, endObj, dbMouse);
                     wiringTarget = null;
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     EditWindow.gridAlign(dbMouse);
-                    router.makeRoute(wnd, startObj, null, dbMouse);
+                    router.makeRoute(cell, startObj, null, dbMouse);
                     wiringTarget = null;
                 }
 	            modeRight = Mode.none;
@@ -977,6 +977,7 @@ public class ClickZoomWireListener
     public void switchWiringTarget() {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
+        Cell cell = wnd.getCell();
 
         // if in mode wiringToSpace, switch out of it, and drop to next
         // block to find new wiring target
@@ -1019,7 +1020,7 @@ public class ClickZoomWireListener
                 if (modeRight == Mode.wiringToSpace) {
                     endObj = null;
                     System.out.println("Switching to 'ignore all wiring targets'");
-                    router.highlightRoute(wnd, startObj, null, dbMouse);
+                    router.highlightRoute(cell, startObj, null, dbMouse);
                     return;
                 }
                 // if same target, do nothing
@@ -1032,7 +1033,7 @@ public class ClickZoomWireListener
                 } else {
                     System.out.println("Switching to wiring target '"+wiringTarget+"'");
                 }
-                router.highlightRoute(wnd, startObj, wiringTarget, dbMouse);
+                router.highlightRoute(cell, startObj, wiringTarget, dbMouse);
             //}
             // nothing under mouse to route to/switch between, return
         }

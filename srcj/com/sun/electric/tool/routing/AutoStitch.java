@@ -62,6 +62,7 @@ import java.util.ArrayList;
 public class AutoStitch
 {
 	/** the prefered arc */		static ArcProto preferredArc;
+    /** router used to wire */  static InteractiveRouter router = new SimpleWirer();
 
 	/**
 	 * Method to do auto-stitching.
@@ -775,7 +776,11 @@ public class AutoStitch
 
 			// run the wire
 			List added = WiringListener.makeConnection(ni, pp, oNi, opp, new Point2D.Double(x,y), true, true);
-			if (added.size() == 0) return false;
+            PortInst pi = ni.getPortInst(pp);
+            PortInst opi = oNi.getPortInst(opp);
+            Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y));
+            if (route.size() == 0) return false;
+            Router.createRouteNoJob(route, ni.getParent(), false);
 			return true;
 		}
 

@@ -106,7 +106,7 @@ public abstract class Router {
     }
 
     /**
-     * Create the route.  If finalRE is not null, set it as highlighted.
+     * Create the route within a Job.
      * @param route the route to create
      * @param cell the cell in which to create the route
      */
@@ -117,6 +117,59 @@ public abstract class Router {
     /** Return a string describing the Router */
     public abstract String toString();
 
+    /**
+     * Create the route, but not in a Job. If
+     * @param route the route to create
+     * @param cell the cell in which to create the route
+     * @param verbose if true, prints objects created
+     * @return
+     */
+    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose) {
+        // check if we can edit this cell
+        if (CircuitChanges.cantEdit(cell, null, true)) {
+            //Highlight.clear();
+            //Highlight.finished();
+            return false;
+        }
+
+        int arcsCreated = 0;
+        int nodesCreated = 0;
+        // pass 1: build all newNodes
+        for (Iterator it = route.iterator(); it.hasNext(); ) {
+            RouteElement e = (RouteElement)it.next();
+            if (e.getAction() == RouteElement.RouteElementAction.newNode) {
+                e.doAction();
+                nodesCreated++;
+            }
+        }
+        // pass 2: do all other actions (deletes, newArcs)
+        for (Iterator it = route.iterator(); it.hasNext(); ) {
+            RouteElement e = (RouteElement)it.next();
+            e.doAction();
+            if (e.getAction() == RouteElement.RouteElementAction.newArc)
+                arcsCreated++;
+        }
+        if (verbose) {
+            if (arcsCreated == 1)
+                System.out.print("1 arc, ");
+            else
+                System.out.print(arcsCreated+" arcs, ");
+            if (nodesCreated == 1)
+                System.out.println("1 node created");
+            else
+                System.out.println(nodesCreated+" nodes created");
+        }
+        RouteElement finalRE = route.getEnd();
+        if (finalRE != null) {
+            Highlight.clear();
+            PortInst pi = finalRE.getConnectingPort();
+            if (pi != null) {
+                Highlight.addElectricObject(pi, cell);
+                Highlight.finished();
+            }
+        }
+        return true;
+    }
 
     // -------------------------- Job to build route ------------------------
 
@@ -141,51 +194,7 @@ public abstract class Router {
 
         /** Implemented doIt() method to perform Job */
         public boolean doIt() {
-
-            // check if we can edit this cell
-            if (CircuitChanges.cantEdit(cell, null, true)) {
-                //Highlight.clear();
-                //Highlight.finished();
-                return false;
-            }
-
-            int arcsCreated = 0;
-            int nodesCreated = 0;
-            // pass 1: build all newNodes
-            for (Iterator it = route.iterator(); it.hasNext(); ) {
-                RouteElement e = (RouteElement)it.next();
-                if (e.getAction() == RouteElement.RouteElementAction.newNode) {
-                    e.doAction();
-                    nodesCreated++;
-                }
-            }
-            // pass 2: do all other actions (deletes, newArcs)
-            for (Iterator it = route.iterator(); it.hasNext(); ) {
-                RouteElement e = (RouteElement)it.next();
-                e.doAction();
-                if (e.getAction() == RouteElement.RouteElementAction.newArc)
-                    arcsCreated++;
-            }
-            if (verbose) {
-                if (arcsCreated == 1)
-                    System.out.print("1 arc, ");
-                else
-                    System.out.print(arcsCreated+" arcs, ");
-                if (nodesCreated == 1)
-                    System.out.println("1 node created");
-                else
-                    System.out.println(nodesCreated+" nodes created");
-            }
-            RouteElement finalRE = route.getEnd();
-            if (finalRE != null) {
-                Highlight.clear();
-                PortInst pi = finalRE.getConnectingPort();
-                if (pi != null) {
-                    Highlight.addElectricObject(pi, cell);
-                    Highlight.finished();
-                }
-            }
-			return true;
+            return createRouteNoJob(route, cell, verbose);
        }
     }
 
@@ -314,7 +323,7 @@ public abstract class Router {
      * @param ap the Arc type to connect with
      * @return the width to use to connect
      */
-    protected static double getArcWidthToUse(PortInst pi, ArcProto ap) {
+    public static double getArcWidthToUse(PortInst pi, ArcProto ap) {
         // if pi null, just return default width of ap
         if (pi == null) return ap.getDefaultWidth();
 

@@ -555,6 +555,7 @@ public class SpiceTab extends PreferencePanel
         spiceRunProgram.setEnabled(enabled);
         spiceRunProgramArgs.setEnabled(enabled);
         spiceRunHelp.setEnabled(enabled);
+        spiceRunProbe.setEnabled(enabled);
         if (enabled) {
             spiceRunProgram.setBackground(Color.white);
             if (!useDirCheckBox.isSelected()) {

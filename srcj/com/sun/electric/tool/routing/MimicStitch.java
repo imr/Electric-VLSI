@@ -53,6 +53,8 @@ import javax.swing.JOptionPane;
  */
 public class MimicStitch
 {
+    /** router to use */            static InteractiveRouter router = new SimpleWirer();
+
 	/*
 	 * Entry point for mimic router.  Called each "slice".  If "forced" is true,
 	 * this mimic operation was explicitly requested.
@@ -745,11 +747,15 @@ public class MimicStitch
 					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
 						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
 					List added = WiringListener.makeConnection(pa.ni1, pa.pp1, pa.ni2, pa.pp2, bend, false, false);
-					if (added == null)
+                    /*PortInst pi1 = pa.ni1.getPortInst(pa.pp1);
+                    PortInst pi2 = pa.ni2.getPortInst(pa.pp2);
+                    Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
+                    if (route.size() == 0)
 					{
 						System.out.println("Problem creating arc");
 						return count;
 					}
+                    Router.createRouteNoJob(route, pa.ni1.getParent(), false);*/
 					flushStructureChanges = true;
 					count++;
 				}
