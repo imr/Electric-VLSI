@@ -34,11 +34,11 @@ import java.util.List;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Subcircuit;
-import com.sun.electric.tool.ncc.jemNets.Mos;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.Mos;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
+import com.sun.electric.tool.ncc.netlist.Subcircuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratCheckSizes extends Strategy {

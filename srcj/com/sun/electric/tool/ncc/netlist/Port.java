@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -87,26 +87,7 @@ public class Port extends NetObject {
 		return popularType;
 	}
 	
-	/** Warn user if all Exports on a single wire don't have the same type */
-	public void warnIfExportTypesDiffer(String cellName) {
-		PortCharacteristic popularType = getType();
-		for (int i=0; i<names.size(); i++) {
-			String nm = (String) names.get(i);
-			PortCharacteristic t = (PortCharacteristic)types.get(i);
-			if (t!=popularType) {
-				System.out.println("In Cell: "+cellName+
-                                   " the export: "+nm+
-                                   " has Characteristic: "+t.toString()+
-                                   " which differs from the most common Characteristic: "+
-                                   popularType.toString()+
-                                   " of the exports: "+
-                                   exportNamesString());
-			}
-		}
-	}
-
 	public Wire getWire(){return wire;}
-
 
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");

@@ -21,11 +21,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
 /** A Cell instance that is being treated as a primitive circuit component

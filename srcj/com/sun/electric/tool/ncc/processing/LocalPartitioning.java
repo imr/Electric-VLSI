@@ -28,8 +28,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.jemNets.PinType;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.strategy.StratCountPartPinsOnWires;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;

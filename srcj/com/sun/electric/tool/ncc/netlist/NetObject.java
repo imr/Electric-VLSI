@@ -24,7 +24,7 @@
 //	Updated 10 October 2003
 //revised for jemTree interface 16 October 03
 
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.Iterator;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -67,7 +67,6 @@ public abstract class NetObject {
 	
     // ---------- public methods ----------
 
-    public abstract String getName();
 
     /** Return an integer hash code for this NetObject.
 	 * @return the integer hash code from this NetObjec's EquivRecord. */
@@ -79,7 +78,8 @@ public abstract class NetObject {
 	public void setParent(Circuit x){myParent=x;}
 
 	public abstract boolean isDeleted(); 
-	
+	/** instance name qualified by path prefix */
+    public abstract String getName();
 	/** human readable identification of instance */
 	public abstract String instanceDescription();
 	/** human readable enumeration of sizes and other values */

@@ -28,8 +28,8 @@ import java.util.Iterator;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.strategy.StratAdjacent;
 import com.sun.electric.tool.ncc.strategy.StratCount;
 import com.sun.electric.tool.ncc.strategy.StratHashParts;

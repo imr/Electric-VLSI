@@ -24,35 +24,30 @@
 package com.sun.electric.tool.ncc;
 
 import java.util.List;
-import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 /* Implements NCC's user interface */
 public class NccJob extends Job {
 	public static NccResult lastResult;
 	private final int numWindows;
+	private void prln(String s) {System.out.println(s);}
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
 		CellContext curCellCtxt = NccUtils.getCurrentCellContext();
 		if (curCellCtxt==null) {
-			System.out.println("Please open the Cell you wish to NCC");
+			prln("Please open the Cell you wish to NCC");
 			return null;
 		}
 		Cell[] schLay = NccUtils.findSchematicAndLayout(curCellCtxt.cell);
 		if (schLay==null) {
-			System.out.println("current Cell Group doesn't have both schematic and layout Cells");
+			prln("current Cell Group doesn't have both schematic and layout Cells");
 			return null;
 		}
 		CellContext[] cc = {
@@ -66,7 +61,7 @@ public class NccJob extends Job {
 		Cell c = cc.cell;
 		View v = c.getView();
 		boolean ok = c.isSchematic() || v==View.LAYOUT;
-		if (!ok) System.out.println("Cell: "+NccUtils.fullName(c)+
+		if (!ok) prln("Cell: "+NccUtils.fullName(c)+
 									" isn't schematic or layout");
 		return ok;
 	}
@@ -74,14 +69,13 @@ public class NccJob extends Job {
 	private boolean isSchem(CellContext cc) {
 		return cc.cell.isSchematic();
 	}
-	private void prln(String s) {System.out.println(s);}
 
-	/** If one Cell is a schematic then put it first
+	/** If one Cell is a schematprlnst
 	 * @return null if not schematic or layout Cells */ 
 	private CellContext[] getTwoCellsFromTwoWindows() {
 		List cellCtxts = NccUtils.getCellContextsFromWindows();
 		if (cellCtxts.size()<2) {
-			System.out.println("Two Cells aren't open in two windows");
+			prln("Two Cells aren't open in two windows");
 			return null;
 		} 
 		if (cellCtxts.size()>2) {

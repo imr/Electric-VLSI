@@ -99,12 +99,10 @@ public class NccCellAnnotations {
 					pos++; // skip the trailing '/'
 				}
 				String pat = s.substring(startTok, endTok);
-				//System.out.println("       regExp: "+pat);
 				return new NamePattern(true, pat);
 			} else {
 				endTok = findWhite();
 				if (endTok==-1) endTok = s.length();
-				//System.out.println("        name: "+s.substring(startTok, endTok));
 				return new NamePattern(false, s.substring(startTok, endTok));
 			}
 		}

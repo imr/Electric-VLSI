@@ -69,8 +69,8 @@ public class HierarchyInfo {
 	 * its corresponding CellGroup is instantiated by both Cells begin compared.
 	 * When we perform a hierarchical comparison we need to rescan the 
 	 * sub-hierarchies for each pair of Cells being compared. */
-	public void restrictSubcktDetection(Cell c1, Cell c2) {
-		List compareLists = CompareLists.getCompareLists(c1, c2);
+	public void restrictSubcktDetection(CellContext cc1, CellContext cc2) {
+		List compareLists = CompareLists.getCompareLists(cc1, cc2);
 		cellsInSharedCellGroups = new HashSet();
 		for (Iterator it=compareLists.iterator(); it.hasNext();) {
 			CompareList compareList = (CompareList) it.next();

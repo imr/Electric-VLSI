@@ -29,7 +29,7 @@ import java.util.Map;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.Primes;
-import com.sun.electric.tool.ncc.jemNets.Port;
+import com.sun.electric.tool.ncc.netlist.Port;
 
 /** Holds information necessary to treat this Cell as a primitive subcircuit
  *  when performing hierarchical netlist comparison at a higher level */

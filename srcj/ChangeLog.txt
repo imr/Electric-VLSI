@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG (03/29/05, RK) NCC: Obtain VarContext from Current Window.
+
+IMP: (03/29/05, RK) NCC: Superficial changes to names, etc.
+
 IMP/MAN: (03/29/05, GVG) Icons in technology palette are arranged per layer Z position from bottom of the wafer.
 "Pure/Misc/Cell" menus are on the top and transistors on the bottom. Metal contacts are sorted by lower metal.
 

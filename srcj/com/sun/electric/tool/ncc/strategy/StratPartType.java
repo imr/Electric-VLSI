@@ -28,9 +28,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /* StratPartType partitions Part equivalence classes
@@ -87,15 +87,6 @@ public class StratPartType extends Strategy {
 			typeCodeToTypeName.put(typeCode, typeName);
 			Set partPinTypes = p.getPinTypes();
 			pinTypes.addAll(partPinTypes);
-			
-			// debugging
-//			System.out.print("Adding typeCode="+typeCode+" typeName="+typeName+
-//			                 " pinTypes=");
-//			for (Iterator it=partPinTypes.iterator(); it.hasNext();) {
-//				PinType pinType = (PinType) it.next();
-//				System.out.print(" ("+pinType.description()+")");
-//			}
-//			System.out.println();
 		}
 		return typeCode;
     }

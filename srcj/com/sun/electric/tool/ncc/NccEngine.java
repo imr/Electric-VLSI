@@ -38,7 +38,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.jemNets.NccNetlist;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
 import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
@@ -93,7 +93,7 @@ public class NccEngine {
 		String[] cellNames = globals.getRootCellNames();
 		VarContext[] contexts = globals.getRootContexts();
 		for (int i=0; i<cellNames.length; i++) {
-			System.out.println(
+			globals.status1(
 				"  Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
 				partCounts[i]+" parts, after series/parallel combination. "+
 				"Instance path: "+

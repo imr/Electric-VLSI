@@ -27,11 +27,11 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Port;
-import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
+import com.sun.electric.tool.ncc.netlist.Port;
+import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**

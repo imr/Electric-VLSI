@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class CompareLists {
@@ -68,14 +69,14 @@ public class CompareLists {
 		}
 		return compareLists;
 	}
-	private List getCompareLists1(Cell c1, Cell c2) {
-		CellUsage use1 = CellUsage.getCellUsage(c1);
-		CellUsage use2 = CellUsage.getCellUsage(c2);
+	private List getCompareLists1(CellContext cc1, CellContext cc2) {
+		CellUsage use1 = CellUsage.getCellUsage(cc1);
+		CellUsage use2 = CellUsage.getCellUsage(cc2);
 		return getCompareLists(use1, use2);
 	}
 	
-	public static List getCompareLists(Cell c1, Cell c2) {
-		return (new CompareLists()).getCompareLists1(c1, c2);
+	public static List getCompareLists(CellContext cc1, CellContext cc2) {
+		return (new CompareLists()).getCompareLists1(cc1, cc2);
 	}
 }
 

@@ -61,7 +61,9 @@ class Passed {
  * a schematic view as a hierarchical entity. */
 public class NccBottomUp {
 	/** remember which Cells have already passed NCC */
-	private static final Passed passed = new Passed(); 
+	private static final Passed passed = new Passed();
+	
+	private void prln(String s) {System.out.println(s);}
 
 	/** Prefer a schematic reference cell because mismatch diagnostics
 	 * will be easier for the user to understand. */
@@ -86,8 +88,7 @@ public class NccBottomUp {
 			if (ann==null) continue;
 			String reason = ann.getBlackBoxReason(); 
 			if (reason!=null) {
-				System.out.println("Black box: "+NccUtils.fullName(c)+
-				                   " because "+reason);
+				prln("Black box: "+NccUtils.fullName(c)+ " because "+reason);
 				return true;
 			} 			
 		}
@@ -97,8 +98,8 @@ public class NccBottomUp {
 			                                Cell cell2, VarContext ctxt2, 
                                             HierarchyInfo hierInfo,
                                             NccOptions options) {
-        System.out.println("Comparing: "+NccUtils.fullName(cell1)+
-                           " with: "+NccUtils.fullName(cell2));
+        prln("Comparing: "+NccUtils.fullName(cell1)+
+             " with: "+NccUtils.fullName(cell2));
         System.out.flush();
         Date before = new Date();
         NccResult result = NccEngine.compare(cell1, ctxt1, cell2, ctxt2,  
@@ -109,7 +110,7 @@ public class NccBottomUp {
         Date after = new Date();
 
         String timeStr = NccUtils.hourMinSec(before, after);
-        System.out.println(result.summary(options.checkSizes)+" in "+timeStr+".");
+        prln(result.summary(options.checkSizes)+" in "+timeStr+".");
         System.out.flush();
 
         return result;
@@ -146,7 +147,7 @@ public class NccBottomUp {
 				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options);
 				if (!ok) return null;
 			} else {
-				hierInfo.restrictSubcktDetection(refCC.cell, thisCC.cell);
+				hierInfo.restrictSubcktDetection(refCC, thisCC);
 
 				// release storage from a previous comparison
 				result.abandonNccGlobals();
@@ -206,7 +207,7 @@ public class NccBottomUp {
 			NccResult r = compareCellsInCompareList(compareList, hierInfo, 
 					                                blackBoxAnn, options); 
 			if (r==null) {
-				System.out.println(
+				prln(
 					"Halting multiple cell NCC because of failure to build " +
 					"a black box"
 				);
@@ -215,7 +216,7 @@ public class NccBottomUp {
 			result.andEquals(r);
 
 			if (!result.match() && options.haltAfterFirstMismatch) {
-				System.out.println( 
+				prln( 
 					"Halting multiple cell NCC after finding first mismatch"
 				);
 				return result;
@@ -224,15 +225,17 @@ public class NccBottomUp {
 		return result;
 	}
 
-	private NccResult compareCells(Cell c1, Cell c2, NccOptions options) {
-		List compareLists = CompareLists.getCompareLists(c1, c2);
+	private NccResult compareCells(CellContext cc1, CellContext cc2, 
+								   NccOptions options) {
+		List compareLists = CompareLists.getCompareLists(cc1, cc2);
 		return processCompareLists(compareLists, options);
 	}
 
 	// --------------------------- public methods -----------------------------
-	public static NccResult compare(Cell c1, Cell c2, NccOptions options) {
+	public static NccResult compare(CellContext cc1, CellContext cc2, 
+									NccOptions options) {
 		NccBottomUp ncch = new NccBottomUp();
-		return ncch.compareCells(c1, c2, options);
+		return ncch.compareCells(cc1, cc2, options);
 	}
 	public static void clearPassedHistory() {passed.clear();}
 }

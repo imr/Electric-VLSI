@@ -25,9 +25,9 @@ package com.sun.electric.tool.ncc.strategy;
 import java.util.Iterator;
 
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratHashParts extends Strategy {

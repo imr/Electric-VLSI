@@ -35,9 +35,9 @@ import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
 /** Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.

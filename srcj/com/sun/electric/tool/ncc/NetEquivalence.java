@@ -55,6 +55,7 @@ public class NetEquivalence {
 		}
 		return false;
 	}
+	private void pr(String s) {System.out.print(s);}
 	/** @param equivNets is a NetNameProxy[][]. NetNameProxy[d][n] gives the 
 	 * nth net of the dth design.  NetNameProxy[a][n] is "NCC equivalent" to 
 	 * NetNameProxy[b][n] for all a and b.*/
@@ -132,11 +133,11 @@ public class NetEquivalence {
 				if (to!=equivNets[otherDesign][netNdx])  numErrors++;
 			}
 		}
-		System.out.print("  Net equivalence regression "+
+		pr("  Net equivalence regression "+
 				         (numErrors==0 ? "passed. " : "failed. "));
-		System.out.print(numNets+" matched Networks. ");
+		pr(numNets+" matched Networks. ");
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
-		System.out.println();
+		pr("\n");
 
 		return numErrors;
 	}

@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
 public class Circuit {

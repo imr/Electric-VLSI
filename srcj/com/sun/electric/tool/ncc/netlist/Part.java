@@ -21,9 +21,10 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;

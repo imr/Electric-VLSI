@@ -41,9 +41,9 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.jemNets.NccNetlist;
-import com.sun.electric.tool.ncc.jemNets.Wire;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
+import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
@@ -109,7 +109,7 @@ public class NccGlobals {
 		return EquivRecord.newLeafRecord(code, ckts, this);
 	}
 	
-	private void println(String s) {System.out.println(s); System.out.flush();}
+	private void prln(String s) {System.out.println(s); System.out.flush();}
 	// ----------------------------- public methods --------------------------
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
@@ -166,10 +166,10 @@ public class NccGlobals {
 		return rootCellNames;
 	}
 	public void status1(String msg) {
-		if (options.howMuchStatus>=1) println(msg);
+		if (options.howMuchStatus>=1) prln(msg);
 	}
 	public void status2(String msg) {
-		if (options.howMuchStatus>=2) println(msg); 
+		if (options.howMuchStatus>=2) prln(msg); 
 	}
 	public void flush() {System.out.flush();}
 	public void error(boolean pred, String msg) {

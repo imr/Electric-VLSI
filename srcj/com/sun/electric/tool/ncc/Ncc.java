@@ -28,6 +28,7 @@ import java.util.Date;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 
 /** Compare potentially multiple cells in a hierarchy. 
@@ -38,11 +39,10 @@ public class Ncc {
 
 	private Ncc() {}
 	
-	private NccResult compare1(Cell cell1, VarContext ctxt1,
-    		                   Cell cell2, VarContext ctxt2,
-							   NccOptions options) {
+	private NccResult compare1(CellContext cc1, CellContext cc2,
+			                   NccOptions options) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
-			ListNccAnnotations.doYourJob(cell1, cell2);
+			ListNccAnnotations.doYourJob(cc1.cell, cc2.cell);
 			return new NccResult(true, true, true, null);
 		} else {
 	    	Date before = new Date();
@@ -56,11 +56,11 @@ public class Ncc {
 			  default:
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
-			NccResult result = NccBottomUp.compare(cell1, cell2, options); 
+			NccResult result = NccBottomUp.compare(cc1, cc2, options); 
 
-			System.out.println("Summary for all cells: "+result.summary(options.checkSizes));
+			prln("Summary for all cells: "+result.summary(options.checkSizes));
 			Date after = new Date();
-			System.out.println("NCC command completed in: "+
+			prln("NCC command completed in: "+
 			                   NccUtils.hourMinSec(before, after)+".");
 			return result;
 		}
@@ -73,6 +73,7 @@ public class Ncc {
     	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
     	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();
-    	return ncc.compare1(cell1, ctxt1, cell2, ctxt2, options);
+    	return ncc.compare1(new CellContext(cell1, ctxt1), 
+    			            new CellContext(cell2, ctxt2), options);
     }
 }

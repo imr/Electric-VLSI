@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 
 import java.util.Iterator;
 
@@ -37,14 +37,26 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
   * a common path prefix from the name. */
 public abstract class NccNameProxy {
 	private String commonPathPrefix;
-
-	public String toString() {
-		String fullName = nameProxy().toString();
+	
+	private String removePrefix(String fullName) {
 		if (commonPathPrefix.length()==0) return fullName;
 		LayoutLib.error(!fullName.startsWith(commonPathPrefix), 
                         "common path prefix not found");
 		// +1 to skip separator
-		return fullName.substring(commonPathPrefix.length()+1);		
+		int start = commonPathPrefix.length()+1;
+		if (start>fullName.length()-1) {
+			// nothing but the prefix
+			return "";
+		} else {
+			return fullName.substring(start);		
+		}
+	}
+
+	/** It was a mistake to use toString(). The use of toString() makes
+	 * code unmodifiable. Let me begin the process of purging all uses. */
+	public String toString() {
+		LayoutLib.error(true, "Please tell Russell about this use of toString");
+		return null;
 	}
 	abstract NameProxy nameProxy();
 	NccNameProxy(String commonPathPrefix) {
@@ -55,8 +67,13 @@ public abstract class NccNameProxy {
 	}
 	public Cell leafCell() {return nameProxy().leafCell();}
 	public String leafName() {return nameProxy().leafName();}
+	/** Name whose instance path starts from the Cell from which NCC was run */
+	public String getName() {
+		return removePrefix(nameProxy().toString());
+	}
+	/** Cell instance path starting from the Cell from which NCC was run. */
 	public String cellInstPath() {
-		return nameProxy().getContext().getInstPath("/");
+		return removePrefix(nameProxy().getContext().getInstPath("/"));
 	}
 
 	public static class PartNameProxy extends NccNameProxy {

@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.Set;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** One or more MOS transistors in series. All gates have the same width
@@ -216,11 +216,6 @@ public class Mos extends Part {
 					coeffArray[i] = coeffArray[j] = Primes.get(nthPrime);
 				}
 				coeffArrays.set(numPins, coeffArray);
-				// debug
-				//System.out.print("New coeff array:");
-				//for (int i=0; i<numPins; i++) 
-				//	System.out.print(" "+coeffArray[i]);
-				//System.out.println();
 			}
 			return coeffArray;
 		}

@@ -21,8 +21,9 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
+package com.sun.electric.tool.ncc.netlist;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ public class Wire extends NetObject{
     // ---------- public methods ----------
 
 	public Wire(WireNameProxy name){nameProxy = name;}
-	public String getName() {return nameProxy.toString();}
+	public String getName() {return nameProxy.getName();}
 	public WireNameProxy getNameProxy() {return nameProxy;}
 	public Iterator getParts() {return parts.iterator();}
 	public Iterator getConnected() {return getParts();}

@@ -22,14 +22,14 @@
  * Boston, Mass 02111-1307, USA.
 */
 
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
 /** One or more MOS transistors in series. All gates have the same width
  * and length. */

@@ -34,13 +34,14 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 	private HashSet enteredCells = new HashSet();
 
+	private void prln(String s) {System.out.println(s);}
 	private void printAnn(Cell cell) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		if (ann==null) return;
-		System.out.println("  Cell: "+NccUtils.fullName(cell)+" annotations:");
+		prln("  Cell: "+NccUtils.fullName(cell)+" annotations:");
 
 		for (Iterator it=ann.getAnnotationText(); it.hasNext();) {
-			System.out.println("    "+it.next());
+			prln("    "+it.next());
 		}
 	}
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
@@ -57,8 +58,9 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 } 
 
 public class ListNccAnnotations {
+	private static void prln(String s) {System.out.println(s);}
 	private static void scanHierarchy(Cell cell) {
-		System.out.println("Listing NCC annotations for all Cells "+
+		prln("Listing NCC annotations for all Cells "+
 						   "in the hierarchy rooted at Cell: "+
 						   NccUtils.fullName(cell));
 		ScanHierForNccAnnot visitor = new ScanHierForNccAnnot();
@@ -71,6 +73,6 @@ public class ListNccAnnotations {
 		scanHierarchy(cell1);
 		scanHierarchy(cell2);
 
-		System.out.println("Done listing NCC annotations");											   
+		prln("Done listing NCC annotations");											   
 	}
 }

@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.ncc.jemNets;
+package com.sun.electric.tool.ncc.netlist;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,8 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
-import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 
 import com.sun.electric.technology.Technology;
 import com.sun.electric.database.hierarchy.Cell;
@@ -59,6 +57,8 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
@@ -380,7 +380,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 		Mos.Type t = Mos.TYPES.getTypeFromLongName(typeNm);
 		if (t==null) {
-			System.out.println("  Unrecognized transistor type: "+typeNm);
+			prln("  Unrecognized transistor type: "+typeNm);
 			throw new BadTransistorType();
 		}
 		return t;
