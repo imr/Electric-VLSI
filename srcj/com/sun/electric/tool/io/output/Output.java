@@ -632,13 +632,10 @@ public class Output
 	 * Method to determine the area of a cell that is to be printed.
 	 * Returns null if the area cannot be determined.
 	 */
-	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce)
+	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow wnd)
 	{
 		Rectangle2D bounds = cell.getBounds();
-		Dimension d = new Dimension();
-		int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
-		Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
-		if (frameFactor == 0) bounds = frameBounds;
+		if (wnd != null) bounds = wnd.getBoundsInWindow();
 
 		// extend it and make it square
 		if (reduce)
@@ -651,7 +648,6 @@ public class Output
 
 		if (IOTool.getPlotArea() != 0)
 		{
-			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null)
 			{
 				System.out.println("No current window: printing entire cell");

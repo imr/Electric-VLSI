@@ -2661,7 +2661,13 @@ public class CircuitChanges
 
 				// copy the port
 				String portName = ElectricObject.uniqueObjectName(pp.getName(), cell, PortProto.class);
-				Export.newInstance(cell, pi, portName);
+				Export newPp = Export.newInstance(cell, pi, portName);
+				if (newPp != null)
+				{
+					newPp.setCharacteristic(pp.getCharacteristic());
+					newPp.setTextDescriptor(pp.getTextDescriptor());
+					newPp.copyVarsFrom(pp);
+				}
 			}
 		}
 

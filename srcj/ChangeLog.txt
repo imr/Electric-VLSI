@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01as: *********************************
 
+BUG: (12/2/04, SMR) JELIB input may crash.
+FIX: In "JELIB.instantiateCellContent()" handle null "lineReader".
+
+IMP: (12/2/04, SMR) PostScript output improved (fills paper better, writes all ports).
+
+BUG: (12/2/04, SMR) Extracting instances doesn't preserve export characteristics.
+FIX: In CircuitChanges.extractOneNode(), copy all export information.
+
 IMP: (12/2/04, SMR) HSpice output reader can now handle wide signal format (9601).
 
 BUG: (12/1/04, SMR) Multi-object Properties does not adjust sizes right when mirroring is involved.

@@ -1372,6 +1372,8 @@ public class ViewChanges
 				PortInst pi = newNi.findPortInstFromProto(pp);
 				Export pp2 = Export.newInstance(newCell, pi, e.getName());
 				if (pp2 == null) return;
+				pp2.setCharacteristic(e.getCharacteristic());
+				pp2.setTextDescriptor(e.getTextDescriptor());
 				pp2.copyVarsFrom(e);
 			}
 		}

@@ -595,7 +595,9 @@ public class JELIB extends LibraryFiles
 			int numPieces = revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
 			if (pieces.size() < numPieces)
 			{
-				Input.errorLogger.logError(cc.fileName + ", line " + lineReader.getLineNumber() +
+				String lineNumber = "";
+				if (lineReader != null) lineNumber = ", line " + lineReader.getLineNumber();
+				Input.errorLogger.logError(cc.fileName + lineNumber +
 					", Node instance needs " + numPieces + " fields: " + cellString, cell, -1);
 				continue;
 			}

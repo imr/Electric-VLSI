@@ -36,7 +36,9 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -48,17 +50,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.EditWindow.DisplayedFrame;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -185,7 +178,7 @@ public class PostScript extends Output
 		double pageMargin = pageMarginPS;		// not right!!!
 
 		// determine the area of interest
-		Rectangle2D printBounds = getAreaToPrint(cell, false);
+		Rectangle2D printBounds = getAreaToPrint(cell, false, wnd);
 		if (printBounds == null) return;
 
 		boolean rotatePlot = false;
@@ -499,7 +492,7 @@ public class PostScript extends Output
 			TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 			td.setRelSize(size * 0.75);
 			poly.setTextDescriptor(td);
-			writer.psText(poly, Technology.getCurrent());
+			writer.psText(poly);
 		}
 	}
 
@@ -573,9 +566,11 @@ public class PostScript extends Output
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe());
 					psPoly(poly);
+					showCellPorts(ni, trans, null);
 				} else
 				{
 					recurseCircuitLevel(subCell, subTrans, false);
+					showCellPorts(ni, trans, Color.BLACK);
 				}
 
 				// draw any displayable variables on the instance
@@ -657,8 +652,66 @@ public class PostScript extends Output
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
 			for (int i=0; i<polys.length; i++)
 			{
-//				polys[i].transform(trans);
 				psPoly(polys[i]);
+			}
+		}
+	}
+
+	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
+	{
+		// show the ports that are not further exported or connected
+		int numPorts = ni.getProto().getNumPorts();
+		boolean[] shownPorts = new boolean[numPorts];
+		for(Iterator it = ni.getConnections(); it.hasNext();)
+		{
+			Connection con = (Connection) it.next();
+			PortInst pi = con.getPortInst();
+			shownPorts[pi.getPortIndex()] = true;
+		}
+		for(Iterator it = ni.getExports(); it.hasNext();)
+		{
+			Export exp = (Export) it.next();
+			PortInst pi = exp.getOriginalPort();
+			shownPorts[pi.getPortIndex()] = true;
+		}
+		int portDisplayLevel = User.getPortDisplayLevel();
+		for(int i = 0; i < numPorts; i++)
+		{
+			if (shownPorts[i]) continue;
+			Export pp = (Export)ni.getProto().getPort(i);
+	
+			Poly portPoly = ni.getShapeOfPort(pp);
+			if (portPoly == null) continue;
+			portPoly.transform(trans);
+			Color portColor = col;
+			if (portColor == null) portColor = pp.getBasePort().getPortColor();
+			setColor(portColor);
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				drawCross(portPoly.getCenterX(), portPoly.getCenterY(), false);
+			} else
+			{
+				// draw port as text
+				if (User.isTextVisibilityOnPort())
+				{
+					// combine all features of port text with color of the port
+					TextDescriptor descript = portPoly.getTextDescriptor();
+					TextDescriptor portDescript = pp.getTextDescriptor();
+					TextDescriptor newDescript = new TextDescriptor(pp, portDescript);
+					newDescript.lowLevelSetColorIndex(descript.getColorIndex());
+					Poly.Type type = descript.getPos().getPolyType();
+					portPoly.setStyle(type);
+					String portName = pp.getName();
+					if (portDisplayLevel == 1)
+					{
+						// use shorter port name
+						portName = pp.getShortName();
+					}
+					portPoly.setString(portName);
+					portPoly.setTextDescriptor(newDescript);
+					psText(portPoly);
+				}
 			}
 		}
 	}
@@ -746,6 +799,18 @@ public class PostScript extends Output
 	
 	/****************************** WRITE POLYGON ******************************/
 
+	private void setColor(Color col)
+	{
+		if (psUseColor)
+		{
+			if (col.getRGB() != lastColor)
+			{
+				lastColor = col.getRGB();
+				printWriter.print(col.getRed()/255.0f + " " + col.getGreen()/255.0f + " " + col.getBlue()/255.0f + " setrgbcolor\n");
+			}
+		}
+	}
+
 	/**
 	 * Method to plot the polygon "poly"
 	 */
@@ -782,14 +847,7 @@ public class PostScript extends Output
 		}
 
 		// set color if requested
-		if (psUseColor)
-		{
-			if (col.getRGB() != lastColor)
-			{
-				lastColor = col.getRGB();
-				printWriter.print(col.getRed()/255.0f + " " + col.getGreen()/255.0f + " " + col.getBlue()/255.0f + " setrgbcolor\n");
-			}
-		}
+		setColor(col);
 
 		Poly.Type type = poly.getStyle();
 		Point2D [] points = poly.getPoints();
@@ -888,7 +946,7 @@ public class PostScript extends Output
 		}
 
 		// text
-		psText(poly, tech);
+		psText(poly);
 	}
 
 	/**
@@ -1067,7 +1125,7 @@ public class PostScript extends Output
 	/**
 	 * draw text
 	 */
-	private void psText(Poly poly, Technology tech)
+	private void psText(Poly poly)
 	{
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();

@@ -2138,58 +2138,68 @@ public class EditWindow extends JPanel
 	}
 
 	/**
+	 * Method to compute the bounds of the cell in this EditWindow.
+	 * Bounds includes factors such as frame size and large text.
+	 * @return the bounds of the cell in this EditWindow.
+	 */
+	public Rectangle2D getBoundsInWindow()
+	{
+        Rectangle2D cellBounds = cell.getBounds();
+        Dimension d = new Dimension();
+        int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
+        Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
+        if (frameFactor == 0)
+        {
+            cellBounds = frameBounds;
+            if (cell.isMultiPage())
+            {
+            	double offY = pageNumber * Cell.FrameDescription.MULTIPAGESEPARATION;
+            	cellBounds.setRect(cellBounds.getMinX(), cellBounds.getMinY() + offY, cellBounds.getWidth(), cellBounds.getHeight());
+            }
+        } else
+        {
+            if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
+            {
+                int defaultCellSize = 60;
+                cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
+                    cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
+            }
+
+            // make sure text fits
+            setScreenBounds(cellBounds);
+            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
+            if (relativeTextBounds != null)
+            {
+                Rectangle2D newCellBounds = new Rectangle2D.Double();
+                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+                cellBounds = newCellBounds;
+            }
+
+            // make sure title box fits (if there is just a title box)
+            if (frameFactor == 1)
+            {
+                Rectangle2D.union(frameBounds, cellBounds, frameBounds);
+                cellBounds = frameBounds;
+            }
+        }
+        return cellBounds;
+	}
+
+	/**
 	 * Method to pan and zoom the screen so that the entire cell is displayed.
 	 */
 	public void fillScreen()
 	{
-        EditWindow wnd = this;
-        if (wnd.cell != null)
+        if (cell != null)
         {
-            if (!wnd.cell.getView().isTextView())
+            if (!cell.getView().isTextView())
             {
-                Rectangle2D cellBounds = wnd.cell.getBounds();
-                Dimension d = new Dimension();
-                int frameFactor = Cell.FrameDescription.getCellFrameInfo(wnd.cell, d);
-                Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
-                if (frameFactor == 0)
-                {
-                    cellBounds = frameBounds;
-                    if (wnd.cell.isMultiPage())
-                    {
-                    	double offY = this.pageNumber * Cell.FrameDescription.MULTIPAGESEPARATION;
-                    	cellBounds.setRect(cellBounds.getMinX(), cellBounds.getMinY() + offY, cellBounds.getWidth(), cellBounds.getHeight());
-                    }
-                } else
-                {
-                    if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
-                    {
-                        int defaultCellSize = 60;
-                        cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
-                                cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
-                    }
-
-                    // make sure text fits
-                    wnd.setScreenBounds(cellBounds);
-                    Rectangle2D relativeTextBounds = wnd.cell.getRelativeTextBounds(wnd);
-                    if (relativeTextBounds != null)
-                    {
-                        Rectangle2D newCellBounds = new Rectangle2D.Double();
-                        Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
-                        cellBounds = newCellBounds;
-                    }
-
-                    // make sure title box fits (if there is just a title box)
-                    if (frameFactor == 1)
-                    {
-                        Rectangle2D.union(frameBounds, cellBounds, frameBounds);
-                        cellBounds = frameBounds;
-                    }
-                }
-                wnd.focusScreen(cellBounds);
+                Rectangle2D cellBounds = getBoundsInWindow();
+                focusScreen(cellBounds);
                 return;
             }
         }
-        wnd.repaint();
+        repaint();
 	}
 
 	public void zoomOutContents()
