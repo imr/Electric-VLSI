@@ -985,8 +985,9 @@ public class JELIB extends LibraryFiles
 					", Unable to create dummy node in cell " + cell.describe() + " (cannot create source node)", cell, -1);
 				return null;
 			}
-			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Creating dummy node in cell " + cell.describe() + " to connect to node " + nodeName + ", port " + portName, cell, -1);
+			ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
+				", Arc end and port discrepancy at ("+headPt.getX()+","+headPt.getY()+"), port "+portName+" on node "+nodeName+" in cell " + cell.describe(), cell, -1);
+            log.addGeom(portNI, true, cell, null);
 			return portNI.getOnlyPortInst();
 		}
 
