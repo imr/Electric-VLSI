@@ -140,6 +140,8 @@ public class LayerCoverage extends Listener
             setReportExecutionFlag(true); // Want to report statistics
         }
 
+        public boolean isOK() { return !foundError; }
+
         public boolean doIt()
         {
             ErrorLogger errorLogger = ErrorLogger.newInstance("Area Coverage");

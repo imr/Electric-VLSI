@@ -24,8 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.Cell_;
-import com.sun.electric.database.DatabaseChangeThread;
+//import com.sun.electric.database.DatabaseChangeThread;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -68,6 +67,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.ThreeView;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -200,6 +200,9 @@ public class DebugMenus {
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
+        gildaMenu.addMenuItem("#D View", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {threeViewCommand();}});
+                
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
@@ -757,66 +760,31 @@ public class DebugMenus {
      * Easy way to test bash scripts
      */
     public static void testBash()
-    {String regressionname = "geoOnNet";
-String logname = "output/"+regressionname+Version.getVersion()+".log";
-boolean[] errorCounts = new boolean[2];
-double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
-double wireLength = GenMath.toNearest(163.30159818105273, delta);
-
-try {
+    {
+        String regressionname = "area";
+        String logname = "output/"+regressionname+Version.getVersion()+".log";
   TopLevel.getMessagesWindow().save(logname);
   String techName = "tsmc90";
-  DebugMenus.makeFakeCircuitryCommand(techName, false);
+  DebugMenus.makeFakeCircuitryForCoverageCommand(techName, false);
   Library rootLib = Library.findLibrary("noname");
-  Cell cell = rootLib.findNodeProto(techName+"test{lay}");
-  double calculatedValue = 0;
+  Cell cell = rootLib.findNodeProto("higher{lay}");
+        Technology curTech = cell.getTechnology();
 
-  // Similar to ListGeomsAllNetworksJob
-  Netlist netlist = cell.getNetlist(true);
-  ArrayList networks = new ArrayList();
-  for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
-    networks.add(it.next());
+  for(Iterator it = curTech.getLayers(); it.hasNext(); )
+  {
+    Layer layer = (Layer)it.next();
+    Object obj = layerAreaMap.get(layer);
+    if (obj == null) continue;  // it should not happen though
+    GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
+    layer.setFactoryAreaCoverageInfo(value.doubleValue());
   }
-    // sort list of networks by name
-    Collections.sort(networks, new TextUtils.NetworksByName());
-
-    System.out.println("------RUNNING QTREE MODE -------------");
-    for (Iterator it = networks.iterator(); it.hasNext(); ) {
-        Network net = (Network)it.next();
-        HashSet nets = new HashSet();
-        nets.add(net);
-        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false, GeometryHandler.ALGO_QTREE);
-        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
-        // Only 1 net gives non zero value
-        if (geoms.getTotalWireLength() != 0)
-            calculatedValue = GenMath.toNearest(geoms.getTotalWireLength(), delta);
     }
-    System.out.println("Wire value " + calculatedValue + " (expected " + wireLength + ")");
-    errorCounts[0] = !GenMath.doublesEqual(calculatedValue, wireLength);
 
-    System.out.println("------RUNNING SWEEP MODE -------------");
-    calculatedValue = 0;
-    for (Iterator it = networks.iterator(); it.hasNext(); ) {
-        Network net = (Network)it.next();
-        HashSet nets = new HashSet();
-        nets.add(net);
-        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false, GeometryHandler.ALGO_SWEEP);
-        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
-        // Only 1 net gives non zero value
-        if (geoms.getTotalWireLength() != 0)
-            calculatedValue = GenMath.toNearest(geoms.getTotalWireLength(), delta);
-    }
-    System.out.println("Wire value " + calculatedValue + " (expected " + wireLength + ")");
-    errorCounts[1] = !GenMath.doublesEqual(calculatedValue, wireLength);
-} catch (Exception e) {
-  System.out.println("exception: "+e);
-  e.printStackTrace();
-  System.exit(1);
-}
-
-System.out.println("Error results : QTREE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
-System.exit((!errorCounts[0] && !errorCounts[1]) ? 0 : 1);
-    }
+    public static void threeViewCommand()
+	{
+ 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
+		dialog.setVisible(true);
+	}
 
     public static void genFakeNodes()
     {
@@ -1599,35 +1567,30 @@ P 704883 0 0 0
 		(new DatabaseTestThread()).start();
 	}
 
-	private static class DatabaseTestThread extends DatabaseChangeThread {
+	private static class DatabaseTestThread extends Thread/*DatabaseChangeThread*/ {
 		public void run() {
-			Cell_ cell = Cell_.newInstance("c0");
-			print(backup(null));
-//			ImmutableCell[] icells = new ImmutableCell[3];
-//
-//			ImmutableNodeInst[] inodes0 = new ImmutableNodeInst[10];
-//			inodes0[0] = ImmutableNodeInst.newInstance(0, "n0", EPoint.ORIGIN);
-//			inodes0[3] = ImmutableNodeInst.newInstance(2, "n3", new EPoint(2, 3));
-//			icells[0] = ImmutableCell.newInstance("c0", inodes0);
-//
-//			inodes0[2] = ImmutableNodeInst.newInstance(2, "n2", new EPoint(2, 2));
-//			icells[0] = icells[0].withNodes(inodes0);
-//
-//			ImmutableNodeInst[] inodes2 = new ImmutableNodeInst[1];
-//			inodes2[0] = ImmutableNodeInst.newInstance(2, "qq", EPoint.ORIGIN);
-//			icells[2] = ImmutableCell.newInstance("c2", inodes2);
-//
-//			Snapshot s = Snapshot.newInstance(icells);
-//
-//			s.check();
-//			print(s);
-//			try {
-//				s = s.withNodeName(0, 3, "qwerty");
-//			} catch (Throwable e) {
-//				e.printStackTrace();
-//			}
-//			s.check();
-//			print(s);
+			ImmutableCell[] icells = new ImmutableCell[3];
+
+			ImmutableNodeInst[] inodes0 = new ImmutableNodeInst[10];
+			inodes0[0] = ImmutableNodeInst.newInstance(0, "n0", EPoint.ORIGIN);
+			inodes0[3] = ImmutableNodeInst.newInstance(2, "n3", new EPoint(2, 3));
+			icells[0] = ImmutableCell.newInstance("c0", inodes0);
+
+			ImmutableNodeInst[] inodes2 = new ImmutableNodeInst[1];
+			inodes2[0] = ImmutableNodeInst.newInstance(2, "qq", EPoint.ORIGIN);
+			icells[2] = ImmutableCell.newInstance("c2", inodes2);
+
+			Snapshot s = Snapshot.newInstance(icells);
+
+			s.check();
+			print(s);
+			try {
+				s = s.withNodeName(0, 3, "qwerty");
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+			s.check();
+			print(s);
 		}
 	}
 
@@ -1640,7 +1603,7 @@ P 704883 0 0 0
 			for (int nodeId = 0, maxNodeId = cell.maxNodeId(); nodeId <= maxNodeId; nodeId++) {
 				ImmutableNodeInst node = cell.getNodeById(nodeId);
 				if (node == null) continue;
-				out.println(nodeId + "\tnode " + node.name + " " + s.getCellById(node.protoId).name + " " + node.anchor);
+				out.println(nodeId + "\tnode " + node.name + " " + node.protoId + " " + node.anchor);
 			}
 		}
 		out.println("----");

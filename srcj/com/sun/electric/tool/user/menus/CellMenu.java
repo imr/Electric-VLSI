@@ -266,12 +266,11 @@ public class CellMenu {
                 deltaX, deltaY);
 
         // No regression
-        boolean foundError = false;
         if (startJob)
             job.startJob();
         else
-            foundError = job.doIt();
-        return (foundError);
+            job.doIt();
+        return (job.isOK());
     }
 
     /**

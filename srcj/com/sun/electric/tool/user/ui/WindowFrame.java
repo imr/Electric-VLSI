@@ -30,9 +30,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
@@ -42,7 +40,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.ui.LayerTab;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -210,22 +207,19 @@ public class WindowFrame
     {
         WindowContent content = getContent();
 
-//        if (content instanceof View3DWindow)
-//            ((View3DWindow)content).setCamera(x, y, z);
+		if (view3DClass == null) return; // error in class initialization or not available
 
-//		if (view3DClass == null) return; // error in class initialization or not available
-//
-//		try
-//		{
-//            Method setCamera = null;
-//			if (setCamera == null)
-//				setCamera = view3DClass.getDeclaredMethod("setCamera",
-//                        new Class[] {Double.class, Double.class, Double.class});
-//			setCamera.invoke(view3DClass, new Object[]{x, y, z});
-//		} catch (Exception e) {
-//            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
-//            ActivityLogger.logException(e);
-//        }
+		try
+		{
+            Method setCamera = null;
+			if (setCamera == null)
+				setCamera = view3DClass.getDeclaredMethod("setCamera",
+                        new Class[] {WindowContent.class, Double.class, Double.class, Double.class});
+			setCamera.invoke(view3DClass, new Object[]{content, x, y, z});
+		} catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
+            ActivityLogger.logException(e);
+        }
     }
 
 	/**
