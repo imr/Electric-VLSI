@@ -95,7 +95,7 @@ public class ThreeDTab extends PreferencePanel
 		threeDLayerList.clearSelection();
 		threeDLayerList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent evt) { threeDClickedLayer(); }
+			public void mouseClicked(MouseEvent evt) { threeDValuesChanged(false); }
 		});
 		threeDThicknessMap = new HashMap();
 		threeDDistanceMap = new HashMap();
@@ -140,8 +140,7 @@ public class ThreeDTab extends PreferencePanel
         threeD.add(scaleField, gbc);
         scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
 
-
-		threeDClickedLayer();
+		threeDValuesChanged(false);
 
 		threeDPerspective.setSelected(User.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
@@ -260,7 +259,7 @@ public class ThreeDTab extends PreferencePanel
 					}
 				}
 				dialog.threeDLayerList.setSelectedValue(selectedLayer.getName(), true);
-				dialog.threeDClickedLayer();
+				dialog.threeDValuesChanged(false);
 			}
 		}
 		public void mouseReleased(MouseEvent evt) {}
@@ -295,37 +294,48 @@ public class ThreeDTab extends PreferencePanel
 
 		ThreeDInfoDocumentListener(ThreeDTab dialog) { this.dialog = dialog; }
 
-		public void changedUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
-		public void insertUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
-		public void removeUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+		public void changedUpdate(DocumentEvent e) { dialog.threeDValuesChanged(true); }
+		public void insertUpdate(DocumentEvent e) { dialog.threeDValuesChanged(true); }
+		public void removeUpdate(DocumentEvent e) { dialog.threeDValuesChanged(true); }
 	}
 
-	private void threeDValuesChanged()
+	private void threeDValuesChanged(boolean set)
 	{
-		if (initial3DTextChanging) return;
+        if (!set)
+           initial3DTextChanging = true;
+        else if (initial3DTextChanging) return;
 		String layerName = (String)threeDLayerList.getSelectedValue();
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-		thickness.setValue(TextUtils.atof(threeDThickness.getText()));
-		height.setValue(TextUtils.atof(threeDHeight.getText()));
+        if (set)
+        {
+            thickness.setValue(TextUtils.atof(threeDThickness.getText()));
+            height.setValue(TextUtils.atof(threeDHeight.getText()));
+        }
+        else
+        {
+            threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
+            threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+        }
+        if (!set) initial3DTextChanging = false;
 		threeDSideView.repaint();
 	}
 
-	private void threeDClickedLayer()
-	{
-		initial3DTextChanging = true;
-		String layerName = (String)threeDLayerList.getSelectedValue();
-		Layer layer = curTech.findLayer(layerName);
-		if (layer == null) return;
-		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
-		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
-		initial3DTextChanging = false;
-		threeDSideView.repaint();
-	}
+//	private void threeDClickedLayer()
+//	{
+//		initial3DTextChanging = true;
+//		String layerName = (String)threeDLayerList.getSelectedValue();
+//		Layer layer = curTech.findLayer(layerName);
+//		if (layer == null) return;
+//		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
+//		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
+//		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
+//		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+//		initial3DTextChanging = false;
+//		threeDSideView.repaint();
+//	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
