@@ -703,6 +703,8 @@ class NetSchem extends NetCell {
 			}
 			if (nodeOffsets[k] >= 0) continue;
 			NetCell netCell = Network.getNetCell((Cell)np);
+			if (!(netCell instanceof NetSchem)) continue;
+			NetSchem icon = (NetSchem)netCell;
 			NetSchem schem = netCell.getSchem();
 			if (schem == null) continue;
 			Name nodeName = ni.getNameKey();
@@ -712,7 +714,7 @@ class NetSchem extends NetCell {
 			for (int m = 0; m < numPorts; m++) {
 				Export e = (Export) np.getPort(m);
 				int portIndex = m;
-				portIndex = schem.portImplementation[portIndex];
+				portIndex = icon.portImplementation[portIndex];
 				int portOffset = schem.portOffsets[portIndex] - schem.portOffsets[0];
 				int busWidth = e.getProtoNameKey().busWidth();
 				int drawn = drawns[ni_pi[k] + m];
