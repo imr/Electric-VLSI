@@ -2335,7 +2335,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return the duplicate index of this NodeInst.
 	 * @return the duplicate index of this NodeInst.
 	 */
-	public int getDuplicate() { return 0; }
+	public int getDuplicate() { return duplicate; }
 
 	/**
 	 * Returns the TextDescriptor on this NodeInst selected by name.
