@@ -396,6 +396,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			apply.setEnabled(true);
 			selection.setEnabled(true);
 		}
+        selection.setSelectedIndex(0);
+        characteristics.setSelectedIndex(0);
 	}
 
 	private static class SortMultipleHighlights implements Comparator
