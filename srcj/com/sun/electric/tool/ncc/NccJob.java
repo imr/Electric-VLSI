@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.ncc;
 
+
 import java.util.*;
 
 import com.sun.electric.database.hierarchy.*;
@@ -113,7 +114,7 @@ public class NccJob extends Job {
 		}
 	}
 	
-    public void doIt() {
+    public boolean doIt() {
 		System.out.println("Ncc starting");
 		
 		String homeDir;
@@ -141,6 +142,7 @@ public class NccJob extends Job {
 		//doLib(testDir, "senseReg");
 		//doLib(testDir, "rxPads");
 		
+		return true;
     }
 
 	// ------------------------- public method --------------------------------

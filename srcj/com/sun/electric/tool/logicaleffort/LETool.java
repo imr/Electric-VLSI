@@ -289,7 +289,7 @@ public class LETool extends Tool {
 			this.startJob(true, false);
         }
         
-        public void doIt() {
+        public boolean doIt() {
             setProgress("building equations");
             System.out.print("Building equations...");
 
@@ -312,14 +312,14 @@ public class LETool extends Tool {
             System.out.println("done ("+elapsed+")");
 
             // if user aborted, return, and do not run sizer
-            if (checkAbort(null)) return;
+            if (checkAbort(null)) return false;
 
             System.out.println("Starting iterations: ");
             setProgress("iterating");
             boolean success = netlister.size();
 
             // if user aborted, return, and do not update sizes
-            if (checkAbort(null)) return;
+            if (checkAbort(null)) return false;
 
             if (success) {
                 netlister.updateSizes();
@@ -327,7 +327,8 @@ public class LETool extends Tool {
                 System.out.println("Sizing failed, sizes unchanged");
             }
             wnd.repaintContents();
-        }
+			return true;
+       }
 
         /**
          * Check if we are scheduled to abort. If so, print msg if non null

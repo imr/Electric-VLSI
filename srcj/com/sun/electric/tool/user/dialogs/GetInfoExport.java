@@ -211,7 +211,7 @@ public class GetInfoExport extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 		    // change the name
 			pp.setProtoName(newName);
@@ -232,6 +232,7 @@ public class GetInfoExport extends EDialog
 
 			Undo.redrawObject(pp.getOriginalPort().getNodeInst());
 //				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
+			return true;
 		}
 	}
 
@@ -245,8 +246,9 @@ public class GetInfoExport extends EDialog
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
-        public void doIt() {
+        public boolean doIt() {
             GetInfoExport.load();
+			return true;
         }
     }
 

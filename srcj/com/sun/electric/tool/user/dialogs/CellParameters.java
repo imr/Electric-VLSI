@@ -142,10 +142,10 @@ public class CellParameters extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Variable var = dialog.getSelectedParameter();
-			if (var == null) return;
+			if (var == null) return false;
 
 			dialog.curCell.delVar(var.getKey());
 
@@ -154,6 +154,7 @@ public class CellParameters extends EDialog
 
 			dialog.reloadParamList();
 			EditWindow.repaintAllContents();
+			return true;
 		}
 	}
 
@@ -177,13 +178,13 @@ public class CellParameters extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			String name = dialog.newParameter.getText().trim();
 			if (name.length() == 0)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must type a parameter name");
-				return;
+				return false;
 			}
 			String value = dialog.defaultValue.getText();
 			Variable var = dialog.curCell.updateVar("ATTR_" + name, value);
@@ -217,6 +218,7 @@ public class CellParameters extends EDialog
 				dialog.reloadParamList();
 				EditWindow.repaintAllContents();
 			}
+			return true;
 		}
 	}
 

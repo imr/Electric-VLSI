@@ -194,7 +194,7 @@ public class GetInfoText extends EDialog {
             startJob();
         }
 
-       public void doIt() {
+       public boolean doIt() {
             if (var != null) {
                 Variable newVar = null;
                 if (newText.length > 1) {
@@ -212,7 +212,8 @@ public class GetInfoText extends EDialog {
                 }
             }
             GetInfoText.load();
-        }
+		return true;
+       }
     }
 
     /**
@@ -227,8 +228,9 @@ public class GetInfoText extends EDialog {
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
-        public void doIt() {
+        public boolean doIt() {
             GetInfoText.load();
+			return true;
         }
     }
 

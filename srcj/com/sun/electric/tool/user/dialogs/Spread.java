@@ -238,7 +238,7 @@ public class Spread extends EDialog
 		 * 'l' for left, 'r' for right.
 		 * @param amount the distance to spread (negative values compact).
 		 */
-		public void doIt()
+		public boolean doIt()
 		{
 			// should ensure that the name is valid
 			char direction = 0;
@@ -249,11 +249,11 @@ public class Spread extends EDialog
 			double amount = TextUtils.atof(dialog.spreadAmount.getText());
 
 			NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
-			if (ni == null) return;
+			if (ni == null) return false;
 
 			// disallow spreading if lock is on
 			Cell cell = ni.getParent();
-			if (CircuitChanges.cantEdit(cell, null, true)) return;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
 			SizeOffset so = ni.getProto().getSizeOffset();
 			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
@@ -423,6 +423,7 @@ public class Spread extends EDialog
 			}
 			fs.freeFlagSet();
 			if (!moved) System.out.println("Nothing changed");
+			return true;
 		}
 
 		/**

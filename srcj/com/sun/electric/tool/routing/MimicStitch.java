@@ -237,7 +237,7 @@ public class MimicStitch
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// now delete those arcs
 			int deleted = 0;
@@ -250,6 +250,7 @@ public class MimicStitch
 			}
 			if (deleted != 0)
 				System.out.println("MIMIC ROUTING: deleted " + deleted + "wires");
+			return true;
 		}
 	}
 
@@ -331,11 +332,12 @@ public class MimicStitch
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			portMark = PortProto.getFlagSet(1);
 			int result = mimic();
 			portMark.freeFlagSet();
+			return true;
 		}
 
 		private int mimic()

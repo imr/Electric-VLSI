@@ -438,9 +438,10 @@ public class WiringListener
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			doWiring(wpList, cell, true);
+			return true;
 		}
 	}
 

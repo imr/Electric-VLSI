@@ -705,12 +705,13 @@ public class Attributes extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Variable var = dialog.getSelectedVariable();
-			if (var == null) return;
+			if (var == null) return false;
 			dialog.selectedObject.delVar(var.getKey());
 			dialog.showAttributesOnSelectedObject(var);
+			return true;
 		}
 	}
 
@@ -728,14 +729,14 @@ public class Attributes extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// convert the Name field to a proper Variable name
 			String varName = dialog.name.getText();
 			if (varName.trim().length() == 0)
 			{
 				System.out.println("Attribute name must not be empty");
-				return;
+				return false;
 			}
 			varName = "ATTR_" + varName;
 
@@ -759,7 +760,7 @@ public class Attributes extends EDialog
 				if (var == null)
 				{
 					System.out.println("Error setting the attribute");
-					return;
+					return false;
 				}
 			}
 
@@ -917,6 +918,7 @@ public class Attributes extends EDialog
 			{
 				dialog.showAttributesOnSelectedObject(var);
 			}
+			return true;
 		}
 	}
 

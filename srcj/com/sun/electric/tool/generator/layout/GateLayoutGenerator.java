@@ -92,7 +92,7 @@ public class GateLayoutGenerator extends Job {
 		return stdCell;
 	}
 	
-	public void doIt() {
+	public boolean doIt() {
 		String outLibNm = "autoGenLib";
 		String outLibDir = "";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
@@ -102,13 +102,13 @@ public class GateLayoutGenerator extends Job {
 		if (cell==null) {
 			System.out.println("Please open the schematic for which you " +
 				               "want to generate gate layouts.");
-			return;		
+			return false;		
 		}
 		View view = cell.getView();
 		if (view!=View.SCHEMATIC) {
 			System.out.println("The current cell isn't a schematic. This " +
 				               "command only works on schematics.");
-			return;
+			return false;
 		}
 		System.out.println("Generating layouts for gates in the schematic: "+
 		                   cell.getProtoName()+" and its descendents");
@@ -120,6 +120,7 @@ public class GateLayoutGenerator extends Job {
 		DrcRings.addDrcRings(gallery, FILTER);
 		
 		System.out.println("done.");
+		return true;
 	}
 	public GateLayoutGenerator() {
 		super("Generate gate layouts", User.tool, Job.Type.CHANGE, 

@@ -138,7 +138,7 @@ public class GateRegression extends Job {
 		}
 	}
 
-	public void doIt() {
+	public boolean doIt() {
 		System.out.println("begin execution of Gates");
 		boolean nfsWedged = true;
 		String homeDir;
@@ -193,6 +193,7 @@ public class GateRegression extends Job {
 		LayoutLib.writeLibrary(scratchLib);
 
 		System.out.println("done.");
+		return true;
 	}
 	public GateRegression() {
 		super("Run Gate regression", User.tool, Job.Type.CHANGE, 

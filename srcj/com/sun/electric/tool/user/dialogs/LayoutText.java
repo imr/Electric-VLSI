@@ -419,12 +419,13 @@ public class LayoutText extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// should ensure that the name is valid
 			dialog.grabDialogValues();
 			dialog.makeLayoutText(lastLayer, lastSize, lastScale, lastFont, lastItalic,
 				lastBold, lastUnderline, lastSeparation, lastMessage);
+			return true;
 		}
 	}
 

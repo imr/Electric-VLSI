@@ -158,7 +158,7 @@ public class EditOptions extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			dialog.termGeneral();		// terminate the General Options panel
 			dialog.termNewNodes();		// terminate the New Nodes Options panel
@@ -174,6 +174,7 @@ public class EditOptions extends EDialog
 			dialog.term3D();			// terminate the 3D Options panel
 			dialog.termTechnology();	// terminate the Technology Options panel
 			dialog.closeDialog(null);
+			return true;
 		}
 	}
 

@@ -129,7 +129,7 @@ public abstract class Router {
         }
 
         /** Implemented doIt() method to perform Job */
-        public void doIt() {
+        public boolean doIt() {
             int arcsCreated = 0;
             int nodesCreated = 0;
             // pass 1: build all newNodes
@@ -165,7 +165,8 @@ public abstract class Router {
                     Highlight.finished();
                 }
             }
-        }
+			return true;
+       }
     }
 
 

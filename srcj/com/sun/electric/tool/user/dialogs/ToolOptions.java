@@ -221,7 +221,7 @@ public class ToolOptions extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			dialog.termDRC();			// terminate the DRC Options panel
 			dialog.termDesignRules();	// terminate the Design Rules panel
@@ -236,6 +236,7 @@ public class ToolOptions extends EDialog
 			dialog.termRouting();		// terminate the Routing Options panel
 			dialog.termCompaction();	// terminate the Compaction Options panel
 			dialog.closeDialog(null);
+			return true;
 		}
 	}
 

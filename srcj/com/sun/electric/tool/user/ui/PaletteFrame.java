@@ -98,7 +98,7 @@ public class PaletteFrame
 	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
 	/** the size of a palette entry. */					private int entrySize;
 	/** the list of objects in the palette. */			private List inPalette;
-	/** the currently selected Node in the palette. */	private NodeProto highlightedNode;
+	/** the currently selected Node object. */			private Object highlightedNode;
 	/** the popup that selects technologies. */			private JComboBox selector;
 
 	// constructor, never called
@@ -219,8 +219,8 @@ public class PaletteFrame
 			inPalette.add(Schematics.tech.powerNode);
 			inPalette.add(Schematics.tech.resistorNode);
 			inPalette.add(Schematics.tech.capacitorNode);
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900));
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900));
+			inPalette.add(makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900));
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 900));
 			inPalette.add(Schematics.tech.switchNode);
 			inPalette.add(Schematics.tech.muxNode);
 			inPalette.add(Schematics.tech.xorNode);
@@ -234,7 +234,7 @@ public class PaletteFrame
 			inPalette.add(Schematics.tech.groundNode);
 			inPalette.add(Schematics.tech.inductorNode);
 			inPalette.add(Schematics.tech.diodeNode);
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900));
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 900));
 			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900));
 			inPalette.add(Schematics.tech.flipflopNode);
 			inPalette.add(Schematics.tech.bufferNode);
@@ -443,71 +443,58 @@ public class PaletteFrame
 					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
+				if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistor4Node)
+				{
+					JPopupMenu menu = new JPopupMenu("4-Port Transistors");
+					menu.add(menuItem = new JMenuItem("nMOS 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 900)));
+					menu.add(menuItem = new JMenuItem("PMOS 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 900)));
+					menu.add(menuItem = new JMenuItem("DMOS 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 900)));
+					menu.add(menuItem = new JMenuItem("NPN 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 900)));
+					menu.add(menuItem = new JMenuItem("PNP 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900)));
+					menu.add(menuItem = new JMenuItem("DMES 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 900)));
+					menu.add(menuItem = new JMenuItem("EMES 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 900)));
+					menu.add(menuItem = new JMenuItem("PJFET 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 900)));
+					menu.add(menuItem = new JMenuItem("NJFET 4-port"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 900)));
+					menu.show(panel, e.getX(), e.getY());
+					return;
+				}
 				if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistorNode)
 				{
 					NodeInst ni = (NodeInst)obj;
-					if (ni.getFunction() == NodeProto.Function.TRANMOS)
+					if (ni.getFunction() == NodeProto.Function.TRAPNP)
 					{
-						JPopupMenu menu = new JPopupMenu("MOS");
+						JPopupMenu menu = new JPopupMenu("3-Port Transistors");
 						menu.add(menuItem = new JMenuItem("nMOS"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900)));
 						menu.add(menuItem = new JMenuItem("PMOS"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 900)));
 						menu.add(menuItem = new JMenuItem("DMOS"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 900)));
-						menu.add(menuItem = new JMenuItem("nMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 900)));
-						menu.add(menuItem = new JMenuItem("PMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 900)));
-						menu.add(menuItem = new JMenuItem("DMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 900)));
-						menu.show(panel, e.getX(), e.getY());
-						return;
-					}
-					if (ni.getFunction() == NodeProto.Function.TRANPN)
-					{
-						JPopupMenu menu = new JPopupMenu("Bipolar");
 						menu.add(menuItem = new JMenuItem("NPN"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900)));
 						menu.add(menuItem = new JMenuItem("PNP"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 900)));
-						menu.add(menuItem = new JMenuItem("NPN 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 900)));
-						menu.add(menuItem = new JMenuItem("PNP 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900)));
-						menu.show(panel, e.getX(), e.getY());
-						return;
-					}
-					if (ni.getFunction() == NodeProto.Function.TRADMES)
-					{
-						JPopupMenu menu = new JPopupMenu("DMES/EMES");
 						menu.add(menuItem = new JMenuItem("DMES"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900)));
 						menu.add(menuItem = new JMenuItem("EMES"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 900)));
-						menu.add(menuItem = new JMenuItem("DMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 900)));
-						menu.add(menuItem = new JMenuItem("EMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 900)));
-						menu.show(panel, e.getX(), e.getY());
-						return;
-					}
-					if (ni.getFunction() == NodeProto.Function.TRAPJFET)
-					{
-						JPopupMenu menu = new JPopupMenu("FET");
 						menu.add(menuItem = new JMenuItem("PJFET"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900)));
 						menu.add(menuItem = new JMenuItem("NJFET"));
 						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 900)));
-						menu.add(menuItem = new JMenuItem("PJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 900)));
-						menu.add(menuItem = new JMenuItem("NJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 900)));
 						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
 				}
-
 				placeInstance(obj, panel);
 			} else if (obj instanceof PrimitiveArc)
 			{
@@ -654,11 +641,11 @@ public class PaletteFrame
 				startJob();
 			}
 
-			public void doIt()
+			public boolean doIt()
 			{
 				Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
 				Undo.noUndoAllowed();
-				if (lib == null) return;
+				if (lib == null) return false;
 				for(Iterator it = lib.getCells(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
@@ -667,6 +654,7 @@ public class PaletteFrame
 					cellMenu.add(menuItem);
 				}
 				cellMenu.show(panel, x, y);
+				return true;
 			}
 		}
 
@@ -731,6 +719,7 @@ public class PaletteFrame
 				StatusBar.setSelectionOverride(null);
 			}
 		}
+
 		public void mouseExited(MouseEvent e)
 		{
 			StatusBar.setSelectionOverride(null);
@@ -791,17 +780,21 @@ public class PaletteFrame
 						NodeProto np = null;
 						if (toDraw instanceof NodeProto) np = (NodeProto)toDraw; else
 							np = ((NodeInst)toDraw).getProto();
-						if (np == frame.highlightedNode)
+						if (toDraw == frame.highlightedNode)
 						{
 							g.drawRect(imgX+1, imgY+1, frame.entrySize-3, frame.entrySize-3);
 							g.drawRect(imgX+2, imgY+2, frame.entrySize-5, frame.entrySize-5);
 						}
+						boolean drawArrow = false;
 						if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
-							toDraw == Schematics.tech.flipflopNode ||
-							(toDraw instanceof NodeInst && ((NodeInst)toDraw).getProto() == Schematics.tech.transistorNode))
+							toDraw == Schematics.tech.flipflopNode) drawArrow = true;
+						if (toDraw instanceof NodeInst)
 						{
-							drawArrow(g, x, y);
+							NodeInst ni = (NodeInst)toDraw;
+							if (ni.getFunction() == NodeProto.Function.TRAPNP ||
+								ni.getFunction() == NodeProto.Function.TRA4PNP) drawArrow = true;
 						}
+						if (drawArrow) drawArrow(g, x, y);
 					}
 					if (toDraw instanceof String)
 					{
@@ -968,6 +961,7 @@ public class PaletteFrame
 		{
 			ni = (NodeInst)obj;
 			np = ni.getProto();
+			whatToCreate = ni.getFunction() + " node";
 		}
 		if (np != null)
 		{
@@ -993,7 +987,7 @@ public class PaletteFrame
 			if (placeText != null)
 				((PlaceNodeListener)newListener).setTextNode(placeText);
 			if (panel != null)
-				panel.getFrame().highlightedNode = np;
+				panel.getFrame().highlightedNode = obj;
 
 			// change the cursor
 			TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -1206,7 +1200,7 @@ public class PaletteFrame
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			NodeProto np = null;
 			NodeInst ni = null;
@@ -1238,7 +1232,7 @@ public class PaletteFrame
 			}
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);
-			if (newNi == null) return;
+			if (newNi == null) return false;
 			if (varName != null)
 			{
 				// text object: add initial text
@@ -1278,7 +1272,7 @@ public class PaletteFrame
 					var.setDisplay();
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
-				} else if (np == Schematics.tech.transistorNode)
+				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 				{
 					if (newNi.isFET())
 					{
@@ -1307,6 +1301,7 @@ public class PaletteFrame
 				Highlight.addElectricObject(newNi, cell);
 			}
 			Highlight.finished();
+			return true;
 		}
 	}
 }

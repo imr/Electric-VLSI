@@ -227,7 +227,7 @@ public class OptionReconcile extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			for(Iterator it = changedOptions.keySet().iterator(); it.hasNext(); )
 			{
@@ -251,6 +251,7 @@ public class OptionReconcile extends EDialog
 					case Pref.STRING:  pref.setString((String)obj);                       break;
 				}
 			}
+			return true;
 		}
 	}
  

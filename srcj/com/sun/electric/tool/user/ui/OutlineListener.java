@@ -92,7 +92,7 @@ class OutlineListener
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Point2D [] points = new Point2D[4];
 			double halfWid = ni.getXSize() / 2;
@@ -105,6 +105,7 @@ class OutlineListener
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd != null) wnd.repaintContents();
+			return true;
 		}
 	}
 
@@ -389,7 +390,7 @@ class OutlineListener
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// get the extent of the data
 			NodeInst ni = listener.outlineNode;
@@ -418,6 +419,7 @@ class OutlineListener
 			ni.modifyInstance(newCX-ni.getAnchorCenterX(),newCY-ni.getAnchorCenterY(), newSX-ni.getXSize(),
 				newSY-ni.getYSize(), -ni.getAngle());
 			listener.high.setPoint(listener.point = newPoint);
+			return true;
 		}
 	}
 

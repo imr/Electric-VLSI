@@ -51,7 +51,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * <p>Job job = new Job(name);
  * <p>job.start();
  * 
- * <p>The extending class must implement doIt(), which does the job;
+ * <p>The extending class must implement doIt(), which does the job and
+ * returns status (true on success; false on failure);
  * and getProgress(), which returns a string indicating the current status.
  * Job also contains boolean abort, which gets set when the user decides
  * to abort the Job.  The extending class' code should check abort when/where
@@ -305,7 +306,7 @@ public abstract class Job implements ActionListener, Runnable {
     /** This is the main work method.  This method should
      * perform all needed tasks.
      */
-    public abstract void doIt();
+    public abstract boolean doIt();
     
     //--------------------------PRIVATE JOB METHODS--------------------------
 

@@ -323,19 +323,20 @@ public class NewExport extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Export e = Export.newInstance(cell, pi, name);
 			if (e == null)
 			{
 				System.out.println("Failed to create export");
-				return;
+				return false;
 			}
 			e.setCharacteristic(ch);
 			if (drawn) e.setAlwaysDrawn();
 			if (body) e.setBodyOnly();
 			if (ch.isReference())
 				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
+			return true;
 		}
 	}
 

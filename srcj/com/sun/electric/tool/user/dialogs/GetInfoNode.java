@@ -739,7 +739,7 @@ public class GetInfoNode extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			boolean changed = false;
 			NodeProto np = ni.getProto();
@@ -1010,6 +1010,7 @@ public class GetInfoNode extends EDialog
 				dialog.initialYSize = currentYSize;
 				dialog.initialRotation = currentRotation;
 			}
+			return true;
 		}
 	}
 

@@ -940,11 +940,6 @@ public final class MenuCommands
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
-		//------------------- Compaction
-
-		Menu compactionSubMenu = new Menu("Compaction", 'C');
-		toolMenu.add(compactionSubMenu);
-
 		toolMenu.addSeparator();
 
 		toolMenu.addMenuItem("Tool Options...",null,
@@ -1122,11 +1117,11 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
 			Undo.noUndoAllowed();
-			if (lib == null) return;
+			if (lib == null) return false;
 			lib.setCurrent();
 			Cell cell = lib.getCurCell();
 			if (cell == null)
@@ -1143,13 +1138,14 @@ public final class MenuCommands
 						wf.setCellWindow(cell);
 						WindowFrame.setCurrentWindowFrame(wf);
 						TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-						return;
+						return true;
 					}
 				}
 				WindowFrame.createEditWindow(cell);
 				// no clean for now.
 				TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 			}
+			return true;
 		}
 	}
 
@@ -1182,11 +1178,11 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
 			Undo.noUndoAllowed();
-			if (lib == null) return;
+			if (lib == null) return false;
 			lib.setCurrent();
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
@@ -1201,12 +1197,13 @@ public final class MenuCommands
 						if (content.getCell() == null)
 						{
 							content.setCell(cell, VarContext.globalContext);
-							return;
+							return true;
 						}
 					}
 				}
 				WindowFrame.createEditWindow(cell);
 			}
+			return true;
 		}
 	}
 
@@ -1275,7 +1272,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// rename the library if requested
 			if (newName != null)
@@ -1290,6 +1287,7 @@ public final class MenuCommands
 			{
 				System.out.println("Error writing the library file");
 			}
+			return true;
 		}
 	}
 
@@ -1382,9 +1380,10 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Output.writeCell(cell, context, filePath, type);
+			return true;
 		}
 
 	}
@@ -1450,7 +1449,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			try {
 				pj.print();
@@ -1458,6 +1457,7 @@ public final class MenuCommands
 			{
 				System.out.println("Print aborted.");
 			}
+			return true;
 		}
 	}
 
@@ -1516,9 +1516,10 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			System.exit(0);
+			return true;
 		}
 	}
 
@@ -1585,12 +1586,13 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Highlight.clear();
 			Highlight.finished();
 			if (!Undo.undoABatch())
 				System.out.println("Undo failed!");
+			return true;
 		}
 	}
 
@@ -1607,12 +1609,13 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Highlight.clear();
 			Highlight.finished();
 			if (!Undo.redoABatch())
 				System.out.println("Redo failed!");
+			return true;
 		}
 	}
 
@@ -1721,7 +1724,7 @@ public final class MenuCommands
 			startJob();
 		}
 	
-		public void doIt()
+		public boolean doIt()
 		{
 			// change visibility of parameters on the current node(s)
 			int changeCount = 0;
@@ -1773,6 +1776,7 @@ public final class MenuCommands
 			}
 			if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
 				System.out.println("Changed visibility on " + changeCount + " nodes");
+			return true;
 		}
 	}
 
@@ -1900,7 +1904,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// enumerate the hierarchy below here
 			LayerVisitor visitor = new LayerVisitor(testCase, tree);
@@ -1928,6 +1932,7 @@ public final class MenuCommands
 			}
 
 			System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
+			return true;
 		}
 //		// initialize for analysis
 //		us_coveragetech = cell->tech;
@@ -3402,7 +3407,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Variable var = ni.newVar("ATTR_M", new Double(1.0));
 			if (var != null)
@@ -3412,6 +3417,7 @@ public final class MenuCommands
 				td.setOff(-1.5, -1);
 				td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 			}
+			return true;
 		}
 	}
 	/**
@@ -3435,15 +3441,15 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell cell = WindowFrame.needCurCell();
-			if (cell == null) return;
+			if (cell == null) return false;
 			Variable templateVar = cell.getVar(templateKey);
 			if (templateVar != null)
 			{
 				System.out.println("This cell already has a template");
-				return;
+				return false;
 			}
 			templateVar = cell.newVar(templateKey, "*Undefined");
 			if (templateVar != null)
@@ -3453,6 +3459,7 @@ public final class MenuCommands
 				td.setInterior();
 				td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 			}
+			return true;
 		}
 	}
 	
@@ -3699,25 +3706,25 @@ public final class MenuCommands
 				startJob();
 			}
 
-			public void doIt()
+			public boolean doIt()
 			{
 				// create the break pins
 				ArcProto ap = ai.getProto();
 				NodeProto np = ((PrimitiveArc)ap).findPinProto();
-				if (np == null) return;
+				if (np == null) return false;
 				NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
 					0, ai.getParent(), null);
 				if (ni == null)
 				{
 					System.out.println("Cannot create pin " + np.describe());
-					return;
+					return false;
 				}
 				NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
 					0, ai.getParent(), null);
 				if (ni2 == null)
 				{
 					System.out.println("Cannot create pin " + np.describe());
-					return;
+					return false;
 				}
 
 				// get location of connection to these pins
@@ -3783,6 +3790,7 @@ public final class MenuCommands
 				Highlight.clear();
 				Highlight.addElectricObject(ni, ai.getParent());
 				Highlight.finished();
+				return true;
 			}
 		}
 	}
@@ -3821,7 +3829,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// get information about the nodes
 			NodeProto m1m2Proto = NodeProto.findNodeProto("mocmos:Metal-1-Metal-2-Con");
@@ -3854,7 +3862,7 @@ public final class MenuCommands
 			NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0, myCell, null);
 			NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), 3150, myCell, "rotated");
 			if (metal12Via == null || contactNode == null || metal2Pin == null || poly1PinA == null ||
-				poly1PinB == null || transistor == null || rotTrans == null) return;
+				poly1PinB == null || transistor == null || rotTrans == null) return false;
 
 			// make arcs to connect them
 			PortInst m1m2Port = metal12Via.getOnlyPortInst();
@@ -3865,18 +3873,18 @@ public final class MenuCommands
 			PortInst transPortR = transistor.findPortInst("p-trans-poly-right");
 			PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-right");
 			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port, null);
-			if (metal2Arc == null) return;
+			if (metal2Arc == null) return false;
 			metal2Arc.setRigid();
 			ArcInst metal1Arc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port, null);
-			if (metal1Arc == null) return;
+			if (metal1Arc == null) return false;
 			ArcInst polyArc1 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB, null);
-			if (polyArc1 == null) return;
+			if (polyArc1 == null) return false;
 			ArcInst polyArc3 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA, null);
-			if (polyArc3 == null) return;
+			if (polyArc3 == null) return false;
 			ArcInst polyArc2 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA, null);
-			if (polyArc2 == null) return;
+			if (polyArc2 == null) return false;
 			ArcInst polyArc4 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB, null);
-			if (polyArc4 == null) return;
+			if (polyArc4 == null) return false;
 
 			// export the two pins
 			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
@@ -4063,6 +4071,7 @@ public final class MenuCommands
 
 			// display a cell
 			WindowFrame.createEditWindow(myCell);
+			return true;
 		}
 	}
 
@@ -4096,7 +4105,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
             PolyQTree tree = new PolyQTree();
@@ -4194,6 +4203,7 @@ public final class MenuCommands
 			}
 			if ( nodesList.isEmpty() )
 				System.out.println("No implant areas added");
+			return true;
 		}
 	}
 
@@ -4209,7 +4219,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			PolyMerge merge = new PolyMerge();
 			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
@@ -4348,6 +4358,7 @@ public final class MenuCommands
 			}
 			if ( nodesList.isEmpty() )
 				System.out.println("No implant areas added");
+			return true;
 		}
 	}
 	// ---------------------- THE JON GAINSLEY MENU -----------------
@@ -4430,7 +4441,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			String [] theStrings =
 			{
@@ -4655,6 +4666,7 @@ public final class MenuCommands
 				// display the full drawing
 				if (v == 32) WindowFrame.createEditWindow(myCell);
 			}
+			return true;
 		}
 	}
 

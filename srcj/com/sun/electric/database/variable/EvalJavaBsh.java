@@ -234,9 +234,10 @@ public class EvalJavaBsh
             this.startJob();
         }
 
-        public void doIt() {
+        public boolean doIt() {
             evaluator.doSource(script);
-        }
+			return true;
+       }
     }
 
     // ****************************** REFLECTION FOR ACCESSING THE BEAN SHELL ******************************

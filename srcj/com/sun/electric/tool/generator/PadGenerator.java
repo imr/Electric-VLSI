@@ -134,7 +134,7 @@ public class PadGenerator {
             startJob();
         }
 
-        public void doIt() {
+        public boolean doIt() {
             String lineRead;
             //int gap = 0, gapx = 0, gapy = 0;
             //PortProto pp = null, exportpp;
@@ -144,7 +144,7 @@ public class PadGenerator {
             File inputFile = new File(filename);
             if (inputFile == null || !inputFile.canRead()) {
                 System.out.println("Error reading file "+filename);
-                return;
+                return false;
             }
 
             try {
@@ -167,28 +167,28 @@ public class PadGenerator {
                         if (keyWord.charAt(0) != ';') {
                             do {
                                 if (keyWord.equals("celllibrary")) {
-                                    if (!processCellLibrary(str)) return;
+                                    if (!processCellLibrary(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("views")) {
-                                    if (!processViews(str)) return;
+                                    if (!processViews(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("facet")) {
-                                    if (!processFacet(str)) return;
+                                    if (!processFacet(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("core")) {
-                                    if (!processCore(str)) return;
+                                    if (!processCore(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("rotate")) {
-                                    if (!processRotate(str)) return;
+                                    if (!processRotate(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("align")) {
-                                    if (!processAlign(str)) return;
+                                    if (!processAlign(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("export")) {
-                                    if (!processExport(str)) return;
+                                    if (!processExport(str)) return false;
                                     continue;
                                 } else if (keyWord.equals("place")) {
-                                    if (!processPlace(str)) return;
+                                    if (!processPlace(str)) return false;
                                     continue;
                                 }
 /*
@@ -484,7 +484,8 @@ public class PadGenerator {
             }
 
             createPadFrames();
-        }
+			return true;
+       }
 
 
         /**

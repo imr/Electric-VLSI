@@ -683,7 +683,7 @@ public class GetInfoArc extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			boolean changed = false;
 
@@ -776,6 +776,7 @@ public class GetInfoArc extends EDialog
 				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);
 				dialog.initialWidth = currentWidth;
 			}
+			return true;
 		}
 	}
 

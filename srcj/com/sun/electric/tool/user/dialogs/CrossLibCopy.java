@@ -272,7 +272,7 @@ public class CrossLibCopy extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// remember the selection line
 			int index = dialog.listLeft.getSelectedIndex();
@@ -287,6 +287,7 @@ public class CrossLibCopy extends EDialog
 
 			// schedule the dialog to refresh
 			SwingUtilities.invokeLater(new DoneCopying(dialog, index));
+			return true;
 		}
 	}
 

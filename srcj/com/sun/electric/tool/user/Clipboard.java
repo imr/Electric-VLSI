@@ -154,19 +154,19 @@ public class Clipboard
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// get objects to copy
 			List geoms = Highlight.getHighlighted(true, true);
 			if (geoms.size() == 0)
 			{
 				System.out.println("First select objects to copy");
-				return;
+				return false;
 			}
 
 			// determine the cell with these geometrics
 			EditWindow wnd = EditWindow.needCurrent();
-			if (wnd == null) return;
+			if (wnd == null) return false;
 			Cell parent = wnd.getCell();
 
 			// remove contents of clipboard
@@ -179,6 +179,7 @@ public class Clipboard
 
 			// copy objects to clipboard
 			copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
+			return true;
 		}
 	}
 
@@ -195,19 +196,19 @@ public class Clipboard
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// get objects to cut
 			List geoms = Highlight.getHighlighted(true, true);
 			if (geoms.size() == 0)
 			{
 				System.out.println("First select objects to cut");
-				return;
+				return false;
 			}
 
 			// determine the cell with these geometrics
 			EditWindow wnd = EditWindow.needCurrent();
-			if (wnd == null) return;
+			if (wnd == null) return false;
 			Cell parent = wnd.getCell();
 
 			// remove contents of clipboard
@@ -223,6 +224,7 @@ public class Clipboard
 
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, geoms);
+			return true;
 		}
 	}
 
@@ -239,19 +241,19 @@ public class Clipboard
             startJob();
         }
 
-        public void doIt()
+        public boolean doIt()
         {
             // get objects to copy
             List geoms = Highlight.getHighlighted(true, true);
             if (geoms.size() == 0)
             {
                 System.out.println("First select objects to copy");
-                return;
+                return false;
             }
 
             // determine the cell with these geometrics
             EditWindow wnd = EditWindow.needCurrent();
-            if (wnd == null) return;
+            if (wnd == null) return false;
             Cell parent = wnd.getCell();
 
             // remove contents of clipboard
@@ -268,6 +270,7 @@ public class Clipboard
             Highlight.clear();
 
             paste();
+			return true;
         }
     }
 
@@ -372,10 +375,11 @@ public class Clipboard
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
+			return true;
 		}
 	}
 
@@ -391,10 +395,11 @@ public class Clipboard
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
+			return true;
 		}
 	}
 
@@ -412,7 +417,7 @@ public class Clipboard
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// find out where the paste is going
 			EditWindow wnd = EditWindow.needCurrent();
@@ -420,6 +425,7 @@ public class Clipboard
 
 			// paste them into the current cell
 			copyListToCell(wnd, pasteList, clipCell, parent, true, dX, dY);
+			return true;
 		}
 	}
 

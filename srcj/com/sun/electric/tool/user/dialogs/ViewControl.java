@@ -107,10 +107,11 @@ public class ViewControl extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			view.kill();
 			dialog.loadViews();
+			return true;
 		}
 	}
 
@@ -134,7 +135,7 @@ public class ViewControl extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			View newView = null;
 			if (isText)
@@ -145,6 +146,7 @@ public class ViewControl extends EDialog
 				newView = View.newInstance(viewName, viewAbbr);
 			}
 			dialog.loadViews();
+			return true;
 		}
 	}
 

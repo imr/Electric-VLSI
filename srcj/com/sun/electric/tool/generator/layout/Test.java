@@ -391,7 +391,7 @@ public class Test extends Job {
 	
 	
 
-	public void doIt() {
+	public boolean doIt() {
 		System.out.println("Begin Test");
 		genFillCells();
 		/*
@@ -430,6 +430,7 @@ public class Test extends Job {
 		System.out.println("lowInst bounds:"+lowInst.getBounds());
 		*/
 		System.out.println("Done Test");
+		return true;
 	}
 	
 	public Test() {

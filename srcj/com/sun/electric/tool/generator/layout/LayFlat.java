@@ -228,7 +228,7 @@ public class LayFlat extends Job {
 		return cell;
 	}
 
-	public void doIt() {
+	public boolean doIt() {
 		System.out.println("Begin flat");
 		Cell cell = getTestCell();
 		Library scratch = LayoutLib.openLibForWrite(
@@ -255,6 +255,7 @@ public class LayFlat extends Job {
 
 //		LayoutLib.writeLibrary(scratch);			                            
 		System.out.println("Done");
+		return true;
 	}
 	public LayFlat() {
 		super("Run Layout Flattener", User.tool, Job.Type.CHANGE, 

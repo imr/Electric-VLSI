@@ -272,7 +272,7 @@ public class SizeListener
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			double xS = TextUtils.atof(dialog.xSize.getText());
 			double yS = 0;
@@ -302,6 +302,7 @@ public class SizeListener
 			{
 				System.out.println("Could not find any " + (dialog.nodes?"nodes":"arcs") + " to resize");
 			}
+			return true;
 		}
 	}
 
@@ -499,7 +500,7 @@ public class SizeListener
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			if (stretchGeom instanceof NodeInst)
 			{
@@ -510,6 +511,7 @@ public class SizeListener
 				ArcInst ai = (ArcInst)stretchGeom;
 				ai.modify(stretchPt.getX() - ai.getWidth(), 0, 0, 0, 0);
 			}
+			return true;
 		}
 	}
 

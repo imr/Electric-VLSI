@@ -343,7 +343,7 @@ public class Array extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell cell = null;
 
@@ -354,10 +354,10 @@ public class Array extends EDialog
 				cell = geom.getParent();
 				if (geom instanceof NodeInst)
 				{
-					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true)) return;
+					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true)) return false;
 				} else
 				{
-					if (CircuitChanges.cantEdit(cell, null, true)) return;
+					if (CircuitChanges.cantEdit(cell, null, true)) return false;
 				}
 			}
 
@@ -366,13 +366,13 @@ public class Array extends EDialog
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"One dimension of the array must be greater than 1");
-				return;
+				return false;
 			}
 			if (lastLinearDiagonal && lastXRepeat != 1 && lastYRepeat != 1)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Diagonal arrays need one dimension to be 1");
-				return;
+				return false;
 			}
 
 			// make lists of nodes and arcs that will be arrayed
@@ -468,7 +468,7 @@ public class Array extends EDialog
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 						new Point2D.Double(xPos, yPos), sx, sy, ro, cell, null);
-					if (newNi == null) return;
+					if (newNi == null) return false;
 					newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 					newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 					if (ni.isExpanded()) newNi.setExpanded(); else newNi.clearExpanded();
@@ -476,7 +476,14 @@ public class Array extends EDialog
 					newNi.setTechSpecific(ni.getTechSpecific());
 					newNi.copyVars(ni);
 					if (lastAddNames)
+					{
 						setNewName(newNi, x, y);
+					} else
+					{
+						String nodeName = ni.getName();
+						if (nodeName != null)
+							newNi.setName(ElectricObject.uniqueObjectName(nodeName, cell, NodeInst.class));
+					}
 
 					// copy the ports, too
 					if (User.isDupCopiesExports())
@@ -536,10 +543,17 @@ public class Array extends EDialog
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
 						new Point2D.Double(cX0+xOff0, cY0+yOff0), pi1, new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
-					if (newAi == null) return;
+					if (newAi == null) return false;
 					newAi.copyVars(ai);
 					if (lastAddNames)
+					{
 						setNewName(newAi, x, y);
+					} else
+					{
+						String arcName = ai.getName();
+						if (arcName != null)
+							newAi.setName(ElectricObject.uniqueObjectName(arcName, cell, ArcInst.class));
+					}
 				}
 			}
 
@@ -566,6 +580,7 @@ public class Array extends EDialog
 					}
 				}
 			}
+			return true;
 		}
 
 		static class GeometricsByName implements Comparator

@@ -608,7 +608,7 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// do the hard work of re-rendering the image
 			offscreen.drawImage();
@@ -621,11 +621,12 @@ public class EditWindow extends JPanel
 					runningNow = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
 					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen());
-					return;
+					return true;
 				}
 				runningNow = null;
 			}
 			wnd.repaint();
+			return true;
 		}
 	}
 
@@ -1307,9 +1308,10 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
+			return true;
 		}
 	}
 
@@ -1329,7 +1331,7 @@ public class EditWindow extends JPanel
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			int total = 0;
 			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)
@@ -1345,6 +1347,7 @@ public class EditWindow extends JPanel
 			{
 				System.out.println("Replaced " + total + " times");
 			}
+			return true;
 		}
 	}
 

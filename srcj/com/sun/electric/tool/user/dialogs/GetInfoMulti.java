@@ -378,7 +378,7 @@ public class GetInfoMulti extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			String currentXPosition = dialog.xPosition.getText();
 			String currentYPosition = dialog.yPosition.getText();
@@ -479,6 +479,7 @@ public class GetInfoMulti extends EDialog
 					pp.setCharacteristic(ch);
 				}
 			}
+			return true;
 		}
 	}
 

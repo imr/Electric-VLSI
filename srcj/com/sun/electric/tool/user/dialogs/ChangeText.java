@@ -511,7 +511,7 @@ public class ChangeText extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			dialog.numNodesChanged = dialog.numArcsChanged = dialog.numExportsChanged = 0;
 			dialog.numAnnotationsChanged = dialog.numInstancesChanged = dialog.numCellsChanged = 0;
@@ -559,6 +559,7 @@ public class ChangeText extends EDialog
 				}
 				System.out.println(what);					
 			}
+			return true;
 		}
 	}
 

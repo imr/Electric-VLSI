@@ -328,9 +328,10 @@ public class Tool extends ElectricObject
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			obj.newVar(key, newVal);
+			return true;
 		}
 	}
 

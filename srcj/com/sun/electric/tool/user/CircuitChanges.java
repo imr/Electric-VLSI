@@ -149,7 +149,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// figure out which nodes get rotated/mirrored
 			FlagSet markObj = Geometric.getFlagSet(1);
@@ -170,7 +170,7 @@ public class CircuitChanges
 				if (cantEdit(cell, ni, true))
 				{
 					markObj.freeFlagSet();
-					return;
+					return false;
 				}
 				ni.setBit(markObj);
 				if (nicount == 0)
@@ -189,7 +189,7 @@ public class CircuitChanges
 			{
 				System.out.println("Must select at least 1 node for rotation");
 				markObj.freeFlagSet();
-				return;
+				return false;
 			}
 
 			// if multiple nodes, find the center one
@@ -312,6 +312,7 @@ public class CircuitChanges
 				ni.kill();
 			}
 			markObj.freeFlagSet();
+			return true;
 		}
 	}
 
@@ -356,19 +357,19 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			List list = Highlight.getHighlighted(true, true);
 			if (list.size() == 0)
 			{
 				System.out.println("Must select something before aligning it to the grid");
-				return;
+				return false;
 			}
 			double alignment_ratio = User.getAlignmentToGrid();
 			if (alignment_ratio <= 0)
 			{
 				System.out.println("No alignment given: set Alignment Options first");
-				return;
+				return false;
 			}
 
 			// first adjust the nodes
@@ -532,6 +533,7 @@ public class CircuitChanges
 			// show results
 			if (adjustedNodes == 0 && adjustedArcs == 0) System.out.println("No adjustments necessary"); else
 				System.out.println("Adjusted " + adjustedNodes + " nodes and " + adjustedArcs + " arcs");
+			return true;
 		}
 	}
 
@@ -676,9 +678,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
+			return true;
 		}
 	}
 
@@ -1008,7 +1011,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -1140,12 +1143,13 @@ public class CircuitChanges
 				PortInst head = niBLast.getOnlyPortInst();
 				PortInst tail = ai.getConnection(1-lowEnd).getPortInst();
 				ArcInst aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), head, tail, null);
-				if (aiw == null) return;
+				if (aiw == null) return false;
 				aiw.setName(netName);
 
 				// remove original arc
 				ai.kill();
 			}
+			return true;
 		}
 	}
 
@@ -1167,7 +1171,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			EditWindow wnd = EditWindow.getCurrent();
 			Cell cell = null;
@@ -1175,17 +1179,17 @@ public class CircuitChanges
 			if (cell == null)
 			{
 				System.out.println("No current cell");
-				return;
+				return false;
 			}
 
 			// disallow erasing if lock is on
-			if (cantEdit(cell, null, true)) return;
+			if (cantEdit(cell, null, true)) return false;
 
 			Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
 			if (bounds == null)
 			{
 				System.out.println("Outline an area first");
-				return;
+				return false;
 			}
 
 			// grid the area
@@ -1276,6 +1280,7 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)nIt.next();
 				eraseNodeInst(ni);		
 			}
+			return true;
 		}
 	}
 
@@ -1297,9 +1302,9 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
-			if (Highlight.getNumHighlights() == 0) return;
+			if (Highlight.getNumHighlights() == 0) return false;
 			List highlightedText = Highlight.getHighlightedText(true);
 			List deleteList = new ArrayList();
 			Cell cell = null;
@@ -1319,7 +1324,7 @@ public class CircuitChanges
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 							"All objects to be deleted must be in the same cell",
 								"Delete failed", JOptionPane.ERROR_MESSAGE);
-						return;
+						return false;
 					}
 				}
 				oneGeom = (Geometric)eobj;
@@ -1339,7 +1344,7 @@ public class CircuitChanges
 					ArcInst ai = re.reconnectArcs();
 					Highlight.addElectricObject(ai, cell);
 					Highlight.finished();
-					return;
+					return true;
 				}
 			}
 
@@ -1400,6 +1405,7 @@ public class CircuitChanges
 			}
 			if (cell != null)
 				eraseObjectsInList(cell, deleteList);
+			return true;
 		}
 	}
 
@@ -1632,11 +1638,12 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// check cell usage once more
-			if (cell.isInUse("delete")) return;
+			if (cell.isInUse("delete")) return false;
 			doKillCell(cell);
+			return true;
 		}
 	}
 
@@ -1711,9 +1718,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			cell.rename(newName);
+			return true;
 		}
 	}
 
@@ -1735,7 +1743,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			boolean found = true;
 			int totalDeleted = 0;
@@ -1759,6 +1767,7 @@ public class CircuitChanges
 				System.out.println("Deleted " + totalDeleted + " cells");
 				EditWindow.repaintAll();
 			}
+			return true;
 		}
 	}
 
@@ -1810,11 +1819,11 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// create the new cell
 			Cell cell = Cell.makeInstance(Library.getCurrent(), newCellName);
-			if (cell == null) return;
+			if (cell == null) return false;
 
 			// copy the nodes into the new cell
 			HashMap newNodes = new HashMap();
@@ -1826,7 +1835,7 @@ public class CircuitChanges
 
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
 					ni.getXSize(), ni.getYSize(), ni.getAngle(), cell, ni.getName());
-				if (newNi == null) return;
+				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
 				ni.copyVars(newNi);
@@ -1861,10 +1870,11 @@ public class CircuitChanges
 
 				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
 					piTail, ai.getTail().getLocation(), ai.getName());
-				if (newAi == null) return;
+				if (newAi == null) return false;
 				ai.copyVars(newAi);
 			}
 			System.out.println("Cell " + cell.describe() + " created");
+			return true;
 		}
 	}
 	
@@ -1890,7 +1900,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			List nodes = Highlight.getHighlighted(true, false);
 			Highlight.clear();
@@ -1907,8 +1917,9 @@ public class CircuitChanges
 			if (!foundInstance)
 			{
 				System.out.println("Must selecte cell instances to extract");
-				return;
+				return false;
 			}
+			return true;
 		}
 	}
 
@@ -2414,7 +2425,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// do the queued operations
 			for(Iterator it = pinsToRemove.iterator(); it.hasNext(); )
@@ -2507,6 +2518,7 @@ public class CircuitChanges
 				infstr += "Moved text on " + textToMove.size() + " pins with offset text";
 			}
 			System.out.println(infstr);
+			return true;
 		}
 	}
 
@@ -2643,7 +2655,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			List selected = Highlight.getHighlighted(false, true);
 			int l = 0;
@@ -2668,6 +2680,7 @@ public class CircuitChanges
 				}
 			}
 			System.out.println("Shortened " + l + " arcs");
+			return true;
 		}
 	}
 
@@ -2711,7 +2724,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			cell.setView(newView);
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -2723,6 +2736,7 @@ public class CircuitChanges
 				}
 			}
 			EditWindow.repaintAll();
+			return true;
 		}
 	}
 
@@ -2747,10 +2761,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell newVersion = cell.makeNewVersion();
-			if (newVersion == null) return;
+			if (newVersion == null) return false;
 
 			// change the display of old versions to the new one
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -2762,6 +2776,7 @@ public class CircuitChanges
 					content.setCell(newVersion, null);
 			}
 			EditWindow.repaintAll();
+			return true;
 		}
 	}
 
@@ -2795,7 +2810,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			View v = View.findMultiPageSchematicView(pageNo);
 			if (v == null)
@@ -2808,6 +2823,7 @@ public class CircuitChanges
 				otherView = Cell.makeInstance(cell.getLibrary(), cell.getProtoName() + "{p" + pageNo + "}");
 			}
 			WindowFrame.createEditWindow(otherView);
+			return true;
 		}
 	}
 
@@ -2828,10 +2844,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell curCell = WindowFrame.needCurCell();
-			if (curCell == null) return;
+			if (curCell == null) return false;
 			Library lib = curCell.getLibrary();
 
 			if (!curCell.isSchematicView())
@@ -2839,7 +2855,7 @@ public class CircuitChanges
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"The current cell must be a schematic in order to generate an icon",
 						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
-				return;
+				return false;
 			}
 
 			// see if the icon already exists and issue a warning if so
@@ -2848,7 +2864,7 @@ public class CircuitChanges
 			{
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
 					"Warning: Icon " + iconCell.describe() + " already exists.  Create a new version?");
-				if (response != JOptionPane.YES_OPTION) return;
+				if (response != JOptionPane.YES_OPTION) return false;
 			}
 
 			// get icon style controls
@@ -2870,7 +2886,7 @@ public class CircuitChanges
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Cannot create Icon cell " + iconCellName,
 						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
-				return;
+				return false;
 			}
 			iconCell.setWantExpanded();
 
@@ -2899,7 +2915,7 @@ public class CircuitChanges
 			if (User.isIconGenDrawBody())
 			{
                 bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
-				if (bbNi == null) return;
+				if (bbNi == null) return false;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
 				// put the original cell name on it
@@ -3003,6 +3019,7 @@ public class CircuitChanges
 //					us_window(1, newpar);
 //				}
 			}
+			return true;
 		}
 
 		static class ExportSorted implements Comparator
@@ -3188,10 +3205,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
-			if (dupCell == null) return;
+			if (dupCell == null) return false;
 
 			// change the display of old cell to the new one
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -3203,6 +3220,7 @@ public class CircuitChanges
 					content.setCell(dupCell, VarContext.globalContext);
 			}
 			EditWindow.repaintAll();
+			return true;
 		}
 	}
 
@@ -3229,11 +3247,11 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// get information about what is highlighted
 			int total = Highlight.getNumHighlights();
-			if (total <= 0) return;
+			if (total <= 0) return false;
 			List highlightedText = Highlight.getHighlightedText(true);
 			Iterator oit = Highlight.getHighlights();
 			Highlight firstH = (Highlight)oit.next();
@@ -3252,7 +3270,7 @@ public class CircuitChanges
                 }
 				ni.modifyInstance(dX, dY, 0, 0, 0);
                 if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
-				return;
+				return true;
 			}
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
@@ -3344,7 +3362,7 @@ public class CircuitChanges
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
 				}
                 if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
-				return;
+				return true;
 			}
 
 			// special case if moving only arcs and they slide
@@ -3384,7 +3402,7 @@ public class CircuitChanges
                         if (verbose) System.out.println("Moved "+ai.describe()+": delta(X,Y) = ("+dX+","+dY+")");
 					}
 				}
-				return;
+				return true;
 			}
 
 			// make flag to track the nodes that move
@@ -3569,6 +3587,7 @@ public class CircuitChanges
 			// also move selected text
 			moveSelectedText(highlightedText);
             if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
+			return true;
 		}
 
 		/*
@@ -4127,7 +4146,7 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			expandFlagBit = Geometric.getFlagSet(1);
 			if (unExpand)
@@ -4152,6 +4171,7 @@ public class CircuitChanges
 			}
 			expandFlagBit.freeFlagSet();
 			EditWindow.repaintAllContents();
+			return true;
 		}
 	}
 
@@ -4749,10 +4769,10 @@ public class CircuitChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			String oldName = lib.getLibName();
-			if (lib.setLibName(newName)) return;
+			if (lib.setLibName(newName)) return false;
 			System.out.println("Library " + oldName + " renamed to " + newName);
 	
 			// mark for saving, all libraries that depend on this
@@ -4781,6 +4801,7 @@ public class CircuitChanges
 					if (oLib.isChangedMajor()) break;
 				}
 			}
+			return true;
 		}
 	}
 

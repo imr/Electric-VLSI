@@ -130,7 +130,7 @@ public class AnnularRing extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			if (lastSegments < 4) lastSegments = 4;
 			if (lastDegrees <= 0) lastDegrees = 360;
@@ -140,7 +140,7 @@ public class AnnularRing extends EDialog
 			// figure out what node to use
 			String nodeName = (String)dialog.layerJList.getSelectedValue();
 			PrimitiveNode np = Technology.getCurrent().findNodeProto(nodeName);
-			if (np == null) return;
+			if (np == null) return false;
 
 			// allocate space for the trace
 			int numSegments = lastSegments + 1;
@@ -186,6 +186,7 @@ public class AnnularRing extends EDialog
 			Point2D center = new Point2D.Double(0, 0);
 			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, 0, dialog.cell, null);
 			ni.newVar(NodeInst.TRACE, points);
+			return true;
 		}
 	}
 

@@ -97,11 +97,12 @@ public class IRSIMTool extends Tool {
 			startJob();			
         }            
         
-        public void doIt() {
+        public boolean doIt() {
             netlister = new IRSIMNetlister();
 			Netlist netlist = cell.getNetlist(true);
             HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
-        }        
+			return true;
+       }        
     }        
     
     //------------------------------IRSIM NETLISTER----------------------------

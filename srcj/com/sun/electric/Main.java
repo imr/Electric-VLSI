@@ -226,7 +226,7 @@ public final class Main
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// initialize all of the technologies
 			Technology.initAllTechnologies();
@@ -266,6 +266,7 @@ public final class Main
                 HelpViewer tip = new HelpViewer(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
                 tip.show();
             }
+            return true;
 		}
 	}
 

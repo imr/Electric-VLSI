@@ -109,7 +109,7 @@ public class ERCWellCheck
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
 			ErrorLog.initLogging("ERC Well Check New");
@@ -423,6 +423,7 @@ public class ERCWellCheck
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
 			ErrorLog.termLogging(true);
+			return true;
 		}
 	}
 	protected static class WellCheck extends Job
@@ -436,7 +437,7 @@ public class ERCWellCheck
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
 			ErrorLog.initLogging("ERC Well Check");
@@ -747,6 +748,7 @@ public class ERCWellCheck
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
 			ErrorLog.termLogging(true);
+			return true;
 		}
 	}
 

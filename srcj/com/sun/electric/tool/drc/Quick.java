@@ -388,7 +388,7 @@ public class Quick
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
@@ -396,6 +396,7 @@ public class Quick
 				Date now = (Date)goodDRCDate.get(cell);
 				DRC.setLastDRCDate(cell, now);
 			}
+			return true;
 		}
 	}
 

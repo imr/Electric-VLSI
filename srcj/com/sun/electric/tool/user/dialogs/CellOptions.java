@@ -959,7 +959,7 @@ public class CellOptions extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
 			{
@@ -994,6 +994,7 @@ public class CellOptions extends EDialog
 					}
 				}
 			}
+			return true;
 		}
 	}
 

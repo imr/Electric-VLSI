@@ -351,7 +351,7 @@ public class Change extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// handle node replacement
 			if (Change.geomToChange instanceof NodeInst)
@@ -360,24 +360,24 @@ public class Change extends EDialog
 				NodeInst ni = (NodeInst)Change.geomToChange;
 
 				// disallow replacing if lock is on
-				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return;
+				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return false;
 
 				// get nodeproto to replace it with
                 String line = dialog.getLibSelected();
                 Library library = Library.findLibrary(line);
-                if (library == null) return;
+                if (library == null) return false;
                 int index = dialog.changeList.getSelectedIndex();
                 NodeProto np = (NodeProto)dialog.changeNodeProtoList.get(index);
 //				line = (String)dialog.changeList.getSelectedValue();
 //                NodeProto np = NodeProto.findNodeProto(line);
-				if (np == null) return;
+				if (np == null) return false;
 
 				// sanity check
 				NodeProto oldNType = ni.getProto();
 				if (oldNType == np)
 				{
 					System.out.println("Node already of type " + np.describe());
-					return;
+					return false;
 				}
 
 				// get any arguments to the replace
@@ -393,7 +393,7 @@ public class Change extends EDialog
 				if (onlyNewNi == null)
 				{
 					System.out.println(np.describe() + " does not fit in the place of " + oldNType.describe());
-					return;
+					return false;
 				}
 
 				// do additional replacements if requested
@@ -550,14 +550,14 @@ public class Change extends EDialog
 				ArcInst ai = (ArcInst)Change.geomToChange;
 
 				// disallow replacement if lock is on
-				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
+				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return false;
 
 				String line = (String)dialog.changeList.getSelectedValue();
 				ArcProto ap = ArcProto.findArcProto(line);
 				if (ap == null)
 				{
 					System.out.println("Nothing called '" + line + "'");
-					return;
+					return false;
 				}
 
 				// sanity check
@@ -565,7 +565,7 @@ public class Change extends EDialog
 				if (oldAType == ap)
 				{
 					System.out.println("Arc already of type " + ap.describe());
-					return;
+					return false;
 				}
 
 				// special case when replacing nodes, too
@@ -583,7 +583,7 @@ public class Change extends EDialog
 						replaceAllArcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
 							dialog.changeInCell.isSelected());
 					}
-					return;
+					return true;
 				}
 
 				// remove highlighting
@@ -595,7 +595,7 @@ public class Change extends EDialog
 				if (onlyNewAi == null)
 				{
 					System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
-					return;
+					return false;
 				}
 
 				// do additional replacements if requested
@@ -718,6 +718,7 @@ public class Change extends EDialog
 						" arcs connected to this replaced with " + ap.describe());
 				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 			}
+			return true;
 		}
 
 		/**

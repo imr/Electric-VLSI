@@ -217,13 +217,14 @@ public class DRC extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
 			Quick.doCheck(cell, 0, null, null, justArea);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+			return true;
 		}
 	}
 
@@ -240,13 +241,14 @@ public class DRC extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
 			Schematic.doCheck(cell);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+			return true;
 		}
 	}
 
@@ -649,7 +651,7 @@ public class DRC extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Technology tech = Technology.getCurrent();
 			Rules oldRules = buildRules(tech);
@@ -732,6 +734,7 @@ public class DRC extends Tool
 
 			// update the cache so that it points to the new set
 			currentRules = newRules;
+			return true;
 		}
 	}
 

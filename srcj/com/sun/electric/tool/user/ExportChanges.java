@@ -456,7 +456,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			FlagSet portMarked = PortProto.getFlagSet(1);
 
@@ -534,6 +534,7 @@ public final class ExportChanges
 			if (total == 0) System.out.println("No ports to export"); else
 				System.out.println(total + " ports exported");
 			portMarked.freeFlagSet();
+			return true;
 		}
 
 		static class PortInstSorted implements Comparator
@@ -731,7 +732,7 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// clear the highlighting
 			Highlight.clear();
@@ -746,6 +747,7 @@ public final class ExportChanges
 			}
 			if (total == 0) System.out.println("No exports deleted"); else
 				System.out.println(total + " exports deleted");
+			return true;
 		}
 	}
 
@@ -762,9 +764,10 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			source.move(dest);
+			return true;
 		}
 	}
 
@@ -784,9 +787,10 @@ public final class ExportChanges
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			pp.rename(newName);
+			return true;
 		}
 	}
 

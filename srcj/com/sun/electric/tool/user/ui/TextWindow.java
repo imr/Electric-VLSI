@@ -212,12 +212,13 @@ public class TextWindow
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Cell cell = tw.getCell();
 			String [] strings = tw.convertToStrings();
 			cell.setTextViewContents(strings);
 			tw.dirty = false;
+			return true;
 		}
 	}
 

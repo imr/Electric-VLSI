@@ -434,12 +434,12 @@ public class TextInfoPanel extends javax.swing.JPanel
             startJob();
         }
 
-        public void doIt()
+        public boolean doIt()
         {
             // if td is null, use future var name to look up var and get td
             if (td == null) {
                 Variable var = owner.getVar(futureVar);
-                if (var == null) return;                // var doesn't exist, failed
+                if (var == null) return false;                // var doesn't exist, failed
                 td = var.getTextDescriptor();           // use TextDescriptor from new var
             }
 
@@ -502,6 +502,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 td.clearBold();
             if (underline) td.setUnderline(); else
                 td.clearUnderline();
+			return true;
         }
     }
 

@@ -88,10 +88,11 @@ public class Simulation extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			Variable var = ni.newVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
 			var.setDisplay();
+			return true;
 		}
 	}
 
@@ -126,7 +127,7 @@ public class Simulation extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -147,6 +148,7 @@ public class Simulation extends Tool
 						break;
 				}
 			}
+			return true;
 		}
 	}
 
@@ -178,7 +180,7 @@ public class Simulation extends Tool
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			if (weak)
 			{
@@ -189,6 +191,7 @@ public class Simulation extends Tool
 				if (ni.getVar(Simulation.WEAK_NODE_KEY) != null)
 					ni.delVar(Simulation.WEAK_NODE_KEY);
 			}
+			return true;
 		}
 	}
 

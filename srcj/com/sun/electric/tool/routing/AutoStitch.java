@@ -110,7 +110,7 @@ public class AutoStitch
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			FlagSet cellMark = NodeProto.getFlagSet(1);
 			nodeMark = NodeInst.getFlagSet(1);
@@ -240,6 +240,7 @@ public class AutoStitch
 			cellMark.freeFlagSet();
 			nodeMark.freeFlagSet();
 
+			return true;
 		}
 
 		/*

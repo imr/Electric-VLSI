@@ -324,7 +324,7 @@ public class Simulate extends Input
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			try
 			{
@@ -334,6 +334,7 @@ public class Simulate extends Input
 			{
 				System.out.println("End of file reached while reading " + fileURL);
 			}
+			return true;
 		}
 	}
 

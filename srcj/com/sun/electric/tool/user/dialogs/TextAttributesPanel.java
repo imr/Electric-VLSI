@@ -296,11 +296,11 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             startJob();
         }
 
-        public void doIt() {
+        public boolean doIt() {
             // if var and td not specified, use future var name
             if ((var == null) && (td == null)) {
                 var = owner.getVar(futureVarName);
-                if (var == null) return;                // var doesn't exist, abort
+                if (var == null) return false;                // var doesn't exist, abort
                 td = var.getTextDescriptor();
             }
 
@@ -325,7 +325,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             if (parameter) td.setParam(); else td.clearParam();
             // change the inherits
             if (inherits) td.setInherit(); else td.clearInherit();
-        }
+			return true;
+       }
     }
     
     /** This method is called from within the constructor to

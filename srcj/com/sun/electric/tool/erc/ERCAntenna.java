@@ -139,9 +139,10 @@ public class ERCAntenna
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			handler.doCheck();
+			return true;
 		}
 	}
 

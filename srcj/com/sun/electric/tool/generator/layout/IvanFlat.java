@@ -302,7 +302,7 @@ public class IvanFlat extends Job {
 		flattener.close();
 	}
 
-	public void doIt() {
+	public boolean doIt() {
 		System.out.println("Begin IvanFlat");
 		String homeDir = getKaoHomeDir();
 		
@@ -330,6 +330,7 @@ public class IvanFlat extends Job {
 		}
 
 		System.out.println("Done");
+		return true;
 	}
 	public IvanFlat() {
 		super("Flatten Netlists for Ivan", User.tool, Job.Type.CHANGE, 

@@ -36,9 +36,14 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 
 
 /**
@@ -46,6 +51,9 @@ import javax.swing.JOptionPane;
  */
 public class NewCell extends EDialog
 {
+	private JList viewList;
+	private DefaultListModel viewModel;
+
 	/** Creates new form New Cell */
 	public NewCell(java.awt.Frame parent, boolean modal)
 	{
@@ -53,16 +61,27 @@ public class NewCell extends EDialog
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
-		// make a popup of views
+		// make a list of views
+		viewModel = new DefaultListModel();
+		viewList = new JList(viewModel);
+		viewList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		view.setViewportView(viewList);
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View v = (View)it.next();
-			view.addItem(v.getFullName());
+			viewModel.addElement(v.getFullName());
 		}
+		viewList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2) ok(null);
+			}
+		});
 		Technology curTech = Technology.getCurrent();
-		if (curTech == Schematics.tech) view.setSelectedItem(View.SCHEMATIC.getFullName()); else
-			if (curTech == Artwork.tech) view.setSelectedItem(View.ICON.getFullName()); else
-				view.setSelectedItem(View.LAYOUT.getFullName());
+		if (curTech == Schematics.tech) viewList.setSelectedValue(View.SCHEMATIC.getFullName(), true); else
+			if (curTech == Artwork.tech) viewList.setSelectedValue(View.ICON.getFullName(), true); else
+				viewList.setSelectedValue(View.LAYOUT.getFullName(), true);
 
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();
@@ -91,10 +110,10 @@ public class NewCell extends EDialog
         cellName = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         library = new javax.swing.JComboBox();
-        view = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         newWindow = new javax.swing.JCheckBox();
+        view = new javax.swing.JScrollPane();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -178,16 +197,6 @@ public class NewCell extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(library, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(view, gridBagConstraints);
-
         jLabel1.setText("Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -210,6 +219,18 @@ public class NewCell extends EDialog
         gridBagConstraints.gridy = 3;
         getContentPane().add(newWindow, gridBagConstraints);
 
+        view.setMinimumSize(new java.awt.Dimension(200, 150));
+        view.setPreferredSize(new java.awt.Dimension(200, 150));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        getContentPane().add(view, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
@@ -231,7 +252,7 @@ public class NewCell extends EDialog
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must type a cell name");
 			return;
 		}
-		String viewName = (String)view.getSelectedItem();
+		String viewName = (String)viewList.getSelectedValue();
 		View v = View.findView(viewName);
 		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
 		String libName = (String)library.getSelectedItem();
@@ -269,14 +290,14 @@ public class NewCell extends EDialog
 			startJob();
 		}
 
-		public void doIt()
+		public boolean doIt()
 		{
 			// should ensure that the name is valid
 			Cell cell = Cell.makeInstance(lib, cellName);
 			if (cell == null)
 			{
 				System.out.println("Unable to create cell " + cellName);
-				return;
+				return false;
 			}
 
 			if (!newWindow)
@@ -284,9 +305,10 @@ public class NewCell extends EDialog
 				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 				wf.setCellWindow(cell);
 				WindowFrame.setCurrentWindowFrame(wf);
-				return;
+				return true;
 			}
 			WindowFrame.createEditWindow(cell);
+			return true;
 		}
 	}
 
@@ -299,7 +321,7 @@ public class NewCell extends EDialog
     private javax.swing.JComboBox library;
     private javax.swing.JCheckBox newWindow;
     private javax.swing.JButton ok;
-    private javax.swing.JComboBox view;
+    private javax.swing.JScrollPane view;
     // End of variables declaration//GEN-END:variables
 	
 }
