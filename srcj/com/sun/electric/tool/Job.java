@@ -37,7 +37,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
 
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -181,7 +181,7 @@ public abstract class Job implements ActionListener, Runnable {
 		}
     
 		/** Add job to list of jobs */
-		private synchronized void addJob(Job j) { 
+		private synchronized void addJob(Job j) {
 			if (numStarted == allJobs.size())
 				notify();
 			allJobs.add(j);
@@ -324,7 +324,10 @@ public abstract class Job implements ActionListener, Runnable {
 
         if (Main.NOTHREADING) {
             // turn off threading if needed for debugging
+            Cursor oldCursor = TopLevel.getCurrentCursor();
+            TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             run();
+            TopLevel.setCurrentCursor(oldCursor);
         } else {
             databaseChangesThread.addJob(this);
         }
