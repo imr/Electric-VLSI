@@ -112,12 +112,17 @@ public class OpenFile extends JFileChooser
 	public static String chooseInputFile(FileFilter filter, String title)
 	{
 		dialog.saveDialog = false;
-		
-		if (title == null) dialog.setDialogTitle("Open " + filter.getDescription()); else
-			dialog.setDialogTitle(title);
+
+		if (title != null) dialog.setDialogTitle(title); else
+		{
+			String dialogTitle = "Open file";
+			if (filter != null) dialogTitle = "Open " + filter.getDescription();
+			dialog.setDialogTitle(dialogTitle);
+		}
+
 		// note that if filter is null it defaults to the built in filter "All Files"
 		dialog.setFileFilter(filter);
-		
+
 		dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 		int returnVal = dialog.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)

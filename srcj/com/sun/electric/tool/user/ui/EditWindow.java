@@ -206,7 +206,10 @@ public class EditWindow extends JPanel
 					// if auto-switching technology, do it
 					PaletteFrame.autoTechnologySwitch(cell);
 				}
-				wf.setTitle(cell.describe());
+				String title = cell.describe();
+				if (cell.getLibrary() != Library.getCurrent())
+					title += " - Current library: " + Library.getCurrent().getLibName();
+				wf.setTitle(title);
 				if (cell.getView().isTextView())
 				{
 					wf.setContent(WindowFrame.TEXTWINDOW);

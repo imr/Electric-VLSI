@@ -764,7 +764,7 @@ public class OutputBinary extends Output
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
 				int i = ai.getTempInt() << 1;
-				if (ai.getHead() == con) i += 0; else i += 1;
+				if (ai.getHead() == con) i++;
 				writeBigInteger(i);
 
 				// write the portinst prototype
@@ -842,17 +842,17 @@ public class OutputBinary extends Output
 		Technology tech = ai.getParent().getTechnology();
 		writeBigInteger((int)(ai.getWidth() * tech.getScale()*2));
 
-		// write the arcinst head information
-		Point2D location = ai.getHead().getLocation();
-		writeBigInteger((int)(location.getX() * tech.getScale()*2));
-		writeBigInteger((int)(location.getY() * tech.getScale()*2));
-		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
-
 		// write the arcinst tail information
-		location = ai.getTail().getLocation();
+		Point2D location = ai.getTail().getLocation();
 		writeBigInteger((int)(location.getX() * tech.getScale()*2));
 		writeBigInteger((int)(location.getY() * tech.getScale()*2));
 		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
+
+		// write the arcinst head information
+		location = ai.getHead().getLocation();
+		writeBigInteger((int)(location.getX() * tech.getScale()*2));
+		writeBigInteger((int)(location.getY() * tech.getScale()*2));
+		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst's tool information
 		int arcAngle = ai.getAngle() / 10;

@@ -2,7 +2,6 @@
 <project basedir="." default="all" name="electric">
 
     <target name="init">
-        <!-- You can set up any variables you want used throughout the script here. -->
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
         <property name="AppleJava" value="AppleJavaExtensions.jar"/>
     </target>
@@ -20,7 +19,21 @@
         </javac>
     </target>
 
-    <target depends="init,compile" name="jar">
+        <target depends="init,compile" name="run">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
+            <classpath>
+                <pathelement location="."/>
+                <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
+           </classpath>
+            <!-- Pass some args, perhaps: -->
+            <!-- arg value="-myfile"/ -->
+            <!-- Will be given as an absolute path: -->
+            <!-- arg file="myfile.txt"/ -->
+        </java>
+    </target>
+
+    <target depends="init,compile" description="Make binary Jar file" name="jar">
         <!-- To make a standalone app: -->
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
@@ -47,12 +60,26 @@
         <delete dir="com/apple"></delete>
     </target>
 
-    <target depends="init,jar" description="Build everything." name="all">
-        <echo message="Application built."/>
+    <target depends="init,compile" description="Make source Jar file" name="jarSource">
+        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
+        <exec executable="jar"><arg line="xf ${AppleJava}"></arg></exec> 
+        <delete dir="META-INF"></delete>
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
+            <!--  <arg line="-J-mx500m"></arg>  -->
+            <exclude name="apidoc/"/>
+            <exclude name="intervalsimulation/"/>
+            <exclude name="electric.jar"/>
+            <exclude name="electric.mf"/>
+            <exclude name="Hack_stack.txt"/>
+            <exclude name="*.group"/>
+            <exclude name="**/.nbattrs"/>
+        </jar>
+        <delete dir="bsh"></delete>
+        <delete dir="com/apple"></delete>
     </target>
 
-    <target depends="init,all" description="Try running it." name="test">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
+    <target depends="init,jar" description="Run Jar file" name="testJar">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
@@ -65,20 +92,7 @@
         </java>
     </target>
 
-    <target depends="init" description="Clean all build products." name="clean">
-        <delete quiet="true">
-            <fileset dir=".">
-                <include name="**/*.class"/>
-            </fileset>
-            <fileset dir="../srcjClasses">
-                <include name="**/*.class"/>
-            </fileset>
-        </delete>
-    <delete file="electric.jar"/>
-        <delete dir="apidoc"/>
-    </target>
-
-    <target depends="init" description="Javadoc for my API." name="javadoc">
+    <target depends="init" description="Create Javadoc" name="javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
             <classpath>
@@ -89,6 +103,19 @@
                 <pathelement location="."/>
             </sourcepath>
         </javadoc>
+    </target>
+
+    <target depends="init" description="Clean all build products" name="clean">
+        <delete quiet="true">
+            <fileset dir=".">
+                <include name="**/*.class"/>
+            </fileset>
+            <fileset dir="../srcjClasses">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    <delete file="electric.jar"/>
+        <delete dir="apidoc"/>
     </target>
 
 </project>

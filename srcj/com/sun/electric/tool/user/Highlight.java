@@ -188,6 +188,30 @@ public class Highlight
 	 */
 	public static void finished()
 	{
+		// see if arcs of a single type were selected
+		boolean mixedArc = false;
+		ArcProto foundArcProto = null;
+		for(Iterator it = getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() == Type.EOBJ)
+			{
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof ArcInst)
+				{
+					ArcProto ap = ((ArcInst)eobj).getProto();
+					if (foundArcProto == null)
+					{
+						foundArcProto = ap;
+					} else
+					{
+						if (foundArcProto != ap) mixedArc = true;
+					}
+				}
+			}
+		}
+		if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
+
 		User.tool.updateInformationAreas();
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{

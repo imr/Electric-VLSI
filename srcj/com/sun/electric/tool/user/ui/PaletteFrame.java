@@ -103,6 +103,7 @@ public class PaletteFrame
 	/** the size of a palette entry. */					private int entrySize;
 	/** the list of objects in the palette. */			private List inPalette;
 	/** the currently selected Node in the palette. */	private NodeProto highlightedNode;
+	/** the popup that selects technologies. */			private JComboBox selector;
 
 	// constructor, never called
 	private PaletteFrame() {}
@@ -138,21 +139,21 @@ public class PaletteFrame
 
 		// create a paletteWindow and a selector combobox
 		palette.panel = new PalettePanel(palette);
-		JComboBox selector = new JComboBox();
+		palette.selector = new JComboBox();
 		List techList = Technology.getTechnologiesSortedByName();
 		for(Iterator it = techList.iterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech == Generic.tech) continue;
-			selector.addItem(tech.getTechName());
+			palette.selector.addItem(tech.getTechName());
 		}
-		selector.setSelectedItem(Technology.getCurrent().getTechName());
-		selector.addActionListener(new TechnologyPopupActionListener(palette));
+		palette.selector.setSelectedItem(Technology.getCurrent().getTechName());
+		palette.selector.addActionListener(new TechnologyPopupActionListener(palette));
 
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
-			((JInternalFrame)palette.container).getContentPane().add(selector, BorderLayout.NORTH);
+			((JInternalFrame)palette.container).getContentPane().add(palette.selector, BorderLayout.NORTH);
 			((JInternalFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
 			((JInternalFrame)palette.container).show();
 			TopLevel.addToDesktop((JInternalFrame)palette.container);
@@ -160,7 +161,7 @@ public class PaletteFrame
 		} else
 		{
 			((JFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
-			((JFrame)palette.container).getContentPane().add(selector, BorderLayout.NORTH);
+			((JFrame)palette.container).getContentPane().add(palette.selector, BorderLayout.NORTH);
 			((JFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
 			((JFrame)palette.container).show();
 		}
@@ -193,7 +194,7 @@ public class PaletteFrame
 			if (User.isAutoTechnologySwitch())
 			{
 				tech.setCurrent();
-				TopLevel.getPaletteFrame().loadForTechnology();
+				TopLevel.getPaletteFrame().selector.setSelectedItem(tech.getTechName());
 			}
 		}
 	}
@@ -317,6 +318,7 @@ public class PaletteFrame
 		if (ysize < entrySize) entrySize = ysize;
 		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
 		container.setSize(size);
+		User.tool.setCurrentArcProto((ArcProto)tech.getArcs().next());
 		panel.repaint();
 	}
 
@@ -344,8 +346,7 @@ public class PaletteFrame
 		public void actionPerformed(ActionEvent evt)
 		{
 			// the popup of libraies changed
-			JComboBox cb = (JComboBox)evt.getSource();
-			String techName = (String)cb.getSelectedItem();
+			String techName = (String)palette.selector.getSelectedItem();
 			Technology  tech = Technology.findTechnology(techName);
 			if (tech != null)
 			{
@@ -487,7 +488,6 @@ public class PaletteFrame
 			} else if (obj instanceof PrimitiveArc)
 			{
 				PrimitiveArc ap = (PrimitiveArc)obj;
-				System.out.println("Clicked on arc "+ap.describe());
 				User.tool.setCurrentArcProto(ap);
 			} else if (obj instanceof String)
 			{

@@ -38,6 +38,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.io.OutputVerilog;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
@@ -919,11 +920,11 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 		spiceBrowseHeaderFile.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { spiceBrowseHeaderFileActionPerformed(evt); }
+			public void actionPerformed(ActionEvent evt) { spiceBrowseHeaderFileActionPerformed(); }
 		});
 		spiceBrowseTrailerFile.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { spiceBrowseTrailerFileActionPerformed(evt); }
+			public void actionPerformed(ActionEvent evt) { spiceBrowseTrailerFileActionPerformed(); }
 		});
 
 		// the last section has cell overrides
@@ -949,7 +950,7 @@ public class ToolOptions extends javax.swing.JDialog
 		});
 		spiceModelFileBrowse.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { spiceModelFileBrowseActionPerformed(evt); }
+			public void actionPerformed(ActionEvent evt) { spiceModelFileBrowseActionPerformed(); }
 		});
 //		spiceCellListClick();
 //		spiceCell.getDocument().addDocumentListener(new CellDocumentListener(spiceCellModelOptions, spiceCellList, curLib));
@@ -966,7 +967,7 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 	}
 
-	private void spiceModelFileBrowseActionPerformed(ActionEvent evt)
+	private void spiceModelFileBrowseActionPerformed()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
@@ -974,7 +975,7 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceUseModelFromFile.setSelected(true);
 	}
 
-	private void spiceBrowseTrailerFileActionPerformed(ActionEvent evt)
+	private void spiceBrowseTrailerFileActionPerformed()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
@@ -982,7 +983,7 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceTrailerCardsFromFile.setSelected(true);
 	}
 
-	private void spiceBrowseHeaderFileActionPerformed(ActionEvent evt)
+	private void spiceBrowseHeaderFileActionPerformed()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
@@ -1128,6 +1129,9 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private boolean initialVerilogUseAssign;
 	private boolean initialVerilogUseTrireg;
+	private HashMap initialVerilogBehaveFiles;
+	private JList verilogCellList;
+	private DefaultListModel verilogCellListModel;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1141,13 +1145,163 @@ public class ToolOptions extends javax.swing.JDialog
 		initialVerilogUseTrireg = Simulation.getVerilogUseTrireg();
 		verDefWireTrireg.setSelected(initialVerilogUseTrireg);
 
-		// not yet
-		verLibrary.setEnabled(false);
-		verCells.setEnabled(false);
-		verDeriveModel.setEnabled(false);
-		verUseModelFile.setEnabled(false);
-		verBrowse.setEnabled(false);
-		verFileName.setEditable(false);
+		// gather all existing behave file information
+		initialVerilogBehaveFiles = new HashMap();
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				String behaveFile = "";
+				Variable var = cell.getVar(OutputVerilog.VERILOG_BEHAVE_FILE_KEY);
+				if (var != null) behaveFile = var.getObject().toString();
+				initialVerilogBehaveFiles.put(cell, Option.newStringOption(behaveFile));
+			}
+		}
+
+		// make list of libraries
+		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			verLibrary.addItem(lib.getLibName());
+		}
+		verLibrary.setSelectedItem(Library.getCurrent().getLibName());
+		verLibrary.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { verilogLoadCellList(); }
+		});
+
+		// make the list of cells
+		verilogCellListModel = new DefaultListModel();
+		verilogCellList = new JList(verilogCellListModel);
+		verilogCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		verCells.setViewportView(verilogCellList);
+		verilogCellList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { verilogCellListClick(); }
+		});
+
+		verBrowse.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { verModelFileBrowseActionPerformed(); }
+		});
+		verDeriveModel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { verilogModelClick(); }
+		});
+		verUseModelFile.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { verilogModelClick(); }
+		});
+		verFileName.getDocument().addDocumentListener(new VerilogDocumentListener(this));
+		verilogLoadCellList();
+	}
+
+	private void verModelFileBrowseActionPerformed()
+	{
+		String fileName = OpenFile.chooseInputFile(OpenFile.VERILOG, null);
+		if (fileName == null) return;
+		verUseModelFile.setSelected(true);
+		verFileName.setEditable(true);
+		verFileName.setText(fileName);
+	}
+
+	/**
+	 * Class to handle special changes to Verilog model file values.
+	 */
+	private static class VerilogDocumentListener implements DocumentListener
+	{
+		ToolOptions dialog;
+
+		VerilogDocumentListener(ToolOptions dialog)
+		{
+			this.dialog = dialog;
+		}
+
+		private void change(DocumentEvent e)
+		{
+			// get the currently selected Cell
+			String libName = (String)dialog.verLibrary.getSelectedItem();
+			Library lib = Library.findLibrary(libName);
+			String cellName = (String)dialog.verilogCellList.getSelectedValue();
+			Cell cell = lib.findNodeProto(cellName);
+			if (cell == null) return;
+			Option behaveOption = (Option)dialog.initialVerilogBehaveFiles.get(cell);
+			if (behaveOption == null) return;
+
+			// get the typed value
+			Document doc = e.getDocument();
+			int len = doc.getLength();
+			String text;
+			try
+			{
+				text = doc.getText(0, len);
+			} catch (BadLocationException ex) { return; }
+
+			// update the option
+			behaveOption.setStringValue(text);
+		}
+
+		public void changedUpdate(DocumentEvent e) { change(e); }
+		public void insertUpdate(DocumentEvent e) { change(e); }
+		public void removeUpdate(DocumentEvent e) { change(e); }
+	}
+
+	private void verilogLoadCellList()
+	{
+		String libName = (String)verLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		if (lib == null) return;
+		verilogCellListModel.clear();
+		boolean notEmpty = false;
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			verilogCellListModel.addElement(cell.noLibDescribe());
+			notEmpty = true;
+		}
+		if (notEmpty)
+		{
+			verilogCellList.setSelectedIndex(0);
+			verilogCellListClick();
+		}
+	}
+
+	private void verilogCellListClick()
+	{
+		String libName = (String)verLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		String cellName = (String)verilogCellList.getSelectedValue();
+		Cell cell = lib.findNodeProto(cellName);
+		if (cell == null) return;
+		Option behaveOption = (Option)initialVerilogBehaveFiles.get(cell);
+		if (behaveOption == null) return;
+		String behaveFile = behaveOption.getStringValue();
+		if (behaveFile.length() == 0)
+		{
+			verDeriveModel.setSelected(true);
+			verFileName.setEditable(false);
+			verFileName.setText("");
+		} else
+		{
+			verUseModelFile.setSelected(true);
+			verFileName.setEditable(true);
+			verFileName.setText(behaveFile);
+		}
+	}
+
+	private void verilogModelClick()
+	{
+		if (verDeriveModel.isSelected())
+		{
+			verFileName.setEditable(false);
+			verFileName.setText("");
+		} else
+		{
+			verFileName.setEditable(true);
+		}
 	}
 
 	/**
@@ -1163,6 +1317,22 @@ public class ToolOptions extends javax.swing.JDialog
 		boolean currentUseTrireg = verDefWireTrireg.isSelected();
 		if (currentUseTrireg != initialVerilogUseTrireg)
 			Simulation.setVerilogUseTrireg(currentUseTrireg);
+
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Option behaveOption = (Option)initialVerilogBehaveFiles.get(cell);
+				if (behaveOption == null) continue;
+				if (behaveOption.isChanged())
+				{
+					cell.newVar(OutputVerilog.VERILOG_BEHAVE_FILE_KEY, behaveOption.getStringValue());
+				}
+			}
+		}
 	}
 
 	//******************************** FAST HENRY ********************************

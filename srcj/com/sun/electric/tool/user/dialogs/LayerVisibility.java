@@ -382,7 +382,9 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(allVisible, gridBagConstraints);
 
         allInvisible.setText("All Invisible");
@@ -397,7 +399,9 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(allInvisible, gridBagConstraints);
 
         jLabel2.setText("Click to change visibility.");

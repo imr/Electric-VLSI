@@ -263,8 +263,8 @@ public abstract class OutputTopology extends Output
 //printWriter.print(" Have " + cni.cellAggretateSignals.size() + " aggregate signals:\n");
 //for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 //{
-//	CellAggregateSignal ca = (CellAggregateSignal)it.next();
-//	printWriter.print("   Name="+ca.name+", export="+ca.pp+", low="+ca.low+", high="+ca.high+"\n");
+//	CellAggregateSignal cas = (CellAggregateSignal)it.next();
+//	printWriter.print("   Name="+cas.name+", export="+cas.pp+", low="+cas.low+", high="+cas.high+"\n");
 //}
 //printWriter.print("********DONE WITH CELL " + cell.describe() + "\n");
 		return cni;
@@ -515,23 +515,23 @@ public abstract class OutputTopology extends Output
 		{
 			CellSignal cs = (CellSignal)cellSignalArray.get(i);
 
-			CellAggregateSignal ca = new CellAggregateSignal();
-			ca.name = unIndexedName(cs.name);
-			ca.pp = cs.pp;
-			ca.supply = cs.power | cs.ground;
-			ca.descending = cs.descending;
-			ca.flags = 0;
-			cs.aggregateSignal = ca;
-			if (cs.name.equals(ca.name))
+			CellAggregateSignal cas = new CellAggregateSignal();
+			cas.name = unIndexedName(cs.name);
+			cas.pp = cs.pp;
+			cas.supply = cs.power | cs.ground;
+			cas.descending = cs.descending;
+			cas.flags = 0;
+			cs.aggregateSignal = cas;
+			if (cs.name.equals(cas.name))
 			{
 				// single wire: set range to show that
-				ca.low = 1;
-				ca.high = 0;
-				ca.signals = new CellSignal[1];
-				ca.signals[0] = cs;
+				cas.low = 1;
+				cas.high = 0;
+				cas.signals = new CellSignal[1];
+				cas.signals[0] = cs;
 			} else
 			{
-				ca.high = ca.low = TextUtils.atoi(cs.name.substring(ca.name.length()+1));
+				cas.high = cas.low = TextUtils.atoi(cs.name.substring(cas.name.length()+1));
 				int start = i;
 				for(int j=i+1; j<total; j++)
 				{
@@ -545,27 +545,27 @@ public abstract class OutputTopology extends Output
 					int index = TextUtils.atoi(endName.substring(ept.length()+1));
 
 					// make sure export indices go in order
-					if (index != ca.high+1) break;
-					if (index > ca.high) ca.high = index;
+					if (index != cas.high+1) break;
+					if (index > cas.high) cas.high = index;
 					i = j;
-					csEnd.aggregateSignal = ca;
+					csEnd.aggregateSignal = cas;
 				}
-				ca.signals = new CellSignal[i-start+1];
+				cas.signals = new CellSignal[i-start+1];
 				for(int j=start; j<=i; j++)
 				{
 					CellSignal csEnd = (CellSignal)cellSignalArray.get(j);
-					ca.signals[j-start] = csEnd;
+					cas.signals[j-start] = csEnd;
 				}
 			}
-			cni.cellAggretateSignals.add(ca);
+			cni.cellAggretateSignals.add(cas);
 		}
 
 		// give all signals a safe name
 		for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 		{
-			CellAggregateSignal ca = (CellAggregateSignal)it.next();
-			ca.name = getSafeNetName(ca.name);
-//			if (ca.low == ca.high) ca.name = ca.name + "_" + ca.low + "_";
+			CellAggregateSignal cas = (CellAggregateSignal)it.next();
+			cas.name = getSafeNetName(cas.name);
+//			if (cas.low == cas.high) cas.name = cas.name + "_" + cas.low + "_";
 		}
 
 		// make sure all names are unique
@@ -573,22 +573,22 @@ public abstract class OutputTopology extends Output
 		for(int i=1; i<numNameList; i++)
 		{
 			// single signal: give it that name
-			CellAggregateSignal ca = (CellAggregateSignal)cni.cellAggretateSignals.get(i);
+			CellAggregateSignal cas = (CellAggregateSignal)cni.cellAggretateSignals.get(i);
 
 			// see if the name clashes
 			for(int k=0; k<1000; k++)
 			{
-				String ninName = ca.name;
+				String ninName = cas.name;
 				if (k > 0) ninName = ninName + "_" + k;
 				boolean found = false;
 				for(int j=0; j<i; j++)
 				{
-					CellAggregateSignal oCa = (CellAggregateSignal)cni.cellAggretateSignals.get(j);
-					if (!ninName.equals(oCa.name)) { found = true;   break; }
+					CellAggregateSignal oCas = (CellAggregateSignal)cni.cellAggretateSignals.get(j);
+					if (!ninName.equals(oCas.name)) { found = true;   break; }
 				}
 				if (!found)
 				{
-					if (k > 0) ca.name = ninName;
+					if (k > 0) cas.name = ninName;
 					break;
 				}
 			}
@@ -597,17 +597,17 @@ public abstract class OutputTopology extends Output
 		// put names back onto the signals
 		for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 		{
-			CellAggregateSignal ca = (CellAggregateSignal)it.next();
-			if (ca.low > ca.high)
+			CellAggregateSignal cas = (CellAggregateSignal)it.next();
+			if (cas.low > cas.high)
 			{
-				CellSignal cs = ca.signals[0];
-				cs.name = ca.name;
+				CellSignal cs = cas.signals[0];
+				cs.name = cas.name;
 			} else
 			{
-				for(int k=ca.low; k<=ca.high; k++)
+				for(int k=cas.low; k<=cas.high; k++)
 				{
-					CellSignal cs = ca.signals[k-ca.low];
-					cs.name = ca.name + "[" + k + "]";
+					CellSignal cs = cas.signals[k-cas.low];
+					cs.name = cas.name + "[" + k + "]";
 				}
 			}
 		}

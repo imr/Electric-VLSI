@@ -69,6 +69,7 @@ public class OutputVerilog extends OutputTopology
 	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = ElectricObject.newKey("VERILOG_declaration");
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = ElectricObject.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = ElectricObject.newKey("ATTR_verilog_template");
+	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = ElectricObject.newKey("SIM_verilog_behave_file");
 
 	/**
 	 * The main entry point for Verilog deck writing.
@@ -97,13 +98,15 @@ public class OutputVerilog extends OutputTopology
 	protected void start()
 	{
 		// write header information
-		printWriter.print("/* Verilog for cell " + topCell.describe() + " from Library " + topCell.getLibrary().getLibName() + " */\n");
+		printWriter.print("/* Verilog for cell " + topCell.describe() +
+			" from Library " + topCell.getLibrary().getLibName() + " */\n");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			printWriter.print("/* Created on " + sdf.format(topCell.getCreationDate()) + " */\n");
 			printWriter.print("/* Last revised on " + sdf.format(topCell.getRevisionDate()) + " */\n");
-			printWriter.print("/* Written on " + sdf.format(new Date()) + " by Electric VLSI Design System, version " + Version.CURRENT + " */\n");
+			printWriter.print("/* Written on " + sdf.format(new Date()) +
+				" by Electric VLSI Design System, version " + Version.CURRENT + " */\n");
 		} else
 		{
 			printWriter.print("/* Written by Electric VLSI Design System */\n");
@@ -148,7 +151,7 @@ public class OutputVerilog extends OutputTopology
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
 		// use attached file if specified
-		Variable behaveFileVar = cell.getVar("SIM_verilog_behave_file");
+		Variable behaveFileVar = cell.getVar(VERILOG_BEHAVE_FILE_KEY);
 		if (behaveFileVar != null)
 		{
 			printWriter.print("`include \"" + behaveFileVar.getObject() + "\"\n");
@@ -212,10 +215,10 @@ public class OutputVerilog extends OutputTopology
 		boolean first = true;
 		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			CellAggregateSignal ca = (CellAggregateSignal)it.next();
-			if (ca.getExport() == null) continue;
+			CellAggregateSignal cas = (CellAggregateSignal)it.next();
+			if (cas.getExport() == null) continue;
 			if (!first) sb.append(", ");
-			sb.append(ca.getName());
+			sb.append(cas.getName());
 			first = false;
 		}
 		sb.append(");");
@@ -245,31 +248,31 @@ public class OutputVerilog extends OutputTopology
 		first = true;
 		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			CellAggregateSignal ca = (CellAggregateSignal)it.next();
-			Export pp = ca.getExport();
+			CellAggregateSignal cas = (CellAggregateSignal)it.next();
+			Export pp = cas.getExport();
 			if (pp == null) continue;
 
 			String portType = "input";
 			if (pp.getCharacteristic() == PortProto.Characteristic.OUT)
 				portType = "output";
 			printWriter.print("  " + portType);
-			if (ca.getLowIndex() > ca.getHighIndex())
+			if (cas.getLowIndex() > cas.getHighIndex())
 			{
-				printWriter.print(" " + ca.getName() + ";");
+				printWriter.print(" " + cas.getName() + ";");
 			} else
 			{
-				int low = ca.getLowIndex(), high = ca.getHighIndex();
-				if (ca.isDescending())
+				int low = cas.getLowIndex(), high = cas.getHighIndex();
+				if (cas.isDescending())
 				{
-					low = ca.getHighIndex();   high = ca.getLowIndex();
+					low = cas.getHighIndex();   high = cas.getLowIndex();
 				}
-				printWriter.print(" [" + low + ":" + high + "] " + ca.getName() + ";");
+				printWriter.print(" [" + low + ":" + high + "] " + cas.getName() + ";");
 			}
-			if (ca.getFlags() != 0)
+			if (cas.getFlags() != 0)
 			{
-				if (ca.getFlags() == 1) printWriter.print("  wire"); else
+				if (cas.getFlags() == 1) printWriter.print("  wire"); else
 					printWriter.print("  trireg");
-				printWriter.print(" " + ca.getName() + ";");
+				printWriter.print(" " + cas.getName() + ";");
 			}
 			printWriter.print("\n");
 			first = false;
@@ -291,15 +294,15 @@ public class OutputVerilog extends OutputTopology
 			first = true;
 			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
-				CellAggregateSignal ca = (CellAggregateSignal)it.next();
-				if (ca.getExport() != null) continue;
-				if (ca.isSupply()) continue;
-				if (ca.getLowIndex() <= ca.getHighIndex()) continue;
+				CellAggregateSignal cas = (CellAggregateSignal)it.next();
+				if (cas.getExport() != null) continue;
+				if (cas.isSupply()) continue;
+				if (cas.getLowIndex() <= cas.getHighIndex()) continue;
 
 				String impSigName = wireType;
-				if (ca.getFlags() != 0)
+				if (cas.getFlags() != 0)
 				{
-					if (ca.getFlags() == 1) impSigName = "wire"; else
+					if (cas.getFlags() == 1) impSigName = "wire"; else
 						impSigName = "trireg";
 				}
 				if ((wt == 0) ^ !wireType.equals(impSigName))
@@ -308,7 +311,7 @@ public class OutputVerilog extends OutputTopology
 					{
 						initDeclaration("  " + impSigName);
 					}
-					addDeclaration(ca.getName());
+					addDeclaration(cas.getName());
 					localWires++;
 					first = false;
 				}
@@ -319,17 +322,17 @@ public class OutputVerilog extends OutputTopology
 		// write "wire/trireg" declarations for internal busses
 		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			CellAggregateSignal ca = (CellAggregateSignal)it.next();
-			if (ca.getExport() != null) continue;
-			if (ca.isSupply()) continue;
-			if (ca.getLowIndex() > ca.getHighIndex()) continue;
+			CellAggregateSignal cas = (CellAggregateSignal)it.next();
+			if (cas.getExport() != null) continue;
+			if (cas.isSupply()) continue;
+			if (cas.getLowIndex() > cas.getHighIndex()) continue;
 
-			if (ca.isDescending())
+			if (cas.isDescending())
 			{
-				printWriter.print("  " + wireType + " [" + ca.getHighIndex() + ":" + ca.getLowIndex() + "] " + ca.getName() + ";\n");
+				printWriter.print("  " + wireType + " [" + cas.getHighIndex() + ":" + cas.getLowIndex() + "] " + cas.getName() + ";\n");
 			} else
 			{
-				printWriter.print("  " + wireType + " [" + ca.getLowIndex() + ":" + ca.getHighIndex() + "] " + ca.getName() + ";\n");
+				printWriter.print("  " + wireType + " [" + cas.getLowIndex() + ":" + cas.getHighIndex() + "] " + cas.getName() + ";\n");
 			}
 			localWires++;
 		}
@@ -387,102 +390,79 @@ public class OutputVerilog extends OutputTopology
 						continue;
 			}
 
-//			int nodewidth = ni->arraysize;
-//			if (nodewidth < 1) nodewidth = 1;
-//
-//			// use "assign" statement if possible
-//			if (Simulation.getVerilogUseAssign())
-//			{
-//				if (nodeType == NPGATEAND || nodeType == NPGATEOR ||
-//					nodeType == NPGATEXOR || nodeType == NPBUFFER)
-//				{
-//					// assign possible: determine operator
-//					switch (nodeType)
-//					{
-//						case NPGATEAND:  op = x_(" & ");   break;
-//						case NPGATEOR:   op = x_(" | ");   break;
-//						case NPGATEXOR:  op = x_(" ^ ");   break;
-//						case NPBUFFER:   op = x_("");      break;
-//					}
-//					for(nindex=0; nindex<nodewidth; nindex++)
-//					{
-//						// write a line describing this signal
-//						infstr = initinfstr();
-//						wholenegated = 0;
-//						first = TRUE;
-//						for(i=0; i<2; i++)
-//						{
-//							for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//							{
-//								if (i == 0)
-//								{
-//									if (estrcmp(pi->proto->protoname, x_("y")) != 0) continue;
-//								} else
-//								{
-//									if (estrcmp(pi->proto->protoname, x_("a")) != 0) continue;
-//								}
-//
-//								// determine the network name at this port
-//								net = pi->conarcinst->network;
-//								if (nodewidth > 1)
-//								{
-//									(void)net_evalbusname(
-//										(pi->conarcinst->proto->userbits&AFUNCTION)>>AFUNCTIONSH,
-//											networkname(net, 0), &strings, pi->conarcinst, np, 1);
-//									estrcpy(impsigname, strings[nindex]);
-//									signame = impsigname;
-//								} else
-//								{
-//									if (net != NONETWORK && net->namecount > 0)
-//										signame = networkname(net, 0); else
-//											signame = describenetwork(net);
-//									if (net == pwrnet) signame = x_("vdd"); else
-//										if (net == gndnet) signame = x_("gnd");
-//								}
-//
-//								// see if this end is negated
-//								isnegated = 0;
-//								ai = pi->conarcinst;
-//								if ((ai->userbits&ISNEGATED) != 0)
-//								{
-//									if ((ai->end[0].nodeinst == ni && (ai->userbits&REVERSEEND) == 0) ||
-//										(ai->end[1].nodeinst == ni && (ai->userbits&REVERSEEND) != 0))
-//									{
-//										isnegated = 1;
-//									}
-//								}
-//
-//								// write the port name
-//								if (i == 0)
-//								{
-//									// got the output port: do the left-side of the "assign"
-//									addstringtoinfstr(infstr, x_("assign "));
-//									addstringtoinfstr(infstr, signame);
-//									addstringtoinfstr(infstr, x_(" = "));
-//									if (isnegated != 0)
-//									{
-//										addstringtoinfstr(infstr, x_("~("));
-//										wholenegated = 1;
-//									}
-//									break;
-//								} else
-//								{
-//									if (!first)
-//										addstringtoinfstr(infstr, op);
-//									first = FALSE;
-//									if (isnegated != 0) addstringtoinfstr(infstr, x_("~"));
-//									addstringtoinfstr(infstr, signame);
-//								}
-//							}
-//						}
-//						if (wholenegated != 0)
-//							addstringtoinfstr(infstr, x_(")"));
-//						addstringtoinfstr(infstr, x_(";"));
-//						writeLongLine(returninfstr(infstr));
-//					}
-//					continue;
-//				}
-//			}
+			// use "assign" statement if possible
+			if (Simulation.getVerilogUseAssign())
+			{
+				if (nodeType == NodeProto.Function.GATEAND || nodeType == NodeProto.Function.GATEOR ||
+					nodeType == NodeProto.Function.GATEXOR || nodeType == NodeProto.Function.BUFFER)
+				{
+					// assign possible: determine operator
+					String op = "";
+					if (nodeType == NodeProto.Function.GATEAND) op = " & "; else
+					if (nodeType == NodeProto.Function.GATEOR) op = " | "; else
+					if (nodeType == NodeProto.Function.GATEXOR) op = " ^ ";
+
+					// write a line describing this signal
+					StringBuffer infstr = new StringBuffer();
+					boolean wholeNegated = false;
+					first = true;
+					NodeInst ni = (NodeInst)no;
+					for(int i=0; i<2; i++)
+					{
+						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						{
+							Connection con = (Connection)cIt.next();
+							PortInst pi = con.getPortInst();
+							if (i == 0)
+							{
+								if (!pi.getPortProto().getProtoName().equals("y")) continue;
+							} else
+							{
+								if (!pi.getPortProto().getProtoName().equals("a")) continue;
+							}
+
+							// determine the network name at this port
+							ArcInst ai = con.getArc();
+							JNetwork net = netList.getNetwork(ai, 0);
+							String sigName = getNetName(net, cni);
+
+							// see if this end is negated
+							boolean isNegated = false;
+							if (ai.isNegated())
+							{
+								if (ai.getTail().getPortInst() == pi && !ai.isReverseEnds() ||
+									ai.getHead().getPortInst() == pi && ai.isReverseEnds())
+										isNegated = true;
+							}
+
+							// write the port name
+							if (i == 0)
+							{
+								// got the output port: do the left-side of the "assign"
+								infstr.append("assign " + sigName + " = ");
+								if (isNegated)
+								{
+									infstr.append("~(");
+									wholeNegated = true;
+								}
+								break;
+							} else
+							{
+								if (!first)
+									infstr.append(op);
+								first = false;
+								if (isNegated) infstr.append("~");
+								infstr.append(sigName);
+							}
+						}
+					}
+					if (wholeNegated)
+						infstr.append(")");
+					infstr.append(";");
+					writeLongLine(infstr.toString());
+				}
+				continue;
+			}
 
 			// get the name of the node
 			int implicitPorts = 0;
@@ -552,6 +532,7 @@ public class OutputVerilog extends OutputTopology
 
 			// write the rest of the ports
 			first = true;
+			NodeInst ni = null;
 			switch (implicitPorts)
 			{
 				case 0:		// explicit ports
@@ -566,19 +547,19 @@ public class OutputVerilog extends OutputTopology
 					CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 					for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 					{
-						CellAggregateSignal ca = (CellAggregateSignal)sIt.next();
+						CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
 
 						// ignore networks that aren't exported
-						PortProto pp = ca.getExport();
+						PortProto pp = cas.getExport();
 						if (pp == null) continue;
 
 						if (first) first = false; else
 							infstr.append(", ");
-						int low = ca.getLowIndex(), high = ca.getHighIndex();
+						int low = cas.getLowIndex(), high = cas.getHighIndex();
 						if (low > high)
 						{
 							// single signal
-							infstr.append("." + ca.getName() + "(");
+							infstr.append("." + cas.getName() + "(");
 							JNetwork net = netList.getNetwork(no, pp, 0);
 							if (net == cni.getPowerNet()) infstr.append("vdd"); else
 							{
@@ -596,65 +577,51 @@ public class OutputVerilog extends OutputTopology
 							CellSignal [] outerSignalList = new CellSignal[total];
 							for(int j=low; j<=high; j++)
 							{
-								JNetwork net = netList.getNetwork(no, ca.getExport(), j-low);
+								JNetwork net = netList.getNetwork(no, cas.getExport(), j-low);
 								outerSignalList[j-low] = cni.getCellSignal(net);
 							}
-							writeBus(outerSignalList, low, high, ca.isDescending(),
-								ca.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
+							writeBus(outerSignalList, low, high, cas.isDescending(),
+								cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
 						}
 					}
 					infstr.append(");");
 					break;
 
 				case 1:		// and/or gate: write ports in the proper order
-//					for(i=0; i<2; i++)
-//					{
-//						for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						{
-//							if (i == 0)
-//							{
-//								if (estrcmp(pi->proto->protoname, x_("y")) != 0) continue;
-//							} else
-//							{
-//								if (estrcmp(pi->proto->protoname, x_("a")) != 0) continue;
-//							}
-//							if (first) first = FALSE; else
-//								addstringtoinfstr(infstr, x_(", "));
-//							net = pi->conarcinst->network;
-//							if (nodewidth > 1)
-//							{
-//								if (net->buswidth == nodewidth) net = net->networklist[nindex];
-//							} else
-//							{
-//								if (net->buswidth > 1)
-//								{
-//									ttyputerr(_("***ERROR: cell %s, node %s is not arrayed but is connected to a bus"),
-//										describenodeproto(np), describenodeinst(ni));
-//									net = net->networklist[0];
-//								}
-//							}
-//							signame = &((CHAR *)net->temp2)[1];
-//							if (net == pwrnet) signame = x_("vdd"); else
-//								if (net == gndnet) signame = x_("gnd");
+					ni = (NodeInst)no;
+					for(int i=0; i<2; i++)
+					{
+						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+						{
+							PortInst pi = (PortInst)pIt.next();
+							if (i == 0)
+							{
+								if (!pi.getPortProto().getProtoName().equals("y")) continue;
+							} else
+							{
+								if (!pi.getPortProto().getProtoName().equals("a")) continue;
+							}
+							if (first) first = false; else
+								infstr.append(", ");
+							JNetwork net = netList.getNetwork(pi);
+							String sigName = getNetName(net, cni);
 //							if (i != 0 && pi->conarcinst->temp1 != 0)
 //							{
 //								// this input is negated: write the implicit inverter
-//								esnprintf(invsigname, 100, x_("%s%ld"), IMPLICITINVERTERSIGNAME,
-//									pi->conarcinst->temp1+nindex);
-//								printWriter.print(sim_verfile, x_("  inv %s%ld (%s, %s);\n"),
-//									IMPLICITINVERTERNODENAME, pi->conarcinst->temp1+nindex,
-//										invsigname, signame);
-//								signame = invsigname;
+//								String invsigname = IMPLICITINVERTERSIGNAME + (pi->conarcinst->temp1+nindex);
+//								printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
+//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + sigName + ");\n");
+//								sigName = invsigname;
 //							}
-//							addstringtoinfstr(infstr, signame);
-//						}
-//					}
-//					addstringtoinfstr(infstr, x_(");"));
+							infstr.append(sigName);
+						}
+					}
+					infstr.append(");");
 					break;
 
 				case 2:		// transistors: write ports in the proper order
 					// schem: g/s/d  mos: g/s/g/d
-					NodeInst ni = (NodeInst)no;
+					ni = (NodeInst)no;
 					JNetwork gateNet = netList.getNetwork(ni.getTransistorGatePort());
 					for(int i=0; i<2; i++)
 					{
@@ -684,23 +651,14 @@ public class OutputVerilog extends OutputTopology
 							if (first) first = false; else
 								infstr.append(", ");
 
-							CellSignal cs = cni.getCellSignal(net);
-							String sigName = cs.getName();
-							if (net == cni.getPowerNet()) sigName = "vdd"; else
-							{
-								if (net == cni.getGroundNet()) sigName = "gnd"; else
-								{
-									if (cs.isGlobal()) sigName = "glbl." + sigName;
-								}
-							}
-//							if (i != 0 && pi != null && pi->conarcinst->temp1 != 0)
+							String sigName = getNetName(net, cni);
+//							if (i != 0 && pi->conarcinst->temp1 != 0)
 //							{
 //								// this input is negated: write the implicit inverter
-//								esnprintf(invsigname, 100, x_("%s%ld"), IMPLICITINVERTERSIGNAME,
-//									pi->conarcinst->temp1+nindex);
+//								String invsigname = IMPLICITINVERTERSIGNAME + (pi->conarcinst->temp1+nindex);
 //								printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
-//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + signame + ");\n");
-//								signame = invsigname;
+//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + sigName + ");\n");
+//								sigName = invsigname;
 //							}
 							infstr.append(sigName);
 						}
@@ -711,6 +669,16 @@ public class OutputVerilog extends OutputTopology
 			writeLongLine(infstr.toString());
 		}
 		printWriter.print("endmodule   /* " + cni.getParameterizedName() + " */\n");
+	}
+
+	private String getNetName(JNetwork net, CellNetInfo cni)
+	{
+		if (net == cni.getPowerNet()) return "vdd";
+		if (net == cni.getGroundNet()) return "gnd";
+		CellSignal cs = cni.getCellSignal(net);
+		String sigName = cs.getName();
+		if (cs.isGlobal()) sigName = "glbl." + sigName;
+		return sigName;
 	}
 
 	private String chooseNodeName(NodeInst ni, String positive, String negative)

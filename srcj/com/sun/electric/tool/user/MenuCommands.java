@@ -211,6 +211,11 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
 		arcSubMenu.addMenuItem("Not Fixed Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
+		arcSubMenu.addSeparator();
+		arcSubMenu.addMenuItem("Negated", KeyStroke.getKeyStroke('T', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNegatedCommand(); }});
+		arcSubMenu.addMenuItem("Directional", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcDirectionalCommand(); }});
 
 		editMenu.addSeparator();
 
@@ -653,8 +658,8 @@ public final class MenuCommands
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
-//		helpMenu.addMenuItem("Whit Diffie's design...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
+		helpMenu.addMenuItem("Whit Diffie's design...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
 		/****************************** Russell's TEST MENU ******************************/
 
@@ -1215,13 +1220,18 @@ public final class MenuCommands
 			if (eobj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eobj;
-				ai.setRigid();
-				numSet++;
+				if (!ai.isRigid())
+				{
+					ai.setRigid();
+					numSet++;
+				}
 			}
 		}
 		if (numSet == 0) System.out.println("No arcs made Rigid"); else
+		{
 			System.out.println("Made " + numSet + " arcs Rigid");
-		EditWindow.repaintAll();
+			EditWindow.repaintAll();
+		}
 	}
 
 	/**
@@ -1238,13 +1248,18 @@ public final class MenuCommands
 			if (eobj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eobj;
-				ai.clearRigid();
-				numSet++;
+				if (ai.isRigid())
+				{
+					ai.clearRigid();
+					numSet++;
+				}
 			}
 		}
 		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
+		{
 			System.out.println("Made " + numSet + " arcs Non-Rigid");
-		EditWindow.repaintAll();
+			EditWindow.repaintAll();
+		}
 	}
 
 	/**
@@ -1261,13 +1276,18 @@ public final class MenuCommands
 			if (eobj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eobj;
-				ai.setFixedAngle();
-				numSet++;
+				if (!ai.isFixedAngle())
+				{
+					ai.setFixedAngle();
+					numSet++;
+				}
 			}
 		}
 		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
+		{
 			System.out.println("Made " + numSet + " arcs Fixed-Angle");
-		EditWindow.repaintAll();
+			EditWindow.repaintAll();
+		}
 	}
 
 	/**
@@ -1284,13 +1304,74 @@ public final class MenuCommands
 			if (eobj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eobj;
-				ai.clearFixedAngle();
-				numSet++;
+				if (ai.isFixedAngle())
+				{
+					ai.clearFixedAngle();
+					numSet++;
+				}
 			}
 		}
 		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
+		{
 			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
-		EditWindow.repaintAll();
+			EditWindow.repaintAll();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be negated.
+	 */
+	public static void arcNegatedCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (!ai.isNegated())
+				{
+					ai.setNegated();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs negated"); else
+		{
+			System.out.println("Negated " + numSet + " arcs");
+			EditWindow.repaintAllContents();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be Directional.
+	 */
+	public static void arcDirectionalCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (!ai.isDirectional())
+				{
+					ai.setDirectional();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Directional"); else
+		{
+			System.out.println("Made " + numSet + " arcs Directional");
+			EditWindow.repaintAllContents();
+		}
 	}
 
 	/**
@@ -2522,44 +2603,59 @@ public final class MenuCommands
 				"d0e0j1o0o1", "d1e1j2o1o2", "d2e2j3o2o3", "d3e3j0j4o0o3o4", "d4e4j0j5o0o4o5", "d5e5j6o5o6", "d6e6j0j7o0o6o7", "d7e7j0o0o7",
 				"d0d1e0j0o1", "d1d2e1j1o2", "d2d3e2j2o3", "d0d3d4e3j3o0o4", "d0d4d5e4j4o0o5", "d5d6e5j5o6", "d0d6d7e6j6o0o7", "d0d7e7j7o0"
 			};
-			Cell myCell = Cell.newInstance(Library.getCurrent(), "whit{sch}");
 
-			// create the input and output pins
-			NodeProto pinNp = com.sun.electric.technology.technologies.Generic.tech.universalPinNode;
-			NodeInst [] inputs = new NodeInst[128];
-			NodeInst [] outputs = new NodeInst[128];
-			for(int i=0; i<128; i++)
+			for(int v=0; v<33; v++)
 			{
-				inputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(-200.0, i*5), 0, 0, 0, myCell, null);
-				Variable inVar = inputs[i].newVar("label", "Input "+(i+1));
-				inVar.setDisplay();
-				inVar.getTextDescriptor().setPos(TextDescriptor.Position.LEFT);
-				inVar.getTextDescriptor().setRelSize(5);
-				outputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(200.0, i*5), 0, 0, 0, myCell, null);
-				Variable outVar = outputs[i].newVar("label", "Output "+(i+1));
-				outVar.setDisplay();
-				outVar.getTextDescriptor().setPos(TextDescriptor.Position.RIGHT);
-				outVar.getTextDescriptor().setRelSize(5);
-			}
+				String title = "whit";
+				if (v < 16) title += "Input" + (v+1); else
+					if (v < 32) title += "Output" + (v-15);
+				Cell myCell = Cell.newInstance(Library.getCurrent(), title+"{sch}");
 
-			// wire them together
-			ArcProto wire = com.sun.electric.technology.technologies.Generic.tech.universal_arc;
-			for(int i=0; i<theStrings.length; i++)
-			{
-				PortInst outPort = outputs[i].getOnlyPortInst();
-				int len = theStrings[i].length();
-				for(int j=0; j<len; j+=2)
+				// create the input and output pins
+				NodeProto pinNp = com.sun.electric.technology.technologies.Generic.tech.universalPinNode;
+				NodeInst [] inputs = new NodeInst[128];
+				NodeInst [] outputs = new NodeInst[128];
+				for(int i=0; i<128; i++)
 				{
-					char letter = theStrings[i].charAt(j);
-					char number = theStrings[i].charAt(j+1);
-					int index = (letter - 'a')*8 + (number - '0');
-					PortInst inPort = inputs[index].getOnlyPortInst();
-					ArcInst.newInstance(wire, 0, inPort, outPort, null);
+					inputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(-200.0, i*5), 0, 0, 0, myCell, null);
+					Variable inVar = inputs[i].newVar("label", "Input "+(i+1));
+					inVar.setDisplay();
+					inVar.getTextDescriptor().setPos(TextDescriptor.Position.LEFT);
+					inVar.getTextDescriptor().setRelSize(5);
+					outputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(200.0, i*5), 0, 0, 0, myCell, null);
+					Variable outVar = outputs[i].newVar("label", "Output "+(i+1));
+					outVar.setDisplay();
+					outVar.getTextDescriptor().setPos(TextDescriptor.Position.RIGHT);
+					outVar.getTextDescriptor().setRelSize(5);
 				}
-			}
 
-			// display the drawing
-			WindowFrame.createEditWindow(myCell);
+				// wire them together
+				ArcProto wire = com.sun.electric.technology.technologies.Generic.tech.universal_arc;
+				for(int i=0; i<theStrings.length; i++)
+				{
+					PortInst outPort = outputs[i].getOnlyPortInst();
+					int len = theStrings[i].length();
+					for(int j=0; j<len; j+=2)
+					{
+						char letter = theStrings[i].charAt(j);
+						char number = theStrings[i].charAt(j+1);
+						int index = (letter - 'a')*8 + (number - '0');
+						if (v < 16)
+						{
+							// only interested in the proper letter
+							if (v + 'a' != letter) continue;
+						} else if (v < 32)
+						{
+							if (i/8 != v-16) continue;
+						}
+						PortInst inPort = inputs[index].getOnlyPortInst();
+						ArcInst.newInstance(wire, 0, inPort, outPort, null);
+					}
+				}
+
+				// display the full drawing
+				if (v == 32) WindowFrame.createEditWindow(myCell);
+			}
 		}
 	}
 

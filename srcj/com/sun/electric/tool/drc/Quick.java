@@ -2396,6 +2396,7 @@ public class Quick
 			double lxe = lX - bX;   double hxe = uX - hX;
 			double lye = lY - bY;   double hye = uY - hY;
 			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
+			if (biggestExt == 0) return 1;
 			if (lxe == biggestExt)
 			{
 				lX = (lX + uX) / 2;
