@@ -2,9 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-IMP/MAN: (02/14/05, SMR) Added "Windows / Saved Views".
+************************* Version 8.02i: *********************************
 
 ************************* Version 8.02h: *********************************
+
+IMP/MAN: (02/14/05, SMR) Added "Windows / Saved Views".
 
 BUG: (02/14/05, SMR) R-tree not correct for arcinsts.
 FIX: In ArcInst.lowLevelLink() add the arc to the R-Tree after geometry is correct.
