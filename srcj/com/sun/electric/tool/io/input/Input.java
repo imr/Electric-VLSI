@@ -68,7 +68,7 @@ import javax.swing.JOptionPane;
 public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
-	private static final boolean NEWJELIB = false;
+	static final boolean NEWJELIB = false;
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
