@@ -1,6 +1,7 @@
 JARLOC = Jama-1.0.1.jar:ia_math.jar:nbsp.jar:../electric.jar
 JAVACOMPILER = javac
 JAVAFLAGS = -classpath $(JARLOC) -source 1.5
+# -Xlint:unchecked
 
 JAVAPURESRC = \
 	IntervalMatrix.java \
@@ -50,11 +51,11 @@ sum: Sum.class
 inflated: InflatedLinearMap.class
 	java -server -classpath $(JARLOC):. InflatedLinearMap
 
-floats: FloatingDecimal.class
-	java -server -enableassertions -XX:+PrintCompilation -classpath $(JARLOC):. FloatingDecimal
+floats: TestFloatingDecimal.class
+	java -server -enableassertions -XX:+PrintCompilation -classpath $(JARLOC):. TestFloatingDecimal
 
-floatp: FloatingDecimal.class
-	java -server -XX:+PrintCompilation -classpath $(JARLOC):. FloatingDecimal
+# floatp: FloatingDecimal.class
+#	java -server -XX:+PrintCompilation -classpath $(JARLOC):. FloatingDecimal
 
 clean:
 	rm -rf *.class
