@@ -135,7 +135,7 @@ public class CompareList {
 		LayoutLib.error(compareSet.size()==0, "Cell not in its own group?");
 
 		// make sure we have at least one cell from use1 and one from use2
-		if (!used1 && !used2) return;
+		if (!(used1 && used2)) return;
 
 		cellContexts.addAll(compareSet);
 		
@@ -144,6 +144,8 @@ public class CompareList {
 		if (hasSkipAnnotation(cellContexts)) cellContexts.clear();
 		
 		safeToCheckSizes = safeToCompareSizes(cellContexts, use1, use2);
+		
+		LayoutLib.error(compareSet.size()<2, "nothing to compare?");
 	}
 	//public List getCellContexts() {return cellContexts;}
 	public Iterator iterator() {return cellContexts.iterator();}

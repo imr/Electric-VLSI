@@ -105,7 +105,7 @@ public class NccBottomUp {
         NccResult result = NccEngine.compare(cell1, ctxt1, cell2, ctxt2,  
 	                                         hierInfo, options);
         if (options.checkNetEquivalenceMap) 
-        result.getNetEquivalence().regressionTest();
+            result.getNetEquivalence().regressionTest();
 
         Date after = new Date();
 
