@@ -7,12 +7,14 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ui.Menu;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
+import java.util.List;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -56,22 +58,25 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
          */
         public String toString() {
             if (menuItem != null) {
+                return menuItem.getText();
+                /*
                 StringBuffer buf = new StringBuffer(menuItem.getText());
                 KeyStroke key = menuItem.getAccelerator();
                 if (key != null) {
                     int mods = key.getModifiers();
                     buf.append("   [ ");
-                    if (mods != 0) 
+                    if (mods != 0)
                         buf.append(KeyEvent.getKeyModifiersText(mods)+"+");
                     buf.append(KeyEvent.getKeyText(key.getKeyCode()));
                     buf.append(" ]");
                 }
                 return buf.toString();
+                */
             }
             return "---------------";               // separator
         }
     }
-    
+
     /** Creates new form EditKeyBindings */
     public EditKeyBindings(java.awt.Frame parent, boolean modal) {
 		super(parent, modal);
@@ -93,12 +98,12 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         jScrollPane1 = new javax.swing.JScrollPane();
         commandsTree = new javax.swing.JTree();
         jPanel2 = new javax.swing.JPanel();
-        instructions = new javax.swing.JLabel();
-        shortcut = new javax.swing.JLabel();
-        keyinput = new javax.swing.JTextField();
-        set = new javax.swing.JButton();
-        unset = new javax.swing.JButton();
+        add = new javax.swing.JButton();
+        remove = new javax.swing.JButton();
         resetitem = new javax.swing.JButton();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        bindingsJList = new javax.swing.JList();
         jPanel3 = new javax.swing.JPanel();
         done = new javax.swing.JButton();
         reset = new javax.swing.JButton();
@@ -130,72 +135,41 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
         jPanel2.setBorder(new javax.swing.border.EtchedBorder());
-        instructions.setText("Type key combination into text box below");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 10, 2, 0);
-        jPanel2.add(instructions, gridBagConstraints);
-
-        shortcut.setText("New Shortcut:   ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 0);
-        jPanel2.add(shortcut, gridBagConstraints);
-
-        keyinput.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                keyinputKeyPressed(evt);
-            }
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                keyinputKeyReleased(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                keyinputKeyTyped(evt);
+        add.setText("Add");
+        add.setToolTipText("add a shortcut");
+        add.setPreferredSize(new java.awt.Dimension(68, 28));
+        add.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
-        jPanel2.add(keyinput, gridBagConstraints);
-
-        set.setText(" Set ");
-        set.setPreferredSize(new java.awt.Dimension(68, 28));
-        set.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                setActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel2.add(set, gridBagConstraints);
-
-        unset.setText("Unset");
-        unset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                unsetActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel2.add(unset, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(add, gridBagConstraints);
+
+        remove.setText("Remove");
+        remove.setToolTipText("remove a shortcut");
+        remove.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(remove, gridBagConstraints);
 
         resetitem.setText("Reset");
+        resetitem.setToolTipText("reset to default setting");
         resetitem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 resetitemActionPerformed(evt);
@@ -203,11 +177,40 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(resetitem, gridBagConstraints);
+
+        jPanel4.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("Shortcuts:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(jLabel1, gridBagConstraints);
+
+        bindingsJList.setBorder(new javax.swing.border.EtchedBorder());
+        bindingsJList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel2.add(resetitem, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanel4.add(bindingsJList, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        jPanel2.add(jPanel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -234,6 +237,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         jPanel3.add(done, gridBagConstraints);
 
         reset.setText("Reset All to Defaults");
+        reset.setToolTipText("reset all to default settings");
         reset.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 resetActionPerformed(evt);
@@ -266,10 +270,10 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         Menu.resetToDefaultKeyStroke(treeNode.getMenuItem());
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        instructions.setText(treeNode.toString());
+        //instructions.setText(treeNode.toString());
     }//GEN-LAST:event_resetitemActionPerformed
 
-    private void unsetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unsetActionPerformed
+    private void removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeActionPerformed
         // get currently selected node
         KeyBoundTreeNode treeNode = getSelected();
         if (treeNode == null) return;
@@ -280,8 +284,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         treeNode.menuItem.setAccelerator(null);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        instructions.setText(treeNode.toString());
-    }//GEN-LAST:event_unsetActionPerformed
+        //instructions.setText(treeNode.toString());
+    }//GEN-LAST:event_removeActionPerformed
 
     /** Resets all Key Bindings to their default values */
     private void resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetActionPerformed
@@ -293,30 +297,15 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         model.reload();
     }//GEN-LAST:event_resetActionPerformed
 
-    private void keyinputKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyinputKeyReleased
-        evt.consume();
-    }//GEN-LAST:event_keyinputKeyReleased
-
-    private void keyinputKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyinputKeyTyped
-        evt.consume();
-    }//GEN-LAST:event_keyinputKeyTyped
-
-    private void keyinputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyinputKeyPressed
-        // Add your handling code here:
-        KeyStroke key = KeyStroke.getKeyStrokeForEvent(evt);
-        keyinput.setText(keyStrokeToString(key));
-        evt.consume();
-    }//GEN-LAST:event_keyinputKeyPressed
-
-    private void setActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setActionPerformed
+    private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
         KeyBoundTreeNode treeNode = getSelected();
         if (treeNode == null) return;
         if (treeNode.getMenuItem() == null) return;
         // get text from text box
-        String text = keyinput.getText();
-        KeyStroke newKey = KeyStroke.getKeyStroke(text);
+        //String text = keyinput.getText();
+        KeyStroke newKey = null;//KeyStroke.getKeyStroke(text);
         if (newKey == null) {
-            instructions.setText("bad key combination");
+            //instructions.setText("bad key combination");
             return;
         }
         // set key binding in prefs
@@ -325,14 +314,14 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         treeNode.getMenuItem().setAccelerator(newKey);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        instructions.setText(treeNode.toString());
+        //instructions.setText(treeNode.toString());
         // check if KeyStroke assigned to another MenuItem; display message
         JMenuItem conflictItem = checkKeyStrokeConflict(treeNode.getMenuItem());
         if (conflictItem != null ) {
             KeyBoundTreeNode tnode = new KeyBoundTreeNode(conflictItem);
-            instructions.setText("Warning: Duplicate assignment: "+tnode.toString());
+            //instructions.setText("Warning: Duplicate assignment: "+tnode.toString());
         }
-    }//GEN-LAST:event_setActionPerformed
+    }//GEN-LAST:event_addActionPerformed
 
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
         setVisible(false);
@@ -400,27 +389,19 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         if (!(n instanceof KeyBoundTreeNode)) return;
         KeyBoundTreeNode treeNode = (KeyBoundTreeNode)n;
         if (treeNode.getMenuItem() == null) {
-            instructions.setText("Select Command");
+            bindingsJList.setListData(new Object [] {});
             return;          // separator
         }
-        instructions.setText(treeNode.toString());
+        List bindings = Menu.getKeyBindingsFor(treeNode.getMenuItem());
+        if (bindings == null) {
+            bindingsJList.setListData(new Object [] {});
+            return;          // separator
+        }
+        bindingsJList.setListData(bindings.toArray());
+        //instructions.setText(treeNode.toString());
     }
     
-    /**
-     * Converts KeyStroke to String that can be parsed by 
-     * KeyStroke.getKeyStroke(String s).  For some reason the 
-     * KeyStroke class has a method to parse a KeyStroke String 
-     * identifier, but not one to make one.
-     */
-    public static String keyStrokeToString(KeyStroke key) {
-        if (key == null) return "";
-        String mods = KeyEvent.getKeyModifiersText(key.getModifiers());
-        mods = mods.replace('+', ' ');
-        mods = mods.toLowerCase();
-        String id = KeyEvent.getKeyText(key.getKeyCode());
-        return mods + " " + id;
-    }
-    
+
     //-----------------------Private Utility Methods--------------------------
     
     /** Get selected KeyBoundTreeNode.  
@@ -467,8 +448,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
                 if (conflict != null) return conflict;
             } else {
                 if (origItem == menuItem) continue;
-                String origKey = keyStrokeToString(origItem.getAccelerator());
-                String menuKey = keyStrokeToString(menuItem.getAccelerator());
+                String origKey = KeyBindingManager.keyStrokeToString(origItem.getAccelerator());
+                String menuKey = KeyBindingManager.keyStrokeToString(menuItem.getAccelerator());
                 if (origKey.equals(menuKey)) return menuItem;
             }
         }
@@ -476,19 +457,19 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton add;
     private javax.swing.JTree commandsTree;
     private javax.swing.JButton done;
-    private javax.swing.JLabel instructions;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JList bindingsJList;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField keyinput;
+    private javax.swing.JButton remove;
     private javax.swing.JButton reset;
     private javax.swing.JButton resetitem;
-    private javax.swing.JButton set;
-    private javax.swing.JLabel shortcut;
-    private javax.swing.JButton unset;
     // End of variables declaration//GEN-END:variables
     
 }

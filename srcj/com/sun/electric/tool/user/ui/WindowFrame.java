@@ -161,6 +161,10 @@ public class WindowFrame
 		frame.js.setLeftComponent(scrolledTree);
 		frame.js.setDividerLocation(0.2);
 
+        System.out.println("circuit panel isFocusable is "+frame.js.isFocusable());
+        frame.js.setFocusable(true);
+        frame.js.addKeyListener(Menu.keyBindingManager);
+
         // Put everything into the frame
         frame.populateJFrame();
 //		js.requestFocusInWindow();

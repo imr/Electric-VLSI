@@ -66,11 +66,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.EventListener;
-import javax.swing.JPanel;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
 /*
  * This class defines an editing window for displaying circuitry.
@@ -136,6 +132,7 @@ public class EditWindow extends JPanel
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
+
 	}
 
 	/**

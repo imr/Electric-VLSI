@@ -30,14 +30,16 @@ package com.sun.electric.tool.user.ui;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.dialogs.EditKeyBindings;
+import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.KeyBindingManager.KeyBinding;
+
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractButton;
 import javax.swing.JMenu;
@@ -85,7 +87,9 @@ public class Menu extends JMenu implements ActionListener
     /** Preferences for User Bindings */                            private static Preferences prefs = Preferences.userNodeForPackage(Menu.class);
     /** All menu items created, stores as ArrayLists in HashMap */  private static HashMap menuItems = new HashMap(40);
     /** global object to be used as listener */                     public static Menu updater = Menu.createMenu(null);
-    
+
+    /** Key Binding Manager */                                      public static KeyBindingManager keyBindingManager = new KeyBindingManager(prefs);
+
     /** Extend JMenuItem so we can store default KeyBinding */
     private class MenuItem extends JMenuItem
     {
@@ -189,7 +193,11 @@ public class Menu extends JMenu implements ActionListener
     }
     
     //------------------------------PUBLIC UTILITY METHODS-------------------------------
-    
+
+    public static List getKeyBindingsFor(JMenuItem item) {
+        return keyBindingManager.getBindingsFor(item.getText());
+    }
+
     /**
      * Set new user specified key binding.  Updates all JMenuItems with same name.
      */
@@ -207,7 +215,7 @@ public class Menu extends JMenu implements ActionListener
         }
         // save to prefs
         String keyBinding = "MenuKeyBinding-"+menuItem.getText();
-        prefs.put(keyBinding, EditKeyBindings.keyStrokeToString(accelerator));
+        prefs.put(keyBinding, KeyBindingManager.keyStrokeToString(accelerator));
     }
     
     /**
@@ -321,11 +329,15 @@ public class Menu extends JMenu implements ActionListener
         Menu.setDefaultKeyStroke(item, accelerator);
 		item.setAccelerator(accelerator);
         // see if user specified key binding exists
+        /*
         String keyBinding = prefs.get("MenuKeyBinding-"+item.getText(), null);
         if (keyBinding != null) {
             KeyStroke k = KeyStroke.getKeyStroke(keyBinding);
             if (k != null) item.setAccelerator(k);
-        }
+        }*/
+        //if (accelerator != null)
+        //    keyBindingManager.addDefaultKeyBinding(new KeyBinding(item.getText(), accelerator, null, action));
+
 		item.addActionListener(action);
         item.addActionListener(Menu.updater);
         item.addActionListener(ToolBarButton.updater);
