@@ -59,7 +59,7 @@ public class EvalJavaBsh
     /** Context stack for recursive eval calls */   private static Stack contextStack = new Stack();
     /** Info stack for recursive eval calls */      private static Stack infoStack = new Stack();
 
-    /** turn on Bsh verbose debug stmts */          private static boolean debug = true;
+    /** turn on Bsh verbose debug stmts */          private static boolean debug = false;
 
     // ------------------------ private and protected methods -------------------
 

@@ -594,6 +594,12 @@ public final class HierarchyEnumerator {
 		 */
 		public final String getUniqueNetName(int netID, String sep) {
             NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
+            if (ns == null ) {
+                System.out.println("ns is null");
+            }
+            if (ns.getCellInfo() == null ) {
+                System.out.println("cell info is null");
+            }
             VarContext netContext = ns.getCellInfo().getContext();
 
             StringBuffer buf = new StringBuffer();

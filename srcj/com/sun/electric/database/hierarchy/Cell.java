@@ -137,7 +137,7 @@ public class Cell extends NodeProto
 
 		/**
 		 * Method to remove a Cell from this CellGroup.
-		 * @param cell the cell to remove from this CellGroup.
+		 * @param f the cell to remove from this CellGroup.
 		 */
 		void remove(Cell f)
 		{

@@ -2583,6 +2583,11 @@ public final class MenuCommands
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
 			ElectricObject eobj = h.getElectricObject();
+            if (eobj instanceof PortInst) {
+                PortInst pi = (PortInst)eobj;
+                pi.getInfo();
+                eobj = pi.getNodeInst();
+            }
 			if (eobj instanceof NodeInst) {
 				NodeInst ni = (NodeInst)eobj;
 				if (useproto) {
@@ -2594,7 +2599,7 @@ public final class MenuCommands
 			}
 		}
 	}
-
+    
 	public static void evalVarsOnObject() {
 		EditWindow curEdit = EditWindow.getCurrent();
 		if (Highlight.getNumHighlights() == 0) {

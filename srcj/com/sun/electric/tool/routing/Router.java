@@ -221,7 +221,7 @@ public abstract class Router {
                     location, pp.getParent().getDefWidth(), pp.getParent().getDefHeight());
             route.add(node);
             if (arcWidth == -1); arcWidth = getArcWidthToUse(startRE, ap);
-            RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node);
+            RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node, null);
             route.add(arc);
             lastNode = node;
         }

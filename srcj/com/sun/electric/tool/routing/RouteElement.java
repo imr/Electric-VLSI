@@ -73,6 +73,7 @@ public class RouteElement {
     /** width of arc */                             private double arcWidth;
     /** Head of arc */                              private RouteElement headRE;
     /** Tail of arc */                              private RouteElement tailRE;
+    /** Name of arc */                              private String arcName;
 
     // ---- Delete Node/Arc info ----
     /** NodeInst to delete */                       private NodeInst nodeInstToDelete;
@@ -119,7 +120,7 @@ public class RouteElement {
      * @param headRE RouteElement (must be newNode or existingPortInst) at head of arc
      * @param tailRE RouteElement (must be newNode or existingPortInst) at tail or arc
      */
-    public static RouteElement newArc(Cell cell, ArcProto ap, double arcWidth, RouteElement headRE, RouteElement tailRE) {
+    public static RouteElement newArc(Cell cell, ArcProto ap, double arcWidth, RouteElement headRE, RouteElement tailRE, String name) {
         RouteElement e = new RouteElement(RouteElementAction.newArc);
         e.done = false;
         e.cell = cell;
@@ -127,6 +128,7 @@ public class RouteElement {
         e.arcWidth = arcWidth;
         e.headRE = headRE;
         e.tailRE = tailRE;
+        e.arcName = name;
         if (headRE.getAction() != RouteElementAction.newNode &&
             headRE.getAction() != RouteElementAction.existingPortInst)
             System.out.println("  ERROR: headRE of newArc RouteElement must be newNode or existingPortInst");
@@ -359,7 +361,7 @@ public class RouteElement {
         if (action == RouteElementAction.newArc) {
             PortInst headPi = headRE.getConnectingPort();
             PortInst tailPi = tailRE.getConnectingPort();
-            ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, tailPi, null);
+            ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, tailPi, arcName);
             setDone();
             return newAi;
         }

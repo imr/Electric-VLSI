@@ -392,8 +392,9 @@ public abstract class InteractiveRouter extends Router {
         RouteElement headRE = RouteElement.existingPortInst(arc.getHead().getPortInst());
         RouteElement tailRE = RouteElement.existingPortInst(arc.getTail().getPortInst());
         // add two arcs to rebuild old startArc
-        RouteElement newHeadArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE);
-        RouteElement newTailArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE);
+        String name = arc.getName();
+        RouteElement newHeadArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE, name);
+        RouteElement newTailArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE, null);
         // delete old arc
         RouteElement deleteArcRE = RouteElement.deleteArc(arc);
         // add new stuff to route

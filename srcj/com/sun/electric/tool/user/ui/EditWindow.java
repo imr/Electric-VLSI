@@ -251,7 +251,7 @@ public class EditWindow extends JPanel
 			}
 		}
 		fillScreen();
-        repaintContents();
+        //repaintContents();
 
         if (addToHistory) {
             addToHistory(cell, context);

@@ -285,6 +285,8 @@ public class MenuManager
     public static class MenuBar extends JMenuBar
     {
         /** hidden menus */                 ArrayList hiddenMenus = new ArrayList();
+        /** whether to ignore all shortcuts keys */ boolean ignoreKeyBindings;
+        /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
 
         /**
          * Overrides JMenuBar's processKeyBinding, which distributes event
@@ -298,9 +300,15 @@ public class MenuManager
          */
         protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
                                             int condition, boolean pressed) {
+            // if ignoreTextEditKeys, ignore anything that does not have CTRL
+            if (ignoreTextEditKeys) {
+                if (!e.isControlDown() && !e.isMetaDown() && !e.isAltDown())
+                    return false;                   // ignore
+            }
             // see if we have a local binding (InputMap on JComponent)
             //boolean retValue = processKeyBinding(ks, e, condition, pressed);
             boolean retValue = false;
+
             // otherwise, pass to our keyBindingManager
             if (!retValue)
                 retValue = keyBindingManager.processKeyEvent(e);
@@ -313,6 +321,14 @@ public class MenuManager
             hiddenMenus.add(c);
             return c;
         }
+
+        public void setIgnoreKeyBindings(boolean b) { ignoreKeyBindings = b; }
+
+        public boolean getIgnoreKeyBindings() { return ignoreKeyBindings; }
+
+        public void setIgnoreTextEditKeys(boolean b) { ignoreTextEditKeys = b; }
+
+        public boolean getIgnoreTextEditKeys() { return ignoreTextEditKeys; }
     }
     
     //------------------------------ Manager Methods -------------------------------

@@ -784,7 +784,7 @@ public class ElectricObject
 		boolean firstvar = true;
 		for(Iterator it = vars.keySet().iterator(); it.hasNext() ;)
 		{
-			String key = (String) it.next();
+            Variable.Key key = (Variable.Key) it.next();
 			Variable val = (Variable)vars.get(key);
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
@@ -792,7 +792,7 @@ public class ElectricObject
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;
-				System.out.print("   " + key + "(" + ary.length + ") = [");
+				System.out.print("   " + key.getName() + "(" + ary.length + ") = [");
 				for (int i = 0; i < ary.length; i++)
 				{
 					if (i > 4)
@@ -808,7 +808,7 @@ public class ElectricObject
 				System.out.println("]");
 			} else
 			{
-				System.out.println("   " + key + "= " + addr);
+				System.out.println("   " + key.getName() + "= " + addr);
 			}
 		}
 	}

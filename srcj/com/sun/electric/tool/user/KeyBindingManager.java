@@ -90,6 +90,8 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     /** Listener to register for catching keys */   public static KeyBindingListener listener = new KeyBindingListener();
     /** All key binding manangers */                private static List allManagers = new ArrayList();
 
+    /** debug preference saving */                  private static final boolean debugPrefs = false;
+
     /**
      * Construct a new KeyBindingManager that can act as a KeyListener
      * on a Component.
@@ -141,12 +143,13 @@ public class KeyBindingManager implements KeyEventPostProcessor {
             String key = allKeys[i].replaceFirst(prefPrefix, "");
             // old binding format and new format conflict, add check to avoid duplicates
             if (actionMap.containsKey(key)) continue;
-            //System.out.println("looking for prefs key "+key);
+            if (debugPrefs) System.out.println("looking for prefs key "+key);
             KeyBindings keys = new KeyBindings(key);
             List pairs = getBindingsFromPrefs(key);
             // if any bindings, set usingDefaults false, and add them
             if (pairs != null) {
                 keys.setUsingDefaultKeys(false); // set usingDefaults false
+                actionMap.put(key, keys);
                 for (Iterator it = pairs.iterator(); it.hasNext(); ) {
                     KeyStrokePair pair = (KeyStrokePair)it.next();
                     if (pair == null) continue;
@@ -443,7 +446,8 @@ public class KeyBindingManager implements KeyEventPostProcessor {
             }
         }
         // remove any user saved preferences
-        prefs.remove(actionDesc);
+        //prefs.remove(actionDesc);
+        prefs.remove(prefPrefix+actionDesc);
         // add in default key bindings
         for (Iterator it = keys.getDefaultKeyStrokePairs(); it.hasNext(); ) {
             KeyStrokePair k = (KeyStrokePair)it.next();
@@ -656,6 +660,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
 
         KeyBindings keyBindings = (KeyBindings)actionMap.get(actionDesc);
         if (keyBindings == null) return;
+        if (debugPrefs) System.out.println("Writing to pref '"+prefPrefix+actionDesc+"': "+keyBindings.bindingsToString());
         prefs.put(prefPrefix+actionDesc, keyBindings.bindingsToString());
     }
 
@@ -672,10 +677,10 @@ public class KeyBindingManager implements KeyEventPostProcessor {
 
         String keys = prefs.get(prefPrefix+actionDesc, null);
         if (keys == null) return null;
-        //System.out.println("Read from prefs for "+actionDesc+": "+keys);
+        if (debugPrefs) System.out.println("Read from prefs for "+actionDesc+": "+keys);
         KeyBindings k = new KeyBindings(actionDesc);
         k.addKeyBindings(keys);
-        //System.out.println("  turned into: "+k.describe());
+        if (debugPrefs) System.out.println("  turned into: "+k.describe());
         List bindings = new ArrayList();
         for (Iterator it = k.getKeyStrokePairs(); it.hasNext(); ) {
             bindings.add((KeyStrokePair)it.next());

@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
@@ -138,7 +139,31 @@ public class LETool extends Tool {
     }
 
     private static String makeDriveStr(VarContext context) {
-        return "LEDRIVE_"+context.getInstPath(".");
+        String s = "LEDRIVE_"+makeDriveStrRecurse(context.pop())+";0;S";
+        //System.out.println("name is "+s);
+        return s;
+    }
+
+    private static String makeDriveStrRecurse(VarContext context) {
+        if (context == VarContext.globalContext) return "";
+
+        String prefix = context.pop() == VarContext.globalContext ? "" : makeDriveStrRecurse(context.pop());
+        Nodable no = context.getNodable();
+        if (no == null) {
+            System.out.println("VarContext.getInstPath: context with null NodeInst?");
+        }
+        String me;
+        // two cases if arrayed node: one if just a NodeInst, another if Node Proxy
+        if (no instanceof NodeInst) {
+            // no array info, assume zeroth index
+            me = no.getName() + ",0";
+        } else {
+            // not sure what to do here
+            me = no.getName() + ",0";
+        }
+
+        if (prefix.equals("")) return me;
+        return prefix + ";" + me;
     }
 
     /** Analyze Cell called from menu */

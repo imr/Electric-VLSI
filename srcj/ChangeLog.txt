@@ -1,6 +1,16 @@
 			Java Electric change log
 
-************************* Version 7.01: Released  *************************
+************************* Version 8.00a: Released  *************************
+
+BUG: (5/6/04, JKG) Delete Key Bindings and Reset Key Bindings didn't do anything.
+FIX: fixed.
+
+IMP: (5/6/04, JKG) Added ability to ignore some or all key bindings, via MenuBar.
+
+BUG: (5/6/04, JKG) Wiring using ClickZoomWire tool to middle of a wire deleted name on wire
+FIX: Name now transferred to one of new arc segments
+
+IMP: (5/6/04, JKG) Command button on MACs now converts clicks to "right" clicks
 
 IMP: (5/6/04, SR) Added the "File/Save All Libraries" command.
 
