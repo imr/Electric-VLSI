@@ -811,6 +811,8 @@ public class Clipboard
 		//if (destNode.getProto() != srcNode.getProto())
 		//{
 			destNode = CircuitChanges.replaceNodeInst(destNode, srcNode.getProto(), true, false);
+        if (destNode == null) return null;
+
             destNode.clearExpanded();
             if (srcNode.isExpanded()) destNode.setExpanded();
 
