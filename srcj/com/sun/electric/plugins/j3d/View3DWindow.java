@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -89,6 +90,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
+import javax.media.j3d.Alpha;
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.Appearance;
 import javax.media.j3d.Background;
@@ -106,6 +108,7 @@ import javax.media.j3d.LineAttributes;
 import javax.media.j3d.Material;
 import javax.media.j3d.Node;
 import javax.media.j3d.PolygonAttributes;
+import javax.media.j3d.PositionInterpolator;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Screen3D;
 import javax.media.j3d.Shape3D;
@@ -135,6 +138,9 @@ public class View3DWindow extends JPanel
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
 	private OffScreenCanvas3D offScreenCanvas3D;
+    
+    Alpha alpha = new Alpha (1,Alpha.INCREASING_ENABLE,0,0,1000,0,0,0,0,0);
+    PositionInterpolator inter;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -197,6 +203,7 @@ public class View3DWindow extends JPanel
 		public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
 		public EGraphics getGraphics() { return graphics;}
 	}
+
 	// constructor
 	public View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D)
 	{
@@ -369,14 +376,19 @@ public class View3DWindow extends JPanel
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
         //objRoot.addChild(behavior2);
-
-		// Have Java 3D perform optimizations on this scene graph.
-	    objRoot.compile();
-
 		pickCanvas = new PickCanvas(canvas, objRoot);
 		//pickCanvas.setMode(PickCanvas.BOUNDS);
         pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
         pickCanvas.setTolerance(4.0f);
+
+        // Interpolation
+        inter = new PositionInterpolator(alpha, objTrans, new Transform3D(), 0, 1);
+        inter.setEnable(false);
+        inter.setSchedulingBounds(infiniteBounds);
+        objTrans.addChild(inter);
+
+		// Have Java 3D perform optimizations on this scene graph.
+	    objRoot.compile();
 		return objRoot;
 	}
 
@@ -592,7 +604,6 @@ public class View3DWindow extends JPanel
             if (nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
             {
 				Point3d [] pts = new Point3d[8];
-				double max, delta;
 	            Point2D[] points = polys[gate].getPoints();
                 Point2D p0 = points[0];
                 Point2D p1 = points[1];
@@ -881,23 +892,6 @@ public class View3DWindow extends JPanel
 				int listLen = topList.size();
 				Point3d [] pts = new Point3d[listLen*2];
                 correctNormals(topList, bottomList);
-//				// Determining normal direction
-//				Point3d p0 = (Point3d)topList.get(0);
-//				Point3d p1 = new Point3d((Point3d)topList.get(1));
-//				p1.sub(p0);
-//				Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
-//				pn.sub(p0);
-//				Vector3d aux = new Vector3d();
-//				aux.cross(new Vector3d(p1), new Vector3d(pn));
-//				// the other layer
-//				Point3d b0 = new Point3d((Point3d)bottomList.get(0));
-//				// Now the dot product
-//				double dot = aux.dot(new Vector3d(b0));
-//				if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
-//				{
-//					Collections.reverse(topList);
-//					Collections.reverse(bottomList);
-//				}
 				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
 				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
 				int numFaces = listLen + 2; // contour + top + bottom
@@ -1110,6 +1104,52 @@ public class View3DWindow extends JPanel
 			view.setSceneAntialiasingEnable(value.booleanValue());
 		}
 	}
+
+    /**
+     * Method to set view point of the camera and move to this point
+     * by interpolator
+     * @param content
+     * @param x
+     * @param y
+     * @param z
+     */
+    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
+    {
+        if (!(content instanceof View3DWindow)) return;
+        View3DWindow wnd = (View3DWindow)content;
+        Cell cell = wnd.cell;
+
+        for (Iterator it = cell.getNodes(); it.hasNext();)
+        {
+            NodeInst ni = (NodeInst)it.next();
+            if (ni.getProto() == Artwork.tech.pinNode)
+            {
+                Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
+                System.out.println("Art " + ni.getBounds() + " " +
+                        polyList[0].getCenterX() + " " + polyList[0].getCenterY());
+
+            }
+        }
+        // Just stopping the motion
+        if (x == null)
+        {
+            wnd.inter.setEnable(false);
+            return;
+        }
+//	    angle += Math.toRadians(10.0);
+//	    trans.rotY(angle);
+	    //objTrans.setTransform(t);
+        Transform3D t = new Transform3D();
+        //objTrans.getTransform(t);
+        Point3d view = new Point3d(x.doubleValue(), y.doubleValue(), z.doubleValue());
+        Vector3d up = new Vector3d(0,0,1);
+        Point3d center = new Point3d(wnd.cell.getBounds().getCenterX(), wnd.cell.getBounds().getCenterY(), -10);
+        t.lookAt(view, center, up);
+        t.invert();
+        wnd.inter.setEnable(false);
+        wnd.inter.setTransformAxis(t);
+        wnd.inter.setEnable(true);
+    }
 
 	/**
 	 * Method to print window using offscreen canvas

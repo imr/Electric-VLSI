@@ -213,7 +213,7 @@ public class WindowFrame
 		{
             Method setCamera = null;
 			if (setCamera == null)
-				setCamera = view3DClass.getDeclaredMethod("setCamera",
+				setCamera = view3DClass.getDeclaredMethod("set3DCamera",
                         new Class[] {WindowContent.class, Double.class, Double.class, Double.class});
 			setCamera.invoke(view3DClass, new Object[]{content, x, y, z});
 		} catch (Exception e) {

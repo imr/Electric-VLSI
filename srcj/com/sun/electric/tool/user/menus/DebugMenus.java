@@ -176,6 +176,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("3D View", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {threeViewCommand();}});
         gildaMenu.addMenuItem("Parasitic", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.parasiticCommand(); } });
 	    gildaMenu.addMenuItem("Check Wells Sweep", null,
@@ -200,9 +202,6 @@ public class DebugMenus {
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
-        gildaMenu.addMenuItem("#D View", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {threeViewCommand();}});
-                
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
@@ -765,8 +764,8 @@ public class DebugMenus {
 
     public static void threeViewCommand()
 	{
-// 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
-//		dialog.setVisible(true);
+ 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
+		dialog.setVisible(true);
 	}
 
     public static void genFakeNodes()
