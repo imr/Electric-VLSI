@@ -2920,6 +2920,7 @@ public class CircuitChanges
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode ||
 				ni.getProto() == Generic.tech.invisiblePinNode ||
+				ni.getProto() == Generic.tech.universalPinNode ||
 				ni.getProto() == Generic.tech.essentialBoundsNode) continue;
 			SizeOffset so = ni.getSizeOffset();
 			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();

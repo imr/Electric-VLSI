@@ -17,8 +17,8 @@ The <B>Redo</B> command redoes changes, up to the most recent change made.
 You can also use the undo (counterclockwise) and redo (clockwise) icons from the tool bar.
 </TD><TD><CENTER><IMG SRC="fig06-09.png" ALT="Figure 6.9"></CENTER></TD></TR></TABLE>
 <P>
-Electric stores only the last 20 changes, so anything older than that cannot be undone.
-To change the number of changes that are saved, use the
+Electric stores only the last 40 changes, so anything older than that cannot be undone.
+To increase the number of changes that are saved, use the
 "General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab),
 and change the "Maximum undo history" field.
 To see a history of changes that were made, use the
@@ -27,7 +27,7 @@ To see a history of changes that were made, use the
 In Electric, almost every command is undoable, but there are some exceptions.
 Commands that write disk files are not undoable,
 because Electric would not be so presumptuous as to delete a disk file.
-Also commands that make vast changes (such as library or technology deletion)
+Also commands that make vast changes (such as library deletion)
 are not undoable.
 
 <P>

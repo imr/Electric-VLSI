@@ -2,6 +2,7 @@
 
 <!-- HEADER 7-3-3: GDS Control -->
 
+GDS (Calma's Stream format) is used as an interchange between design systems and fabrication facilities.
 GDS options are controlled with the "GDS" preferences
 (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab).
 <P>
@@ -26,7 +27,7 @@ This controls whether cell instances are expanded or not in the Electric circuit
 By default, cell instances are not expanded (they appear as a simple box).
 If you check this item, cells are expanded so that their contents are displayed.
 Expansion of cells can always be changed after reading GDS by using the subcommands of the <B>Expand Cell Instances</B>
-and <B>Unexpand Cell Instances</B> commands of the <B>Cells/<B> menu.</LI>
+and <B>Unexpand Cell Instances</B> commands of the <B>Cells</B> menu.</LI>
 <LI>"Input instantiates Arrays".
 This controls whether or not arrays in the GDS file are instantiated.
 By default, arrays are instantiated fully, but this can consume excessive amounts of memory if there are large arrays.
@@ -63,7 +64,7 @@ The default is to mix upper and lower case, but some systems insist on upper-cas
 <LI>
 "Output default text layer".
 This is the layer number to use when writing text.
-When pins are being written, and there is a text layer number associated with the appropriate Electric layer,
+When exports are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.
 </LI>
 </UL>

@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -1194,4 +1195,108 @@ public final class ExportChanges
 			return s1.angle - s2.angle;
 		}
 	}
+
+	/**
+	 * Method to synchronize the exports in two libraries.
+	 * The user is prompted for another library (other than the current one)
+	 * and all exports in that library are copied to the current one.
+	 */
+	public static void synchronizeLibrary()
+	{
+		List libs = Library.getVisibleLibrariesSortedByName();
+		Library curLib = Library.getCurrent();
+		int otherLibraries = libs.size() - 1;
+		if (otherLibraries <= 1)
+		{
+			System.out.println("There must be an other library (not the current one) from which to copy exports.");
+			return;
+		}
+		String [] libNames = new String[otherLibraries];
+		int i=0;
+		for(Iterator it = libs.iterator(); it.hasNext(); )
+		{
+			Library oLib = (Library)it.next();
+			if (oLib == curLib) continue;
+			libNames[i++] = oLib.getName();
+		}
+        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+        	"Choose another library from which to copy exports", "Choose a Library",
+			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
+        if (chosen == null) return;
+        Library oLib = Library.findLibrary(chosen);
+        if (oLib == null) return;
+
+        // now run the synchronization
+        SynchronizeExports job = new SynchronizeExports(oLib);
+	}
+
+	/**
+	 * Class to synchronize exports in a separate Job.
+	 */
+	private static class SynchronizeExports extends Job
+	{
+		private Library oLib;
+
+		private SynchronizeExports(Library oLib)
+		{
+			super("Synchronize exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.oLib = oLib;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+	        // merge the two libraries
+	    	int newPorts = 0;
+	    	boolean noCells = false;
+			Library curLib = Library.getCurrent();
+	    	for(Iterator cIt = curLib.getCells(); cIt.hasNext(); )
+	    	{
+	    		Cell np = (Cell)cIt.next();
+
+	    		// find this cell in the other library
+	    		for(Iterator oCIt = oLib.getCells(); oCIt.hasNext(); )
+	    		{
+	    			Cell oNp = (Cell)oCIt.next();
+	    			if (!np.getName().equals(oNp.getName())) continue;
+
+	    			// synchronize the ports
+	    			for(Iterator pIt = oNp.getPorts(); pIt.hasNext(); )
+	    			{
+	    				Export oPp = (Export)pIt.next();
+
+	    				// see if that other cell's port is in this one
+	    				Export pp = (Export)np.findPortProto(oPp.getName());
+	    				if (pp != null) continue;
+
+	    				// must add port "oPp" to cell "np"
+	    				NodeInst oNi = oPp.getOriginalPort().getNodeInst();
+	    				if (oNi.getProto() instanceof Cell)
+	    				{
+	    					if (!noCells)
+	    						System.out.println("Cannot yet make exports that come from other cell instances (i.e. export " +
+	    							oPp.getName() + " in cell " + oNp.describe() + ")");
+	    					noCells = true;
+	    					continue;
+	    				}
+
+	    				// presume that the cells have the same coordinate system
+	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSizeWithMirror(), oNi.getYSizeWithMirror(),
+	    					np, oNi.getAngle(), oNi.getName(), oNi.getTechSpecific());
+	    				if (ni == null) continue;
+	    				PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
+	    				pp = Export.newInstance(np, pi, oPp.getName());
+	    				if (pp == null) continue;
+	    				pp.setCharacteristic(oPp.getCharacteristic());
+	    				pp.setTextDescriptor(oPp.getTextDescriptor());
+	    				pp.copyVarsFrom(oPp);
+	    				newPorts++;
+	    			}
+	    		}
+	    	}
+	    	System.out.println("Created " + newPorts + " new exports in current library " + curLib.getName());
+			return true;
+		}
+	}
+
 }

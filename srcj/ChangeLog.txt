@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ax: *********************************
 
+BUG: (12/20/04, SMR) "Dragging must enclose objects" doesn't work right (Bug #131).
+FIX: In Highlighter.checkOutObject()" must consider only essential part of node or arc.
+
+BUG: (12/20/04, SMR) Multi-object Properties dialog cannot edit selection if
+     only Exports are listed (Bug #130).
+FIX: In GetInfoMulti.loadMultiInfo() enable removal buttons if there are exports, too.
+
+BUG: (12/20/04, SMR) Automatically generated icons fail "cell cleanup" (Bug #128).
+FIX: In CircuitChanges.cleanupCell(), ignore Universal Pins as well as Invisible Pins
+     when considering whether zero-size is an error.
+
+IMP: (12/19/04, SMR) Cleaned up code to be consistent with documentation
+     (added "Add Ports from Library" in Export menu).
+
+************************* Version 8.01aw: *********************************
+
 IMP: (12/20/04, GVG) List of primitive nodes in Change dialog and tech palette are sorted alphabetically (Bug #132)
 In case of sorted list of nodes, use Technology.Technology.getCurrent()
 

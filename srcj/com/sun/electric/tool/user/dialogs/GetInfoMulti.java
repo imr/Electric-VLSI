@@ -384,7 +384,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			widthRange.setText("");
 		}
 		characteristics.setEnabled(numExports != 0);
-		if (numNodes == 0 && numArcs == 0)
+		if (numNodes == 0 && numArcs == 0 && numExports == 0)
 		{
 			listPane.setEnabled(false);
 			remove.setEnabled(false);

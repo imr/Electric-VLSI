@@ -31,7 +31,21 @@ The section labeled "Destination:" allows you to dump this listing to a disk fil
 formatted for spreadsheets (tab-separated).
 </TD><TD><CENTER><IMG SRC="fig03-21.png" ALT="Figure 3.21"></CENTER></TD></TR></TABLE>
 <P>
-The last six columns show the usage and five state bits.
+The result of cell information listing looks like this:<BR>
+<PRE>
+-Cell------------Version--------Creation date--------------Revision Date---------Size----Usage--L-I-C-D
+tech-Artwork{}       1  Wed Dec 31, 1969 16:00:00  Wed Dec 15, 2004 11:34:15  131.0x83.0   0    L
+tech-Bipolar{ic}     1  Wed Dec 15, 2004 11:34:25  Wed Dec 15, 2004 11:34:25   10.0x12.0   1
+tech-Bipolar{lay}    1  Mon Jul 23, 1990 23:25:49  Wed Dec 15, 2004 12:38:11   37.0x73.5   0
+tech-Bipolar{sch}    1  Thu Jul 26, 1990 23:58:58  Wed Dec 15, 2004 11:34:27  58.75x59.5   0    L I
+tech-DigitalFilter{} 1  Wed Dec 31, 1969 16:00:00  Fri Dec 01, 2000 13:56:47   48.0x45.5   0
+tech-GEM{}           1  Fri Aug 07, 1998 15:57:52  Fri Aug 07, 1998 16:29:06   76.0x44.0   0
+tech-MOSISCMOS{lay}  1  Fri Jul 24, 1998 16:10:55  Sun Dec 09, 2001 12:35:29   85.5x83.0   0          D
+tech-PCB7404{}       1  Wed Dec 31, 1969 16:00:00  Wed Dec 15, 2004 11:45:03   12.5x28.5   1
+tool_NCC{sch}        1  Tue Mar 27, 2001 06:35:49  Fri Jan 25, 2002 15:57:57   44.0x41.5   0    L I
+</PRE>
+<P>
+The last five columns show the usage and four state bits.
 The usage is the number of times that this cell appears as an instance in other cells.
 The state bits are:
 <UL>
@@ -45,7 +59,7 @@ For more cell information, use the commands of menu <B>Cell / Cell Info</B>.
 The <B>List Nodes in this Cell</B> command shows all nonprimitive nodes in the current cell.
 The <B>List Cell Instances</B> command shows all cell instances below the current cell.
 The <B>List Cell Usage</B> command looks up the hierarchy and finds cells that contain the
-a particular cell as an instance (you will be prompted for the particular cell).
+current cell as an instance.
 
 <P>
 The <B>Edit Documentation View</B> command (of menu <B>View</B>) allows you to store arbitrary text with the cell.

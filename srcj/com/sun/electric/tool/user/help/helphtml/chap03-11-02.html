@@ -15,7 +15,7 @@ When editing one view of a cell,
 there are a set of commands in the <B>View</B> menu that will switch to an alternate view of the same cell.
 <UL>
 <LI>Use <B>Edit Layout View</B> to switch to the layout view.
-<LI>Use <B>Edit Schematic View</B> to switch to the unnumbered schematic view.
+<LI>Use <B>Edit Schematic View</B> to switch to the schematic view.
 <LI>Use <B>Edit Icon View</B> to switch to the Icon view.
 <LI>Use <B>Edit VHDL View</B> to switch to the VHDL view.
 <LI>Use <B>Edit Documentation View</B> to switch to the text-only documentation view.
@@ -25,9 +25,7 @@ For all other view types, use <B>Edit Other View...</B> and select the desired v
 Note that these commands are equivalent to the <B>Edit Cell...</B> command (in menu <B>Cell</B>) with an appropriate selection.
 <P>
 When editing cells with text-only views, the window becomes a text editor.
-You may then use the <B>Text Cell Context...</B> command (in menu <B>File / Export</B>)
-and the <B>Text Cell Contents...</B>
- command (in menu <B>File / Import</B>)
+You may then use the <B>Text Cell Contents...</B> commands (in menu <B>File / Export</B> and <B>File / Import</B>)
 save and restore this text to disk.
 See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
 <P>
@@ -37,11 +35,17 @@ These view conversion commands are available:
 <UL>
 <LI><B>Make Icon View</B> creates an icon from a schematic
 (see <A HREF="chap03-11-04.html#chap03-11-04">Section 3-11-4</A> for more on this).
-<LI><B>Make Schematic View</B> creates a schematic from a layout;.
-<LI><B>Make Alternate Layout View...</B> converts from layout or schematic to layout.
+</LI>
+
+<LI><B>Make Schematic View</B> creates a schematic from a layout.</LI>
+
+<LI><B>Make Alternate Layout View...</B> converts from layout or schematic to an alternate layout.
 You must choose a specific layout technology, and the new layout will use components from that technology.
+</LI>
+
 <LI><B>Make Skeleton View</B> makes a skeletonized layout from a layout
 (the only thing in the skeleton is the exports and the frame; it is a "layout icon").
+</LI>
 </UL>
 
 <!-- TRAILER -->

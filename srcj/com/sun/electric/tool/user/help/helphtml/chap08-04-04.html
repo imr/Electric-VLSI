@@ -5,8 +5,8 @@
 <!-- COMMAND Tool/Simulation (Spice)/Set Spice Model... -->
 
 There are many powerful facilities for running Spice with Electric.
-Special primitives exist for creating special Spice cards.
-Note that the example shown here is available in the Samples library as cell "tool-SimulateSpice"
+The example shown here illustrates some of these facilities.
+This example is available in the Samples library as cell "tool-SimulateSpice"
 (you can read the library with the <B>Load Samples Library</B> command, in menu <B>Help</B>).
 <P>
 <TABLE><TR><TD>
@@ -25,8 +25,8 @@ Under the setting "Spice primitive set", choose another set.
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig09-08.png" ALT="Figure 9.8"></CENTER></TD><TD>
 In this example, there is a 5-volt supply on the left.
-It was created by using the "DC Voltage Source" entry under "Spice" entry of the component palette.
-Once placed, the text that reads "Voltage=0V" is selected and modified
+It was created by using the "DC Voltage" entry under "Spice" entry of the component palette.
+Once placed, the text that reads "Voltage=0V" can be selected and modified
 (either with <B>Object Properties...</B> or by double-clicking on it).
 The Pulse input signal on the right is created with the "Pulse" entry under "Spice" (it has 7 parameters).
 <P>
@@ -47,6 +47,7 @@ Truly advanced users may create their own Spice nodes by modifying the cells in 
 This example also shows the ability to add arbitrary text to the Spice deck, as shown in the lower-right.
 To create this text, use the "Add Spice Card" under the "Misc." button in the component palette.
 The command creates a piece of text that can be modified arbitrarily.
+Whatever the text says will be added to the Spice deck.
 <P>
 Another option that can be used when modeling transistors and other component is to set a specific Spice model to use for that component.
 To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tool / Simulation (Spice)</B>
@@ -67,7 +68,7 @@ The top part of this dialog allows you to control many of the Spice deck paramet
 <LI><B>Spice Level</B> Can be 1, 2, or 3.</LI>
 <LI><B>Output format</B> The format to expect when reading Spice output.</LI>
 <LI><B>Use Parasitics</B> Whether to include simple parasitics in the deck.</LI>
-<LI><B>Use Node Names</B> Whether to use actual node names in the deck (Spice 2 cannot handle this).</LI>
+<LI><B>Use Node Names</B> Whether to use actual node names in the deck (Spice 2 can only handle numbers).</LI>
 <LI><B>Force Global VDD/GND</B> Whether to force power and ground to be global signal names.</LI>
 <LI><B>Use Cell Parameters"</B> When set, any parameters defined on the cell will appear in the Spice deck.
 When not checked, each parameterized cell appears multiple times in the deck,
@@ -89,12 +90,18 @@ command line command.
 <P>
 There are several options for the process:
 <UL>
-<LI>Use Dir: if specified, this is the working directory of the process
-<LI>Overwrite existing file: this will overwrite the existing netlist without prompting the user
-<LI>Run probe: this will run the waveform viewer on the output of the spice run
-<LI>Help: tells which environment variables are exported to be used by the process
-<LI>Run program: the name of the executable to run
-<LI>with arg: the arguments passed to the executable
+<LI><B>Use Dir</B> if specified, this is the working directory of the process
+.</LI>
+<LI><B>Overwrite existing file</B> this will overwrite the existing netlist without prompting the user
+.</LI>
+<LI><B>Run probe</B> this will run the waveform viewer on the output of the spice run
+.</LI>
+<LI><B>Help</B> tells which environment variables are exported to be used by the process
+.</LI>
+<LI><B>Run program</B> the name of the executable to run
+.</LI>
+<LI><B>with arg</B> the arguments passed to the executable
+.</LI>
 </UL>
 <P>
 The middle section of the Spice Options dialog controls technology-specific information.

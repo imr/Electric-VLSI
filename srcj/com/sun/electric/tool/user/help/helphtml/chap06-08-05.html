@@ -35,10 +35,10 @@ then the Java interpreter will be invoked, and the attribute will actually be "8
 <P>
 You can change the type of unit by using the "Units" popup
 (choices are capacitance, resistance, inductance, current, voltage, or distance).
-See section <A HREF="chap07-02-01.html#chap07-02-01">Section 7-2-1</A> for more on these units.
+See <A HREF="chap07-02-02.html#chap07-02-02">Section 7-2-2</A> for more on these units.
 <P>
 You can control the way that an attribute is displayed in the circuit by selecting the appropriate entry in the "Show:" popup.
-You can request that various combinations of the attribute's name, value, and inherited value be displayed.
+You can request that various combinations of the attribute's name and value be displayed.
 <P>
 The bottom part of the dialog affects the appearance of the attribute, and is only relevant if the attribute is being shown.
 The size of the text can be specified in relative or absolute units.
@@ -49,6 +49,11 @@ The style of the text can be any combination of Italic, Bold, or Underline.
 You can specify the rotation of the text, in 90-degree increments.
 The "Invisible outside cell" requests that the attribute not be drawn when viewed farther up the hierarchy.
 <P>
+The "Done" button terminates this dialog.
+Note that there is no "Cancel" button: this dialog makes changes as they are entered.
+<BR>
+<H3>Special Considerations</H3>
+<P>
 Attributes that are placed on cells or exports get <I>inherited</I> when the cell is instantiated.
 Each of these attributes is created on the instantiated node and port.
 It is often desirable for each inherited attribute to have unique names.
@@ -58,10 +63,8 @@ Similarly, a "--" indicates that the number be decremented after inheritance.
 This allows an inherited attribute to be unique with each inheritance.
 <P>
 When there are too many visible attributes, the display can become cluttered.
-Use the <B>Layer Visibility...</B> command (in menu <B>Window</B>) to control the text.
-(attributes on nodes are controlled by the "Node Text" checkbox; those on arcs with the "Arc Text" checkbox, etc.)
-<P>
-The "Done" button terminates this dialog.
-Note that there is no "Cancel" button: this dialog makes changes as they are entered.
+Use the <B>Layer Visibility...</B> command (in menu <B>Window</B>) to control the text,
+see <A HREF="chap04-05.html#chap04-05">Section 4-5</A> for more on these units.
+Attributes on nodes are controlled by the "Node Text" checkbox; those on arcs with the "Arc Text" checkbox, etc.
 
 <!-- TRAILER -->

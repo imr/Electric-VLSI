@@ -9,8 +9,7 @@ After running a Verilog simulation, you can read the dump file into Electric and
 This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tool / Simulation (Verilog)</B>.
 You can also use the <B>Plot Verilog for This Cell</B> command if the cell name and file name are the same.
 <P>
-When the Verilog output is read, a waveform appears in a new window.
-A sample waveform window is shown below.
+When the Verilog output is read, a waveform window appears, as shown below.
 Note also that there is a Cell Explorer in the window, just like in all windows,
 but it has a "SIGNALS" section that lists the signals found in the Verilog output.
 <P>
@@ -22,11 +21,11 @@ The waveform window contains a list of <I>panels</I>, each with a signal name an
 In the waveform window, signal names are shown on the left, and their waveform on the right.
 Between the name and the waveform are 3 control buttons:
 <UL>
-<LI><B>Close</B> (an "X") to remove that signal from the waveform.</LI>
-<LI><B>Hide</B> to stop displaying the signal, but keep it available (it can be restored by selecting its name from the popup at the top
+<LI><B>Close</B> (an "X") to remove that panel from the waveform window.</LI>
+<LI><B>Hide</B> to stop displaying the panel, but keep it available (it can be restored by selecting its name from the popup at the top
 of the waveform window).</LI>
 <LI><B>Bus</B> to toggle the viewing of individual members of a bus.
-If the bus members are not shown, they are added to the waveform window.
+If the bus members are not currently being shown, they are added to the waveform window.
 If some bus members are being shown, they are removed.</LI>
 </UL>
 You can select a signal by selecting either its name or the actual waveform.
@@ -45,6 +44,7 @@ the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>
 The order of signals in the waveform window is saved in the original cell
 so that subsequent simulations will show the same signals.
 
+<BR>
 <H3>Time Control</H3>
 <P>
 Two vertical cursors appear in the window, called "main" and "extension"
@@ -67,7 +67,8 @@ To zoom out, hold the shift key and click in the center of the desired area.
 <P>
 The different panels in the waveform window are locked in time: they all show the same range of time,
 as shown at the top of the waveform window.
-If you click on the "time lock" button at the top of the waveform window (a lock with the time on it)
+If you click on the "time lock" button at the top of the waveform window
+(looks like:&nbsp;&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;&nbsp;a lock with the time on it)
 then time is unlocked, and each panel has its own time scale.
 Now individual panels can be show a different range of time than the rest.
 <P>
@@ -76,16 +77,16 @@ If the original cell is being displayed, selection in the waveform window is mir
 Also, whenever the main time cursor changes, the electrical state of the circuit is drawn in over it.
 The color red is high, and black is low.
 If you connect <I>Simulation Probe</I> nodes to any part of the circuit, these nodes light up red/black instead,
-which allows better visualization of activity patterns.
+which allows better visualization of activity patterns (see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).
 <P>
-For best visualization of the simulation activity, there are a set of VCR buttons to control an animation of the main time cursor.
+For best visualization of the simulation activity, there is a set of VCR buttons to control an animation of the main time cursor.
 The Play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
 As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
 <P>
 These window functions apply to the digital simulation windows:
 <UL>
 <LI><B>Window / Fill Window</B> make all data fit in window.</LI>
-<LI><B>Window / Zoom Out</B> show twice as much tim.e</LI>
+<LI><B>Window / Zoom Out</B> show twice as much time.</LI>
 <LI><B>Window / Zoom In</B> show half as much time.
 </LI>
 <LI><B>Window / Special Zoom / Focus on Highlighted</B> show from main to extension cursors.
@@ -105,12 +106,14 @@ At the top of the waveform window, above the signal names, are many useful contr
 Those relating to time have already been discussed.
 Here are the remaining buttons:
 <UL>
-<LI><B>"Refresh"</B> Rereads the simultion output file and updates the display.
-If the simulator is re-run, and the output file is different, then this button shows the new date.</LI>
+<LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
+Rereads the simulation output file and updates the display.
+If the simulation is re-run, and the output file is different, then this button shows the new data.</LI>
 <LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
 Selecting a panel from this list toggles its "hidden" state, making a visible one disappear,
 and making a hidden one reappear.</LI>
-<LI><B>"Grow" and "Shrink"</B> These buttons, which show a waveform being stretched or squeezed,
+<LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
+These buttons, which show a waveform being stretched or squeezed,
 cause the minimum panel size to change.
 By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.</LI>
 </UL>

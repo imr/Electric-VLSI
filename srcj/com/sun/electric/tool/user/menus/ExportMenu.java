@@ -91,5 +91,9 @@ public class ExportMenu {
         exportMenu.addMenuItem("Show Ports on Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showPorts(); } });
 
+        exportMenu.addSeparator();
+
+        exportMenu.addMenuItem("Add Exports from Library...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.synchronizeLibrary(); } });
     }
 }

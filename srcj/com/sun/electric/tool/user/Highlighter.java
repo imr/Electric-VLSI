@@ -1581,9 +1581,20 @@ public class Highlighter implements DatabaseChangeListener {
         // ignore areaMustEnclose if bounds is size 0,0
         if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 		{
-			Rectangle2D geomBounds = geom.getBounds();
-			Poly poly = new Poly(geomBounds);
-			if (!poly.isInside(bounds)) return null;
+        	Poly poly = null;
+        	if (geom instanceof NodeInst)
+        	{
+        		NodeInst ni = (NodeInst)geom;
+                poly = Highlight.getNodeInstOutline(ni);
+        	} else
+        	{
+        		ArcInst ai = (ArcInst)geom;
+                poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+        	}
+            if (poly == null) return null;
+   			if (!poly.isInside(bounds)) return null;
+			Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+			return h;
 		}
 
 		if (geom instanceof NodeInst)

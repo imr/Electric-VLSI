@@ -10,9 +10,9 @@ When attributes are created on cells, they become parameters to that cell.
 Each instance of the cell has a copy of the attribute placed on the node, and the node's attribute
 can then be set independently of the cell's attribute.
 In such a situation, the node attribute's value is the "actual" parameter to the cell,
-and the cell attribute's value if the "formal", or default parameter value.
+and the cell attribute's value is the "formal", or default parameter value.
 <P>
-One example of the use of cell parameters is in the SPICE primitives where user-defined values (such as voltage)
+One example of the use of cell parameters is in the SPICE primitives, where user-defined values (such as voltage)
 are communicated into the icon for generation in the SPICE deck (see <A HREF="chap08-04-04.html#chap08-04-04">Section 8-4-4</A>).
 <P>
 Another use of cell parameters is to parameterize the size of a transistor in a schematic
@@ -23,24 +23,36 @@ By combining these parameters with the interpretive language facility,
 an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size
 .
 <P>
-Inside of the cell, the parameter is shown with its name, default value, and actual value from up the hierarchy.
-When first defined, the parameter has no actual value, and so appears as "Strength=?;def=2"
-(for an attribute called "Strength" with a value of 2).
-If an instance is created and its "Strength" attribute is set to 7, then descending into that cell will show "Strength=7;def=2".
+Inside of the cell, the parameter is shown with its name and default value.
+To see the actual value from up the hierarchy, create a Java expression with the value "@PNAME" where PNAME is the parameter name.
+For example, if a cell has an attribute called "heat", you might place a piece of Annotation Text
+(with the "Annotation Text" command under the "Misc" entry in the component menu)
+and name it "@heat".
+Make sure to set its Code to Java.
+When first defined, the parameter has no actual value, and so appears as "heat not found"
+.
+If an instance is created and its "heat" attribute is set to 7, then descending into that cell will show "7".
 <P>
-In schematics, the location of a parameter on an icon is determined by the location of that parameter on the sample icon,
-inside of the schematic cell.
-<P>
-If a parameter is changed on a cell, you may wish the change to affect all instances of that cell.
+If a parameter is added to a cell, existing instances of that cell may not get properly updated.
 To do this, use the <B>Update Attributes Inheritance on Node</B> command (in menu <B>Edit / Properties</B>).
 To do this everywhere, use the <B>Update Attributes Inheritance all Libraries</B> command.
+<BR>
+<H3>Parameter Text</H3>
+<P>
+Parameters on cells are not tied to any node or arc.
+Instead, they float freely inside of the cell.
+You can select the text and drag it to any location in the cell.
+<P>
+Parameters on instances of cells are placed at the same location as they appear inside of the cell.
+In schematics, the location of a parameter on an icon is determined by the location of that parameter on the sample icon,
+inside of the schematic cell.
 <P>
 If you do not wish to see a parameter's text on any instance, select the parameter text inside of the cell,
 use the <B>Object Properties...</B> command (in menu <B>Edit / Properties</B>), and check "Invisible outside cell".
 <P>
 You can disable the display of parameters on cell instances by selecting them and using the <B>Hide All Attributes on Node</B> command
 (in menu <B>Edit / Properties</B>).
-You can force all parameters to be displayed on a cell instance by using the <B>Hide All Attributes on Node</B> command.
+You can force all parameters to be displayed on a cell instance by using the <B>See All Attributes on Node</B> command.
 To restore default parameter visibility on a cell instance, use the <B>Default Attribute Visibility</B> command.
 
 <!-- TRAILER -->

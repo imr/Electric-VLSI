@@ -68,6 +68,7 @@ Hierarchy
   Introduction to Libraries          =chap03-09-01
   Reading Libraries                  =chap03-09-02
   Writing Libraries                  =chap03-09-03
+  Standard Cell Libraries            =chap03-09-04
  Copying Cells Between Libraries     =chap03-10
  Views
   Setting a Cell's View              =chap03-11-01

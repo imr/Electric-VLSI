@@ -6,13 +6,27 @@
 
 The Bus arc of the Schematics technology is a special arc that can carry multiple signals.
 When giving a network name to Bus arcs, it is possible to specify complex bus names.
-Bus names can be lists (for example, "clock,in1,out" which aggregates 3 singals into a 3-wide bus)
-or they can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
-Arrays indexes can be individual values, or ranges of values
-(for example, the bus "b[0],c[3,5],d[1:2],e[8:6]" is an 8-wide bus with signals in this order:
-b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6]).
-Finally, it is possible to use symbolic indices in bus naming
+<UL>
+<LI><B>Lists</B> Bus names can be lists (for example, "clock,in1,out" which aggregates 3 signals into a 3-wide bus)
+.</LI>
+
+<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
+</LI>
+
+<LI><B>Array index lists and ranges</B> Arrayed bus names can have lists of values (separated by commas)
+or ranges of values (using the colon).
+For example, the bus "b[0],c[3,5],d[1:2],e[8:6]" is an 8-wide bus with signals in this order:
+b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
+</LI>
+
+<LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
+(for example "b[1:2][100,103]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
+You can have any number of dimensions in an array.</LI>
+
+<LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
 (for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).
+</LI>
+</UL>
 <P>
 When a bus is unnamed, the system determines its width from the ports that it connects.
 Some tools (such as simulation netlisters) need to name everything,

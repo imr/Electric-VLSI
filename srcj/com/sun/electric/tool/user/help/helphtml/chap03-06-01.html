@@ -57,7 +57,7 @@ This check box overrides the suppression.
 Another special check box, "Body only," requests that this export not appear when an icon is generated for the cell.
 This is useful for power and ground exports or duplicate connection sites on a single network.
 <P>
-There are three special exporting commands that are primarily used in array-based layout.
+There are many special exporting commands that are primarily used in array-based layout.
 If a cell instance is replicated many times and the instances are wired together,
 then ports on the edge of the array are the only ones that are not wired.
 These ports define the connections for the next level of hierarchy.
@@ -72,6 +72,16 @@ These two commands can also be run so that wired ports are re-exported, by using
 To do this same function, but only for Power and Ground exports, use <B>Re-Export Power and Ground</B>.
 Note that ports on primitive nodes are not exported with these commands.
 See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more about arrays,
-and see <A HREF="chap09-05-01.html#chap09-05-01">Section 9-5-1</A> for more on automatic wiring.
+and see <A HREF="chap08-05-01.html#chap08-05-01">Section 8-5-1</A> for more on automatic wiring.
+
+<P>
+Another special case in export creation is the <B>Add Export from Library...</B> command,
+which copies exports from another library to the current one.
+The other library is examined for cells whose names match ones in the current library.
+When a cell is found in the other library, all of its exports are copied to the cell in the current library
+(if they don't already exist) and placed in the same location.
+This command is useful in managing standard cell libraries that are imported from other file formats
+(see Section 3-9 on Standard Cell Libraries).
+Because some formats contain geometry and others contain connectivity, this command is needed to put them together.
 
 <!-- TRAILER -->
