@@ -1,6 +1,14 @@
 			Java Electric change log
 
 ************************* Version 8.01e: *********************************
+
+IMP/MAN: (8/9/04, JKG) Added color chooser to GetInfoArc
+
+FIX: (8/9/04, JKG) Fixed X/Y size mirroring bug in GetInfoNode dialog
+
+IMP: (8/6/04, JKG) De-staticized Highlight. Split into Highlighter, and Highlight object.
+    Each WindowContent has it's own Highlighter.
+
 FIX: (8/6/04, GVG) Flexible arcs were not streched when contact ports were resized. Fix: adjustMatrix considers now X and Y scales.
 
 IMP: (8/4/04, GVG) Subset of DRC rules for TSMC90 tech. Some functions used in MoCMOS were promoted to Technology class for reusage.
