@@ -23,9 +23,11 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.tool.user.ui.ExplorerTree;
 
 import java.util.List;
 import java.util.Comparator;
@@ -33,7 +35,6 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.File;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * A Library represents a collection of Cells.
@@ -50,7 +51,7 @@ public class Library extends ElectricObject
 	// ------------------------ private data ------------------------------
 
 	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
-//	/** recheck networks in library */						private static final int REDOCELLLIB =               02;
+//	/** set to see library in explorer */					private static final int OPENINEXPLORER =            02;
 	/** set if library came from disk */					private static final int READFROMDISK =              04;
 	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
 	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
@@ -193,7 +194,6 @@ public class Library extends ElectricObject
 	
 		// add the library to the global list
 		libraries.add(lib);
-//		Library.setCurrent(lib);
 
 		return lib;
 	}
@@ -242,7 +242,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.add(c);
-		rebuildExplorerTree();
+		ExplorerTree.explorerTreeChanged();
 	}
 
 	void removeCell(Cell c)
@@ -254,7 +254,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.remove(c);
-		rebuildExplorerTree();
+		ExplorerTree.explorerTreeChanged();
 	}
 
 	// ----------------- public interface --------------------
@@ -402,43 +402,6 @@ public class Library extends ElectricObject
 	 */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
-	private static DefaultMutableTreeNode explorerTree = null;
-
-	/**
-	 * Routine to return the tree structure that defines the current cell explorer.
-	 * This is a tree of DefaultMutableTreeNode objects that can be used to
-	 * explore the cell hierarchy.
-	 * @return the tree structure that defines the current cell explorer.
-	 */
-	public static DefaultMutableTreeNode getExplorerTree()
-	{
-		rebuildExplorerTree();
-		return explorerTree;
-	}
-
-	public static void rebuildExplorerTree()
-	{
-		if (explorerTree == null)
-			explorerTree = new DefaultMutableTreeNode("LIBRARIES");
-		explorerTree.removeAllChildren();
-		Library curLib = Library.getCurrent();
-		List sortedList = Library.getVisibleLibrariesSortedByName();
-		for(Iterator it = sortedList.iterator(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			String nodeName = lib.getLibName();
-			if (lib == curLib) nodeName = "[Current] " + nodeName;
-			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(nodeName);
-			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
-			{
-				Cell cell = (Cell)eit.next();
-				DefaultMutableTreeNode node = new DefaultMutableTreeNode(cell);
-				libTree.add(node);
-			}
-			explorerTree.add(libTree);
-		}
-	}
-
 	/**
 	 * Routine to find a Library with the specified name.
 	 * @param libName the name of the Library.
@@ -553,8 +516,9 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Routine to return an iterator over all libraries.
-	 * @return an iterator over all libraries.
+	 * Routine to return a List of all libraries, sorted by name.
+	 * The list excludes hidden libraries (i.e. the clipboard).
+	 * @return a List of all libraries, sorted by name.
 	 */
 	public static List getVisibleLibrariesSortedByName()
 	{

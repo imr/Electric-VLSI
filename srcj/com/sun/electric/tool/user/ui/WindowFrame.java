@@ -50,12 +50,13 @@ import javax.swing.event.InternalFrameEvent;
 public class WindowFrame
 {
 	/** the edit window part */							private EditWindow wnd;
-	/** the tree view part */							private TreeView tree;
+	/** the tree view part */							private ExplorerTree tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 	/** the internal frame (if MDI). */					private JInternalFrame jif;
 	/** the top-level frame (if SDI). */				private TopLevel jf;
-	/** the explorer part of a frame. */				private static DefaultMutableTreeNode root = new DefaultMutableTreeNode("Explorer");
+	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
+	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
 
 	// constructor
 	private WindowFrame() {}
@@ -91,11 +92,12 @@ public class WindowFrame
 		frame.wnd = EditWindow.CreateElectricDoc(cell, frame);
 
 		// the left half: an explorer tree in a scroll pane
-		root.removeAllChildren();
-		root.add(Library.getExplorerTree());
-		root.add(Job.getExplorerTree());
-		frame.tree = TreeView.CreateTreeView(root, frame.wnd);
-		explorerTreeChanged();
+		rootNode.removeAllChildren();
+		rootNode.add(ExplorerTree.getLibraryExplorerTree());
+		rootNode.add(Job.getExplorerTree());
+		treeModel = new DefaultTreeModel(rootNode);
+		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel, frame.wnd);
+		ExplorerTree.explorerTreeChanged();
 		JScrollPane scrolledTree = new JScrollPane(frame.tree);
 		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
 
@@ -143,6 +145,12 @@ public class WindowFrame
 	public EditWindow getEditWindow() { return wnd; }
 
 	/**
+	 * Routine to return the ExplorerTree associated with this frame.
+	 * @return the ExplorerTree associated with this frame.
+	 */
+	public ExplorerTree getExplorerTree() { return tree; }
+
+	/**
 	 * Routine to return the JInternalFrame associated with this WindowFrame.
 	 * This only makes sense in MDI mode, because in SDI mode, the WindowFrame is a JFrame.
 	 * @return the JInternalFrame associated with this WindowFrame.
@@ -154,32 +162,6 @@ public class WindowFrame
 	 * @return an Iterator over all WindowFrames.
 	 */
 	public static Iterator getWindows() { return windowList.iterator(); }
-
-	/**
-	 * Routine called when the explorer information changes.
-	 * It updates the display.
-     */
-	public static synchronized void explorerTreeChanged()
-	{
-		for(Iterator it = getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			wf.tree.updateUI();
-		}
-	}
-
-    /**
-	 * Routine called when the explorer information changes.
-	 * It updates the display for minor changes.  See JTree.treeDidChange().
-     */
-	public static synchronized void explorerTreeMinorlyChanged()
-	{
-		for(Iterator it = getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-            wf.tree.treeDidChange();
-		}
-	}
     
     /**
      * Routine to set the description on the window frame

@@ -509,7 +509,7 @@ public class PaletteFrame
 				} else if (msg.equals("Misc."))
 				{
 					JPopupMenu specialMenu = new JPopupMenu("Special");
-					JMenuItem menuItem = new JMenuItem("Text");
+					JMenuItem menuItem = new JMenuItem("Annotation text");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Cell Center");

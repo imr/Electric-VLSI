@@ -74,7 +74,7 @@ public class GetInfoNode extends javax.swing.JDialog
 	private double initialXPos, initialYPos;
 	private double initialXSize, initialYSize;
 	private int initialRotation, initialListPopupEntry;
-	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked;
+	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
 	private String initialName, initialTextField;
 	private String initialPopupEntry, initialListTextField;
 	private DefaultListModel listModel;
@@ -354,7 +354,8 @@ public class GetInfoNode extends javax.swing.JDialog
 		{
 			expanded.setEnabled(true);
 			unexpanded.setEnabled(true);
-			if (ni.isExpanded()) expanded.setSelected(true); else
+			initialExpansion = ni.isExpanded();
+			if (initialExpansion) expanded.setSelected(true); else
 				unexpanded.setSelected(true);
 			xSize.setEditable(false);
 			ySize.setEditable(false);
@@ -692,6 +693,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		public void doIt()
 		{
 			boolean changed = false;
+			NodeProto np = ni.getProto();
 
 			String currentName = dialog.name.getText();
 			if (!currentName.equals(dialog.initialName))
@@ -699,6 +701,18 @@ public class GetInfoNode extends javax.swing.JDialog
 				ni.setName(currentName);
 				dialog.initialName = new String(currentName);
 				changed = true;
+			}
+
+			if (np instanceof Cell)
+			{
+				boolean currentExpansion = dialog.expanded.isSelected();
+				if (currentExpansion != dialog.initialExpansion)
+				{
+					if (currentExpansion) ni.setExpanded(); else
+						ni.clearExpanded();
+					dialog.initialExpansion = currentExpansion;
+					changed = true;
+				}
 			}
 
 			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();
@@ -728,7 +742,6 @@ public class GetInfoNode extends javax.swing.JDialog
 
 			// handle special node information
 			NodeProto.Function fun = ni.getFunction();
-			NodeProto np = ni.getProto();
 			if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
 			{
 				String currentTextField = dialog.textField.getText();

@@ -64,6 +64,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Comparator;
+import java.util.Collections;
 
 /**
  * A Cell is a non-primitive NodeProto.
@@ -206,6 +208,37 @@ public class Cell extends NodeProto
 		public Iterator getCells() { return cells.iterator(); }
 
 		/**
+		 * Routine to return the number of Cells that are in this CellGroup.
+		 * @return the number of Cells that are in this CellGroup.
+		 */
+		public int getNumCells() { return cells.size(); }
+
+		/**
+		 * Routine to return a List of all cells in this Group, sorted by View.
+		 * @return a List of all cells in this Group, sorted by View.
+		 */
+		public List getCellsSortedByView()
+		{
+			List sortedList = new ArrayList();
+			for(Iterator it = cells.iterator(); it.hasNext(); )
+				sortedList.add(it.next());
+			Collections.sort(sortedList, new CellsByView());
+			return sortedList;
+		}
+
+		static class CellsByView implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				Cell c1 = (Cell)o1;
+				Cell c2 = (Cell)o2;
+				View v1 = c1.getView();
+				View v2 = c2.getView();
+				return v1.getOrder() - v2.getOrder();
+			}
+		}
+
+		/**
 		 * Routine to return main schematics Cell in ths CellGroup.
 		 * @return main schematics Cell  in this CellGroup.
 		 */
@@ -223,23 +256,46 @@ public class Cell extends NodeProto
 		private List versions;
 
 		/**
-		 * Constructs a <CODE>VersionGroup</CODE> that contains a Cell.
-		 * @param cell the cell to initially add to this VersionGroup.
+		 * Constructs a <CODE>VersionGroup</CODE> that contains the history of a Cell.
 		 */
-		public VersionGroup(Cell cell)
+		public VersionGroup()
 		{
 			versions = new ArrayList();
-			add(cell);
 		}
 
 		/**
 		 * Routine to add a Cell to this VersionGroup.
 		 * @param cell the cell to add to this VersionGroup.
+		 * @return the cell that used to be the newest (null if adding the Cell did not displace another newer one).
 		 */
-		public void add(Cell cell)
+		public Cell add(Cell cell)
 		{
+			// remember the cell that used to be the newest in the group
+			Cell formerNewestCell = null;
+			if (versions.size() > 0) formerNewestCell = (Cell)versions.iterator().next();
+
+			// add this cell to the group
 			versions.add(cell);
-			cell.versionGroup = this;
+			cell.setVersionGroup(this);
+
+			// resort the group and find the newest
+			Collections.sort(versions, new CellsByVersion());
+			Cell newestCell = (Cell)versions.iterator().next();
+
+			// if the former newest is still newest, report no displacement
+			if (newestCell == formerNewestCell) formerNewestCell = null;
+
+			return formerNewestCell;
+		}
+
+		static class CellsByVersion implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				Cell c1 = (Cell)o1;
+				Cell c2 = (Cell)o2;
+				return c2.getVersion() - c1.getVersion();
+			}
 		}
 
 		/**
@@ -275,6 +331,7 @@ public class Cell extends NodeProto
 	// -------------------------- private data ---------------------------------
 
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
+	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
@@ -317,7 +374,7 @@ public class Cell extends NodeProto
 	 */
 	private Cell()
 	{
-		versionGroup = new VersionGroup(this);
+//		this.versionGroup = new VersionGroup(this);
 		setIndex(cellNumber++);
 		nodes = new ArrayList();
 		nodables = new TreeMap();
@@ -339,156 +396,7 @@ public class Cell extends NodeProto
 		linked = false;
 	}
 
-	/**
-	 * Low-level access routine to create a cell in library "lib".
-	 * Unless you know what you are doing, do not use this method.
-	 * @param lib library in which to place this cell.
-	 * @return the newly created cell.
-	 */
-	public static Cell lowLevelAllocate(Library lib)
-	{
-		Job.checkChanging();
-		Cell c = new Cell();
-		c.lib = lib;
-		return c;
-	}
-
-	/**
-	 * Low-level access routine to fill-in the cell name.
-	 * Unless you know what you are doing, do not use this method.
-	 * @param name the name of this cell.
-	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
-	 * @return true on error.
-	 */
-	public boolean lowLevelPopulate(String name)
-	{
-		checkChanging();
-		// see if this cell already exists
-		Library lib = getLibrary();
-		Cell existingCell = lib.findNodeProto(name);
-		if (existingCell != null)
-		{
-			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
-			return true;
-		}
-
-		CellName n = CellName.parseName(name);
-		if (n == null) return true;
-		int version = n.getVersion();
-
-		// make sure this version isn't in use
-		if (version > 0)
-		{
-			for (Iterator it = lib.getCells(); it.hasNext();)
-			{
-				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
-					version == c.getVersion())
-				{
-					System.out.println("Already a cell with this version");
-					return true;
-				}
-			}
-		} else
-		{
-			// find a new version
-			version = 1;
-			for (Iterator it = lib.getCells(); it.hasNext();)
-			{
-				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
-					c.getVersion() >= version)
-						version = c.getVersion() + 1;
-			}
-		}
-		
-		// fill-in the fields
-		this.protoName = n.getName();
-		this.view = n.getView();
-		this.version = version;
-
-		// prepare basename for autonaming
-		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
-		if (basename == null)
-			basename = NodeProto.Function.UNKNOWN.getBasename();
-		return false;
-	}
-
-	/**
-	 * Low-level access routine to link this Cell into its library.
-	 * @return true on error.
-	 */
-	public boolean lowLevelLink()
-	{
-		checkChanging();
-		if (linked)
-		{
-			System.out.println(this+" already linked");
-			return true;
-		}
-		// determine the cell group
-		if (cellGroup == null)
-		{
-			// look for similar-named cell and use its group
-			for (Iterator it = lib.getCells(); it.hasNext();)
-			{
-				Cell c = (Cell) it.next();
-				if (c.getCellGroup() == null) continue;
-				if (getProtoName().equalsIgnoreCase(c.getProtoName()))
-				{
-					cellGroup = c.getCellGroup();
-					break;
-				}
-			}
-			
-			// still none: make a new one
-			if (cellGroup == null) cellGroup = new CellGroup();
-		}
-
-		// add to cell group
-		cellGroup.add(this);
-
-		// add ourselves to the library
-		Library lib = getLibrary();
-		lib.addCell(this);
-
-		// link NodeUsages
-		for (Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			nu.getProto().addUsageOf(nu);
-		}
-
-		// success
-		linked = true;
-		return false;
-	}
-
-	/**
-	 * Low-level access routine to unlink this Cell from its library.
-	 */
-	public void lowLevelUnlink()
-	{
-		checkChanging();
-		if (!linked)
-		{
-			System.out.println(this+" already unlinked");
-			return;
-		}
-		cellGroup.remove(this);
-		versionGroup.remove(this);
-		Library lib = getLibrary();
-		lib.removeCell(this);
-
-		// unlink NodeUsages
-		for (Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			nu.getProto().removeUsageOf(nu);
-		}
-
-		linked = false;
-	}
+	/****************************** CREATE, DELETE ******************************/
 
 	/**
 	 * Factory method to create a new Cell.
@@ -522,817 +430,6 @@ public class Cell extends NodeProto
 
 		// handle change control, constraint, and broadcast
 		Undo.killObject(this);
-	}
-
-	/**
-	 * Routine to recursively determine whether this Cell is a child of a given parent Cell.
-	 * If so, the relationship would be recursive.
-	 * @param parent the parent cell being examined.
-	 * @return true if, somewhere above the hierarchy of this Cell is the parent Cell.
-	 */
-	public boolean isAChildOf(Cell parent)
-	{
-		// special case: allow an icon to be inside of the contents for illustration
-		if (isIconOf(parent))
-		{
-			if (getView() == View.ICON && parent.getView() != View.ICON)
-				return false;
-		}
-
-		// make sure the child is not an icon
-		Cell child = this;
-		Cell np = contentsView();
-		if (np != null) child = np;
-
-		return child.db_isachildof(parent);
-	}
-
-	private boolean db_isachildof(Cell parent)
-	{
-		/* if they are the same, that is recursion */
-		if (this == parent) return true;
-
-		/* look through every instance of the parent cell */
-		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-
-//			/* if two instances in a row have same parent, skip this one */
-//			if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
-
-			/* recurse to see if the grandparent belongs to the child */
-			if (db_isachildof(ni.getParent())) return true;
-		}
-
-		/* if this has an icon, look at it's instances */
-		Cell np = parent.iconView();
-		if (np != null)
-		{
-			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-
-//				/* if two instances in a row have same parent, skip this one */
-//				if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
-
-				/* special case: allow an icon to be inside of the contents for illustration */
-				NodeProto niProto = ni.getProto();
-				if (niProto instanceof Cell)
-				{
-					if (((Cell)niProto).isIconOf(parent))
-					{
-						if (parent.getView() != View.ICON) continue;
-					}
-				}
-
-				/* recurse to see if the grandparent belongs to the child */
-				if (db_isachildof(ni.getParent())) return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Routine to determine whether this NodeProto  is an icon Cell.
-	 * @return true if this NodeProto is an icon  Cell.
-	 */
-	public boolean isIcon() { return view == View.ICON; }
-
-	/**
-	 * Routine to determine whether this Cell is an icon of another Cell.
-	 * @param cell the other cell which this may be an icon of.
-	 * @return true if this Cell is an icon of that other Cell.
-	 */
-	public boolean isIconOf(Cell cell)
-	{
-		return view == View.ICON && cellGroup == cell.cellGroup;
-	}
-
-	/**
-	 * Routine to find the contents Cell associated with this Cell.
-	 * This only makes sense if the current Cell is an icon or skeleton Cell.
-	 * @return the contents Cell associated with this Cell.
-	 * Returns null if no such Cell can be found.
-	 */
-	public Cell contentsView()
-	{
-		// can only consider contents if this cell is an icon
-		if (getView() != View.ICON && getView() != View.SKELETON)
-			return null;
-
-		// first check to see if there is a schematics link
-		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
-			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
-		}
-
-		// now check to see if there is any layout link
-		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
-		}
-
-		// finally check to see if there is any "unknown" link
-		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
-		}
-
-		// no contents found
-		return null;
-	}
-
-	/**
-	 * Routine to find the icon Cell associated with this Cell.
-	 * @return the icon Cell associated with this Cell.
-	 * Returns null if no such Cell can be found.
-	 */
-	public Cell iconView()
-	{
-		// can only get icon view if this is a schematic
-		if (!isSchematicView()) return null;
-
-		// now look for views
-		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
-		{
-			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == View.ICON) return cellInGroup;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Routine to return true if this Cell is a schematic view.
-	 * @return true if this Cell is a schematic view.
-	 */
-	public boolean isSchematicView()
-	{
-		if (getView() == View.SCHEMATIC ||
-			getView().isMultiPageView()) return true;
-		return false;
-	}
-
-	/**
-	 * Routine to check and repair data structure errors in this Cell.
-	 */
-	public int checkAndRepair()
-	{
-		int errorCount = 0;
-
-		// make sure that every connection is on an arc and a node
-		HashMap connections = new HashMap();
-		for(Iterator it = getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			errorCount += ai.checkAndRepair();
-			ArcInst otherAi = (ArcInst)connections.get(ai.getHead());
-			if (otherAi != null)
-			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": head connection already on other arc " + otherAi.describe());
-				errorCount++;
-			} else
-			{
-				connections.put(ai.getHead(), ai);
-			}
-
-			otherAi = (ArcInst)connections.get(ai.getTail());
-			if (otherAi != null)
-			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": tail connection already on other arc " + otherAi.describe());
-				errorCount++;
-			} else
-			{
-				connections.put(ai.getTail(), ai);
-			}
-		}
-
-		// now make sure that all nodes reference them
-		for(Iterator it = getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
-			{
-				Connection con = (Connection)pIt.next();
-				ArcInst ai = (ArcInst)connections.get(con);
-				if (ai == null)
-				{
-					System.out.println("Cell " + describe() + ", Node " + ni.describe() +
-						": has connection to unknown arc: " + con.getArc().describe() +
-						" (node has " + ni.getNumConnections() + " connections)");
-					errorCount++;
-				} else
-				{
-					connections.put(con, null);
-				}
-			}
-		}
-
-		// finally check to see if there are any left in the hash table
-		for(Iterator it = connections.values().iterator(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			if (ai != null)
-			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": connection is not on any node");
-				errorCount++;
-			}
-		}
-
-		// check node usages
-		for(Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			errorCount += nu.checkAndRepair();
-		}
-
-		return errorCount;
-	}
-
-	/**
-	 * Routine to set change lock of cells in up-tree of this cell.
-	 */
-	public void setChangeLock()
-	{
-		if (lock < 0) return;
-		if (lock > 0)
-		{
-			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
-			return;
-		}
-		lock = -1;
-		for (Iterator it = getUsagesOf(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			nu.getParent().setChangeLock();
-		}
-		if (this != cellGroup.getMainSchematics()) return;
-		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			if (cell.view == View.ICON) cell.setChangeLock();
-		}
-	}
-
-	/**
-	 * Routine to clear change lock of this cell.
-	 */
-	public void clearChangeLock()
-	{
-		if (lock >= 0) return;
-		lock = 0;
-	}
-
-	/**
-	 * Routing to check whether changing of this cell allowed or not.
-	 */
-	public void checkChanging()
-	{
-		if (Job.getChangingThread() != Thread.currentThread())
-		{
-			if (Job.getChangingThread() == null)
-				System.out.println(this+" is changing without Undo.startChanges() lock");
-			else
-				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
-			//throw new IllegalStateException("Cell.checkChanging()");
-		}
-		Cell rootCell = Job.getChangingCell();
-		if (lock != -1 && rootCell != null)
-		{
-			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
-			//throw new IllegalStateException("Cell.checkChanging()");
-		}
-	}
-
-	/**
-	 * Routine to add a new ArcInst to the cell.
-	 * @param ai the ArcInst to be included in the cell.
-	 */
-	public void addArc(ArcInst ai)
-	{
-		checkChanging();
-		if (arcs.contains(ai))
-		{
-			System.out.println("Cell " + this +" already contains arc " + ai);
-			return;
-		}
-		arcs.add(ai);
-		addArcName(ai);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-		setNetworksDirty();
-	}
-
-	/**
-	 * Routine to remove an ArcInst from the cell.
-	 * @param ai the ArcInst to be removed from the cell.
-	 */
-	public void removeArc(ArcInst ai)
-	{
-		checkChanging();
-		if (!arcs.contains(ai))
-		{
-			System.out.println("Cell " + this +" doesn't contain arc " + ai);
-			return;
-		}
-		arcs.remove(ai);
-		removeArcName(ai);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-		setNetworksDirty();
-	}
-
-	/**
-	 * Routine to add a new arc name.
-	 * @param ai the ArcInst which name to be included in the cell.
-	 */
-	public void addArcName(ArcInst ai)
-	{
-		Name name = ai.getNameKey();
-		if (name.isTempname())
-		{
-			tempNameToArc.put(name.lowerCase(), ai);
-			updateMaxSuffix(ai);
-		} else
-		{
-			netNames.put(name.lowerCase(), new NetName());
-		}
-	}
-
-	/**
-	 * Routine to remove an arc name from the cell.
-	 * @param ai the ArcInst which name to be removed from the cell.
-	 */
-	public void removeArcName(ArcInst ai)
-	{
-		Name name = ai.getNameKey();
-		if (!name.isTempname()) return;
-		tempNameToArc.remove(name.lowerCase());
-	}
-
-	/**
-	 * Routine adjust this cell when the reference point moves.
-	 * This requires renumbering all coordinate values in the Cell.
-	 * @param referencePointNode the Node that is the cell-center.
-	 */
-	public void adjustReferencePoint(NodeInst referencePointNode)
-	{
-		checkChanging();
-		// if there is no change, stop now
-		double cX = referencePointNode.getCenterX();
-		double cY = referencePointNode.getCenterY();
-		if (cX == 0 && cY == 0) return;
-
-		// move reference point by (dx,dy)
-		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
-
-		// must adjust all nodes by (dx,dy)
-		for(Iterator it = getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni == referencePointNode) continue;
-
-			// move NodeInst "ni" by (dx,dy)
-			ni.lowLevelModify(-cX, -cY, 0, 0, 0);
-		}
-		for(Iterator it = getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-
-			// move NodeInst "ni" by (dx,dy)
-			ai.lowLevelModify(0, -cX, -cY, -cX, -cY);
-		}
-
-		// adjust all instances of this cell
-		for(Iterator it = getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.modifyInstance(0, 0, 0, 0, 0);
-		}
-
-		// adjust all windows showing this cell
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			if (wnd.getCell() != this) continue;
-			Point2D off = wnd.getOffset();
-			off.setLocation(off.getX()-cX, off.getY()-cY);
-			wnd.setOffset(off);
-		}
-	}
-
-	/**
-	 * Routine to add a new NodeInst to the cell.
-	 * @param ni the NodeInst to be included in the cell.
-	 */
-	public NodeUsage addNode(NodeInst ni)
-	{
-		checkChanging();
-		NodeUsage nu = addUsage(ni.getProto());
-
-		// error check
-		if (nu.contains(ni))
-		{
-			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return null;
-		}
-
-		// add the node
-		nodes.add(ni);
-		nu.addInst(ni);
-		updateMaxSuffix(ni);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-		setNetworksDirty();
-
-		// make additional checks to keep circuit up-to-date
-		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
-		{
-			adjustReferencePoint(ni);
-		}
-		if (np instanceof PrimitiveNode
-			&& np.getProtoName().equals("Essential-Bounds"))
-		{
-			essenBounds.add(ni);
-		}
-		return nu;
-	}
-
-	/**
-	 * Routine to remove an NodeInst from the cell.
-	 * @param ni the NodeInst to be removed from the cell.
-	 */
-	public void removeNode(NodeInst ni)
-	{
-		checkChanging();
-		NodeUsage nu = ni.getNodeUsage();
-		if (!nu.contains(ni))
-		{
-			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
-			return;
-		}
-		nu.removeInst(ni);
-		if (nu.isEmpty())
-			removeUsage(nu);
-		nodes.remove(ni);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-		setNetworksDirty();
-
-		essenBounds.remove(ni);
-	}
-
-	/**
-	 * Routine to add a new NodeInstProxys to the cell.
-	 * @param ni the NodeInst to be included in the cell.
-	 * @param subs array of subinstances of this NodeInst si.
-	 */
-	public void addNodables(NodeInst ni, NodeInst.Subinst[] subs)
-	{
-		checkChanging();
-		NodeUsage sch = ni.getNodeUsage().getSch();
-		if (subs != null && sch != null)
-		{
-			for (int i = 0; i < subs.length; i++)
-			{
-				NodeInstProxy proxy = new NodeInstProxy(sch);
-				subs[i].setProxy(proxy);
-				proxy.addSubinst(subs[i]);
-				nodables.put(subs[i].getName().lowerCase(), proxy);
-				sch.addProxy(proxy);
-			}
-		} else
-		{
-			nodables.put(ni.getNameKey().lowerCase(), ni);
-		}
-		updateMaxSuffix(ni);
-	}
-
-	/**
-	 * Routine to remove NodeInstProxys from the cell.
-	 * @param ni the NodeInst to be included in the cell.
-	 * @param subs array of subinstances of this NodeInst si.
-	 */
-	public void removeNodables(NodeInst ni, NodeInst.Subinst[] subs)
-	{
-		checkChanging();
-		NodeUsage sch = ni.getNodeUsage().getSch();
-		if (subs != null && sch != null)
-		{
-			for (int i = 0; i < subs.length; i++)
-			{
-				NodeInstProxy proxy = subs[i].getProxy();
-				subs[i].setProxy(null);
-				proxy.removeSubinst(subs[i]);
-				//if (proxy.isEmpty())
-				sch.removeProxy(proxy);
-			}
-		} else
-		{
-			nodables.remove(ni.getNameKey().lowerCase());
-		}
-	}
-
-	/**
-	 * Routine to find or to to add a new NodeUsage to the cell.
-	 * @param protoType is a NodeProto of node usage
-	 */
-	private NodeUsage addUsage(NodeProto protoType)
-	{
-		if (!linked) System.out.println("addUsage of "+protoType+" to unliked "+this);
-		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
-		if (nu == null)
-		{
-			nu = new NodeUsage(protoType, this);
-			usagesIn.put(protoType, nu);
-			protoType.addUsageOf(nu);
-			if (protoType instanceof Cell)
-			{
-				Cell cell = (Cell)protoType;
-				Cell mainSch = cell.cellGroup.getMainSchematics();
-				if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
-				{
-					NodeUsage nuSch = addUsage(mainSch);
-					nuSch.addIcon(nu);
-				}
-			}
-		}
-		return nu;
-	}
-
-	/**
-	 * Routine to remove a NodeUsage of the cell.
-	 * @param nu is a NodeUsage to remove
-	 */
-	private void removeUsage(NodeUsage nu)
-	{
-		if (!linked) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
-		NodeProto protoType = nu.getProto();
-		protoType.removeUsageOf(nu);
-		usagesIn.remove(protoType);
-		if (protoType instanceof Cell)
-		{
-			Cell cell = (Cell)protoType;
-			Cell mainSch = cell.cellGroup.getMainSchematics();
-			if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
-			{
-				NodeUsage nuSch = (NodeUsage)usagesIn.get(mainSch);
-				nuSch.removeIcon(nu);
-				if (nuSch.isEmpty())
-					removeUsage(nuSch);
-			}
-		}
-	}
-
-	class MaxSuffix { int v = 0; }
-
-	/**
-	 * Update max suffix of node/arc names
-	 * @param geom Geometric
-	 */
-	private void updateMaxSuffix(Geometric geom)
-	{
-		Name name = geom.getNameKey();
-		if (name == null || !name.isTempname()) return;
-		Name basename = name.getBasename();
-		if (basename != null && basename != name)
-		{
-			basename = basename.lowerCase(); 
-			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
-			if (ms == null)
-			{
-				ms = new MaxSuffix();
-				maxSuffix.put(basename, ms);
-			}
-			int numSuffix = name.getNumSuffix();
-			if (numSuffix > ms.v)
-			{
-				ms.v = numSuffix;
-				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
-			}
-		}
-	}
-
-	/**
-	 * Routine to return unique autoname in this cell.
-	 * @param basename base name of autoname
-	 * @return autoname
-	 */
-	public Name getAutoname(Name basename)
-	{
-		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
-		if (ms == null)
-		{
-			ms = new MaxSuffix();
-			maxSuffix.put(basename.lowerCase(), ms);
-			return basename.findSuffixed(0);
-		} else 
-		{
-			ms.v++;
-			return basename.findSuffixed(ms.v);
-		}
-	}
-
-	/**
-	 * Routine to indicate that the bounds of this Cell are incorrect because
-	 * a node or arc has been created, deleted, or modified.
-	 */
-	public void setDirty()
-	{
-		boundsDirty = true;
-	}
-
-	private boolean boundLock = false;
-	private Rectangle2D lastBounds = new Rectangle2D.Double();
-
-	/**
-	 * Routine to request that the current bounds of this Cell be remembered.
-	 * After this, you may call "getRememberedBounds()" to retrieve these bounds.
-	 */
-	public void rememberBounds()
-	{
-		if (boundsDirty)
-		{
-			getBounds();
-		}
-		boundLock = true;
-	}
-
-	/**
-	 * Routine to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
-	 * @return a Rectangle2D with the bounds at the time of the call to "rememberBounds()".
-	 */
-	public Rectangle2D getRememberedBounds()
-	{
-		Rectangle2D retBounds = lastBounds;
-		if (boundLock) retBounds = cellBounds;
-		boundLock = false;
-		return retBounds;
-	}
-
-	/**
-	 * Routine to return the bounds of this Cell.
-	 * @return a Rectangle2D with the bounds of this cell's contents
-	 */
-	public Rectangle2D getBounds()
-	{
-		if (boundsDirty)
-		{
-			if (boundLock)
-			{
-				boundLock = false;
-				lastBounds.setRect(cellBounds);
-			}
-
-			// recompute bounds
-			double cellLowX, cellHighX, cellLowY, cellHighY;
-			boundsEmpty = true;
-			cellLowX = cellHighX = cellLowY = cellHighY = 0;
-
-			for(int i = 0; i < nodes.size(); i++ )
-			{
-				NodeInst ni = (NodeInst) nodes.get(i);
-				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
-				Rectangle2D bounds = ni.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (boundsEmpty)
-				{
-					boundsEmpty = false;
-					cellLowX = lowx;   cellHighX = highx;
-					cellLowY = lowy;   cellHighY = highy;
-				} else
-				{
-					if (lowx < cellLowX) cellLowX = lowx;
-					if (highx > cellHighX) cellHighX = highx;
-					if (lowy < cellLowY) cellLowY = lowy;
-					if (highy > cellHighY) cellHighY = highy;
-				}
-			}
-			for(int i = 0; i < arcs.size(); i++ )
-			{
-				ArcInst ai = (ArcInst) arcs.get(i);
-				Rectangle2D bounds = ai.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (lowx < cellLowX) cellLowX = lowx;
-				if (highx > cellHighX) cellHighX = highx;
-				if (lowy < cellLowY) cellLowY = lowy;
-				if (highy > cellHighY) cellHighY = highy;
-			}
-			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
-				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
-			boundsDirty = false;
-		}
-
-		return cellBounds;
-	}
-
-	/**
-	 * Routine to get the width of this Cell.
-	 * @return the width of this Cell.
-	 */
-	public double getDefWidth() { return getBounds().getWidth(); }
-
-	/**
-	 * Routine to the height of this Cell.
-	 * @return the height of this Cell.
-	 */
-	public double getDefHeight() { return getBounds().getHeight(); }
-
-	/**
-	 * Routine to size offset of this Cell.
-	 * @return the size offset of this Cell.  It is always zero for cells.
-	 */
-	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
-
-	/**
-	 * Routine to R-Tree of this Cell.
-	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
-	 * @return R-Tree of this Cell.
-	 */
-	public Geometric.RTNode getRTree() { return rTree; }
-
-	/**
-	 * Routine to set the R-Tree of this Cell.
-	 * @param rTree the head of the new R-Tree for this Cell.
-	 */
-	public void setRTree(Geometric.RTNode rTree) { checkChanging(); this.rTree = rTree; }
-
-	/**
-	 * Routine to set a Change object on this Cell.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @param change the Change object to be set on this Cell.
-	 */
-	public void setChange(Undo.Change change) { checkChanging(); this.change = change; }
-
-	/**
-	 * Routine to get the Change object on this Cell.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @return the Change object on this Cell.
-	 */
-	public Undo.Change getChange() { return change; }
-
-	/**
-	 * Routine to compute the "essential bounds" of this Cell.
-	 * It looks for NodeInst objects in the cell that are of the type
-	 * "generic:Essential-Bounds" and builds a rectangle from their locations.
-	 * @return the bounding area of the essential bounds.
-	 * Returns null if an essential bounds cannot be determined.
-	 */
-	public Rectangle2D findEssentialBounds()
-	{
-		if (essenBounds.size() < 2)
-			return null;
-		double minX = Double.MAX_VALUE;
-		double maxX = Double.MIN_VALUE;
-		double minY = Double.MAX_VALUE;
-		double maxY = Double.MIN_VALUE;
-
-		for (int i = 0; i < essenBounds.size(); i++)
-		{
-			NodeInst ni = (NodeInst) essenBounds.get(i);
-			minX = Math.min(minX, ni.getCenterX());
-			maxX = Math.max(maxX, ni.getCenterX());
-			minY = Math.min(minY, ni.getCenterY());
-			maxY = Math.max(maxY, ni.getCenterY());
-		}
-
-		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
-	}
-
-	/**
-	 * Routine to return a list of Polys that describes all text on this Cell.
-	 * @param hardToSelect is true if considering hard-to-select text.
-	 * @param wnd the window in which the text will be drawn.
-	 * @return an array of Polys that describes the text.
-	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
-	{
-		int dispVars = numDisplayableVariables(false);
-		if (dispVars == 0) return null;
-		Poly [] polys = new Poly[dispVars];
-
-		// add in the displayable variables
-		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
-		return polys;
 	}
 
 	/**
@@ -1546,149 +643,445 @@ public class Cell extends NodeProto
 		return newCell;
 	}
 
-	/*
-	 * Routine to determine the appropriate Cell associated with this ElectricObject.
-	 * @return the appropriate Cell associated with this ElectricObject..
-	 * Returns null if no Cell can be found.
-	 */
-	public Cell whichCell()	{ return this; }
-
-	/*
-	 * Routine to write a description of this Cell.
-	 * Displays the description in the Messages Window.
-	 */
-//	public void getInfo()
+	/** Create a copy of this Cell. Warning: this routine doesn't yet
+	 * properly copy all variables on all objects.
+	 * @param copyLib library into which the copy is placed. null means
+	 * place the copy into the library that contains this Cell.
+	 * @param copyNm name of the copy
+	 * @return the copy */
+//	public Cell copy(Library copyLib, String copyNm)
 //	{
-//		System.out.println("--------- CELL " + describe() +  " ---------");
-//		System.out.println("  technology= " + tech);
-//		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
-//		System.out.println("  creation date= " + df.format(creationDate));
-//		System.out.println("  revision date= " + df.format(revisionDate));
-//		System.out.println("  newestVersion= " + getNewestVersion().describe());
-//		Rectangle2D rect = getBounds();
-//		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
-//		System.out.println("  nodes (" + getNumNodes() + "):");
-//		for (Iterator it = getUsagesIn(); it.hasNext();)
-//		{
-//			NodeUsage nu = (NodeUsage)it.next();
-//			if (nu.getNumIcons() == 0)
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-//			else
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-//		}
-//		System.out.println("  arcs (" + arcs.size() + "):");
-//		for (int i = 0; i < arcs.size(); i++)
-//		{
-//			if (i > 20)
-//			{
-//				System.out.println("     ...");
-//				break;
-//			}
-//			System.out.println("     " + arcs.get(i));
-//		}
-//		if (getUsagesOf().hasNext())
-//			System.out.println("  instances:");
-//		for (Iterator it = getUsagesOf(); it.hasNext();)
-//		{
-//			NodeUsage nu = (NodeUsage)it.next();
-//			if (nu.getNumIcons() == 0)
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
-//			else
-//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
-//		}
-//		super.getInfo();
+//		if (copyLib == null)
+//			copyLib = lib;
+//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
+//		Cell f = copyLib.newCell(copyNm);
+//		error(f == null, "unable to create copy Cell named: " + copyNm);
+//		copyContents(f);
+//		return f;
 //	}
 
-	// ------------------------- public methods -----------------------------
+	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Routine to get the CellGroup that this Cell is part of.
-	 * @return he CellGroup that this Cell is part of.
+	 * Low-level access routine to create a cell in library "lib".
+	 * Unless you know what you are doing, do not use this method.
+	 * @param lib library in which to place this cell.
+	 * @return the newly created cell.
 	 */
-	public CellGroup getCellGroup() { return cellGroup; }
-
-	/**
-	 * Routine to put this Cell into the given CellGroup.
-	 * @param cellGroup the CellGroup that this cell belongs to.
-	 */
-	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
-
-	/**
-	 * Routine to get the library to which this Cell belongs.
-	 * @return to get the library to which this Cell belongs.
-	 */
-	public Library getLibrary() { return lib; }
-
-	/**
-	 * Routine to get this Cell's View.
-	 * Views include "layout", "schematics", "icon", "netlist", etc.
-	 * @return to get this Cell's View.
-	 */
-	public View getView() { return view; }
-
-	/**
-	 * Routine to return the Technology of this Cell.
-	 * It can be quite complex to determine which Technology a Cell belongs to.
-	 * The system examines all of the nodes and arcs in it, and also considers
-	 * the Cell's view.
-	 * @return return the Technology of this Cell.
-	 */
-	public Technology getTechnology()
+	public static Cell lowLevelAllocate(Library lib)
 	{
-		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
-		return tech;
+		Job.checkChanging();
+		Cell c = new Cell();
+		c.nodes = new ArrayList();
+		c.nodables = new TreeMap();
+		c.usagesIn = new HashMap();
+		c.maxSuffix = new HashMap();
+		c.arcs = new ArrayList();
+		c.tempNameToArc = new HashMap();
+		c.netNames = new HashMap();
+		c.cellGroup = null;
+		c.tech = null;
+		c.lib = lib;
+		c.creationDate = new Date();
+		c.revisionDate = new Date();
+		c.userBits = 0;
+		c.networksTime = 0;
+		c.cellBounds = new Rectangle2D.Double();
+		c.boundsEmpty = true;
+		c.boundsDirty = false;
+		c.rTree = Geometric.RTNode.makeTopLevel();
+		return c;
 	}
 
 	/**
-	 * Routine to get the creation date of this Cell.
-	 * @return the creation date of this Cell.
+	 * Low-level access routine to fill-in the cell name.
+	 * Unless you know what you are doing, do not use this method.
+	 * @param name the name of this cell.
+	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * @return true on error.
 	 */
-	public Date getCreationDate() { return creationDate; }
-
-	/**
-	 * Routine to set this Cell's creation date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
-	 * @param creationDate the date of this Cell's creation.
-	 */
-	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
-
-	/**
-	 * Routine to return the revision date of this Cell.
-	 * @return the revision date of this Cell.
-	 */
-	public Date getRevisionDate() { return revisionDate; }
-
-	/**
-	 * Routine to set this Cell's last revision date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
-	 * @param revisionDate the date of this Cell's last revision.
-	 */
-	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
-
-	/**
-	 * Routine to set this Cell's revision date to the current time.
-	 */
-	public void madeRevision() { checkChanging(); this.revisionDate = new Date(); }
-
-	/**
-	 * Routine to find a named Export on this Cell.
-	 * @param name the name of the export.
-	 * @return the export.  Returns null if that name was not found.
-	 */
-	public Export findExport(String name)
+	public boolean lowLevelPopulate(String name)
 	{
-		return (Export) findPortProto(name);
+		checkChanging();
+		// see if this cell already exists
+		Library lib = getLibrary();
+		Cell existingCell = lib.findNodeProto(name);
+		if (existingCell != null)
+		{
+			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
+			return true;
+		}
+
+		CellName n = CellName.parseName(name);
+		if (n == null) return true;
+		int version = n.getVersion();
+
+		// make sure this version isn't in use
+		if (version > 0)
+		{
+			for (Iterator it = lib.getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
+					version == c.getVersion())
+				{
+					System.out.println("Already a cell with this version");
+					return true;
+				}
+			}
+		} else
+		{
+			// find a new version
+			version = 1;
+			for (Iterator it = lib.getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
+					c.getVersion() >= version)
+						version = c.getVersion() + 1;
+			}
+		}
+		
+		// fill-in the fields
+		this.protoName = n.getName();
+		this.view = n.getView();
+		this.version = version;
+
+		// prepare basename for autonaming
+		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
+		if (basename == null)
+			basename = NodeProto.Function.UNKNOWN.getBasename();
+		return false;
 	}
 
 	/**
-	 * Routine to find a named Export on this Cell.
-	 * @param name the Name of the export.
-	 * @return the export.  Returns null if that name was not found.
+	 * Low-level access routine to link this Cell into its library.
+	 * @return true on error.
 	 */
-	public Export findExport(Name name)
+	public boolean lowLevelLink()
 	{
-		return (Export) findPortProto(name);
+		checkChanging();
+		if (linked)
+		{
+			System.out.println(this+" already linked");
+			return true;
+		}
+
+		// see if this is a version of another
+		versionGroup = null;
+		for (Iterator it = lib.getCells(); it.hasNext();)
+		{
+			Cell c = (Cell) it.next();
+			if (c.getView() != getView()) continue;
+			if (getProtoName().equalsIgnoreCase(c.getProtoName()))
+			{
+				versionGroup = c.getVersionGroup();
+				break;
+			}
+		}
+		if (versionGroup == null)
+			versionGroup = new VersionGroup();
+		Cell displacedCell = versionGroup.add(this);
+		if (displacedCell != null)
+		{
+			// remove this from the cellgroup since there is now a newer version
+			displacedCell.getCellGroup().remove(displacedCell);
+		}
+
+		if (getNewestVersion() != this) cellGroup = null; else
+		{
+			// determine the cell group
+			if (cellGroup == null)
+			{
+				// look for similar-named cell and use its group
+				for (Iterator it = lib.getCells(); it.hasNext();)
+				{
+					Cell c = (Cell) it.next();
+					if (c.getCellGroup() == null) continue;
+					if (getProtoName().equalsIgnoreCase(c.getProtoName()))
+					{
+						cellGroup = c.getCellGroup();
+						break;
+					}
+				}
+
+				// still none: make a new one
+				if (cellGroup == null) cellGroup = new CellGroup();
+			}
+
+			// add to cell group
+			cellGroup.add(this);
+		}
+
+		// add ourselves to the library
+		Library lib = getLibrary();
+		lib.addCell(this);
+
+		// link NodeUsages
+		for (Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getProto().addUsageOf(nu);
+		}
+
+		// success
+		linked = true;
+		return false;
 	}
+
+	/**
+	 * Low-level access routine to unlink this Cell from its library.
+	 */
+	public void lowLevelUnlink()
+	{
+		checkChanging();
+		if (!linked)
+		{
+			System.out.println(this+" already unlinked");
+			return;
+		}
+
+		// see if this was the newest version
+		Iterator vIt = getVersions();
+		Cell newest = (Cell)vIt.next();
+		Cell nextNewest = null;
+		if (vIt.hasNext()) nextNewest = (Cell)vIt.next();
+
+		versionGroup.remove(this);
+		setVersionGroup(null);
+		if (this == newest && nextNewest != null)
+		{
+			cellGroup.add(nextNewest);
+		}
+
+		if (cellGroup != null) cellGroup.remove(this);
+
+		Library lib = getLibrary();
+		lib.removeCell(this);
+
+		// unlink NodeUsages
+		for (Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getProto().removeUsageOf(nu);
+		}
+
+		linked = false;
+	}
+
+	/****************************** GRAPHICS ******************************/
+
+	/**
+	 * Routine to get the width of this Cell.
+	 * @return the width of this Cell.
+	 */
+	public double getDefWidth() { return getBounds().getWidth(); }
+
+	/**
+	 * Routine to the height of this Cell.
+	 * @return the height of this Cell.
+	 */
+	public double getDefHeight() { return getBounds().getHeight(); }
+
+	/**
+	 * Routine to size offset of this Cell.
+	 * @return the size offset of this Cell.  It is always zero for cells.
+	 */
+	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
+
+	/**
+	 * Routine to indicate that the bounds of this Cell are incorrect because
+	 * a node or arc has been created, deleted, or modified.
+	 */
+	public void setDirty()
+	{
+		boundsDirty = true;
+	}
+
+	private boolean boundLock = false;
+	private Rectangle2D lastBounds = new Rectangle2D.Double();
+
+	/**
+	 * Routine to request that the current bounds of this Cell be remembered.
+	 * After this, you may call "getRememberedBounds()" to retrieve these bounds.
+	 */
+	public void rememberBounds()
+	{
+		if (boundsDirty)
+		{
+			getBounds();
+		}
+		boundLock = true;
+	}
+
+	/**
+	 * Routine to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
+	 * @return a Rectangle2D with the bounds at the time of the call to "rememberBounds()".
+	 */
+	public Rectangle2D getRememberedBounds()
+	{
+		Rectangle2D retBounds = lastBounds;
+		if (boundLock) retBounds = cellBounds;
+		boundLock = false;
+		return retBounds;
+	}
+
+	/**
+	 * Routine to return the bounds of this Cell.
+	 * @return a Rectangle2D with the bounds of this cell's contents
+	 */
+	public Rectangle2D getBounds()
+	{
+		if (boundsDirty)
+		{
+			if (boundLock)
+			{
+				boundLock = false;
+				lastBounds.setRect(cellBounds);
+			}
+
+			// recompute bounds
+			double cellLowX, cellHighX, cellLowY, cellHighY;
+			boundsEmpty = true;
+			cellLowX = cellHighX = cellLowY = cellHighY = 0;
+
+			for(int i = 0; i < nodes.size(); i++ )
+			{
+				NodeInst ni = (NodeInst) nodes.get(i);
+				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+				Rectangle2D bounds = ni.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (boundsEmpty)
+				{
+					boundsEmpty = false;
+					cellLowX = lowx;   cellHighX = highx;
+					cellLowY = lowy;   cellHighY = highy;
+				} else
+				{
+					if (lowx < cellLowX) cellLowX = lowx;
+					if (highx > cellHighX) cellHighX = highx;
+					if (lowy < cellLowY) cellLowY = lowy;
+					if (highy > cellHighY) cellHighY = highy;
+				}
+			}
+			for(int i = 0; i < arcs.size(); i++ )
+			{
+				ArcInst ai = (ArcInst) arcs.get(i);
+				Rectangle2D bounds = ai.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (lowx < cellLowX) cellLowX = lowx;
+				if (highx > cellHighX) cellHighX = highx;
+				if (lowy < cellLowY) cellLowY = lowy;
+				if (highy > cellHighY) cellHighY = highy;
+			}
+			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
+				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
+			boundsDirty = false;
+		}
+
+		return cellBounds;
+	}
+
+	/**
+	 * Routine to R-Tree of this Cell.
+	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
+	 * @return R-Tree of this Cell.
+	 */
+	public Geometric.RTNode getRTree() { return rTree; }
+
+	/**
+	 * Routine to set the R-Tree of this Cell.
+	 * @param rTree the head of the new R-Tree for this Cell.
+	 */
+	public void setRTree(Geometric.RTNode rTree) { checkChanging(); this.rTree = rTree; }
+
+	/**
+	 * Routine to compute the "essential bounds" of this Cell.
+	 * It looks for NodeInst objects in the cell that are of the type
+	 * "generic:Essential-Bounds" and builds a rectangle from their locations.
+	 * @return the bounding area of the essential bounds.
+	 * Returns null if an essential bounds cannot be determined.
+	 */
+	public Rectangle2D findEssentialBounds()
+	{
+		if (essenBounds.size() < 2)
+			return null;
+		double minX = Double.MAX_VALUE;
+		double maxX = Double.MIN_VALUE;
+		double minY = Double.MAX_VALUE;
+		double maxY = Double.MIN_VALUE;
+
+		for (int i = 0; i < essenBounds.size(); i++)
+		{
+			NodeInst ni = (NodeInst) essenBounds.get(i);
+			minX = Math.min(minX, ni.getCenterX());
+			maxX = Math.max(maxX, ni.getCenterX());
+			minY = Math.min(minY, ni.getCenterY());
+			maxY = Math.max(maxY, ni.getCenterY());
+		}
+
+		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
+	}
+
+	/**
+	 * Routine adjust this cell when the reference point moves.
+	 * This requires renumbering all coordinate values in the Cell.
+	 * @param referencePointNode the Node that is the cell-center.
+	 */
+	public void adjustReferencePoint(NodeInst referencePointNode)
+	{
+		checkChanging();
+		// if there is no change, stop now
+		double cX = referencePointNode.getCenterX();
+		double cY = referencePointNode.getCenterY();
+		if (cX == 0 && cY == 0) return;
+
+		// move reference point by (dx,dy)
+		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
+
+		// must adjust all nodes by (dx,dy)
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni == referencePointNode) continue;
+
+			// move NodeInst "ni" by (dx,dy)
+			ni.lowLevelModify(-cX, -cY, 0, 0, 0);
+		}
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+
+			// move NodeInst "ni" by (dx,dy)
+			ai.lowLevelModify(0, -cX, -cY, -cX, -cY);
+		}
+
+		// adjust all instances of this cell
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.modifyInstance(0, 0, 0, 0, 0);
+		}
+
+		// adjust all windows showing this cell
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd.getCell() != this) continue;
+			Point2D off = wnd.getOffset();
+			off.setLocation(off.getX()-cX, off.getY()-cY);
+			wnd.setOffset(off);
+		}
+	}
+
+	/****************************** NODES ******************************/
 
 	/**
 	 * Routine to return an Iterator over all NodeInst objects in this Cell.
@@ -1745,89 +1138,172 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to determine whether a name is unique in this Cell.
-	 * @param name the Name being tested to see if it is unique.
-	 * @param cls the type of object being examined.
-	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
-	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
-	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 * Routine to add a new NodeInst to the cell.
+	 * @param ni the NodeInst to be included in the cell.
 	 */
-	public boolean isUniqueName(String name, Class cls, ElectricObject exclude)
+	public NodeUsage addNode(NodeInst ni)
 	{
-		return isUniqueName(Name.findName(name), cls, exclude);
+		checkChanging();
+		NodeUsage nu = addUsage(ni.getProto());
+
+		// error check
+		if (nu.contains(ni))
+		{
+			System.out.println("Cell " + this +" already contains node inst " + ni);
+			return null;
+		}
+
+		// add the node
+		nodes.add(ni);
+		nu.addInst(ni);
+		updateMaxSuffix(ni);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+		setNetworksDirty();
+
+		// make additional checks to keep circuit up-to-date
+		NodeProto np = ni.getProto();
+		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
+		{
+			adjustReferencePoint(ni);
+		}
+		if (np instanceof PrimitiveNode
+			&& np.getProtoName().equals("Essential-Bounds"))
+		{
+			essenBounds.add(ni);
+		}
+		return nu;
 	}
 
 	/**
-	 * Routine to determine whether a name is unique in this Cell.
-	 * @param name the Name being tested to see if it is unique.
-	 * @param cls the type of object being examined.
-	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
-	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
-	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 * Routine to remove an NodeInst from the cell.
+	 * @param ni the NodeInst to be removed from the cell.
 	 */
-	public boolean isUniqueName(Name name, Class cls, ElectricObject exclude)
+	public void removeNode(NodeInst ni)
 	{
-		name = name.lowerCase();
-		if (cls == PortProto.class)
+		checkChanging();
+		NodeUsage nu = ni.getNodeUsage();
+		if (!nu.contains(ni))
 		{
-			PortProto pp = findExport(name);
-			if (pp == null || exclude == pp) return true;
-			return false;
+			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
+			return;
 		}
-		if (cls == NodeInst.class)
-		{
-// 			int width = name.busWidth();
-// 			for (int i = 0; i < width; i++)
-// 			{
-// 				Name subname = name.subname(i);
-// 				Nodable na = (Nodable)nodables.get(subname);
-// 				if (na != null && na != exclude) return false;
-// 			}
-//			return true;
-			Nodable na = (Nodable)nodables.get(name);
-			return na == null || exclude == na;
-		}
-		if (cls == ArcInst.class)
-		{
-			if (name.isTempname())
-			{
-				ArcInst ai = (ArcInst)tempNameToArc.get(name);
-				return ai == null || exclude == ai;
-			}
-			for(Iterator it = getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				if (exclude != null && exclude == ai) continue;
-				Name arcName = ai.getNameKey();
-				if (arcName == null) continue;
-				if (name == arcName.lowerCase()) return false;
-			}
-			return true;
-		}
-		return true;
+		nu.removeInst(ni);
+		if (nu.isEmpty())
+			removeUsage(nu);
+		nodes.remove(ni);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+		setNetworksDirty();
+
+		essenBounds.remove(ni);
 	}
 
 	/**
-	 * Get an iterator over all of the JNetworks of this Cell.
-	 * <p> Warning: before getNetworks() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks()
+	 * Routine to add a new NodeInstProxys to the cell.
+	 * @param ni the NodeInst to be included in the cell.
+	 * @param subs array of subinstances of this NodeInst si.
 	 */
-	public Iterator getNetworks()
+	public void addNodables(NodeInst ni, NodeInst.Subinst[] subs)
 	{
-		ArrayList nets = new ArrayList();
-		for (int i = 0; i < networks.length; i++)
+		checkChanging();
+		NodeUsage sch = ni.getNodeUsage().getSch();
+		if (subs != null && sch != null)
 		{
-			if (networks[i] != null)
-				nets.add(networks[i]);
+			for (int i = 0; i < subs.length; i++)
+			{
+				NodeInstProxy proxy = new NodeInstProxy(sch);
+				subs[i].setProxy(proxy);
+				proxy.addSubinst(subs[i]);
+				nodables.put(subs[i].getName().lowerCase(), proxy);
+				sch.addProxy(proxy);
+			}
+		} else
+		{
+			nodables.put(ni.getNameKey().lowerCase(), ni);
 		}
-		return nets.iterator();
+		updateMaxSuffix(ni);
 	}
 
-	/*
-	 * Get network by index in networks maps.
+	/**
+	 * Routine to remove NodeInstProxys from the cell.
+	 * @param ni the NodeInst to be included in the cell.
+	 * @param subs array of subinstances of this NodeInst si.
 	 */
+	public void removeNodables(NodeInst ni, NodeInst.Subinst[] subs)
+	{
+		checkChanging();
+		NodeUsage sch = ni.getNodeUsage().getSch();
+		if (subs != null && sch != null)
+		{
+			for (int i = 0; i < subs.length; i++)
+			{
+				NodeInstProxy proxy = subs[i].getProxy();
+				subs[i].setProxy(null);
+				proxy.removeSubinst(subs[i]);
+				//if (proxy.isEmpty())
+				sch.removeProxy(proxy);
+			}
+		} else
+		{
+			nodables.remove(ni.getNameKey().lowerCase());
+		}
+	}
 
-	public JNetwork getNetwork(int index) { return networks[netMap[index]]; }
+	/**
+	 * Routine to find or to to add a new NodeUsage to the cell.
+	 * @param protoType is a NodeProto of node usage
+	 */
+	private NodeUsage addUsage(NodeProto protoType)
+	{
+		if (!linked) System.out.println("addUsage of "+protoType+" to unliked "+this);
+		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
+		if (nu == null)
+		{
+			nu = new NodeUsage(protoType, this);
+			usagesIn.put(protoType, nu);
+			protoType.addUsageOf(nu);
+			if (protoType instanceof Cell)
+			{
+				Cell cell = (Cell)protoType;
+				Cell mainSch = cell.cellGroup.getMainSchematics();
+				if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
+				{
+					NodeUsage nuSch = addUsage(mainSch);
+					nuSch.addIcon(nu);
+				}
+			}
+		}
+		return nu;
+	}
+
+	/**
+	 * Routine to remove a NodeUsage of the cell.
+	 * @param nu is a NodeUsage to remove
+	 */
+	private void removeUsage(NodeUsage nu)
+	{
+		if (!linked) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
+		NodeProto protoType = nu.getProto();
+		protoType.removeUsageOf(nu);
+		usagesIn.remove(protoType);
+		if (protoType instanceof Cell)
+		{
+			Cell cell = (Cell)protoType;
+			Cell mainSch = cell.cellGroup.getMainSchematics();
+			if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
+			{
+				NodeUsage nuSch = (NodeUsage)usagesIn.get(mainSch);
+				nuSch.removeIcon(nu);
+				if (nuSch.isEmpty())
+					removeUsage(nuSch);
+			}
+		}
+	}
+
+	/****************************** ARCS ******************************/
 
 	/**
 	 * Routine to return an Iterator over all ArcInst objects in this Cell.
@@ -1836,6 +1312,25 @@ public class Cell extends NodeProto
 	public Iterator getArcs()
 	{
 		return arcs.iterator();
+//		Name name = geom.getNameKey();
+//		if (name == null || !name.isTempname()) return;
+//		Name basename = name.getBasename();
+//		if (basename != null && basename != name)
+//		{
+//			basename = basename.lowerCase(); 
+//			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+//			if (ms == null)
+//			{
+//				ms = new MaxSuffix();
+//				maxSuffix.put(basename, ms);
+//			}
+//			int numSuffix = name.getNumSuffix();
+//			if (numSuffix > ms.v)
+//			{
+//				ms.v = numSuffix;
+//				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
+//			}
+//		}
 	}
 
 	/**
@@ -1848,28 +1343,119 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the version number of this Cell.
-	 * @return the version number of this Cell.
+	 * Routine to add a new ArcInst to the cell.
+	 * @param ai the ArcInst to be included in the cell.
 	 */
-	public int getVersion() { return version; }
-
-	/**
-	 * Routine to return an Iterator over the different versions of this Cell.
-	 * @return an Iterator over the different versions of this Cell.
-	 */
-	public Iterator getVersions()
+	public void addArc(ArcInst ai)
 	{
-		return versionGroup.iterator();
+		checkChanging();
+		if (arcs.contains(ai))
+		{
+			System.out.println("Cell " + this +" already contains arc " + ai);
+			return;
+		}
+		arcs.add(ai);
+		addArcName(ai);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+		setNetworksDirty();
 	}
 
 	/**
-	 * Routine to return the most recent version of this Cell.
-	 * @return he most recent version of this Cell.
+	 * Routine to remove an ArcInst from the cell.
+	 * @param ai the ArcInst to be removed from the cell.
 	 */
-	public Cell getNewestVersion()
+	public void removeArc(ArcInst ai)
 	{
-		return (Cell) getVersions().next();
+		checkChanging();
+		if (!arcs.contains(ai))
+		{
+			System.out.println("Cell " + this +" doesn't contain arc " + ai);
+			return;
+		}
+		arcs.remove(ai);
+		removeArcName(ai);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+		setNetworksDirty();
 	}
+
+	/**
+	 * Routine to add a new arc name.
+	 * @param ai the ArcInst which name to be included in the cell.
+	 */
+	public void addArcName(ArcInst ai)
+	{
+		Name name = ai.getNameKey();
+		if (name.isTempname())
+		{
+			tempNameToArc.put(name.lowerCase(), ai);
+			updateMaxSuffix(ai);
+		} else
+		{
+			netNames.put(name.lowerCase(), new NetName());
+		}
+	}
+
+	/**
+	 * Routine to remove an arc name from the cell.
+	 * @param ai the ArcInst which name to be removed from the cell.
+	 */
+	public void removeArcName(ArcInst ai)
+	{
+		Name name = ai.getNameKey();
+		if (!name.isTempname()) return;
+		tempNameToArc.remove(name.lowerCase());
+	}
+
+	/****************************** EXPORTS ******************************/
+
+	/**
+	 * Routine to find a named Export on this Cell.
+	 * @param name the name of the export.
+	 * @return the export.  Returns null if that name was not found.
+	 */
+	public Export findExport(String name)
+	{
+		return (Export) findPortProto(name);
+	}
+
+	/**
+	 * Routine to find a named Export on this Cell.
+	 * @param name the Name of the export.
+	 * @return the export.  Returns null if that name was not found.
+	 */
+	public Export findExport(Name name)
+	{
+		return (Export) findPortProto(name);
+	}
+
+//	/**
+//	 * Add a PortProto to this NodeProto.
+//	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
+//	 * @param port the PortProto to add to this NodeProto.
+//	 */
+//	public void addPort(PortProto port)
+//	{
+//		super.addPort(port);
+//		if (this == cellGroup.getMainSchematics())
+//			cellGroup.updateEquivalentPort(port.getProtoNameLow(), (Export)port);
+//	}
+//
+//	/**
+//	 * Removes a PortProto from this NodeProto.
+//	 * @param port the PortProto to remove from this NodeProto.
+//	 */
+//	public void removePort(PortProto port)
+//	{
+//		super.removePort(port);
+//		if (this == cellGroup.getMainSchematics())
+//			cellGroup.updateEquivalentPort(port.getProtoNameLow(), null);
+//	}
+
+	/****************************** TEXT ******************************/
 
 	/**
 	 * Routine to return the basename for autonaming instances of this Cell.
@@ -1946,37 +1532,153 @@ public class Cell extends NodeProto
         }
         return null; // cell not found
     }
-        
+
 	/**
-	 * Finds the Schematic Cell associated with this Icon Cell.
-	 * If this Cell is an Icon View then find the schematic Cell in its
-	 * CellGroup.
-	 * @return the Schematic Cell.  Returns null if there is no equivalent.
-	 * If there are multiple versions of the Schematic View then
-	 * return the latest version.
+	 * Routine to return a list of Polys that describes all text on this Cell.
+	 * @param hardToSelect is true if considering hard-to-select text.
+	 * @param wnd the window in which the text will be drawn.
+	 * @return an array of Polys that describes the text.
 	 */
-	public Cell getEquivalent()
+	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
-		return view == View.ICON ? cellGroup.getMainSchematics() : this;
+		int dispVars = numDisplayableVariables(false);
+		if (dispVars == 0) return null;
+		Poly [] polys = new Poly[dispVars];
+
+		// add in the displayable variables
+		addDisplayableVariables(CENTERRECT, polys, 0, wnd, false);
+		return polys;
 	}
 
-	/** Sanity check method used by Geometric.checkobj. */
-	public boolean containsInstance(Geometric thing)
+	/**
+	 * Routine to return unique autoname in this cell.
+	 * @param basename base name of autoname
+	 * @return autoname
+	 */
+	public Name getAutoname(Name basename)
 	{
-		if (thing instanceof ArcInst)
+		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
+		if (ms == null)
 		{
-			return arcs.contains(thing);
-		} else if (thing instanceof NodeInst)
+			ms = new MaxSuffix();
+			maxSuffix.put(basename.lowerCase(), ms);
+			return basename.findSuffixed(0);
+		} else 
 		{
-			NodeInst ni = (NodeInst)thing;
-			NodeUsage nu = (NodeUsage)usagesIn.get(ni.getProto());
-			return (nu != null) && nu.contains(ni);
-		} else
-		{
-			return false;
+			ms.v++;
+			return basename.findSuffixed(ms.v);
 		}
 	}
-	
+
+	/**
+	 * Routine to determine whether a name is unique in this Cell.
+	 * @param name the Name being tested to see if it is unique.
+	 * @param cls the type of object being examined.
+	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
+	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
+	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 */
+	public boolean isUniqueName(String name, Class cls, ElectricObject exclude)
+	{
+		return isUniqueName(Name.findName(name), cls, exclude);
+	}
+
+	/**
+	 * Routine to determine whether a name is unique in this Cell.
+	 * @param name the Name being tested to see if it is unique.
+	 * @param cls the type of object being examined.
+	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
+	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
+	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 */
+	public boolean isUniqueName(Name name, Class cls, ElectricObject exclude)
+	{
+		name = name.lowerCase();
+		if (cls == PortProto.class)
+		{
+			PortProto pp = findExport(name);
+			if (pp == null || exclude == pp) return true;
+			return false;
+		}
+		if (cls == NodeInst.class)
+		{
+// 			int width = name.busWidth();
+// 			for (int i = 0; i < width; i++)
+// 			{
+// 				Name subname = name.subname(i);
+// 				Nodable na = (Nodable)nodables.get(subname);
+// 				if (na != null && na != exclude) return false;
+// 			}
+//			return true;
+			Nodable na = (Nodable)nodables.get(name);
+			return na == null || exclude == na;
+		}
+		if (cls == ArcInst.class)
+		{
+			if (name.isTempname())
+			{
+				ArcInst ai = (ArcInst)tempNameToArc.get(name);
+				return ai == null || exclude == ai;
+			}
+			for(Iterator it = getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (exclude != null && exclude == ai) continue;
+				Name arcName = ai.getNameKey();
+				if (arcName == null) continue;
+				if (name == arcName.lowerCase()) return false;
+			}
+			return true;
+		}
+		return true;
+	}
+
+	/*
+	 * Routine to write a description of this Cell.
+	 * Displays the description in the Messages Window.
+	 */
+//	public void getInfo()
+//	{
+//		System.out.println("--------- CELL " + describe() +  " ---------");
+//		System.out.println("  technology= " + tech);
+//		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+//		System.out.println("  creation date= " + df.format(creationDate));
+//		System.out.println("  revision date= " + df.format(revisionDate));
+//		System.out.println("  newestVersion= " + getNewestVersion().describe());
+//		Rectangle2D rect = getBounds();
+//		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
+//		System.out.println("  nodes (" + getNumNodes() + "):");
+//		for (Iterator it = getUsagesIn(); it.hasNext();)
+//		{
+//			NodeUsage nu = (NodeUsage)it.next();
+//			if (nu.getNumIcons() == 0)
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+//			else
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
+//		}
+//		System.out.println("  arcs (" + arcs.size() + "):");
+//		for (int i = 0; i < arcs.size(); i++)
+//		{
+//			if (i > 20)
+//			{
+//				System.out.println("     ...");
+//				break;
+//			}
+//			System.out.println("     " + arcs.get(i));
+//		}
+//		if (getUsagesOf().hasNext())
+//			System.out.println("  instances:");
+//		for (Iterator it = getUsagesOf(); it.hasNext();)
+//		{
+//			NodeUsage nu = (NodeUsage)it.next();
+//			if (nu.getNumIcons() == 0)
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+//			else
+//				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
+//		}
+//		super.getInfo();
+//	}
+
 	/**
 	 * Returns a printable version of this Cell.
 	 * @return a printable version of this Cell.
@@ -1986,54 +1688,195 @@ public class Cell extends NodeProto
 		return "Cell " + describe();
 	}
 
-	/** Create a copy of this Cell. Warning: this routine doesn't yet
-	 * properly copy all variables on all objects.
-	 * @param copyLib library into which the copy is placed. null means
-	 * place the copy into the library that contains this Cell.
-	 * @param copyNm name of the copy
-	 * @return the copy */
-//	public Cell copy(Library copyLib, String copyNm)
-//	{
-//		if (copyLib == null)
-//			copyLib = lib;
-//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
-//		Cell f = copyLib.newCell(copyNm);
-//		error(f == null, "unable to create copy Cell named: " + copyNm);
-//		copyContents(f);
-//		return f;
-//	}
+	/****************************** HIERARCHY ******************************/
 
-	/** Create an export for a particular layer.
-	 *
-	 * <p> At the coordinates <code>(x, y)</code> create an instance of
-	 * a pin for the layer <code>ap</code>. Export that layer-pin's
-	 * PortInst.
-	 *
-	 * <p> Attach an arc to the layer-pin.  This is done because
-	 * Electric uses the widest arc on a PortInst as a hint for the
-	 * width to use for all future arcs. Because Electric doesn't use
-	 * the size of layer-pins as width hints, the layer-pin is created
-	 * in it's default size.
-	 *
-	 * <p> This method seems very specialized, but it's nearly the only
-	 * one I use when generating layout.
-	 * @param name the name of the new Export
-	 * @param role the Export's type 
-	 * @param ap the ArcProto indicating what layer I want to create an
-	 * export on.
-	 * @param hintW width of the arc hint
-	 * @param x the x coordinate of the layer pins.
-	 * @param y the y coordinate of the layer pin. */
-//	public Export newExport(String name, ArcProto ap, double w, double x, double y)
-//	{
-//		NodeProto np = ap.findPinProto();
-//		error(np == null, "Cell.newExport: This layer has no layer-pin");
-//
-//		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(1, 1), x, y, 0, this);
-//		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
-//
-//		return newExport(name, ni.getPort());
-//	}
+	/**
+	 * Routine to recursively determine whether this Cell is a child of a given parent Cell.
+	 * If so, the relationship would be recursive.
+	 * @param parent the parent cell being examined.
+	 * @return true if, somewhere above the hierarchy of this Cell is the parent Cell.
+	 */
+	public boolean isAChildOf(Cell parent)
+	{
+		// special case: allow an icon to be inside of the contents for illustration
+		if (isIconOf(parent))
+		{
+			if (getView() == View.ICON && parent.getView() != View.ICON)
+				return false;
+		}
+
+		// make sure the child is not an icon
+		Cell child = this;
+		Cell np = contentsView();
+		if (np != null) child = np;
+
+		return child.db_isachildof(parent);
+	}
+
+	private boolean db_isachildof(Cell parent)
+	{
+		/* if they are the same, that is recursion */
+		if (this == parent) return true;
+
+		/* look through every instance of the parent cell */
+		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+
+//			/* if two instances in a row have same parent, skip this one */
+//			if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+
+			/* recurse to see if the grandparent belongs to the child */
+			if (db_isachildof(ni.getParent())) return true;
+		}
+
+		/* if this has an icon, look at it's instances */
+		Cell np = parent.iconView();
+		if (np != null)
+		{
+			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+
+//				/* if two instances in a row have same parent, skip this one */
+//				if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+
+				/* special case: allow an icon to be inside of the contents for illustration */
+				NodeProto niProto = ni.getProto();
+				if (niProto instanceof Cell)
+				{
+					if (((Cell)niProto).isIconOf(parent))
+					{
+						if (parent.getView() != View.ICON) continue;
+					}
+				}
+
+				/* recurse to see if the grandparent belongs to the child */
+				if (db_isachildof(ni.getParent())) return true;
+			}
+		}
+		return false;
+	}
+
+	/****************************** VIEWS ******************************/
+
+	/**
+	 * Routine to get this Cell's View.
+	 * Views include "layout", "schematics", "icon", "netlist", etc.
+	 * @return to get this Cell's View.
+	 */
+	public View getView() { return view; }
+
+	/**
+	 * Routine to determine whether this NodeProto  is an icon Cell.
+	 * @return true if this NodeProto is an icon  Cell.
+	 */
+	public boolean isIcon() { return view == View.ICON; }
+
+	/**
+	 * Routine to determine whether this Cell is an icon of another Cell.
+	 * @param cell the other cell which this may be an icon of.
+	 * @return true if this Cell is an icon of that other Cell.
+	 */
+	public boolean isIconOf(Cell cell)
+	{
+		return view == View.ICON && cellGroup == cell.cellGroup;
+	}
+
+	/**
+	 * Routine to find the contents Cell associated with this Cell.
+	 * This only makes sense if the current Cell is an icon or skeleton Cell.
+	 * @return the contents Cell associated with this Cell.
+	 * Returns null if no such Cell can be found.
+	 */
+	public Cell contentsView()
+	{
+		// can only consider contents if this cell is an icon
+		if (getView() != View.ICON && getView() != View.SKELETON)
+			return null;
+
+		// first check to see if there is a schematics link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
+			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
+		}
+
+		// now check to see if there is any layout link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
+		}
+
+		// finally check to see if there is any "unknown" link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
+		}
+
+		// no contents found
+		return null;
+	}
+
+	/**
+	 * Routine to find the icon Cell associated with this Cell.
+	 * @return the icon Cell associated with this Cell.
+	 * Returns null if no such Cell can be found.
+	 */
+	public Cell iconView()
+	{
+		// can only get icon view if this is a schematic
+		if (!isSchematicView()) return null;
+
+		// now look for views
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.ICON) return cellInGroup;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Routine to return true if this Cell is a schematic view.
+	 * @return true if this Cell is a schematic view.
+	 */
+	public boolean isSchematicView()
+	{
+		if (getView() == View.SCHEMATIC ||
+			getView().isMultiPageView()) return true;
+		return false;
+	}
+
+	class MaxSuffix { int v = 0; }
+
+	/****************************** NETWORKS ******************************/
+
+	/**
+	 * Get an iterator over all of the JNetworks of this Cell.
+	 * <p> Warning: before getNetworks() is called, JNetworks must be
+	 * build by calling Cell.rebuildNetworks()
+	 */
+	public Iterator getNetworks()
+	{
+		ArrayList nets = new ArrayList();
+		for (int i = 0; i < networks.length; i++)
+		{
+			if (networks[i] != null)
+				nets.add(networks[i]);
+		}
+		return nets.iterator();
+	}
+
+	/*
+	 * Get network by index in networks maps.
+	 */
+
+	public JNetwork getNetwork(int index) { return networks[netMap[index]]; }
 
 	/** Recompute the network structure for this Cell.
 	 *
@@ -2417,12 +2260,332 @@ public class Cell extends NodeProto
 		closureMap(netMap);
 		buildNetworkList();
 		networksTime = currentTime;
-
 	}
 
 	public final void setNetworksDirty()
 	{
 		networksTime = 0;
+	}
+
+	/****************************** MISCELLANEOUS ******************************/
+
+	/**
+	 * Routine to check and repair data structure errors in this Cell.
+	 */
+	public int checkAndRepair()
+	{
+		int errorCount = 0;
+
+		// make sure that every connection is on an arc and a node
+		HashMap connections = new HashMap();
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			errorCount += ai.checkAndRepair();
+			ArcInst otherAi = (ArcInst)connections.get(ai.getHead());
+			if (otherAi != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": head connection already on other arc " + otherAi.describe());
+				errorCount++;
+			} else
+			{
+				connections.put(ai.getHead(), ai);
+			}
+
+			otherAi = (ArcInst)connections.get(ai.getTail());
+			if (otherAi != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": tail connection already on other arc " + otherAi.describe());
+				errorCount++;
+			} else
+			{
+				connections.put(ai.getTail(), ai);
+			}
+		}
+
+		// now make sure that all nodes reference them
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+			{
+				Connection con = (Connection)pIt.next();
+				ArcInst ai = (ArcInst)connections.get(con);
+				if (ai == null)
+				{
+					System.out.println("Cell " + describe() + ", Node " + ni.describe() +
+						": has connection to unknown arc: " + con.getArc().describe() +
+						" (node has " + ni.getNumConnections() + " connections)");
+					errorCount++;
+				} else
+				{
+					connections.put(con, null);
+				}
+			}
+		}
+
+		// finally check to see if there are any left in the hash table
+		for(Iterator it = connections.values().iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			if (ai != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": connection is not on any node");
+				errorCount++;
+			}
+		}
+
+		// check node usages
+		for(Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			errorCount += nu.checkAndRepair();
+		}
+
+		return errorCount;
+	}
+
+	/**
+	 * Routine to set change lock of cells in up-tree of this cell.
+	 */
+	public void setChangeLock()
+	{
+		if (lock < 0) return;
+		if (lock > 0)
+		{
+			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
+			return;
+		}
+		lock = -1;
+		for (Iterator it = getUsagesOf(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getParent().setChangeLock();
+		}
+		if (this != cellGroup.getMainSchematics()) return;
+		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.view == View.ICON) cell.setChangeLock();
+		}
+	}
+
+	/**
+	 * Routine to clear change lock of this cell.
+	 */
+	public void clearChangeLock()
+	{
+		if (lock >= 0) return;
+		lock = 0;
+	}
+
+	/**
+	 * Routing to check whether changing of this cell allowed or not.
+	 */
+	public void checkChanging()
+	{
+		if (Job.getChangingThread() != Thread.currentThread())
+		{
+			if (Job.getChangingThread() == null)
+				System.out.println(this+" is changing without Undo.startChanges() lock");
+			else
+				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
+			//throw new IllegalStateException("Cell.checkChanging()");
+		}
+		Cell rootCell = Job.getChangingCell();
+		if (lock != -1 && rootCell != null)
+		{
+			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
+			//throw new IllegalStateException("Cell.checkChanging()");
+		}
+	}
+
+	/**
+	 * Routine to set a Change object on this Cell.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @param change the Change object to be set on this Cell.
+	 */
+	public void setChange(Undo.Change change) { checkChanging(); this.change = change; }
+
+	/**
+	 * Routine to get the Change object on this Cell.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @return the Change object on this Cell.
+	 */
+	public Undo.Change getChange() { return change; }
+
+	/**
+	 * Update max suffix of node/arc names
+	 * @param geom Geometric
+	 */
+	private void updateMaxSuffix(Geometric geom)
+	{
+		Name name = geom.getNameKey();
+		if (name == null || !name.isTempname()) return;
+		Name basename = name.getBasename();
+		if (basename != null && basename != name)
+		{
+			basename = basename.lowerCase(); 
+			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+			if (ms == null)
+			{
+				ms = new MaxSuffix();
+				maxSuffix.put(basename, ms);
+			}
+			int numSuffix = name.getNumSuffix();
+			if (numSuffix > ms.v)
+			{
+				ms.v = numSuffix;
+				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
+			}
+		}
+	}
+
+	/*
+	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * @return the appropriate Cell associated with this ElectricObject..
+	 * Returns null if no Cell can be found.
+	 */
+	public Cell whichCell()	{ return this; }
+
+	/**
+	 * Routine to get the CellGroup that this Cell is part of.
+	 * @return the CellGroup that this Cell is part of.
+	 */
+	public CellGroup getCellGroup() { return cellGroup; }
+
+	/**
+	 * Routine to put this Cell into the given CellGroup.
+	 * @param cellGroup the CellGroup that this cell belongs to.
+	 */
+	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
+
+	/**
+	 * Routine to return the version number of this Cell.
+	 * @return the version number of this Cell.
+	 */
+	public int getVersion() { return version; }
+
+	/**
+	 * Routine to return the number of different versions of this Cell.
+	 * @return the number of different versions of this Cell.
+	 */
+	public int getNumVersions()
+	{
+		return versionGroup.size();
+	}
+
+	/**
+	 * Routine to return an Iterator over the different versions of this Cell.
+	 * @return an Iterator over the different versions of this Cell.
+	 */
+	public Iterator getVersions()
+	{
+		return versionGroup.iterator();
+	}
+
+	/**
+	 * Routine to return the most recent version of this Cell.
+	 * @return he most recent version of this Cell.
+	 */
+	public Cell getNewestVersion()
+	{
+		return (Cell) getVersions().next();
+	}
+
+	/**
+	 * Routine to get the VersionGroup that this Cell is part of.
+	 * @return the VersionGroup that this Cell is part of.
+	 */
+	public VersionGroup getVersionGroup() { return versionGroup; }
+
+	/**
+	 * Routine to put this Cell into the given VersionGroup.
+	 * @param versionGroup the VersionGroup that this cell belongs to.
+	 */
+	public void setVersionGroup(VersionGroup versionGroup) { this.versionGroup = versionGroup; }
+
+	/**
+	 * Routine to get the library to which this Cell belongs.
+	 * @return to get the library to which this Cell belongs.
+	 */
+	public Library getLibrary() { return lib; }
+
+	/**
+	 * Routine to return the Technology of this Cell.
+	 * It can be quite complex to determine which Technology a Cell belongs to.
+	 * The system examines all of the nodes and arcs in it, and also considers
+	 * the Cell's view.
+	 * @return return the Technology of this Cell.
+	 */
+	public Technology getTechnology()
+	{
+		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
+		return tech;
+	}
+
+	/**
+	 * Routine to get the creation date of this Cell.
+	 * @return the creation date of this Cell.
+	 */
+	public Date getCreationDate() { return creationDate; }
+
+	/**
+	 * Routine to set this Cell's creation date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param creationDate the date of this Cell's creation.
+	 */
+	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
+
+	/**
+	 * Routine to return the revision date of this Cell.
+	 * @return the revision date of this Cell.
+	 */
+	public Date getRevisionDate() { return revisionDate; }
+
+	/**
+	 * Routine to set this Cell's last revision date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param revisionDate the date of this Cell's last revision.
+	 */
+	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
+
+	/**
+	 * Routine to set this Cell's revision date to the current time.
+	 */
+	public void madeRevision() { checkChanging(); this.revisionDate = new Date(); }
+
+	/**
+	 * Finds the Schematic Cell associated with this Icon Cell.
+	 * If this Cell is an Icon View then find the schematic Cell in its
+	 * CellGroup.
+	 * @return the Schematic Cell.  Returns null if there is no equivalent.
+	 * If there are multiple versions of the Schematic View then
+	 * return the latest version.
+	 */
+	public Cell getEquivalent()
+	{
+		return view == View.ICON ? cellGroup.getMainSchematics() : this;
+	}
+
+	/** Sanity check method used by Geometric.checkobj. */
+	public boolean containsInstance(Geometric thing)
+	{
+		if (thing instanceof ArcInst)
+		{
+			return arcs.contains(thing);
+		} else if (thing instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)thing;
+			NodeUsage nu = (NodeUsage)usagesIn.get(ni.getProto());
+			return (nu != null) && nu.contains(ni);
+		} else
+		{
+			return false;
+		}
 	}
 
 }

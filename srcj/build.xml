@@ -73,13 +73,13 @@
     </target>
 
     <target depends="init" description="Clean all build products." name="clean">
-        <delete>
+        <delete quiet="true">
             <fileset dir=".">
                 <include name="**/*.class"/>
             </fileset>
-<!--            <fileset dir="../srcjClasses">
+            <fileset dir="../srcjClasses">
                 <include name="**/*.class"/>
-            </fileset> -->
+            </fileset>
         </delete>
     <delete file="electric.jar"/>
         <delete dir="apidoc"/>

@@ -366,13 +366,13 @@ public abstract class NodeProto extends ElectricObject
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
 	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
 	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
-//	/** set to reevaluate this cell's network */			private static final int REDOCELLNET =      010000;
+//	/** set if this cell is open in the explorer tree */	private static final int OPENINEXPLORER =   010000;
 	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
-//	/** set if cell is changed */							private static final int CELLMOD =         0400000;
-//	/** set if cell is not changed */						private static final int CELLNOMOD =      01000000;
+//	/** set if this cell is open in the explorer tree */	private static final int OPENINEXPLORER =  0400000;
+//	/** set if this cell is open in the explorer tree */	private static final int VOPENINEXPLORER =01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
 	/** set if everything in cell is locked */				private static final int NPLOCKED =       04000000;
 	/** set if instances in cell are locked */				private static final int NPILOCKED =     010000000;

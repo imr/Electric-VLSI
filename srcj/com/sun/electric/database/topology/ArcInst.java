@@ -388,8 +388,8 @@ public class ArcInst extends Geometric
 		}
 
 		// attach this arc to the two nodes it connects
-		ends[HEADEND].getPortInst().getNodeInst().addConnection(ends[HEADEND]);
-		ends[TAILEND].getPortInst().getNodeInst().addConnection(ends[TAILEND]);
+		if (ends[HEADEND] != null) ends[HEADEND].getPortInst().getNodeInst().addConnection(ends[HEADEND]);
+		if (ends[TAILEND] != null) ends[TAILEND].getPortInst().getNodeInst().addConnection(ends[TAILEND]);
 
 		// add this arc to the cell
 		linkGeom(parent);

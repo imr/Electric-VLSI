@@ -116,6 +116,7 @@ public class EditWindow extends JPanel
 
     /** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
     /** the offset of each new window on the screen */		private static int windowOffset = 0;
+	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 
     /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
     /** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
@@ -187,7 +188,10 @@ public class EditWindow extends JPanel
 
 		// to enable keys to be recieved
 		requestFocus();
-        
+
+		// redo the explorer tree if it changed
+		ExplorerTree.rebuildExplorerTree();
+
 		if (img == null || !getSize().equals(sz))
 		{
 			sz = getSize();
@@ -278,8 +282,8 @@ public class EditWindow extends JPanel
 			// show displayable variables on the instance
 			int numPolys = cell.numDisplayableVariables(true);
 			Poly [] polys = new Poly[numPolys];
-			Rectangle2D rect = cell.getBounds();
-			cell.addDisplayableVariables(rect, polys, 0, this, true);
+//			Rectangle2D rect = cell.getBounds();
+			cell.addDisplayableVariables(CENTERRECT, polys, 0, this, true);
 			drawPolys(g2, polys, new AffineTransform());
 		}
 	}

@@ -614,6 +614,7 @@ public class Highlight
 		if (type == Type.TEXT)
 		{
 			Poly poly = computeTextPoly(wnd);
+			if (poly == null) return;
 			Poly.Type style = poly.getStyle();
 			Rectangle2D bounds = poly.getBounds2D();
 			Point2D [] points = new Point2D.Double[2];
@@ -827,48 +828,58 @@ public class Highlight
 	{
 		Poly poly = null;
 		Variable var = getVar();
+		Geometric geom = getGeom();
 		if (var != null)
 		{
-			Poly [] polys = null;
-			if (getGeom() != null)
+			if (geom != null)
 			{
 				if (getPort() != null)
 				{
-					PortInst pi = ((NodeInst)getGeom()).findPortInstFromProto(getPort());
+					PortInst pi = ((Export)getPort()).getOriginalPort();
 					Rectangle2D bounds = pi.getPoly().getBounds2D();
-					polys = getPort().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+					Poly [] polys = getPort().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+					if (polys != null)
+					{
+						poly = polys[0];
+						poly.transform(pi.getNodeInst().rotateOut());
+					}
 				} else
 				{
-					polys = getGeom().getPolyList(var, getGeom().getCenterX(), getGeom().getCenterY(), wnd, false);
+					Poly [] polys = geom.getPolyList(var, geom.getCenterX(), geom.getCenterY(), wnd, false);
+					if (polys != null)
+					{
+						poly = polys[0];
+						if (geom instanceof NodeInst)
+							poly.transform(((NodeInst)geom).rotateOut());
+					}
 				}
 			} else
 			{
 				Rectangle2D bounds = getCell().getBounds();
-				polys = getCell().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				Poly [] polys = getCell().getPolyList(var, 0, 0, wnd, false);
+				if (polys != null) poly = polys[0];
 			}
-			if (polys != null)
-			{
-				poly = polys[0];
+			if (poly != null)
 				poly.setExactTextBounds(wnd);
-			}
 		} else
 		{
-			Geometric geom = getGeom();
+			if (geom == null) return null;
 			if (getName() != null)
 			{
-				if (geom != null)
+				TextDescriptor td = geom.getNameTextDescriptor();
+				Point2D [] pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(geom.getCenterX()+td.getXOff(), geom.getCenterY()+td.getYOff());
+				poly = new Poly(pointList);
+				poly.setStyle(td.getPos().getPolyType());
+				if (geom instanceof NodeInst)
 				{
-					TextDescriptor td = geom.getNameTextDescriptor();
-					Point2D [] pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(geom.getCenterX()+td.getXOff(), geom.getCenterY()+td.getYOff());
-					poly = new Poly(pointList);
-					poly.setStyle(td.getPos().getPolyType());
-					Name name = getName();
-					poly.setTextDescriptor(td);
-					poly.setString(name.toString());
-					poly.setExactTextBounds(wnd);
+					poly.transform(((NodeInst)geom).rotateOut());
 				}
-			} else if (geom != null)
+				Name name = getName();
+				poly.setTextDescriptor(td);
+				poly.setString(name.toString());
+				poly.setExactTextBounds(wnd);
+			} else
 			{
 				if (getPort() != null)
 				{
@@ -892,6 +903,7 @@ public class Highlight
 					pointList[0] = new Point2D.Double(ni.getCenterX()+td.getXOff(), ni.getCenterY()+td.getYOff());
 					poly = new Poly(pointList);
 					poly.setStyle(td.getPos().getPolyType());
+					poly.transform(ni.rotateOut());
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe());
 					poly.setExactTextBounds(wnd);

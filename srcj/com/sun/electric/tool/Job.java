@@ -28,10 +28,10 @@
 
 package com.sun.electric.tool;
 
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.ui.ExplorerTree;
 
 import java.lang.Thread;
 import java.util.List;
@@ -181,7 +181,7 @@ public abstract class Job implements ActionListener, Runnable {
 				notify();
 			allJobs.add(j);
 			explorerTree.add(j.myNode);
-			WindowFrame.explorerTreeChanged();
+			ExplorerTree.explorerTreeChanged();
 		}
 
 		/** Remove job from list of jobs */
@@ -194,7 +194,7 @@ public abstract class Job implements ActionListener, Runnable {
 				if (index < numStarted) numStarted--;
 			}
 			explorerTree.remove(j.myNode);
-			WindowFrame.explorerTreeChanged();        
+			ExplorerTree.explorerTreeChanged();        
 		}
 
 		/** Build Job explorer tree */
@@ -319,7 +319,7 @@ public abstract class Job implements ActionListener, Runnable {
 		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
 //        Job.removeJob(this);
-        WindowFrame.explorerTreeMinorlyChanged();
+        ExplorerTree.explorerTreeMinorlyChanged();
 
 		// say something if it took more than a minute
 		if (endTime - startTime >= 60*1000)
@@ -331,7 +331,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     protected void setProgress(String progress) {
         this.progress = progress;
-        WindowFrame.explorerTreeMinorlyChanged();        
+        ExplorerTree.explorerTreeMinorlyChanged();        
     }        
     
     private String getProgress() { return progress; }
@@ -348,11 +348,11 @@ public abstract class Job implements ActionListener, Runnable {
             return;
         }
         scheduledToAbort = true;
-        WindowFrame.explorerTreeMinorlyChanged();
+        ExplorerTree.explorerTreeMinorlyChanged();
     }
 
 	/** Confirmation that thread is aborted */
-    protected void setAborted() { aborted = true; WindowFrame.explorerTreeMinorlyChanged(); }
+    protected void setAborted() { aborted = true; ExplorerTree.explorerTreeMinorlyChanged(); }
     /** get scheduled to abort status */
     protected boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */

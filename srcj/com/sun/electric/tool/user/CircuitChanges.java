@@ -172,7 +172,7 @@ public class CircuitChanges
 							oai.getHead().getLocation().getY() != oai.getTail().getLocation().getY()) break;
 					}
 					if (j < 2) { found = false;   break; }
-				}
+				} else found = false;
 			}
 			if (found)
 			{
