@@ -557,7 +557,7 @@ public class MoCMOS extends Technology
 	{
 		setTechName("mocmos");
 		setTechDesc("MOSIS CMOS");
-		setScale(400);
+		setScale(200);			// in nanometers: really 0.2 micron
 		setNoNegatedArcs();
 		setStaticTechnology();
 

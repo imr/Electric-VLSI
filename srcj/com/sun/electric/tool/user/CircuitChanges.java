@@ -80,6 +80,8 @@ public class CircuitChanges
 
 	/****************************** NODE TRANSFORMATION ******************************/
 
+	private static double lastRotationAmount = 90;
+
 	public static void rotateObjects(int amount)
 	{
 		Cell cell = Library.needCurCell();
@@ -91,14 +93,16 @@ public class CircuitChanges
 		// if zero rotation, prompt for amount
 		if (amount == 0)
 		{
-			String val = JOptionPane.showInputDialog("Amount to rotate");
+			String val = JOptionPane.showInputDialog("Amount to rotate", new Double(lastRotationAmount));
 			if (val == null) return;
 			double fAmount = TextUtils.atof(val);
 			if (fAmount == 0)
 			{
+				System.out.println("Null rotation amount");
 				return;
 			}
-			amount = (int)(fAmount / 10);
+			lastRotationAmount = fAmount;
+			amount = (int)(fAmount * 10);
 		}
 
 		RotateSelected job = new RotateSelected(cell, amount);
@@ -119,7 +123,6 @@ public class CircuitChanges
 
 		public void doIt()
 		{
-
 			// figure out which nodes get rotated
 			FlagSet markObj = Geometric.getFlagSet(1);
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -136,7 +139,11 @@ public class CircuitChanges
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
-				if (cantEdit(cell, ni, true)) return;
+				if (cantEdit(cell, ni, true))
+				{
+					markObj.freeFlagSet();
+					return;
+				}
 				ni.setBit(markObj);
 				if (nicount == 0)
 				{
@@ -153,6 +160,7 @@ public class CircuitChanges
 			if (nicount <= 0)
 			{
 				System.out.println("Must select at least 1 node for rotation");
+				markObj.freeFlagSet();
 				return;
 			}
 
@@ -180,12 +188,17 @@ public class CircuitChanges
 //			if (nicount > 1)
 //			{
 //				us_abortcommand(_("Must highlight one node for rotation about the grab-point"));
+//				markObj.freeFlagSet();
 //				return;
 //			}
 //			ni = theni;
 //
 //			// disallow rotating if lock is on
-//			if (us_cantedit(ni->parent, ni, TRUE)) return;
+//			if (us_cantedit(ni->parent, ni, TRUE))
+//			{
+//				markObj.freeFlagSet();
+//				return;
+//			}
 //
 //			// find the grab point
 //			corneroffset(ni, ni->proto, ni->rotation, ni->transpose, &gx, &gy, FALSE);
@@ -309,6 +322,7 @@ public class CircuitChanges
 //				(void)killportproto(nilist[i]->parent, nilist[i]->firstportexpinst->exportproto);
 				ni.kill();
 			}
+			markObj.freeFlagSet();
 		}
 	}
 

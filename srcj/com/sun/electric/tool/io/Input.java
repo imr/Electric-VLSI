@@ -53,7 +53,7 @@ import java.util.Iterator;
  * This class manages reading files in different formats.
  * The class is subclassed by the different file readers.
  */
-public class Input
+public class Input extends IOTool
 {
 	private static final int READ_BUFFER_SIZE = 65536;
 
@@ -305,101 +305,101 @@ public class Input
 			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}
 
-	/**
-	 * Method to set name of Geometric object.
-	 * @param geom the Geometric object.
-	 * @param value name of object
-	 * @param td text descriptor.
-	 * @param type type mask.
-	 */
-	protected Name makeGeomName(Geometric geom, Object value, int type)
-	{
-		if (value == null || !(value instanceof String)) return null;
-		String str = (String)value;
-		Name name = Name.findName(str);
-		if ((type & BinaryConstants.VDISPLAY) != 0)
-		{
-			if (name.isTempname())
-			{
-				String newS = "";
-				for (int i = 0; i < str.length(); i++)
-				{
-					char c = str.charAt(i);
-					if (c == '@') c = '_';
-					newS += c;
-				}
-				name = Name.findName(newS);
-			}
-		} else if (!name.isTempname()) return null;
-		return name;
-	}
-
-	private static String [] fontNames = null;
-
-	/**
-	 * Method to grab font associations that were stored on a Library.
-	 * The font associations are used later to convert indices to true font names and numbers.
-	 * @param lib the Library to examine.
-	 */
-	public static void getFontAssociationVariable(Library lib)
-	{
-		fontNames = null;
-		Variable var = lib.getVar(Library.FONT_ASSOCIATIONS, String[].class);
-		if (var == null) return;
-
-		String [] associationArray = (String [])var.getObject();
-		int maxAssociation = 0;
-		for(int i=0; i<associationArray.length; i++)
-		{
-			int fontNumber = TextUtils.atoi(associationArray[i]);
-			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
-		}
-		if (maxAssociation <= 0) return;
-
-		fontNames = new String[maxAssociation];
-		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
-		for(int i=0; i<associationArray.length; i++)
-		{
-			int fontNumber = TextUtils.atoi(associationArray[i]);
-			if (fontNumber <= 0) continue;
-			int slashPos = associationArray[i].indexOf('/');
-			if (slashPos < 0) continue;
-			fontNames[fontNumber-1] = associationArray[i].substring(slashPos+1);
-		}
-
-		// data cached: delete the association variable
-		lib.delVar(Library.FONT_ASSOCIATIONS);
-	}
-
-	public static void fixVariableFont(ElectricObject eobj)
-	{
-		for(Iterator it = eobj.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			fixTextDescriptorFont(var.getTextDescriptor());
-		}
-	}
-
-	/**
-	 * Method to convert the font number in a TextDescriptor to the proper value as
-	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
-	 * @param td the TextDescriptor to convert.
-	 */
-	public static void fixTextDescriptorFont(TextDescriptor td)
-	{
-		int fontNumber = td.getFace();
-		if (fontNumber == 0) return;
-
-		if (fontNames == null) fontNumber = 0; else
-		{
-			if (fontNumber <= fontNames.length)
-			{
-				String fontName = fontNames[fontNumber-1];
-				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
-				if (af == null) fontNumber = 0; else
-					fontNumber = af.getIndex();
-			}
-		}
-		td.setFace(fontNumber);
-	}
+//	/**
+//	 * Method to set name of Geometric object.
+//	 * @param geom the Geometric object.
+//	 * @param value name of object
+//	 * @param td text descriptor.
+//	 * @param type type mask.
+//	 */
+//	protected Name makeGeomName(Geometric geom, Object value, int type)
+//	{
+//		if (value == null || !(value instanceof String)) return null;
+//		String str = (String)value;
+//		Name name = Name.findName(str);
+//		if ((type & BinaryConstants.VDISPLAY) != 0)
+//		{
+//			if (name.isTempname())
+//			{
+//				String newS = "";
+//				for (int i = 0; i < str.length(); i++)
+//				{
+//					char c = str.charAt(i);
+//					if (c == '@') c = '_';
+//					newS += c;
+//				}
+//				name = Name.findName(newS);
+//			}
+//		} else if (!name.isTempname()) return null;
+//		return name;
+//	}
+//
+//	private static String [] fontNames = null;
+//
+//	/**
+//	 * Method to grab font associations that were stored on a Library.
+//	 * The font associations are used later to convert indices to true font names and numbers.
+//	 * @param lib the Library to examine.
+//	 */
+//	public static void getFontAssociationVariable(Library lib)
+//	{
+//		fontNames = null;
+//		Variable var = lib.getVar(Library.FONT_ASSOCIATIONS, String[].class);
+//		if (var == null) return;
+//
+//		String [] associationArray = (String [])var.getObject();
+//		int maxAssociation = 0;
+//		for(int i=0; i<associationArray.length; i++)
+//		{
+//			int fontNumber = TextUtils.atoi(associationArray[i]);
+//			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
+//		}
+//		if (maxAssociation <= 0) return;
+//
+//		fontNames = new String[maxAssociation];
+//		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
+//		for(int i=0; i<associationArray.length; i++)
+//		{
+//			int fontNumber = TextUtils.atoi(associationArray[i]);
+//			if (fontNumber <= 0) continue;
+//			int slashPos = associationArray[i].indexOf('/');
+//			if (slashPos < 0) continue;
+//			fontNames[fontNumber-1] = associationArray[i].substring(slashPos+1);
+//		}
+//
+//		// data cached: delete the association variable
+//		lib.delVar(Library.FONT_ASSOCIATIONS);
+//	}
+//
+//	public static void fixVariableFont(ElectricObject eobj)
+//	{
+//		for(Iterator it = eobj.getVariables(); it.hasNext(); )
+//		{
+//			Variable var = (Variable)it.next();
+//			fixTextDescriptorFont(var.getTextDescriptor());
+//		}
+//	}
+//
+//	/**
+//	 * Method to convert the font number in a TextDescriptor to the proper value as
+//	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
+//	 * @param td the TextDescriptor to convert.
+//	 */
+//	public static void fixTextDescriptorFont(TextDescriptor td)
+//	{
+//		int fontNumber = td.getFace();
+//		if (fontNumber == 0) return;
+//
+//		if (fontNames == null) fontNumber = 0; else
+//		{
+//			if (fontNumber <= fontNames.length)
+//			{
+//				String fontName = fontNames[fontNumber-1];
+//				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
+//				if (af == null) fontNumber = 0; else
+//					fontNumber = af.getIndex();
+//			}
+//		}
+//		td.setFace(fontNumber);
+//	}
 }

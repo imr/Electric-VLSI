@@ -62,7 +62,11 @@ public class FlagSet
 	 */
 	public static class Generator
 	{
-		/** used to request flag bit sets */		private int flagBitsUsed = 0;
+		/** the name of the object that this generates for. */	private String objectName;
+		/** used to request flag bit sets */					private int flagBitsUsed = 0;
+
+		public Generator(String objectName) { this.objectName = objectName; }
+		public String getObjectName() { return objectName; }
 	}
 
 	private FlagSet() {}
@@ -85,7 +89,7 @@ public class FlagSet
 			if ((generator.flagBitsUsed & (mask << shift)) == 0) break;
 		if (shift > 32-numBits)
 		{
-			System.out.println("Error: ran out of flag bits");
+			System.out.println("Error: ran out of flag bits in " + generator.getObjectName());
 			return null;
 		}
 

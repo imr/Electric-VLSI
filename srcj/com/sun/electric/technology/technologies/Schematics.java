@@ -236,7 +236,7 @@ public class Schematics extends Technology
 	{
 		setTechName("schematic");
 		setTechDesc("Schematic Capture");
-		setScale(4000);
+		setScale(2000);			// in nanometers: really 2 micron
 		setNonStandard();
 		setStaticTechnology();
 

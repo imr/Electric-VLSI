@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -38,6 +39,8 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.OutputGDS;
 
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
@@ -55,7 +58,7 @@ import java.util.ArrayList;
  * This class manages writing files in different formats.
  * The class is subclassed by the different file writers.
  */
-public class Output
+public class Output extends IOTool
 {
 	/** file path */                            protected String filePath;
 	/** for writing text files */               protected PrintWriter printWriter;
@@ -132,26 +135,23 @@ public class Output
 		{
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
-            out.filePath = n.makeName();
-            if (out.openDataOutputStream()) error = true;
+            if (out.openBinaryOutputStream(n.makeName())) error = true;
             if (out.writeLib(lib)) error = true;
-            if (out.closeDataOutputStream()) error = true;
+            if (out.closeBinaryOutputStream()) error = true;
 		} else if (type == ExportType.TEXT)
 		{
 //			out = (Output)new OutputText();
 //			n.setExtension("txt");
-//          out.filePath = n.makeName();
-//          if (out.openPrintWriter()) error = true;
+//          if (out.openTextOutputStream(n.makeName())) error = true;
 //          if (out.writeLib(lib)) error = true;
-//          if (out.closePrintWriter()) error = true;          
+//          if (out.closeTextOutputStream()) error = true;          
             
 			// no text reader yet, see if an elib can be found
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
-            out.filePath = n.makeName();
-            if (out.openDataOutputStream()) error = true;
+            if (out.openBinaryOutputStream(n.makeName())) error = true;
             if (out.writeLib(lib)) error = true;
-            if (out.closeDataOutputStream()) error = true;
+            if (out.closeBinaryOutputStream()) error = true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);
@@ -175,13 +175,14 @@ public class Output
     public static boolean writeCell(Cell cell, String filePath, ExportType type)
     {
         boolean error = false;
-        if (type == ExportType.CIF) {
-            Output out = new OutputCIF();
-            out.filePath = filePath;
-            if (out.openPrintWriter()) error = true;
-            if (out.writeCell(cell)) error = true;
-            if (out.closePrintWriter()) error = true;
-        }
+		if (type == ExportType.CIF)
+		{
+			error = OutputCIF.writeCIFFile(cell, filePath);
+		}
+		if (type == ExportType.GDS)
+		{
+			error = OutputGDS.writeGDSFile(cell, filePath);
+		}
         
 		if (error)
 		{
@@ -310,8 +311,9 @@ public class Output
      * Opens the dataOutputStream for writing of binary files.
      * @return true on error.
      */
-    protected boolean openDataOutputStream()
+    protected boolean openBinaryOutputStream(String filePath)
     {
+		this.filePath = filePath;
         FileOutputStream fileOutputStream;
 		try
 		{
@@ -330,7 +332,7 @@ public class Output
      * Closes the dataOutputStream.
      * @return true on error.
      */
-    protected boolean closeDataOutputStream()
+    protected boolean closeBinaryOutputStream()
     {
 		try
 		{
@@ -347,11 +349,14 @@ public class Output
      * Open the printWriter for writing text files
      * @return true on error.
      */
-    protected boolean openPrintWriter()
+    protected boolean openTextOutputStream(String filePath)
     {
-        try {
+		this.filePath = filePath;
+        try
+		{
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
-        } catch (IOException e) {
+        } catch (IOException e)
+		{
             System.out.println("Error opening " + filePath);
             return true;
         }
@@ -362,9 +367,10 @@ public class Output
      * Close the printWriter.
      * @return true on error.
      */
-    protected boolean closePrintWriter()
+    protected boolean closeTextOutputStream()
     {
         printWriter.close();
         return false;
     }
+
 }

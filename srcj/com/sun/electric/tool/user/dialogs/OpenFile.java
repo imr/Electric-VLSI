@@ -33,7 +33,7 @@ import javax.swing.filechooser.FileFilter;
 
 public class OpenFile extends JFileChooser
 {
-	static class EFileFilter extends FileFilter
+	public static class EFileFilter extends FileFilter
 	{
 		/** description of filter */        private String desc;
 		/** list of valid extensions */     private String[] extensions;
@@ -69,20 +69,13 @@ public class OpenFile extends JFileChooser
 			return false;
 		}
 
-        public static ArrayList getAllFilters()
-        {
-            return allFilters;
-        }
+        public static ArrayList getAllFilters() {  return allFilters; }
         
-		public String getDescription()
-		{
-			return desc;
-		}
+		public String getDescription() { return desc; }
+        
+		public String [] getExtensions() { return extensions; }
 
-		public void setDescription(String desc)
-		{
-			this.desc = desc;
-		}
+		public void setDescription(String desc) { this.desc = desc; }
 	}
         
 	public static final EFileFilter ANY  = null;                    // default to built-in filter "All Files"
@@ -91,6 +84,7 @@ public class OpenFile extends JFileChooser
     public static final EFileFilter SPI  = new EFileFilter(new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
     public static final EFileFilter JAVA = new EFileFilter(new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
     public static final EFileFilter CIF  = new EFileFilter(new String[] {"cif"}, "CIF File (cif)");    
+    public static final EFileFilter GDS  = new EFileFilter(new String[] {"gds"}, "GDS File (gds)");    
     public static final EFileFilter ARR  = new EFileFilter(new String[] {"arr"}, "Pad Generator Array File (arr)");
 
 	/** True if this is a file save dialog */						private boolean saveDialog;

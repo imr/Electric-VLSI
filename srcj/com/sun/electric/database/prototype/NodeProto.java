@@ -389,7 +389,7 @@ public abstract class NodeProto extends ElectricObject
 	/** The temporary integer value. */						private int tempInt;
 	/** The temporary Object. */							private Object tempObj;
 	/** The temporary flag bits. */							private int flagBits;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("NodeProto");
 
 	// ----------------- protected and private methods -----------------
 

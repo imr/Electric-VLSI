@@ -1996,7 +1996,7 @@ public class Technology extends ElectricObject
 	/**
 	 * Returns the default scale for this Technology.
 	 * The technology's scale is for manufacturing output, which must convert
-	 * the unit-based values in Electric to real-world values.
+	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @return the default scale for this Technology.
 	 */
 	public double getScale() { return scale; }
@@ -2004,7 +2004,7 @@ public class Technology extends ElectricObject
 	/**
 	 * Sets the default scale of this technology.
 	 * The technology's scale is for manufacturing output, which must convert
-	 * the unit-based values in Electric to real-world values.
+	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @param scale the new scale between this technology and the real units.
 	 */
 	public void setScale(double scale)

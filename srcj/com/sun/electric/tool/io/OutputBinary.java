@@ -420,7 +420,7 @@ public class OutputBinary extends Output
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			writeBigInteger((int)tech.getScale());
+			writeBigInteger((int)tech.getScale()*2);
 		}
 
 		// convert any PortInst variables to NodeInst Variables
@@ -633,10 +633,10 @@ public class OutputBinary extends Output
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();
 		Rectangle2D bounds = cell.getBounds();
-		int lowX = (int)(bounds.getMinX() * tech.getScale());
-		int highX = (int)(bounds.getMaxX() * tech.getScale());
-		int lowY = (int)(bounds.getMinY() * tech.getScale());
-		int highY = (int)(bounds.getMaxY() * tech.getScale());
+		int lowX = (int)(bounds.getMinX() * tech.getScale()*2);
+		int highX = (int)(bounds.getMaxX() * tech.getScale()*2);
+		int lowY = (int)(bounds.getMinY() * tech.getScale()*2);
+		int highY = (int)(bounds.getMaxY() * tech.getScale()*2);
 		writeBigInteger(lowX);
 		writeBigInteger(highX);
 		writeBigInteger(lowY);
@@ -718,10 +718,10 @@ public class OutputBinary extends Output
 
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
-		int lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale());
-		int highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale());
-		int lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale());
-		int highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale());
+		int lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+		int highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+		int lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+		int highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		writeBigInteger(lowX);
 		writeBigInteger(lowY);
 		writeBigInteger(highX);
@@ -804,7 +804,7 @@ public class OutputBinary extends Output
 		writeBigInteger(ni.lowLevelGetUserbits());
 
 		// write variable information
-		writeVariables(ni, tech.getScale());
+		writeVariables(ni, tech.getScale()*2);
 	}
 
 	static class OrderedConnections implements Comparator
@@ -839,18 +839,18 @@ public class OutputBinary extends Output
 
 		// write basic arcinst information
 		Technology tech = ai.getParent().getTechnology();
-		writeBigInteger((int)(ai.getWidth() * tech.getScale()));
+		writeBigInteger((int)(ai.getWidth() * tech.getScale()*2));
 
 		// write the arcinst head information
 		Point2D location = ai.getHead().getLocation();
-		writeBigInteger((int)(location.getX() * tech.getScale()));
-		writeBigInteger((int)(location.getY() * tech.getScale()));
+		writeBigInteger((int)(location.getX() * tech.getScale()*2));
+		writeBigInteger((int)(location.getY() * tech.getScale()*2));
 		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst tail information
 		location = ai.getTail().getLocation();
-		writeBigInteger((int)(location.getX() * tech.getScale()));
-		writeBigInteger((int)(location.getY() * tech.getScale()));
+		writeBigInteger((int)(location.getX() * tech.getScale()*2));
+		writeBigInteger((int)(location.getY() * tech.getScale()*2));
 		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst's tool information

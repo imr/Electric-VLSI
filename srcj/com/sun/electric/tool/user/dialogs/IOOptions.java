@@ -24,7 +24,12 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.io.OutputGDS;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
 import java.util.Iterator;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -118,26 +123,125 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** GDS ********************************
 
+	private boolean initialGDSOutputMergesBoxes;
+	private boolean initialGDSOutputWritesExportPins;
+	private boolean initialGDSOutputUpperCase;
+	private JList layersList;
+	private DefaultListModel layersModel;
+	private boolean changingGDS = false;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the GDS tab.
 	 */
 	private void initGDS()
 	{
-		gdsLayerList.setEnabled(false);
-		gdsLayerName.setEditable(false);
-		gdsPinLayer.setEditable(false);
-		gdsTextLayer.setEditable(false);
+		Technology tech = Technology.getCurrent();
+		gdsTechName.setText("Technology " + tech.getTechName() + ":");
+		initialGDSOutputMergesBoxes = OutputGDS.isMergesBoxes();
+		gdsOutputMergesBoxes.setSelected(initialGDSOutputMergesBoxes);
+		initialGDSOutputWritesExportPins = OutputGDS.isWritesExportPins();
+		gdsOutputWritesExportPins.setSelected(initialGDSOutputWritesExportPins);
+		initialGDSOutputUpperCase = OutputGDS.isUpperCase();
+		gdsOutputUpperCase.setSelected(initialGDSOutputUpperCase);
+
+		// build the layers list
+		layersModel = new DefaultListModel();
+		layersList = new JList(layersModel);
+		layersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		gdsLayerList.setViewportView(layersList);
+		layersList.clearSelection();
+		layersList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
+		});
+		layersModel.clear();
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			String str = layer.getName() + " (" + layer.getGDSLayer() + ")";
+			layersModel.addElement(str);
+		}
+		layersList.setSelectedIndex(0);
+
+		GDSDocumentListener myDocumentListener = new GDSDocumentListener(this);
+		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
+		gdsPinLayer.getDocument().addDocumentListener(myDocumentListener);
+		gdsTextLayer.getDocument().addDocumentListener(myDocumentListener);
+
+		// not yet
 		gdsInputIncludesText.setEnabled(false);
 		gdsInputExpandsCells.setEnabled(false);
 		gdsInputInstantiatesArrays.setEnabled(false);
 		gdsInputIgnoresUnknownLayers.setEnabled(false);
-		gdsOutputMergesBoxes.setEnabled(false);
-		gdsOutputWritesExportPins.setEnabled(false);
-		gdsOutputUpperCase.setEnabled(false);
 		gdsDefaultTextLayer.setEditable(false);
 		gdsMaxArcAngle.setEditable(false);
 		gdsMaxArcSag.setEditable(false);
+	}
+
+	private void gdsClickLayer()
+	{
+		changingGDS = true;
+		String str = (String)layersList.getSelectedValue();
+		int [] numbers = getNumbers(str);
+		if (numbers == null) return;
+		if (numbers[0] < 0) gdsLayerNumber.setText(""); else
+			gdsLayerNumber.setText(Integer.toString(numbers[0]));
+		if (numbers[1] < 0) gdsPinLayer.setText(""); else
+			gdsPinLayer.setText(Integer.toString(numbers[1]));
+		if (numbers[2] < 0) gdsTextLayer.setText(""); else
+			gdsTextLayer.setText(Integer.toString(numbers[2]));
+		changingGDS = false;
+	}
+
+	private int [] getNumbers(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) return null;
+		int closeParen = str.lastIndexOf(')');
+		if (closeParen < 0) return null;
+		String gdsNumbers = str.substring(openParen+1, closeParen);
+		int [] numbers = OutputGDS.parseLayerString(gdsNumbers);
+		return numbers;
+	}
+
+	private Layer gdsGetLayer(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) return null;
+		String layerName = str.substring(0, openParen-1);
+		Layer layer = Technology.getCurrent().findLayer(layerName);
+		return layer;
+	}
+
+	private void gdsNumbersChanged()
+	{
+		if (changingGDS) return;
+		String str = (String)layersList.getSelectedValue();
+		Layer layer = gdsGetLayer(str);
+		if (layer == null) return;
+		String newLine = layer.getName() + " (" + gdsLayerNumber.getText().trim();
+		String pinLayer = gdsPinLayer.getText().trim();
+		if (pinLayer.length() > 0) newLine += "," + pinLayer + "p";
+		String textLayer = gdsTextLayer.getText().trim();
+		if (textLayer.length() > 0) newLine += "," + textLayer + "t";
+		newLine += ")";
+		int index = layersList.getSelectedIndex();
+		layersModel.set(index, newLine);
+	}
+
+	/**
+	 * Class to handle special changes to changes to design rules.
+	 */
+	private static class GDSDocumentListener implements DocumentListener
+	{
+		IOOptions dialog;
+
+		GDSDocumentListener(IOOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
 	}
 
 	/**
@@ -146,6 +250,30 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termGDS()
 	{
+		for(int i=0; i<layersModel.getSize(); i++)
+		{
+			String str = (String)layersModel.getElementAt(i);
+			Layer layer = gdsGetLayer(str);
+			if (layer == null) continue;
+
+			int [] numbers = getNumbers(str);
+			if (numbers == null) continue;
+			String currentGDSNumbers = "";
+			if (numbers[0] >= 0) currentGDSNumbers += Integer.toString(numbers[0]);
+			if (numbers[1] >= 0) currentGDSNumbers += "," + numbers[1] + "p";
+			if (numbers[2] >= 0) currentGDSNumbers += "," + numbers[2] + "t";
+			if (currentGDSNumbers.equalsIgnoreCase(layer.getGDSLayer())) continue;
+			layer.setGDSLayer(currentGDSNumbers);
+		}
+		boolean currentOutputMergesBoxes = gdsOutputMergesBoxes.isSelected();
+		if (currentOutputMergesBoxes != initialGDSOutputMergesBoxes)
+			OutputGDS.setMergesBoxes(currentOutputMergesBoxes);
+		boolean currentOutputWritesExportPins = gdsOutputWritesExportPins.isSelected();
+		if (currentOutputWritesExportPins != initialGDSOutputWritesExportPins)
+			OutputGDS.setWritesExportPins(currentOutputWritesExportPins);
+		boolean currentOutputUpperCase = gdsOutputUpperCase.isSelected();
+		if (currentOutputUpperCase != initialGDSOutputUpperCase)
+			OutputGDS.setUpperCase(currentOutputUpperCase);
 	}
 
 	//******************************** EDIF ********************************
@@ -366,7 +494,7 @@ public class IOOptions extends javax.swing.JDialog
         gds = new javax.swing.JPanel();
         gdsLayerList = new javax.swing.JScrollPane();
         jLabel6 = new javax.swing.JLabel();
-        gdsLayerName = new javax.swing.JTextField();
+        gdsLayerNumber = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         gdsPinLayer = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
@@ -385,6 +513,7 @@ public class IOOptions extends javax.swing.JDialog
         gdsMaxArcAngle = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
         gdsMaxArcSag = new javax.swing.JTextField();
+        gdsTechName = new javax.swing.JLabel();
         edif = new javax.swing.JPanel();
         edifUseSchematicView = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
@@ -575,13 +704,13 @@ public class IOOptions extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 14;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 13;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsLayerList, gridBagConstraints);
 
         jLabel6.setText("GDS Layer(s):");
@@ -591,7 +720,7 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gds.add(jLabel6, gridBagConstraints);
 
-        gdsLayerName.setColumns(8);
+        gdsLayerNumber.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -599,7 +728,7 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gds.add(gdsLayerName, gridBagConstraints);
+        gds.add(gdsLayerNumber, gridBagConstraints);
 
         jLabel7.setText("Pin layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -758,6 +887,14 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsMaxArcSag, gridBagConstraints);
+
+        gdsTechName.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gds.add(gdsTechName, gridBagConstraints);
 
         tabPane.addTab("GDS", gds);
 
@@ -1043,16 +1180,16 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel4.add(printPlotEntireCell, gridBagConstraints);
 
         printPlotDateInCorner.setText("Plot Date In Corner");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel4.add(printPlotDateInCorner, gridBagConstraints);
 
         printPlotHighlightedArea.setText("Plot only Highlighted Area");
@@ -1060,8 +1197,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(printPlotHighlightedArea, gridBagConstraints);
 
         jLabel18.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -1070,8 +1207,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(jLabel18, gridBagConstraints);
 
         printPlotDisplayedWindow.setText("Plot only Displayed Window");
@@ -1079,33 +1216,33 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(printPlotDisplayedWindow, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(printDefaultPrinter, gridBagConstraints);
 
         jLabel19.setText("Print and Copy resolution factor:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(jLabel19, gridBagConstraints);
 
         printResolution.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(printResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1121,8 +1258,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(jLabel26, gridBagConstraints);
 
         printHPGL1.setText("HPGL");
@@ -1130,8 +1267,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGL1, gridBagConstraints);
 
         printHPGL2.setText("HPGL/2");
@@ -1139,8 +1276,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGL2, gridBagConstraints);
 
         printHPGLFillsPage.setText("HPGL/2 plot fills page");
@@ -1149,9 +1286,9 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLFillsPage, gridBagConstraints);
 
         printHPGLFixedScale.setText("HPGL/2 plot fixed at:");
@@ -1160,24 +1297,24 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLFixedScale, gridBagConstraints);
 
         printHPGLScale.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLScale, gridBagConstraints);
 
         jLabel27.setText("grid units per pixel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1194,8 +1331,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printEncapsulated, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1203,8 +1340,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printPostScriptStyle, gridBagConstraints);
 
         printUsePrinter.setText("Printer");
@@ -1213,8 +1350,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printUsePrinter, gridBagConstraints);
 
         printUsePlotter.setText("Plotter");
@@ -1230,16 +1367,16 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel21, gridBagConstraints);
 
         printWidth.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printWidth, gridBagConstraints);
 
         jLabel22.setText("Height (in):");
@@ -1253,8 +1390,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printHeight, gridBagConstraints);
 
         jLabel23.setText("Margin (in):");
@@ -1268,8 +1405,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printMargin, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1277,8 +1414,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printRotation, gridBagConstraints);
 
         jLabel24.setText("For cell:");
@@ -1286,8 +1423,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel24, gridBagConstraints);
 
         jLabel25.setText("EPS Scale:");
@@ -1295,8 +1432,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel6.add(jLabel25, gridBagConstraints);
 
         printEPSScale.setColumns(8);
@@ -1304,8 +1441,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printEPSScale, gridBagConstraints);
 
         printSynchronizeToFile.setText("Synchronize to file:");
@@ -1313,16 +1450,16 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printSynchronizeToFile, gridBagConstraints);
 
         jLabel20.setText("Rotation:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel20, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1444,13 +1581,14 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox gdsInputIncludesText;
     private javax.swing.JCheckBox gdsInputInstantiatesArrays;
     private javax.swing.JScrollPane gdsLayerList;
-    private javax.swing.JTextField gdsLayerName;
+    private javax.swing.JTextField gdsLayerNumber;
     private javax.swing.JTextField gdsMaxArcAngle;
     private javax.swing.JTextField gdsMaxArcSag;
     private javax.swing.JCheckBox gdsOutputMergesBoxes;
     private javax.swing.JCheckBox gdsOutputUpperCase;
     private javax.swing.JCheckBox gdsOutputWritesExportPins;
     private javax.swing.JTextField gdsPinLayer;
+    private javax.swing.JLabel gdsTechName;
     private javax.swing.JTextField gdsTextLayer;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;

@@ -116,7 +116,7 @@ public abstract class ArcProto extends ElectricObject
 	/** A temporary integer for this ArcProto. */				private int tempInt;
 	/** The temporary Object for this ArcProto. */				private Object tempObj;
 	/** The temporary flag bits. */								private int flagBits;
-	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
+	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("ArcProto");
 
 	// the meaning of the "userBits" field:
 	/** these arcs are fixed-length */					private static final int WANTFIX =            01;

@@ -153,7 +153,9 @@ public final class MenuCommands
         Menu exportSubMenu = Menu.createMenu("Export");
         fileMenu.add(exportSubMenu);
         exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF, OpenFile.CIF); } });
+       exportSubMenu.addMenuItem("GDS II (Stream)", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
 			fileMenu.addSeparator();
@@ -750,16 +752,15 @@ public final class MenuCommands
      * This method implements the export cell command for different export types.
      * It is interactive, and pops up a dialog box.
      */
-    public static void exportCellCommand(Output.ExportType type)
+    public static void exportCellCommand(Output.ExportType type, OpenFile.EFileFilter filter)
     {
-        EditWindow curEdit = EditWindow.getCurrent();
-        Cell cell = curEdit.getCell();
-        if (cell == null) {
-            System.out.println("No Cell in current window");
-            return;
-        }
-        String filePath = OpenFile.chooseOutputFile(OpenFile.CIF, null, cell.getProtoName()+".cif");
-        exportCellCommand(cell, filePath, type);
+        Cell cell = Library.needCurCell();
+        if (cell == null) return;
+
+		String [] extensions = filter.getExtensions();
+        String filePath = OpenFile.chooseOutputFile(filter, null, cell.getProtoName() + "." + extensions[0]);
+
+		exportCellCommand(cell, filePath, type);
     }
     /**
      * This is the non-interactive version of exportCellCommand

@@ -212,6 +212,18 @@ public class Poly implements Shape
 		 * but if there are more they are averaged and the cross is drawn in the center.
 		 */
 		public static final Type BIGCROSS = new Type("big-cross");
+
+		/**
+		 * Method to tell whether this Poly Style is text.
+		 * @return true if this Poly Style is text.
+		 */
+		public boolean isText()
+		{
+			if (this == TEXTCENT || this == TEXTTOP || this == TEXTBOT || this == TEXTLEFT ||
+				this == TEXTRIGHT || this == TEXTTOPLEFT || this == TEXTBOTLEFT || this == TEXTTOPRIGHT ||
+				this == TEXTBOTRIGHT || this == TEXTBOX) return true;
+			return false;
+		}
 	}
 
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;

@@ -63,8 +63,19 @@ public class OutputCIF extends OutputGeometry {
     // cif output data
     /** cell number */                                  private int cellNumber = 100;
     /** cell to cell number map */                      private HashMap cellNumbers;
-    
-    /** Creates a new instance of OutputCIF */
+
+	public static boolean writeCIFFile(Cell cell, String filePath)
+	{
+		boolean error = false;
+		OutputCIF out = new OutputCIF();
+		if (out.openTextOutputStream(filePath)) error = true;
+		if (out.writeCell(cell)) error = true;
+		if (out.closeTextOutputStream()) error = true;
+		if (!error) System.out.println(filePath + " written");
+		return error;
+	}
+ 
+	/** Creates a new instance of OutputCIF */
     OutputCIF() {
         cellNumbers = new HashMap();
     }
@@ -104,7 +115,7 @@ public class OutputCIF extends OutputGeometry {
             bytesread >>= 8;
         }
         crcChecksum = ~crcChecksum & 0xFFFFFFFF;
-        System.out.println("MOSIS CRC: "+EMath.unsignedIntValue(crcChecksum)+" "+crcNumChars+" "+filePath);
+        System.out.println("MOSIS CRC: "+EMath.unsignedIntValue(crcChecksum)+" "+crcNumChars);
     }    
 
     /** Method to write cellGeom */

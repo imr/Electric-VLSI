@@ -769,7 +769,7 @@ public abstract class Geometric extends ElectricObject
 	/** The temporary flag bits. */							private int flagBits;
 	/** The timestamp for changes. */						private int changeClock;
 	/** The Change object. */								private Undo.Change change;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("Geometric");
 
 	// ------------------------ private and protected methods--------------------
 

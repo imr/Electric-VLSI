@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ public abstract class OutputGeometry extends Output {
     
     /** number of unique cells processed */             protected int numVisited;
     /** number of unique cells to process */            protected int numCells;
+    /** top-level cell being processed */				protected Cell topCell;
 
     /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
     
@@ -64,16 +66,27 @@ public abstract class OutputGeometry extends Output {
      */
     public boolean writeCell(Cell cell) 
     {
-        // see how many cells we have to write, for progress indication
-        numCells = HierarchyEnumerator.getNumUniqueChildCells(cell) + 1;
-        numVisited = 0;
-        cellGeoms = new HashMap();
-        
-        // write out cells
-        start();
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, new Visitor(this, getMaxHierDepth(cell)));
-        done();
-        return false;
+		writeCell(cell, new Visitor(this, getMaxHierDepth(cell)));
+		return false;
+	}
+
+    /** 
+     * Write cell to file
+     * @return true on error
+     */
+    public boolean writeCell(Cell cell, Visitor visitor) 
+    {
+		// see how many cells we have to write, for progress indication
+		numVisited = 0;
+		numCells = HierarchyEnumerator.getNumUniqueChildCells(cell) + 1;
+		topCell = cell;
+		cellGeoms = new HashMap();
+
+		// write out cells
+		start();
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
+		done();
+		return false;
     }
         
         
@@ -123,23 +136,23 @@ public abstract class OutputGeometry extends Output {
             }
         }
     }    
-    
+
     //------------------HierarchyEnumerator.Visitor Implementation----------------------
-    
-    protected class Visitor extends HierarchyEnumerator.Visitor
+
+    public class Visitor extends HierarchyEnumerator.Visitor
     {
         /** OutputGeometry object this Visitor is enumerating for */    private OutputGeometry outGeom;
-        /** Current cellGeom */                                         private CellGeom cellGeom = null;
+        /** Current cellGeom */                                         protected CellGeom cellGeom = null;
         /** hierarchy max depth */                                      private int maxHierDepth;
         /** current hierarchy depth */                                  private int curHierDepth;
-        
+
         public Visitor(OutputGeometry outGeom, int maxHierDepth)
         {
             this.outGeom = outGeom;
             this.maxHierDepth = maxHierDepth;
             curHierDepth = 0;
         }
-        
+
         public boolean enterCell(HierarchyEnumerator.CellInfo info) 
         {
             if (cellGeoms.containsKey(info.getCell())) return false;    // already processed this Cell
@@ -149,16 +162,13 @@ public abstract class OutputGeometry extends Output {
             curHierDepth++;
             return true;
         }
-    
+
         public void exitCell(HierarchyEnumerator.CellInfo info) 
         {
             // add arcs to cellGeom
     		for (Iterator it = info.getCell().getArcs(); it.hasNext();) {
         		ArcInst ai = (ArcInst) it.next();
-        		ArcProto ap = ai.getProto();
-                Technology tech = ap.getTechnology();
-        		Poly [] polys = tech.getShapeOfArc(ai, null);
-                cellGeom.addPolys(polys);
+				addArcInst(ai);
             }
             
             if (outGeom.mergeGeom(maxHierDepth - curHierDepth)) {
@@ -171,39 +181,53 @@ public abstract class OutputGeometry extends Output {
             curHierDepth--;
             cellGeom = null;
         }
-    
+
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
         {
             NodeProto np = no.getProto();
-            if (np instanceof PrimitiveNode) {
+            if (np instanceof PrimitiveNode)
+			{
     			NodeInst ni = (NodeInst)no;
-    			// don't copy Facet-Centers
-    			if (np.getProtoName().equals("Facet-Center")) return false;
+    			// don't copy Cell-Centers
+    			if (ni.getProto() == Generic.tech.cellCenterNode) return false;
                 AffineTransform trans = ni.rotateOut();
-				PrimitiveNode prim = (PrimitiveNode)np;
-				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, null);
-                for (int i=0; i<polys.length; i++)
-                    polys[i].transform(trans);
-                cellGeom.addPolys(polys);
-                
+				addNodeInst(ni, trans);
+               
                 return false;
     		}
-            // else just a cell
+
+			// else just a cell
             cellGeom.nodables.add(no);
             return true;
         }
-    
+
+		public void addNodeInst(NodeInst ni, AffineTransform trans)
+		{
+			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
+			Technology tech = prim.getTechnology();
+			Poly [] polys = tech.getShapeOfNode(ni, null);
+			for (int i=0; i<polys.length; i++)
+				polys[i].transform(trans);
+			cellGeom.addPolys(polys);
+		}
+
+		public void addArcInst(ArcInst ai)
+		{
+			ArcProto ap = ai.getProto();
+			Technology tech = ap.getTechnology();
+			Poly [] polys = tech.getShapeOfArc(ai, null);
+			cellGeom.addPolys(polys);
+		}
     }
-    
+
     //----------------------------Utility Methods--------------------------------------
-    
+
     /** get the max hierarchical depth of the hierarchy */
     public static int getMaxHierDepth(Cell cell)
     {
         return hierCellsRecurse(cell, 0, 0);
     }
-    
+
     /** Recursive method used to traverse down hierarchy */
     private static int hierCellsRecurse(Cell cell, int depth, int maxDepth)
     {
@@ -218,5 +242,5 @@ public abstract class OutputGeometry extends Output {
         }
         return maxDepth;
     }
-    
+
 }

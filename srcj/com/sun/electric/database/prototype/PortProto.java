@@ -246,7 +246,7 @@ public abstract class PortProto extends ElectricObject
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
 	/** The temporary flag bits. */								private int flagBits;
-	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
+	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("PortProto");
 
 	// ----------------------- public constants -----------------------
 
