@@ -1,5 +1,7 @@
 			Java Electric change log
 
+IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
+
 ************************* Version 8.01l: *********************************
 
 IMP: (9/2/04, SMR) Small text is now drawn "greek" and is selectable.
