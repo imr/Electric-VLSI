@@ -2207,7 +2207,7 @@ public class NodeInst extends Geometric implements Nodable
     public boolean isSerpentineTransistor() {
         if (!isPrimitiveTransistor()) return false;
         PrimitiveNode pn = (PrimitiveNode)getProto();
-        if (pn.getSpecialType() == PrimitiveNode.SERPTRANS) return true;
+        if (pn.isHoldsOutline() && (getTrace() != null)) return true;
         return false;
     }
 
