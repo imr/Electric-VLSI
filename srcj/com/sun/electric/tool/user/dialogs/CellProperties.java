@@ -57,15 +57,48 @@ public class CellProperties extends EDialog
 
 	private static class PerCellValues
 	{
-		Pref disAllMod;
-		Pref disInstMod;
-		Pref inCellLib;
-		Pref useTechEditor;
-		Pref defExpanded;
-		Pref charX, charY;
-		Pref frameSize;
-		Pref designerName;
-	};
+        Pref disAllMod;
+        Pref disInstMod;
+        Pref inCellLib;
+        Pref useTechEditor;
+        Pref defExpanded;
+        Pref charX, charY;
+        Pref frameSize;
+        Pref designerName;
+
+        private PerCellValues(Cell cell) {
+
+            // remember the cell's toggle flags
+            disAllMod = Pref.makeBooleanPref(null, null, cell.isAllLocked());
+            disInstMod = Pref.makeBooleanPref(null, null, cell.isInstancesLocked());
+            inCellLib = Pref.makeBooleanPref(null, null, cell.isInCellLibrary());
+            useTechEditor = Pref.makeBooleanPref(null, null, cell.isInTechnologyLibrary());
+            defExpanded = Pref.makeBooleanPref(null, null, cell.isWantExpanded());
+
+            // remember the characteristic spacing
+            double cX = 0, cY = 0;
+            Dimension2D spacing = cell.getCharacteristicSpacing();
+            if (spacing != null)
+            {
+                cX = spacing.getWidth();
+                cY = spacing.getHeight();
+            }
+            charX = Pref.makeDoublePref(null, null, cX);
+            charY = Pref.makeDoublePref(null, null, cY);
+
+            // remember the frame size
+            String fSize = "";
+            Variable var = cell.getVar(User.FRAME_SIZE, String.class);
+            if (var != null) fSize = (String)var.getObject();
+            frameSize = Pref.makeStringPref(null, null, fSize);
+
+            // remember the designer name
+            String dName = "";
+            var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
+            if (var != null) dName = (String)var.getObject();
+            designerName = Pref.makeStringPref(null, null, dName);
+        }
+	}
 
 	/** Creates new form Cell Properties */
 	public CellProperties(java.awt.Frame parent, boolean modal)
@@ -75,48 +108,17 @@ public class CellProperties extends EDialog
 
 		// cache all information
 		origValues = new HashMap();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+/*		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				PerCellValues pcv = new PerCellValues();
-
-				// remember the cell's toggle flags
-				pcv.disAllMod = Pref.makeBooleanPref(null, null, cell.isAllLocked());
-				pcv.disInstMod = Pref.makeBooleanPref(null, null, cell.isInstancesLocked());
-				pcv.inCellLib = Pref.makeBooleanPref(null, null, cell.isInCellLibrary());
-				pcv.useTechEditor = Pref.makeBooleanPref(null, null, cell.isInTechnologyLibrary());
-				pcv.defExpanded = Pref.makeBooleanPref(null, null, cell.isWantExpanded());
-
-				// remember the characteristic spacing
-				double cX = 0, cY = 0;
-				Dimension2D spacing = cell.getCharacteristicSpacing();
-				if (spacing != null)
-				{
-					cX = spacing.getWidth();
-					cY = spacing.getHeight();
-				}
-				pcv.charX = Pref.makeDoublePref(null, null, cX);
-				pcv.charY = Pref.makeDoublePref(null, null, cY);
-
-				// remember the frame size
-				String fSize = "";
-				Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-				if (var != null) fSize = (String)var.getObject();
-				pcv.frameSize = Pref.makeStringPref(null, null, fSize);
-
-				// remember the designer name
-				String dName = "";
-				var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
-				if (var != null) dName = (String)var.getObject();
-				pcv.designerName = Pref.makeStringPref(null, null, dName);
-
+				PerCellValues pcv = new PerCellValues(cell);
 				origValues.put(cell, pcv);
 			}
-		}
+		}*/
 
 		// build the cell list
 		cellListModel = new DefaultListModel();
@@ -211,6 +213,18 @@ public class CellProperties extends EDialog
 		return cell;
 	}
 
+    /**
+     * Lazy caching
+     */
+    private PerCellValues getPCV(Cell cell) {
+        PerCellValues pcv = (PerCellValues)origValues.get(cell);
+        if (pcv == null) {
+            pcv = new PerCellValues(cell);
+            origValues.put(cell, pcv);
+        }
+        return pcv;
+    }
+
 	/**
 	 * Method called when a cell name is clicked in the list.
 	 * Updates the displayed values for that cell.
@@ -219,7 +233,7 @@ public class CellProperties extends EDialog
 	{
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		if (pcv == null) return;
 
 		changing = true;
@@ -280,7 +294,8 @@ public class CellProperties extends EDialog
 		if (changing) return;
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
+        if (pcv == null) return;
 
 		// get current text fields
 		pcv.charX.setDouble(TextUtils.atof(charXSpacing.getText()));
@@ -293,7 +308,8 @@ public class CellProperties extends EDialog
 		if (changing) return;
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
+        if (pcv == null) return;
 
 		// get current cell frame information
 		String currentFrameSize = "";
@@ -843,7 +859,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_expandNewInstancesActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		pcv.defExpanded.setBoolean(expandNewInstances.isSelected());
 	}//GEN-LAST:event_expandNewInstancesActionPerformed
 
@@ -856,7 +872,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_useTechEditorActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		pcv.useTechEditor.setBoolean(useTechEditor.isSelected());
 	}//GEN-LAST:event_useTechEditorActionPerformed
 
@@ -864,7 +880,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_partOfCellLibActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		pcv.inCellLib.setBoolean(partOfCellLib.isSelected());
 	}//GEN-LAST:event_partOfCellLibActionPerformed
 
@@ -872,7 +888,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_disallowModInstInCellActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		pcv.disInstMod.setBoolean(disallowModInstInCell.isSelected());
 	}//GEN-LAST:event_disallowModInstInCellActionPerformed
 
@@ -880,7 +896,7 @@ public class CellProperties extends EDialog
 	{//GEN-HEADEREND:event_disallowModAnyInCellActionPerformed
 		Cell cell = getSelectedCell();
 		if (cell == null) return;
-		PerCellValues pcv = (PerCellValues)origValues.get(cell);
+		PerCellValues pcv = getPCV(cell);
 		pcv.disAllMod.setBoolean(disallowModAnyInCell.isSelected());
 	}//GEN-LAST:event_disallowModAnyInCellActionPerformed
 
@@ -891,7 +907,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.useTechEditor.setBoolean(false);
 		}
 		cellListClick();
@@ -904,7 +920,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.useTechEditor.setBoolean(true);
 		}
 		cellListClick();
@@ -917,7 +933,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.inCellLib.setBoolean(false);
 		}
 		cellListClick();
@@ -930,7 +946,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.inCellLib.setBoolean(true);
 		}
 		cellListClick();
@@ -943,7 +959,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.disInstMod.setBoolean(false);
 		}
 		cellListClick();
@@ -956,7 +972,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.disInstMod.setBoolean(true);
 		}
 		cellListClick();
@@ -969,7 +985,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.disAllMod.setBoolean(false);
 		}
 		cellListClick();
@@ -982,7 +998,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			PerCellValues pcv = (PerCellValues)origValues.get(cell);
+			PerCellValues pcv = getPCV(cell);
 			pcv.disAllMod.setBoolean(true);
 		}
 		cellListClick();
@@ -1015,13 +1031,10 @@ public class CellProperties extends EDialog
 
 		public boolean doIt()
 		{
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            for (Iterator it = dialog.origValues.keySet().iterator(); it.hasNext(); )
 			{
-				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = (Cell)cIt.next();
-					PerCellValues pcv = (PerCellValues)dialog.origValues.get(cell);
+                    Cell cell = (Cell)it.next();
+					PerCellValues pcv = dialog.getPCV(cell);
 					if (pcv.disAllMod.getBoolean() != pcv.disAllMod.getBooleanFactoryValue())
 					{
 						if (pcv.disAllMod.getBoolean()) cell.setAllLocked(); else cell.clearAllLocked();
@@ -1054,8 +1067,8 @@ public class CellProperties extends EDialog
 					if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
 					{
 						cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
-					}
-				}
+                    }
+
 			}
 			return true;
 		}
