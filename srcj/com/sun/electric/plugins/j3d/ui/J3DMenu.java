@@ -86,8 +86,10 @@ public class J3DMenu {
     public static void readDemoDataFromFile()
     {
         String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
-        Object[] possibleValues = { "OK", "Skip", "Cancel" };
 
+        if (fileName == null) return; // Cancel
+
+        Object[] possibleValues = { "OK", "Skip", "Cancel" };
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
         if (content instanceof View3DWindow)

@@ -199,7 +199,10 @@ public class JThreeDSideView extends JPanel
                 shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
         shape = (Shape3D)layerPolyhedra.get(layer);
-        shape.setAppearance(J3DAppearance.highligtApp);
+        if (shape != null)
+            shape.setAppearance(J3DAppearance.highligtApp);
+        else
+            System.out.println("Shape is null in JThreeDSideView.showLayer");
         currentLayerSelected = layer;
     }
 
