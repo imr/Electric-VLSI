@@ -46,6 +46,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.WiringListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -104,6 +105,7 @@ public class AutoStitch
 		FlagSet nodeMark;
 		boolean forced;
         List allRoutes;                 // list of all routes to be created at end of analysis
+        List possibleInlinePins;        // list of pins that may be inline pins due to created arcs
 
 		protected AutoStitchJob(List nodesToStitch, boolean forced)
 		{
@@ -111,6 +113,7 @@ public class AutoStitch
 			this.nodesToStitch = nodesToStitch;
 			this.forced = forced;
             this.allRoutes = new ArrayList();
+            this.possibleInlinePins = new ArrayList();
 			startJob();
 		}
 
@@ -261,6 +264,24 @@ public class AutoStitch
                 RouteElement re = (RouteElement)route.get(0);
                 Cell c = re.getCell();
                 Router.createRouteNoJob(route, c, false, false);            
+            }
+
+            // check for any inline pins due to created wires
+            List pinsToPassThrough = new ArrayList();
+            Cell cell = null;
+            for (Iterator it = possibleInlinePins.iterator(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                cell = ni.getParent();
+                if (ni.isInlinePin()) {
+                    CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
+                    if (re != null) {
+                        pinsToPassThrough.add(re);
+                    }
+                }
+            }
+            if ((pinsToPassThrough.size() > 0) && (cell != null)) {
+                CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList(),
+                        pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
             }
 
 			return true;

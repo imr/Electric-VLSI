@@ -147,6 +147,15 @@ public class Export extends PortProto
 	{
 		checkChanging();
 
+        // get unique name
+        Cell cell = originalPort.getNodeInst().getParent();
+        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class);
+        if (!dupName.equals(newName)) {
+            System.out.println("Cell " + cell.describe() + " already has an export named " + newName +
+                    ", making new export named "+dupName);
+            newName = dupName;
+        }
+
 		// do the rename
 		Name oldName = getNameKey();
 		lowLevelRename(newName);
@@ -155,7 +164,6 @@ public class Export extends PortProto
 		Undo.renameObject(this, oldName);
 
         // rename associated export in icon, if any
-        Cell cell = originalPort.getNodeInst().getParent();
         Cell iconCell = cell.iconView();
         if ((iconCell != null) && (iconCell != cell)) {
             for (Iterator it = iconCell.getPorts(); it.hasNext(); ) {

@@ -2826,7 +2826,7 @@ public class CircuitChanges
 	/**
 	 * This class implements the changes needed to cleanup pins in a Cell.
 	 */
-	private static class CleanupChanges extends Job
+	public static class CleanupChanges extends Job
 	{
 		private Cell cell;
 		private boolean justThis;
@@ -2837,7 +2837,7 @@ public class CircuitChanges
 		private HashMap arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
-		private CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
+		public CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
 			super("Cleanup cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
