@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ae: *********************************
+
 ************************* Version 8.01ad: *********************************
 
 BUG: (10/25/04, DN) Network tool didn't recompute icon after removal of export.
@@ -19,10 +21,6 @@ FIX: Add method "modifyCellGroup" to interface "database.changes.Change".
 IMP: (10/25/04, DN) Explorer context menu allows only newest versions of schematic cells to be
      main schematics.
 
-IMP: (10/23/04, GVG) Cleaning TechPalette and putting in default position last PrimitiveNode selected
-
-************************* Version 8.01ac: *********************************
-
 IMP/MAN: (10/25/04, SMR) Added "BiCMOS" technology.
 
 BUG: (10/24/04, SMR) JELIB files fail if there is a library with the same name as a technology.
@@ -34,6 +32,10 @@ IMP/MAN: (10/24/04, SMR) Added "GDS" input.
 
 BUG: (10/24/04, SMR) Changing an icon size does not affect the "example" instance in the schematic.
 FIX: In "database.constraint.Layout.lookDown()", do not ignore example icons.
+
+IMP: (10/23/04, GVG) Cleaning TechPalette and putting in default position last PrimitiveNode selected
+
+************************* Version 8.01ac: *********************************
 
 BUG: (10/22/04, GVG) Out of bound in Cell.getName() as cell names don't have same length
 FIX: Skip cases where names don't have same length
