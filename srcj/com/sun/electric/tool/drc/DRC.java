@@ -388,9 +388,9 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			Schematic.doCheck(cell);
+			ErrorLogger errorLog = Schematic.doCheck(cell);
 			long endTime = System.currentTimeMillis();
-			int errorCount = ErrorLogger.getCurrent().getNumErrors();
+			int errorCount = errorLog.getNumErrors();
 			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
 		}

@@ -58,7 +58,7 @@ public class Schematic
 	private static FlagSet cellsCheckedBit;
     private static ErrorLogger errorLogger = null;
 
-	public static void doCheck(Cell cell)
+	public static ErrorLogger doCheck(Cell cell)
 	{
 		cellsCheckedBit = Cell.getFlagSet(1);
 		cellsCheckedBit.clearOnAllCells();
@@ -68,6 +68,7 @@ public class Schematic
 		checkSchematicCellRecursively(cell);
 		errorLogger.termLogging(true);
 		cellsCheckedBit.freeFlagSet();
+		return(errorLogger);
 	}
 
 	private static void checkSchematicCellRecursively(Cell cell)

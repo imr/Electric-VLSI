@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ac: *********************************
 
+IMP: (10/22/04, GVG) Proper set of ErrorLog for Schematic DRC.
+
 IMP: (10/22/04, GVG) Cross-shaped contacts are default in TechPalette. For PrimitiveNode, default node
 (e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow.
 
