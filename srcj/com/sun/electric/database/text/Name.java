@@ -45,12 +45,12 @@ import java.util.Map;
  */
 public class Name implements Comparable
 {
-	/** the original name */	private String ons;
-	/** the canonical name */	private String ns;
-	/** the lowercase name */	private Name lowerCase;
+	/** the original name */	private final String ons;
+	/** the canonical name */	private final String ns;
+	/** the lowercase name */	private final Name lowerCase;
 	/** list of subnames */		private Name[] subnames;
-	/** basename */				private Name basename;
-	/** numerical suffix */     private int numSuffix;
+	/** basename */				private final Name basename;
+	/** numerical suffix */     private final int numSuffix;
 	/** the flags */			private int flags;
 	
 	/** Map String -> Name */	private static Map allNames = new HashMap();
@@ -304,7 +304,8 @@ public class Name implements Comparable
 	{
 		this.ons = ons;
 		this.ns = trimPlusMinus(ons);
-		this.numSuffix = 0;
+        int suffix = 0;
+        Name base = this;
 		String lower = ns.toLowerCase();
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
 		try
@@ -313,7 +314,6 @@ public class Name implements Comparable
 		} catch (NumberFormatException e)
 		{
 			flags = ERROR;
-			return;
 		}
 		if ((flags & SIMPLE) != 0)
 		{
@@ -321,12 +321,15 @@ public class Name implements Comparable
 			while (l > 0 && Character.isDigit(ns.charAt(l-1))) l--;
 			if (l == ns.length())
 			{
-				basename = this;
+                base = this;
 			} else {
-				basename = findTrimmedName(ns.substring(0,l));
-				numSuffix = Integer.parseInt(ns.substring(l));
+				base = findTrimmedName(ns.substring(0,l));
+				suffix = Integer.parseInt(ns.substring(l));
 			}
 		}
+        this.numSuffix = suffix;
+        this.basename = base;
+        if (flags == ERROR) return;
 		if ((flags & BUS) == 0) return;
 
 		// Make subnames
