@@ -1168,7 +1168,9 @@ public class Spice extends Topology
                 infstr.append(cs.getName());
             } else if (paramName.equalsIgnoreCase("node_name"))
             {
-                infstr.append(getSafeNetName(no.getName(), false));
+            	String nodeName = getSafeNetName(no.getName(), false);
+//            	nodeName = nodeName.replaceAll("[\\[\\]]", "_");
+                infstr.append(nodeName);
             } else
             {
                 // no port name found, look for variable name

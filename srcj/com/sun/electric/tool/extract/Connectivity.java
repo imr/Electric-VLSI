@@ -262,6 +262,14 @@ public class Connectivity
 					return;
 				}
 				newNodes.put(ni, newNi);
+
+				// copy exports too
+				for(Iterator it = ni.getExports(); it.hasNext(); )
+				{
+					Export e = (Export)it.next();
+					PortInst pi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
+					Export.newInstance(newCell, pi, e.getName());
+				}
 				continue;
 			}
 

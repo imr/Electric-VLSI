@@ -957,7 +957,7 @@ public class WaveformWindow implements WindowContent
 					if (isAnalog)
 					{
 						// show the low value
-						String lowValueString = TextUtils.formatDouble(lowValue);
+						String lowValueString = TextUtils.formatDouble(highValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowValueString);
 						glyphBounds = gv.getVisualBounds();
 						textWid = (int)glyphBounds.getWidth();
@@ -970,13 +970,13 @@ public class WaveformWindow implements WindowContent
 						g.drawLine(xP, lowY-1, xP-4, lowY-5);
 
 						// show the high value
-						String highValueString = TextUtils.formatDouble(highValue);
+						String highValueString = TextUtils.formatDouble(lowValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, highValueString);
 						glyphBounds = gv.getVisualBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						yText = highY + 10 + textHei;
-						g.drawString(lowValueString, xP, yText + textHei + 2);
+						g.drawString(highValueString, xP, yText + textHei + 2);
 						g.drawLine(xP, highY+1, xP, yText);
 						g.drawLine(xP, highY+1, xP+4, highY+5);
 						g.drawLine(xP, highY+1, xP-4, highY+5);
@@ -992,7 +992,7 @@ public class WaveformWindow implements WindowContent
 							// fits inside: draw arrows around text
 							int xPos = highX + highTimeTextWid + 30;
 							int yCtr = (highY+lowY)/2;
-							g.drawString(timeDiffString, xPos+2, yCtr + textHei/2);
+							g.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
 							g.drawLine(xPos, lowY, xPos, highY);
 							g.drawLine(xPos, lowY, xPos+4, lowY+5);
 							g.drawLine(xPos, lowY, xPos-4, lowY+5);
@@ -1003,7 +1003,7 @@ public class WaveformWindow implements WindowContent
 							// does not fit inside: draw outside of arrows
 							int xPos = highX + highTimeTextWid + 30;
 							int yCtr = (highY+lowY)/2;
-							g.drawString(timeDiffString, xPos+4, lowY - textHei/2 - 4);
+							g.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
 							g.drawLine(xPos, lowY, xPos, lowY-10);
 							g.drawLine(xPos, highY, xPos, highY+10);
 							g.drawLine(xPos, lowY, xPos+4, lowY-5);
