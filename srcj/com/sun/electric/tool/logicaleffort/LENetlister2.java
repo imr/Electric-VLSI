@@ -535,6 +535,11 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (ignore == 1)
                 return LENodable.Type.IGNORE;
         }
+        else if ((var = ni.getParameter("ATTR_LEIGNORE")) != null) {
+            int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
+            if (ignore == 1)
+                return LENodable.Type.IGNORE;
+        }
 
         return null;
     }
