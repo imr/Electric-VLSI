@@ -31,12 +31,12 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -52,6 +52,16 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.generator.PadGenerator;
+import com.sun.electric.tool.io.Input;
+import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.logicaleffort.LENetlister;
+import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.routing.MimicStitch;
+import com.sun.electric.tool.simulation.Spice;
+import com.sun.electric.tool.simulation.IRSIMTool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLog;
@@ -83,31 +93,20 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.logicaleffort.LENetlister;
-import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.generator.PadGenerator;
-import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.routing.MimicStitch;
-import com.sun.electric.tool.simulation.Spice;
-import com.sun.electric.tool.simulation.IRSIMTool;
-import com.sun.electric.tool.io.Input;
-import com.sun.electric.tool.io.Output;
-//import com.sun.electric.tool.ncc.factory.NetFactory;
 
+import java.awt.Toolkit;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
-import java.awt.Toolkit;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -386,6 +385,13 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(true); } });
 		exportMenu.addMenuItem("List Exports", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(false); } });
+		exportMenu.addMenuItem("Show Exports", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showExports(); } });
+
+		exportMenu.addSeparator();
+
+		exportMenu.addMenuItem("Show Ports on Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showPorts(); } });
 
 		/****************************** THE VIEW MENU ******************************/
 

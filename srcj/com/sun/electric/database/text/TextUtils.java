@@ -234,6 +234,27 @@ public class TextUtils
 		return false;
 	}
 
+	/**
+	 * Method to print a very long string.
+	 * The string is broken sensibly.
+	 */
+	public static void printLongString(String str)
+	{
+		String prefix = "";
+		while (str.length() > 80)
+		{
+			int i = 80;
+			for( ; i > 0; i--) if (str.charAt(i) == ' ' || str.charAt(i) == ',') break;
+			if (i <= 0) i = 80;
+			if (str.charAt(i) == ',') i++;
+			System.out.println(prefix + str.substring(0, i));
+			if (str.charAt(i) == ' ') i++;
+			str = str.substring(i);
+			prefix = "   ";
+		}
+		System.out.println(prefix + str);
+	}
+
 	/*
 	 * Routine to compare two names "name1" and "name2" and return an
 	 * integer giving their sorting order (0 if equal, nonzero according

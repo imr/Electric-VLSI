@@ -23,22 +23,22 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
@@ -55,14 +55,15 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.ToolBar;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Stack;
-import java.util.EventListener;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Font;
+import java.awt.BasicStroke;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Color;
+import java.awt.Shape;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -73,23 +74,22 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
-import javax.swing.KeyStroke;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.BasicStroke;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Arc2D;
-import java.awt.Font;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Stack;
+import java.util.EventListener;
+import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 import javax.swing.JMenu;
@@ -520,7 +520,6 @@ public class EditWindow extends JPanel
 				Export e = (Export)it.next();
 				Poly poly = e.getNamePoly();
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-				poly.transform(localTrans);
 				if (exportDisplayLevel == 2)
 				{
 					// draw port as a cross
@@ -983,6 +982,18 @@ public class EditWindow extends JPanel
 	public void setGridYSpacing(float spacing) { gridYSpacing = spacing; }
 
 	/**
+	 * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
+	 * @return a rectangle that describes the viewable extent of this window (database coordinates).
+	 */
+	public Rectangle2D displayableBounds()
+	{
+		Point2D low = screenToDatabase(0, 0);
+		Point2D high = screenToDatabase(sz.width-1, sz.height-1);
+		Rectangle2D bounds = new Rectangle2D.Double(low.getX(), high.getY(), high.getX()-low.getX(), low.getY()-high.getY());
+		return bounds;
+	}
+
+	/**
 	 * Method to display the grid.
 	 */
 	private void drawGrid(Graphics g)
@@ -996,10 +1007,9 @@ public class EditWindow extends JPanel
 		int yspacing = User.getDefGridYBoldFrequency();
 
 		/* object space extent */
-		Point2D low = screenToDatabase(0, 0);
-		double x4 = low.getX();  double y4 = low.getY();
-		Point2D high = screenToDatabase(sz.width, sz.height);
-		double x5 = high.getX();  double y5 = high.getY();
+		Rectangle2D displayable = displayableBounds();
+		double x4 = displayable.getMinX();  double y4 = displayable.getMaxY();
+		double x5 = displayable.getMaxX();  double y5 = displayable.getMinY();
 
 		/* initial grid location */
 		int x1 = ((int)x4) / x0 * x0;
@@ -1331,6 +1341,11 @@ public class EditWindow extends JPanel
 		int screenX = (int)(sz.width/2 + (dbX - offx) * scale);
 		int screenY = (int)(sz.height/2 - (dbY - offy) * scale);
 		return new Point(screenX, screenY);
+	}
+
+	public Point databaseToScreen(Point2D db)
+	{
+		return databaseToScreen(db.getX(), db.getY());
 	}
 
 	public Point2D deltaScreenToDatabase(int screenDX, int screenDY)

@@ -30,12 +30,12 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -57,14 +57,14 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import javax.swing.JOptionPane;
 
 /**
@@ -132,15 +132,15 @@ public final class ExportChanges
 				int eqJ = ((ExportList)exports.get(j)).equiv;
 				int blJ = ((ExportList)exports.get(j)).busList;
 				if (eqJ != -1 || blJ != -1) continue;
+				Export ppJ = ((ExportList)exports.get(j)).pp;
+				JNetwork netJ = netlist.getNetwork(ppJ.getOriginalPort());
 				for(int k=j+1; k<num_found; k++)
 				{
 					int eqK = ((ExportList)exports.get(k)).equiv;
 					int blK = ((ExportList)exports.get(k)).busList;
 					if (eqK != -1 || blK != -1) continue;
-					Export ppJ = ((ExportList)exports.get(j)).pp;
 					Export ppK = ((ExportList)exports.get(k)).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-					JNetwork netJ = netlist.getNetwork(ppJ.getOriginalPort());
 					JNetwork netK = netlist.getNetwork(ppK.getOriginalPort());
 					if (netJ != netK) continue;
 					((ExportList)exports.get(k)).equiv = j;
@@ -154,24 +154,25 @@ public final class ExportChanges
 				int eqJ = ((ExportList)exports.get(j)).equiv;
 				int blJ = ((ExportList)exports.get(j)).busList;
 				if (eqJ != -1 || blJ != -1) continue;
+				Export ppJ = ((ExportList)exports.get(j)).pp;
+				String ptJ = ppJ.getProtoName();
+				int sqPosJ = ptJ.indexOf('[');
+				if (sqPosJ < 0) continue;
 				for(int k=j+1; k<num_found; k++)
 				{
 					int eqK = ((ExportList)exports.get(k)).equiv;
 					int blK = ((ExportList)exports.get(k)).busList;
 					if (eqK != -1 || blK != -1) continue;
-					Export ppJ = ((ExportList)exports.get(j)).pp;
 					Export ppK = ((ExportList)exports.get(k)).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
 
-					String pt1 = ppJ.getProtoName();
-					String pt2 = ppK.getProtoName();
-					int sqPos1 = pt1.indexOf('[');
-					int sqPos2 = pt2.indexOf('[');
-					if (sqPos1 != sqPos2 || sqPos1 < 0) continue;
-					if (pt1.substring(0, sqPos1).equalsIgnoreCase(pt2.substring(0, sqPos2)))
+					String ptK = ppK.getProtoName();
+					int sqPosK = ptK.indexOf('[');
+					if (sqPosJ != sqPosK) continue;
+					if (ptJ.substring(0, sqPosJ).equalsIgnoreCase(ptK.substring(0, sqPosK)))
 					{
-						((ExportList)exports.get(k)).equiv = j;
-						((ExportList)exports.get(j)).equiv = -2;
+						((ExportList)exports.get(k)).busList = j;
+						((ExportList)exports.get(j)).busList = -2;
 					}
 				}
 			}
@@ -288,6 +289,7 @@ public final class ExportChanges
 						if (first)
 						{
 							infstr += activity + " ports '" + pt1.substring(0, openPos) + "[";
+							first = false;
 						} else
 						{
 							infstr += ",";
@@ -295,7 +297,7 @@ public final class ExportChanges
 						int closePos = pt1.lastIndexOf(']');
 						infstr += pt1.substring(openPos+1, closePos);
 					}
-					infstr += "] at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
+					infstr += "]' at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
 					infstr = us_addpossiblearcconnections(infstr, arcMark);
 				} else
 				{
@@ -318,23 +320,7 @@ public final class ExportChanges
 				}
 			}
 
-			System.out.println(infstr);
-//			str = returninfstr(infstr);
-//			prefix = x_("");
-//			while (estrlen(str) > 80)
-//			{
-//				for(i=80; i > 0; i--) if (str[i] == ' ' || str[i] == ',') break;
-//				if (i <= 0) i = 80;
-//				if (str[i] == ',') i++;
-//				save = str[i];
-//				str[i] = 0;
-//				System.out.println(x_("%s%s"), prefix, str);
-//				str[i] = save;
-//				str = &str[i];
-//				if (str[0] == ' ') str++;
-//				prefix = x_("   ");
-//			}
-//			System.out.println(x_("%s%s"), prefix, str);
+			TextUtils.printLongString(infstr);
 		}
 		if (wnp != null)
 		{
@@ -678,4 +664,223 @@ public final class ExportChanges
 		}
 	}
 
+	static class ShownPorts
+	{
+		Point2D   loc;
+		PortProto pp;
+		int       angle;
+	};
+
+	/**
+	 * Method to show all exports in the current cell.
+	 */
+	public static void showExports()
+	{
+		showPortsAndExports(null);
+	}
+
+	/**
+	 * Method to show all ports on the selected nodes in the current cell.
+	 */
+	public static void showPorts()
+	{
+		List nodes = Highlight.getHighlighted(true, false);
+		if (nodes == null || nodes.size() == 0)
+		{
+			System.out.println("No nodes are highlighted");
+			return;
+		}
+		showPortsAndExports(nodes);
+	}
+
+	private static void showPortsAndExports(List nodes)
+	{
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null)
+		{
+			System.out.println("No current window");
+			return;
+		}
+		Cell cell = wnd.getCell();
+		if (cell == null)
+		{
+			System.out.println("No cell in this window");
+			return;
+		}
+		int total = cell.getNumPorts();
+		if (nodes != null)
+		{
+			total = 0;
+			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				total += ni.getNumPortInsts();
+			}
+		}
+		Rectangle2D displayable = wnd.displayableBounds();
+		double digitIndentX = displayable.getWidth() / 15;
+		double digitIndentY = displayable.getHeight() / 15;
+
+		// allocate space for the port information
+		Point2D [] labelLocs = new Point2D.Double[total];
+		ShownPorts [] portList = new ShownPorts[total];
+		int numPerSide = (total + 3) / 4;
+		int leftSideCount, topSideCount, rightSideCount, botSideCount;
+		leftSideCount = topSideCount = rightSideCount = botSideCount = numPerSide;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			botSideCount--;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			topSideCount--;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			rightSideCount--;
+		int fill = 0;
+		for(int i=0; i<leftSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMinX() + digitIndentX,
+				displayable.getHeight() / (leftSideCount+1) * (i+1) + displayable.getMinY());
+		}
+		for(int i=0; i<topSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getWidth() / (topSideCount+1) * (i+1) + displayable.getMinX(),
+				displayable.getMaxY() - digitIndentY);
+		}
+		for(int i=0; i<rightSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - digitIndentX,
+				displayable.getMaxY() - displayable.getHeight() / (rightSideCount+1) * (i+1));
+		}
+		for(int i=0; i<botSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - displayable.getWidth() / (botSideCount+1) * (i+1),
+				displayable.getMinY() + digitIndentY);
+		}
+//		for(int i=0; i<total; i++)
+//		{
+//			if ((w->state&INPLACEEDIT) != 0)
+//				xform(labelLocs[i], &labelLocs[i], w->intocell);
+//		}
+
+		// associate ports with display locations
+		total = 0;
+		int ignored = 0;
+		if (nodes == null)
+		{
+			// handle exports on the cell
+			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				Poly poly = pp.getOriginalPort().getPoly();
+
+				Point2D ptOut = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+//				if ((w->state&INPLACEEDIT) != 0)
+//					xform(xout, yout, &xout, &yout, w->outofcell);
+				if (ptOut.getX() < displayable.getMinX() || ptOut.getX() > displayable.getMaxX() ||
+					ptOut.getY() < displayable.getMinY() || ptOut.getY() > displayable.getMaxY())
+				{
+					ignored++;
+					continue;
+				}
+
+				portList[total] = new ShownPorts();
+				portList[total].loc = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+				portList[total].pp = pp;
+				total++;
+			}
+		} else
+		{
+			// handle ports on the selected nodes
+			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					Poly poly = pi.getPoly();
+
+					Point2D ptOut = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+//					if ((w->state&INPLACEEDIT) != 0)
+//						xform(xout, yout, &xout, &yout, w->outofcell);
+					if (ptOut.getX() < displayable.getMinX() || ptOut.getX() > displayable.getMaxX() ||
+						ptOut.getY() < displayable.getMinY() || ptOut.getY() > displayable.getMaxY())
+					{
+						ignored++;
+						continue;
+					}
+
+					portList[total] = new ShownPorts();
+					portList[total].loc = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+					portList[total].pp = pi.getPortProto();
+					total++;
+				}
+			}
+		}
+
+		// build a sorted list of ports around the center
+		double x = 0, y = 0;
+		for(int i=0; i<total; i++)
+		{
+			x += portList[i].loc.getX();
+			y += portList[i].loc.getY();
+		}
+		Point2D center = new Point2D.Double(x / total, y / total);
+		for(int i=0; i<total; i++)
+		{
+			if (center.getX() == portList[i].loc.getX() && center.getY() == portList[i].loc.getY())
+				portList[i].angle = 0; else
+					portList[i].angle = -EMath.figureAngle(center, portList[i].loc);
+		}
+
+		List portLabels = new ArrayList();
+		for(int i=0; i<total; i++)
+			portLabels.add(portList[i]);
+		Collections.sort(portLabels, new SortPortAngle());
+		total = 0;
+		for(Iterator it = portLabels.iterator(); it.hasNext(); )
+			portList[total++] = (ShownPorts)it.next();
+
+		// figure out the best rotation offset
+		double bestDist = 0;
+		int bestOff = 0;
+		for(int i=0; i<total; i++)
+		{
+			double dist = 0;
+			for(int j=0; j<total; j++)
+				dist += labelLocs[j].distance(portList[(j+i)%total].loc);
+			if (dist < bestDist || i == 0)
+			{
+				bestOff = i;
+				bestDist = dist;
+			}
+		}
+
+		// show the ports
+		Highlight.clear();
+		if (nodes != null)
+		{
+			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				Highlight.addElectricObject(ni, cell);
+			}
+		}
+		for(int i=0; i<total; i++)
+		{
+			int index = (bestOff + i) % total;
+			Highlight.addMessage(cell, portList[index].pp.getProtoName(), labelLocs[i]);
+			Highlight.addLine(labelLocs[i], portList[index].loc, cell);
+		}
+		Highlight.finished();
+		if (ignored > 0)
+			System.out.println("Could not display " + ignored + " ports (outside of the window)");
+	}
+
+	static class SortPortAngle implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			ShownPorts s1 = (ShownPorts)o1;
+			ShownPorts s2 = (ShownPorts)o2;
+			return s1.angle - s2.angle;
+		}
+	}
 }

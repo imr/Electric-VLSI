@@ -23,14 +23,16 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -65,9 +67,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
@@ -75,13 +74,16 @@ import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.GeneralPath;
-import java.awt.Font;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import javax.swing.JPanel;
 
 /*
@@ -104,6 +106,7 @@ import javax.swing.JPanel;
  *   </UL>
  * <LI>BBOX: a rectangular area is selected.  Fills in "bounds" and the parent "cell".
  * <LI>LINE: a line is selected.  Fills in "pt1", "pt2" and the parent "cell".
+ * <LI>MESSAGE: a random piece of text is displayed (not from the database.  Fills in "pt1", "msg" and the parent "cell".
  * </UL>
  */
 public class Highlight
@@ -136,6 +139,7 @@ public class Highlight
 		/** Describes highlighted text. */						public static final Type TEXT = new Type("text");
 		/** Describes a highlighted area. */					public static final Type BBOX = new Type("area");
 		/** Describes a highlighted line. */					public static final Type LINE = new Type("line");
+		/** Describes a non-database text. */					public static final Type MESSAGE = new Type("message");
 	}
 
 	/** The type of the highlighting. */						private Type type;
@@ -146,6 +150,7 @@ public class Highlight
 	/** The highlighted Name. */								private Name name;
 	/** The highlighted area. */								private Rectangle2D bounds;
 	/** The highlighted line. */								private Point2D pt1, pt2;
+	/** The highlighted message. */								private String msg;
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
@@ -164,6 +169,7 @@ public class Highlight
 		this.bounds = null;
 		this.pt1 = null;
 		this.pt2 = null;
+		this.msg = null;
 	}
 
 	/**
@@ -224,6 +230,24 @@ public class Highlight
 	}
 
 	/**
+	 * Method to add a message display to the list of highlighted objects.
+	 * @param cell the Cell in which this area resides.
+	 * @param message the String to display.
+	 * @param loc the location of the string (in database units).
+	 * @return the newly created Highlight object.
+	 */
+	public static Highlight addMessage(Cell cell, String message, Point2D loc)
+	{
+		Highlight h = new Highlight(Type.MESSAGE);
+		h.msg = message;
+		h.cell = cell;
+		h.pt1 = loc;
+
+		highlightList.add(h);
+		return h;
+	}
+
+	/**
 	 * Method to add an area to the list of highlighted objects.
 	 * @param area the Rectangular area to add to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
@@ -259,7 +283,7 @@ public class Highlight
 	}
 
 	/**
-	 * Method to return the type of this Highlight (EOBJ, TEXT, BBOX, or LINE).
+	 * Method to return the type of this Highlight (EOBJ, TEXT, BBOX, LINE, or MESSAGE).
 	 * @return the type of this Highlight.
 	 */
 	public Type getType() { return type; }
@@ -530,6 +554,9 @@ public class Highlight
 				double sX = Math.abs(h.pt1.getX() - h.pt2.getX());
 				double sY = Math.abs(h.pt1.getY() - h.pt2.getY());
 				highBounds = new Rectangle2D.Double(cX, cY, sX, sY);
+			} else if (h.getType() == Type.MESSAGE)
+			{
+				highBounds = new Rectangle2D.Double(h.pt1.getX(), h.pt1.getY(), 0, 0);
 			}
 
 			// combine this highlight's bounds with the overall one
@@ -653,19 +680,25 @@ public class Highlight
 				{
 					Highlight got = checkOutObject((Geometric)eobj, true, true, searchArea, wnd, directHitDist, false);
 					if (got == null) continue;
-					ElectricObject hReal = got.getElectricObject();
+					ElectricObject hObj = got.getElectricObject();
+					ElectricObject hReal = hObj;
 					if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
 					for(Iterator sIt = getHighlights(); sIt.hasNext(); )
 					{
 						Highlight alreadyHighlighted = (Highlight)sIt.next();
 						if (alreadyHighlighted.getType() != got.getType()) continue;
-						ElectricObject aHReal = alreadyHighlighted.getElectricObject();
+						ElectricObject aHObj = alreadyHighlighted.getElectricObject();
+						ElectricObject aHReal = aHObj;
 						if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
 						if (hReal == aHReal)
 						{
 							// found it: adjust the port/point
-							alreadyHighlighted.setElectricObject(got.getElectricObject());
-							alreadyHighlighted.setPoint(got.getPoint());
+							if (hObj != aHObj || alreadyHighlighted.getPoint() != got.getPoint())
+							{
+								alreadyHighlighted.setElectricObject(got.getElectricObject());
+								alreadyHighlighted.setPoint(got.getPoint());
+								wnd.redraw();
+							}
 							break;
 						}
 					}
@@ -675,6 +708,10 @@ public class Highlight
 		}
 		return false;	
 	}
+
+	/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
+    /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
+    /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
 	/**
 	 * Method to display this Highlight in a window.
@@ -799,6 +836,11 @@ public class Highlight
 			}
 			return;
 		}
+		if (type == Type.MESSAGE)
+		{
+			Point loc = wnd.databaseToScreen(pt1.getX(), pt1.getY());
+			g.drawString(msg, loc.x, loc.y);
+		}
 
 		// highlight ArcInst
 		if (eobj instanceof ArcInst)
@@ -919,6 +961,77 @@ public class Highlight
 				{
 					drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
 				}
+
+				// handle verbose highlighting of nodes
+				Netlist netlist = cell.getUserNetlist();
+				int busWidth = pp.getProtoNameKey().busWidth();
+
+				FlagSet markObj = Geometric.getFlagSet(1);
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
+					((NodeInst)it.next()).clearBit(markObj);
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+					ai.clearBit(markObj);
+					int arcBusWidth = netlist.getBusWidth(ai);
+					if (arcBusWidth != busWidth) continue;
+					boolean different = false;
+					for(int i=0; i<busWidth; i++)
+					{
+						if (netlist.getNetwork(ni, pp, i) != netlist.getNetwork(ai, i))
+						{
+							different = true;
+							break;
+						}
+					}
+					if (different) continue;
+
+					ai.setBit(markObj);
+					ai.getHead().getPortInst().getNodeInst().setBit(markObj);
+					ai.getTail().getPortInst().getNodeInst().setBit(markObj);
+				}
+
+				// draw lines along all of the arcs on the network
+				Graphics2D g2 = (Graphics2D)g;
+				g2.setStroke(dashedLine);
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+					if (!ai.isBit(markObj)) continue;
+					Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
+					Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
+					g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
+				}
+
+				// draw dots in all connected nodes
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst oNi = (NodeInst)it.next();
+					if (oNi == ni) continue;
+					if (!oNi.isBit(markObj)) continue;
+
+					Point c = wnd.databaseToScreen(oNi.getTrueCenter());
+					g.fillOval(c.x-4, c.y-4, 8, 8);
+
+					// connect the center dots to the input arcs
+					Point2D nodeCenter = oNi.getTrueCenter();
+					for(Iterator pIt = oNi.getConnections(); pIt.hasNext(); )
+					{
+						Connection con = (Connection)pIt.next();
+						ArcInst ai = con.getArc();
+						if (!ai.isBit(markObj)) continue;
+						Point2D arcEnd = con.getLocation();
+						if (arcEnd.getX() != nodeCenter.getX() || arcEnd.getY() != nodeCenter.getY())
+						{
+							Point c1 = wnd.databaseToScreen(arcEnd);
+							Point c2 = wnd.databaseToScreen(nodeCenter);
+							g2.setStroke(dottedLine);
+							g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
+						}
+					}
+				}
+				g2.setStroke(solidLine);
+				markObj.freeFlagSet();
 			}
 		}
 	}
@@ -1007,7 +1120,6 @@ public class Highlight
 					poly.setTextDescriptor(td);
 					poly.setString(pp.getProtoName());
 					poly.setExactTextBounds(wnd);
-					poly.transform(pp.getOriginalPort().getNodeInst().rotateOut());
 				} else
 				{
 					// cell instance name
@@ -1018,7 +1130,6 @@ public class Highlight
 					pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
 					poly = new Poly(pointList);
 					poly.setStyle(td.getPos().getPolyType());
-					poly.transform(ni.rotateOut());
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe());
 					poly.setExactTextBounds(wnd);
@@ -1207,9 +1318,6 @@ public class Highlight
 				for(int i=0; i<polys.length; i++)
 				{
 					Poly poly = polys[i];
-
-					// do we need to do this? !!!
-					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
 					if (areaMustEnclose)
 					{
