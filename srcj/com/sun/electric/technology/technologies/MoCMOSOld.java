@@ -673,10 +673,10 @@ public class MoCMOSOld extends Technology
 
 		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
-			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.makeCenter()),
 		};
 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4)),
 		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
@@ -685,15 +685,15 @@ public class MoCMOSOld extends Technology
 		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(2)),
-			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.makeCenter()),
 		};
 		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(2)),
 		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
 		};
 		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(2)),
@@ -714,7 +714,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mp_node = PrimitiveNode.newInstance("Metal-1-Pin", this, 5, 5, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -729,7 +729,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mp0_node = PrimitiveNode.newInstance("Metal-2-Pin", this, 5, 5, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PM0_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(PM0_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -744,7 +744,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pp_node = PrimitiveNode.newInstance("Polysilicon-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		pp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -759,8 +759,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode sap_node = PrimitiveNode.newInstance("S-Active-Pin", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PSA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX),
-				new Technology.NodeLayer(PPS_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(PSA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2)),
+				new Technology.NodeLayer(PPS_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		sap_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -775,8 +775,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode dap_node = PrimitiveNode.newInstance("D-Active-Pin", this, 10, 10, new SizeOffset(4, 4, 4, 4),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX)
+				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		dap_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -791,8 +791,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode ap_node = PrimitiveNode.newInstance("Active-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
-				new Technology.NodeLayer(PSA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+				new Technology.NodeLayer(PSA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		ap_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -807,9 +807,9 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode msac_node = PrimitiveNode.newInstance("Metal-1-S-Active-Con", this, 10, 10, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN3BOX),
-				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX),
-				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(3)),
+				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2)),
+				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		msac_node.addPrimitivePorts(new PrimitivePort[]
@@ -823,9 +823,9 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mdac_node = PrimitiveNode.newInstance("Metal-1-D-Active-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN5BOX),
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(5)),
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
 				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		mdac_node.addPrimitivePorts(new PrimitivePort[]
@@ -839,8 +839,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-Con", this, 8, 8, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN2BOX),
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(2)),
 				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
@@ -878,8 +878,8 @@ public class MoCMOSOld extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3, 1, 1, 2, 2),
-				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 7, 7, 4, 4),
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX, 3, 3, 0, 0)
+				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox(), 7, 7, 4, 4),
+				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4), 3, 3, 0, 0)
 			});
 		dt_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -900,8 +900,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mmc_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5, 5, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX),
-				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
+				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(V_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_9)
 			});
 		mmc_node.addPrimitivePorts(new PrimitivePort[]
@@ -915,10 +915,10 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mwc_node = PrimitiveNode.newInstance("Metal-1-Well-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(SAW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN5BOX),
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN5BOX),
+				new Technology.NodeLayer(SAW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(5)),
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(5)),
 				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		mwc_node.addPrimitivePorts(new PrimitivePort[]
@@ -932,8 +932,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode msc_node = PrimitiveNode.newInstance("Metal-1-Substrate-Con", this, 7, 7, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.IN1HBOX),
+				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		msc_node.addPrimitivePorts(new PrimitivePort[]
@@ -947,7 +947,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-1-Node", this, 5, 5, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -961,7 +961,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode mn0_node = PrimitiveNode.newInstance("Metal-2-Node", this, 5, 5, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -975,7 +975,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -989,7 +989,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode an_node = PrimitiveNode.newInstance("Active-Node", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		an_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1003,7 +1003,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode dan_node = PrimitiveNode.newInstance("D-Active-Node", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		dan_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1017,7 +1017,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode psn_node = PrimitiveNode.newInstance("P-Select-Node", this, 10, 10, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		psn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1031,7 +1031,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		cn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1045,7 +1045,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pcn_node = PrimitiveNode.newInstance("Poly-Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		pcn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1059,7 +1059,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode acn_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		acn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1073,7 +1073,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode vn_node = PrimitiveNode.newInstance("Via-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(V_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(V_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		vn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1087,7 +1087,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pwn_node = PrimitiveNode.newInstance("P-Well-Node", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		pwn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1101,7 +1101,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pn0_node = PrimitiveNode.newInstance("Passivation-Node", this, 12, 12, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1115,7 +1115,7 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode pfn_node = PrimitiveNode.newInstance("Pad-Frame-Node", this, 12, 12, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PF_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(PF_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		pfn_node.addPrimitivePorts(new PrimitivePort[]
 			{

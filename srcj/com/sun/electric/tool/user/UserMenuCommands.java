@@ -780,11 +780,11 @@ public final class UserMenuCommands
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-			Geometric geom = h.getGeom();
-			if (geom instanceof ArcInst)
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)geom;
+				ArcInst ai = (ArcInst)eobj;
 				ai.setRigid();
 				numSet++;
 			}
@@ -803,11 +803,11 @@ public final class UserMenuCommands
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-			Geometric geom = h.getGeom();
-			if (geom instanceof ArcInst)
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)geom;
+				ArcInst ai = (ArcInst)eobj;
 				ai.clearRigid();
 				numSet++;
 			}
@@ -826,11 +826,11 @@ public final class UserMenuCommands
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-			Geometric geom = h.getGeom();
-			if (geom instanceof ArcInst)
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)geom;
+				ArcInst ai = (ArcInst)eobj;
 				ai.setFixedAngle();
 				numSet++;
 			}
@@ -849,11 +849,11 @@ public final class UserMenuCommands
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-			Geometric geom = h.getGeom();
-			if (geom instanceof ArcInst)
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
 			{
-				ArcInst ai = (ArcInst)geom;
+				ArcInst ai = (ArcInst)eobj;
 				ai.clearFixedAngle();
 				numSet++;
 			}
@@ -924,19 +924,19 @@ public final class UserMenuCommands
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() == Highlight.Type.GEOM)
+				ElectricObject eobj = h.getElectricObject();
+				if (h.getType() == Highlight.Type.EOBJ)
 				{
-					Geometric geom = h.getGeom();
-					if (geom instanceof NodeInst)
+					if (eobj instanceof NodeInst || eobj instanceof PortInst)
 					{
 						nodeCount++;
-					} else
+					} else if (eobj instanceof ArcInst)
 					{
 						arcCount++;
 					}
 				} else if (h.getType() == Highlight.Type.TEXT)
 				{
-					if (h.getVar() == null && h.getPort() != null) exportCount++; else
+					if (eobj instanceof Export) exportCount++; else
 						textCount++;
 				} else if (h.getType() == Highlight.Type.BBOX)
 				{
@@ -997,12 +997,12 @@ public final class UserMenuCommands
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if ((ni.getProto() instanceof Cell) && ignoreCells) continue;
-			Highlight.addGeometric(ni);
+			Highlight.addElectricObject(ni, curCell);
 		}
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			Highlight.addGeometric(ai);
+			Highlight.addElectricObject(ai, curCell);
 		}
 		Highlight.finished();
     }
@@ -1725,10 +1725,10 @@ public final class UserMenuCommands
         }
         for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-            Geometric geom = (Geometric)h.getGeom();
-            if (geom instanceof NodeInst) {
-                NodeInst ni = (NodeInst)geom;
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+            ElectricObject eobj = h.getElectricObject();
+            if (eobj instanceof NodeInst) {
+                NodeInst ni = (NodeInst)eobj;
                 if (useproto) {
                     System.out.println("using prototype");
                     ((ElectricObject)ni.getProto()).getInfo();
@@ -1747,8 +1747,8 @@ public final class UserMenuCommands
         }
         for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-            ElectricObject eobj = (ElectricObject)h.getGeom();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+            ElectricObject eobj = h.getElectricObject();
             Iterator itVar = eobj.getVariables();
             while(itVar.hasNext()) {
                 Variable var = (Variable)itVar.next();

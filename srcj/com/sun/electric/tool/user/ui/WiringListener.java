@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -64,11 +65,13 @@ class WiringListener
 {
 	public static WiringListener theOne = new WiringListener();
 	private Point2D startPoint;
-	private Geometric startObj;
+	private ElectricObject startObj;
+	private Geometric startGeom;
 	private PortProto startPort;
 	private WiringPlan [] wpStartList;
 	private Point2D endPoint;
-	private Geometric endObj;
+	private ElectricObject endObj;
+	private Geometric endGeom;
 	private PortProto endPort;
 	private Cell cellBeingWired;
 	private boolean doingWiringDrag;
@@ -104,11 +107,17 @@ class WiringListener
 			// over a highlighted object: move it
 			Highlight high = (Highlight)Highlight.getHighlights().next();
 			if (high == null) return;
-			startObj = high.getGeom();
-			cellBeingWired = startObj.getParent();
-			if (startObj instanceof NodeInst)
-				startPort = high.getPort(); else
-					startPort = null;
+			if (high.getType() != Highlight.Type.EOBJ) return;
+			ElectricObject eobj = high.getElectricObject();
+			startPort = null;
+			if (eobj instanceof PortInst)
+			{
+				startPort = ((PortInst)eobj).getPortProto();
+				eobj = ((PortInst)eobj).getNodeInst();
+			}
+			startObj = eobj;
+			startGeom = (Geometric)eobj;
+			cellBeingWired = startGeom.getParent();
 			doingWiringDrag = true;
 		} else
 		{
@@ -118,13 +127,18 @@ class WiringListener
 			{
 				// not over anything: bail
 				Highlight high = (Highlight)Highlight.getHighlights().next();
-				if (high.getType() == Highlight.Type.GEOM)
+				if (high.getType() == Highlight.Type.EOBJ)
 				{
-					startObj = high.getGeom();
-					if (startObj instanceof NodeInst)
-						startPort = high.getPort(); else
-							startPort = null;
-					cellBeingWired = startObj.getParent();
+					ElectricObject eobj = high.getElectricObject();
+					startPort = null;
+					if (eobj instanceof PortInst)
+					{
+						startPort = ((PortInst)eobj).getPortProto();
+						eobj = ((PortInst)eobj).getNodeInst();
+					}
+					startObj = eobj;
+					startGeom = (Geometric)eobj;
+					cellBeingWired = startGeom.getParent();
 					doingWiringDrag = true;
 				}
 			}
@@ -132,7 +146,7 @@ class WiringListener
 
 		if (doingWiringDrag)
 		{
-			wpStartList = WiringPlan.getClosestEnd(startObj, startPort, startPoint, startPoint);
+			wpStartList = WiringPlan.getClosestEnd(startGeom, startPort, startPoint, startPoint);
 			if (wpStartList == null) doingWiringDrag = false;
 		}
 		wnd.repaint();
@@ -145,14 +159,13 @@ class WiringListener
 
 		EditWindow wnd = (EditWindow)evt.getSource();
 		getEndObject(evt.getX(), evt.getY(), wnd);
-		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endObj, endPort, endPoint, startPoint);
+		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endGeom, endPort, endPoint, startPoint);
 
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 
 		Highlight.clear();
-		Highlight h = Highlight.addGeometric(startObj);
-		h.setPort(startPort);
+		Highlight h = Highlight.addElectricObject(startObj, startGeom.getParent());
 		WiringPlan wpEnd = null;
 		for(int i=0; i<curPath.length; i++)
 		{
@@ -195,7 +208,7 @@ class WiringListener
 
 		EditWindow wnd = (EditWindow)evt.getSource();
 		getEndObject(evt.getX(), evt.getY(), wnd);
-		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endObj, endPort, endPoint, startPoint);
+		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endGeom, endPort, endPoint, startPoint);
 
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
@@ -225,12 +238,13 @@ class WiringListener
 
 	/**
 	 * Routine to load the field variables from the parameters.
-	 * Loads field variables "endPoint", "endObj", and "endPort".
+	 * Loads field variables "endPoint", "endObj", "endGeom", and "endPort".
 	 */
 	private void getEndObject(int endX, int endY, EditWindow wnd)
 	{
 		endPoint = wnd.screenToDatabase(endX, endY);
 		endObj = null;
+		endGeom = null;
 		endPort = null;
 
 		// see what object it is over
@@ -239,10 +253,14 @@ class WiringListener
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.GEOM) continue;
-			endObj = h.getGeom();
-			if (endObj instanceof NodeInst)
-				endPort = h.getPort();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof PortInst)
+			{
+				endPort = ((PortInst)eobj).getPortProto();
+				eobj = ((PortInst)eobj).getNodeInst();
+			}
+			endGeom = (Geometric)eobj;
 			break;
 		}
 	}
@@ -339,7 +357,8 @@ class WiringListener
 			/* show the end node */
 			if (wpEnd != null)
 			{
-				Highlight.addGeometric((Geometric)wpEnd.getNodeObject());
+				NodeInst ni = (NodeInst)wpEnd.getNodeObject();
+				Highlight.addElectricObject(ni, ni.getParent());
 			}
 			if (arcsCreated != 0 || nodesCreated != 0)
 			{

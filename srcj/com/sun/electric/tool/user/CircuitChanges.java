@@ -100,11 +100,11 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (cell == null) cell = geom.getParent(); else
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (cell == null) cell = h.getCell(); else
 				{
-					if (cell != geom.getParent())
+					if (cell != h.getCell())
 					{
 						JFrame jf = TopLevel.getCurrentJFrame();
 						JOptionPane.showMessageDialog(jf, "All objects to be deleted must be in the same cell",
@@ -112,7 +112,7 @@ public class CircuitChanges
 						return;
 					}
 				}
-				deleteList.add(geom);
+				deleteList.add(eobj);
 			}
 			Highlight.clear();
 			Highlight.finished();
@@ -141,10 +141,12 @@ public class CircuitChanges
 		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst) continue;
-			ArcInst ai = (ArcInst)geom;
-			ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-			ai.getTail().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+				ai.getTail().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+			}
 		}
 
 		// also mark all nodes on arcs that will be erased
@@ -185,7 +187,6 @@ public class CircuitChanges
 			if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;
-
 				ai.kill();
 			}
 		}
@@ -697,7 +698,7 @@ public class CircuitChanges
 				inheritAttributes(ni);
 
 				Highlight.clear();
-				Highlight.addGeometric(ni);
+				Highlight.addElectricObject(ni, curCell);
 				Highlight.finished();
 //				if (lx > el_curwindowpart->screenhx || hx < el_curwindowpart->screenlx ||
 //					ly > el_curwindowpart->screenhy || hy < el_curwindowpart->screenly)
@@ -927,13 +928,13 @@ public class CircuitChanges
 			if (total <= 0) return;
 			Iterator oit = Highlight.getHighlights();
 			Highlight firstH = (Highlight)oit.next();
-			Geometric firstGeom = firstH.getGeom();
-			Cell cell = firstGeom.getParent();
+			ElectricObject firstEObj = firstH.getElectricObject();
+			Cell cell = firstH.getCell();
 
 			// special case if moving only one node
-			if (total == 1 && firstGeom instanceof NodeInst)
+			if (total == 1 && firstEObj instanceof NodeInst)
 			{
-				NodeInst ni = (NodeInst)firstGeom;
+				NodeInst ni = (NodeInst)firstEObj;
 				ni.modifyInstance(dx, dy, 0, 0, 0);
 				return;
 			}
@@ -943,11 +944,11 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (geom instanceof ArcInst)
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof ArcInst)
 				{
-					ArcInst ai = (ArcInst)geom;
+					ArcInst ai = (ArcInst)eobj;
 					if (ai.getHead().getLocation().getX() == ai.getTail().getLocation().getX() ||
 						ai.getHead().getLocation().getY() == ai.getTail().getLocation().getY()) { found = false;   break; }
 					if (!ai.isFixedAngle()) { found = false;   break; }
@@ -980,10 +981,10 @@ public class CircuitChanges
 				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = h.getGeom();
-					if (!(geom instanceof ArcInst)) continue;
-					ArcInst ai = (ArcInst)geom;
+					if (h.getType() != Highlight.Type.EOBJ) continue;
+					ElectricObject eobj = h.getElectricObject();
+					if (!(eobj instanceof ArcInst)) continue;
+					ArcInst ai = (ArcInst)eobj;
 
 					double [] deltaXs = new double[2];
 					double [] deltaYs = new double[2];
@@ -1031,11 +1032,11 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (geom instanceof ArcInst)
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof ArcInst)
 				{
-					ArcInst ai = (ArcInst)geom;
+					ArcInst ai = (ArcInst)eobj;
 					// see if the arc moves in its ports
 					if (ai.isSlidable())
 					{
@@ -1053,11 +1054,11 @@ public class CircuitChanges
 				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = h.getGeom();
-					if (geom instanceof ArcInst)
+					if (h.getType() != Highlight.Type.EOBJ) continue;
+					ElectricObject eobj = h.getElectricObject();
+					if (eobj instanceof ArcInst)
 					{
-						ArcInst ai = (ArcInst)geom;
+						ArcInst ai = (ArcInst)eobj;
 						ai.modify(0, dx, dy, dx, dy);
 					}
 				}
@@ -1084,16 +1085,17 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (geom instanceof NodeInst)
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+				if (eobj instanceof NodeInst)
 				{
-					NodeInst ni = (NodeInst)geom;
+					NodeInst ni = (NodeInst)eobj;
 					if (!ni.isBit(flag)) numNodes++;
 					ni.setBit(flag);
-				} else
+				} else if (eobj instanceof ArcInst)
 				{
-					ArcInst ai = (ArcInst)geom;
+					ArcInst ai = (ArcInst)eobj;
 					NodeInst ni1 = ai.getHead().getPortInst().getNodeInst();
 					NodeInst ni2 = ai.getTail().getPortInst().getNodeInst();
 					if (!ni1.isBit(flag)) numNodes++;
@@ -1133,10 +1135,10 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (geom instanceof NodeInst) continue;
-				ArcInst ai = (ArcInst)geom;
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (!(eobj instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)eobj;
 				Point2D pt = (Point2D)ai.getTempObj();
 				if (pt.getX() != ai.getCenterX() ||
 					pt.getY() != ai.getCenterY()) continue;
@@ -1173,11 +1175,11 @@ public class CircuitChanges
 						for(Iterator oIt = Highlight.getHighlights(); oIt.hasNext(); )
 						{
 							Highlight oH = (Highlight)oIt.next();
-							if (oH.getType() != Highlight.Type.GEOM) continue;
-							Geometric oGeom = oH.getGeom();
-							if (oGeom instanceof ArcInst)
+							if (oH.getType() != Highlight.Type.EOBJ) continue;
+							ElectricObject oEObj = oH.getElectricObject();
+							if (oEObj instanceof ArcInst)
 							{
-								ArcInst oai = (ArcInst)oGeom;
+								ArcInst oai = (ArcInst)oEObj;
 								Point2D aPt = (Point2D)oai.getTempObj();
 								if (aPt.getX() != oai.getCenterX() ||
 									aPt.getY() != oai.getCenterY()) continue;

@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -87,22 +88,21 @@ import javax.swing.JPanel;
  * <P>
  * These are the types of highlighting that can occur:
  * <UL>
- * <LI>GEOM: a Geometric is selected.  Fills in "geom" and "cell".  Also:
+ * <LI>EOBJ: an ElectricObject is selected (NodeInst, ArcInst, or PortInst).
  *   <UL>
- *   <LI>If a NodeInst is selected, may fill-in "port" if a port on that node is selected.
- *   <LI>If a NodeInst is selected, may fill-in "point" if an outline node being edited.
+ *   <LI>Fills in "eobj" and the parent "cell".
+ *   <LI>If selecting a NodeInst, may fill-in "point" if an outline node is being edited.
  *   </UL>
- * <LI>TEXT: text is selected.  Fills in "cell".  Also:
+ * <LI>TEXT: text is selected.
  *   <UL>
- *   <LI>For variable on NodeInst or ArcInst, fills in "var" and "geom".
- *   <LI>For the name on NodeInst or ArcInst, fills in "name" and "geom".
- *   <LI>For variable on a Port, fills in "var", "geom", and "port".
- *   <LI>For Export name, fills in "geom" and "port".
- *   <LI>For variable on Cell, fills in "var".
- *   <LI>For a Cell instance name, fills in "geom".
+ *   <LI>Fills in "eobj" and the parent "cell".
+ *   <LI>If "var" is valid, this is a variable on a NodeInst, ArcInst, Export, PortInst, or Cell.
+ *   <LI>If "var" is null and "name" is valid, it is the name of a NodeInst or ArcInst.
+ *   <LI>If "var" and "name" are null and "eobj" is an Export, it is that Export.
+ *   <LI>If "var" and "name" are null, this is a Cell instance name.
  *   </UL>
- * <LI>BBOX: a rectangular area is selected.  Fills in "bounds".
- * <LI>LINE: a line is selected.  Fills in "pt1" and "pt2"
+ * <LI>BBOX: a rectangular area is selected.  Fills in "bounds" and the parent "cell".
+ * <LI>LINE: a line is selected.  Fills in "pt1", "pt2" and the parent "cell".
  * </UL>
  */
 public class Highlight
@@ -131,16 +131,15 @@ public class Highlight
 		 */
 		public String toString() { return name; }
 
-		/** Describes a highlighted geometric. */				public static final Type GEOM = new Type("geometric");
+		/** Describes a highlighted ElectricObject. */			public static final Type EOBJ = new Type("electricObject");
 		/** Describes highlighted text. */						public static final Type TEXT = new Type("text");
 		/** Describes a highlighted area. */					public static final Type BBOX = new Type("area");
 		/** Describes a highlighted line. */					public static final Type LINE = new Type("line");
 	}
 
 	/** The type of the highlighting. */						private Type type;
-	/** The highlighted object. */								private Geometric geom;
+	/** The highlighted object. */								private ElectricObject eobj;
 	/** The Cell containing the selection. */					private Cell cell;
-	/** The highlighted port (only for NodeInst). */			private PortProto port;
 	/** The highlighted outline point (only for NodeInst). */	private int point;
 	/** The highlighted variable. */							private Variable var;
 	/** The highlighted Name. */								private Name name;
@@ -156,9 +155,8 @@ public class Highlight
 	private Highlight(Type type)
 	{
 		this.type = type;
-		this.geom = null;
+		this.eobj = null;
 		this.cell = null;
-		this.port = null;
 		this.point = 0;
 		this.var = null;
 		this.name = null;
@@ -200,11 +198,11 @@ public class Highlight
 	 * @param geom the Geometric to add to the list of highlighted objects.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addGeometric(Geometric geom)
+	public static Highlight addElectricObject(ElectricObject eobj, Cell cell)
 	{
-		Highlight h = new Highlight(Type.GEOM);
-		h.geom = geom;
-		h.cell = geom.getParent();
+		Highlight h = new Highlight(Type.EOBJ);
+		h.eobj = eobj;
+		h.cell = cell;
 
 		highlightList.add(h);
 		return h;
@@ -217,9 +215,10 @@ public class Highlight
 	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addText(Cell cell, Variable var, Name name)
+	public static Highlight addText(ElectricObject eobj, Cell cell, Variable var, Name name)
 	{
 		Highlight h = new Highlight(Type.TEXT);
+		h.eobj = eobj;
 		h.cell = cell;
 		h.var = var;
 		h.name = name;
@@ -264,22 +263,22 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the type of this Highlight (GEOM, TEXT, BBOX, or LINE).
+	 * Routine to return the type of this Highlight (EOBJ, TEXT, BBOX, or LINE).
 	 * @return the type of this Highlight.
 	 */
 	public Type getType() { return type; }
 
 	/**
-	 * Routine to return the Geometric associated with this Highlight object.
-	 * @return the Geometric associated with this Highlight object.
+	 * Routine to return the ElectricObject associated with this Highlight object.
+	 * @return the ElectricObject associated with this Highlight object.
 	 */
-	public Geometric getGeom() { return geom; }
+	public ElectricObject getElectricObject() { return eobj; }
 
 	/**
 	 * Routine to set the Geometric associated with this Highlight object.
 	 * @param geom the Geometric associated with this Highlight object.
 	 */
-	public void setGeom(Geometric geom) { this.geom = geom;   this.cell = geom.getParent(); }
+	private void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
 
 	/**
 	 * Routine to return the Cell associated with this Highlight object.
@@ -294,28 +293,16 @@ public class Highlight
 	private void setCell(Cell cell) { this.cell = cell; }
 
 	/**
-	 * Routine to set a PortProto to be displayed with this Highlight.
-	 * @param port the PortProto to show with this Highlight (must be a NodeInst highlight).
+	 * Routine to return the outline point associated with this Highlight object.
+	 * @return the outline point associated with this Highlight object.
 	 */
-	public void setPort(PortProto port) { this.port = port; }
-
-	/**
-	 * Routine to return the PortProto associated with this Highlight object.
-	 * @return the PortProto associated with this Highlight object.
-	 */
-	public PortProto getPort() { return port; }
+	public int getPoint() { return point; }
 
 	/**
 	 * Routine to set an outline point to be displayed with this Highlight.
 	 * @param point the outline point to show with this Highlight (must be a NodeInst highlight).
 	 */
-	public void setPoint(int point) { this.point = point; }
-
-	/**
-	 * Routine to return the outline point associated with this Highlight object.
-	 * @return the outline point associated with this Highlight object.
-	 */
-	public int getPoint() { return point; }
+	private void setPoint(int point) { this.point = point; }
 
 	/**
 	 * Routine to return the bounds associated with this Highlight object.
@@ -323,12 +310,6 @@ public class Highlight
 	 * @return the bounds associated with this Highlight object.
 	 */
 	public Rectangle2D getBounds() { return bounds; }
-
-	/**
-	 * Routine to set the Variable associated with this Highlight object.
-	 * @param var the Variable associated with this Highlight object.
-	 */
-	private void setVar(Variable var) { this.var = var; }
 
 	/**
 	 * Routine to return the Name associated with this Highlight object.
@@ -343,6 +324,18 @@ public class Highlight
 	private void setName(Name name) { this.name = name; }
 
 	/**
+	 * Routine to return the Variable associated with this Highlight object.
+	 * @return the Variable associated with this Highlight object.
+	 */
+	public Variable getVar() { return var; }
+
+	/**
+	 * Routine to set the Variable associated with this Highlight object.
+	 * @param var the Variable associated with this Highlight object.
+	 */
+	private void setVar(Variable var) { this.var = var; }
+
+	/**
 	 * Routine to return the "from point" associated with this Highlight object.
 	 * This only applies to Highlights of type LINE.
 	 * @return the from point associated with this Highlight object.
@@ -355,12 +348,6 @@ public class Highlight
 	 * @return the to point associated with this Highlight object.
 	 */
 	public Point2D getToPoint() { return pt2; }
-
-	/**
-	 * Routine to return the Variable associated with this Highlight object.
-	 * @return the Variable associated with this Highlight object.
-	 */
-	public Variable getVar() { return var; }
 
 	/**
 	 * Routine to return the number of highlighted objects.
@@ -387,10 +374,10 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return an List of all highlighted Geometrics.
+	 * Routine to return an List of all highlighted ElectricObjects.
 	 * @param wantNodes true if NodeInsts should be included in the list.
 	 * @param wantArcs true if ArcInsts should be included in the list.
-	 * @return a list with the highlighted Geometrics.
+	 * @return a list with the highlighted ElectricObjects.
 	 */
 	public static List getHighlighted(boolean wantNodes, boolean wantArcs)
 	{
@@ -400,14 +387,18 @@ public class Highlight
 		{
 			Highlight h = (Highlight)it.next();
 
-			if (h.getType() == Type.GEOM)
+			if (h.getType() == Type.EOBJ)
 			{
-				Geometric geom = h.getGeom();
-				if (geom instanceof NodeInst && !wantNodes) continue;
-				if (geom instanceof ArcInst && !wantArcs) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (!wantNodes)
+				{
+					if (eobj instanceof NodeInst || eobj instanceof PortInst) continue;
+				}
+				if (!wantArcs && eobj instanceof ArcInst) continue;
+				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 
-				if (highlightedGeoms.contains(geom)) continue;
-				highlightedGeoms.add(geom);
+				if (highlightedGeoms.contains(eobj)) continue;
+				highlightedGeoms.add(eobj);
 			}
 			if (h.getType() == Type.BBOX)
 			{
@@ -415,8 +406,15 @@ public class Highlight
 				for(Iterator ait = inArea.iterator(); ait.hasNext(); )
 				{
 					Highlight ah = (Highlight)ait.next();
-					if (ah.getType() == Type.GEOM)
-						highlightedGeoms.add(ah.getGeom());
+					if (ah.getType() != Type.EOBJ) continue;
+					ElectricObject eobj = ah.getElectricObject();
+					if (!wantNodes)
+					{
+						if (eobj instanceof NodeInst || eobj instanceof PortInst) continue;
+					}
+					if (!wantArcs && eobj instanceof ArcInst) continue;
+					if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+					highlightedGeoms.add(eobj);
 				}
 			}
 		}
@@ -440,9 +438,15 @@ public class Highlight
 
 			// find the bounds of this highlight
 			Rectangle2D highBounds = null;
-			if (h.getType() == Type.GEOM)
+			if (h.getType() == Type.EOBJ)
 			{
-				highBounds = h.getGeom().getBounds();
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+				if (eobj instanceof Geometric)
+				{
+					Geometric geom = (Geometric)eobj;
+					highBounds = geom.getBounds();
+				}
 			} else if (h.getType() == Type.TEXT)
 			{
 				Poly poly = h.computeTextPoly(wnd);
@@ -574,14 +578,18 @@ public class Highlight
 			if (nextGeom == null) break;
 			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd, directHitDist, false);
 			if (h == null) continue;
+			ElectricObject hReal = h.getElectricObject();
+			if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
 				Highlight alreadyHighlighted = (Highlight)it.next();
 				if (alreadyHighlighted.getType() != h.getType()) continue;
-				if (alreadyHighlighted.getGeom() == h.getGeom())
+				ElectricObject aHReal = alreadyHighlighted.getElectricObject();
+				if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
+				if (hReal == aHReal)
 				{
 					// found it: adjust the port/point
-					alreadyHighlighted.setPort(h.getPort());
+					alreadyHighlighted.setElectricObject(h.getElectricObject());
 					alreadyHighlighted.setPoint(h.getPoint());
 					return true;
 				}
@@ -714,11 +722,10 @@ public class Highlight
 			return;
 		}
 
-		// highlight GEOM
-		if (geom instanceof ArcInst)
+		// highlight ArcInst
+		if (eobj instanceof ArcInst)
 		{
-			// get information about the arc
-			ArcInst ai = (ArcInst)geom;
+			ArcInst ai = (ArcInst)eobj;
 			double offset = ai.getProto().getWidthOffset();
 
 			// construct the polygons that describe the basic arc
@@ -747,119 +754,142 @@ public class Highlight
 			return;
 		}
 
-		// highlight a NodeInst
-		NodeInst ni = (NodeInst)geom;
-		NodeProto np = ni.getProto();
-		AffineTransform trans = ni.rotateOut();
-		SizeOffset so = new SizeOffset(0, 0, 0, 0);
-		if (np instanceof PrimitiveNode)
+		// highlight NodeInst
+		PortProto pp = null;
+		ElectricObject realEObj = eobj;
+		if (realEObj instanceof PortInst)
 		{
-			PrimitiveNode pnp = (PrimitiveNode)np;
-			so = Technology.getSizeOffset(ni);
+			pp = ((PortInst)realEObj).getPortProto();
+			realEObj = ((PortInst)realEObj).getNodeInst();
+		}
+		if (realEObj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)realEObj;
+			NodeProto np = ni.getProto();
+			AffineTransform trans = ni.rotateOut();
+			SizeOffset so = new SizeOffset(0, 0, 0, 0);
+			if (np instanceof PrimitiveNode)
+			{
+				PrimitiveNode pnp = (PrimitiveNode)np;
+				so = Technology.getSizeOffset(ni);
 
-//			// special case for outline nodes
-//			int [] specialValues = pnp.getSpecialValues();
-//			if (np.isHoldsOutline()) 
-//			{
-//				Float [] outline = ni.getTrace();
-//				if (outline != null)
+//				// special case for outline nodes
+//				double [] specialValues = pnp.getSpecialValues();
+//				if (np.isHoldsOutline()) 
 //				{
-//					int numPoints = outline.length / 2;
-//					Point2D [] pointList = new Point2D.Double[numPoints];
-//					for(int i=0; i<numPoints; i++)
+//					Float [] outline = ni.getTrace();
+//					if (outline != null)
 //					{
-//						pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
-//							ni.getCenterY() + outline[i*2+1].floatValue());
+//						int numPoints = outline.length / 2;
+//						Point2D [] pointList = new Point2D.Double[numPoints];
+//						for(int i=0; i<numPoints; i++)
+//						{
+//							pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
+//								ni.getCenterY() + outline[i*2+1].floatValue());
+//						}
+//						drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY, false);
 //					}
-//					drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY, false);
 //				}
-//			}
-		}
+			}
 
-		// setup outline of node with standard offset
-		double portLowX = ni.getCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-		double portHighX = ni.getCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-		double portLowY = ni.getCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-		double portHighY = ni.getCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-		if (portLowX == portHighX && portLowY == portHighY)
-		{
-			float x = (float)portLowX;
-			float y = (float)portLowY;
-			float size = 3 / (float)wnd.getScale();
-			Point c1 = wnd.databaseToScreen(x+size, y);
-			Point c2 = wnd.databaseToScreen(x-size, y);
-			Point c3 = wnd.databaseToScreen(x, y+size);
-			Point c4 = wnd.databaseToScreen(x, y-size);
-			g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
-			g.drawLine(c3.x + highOffX, c3.y + highOffY, c4.x + highOffX, c4.y + highOffY);
-		} else
-		{
-			double portX = (portLowX + portHighX) / 2;
-			double portY = (portLowY + portHighY) / 2;
-			Poly poly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-			poly.transform(trans);
-			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
-		}
-
-		// draw the selected port
-		PortProto pp = getPort();
-		if (pp != null)
-		{
-			Poly poly = ni.getShapeOfPort(pp);
-			boolean opened = true;
-			if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
-			poly.transform(trans);
-			if (poly.getStyle() == Poly.Type.CIRCLE || poly.getStyle() == Poly.Type.THICKCIRCLE ||
-				poly.getStyle() == Poly.Type.DISC)
+			// setup outline of node with standard offset
+			double portLowX = ni.getCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+			double portHighX = ni.getCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+			double portLowY = ni.getCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+			double portHighY = ni.getCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+			if (portLowX == portHighX && portLowY == portHighY)
 			{
-				Point2D [] points = poly.getPoints();
-				double sX = points[0].distance(points[1]) * 2;
-				Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
-				drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
-			} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
-			{
-				Point2D [] points = poly.getPoints();
-				double [] angles = ni.getArcDegrees();
-				double sX = points[0].distance(points[1]) * 2;
-				Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
-				drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+				float x = (float)portLowX;
+				float y = (float)portLowY;
+				float size = 3 / (float)wnd.getScale();
+				Point c1 = wnd.databaseToScreen(x+size, y);
+				Point c2 = wnd.databaseToScreen(x-size, y);
+				Point c3 = wnd.databaseToScreen(x, y+size);
+				Point c4 = wnd.databaseToScreen(x, y-size);
+				g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
+				g.drawLine(c3.x + highOffX, c3.y + highOffY, c4.x + highOffX, c4.y + highOffY);
 			} else
 			{
-				drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
+				double portX = (portLowX + portHighX) / 2;
+				double portY = (portLowY + portHighY) / 2;
+				Poly poly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+				poly.transform(trans);
+				drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
+			}
+
+			// draw the selected port
+			if (pp != null)
+			{
+				Poly poly = ni.getShapeOfPort(pp);
+				boolean opened = true;
+				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
+				poly.transform(trans);
+				if (poly.getStyle() == Poly.Type.CIRCLE || poly.getStyle() == Poly.Type.THICKCIRCLE ||
+					poly.getStyle() == Poly.Type.DISC)
+				{
+					Point2D [] points = poly.getPoints();
+					double sX = points[0].distance(points[1]) * 2;
+					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
+					drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
+				{
+					Point2D [] points = poly.getPoints();
+					double [] angles = ni.getArcDegrees();
+					double sX = points[0].distance(points[1]) * 2;
+					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
+					drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+				} else
+				{
+					drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
+				}
 			}
 		}
 	}
 
+	/**
+	 * Routine to compute a Poly that describes the current Highlight text.
+	 * @param wnd the EditWindow in which the text will be drawn.
+	 * @return a Poly that covers the text completely.
+	 */
 	private Poly computeTextPoly(EditWindow wnd)
 	{
 		Poly poly = null;
 		Variable var = getVar();
-		Geometric geom = getGeom();
+		ElectricObject eobj = getElectricObject();
 		if (var != null)
 		{
-			if (geom != null)
+			if (eobj instanceof Export)
 			{
-				if (getPort() != null)
+				Export pp = (Export)eobj;
+				PortInst pi = pp.getOriginalPort();
+				Rectangle2D bounds = pi.getPoly().getBounds2D();
+				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				if (polys != null)
 				{
-					PortInst pi = ((Export)getPort()).getOriginalPort();
-					Rectangle2D bounds = pi.getPoly().getBounds2D();
-					Poly [] polys = getPort().getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-					if (polys != null)
-					{
-						poly = polys[0];
-						poly.transform(pi.getNodeInst().rotateOut());
-					}
-				} else
-				{
-					Poly [] polys = geom.getPolyList(var, geom.getCenterX(), geom.getCenterY(), wnd, false);
-					if (polys != null)
-					{
-						poly = polys[0];
-						if (geom instanceof NodeInst)
-							poly.transform(((NodeInst)geom).rotateOut());
-					}
+					poly = polys[0];
+					poly.transform(pi.getNodeInst().rotateOut());
 				}
-			} else
+			} else if (eobj instanceof PortInst)
+			{
+				PortInst pi = (PortInst)eobj;
+				Rectangle2D bounds = pi.getPoly().getBounds2D();
+				Poly [] polys = pi.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				if (polys != null)
+				{
+					poly = polys[0];
+					poly.transform(pi.getNodeInst().rotateOut());
+				}
+			} else if (eobj instanceof Geometric)
+			{
+				Geometric geom = (Geometric)eobj;
+				Poly [] polys = geom.getPolyList(var, geom.getCenterX(), geom.getCenterY(), wnd, false);
+				if (polys != null)
+				{
+					poly = polys[0];
+					if (geom instanceof NodeInst)
+						poly.transform(((NodeInst)geom).rotateOut());
+				}
+			} else if (eobj instanceof Cell)
 			{
 				Rectangle2D bounds = getCell().getBounds();
 				Poly [] polys = getCell().getPolyList(var, 0, 0, wnd, false);
@@ -869,9 +899,10 @@ public class Highlight
 				poly.setExactTextBounds(wnd);
 		} else
 		{
-			if (geom == null) return null;
 			if (getName() != null)
 			{
+				if (!(eobj instanceof Geometric)) return null;
+				Geometric geom = (Geometric)eobj;
 				TextDescriptor td = geom.getNameTextDescriptor();
 				Point2D [] pointList = new Point2D.Double[1];
 				pointList[0] = new Point2D.Double(geom.getCenterX()+td.getXOff(), geom.getCenterY()+td.getYOff());
@@ -887,10 +918,9 @@ public class Highlight
 				poly.setExactTextBounds(wnd);
 			} else
 			{
-				if (getPort() != null)
+				if (eobj instanceof Export)
 				{
-					// export name
-					Export pp = (Export)getPort();
+					Export pp = (Export)eobj;
 					Rectangle2D bounds = pp.getOriginalPort().getBounds();
 					TextDescriptor td = pp.getTextDescriptor();
 					Point2D [] pointList = new Point2D.Double[1];
@@ -903,7 +933,8 @@ public class Highlight
 				} else
 				{
 					// cell instance name
-					NodeInst ni = (NodeInst)geom;
+					if (!(eobj instanceof NodeInst)) return null;
+					NodeInst ni = (NodeInst)eobj;
 					TextDescriptor td = ni.getProtoTextDescriptor();
 					Point2D [] pointList = new Point2D.Double[1];
 					pointList[0] = new Point2D.Double(ni.getCenterX()+td.getXOff(), ni.getCenterY()+td.getYOff());
@@ -1077,6 +1108,7 @@ public class Highlight
 						if (poly.polyDistance(bounds) >= directHitDist) continue;
 					}
 					Highlight h = new Highlight(Type.TEXT);
+					h.setElectricObject(cell);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
 					list.add(h);
@@ -1105,11 +1137,24 @@ public class Highlight
 						if (poly.polyDistance(bounds) >= directHitDist) continue;
 					}
 					Highlight h = new Highlight(Type.TEXT);
+					if (poly.getPort() != null)
+					{
+						PortProto pp = poly.getPort();
+						h.setElectricObject(pp);
+						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+						{
+							PortInst pi = (PortInst)pIt.next();
+							if (pi.getPortProto() == pp)
+							{
+								h.setElectricObject(pi);
+								break;
+							}
+						}
+					} else
+						h.setElectricObject(ni);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
 					h.setName(poly.getName());
-					h.setPort(poly.getPort());
-					h.setGeom(ni);
 					list.add(h);
 				}
 			}
@@ -1132,11 +1177,10 @@ public class Highlight
 						if (poly.polyDistance(bounds) >= directHitDist) continue;
 					}
 					Highlight h = new Highlight(Type.TEXT);
+					h.setElectricObject(ai);
 					h.setCell(cell);
 					h.setVar(poly.getVariable());
 					h.setName(poly.getName());
-					h.setPort(poly.getPort());
-					h.setGeom(ai);
 					list.add(h);
 				}
 			}
@@ -1229,8 +1273,8 @@ public class Highlight
 			// direct hit
 			if (dist < directHitDist)
 			{
-				Highlight h = new Highlight(Type.GEOM);
-				h.setGeom(geom);
+				Highlight h = new Highlight(Type.EOBJ);
+				ElectricObject eobj = geom;
 
 				// add the closest port
 				if (findPort)
@@ -1248,8 +1292,10 @@ public class Highlight
 							bestPort = pi;
 						}
 					}
-					if (bestPort != null) h.setPort(bestPort.getPortProto());
+					if (bestPort != null) eobj = bestPort;
 				}
+				h.setElectricObject(eobj);
+				h.setCell(geom.getParent());
 				return h;
 			}
 		} else
@@ -1269,8 +1315,9 @@ public class Highlight
 			// direct hit
 			if (dist < directHitDist)
 			{
-				Highlight h = new Highlight(Type.GEOM);
-				h.setGeom(geom);
+				Highlight h = new Highlight(Type.EOBJ);
+				h.setElectricObject(geom);
+				h.setCell(geom.getParent());
 				return h;
 			}
 		}
@@ -1439,14 +1486,20 @@ public class Highlight
 	{
 		if (type != other.getType()) return false;
 		if (type == Type.BBOX || type == type.LINE) return false;
-		if (geom != other.getGeom()) return false;
-		if (type == Type.TEXT)
+
+		if (type == Type.EOBJ)
 		{
+			ElectricObject realEObj = eobj;
+			if (realEObj instanceof PortInst) realEObj = ((PortInst)realEObj).getNodeInst();
+			ElectricObject realOtherEObj = other.getElectricObject();
+			if (realOtherEObj instanceof PortInst) realOtherEObj = ((PortInst)realOtherEObj).getNodeInst();
+			if (realEObj != realOtherEObj) return false;
+		} else if (type == Type.TEXT)
+		{
+			if (eobj != other.getElectricObject()) return false;
+			if (cell != other.getCell()) return false;
 			if (var != other.getVar()) return false;
 			if (name != other.getName()) return false;
-			if (cell != other.getCell()) return false;
-			if (geom != other.getGeom()) return false;
-			if (port != other.getPort()) return false;
 		}
 		return true;
 	}

@@ -114,7 +114,7 @@ public class Technology extends ElectricObject
 	public static class ArcLayer
 	{
 		private Layer layer;
-		private int offset;
+		private double offset;
 		private Poly.Type style;
 
 		/**
@@ -123,7 +123,7 @@ public class Technology extends ElectricObject
 		 * @param offset the distance from the outside of the ArcInst to this ArcLayer.
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-		public ArcLayer(Layer layer, int offset, Poly.Type style)
+		public ArcLayer(Layer layer, double offset, Poly.Type style)
 		{
 			this.layer = layer;
 			this.offset = offset;
@@ -142,7 +142,15 @@ public class Technology extends ElectricObject
 		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
 		 * @return the distance from the outside of the ArcInst to this ArcLayer.
 		 */
-		public int getOffset() { return offset; }
+		public double getOffset() { return offset; }
+
+		/**
+		 * Sets the distance from the outside of the ArcInst to this ArcLayer.
+		 * This is the difference between the width of this layer and the overall width of the arc.
+		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
+		 * @param offset the distance from the outside of the ArcInst to this ArcLayer.
+		 */
+		public void setOffset(double offset) { this.offset = offset; }
 
 		/**
 		 * Returns the Poly.Style of this ArcLayer.
@@ -174,75 +182,6 @@ public class Technology extends ElectricObject
 		private EdgeH x;
 		private EdgeV y;
 
-		/** An array of TechPoints that describes a zero-size rectangle in the center of the NodeInst. */
-		public static final TechPoint [] ATCENTER = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER)};
-		/** An array of TechPoints that describes a rectangle that completely covers the NodeInst. */
-		public static final TechPoint [] FULLBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)};
-		/** An array of TechPoints that describes a rectangle that is inset by 0.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN0HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
-					new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 1 unit from the edge of the NodeInst. */
-		public static final TechPoint [] IN1BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
-					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1))};
-		/** An array of TechPoints that describes a rectangle that is inset by 1.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN1HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5)),
-					new Technology.TechPoint(EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 2 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN2BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
-					new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2))};
-		/** An array of TechPoints that describes a rectangle that is inset by 2.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN2HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5)),
-					new Technology.TechPoint(EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 3 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN3BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
-					new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))};
-		/** An array of TechPoints that describes a rectangle that is inset by 3.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN3HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(3.5), EdgeV.fromBottom(3.5)),
-					new Technology.TechPoint(EdgeH.fromRight(3.5), EdgeV.fromTop(3.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 4 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN4BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4))};
-		/** An array of TechPoints that describes a rectangle that is inset by 4.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN4HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4.5), EdgeV.fromBottom(4.5)),
-					new Technology.TechPoint(EdgeH.fromRight(4.5), EdgeV.fromTop(4.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN5BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
-					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 5.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN5HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(5.5), EdgeV.fromBottom(5.5)),
-					new Technology.TechPoint(EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 6 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN6BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6))};
-		/** An array of TechPoints that describes a rectangle that is inset by 6.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN6HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
-					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))};
-		/** An array of TechPoints that describes a rectangle that is inset by 7 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN7BOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(7)),
-					new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(7))};
-		/** An array of TechPoints that describes a rectangle that is inset by 7.5 units from the edge of the NodeInst. */
-		public static final TechPoint [] IN7HBOX = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5)),
-					new Technology.TechPoint(EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))};
-
 		/**
 		 * Constructs a <CODE>TechPoint</CODE> with the specified description.
 		 * @param x the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
@@ -252,6 +191,38 @@ public class Technology extends ElectricObject
 		{
 			this.x = x;
 			this.y = y;
+		}
+
+		/**
+		 * Routine to make a 2-long TechPoint array that describes a point at the center of the node.
+		 * @return a new TechPoint array that describes a point at the center of the node.
+		 */
+		public static TechPoint [] makeCenterBox()
+		{
+			return new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(0), EdgeV.fromCenter(0)),
+					new Technology.TechPoint(EdgeH.fromCenter(0), EdgeV.fromCenter(0))};
+		}
+
+		/**
+		 * Routine to make a 2-long TechPoint array that describes a box that fills the node.
+		 * @return a new TechPoint array that describes a box that fills the node.
+		 */
+		public static TechPoint [] makeFullBox()
+		{
+			return makeIndented(0);
+		}
+
+		/**
+		 * Routine to make a 2-long TechPoint array that describes indentation by a specified amount.
+		 * @param amount the amount to indent the box.
+		 * @return a new TechPoint array that describes this indented box.
+		 */
+		public static TechPoint [] makeIndented(double amount)
+		{
+			return new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(amount), EdgeV.fromBottom(amount)),
+					new Technology.TechPoint(EdgeH.fromRight(amount), EdgeV.fromTop(amount))};
 		}
 
 		/**
@@ -479,6 +450,7 @@ public class Technology extends ElectricObject
 	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** list of layers in the technology */				private List layers;
+	/** count of layers in the technology */			private int layerIndex = 0;
 	/** list of primitive nodes in the technology */	private List nodes;
 	/** list of arcs in the technology */				private List arcs;
 	/** minimum resistance in this Technology. */		private double minResistance;
@@ -518,15 +490,16 @@ public class Technology extends ElectricObject
 	public static void initAllTechnologies()
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Generic.tech.setCurrent();		// must be called first
+		Generic.tech.init();		// must be called first
 
 		// now all of the rest
-		Artwork.tech.setCurrent();
-		CMOS.tech.setCurrent();
-		MoCMOSOld.tech.setCurrent();
-		MoCMOSSub.tech.setCurrent();
-		nMOS.tech.setCurrent();
-		Schematics.tech.setCurrent();
+		Artwork.tech.init();
+		CMOS.tech.init();
+		MoCMOS.tech.init();
+		MoCMOSOld.tech.init();
+		MoCMOSSub.tech.init();
+		nMOS.tech.init();
+		Schematics.tech.init();
 
 		// the last one is the real current technology
 		MoCMOS.tech.setCurrent();
@@ -534,6 +507,12 @@ public class Technology extends ElectricObject
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
 	}
+
+	/**
+	 * Routine to initialize a technology.
+	 * It gets overridden by individual technologies.
+	 */
+	public void init() {}
 
 	/**
 	 * Returns the current Technology.
@@ -657,6 +636,7 @@ public class Technology extends ElectricObject
 	 */
 	public void addLayer(Layer layer)
 	{
+		layer.setIndex(layerIndex++);
 		layers.add(layer);
 	}
 
@@ -1017,8 +997,9 @@ public class Technology extends ElectricObject
 		double highY = ni.getCenterY() + halfHeight;
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		int [] specialValues = np.getSpecialValues();
-		if (specialValues[0] != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
+		int specialType = np.getSpecialType();
+		double [] specialValues = np.getSpecialValues();
+		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
 			Float [] outline = ni.getTrace();
 			if (outline != null)
@@ -1055,14 +1036,14 @@ public class Technology extends ElectricObject
 		int numExtraCuts = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
-		if (specialValues[0] == PrimitiveNode.MULTICUT)
+		if (specialType == PrimitiveNode.MULTICUT)
 		{
-			mcd = new MultiCutData(ni, np.getSpecialValues());
+			mcd = new MultiCutData(ni, specialValues);
 			numExtraCuts = mcd.cutsTotal;
 			numBasicLayers--;
-		} else if (specialValues[0] == PrimitiveNode.SERPTRANS)
+		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni, np.getSpecialValues());
+			std = new SerpentineTrans(ni, specialValues);
 			if (std.layersTotal > 0)
 			{
 				numExtraCuts = std.layersTotal;
@@ -1156,32 +1137,32 @@ public class Technology extends ElectricObject
 	 */
 	private static class MultiCutData
 	{
-		/** the size of each cut */													int cutSizeX, cutSizeY;
-		/** the separation between cuts */											int cutSep;
-		/** the indent of the edge cuts to the node */								int cutIndent;
+		/** the size of each cut */													double cutSizeX, cutSizeY;
+		/** the separation between cuts */											double cutSep;
+		/** the indent of the edge cuts to the node */								double cutIndent;
 		/** the number of cuts in X and Y */										int cutsX, cutsY;
 		/** the total number of cuts */												int cutsTotal;
 		/** the X coordinate of the leftmost cut's center */						double cutBaseX;
 		/** the Y coordinate of the topmost cut's center */							double cutBaseY;
-		/** cut position of last top-edge cut (for interior-cut elimination) */		int cutTopEdge;
-		/** cut position of last left-edge cut  (for interior-cut elimination) */	int cutLeftEdge;
-		/** cut position of last right-edge cut  (for interior-cut elimination) */	int cutRightEdge;
+		/** cut position of last top-edge cut (for interior-cut elimination) */		double cutTopEdge;
+		/** cut position of last left-edge cut  (for interior-cut elimination) */	double cutLeftEdge;
+		/** cut position of last right-edge cut  (for interior-cut elimination) */	double cutRightEdge;
 
 		/**
 		 * Constructor throws initialize for multiple cuts.
 		 * @param ni the NodeInst with multiple cuts.
 		 * @param specialValues the array of special values for the NodeInst.
 		 * The values in "specialValues" are:
-		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[1] x specialValues[2])
-		 *     cuts indented at least "cutIndent" from the node edge (specialValues[3])
-		 *     cuts separated by "cutSep" (specialValues[4])
+		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
+		 *     cuts indented at least "cutIndent" from the node edge (specialValues[2])
+		 *     cuts separated by "cutSep" (specialValues[3])
 		 */
-		public MultiCutData(NodeInst ni, int [] specialValues)
+		public MultiCutData(NodeInst ni, double [] specialValues)
 		{
-			cutSizeX = specialValues[1];
-			cutSizeY = specialValues[2];
-			cutIndent = specialValues[3];
-			cutSep = specialValues[4];
+			cutSizeX = specialValues[0];
+			cutSizeY = specialValues[1];
+			cutIndent = specialValues[2];
+			cutSep = specialValues[3];
 
 			// determine the actual node size
 			PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -1198,8 +1179,8 @@ public class Technology extends ElectricObject
 			double hy = bounds.getMaxY() - cutHY;
 
 			// number of cuts depends on the size
-			cutsX = ((int)(hx-lx)-cutIndent*2+cutSep) / (cutSizeX+cutSep);
-			cutsY = ((int)(hy-ly)-cutIndent*2+cutSep) / (cutSizeY+cutSep);
+			cutsX = (int)((hx-lx)-cutIndent*2+cutSep) / (int)(cutSizeX+cutSep);
+			cutsY = (int)((hy-ly)-cutIndent*2+cutSep) / (int)(cutSizeY+cutSep);
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
 			cutsTotal = cutsX * cutsY;
@@ -1241,15 +1222,15 @@ public class Technology extends ElectricObject
 				} else if (cut < cutLeftEdge)
 				{
 					// left edge: rearrange
-					cut = (cut - cutTopEdge) * cutsX + cutsX;
+					cut = (int)((cut - cutTopEdge) * cutsX + cutsX);
 				} else if (cut < cutRightEdge)
 				{
 					// right edge: rearrange
-					cut = (cut - cutLeftEdge) * cutsX + cutsX*2-1;
+					cut = (int)((cut - cutLeftEdge) * cutsX + cutsX*2-1);
 				} else
 				{
 					// center: rearrange and scale down
-					cut = cut - cutRightEdge;
+					cut = cut - (int)cutRightEdge;
 					int cutx = cut % (cutsX-2);
 					int cuty = cut / (cutsX-2);
 					cut = cuty * cutsX + cutx+cutsX+1;
@@ -1295,14 +1276,14 @@ public class Technology extends ElectricObject
 		 * @param ni the NodeInst with a serpentine transistor.
 		 * @param specialValues the array of special values for the NodeInst.
 		 * The values in "specialValues" are:
-		 *     layer count is [1]
-		 *     active port inset [2] from end of serpentine path
-		 *     active port is [3] from poly edge
-		 *     poly width is [4]
-		 *     poly port inset [5] from poly edge
-		 *     poly port is [6] from active edge
+		 *     layer count is [0]
+		 *     active port inset [1] from end of serpentine path
+		 *     active port is [2] from poly edge
+		 *     poly width is [3]
+		 *     poly port inset [4] from poly edge
+		 *     poly port is [5] from active edge
 		 */
-		public SerpentineTrans(NodeInst ni, int [] specialValues)
+		public SerpentineTrans(NodeInst ni, double [] specialValues)
 		{
 			points = null;
 			layersTotal = 0;
@@ -1645,8 +1626,8 @@ public class Technology extends ElectricObject
 	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		int [] specialValues = np.getSpecialValues();
-//		if (specialValues[0] == PrimitiveNode.SERPTRANS)
+//		double [] specialValues = np.getSpecialValues();
+//		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 //		{
 //			// serpentine transistors use a more complex port determination (tech_filltransport)
 //			Poly portpoly = new Poly(0, 0, 0, 0);

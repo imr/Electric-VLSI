@@ -143,11 +143,11 @@ public class Generic extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(universal_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		univPinPort = PrimitivePort.newInstance(this, universalPinNode, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		universalPinNode.addPrimitivePorts(new PrimitivePort [] {univPinPort});
 		universalPinNode.setFunction(NodeProto.Function.PIN);
 		universalPinNode.setWipeOn1or2();
@@ -157,10 +157,10 @@ public class Generic extends Technology
 		invisiblePinNode = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
 		invisiblePinNode.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
 		invisiblePinNode.setFunction(NodeProto.Function.PIN);
 		invisiblePinNode.setWipeOn1or2();
@@ -170,13 +170,13 @@ public class Generic extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(unrouted_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		unroutedPinNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, unroutedPinNode, new ArcProto[] {unrouted_arc}, "unrouted", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		unroutedPinNode.setFunction(NodeProto.Function.PIN);
 		unroutedPinNode.setWipeOn1or2();
@@ -185,13 +185,13 @@ public class Generic extends Technology
 		cellCenterNode = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.BIGCROSS, Technology.NodeLayer.POINTS, Technology.TechPoint.ATCENTER)
+				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.BIGCROSS, Technology.NodeLayer.POINTS, Technology.TechPoint.makeCenterBox())
 			});
 		cellCenterNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, cellCenterNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		cellCenterNode.setFunction(NodeProto.Function.ART);
 
@@ -199,13 +199,13 @@ public class Generic extends Technology
 		portNode = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
-//				new Technology.NodeLayer(glyph_lay, 0, 3, Poly.Type.OPENED, Technology.NodeLayer.POINTS, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+//				new Technology.NodeLayer(glyph_lay, 0, 3, Poly.Type.OPENED, Technology.NodeLayer.POINTS, Technology.TechPoint.makeFullBox())
 			});
 		portNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, portNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		portNode.setFunction(NodeProto.Function.ART);
 
@@ -213,12 +213,12 @@ public class Generic extends Technology
 		drcNode = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(drc_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(drc_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		drcNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		drcNode.setFunction(NodeProto.Function.NODE);
 		drcNode.setHoldsOutline();
@@ -228,14 +228,14 @@ public class Generic extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(-1))})
+					new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromCenter(-1))})
 			});
 		essentialBoundsNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, essentialBoundsNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		essentialBoundsNode.setFunction(NodeProto.Function.ART);
 
@@ -243,12 +243,12 @@ public class Generic extends Technology
 		simProbeNode = PrimitiveNode.newInstance("Simulation-Probe", this, 10.0, 10.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(simprobe_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(simprobe_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		simProbeNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		simProbeNode.setFunction(NodeProto.Function.ART);
 	}

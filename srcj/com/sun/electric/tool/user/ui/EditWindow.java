@@ -41,6 +41,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -1164,16 +1165,17 @@ public class EditWindow extends JPanel
     public void downHierarchy() {
 		Highlight h = Highlight.getOneHighlight();
 		if (h == null) return;
-		if (h.getType() != Highlight.Type.GEOM) {
+		if (h.getType() != Highlight.Type.EOBJ) {
             System.out.println("Must first select a cell instance");
             return;
         }
-        Geometric geom = h.getGeom();
-        if (!(geom instanceof NodeInst)) {
+        ElectricObject eobj = h.getElectricObject();
+		if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+        if (!(eobj instanceof NodeInst)) {
             System.out.println("Must first select a cell instance");
             return;
         }
-        NodeInst ni = (NodeInst)geom;
+        NodeInst ni = (NodeInst)eobj;
         NodeProto np = ni.getProto();
         if (!(np instanceof Cell)) {
             System.out.println("Can only descend into cell instances");
@@ -1197,7 +1199,7 @@ public class EditWindow extends JPanel
             VarContext context = cellVarContext.pop();
             setCell(parent, context);
 			if (ni instanceof NodeInst)
-				Highlight.addGeometric((NodeInst)ni);
+				Highlight.addElectricObject((NodeInst)ni, parent);
             needsUpdate = true;
         } catch (NullPointerException e) {
             // no parent - if icon, go to sch view

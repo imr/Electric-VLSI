@@ -1100,13 +1100,12 @@ public class PaletteFrame
 				{
 					var.setDisplay();
 					var.setDescriptor(TextDescriptor.newNonLayoutDescriptor(null));
-					Highlight h = Highlight.addText(cell, var, null);
-					h.setGeom(newNi);
+					Highlight h = Highlight.addText(newNi, cell, var, null);
 				}
 			} else
 			{
 				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
-				Highlight.addGeometric(newNi);
+				Highlight.addElectricObject(newNi, cell);
 			}
 			Highlight.finished();
 		}

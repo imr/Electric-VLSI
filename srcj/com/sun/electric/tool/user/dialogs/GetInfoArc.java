@@ -31,6 +31,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -102,12 +103,12 @@ public class GetInfoArc extends javax.swing.JDialog
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.GEOM)
+			if (h.getType() == Highlight.Type.EOBJ)
 			{
-				Geometric geom = h.getGeom();
-				if (geom instanceof ArcInst)
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof ArcInst)
 				{
-					ai = (ArcInst)geom;
+					ai = (ArcInst)eobj;
 					arcCount++;
 				}
 			}
@@ -659,8 +660,8 @@ public class GetInfoArc extends javax.swing.JDialog
 		ArcInst ai = shownArc;
 		NodeInst ni = shownArc.getTail().getPortInst().getNodeInst();
 		Highlight.clear();
-		Highlight.addGeometric(ni);
-		Highlight.addGeometric(ai);
+		Highlight.addElectricObject(ni, ni.getParent());
+		Highlight.addElectricObject(ai, ai.getParent());
 		Highlight.finished();
 	}//GEN-LAST:event_tailSeeActionPerformed
 
@@ -670,8 +671,8 @@ public class GetInfoArc extends javax.swing.JDialog
 		ArcInst ai = shownArc;
 		NodeInst ni = shownArc.getHead().getPortInst().getNodeInst();
 		Highlight.clear();
-		Highlight.addGeometric(ni);
-		Highlight.addGeometric(ai);
+		Highlight.addElectricObject(ni, ni.getParent());
+		Highlight.addElectricObject(ai, ai.getParent());
 		Highlight.finished();
 	}//GEN-LAST:event_headSeeActionPerformed
 

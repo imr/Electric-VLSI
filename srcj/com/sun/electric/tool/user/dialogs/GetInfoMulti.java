@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -65,7 +66,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 	private JList list;
 	private List highlightList;
 	private String initialXPosition, initialYPosition, initialXSize, initialYSize, initialWidth;
-	private int numNodes, numArcs;
+	private int numNodes, numArcs, numExports;
 
 	/**
 	 * Routine to show the Multi-object Get-Info dialog.
@@ -127,8 +128,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 		Collections.sort(highlightList, new SortMultipleHighlights());
 
 		// show the list
-		numNodes = 0;
-		numArcs = 0;
+		numNodes = numArcs = numExports = 0;
 		Geometric firstGeom = null;
 		Geometric secondGeom = null;
 		double xPositionLow=0, xPositionHigh=0, yPositionLow=0, yPositionHigh=0;
@@ -139,15 +139,20 @@ public class GetInfoMulti extends javax.swing.JDialog
 		for(Iterator it = highlightList.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.GEOM)
+			ElectricObject eobj = h.getElectricObject();
+			if (h.getType() == Highlight.Type.EOBJ)
 			{
-				String description;
-				Geometric geom = h.getGeom();
-				if (firstGeom == null) firstGeom = geom; else
-					if (secondGeom == null) secondGeom = geom;
-				if (geom instanceof NodeInst)
+				String description = "";
+				if (eobj instanceof PortInst)
+					eobj = ((PortInst)eobj).getNodeInst();
+				if (eobj instanceof Geometric)
 				{
-					NodeInst ni = (NodeInst)geom;
+					if (firstGeom == null) firstGeom = (Geometric)eobj; else
+						if (secondGeom == null) secondGeom = (Geometric)eobj;
+				}
+				if (eobj instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)eobj;
 					if (numNodes != 0)
 					{
 						xPositionLow = Math.min(xPositionLow, ni.getCenterX());
@@ -166,10 +171,10 @@ public class GetInfoMulti extends javax.swing.JDialog
 						ySizeLow =  ySizeHigh = ni.getYSize();
 					}
 					numNodes++;
-					description = "Node ";
-				} else
+					description = "Node " + ni.describe();
+				} else if (eobj instanceof ArcInst)
 				{
-					ArcInst ai = (ArcInst)geom;
+					ArcInst ai = (ArcInst)eobj;
 					if (numArcs != 0)
 					{
 						widthLow = Math.min(widthLow, ai.getWidth());
@@ -179,69 +184,28 @@ public class GetInfoMulti extends javax.swing.JDialog
 						widthLow = widthHigh = ai.getWidth();
 					}
 					numArcs++;
-					description = "Arc ";
+					description = "Arc " + ai.describe();
 				}
-				description += geom.describe();
 				listModel.addElement(description);
 			} else if (h.getType() == Highlight.Type.TEXT)
 			{
 				String description = "Text: unknown";
 				if (h.getVar() != null)
 				{
-					String trueName = h.getVar().getReadableName();
-					if (h.getGeom() != null)
-					{
-						if (h.getPort() != null)
-						{
-							description = "Text: " + trueName + " on export '" + h.getPort().getProtoName() + "'";
-						} else
-						{
-							description = "Text: " + trueName + " on geometry " + h.getGeom().describe();
-							if (h.getGeom() instanceof NodeInst)
-							{
-								NodeInst ni = (NodeInst)h.getGeom();
-								if (ni.getProto() == Generic.tech.invisiblePinNode)
-								{
-									String varName = h.getVar().getKey().getName();
-									if (varName.equals("ART_message"))
-									{
-										description = "Text: Nonlayout text";
-									} else if (varName.equals("VERILOG_code"))
-									{
-										description = "Text: Verilog Code";
-									} else if (varName.equals("VERILOG_declaration"))
-									{
-										description = "Text: Verilog declaration";
-									} else if (varName.equals("SIM_spice_card"))
-									{
-										description = "Text: SPICE card";
-									}
-								}
-							}
-						}
-					} else
-					{
-						description = "Text: " + trueName + " on cell " + h.getCell().describe();
-					}
+					description = "Text: " + h.getVar().getFullDescription(eobj);
 				} else
 				{
 					if (h.getName() != null)
 					{
-						Geometric geom = h.getGeom();
-						if (geom != null)
-						{
-							if (geom instanceof NodeInst) description = "Node name for " + geom.describe(); else
-								description = "Arc name for " + geom.describe();
-						}
-					} else if (h.getPort() != null)
+						if (eobj instanceof NodeInst) description = "Node name for " + ((NodeInst)eobj).describe(); else
+							if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe();
+					} else if (eobj instanceof Export)
 					{
-						description = "Text: Export '" + h.getPort().getProtoName() + "'";
-					} else
+						description = "Text: Export '" + ((Export)eobj).getProtoName() + "'";
+						numExports++;
+					} else if (eobj instanceof NodeInst)
 					{
-						if (h.getGeom() != null)
-						{
-							description = "Text: Cell instance name " + h.getGeom().describe();
-						}
+						description = "Text: Cell instance name " + ((NodeInst)eobj).describe();
 					}
 				}
 				listModel.addElement(description);
@@ -349,6 +313,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 			width.setText("");
 			widthRange.setText("");
 		}
+		characteristics.setEnabled(numExports != 0);
 		if (numNodes == 0 && numArcs == 0)
 		{
 			listPane.setEnabled(false);
@@ -356,7 +321,6 @@ public class GetInfoMulti extends javax.swing.JDialog
 			removeOthers.setEnabled(false);
 			apply.setEnabled(false);
 			selection.setEnabled(false);
-			characteristics.setEnabled(false);
 		} else
 		{
 			listPane.setEnabled(true);
@@ -364,7 +328,6 @@ public class GetInfoMulti extends javax.swing.JDialog
 			removeOthers.setEnabled(true);
 			apply.setEnabled(true);
 			selection.setEnabled(true);
-			characteristics.setEnabled(true);
 		}
 	}
 
@@ -382,17 +345,25 @@ public class GetInfoMulti extends javax.swing.JDialog
 			}
 
 			// if not a geometric, no order is available
-			if (h1.getType() != Highlight.Type.GEOM) return 0;
+			if (h1.getType() != Highlight.Type.EOBJ) return 0;
 
-			// sort on mix of NodeInst and ArcInst
-			int isNode1 = 1;
-			if (h1.getGeom() instanceof ArcInst) isNode1 = 0;
-			int isNode2 = 1;
-			if (h2.getGeom() instanceof ArcInst) isNode2 = 0;
-			if (isNode1 != isNode2) return isNode1 - isNode2;
+			// sort on mix of NodeInst / ArcInst / PortInst
+			ElectricObject e1 = h1.getElectricObject();
+			int type1 = 0;
+			if (e1 instanceof NodeInst) type1 = 1; else
+				if (e1 instanceof ArcInst) type1 = 2;
+			ElectricObject e2 = h2.getElectricObject();
+			int type2 = 0;
+			if (e2 instanceof NodeInst) type2 = 1; else
+				if (e2 instanceof ArcInst) type2 = 2;
+			if (type1 != type2) return type1 - type2;
 
 			// sort on the object name
-			return h1.getGeom().describe().compareToIgnoreCase(h2.getGeom().describe());
+			String s1 = e1.toString();
+			if (e1 instanceof Geometric) s1 = ((Geometric)e1).describe();
+			String s2 = e2.toString();
+			if (e2 instanceof Geometric) s2 = ((Geometric)e2).describe();
+			return s1.compareToIgnoreCase(s2);
 		}
 	}
 
@@ -435,10 +406,10 @@ public class GetInfoMulti extends javax.swing.JDialog
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = (Geometric)h.getGeom();
-					if (!(geom instanceof NodeInst)) continue;
-					NodeInst ni = (NodeInst)geom;
+					if (h.getType() != Highlight.Type.EOBJ) continue;
+					ElectricObject eobj = h.getElectricObject();
+					if (!(eobj instanceof NodeInst)) continue;
+					NodeInst ni = (NodeInst)eobj;
 					nis[index] = ni;
 					if (currentXPosition.equals("")) dXP[index] = 0; else
 						dXP[index] = newXPosition - ni.getCenterX();
@@ -465,10 +436,10 @@ public class GetInfoMulti extends javax.swing.JDialog
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = (Geometric)h.getGeom();
-					if (!(geom instanceof ArcInst)) continue;
-					ArcInst ai = (ArcInst)geom;
+					if (h.getType() != Highlight.Type.EOBJ) continue;
+					ElectricObject eobj = h.getElectricObject();
+					if (!(eobj instanceof ArcInst)) continue;
+					ArcInst ai = (ArcInst)eobj;
 					ai.modify(newWidth - ai.getWidth(), 0, 0, 0, 0);
 				}
 				dialog.initialWidth = currentWidth;
@@ -480,16 +451,16 @@ public class GetInfoMulti extends javax.swing.JDialog
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = (Geometric)h.getGeom();
-					if (geom instanceof NodeInst)
+					if (h.getType() != Highlight.Type.EOBJ) continue;
+					ElectricObject eobj = h.getElectricObject();
+					if (eobj instanceof NodeInst)
 					{
-						NodeInst ni = (NodeInst)geom;
+						NodeInst ni = (NodeInst)eobj;
 						if (selectEase == 1) ni.setHardSelect(); else
 							ni.clearHardSelect();
 					} else
 					{
-						ArcInst ai = (ArcInst)geom;
+						ArcInst ai = (ArcInst)eobj;
 						if (selectEase == 1) ai.setHardSelect(); else
 							ai.clearHardSelect();
 					}
@@ -506,8 +477,8 @@ public class GetInfoMulti extends javax.swing.JDialog
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.TEXT) continue;
 					if (h.getVar() != null) continue;
-					if (h.getPort() == null) continue;
-					PortProto pp = h.getPort();
+					if (!(h.getElectricObject() instanceof Export)) continue;
+					PortProto pp = (Export)h.getElectricObject();
 					pp.setCharacteristic(ch);
 				}
 			}

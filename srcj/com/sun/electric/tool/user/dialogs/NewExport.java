@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -228,20 +229,25 @@ public class NewExport extends javax.swing.JDialog
 		Highlight h = Highlight.getOneHighlight();
 		if (h == null) return;
 
-		if (h.getType() != Highlight.Type.GEOM)
+		if (h.getType() != Highlight.Type.EOBJ)
 		{
 			System.out.println("Must select a node");
 			return;
 		}
-		Geometric geom = h.getGeom();
-		if (!(geom instanceof NodeInst))
+		ElectricObject eobj = h.getElectricObject();
+		PortProto pp = null;
+		if (eobj instanceof PortInst)
+		{
+			pp = ((PortInst)eobj).getPortProto();
+			eobj = ((PortInst)eobj).getNodeInst();
+		}
+		if (!(eobj instanceof NodeInst))
 		{
 			System.out.println("Must select a node");
 			return;
 		}
-		NodeInst ni = (NodeInst)geom;
+		NodeInst ni = (NodeInst)eobj;
 
-		PortProto pp = h.getPort();
 		PortInst pi = null;
 		if (pp == null)
 		{

@@ -321,6 +321,7 @@ public class NodeInst extends Geometric implements Nodable
 		// if the cell-center changed, notify the cell and fix lots of stuff
 		for(int i=0; i<nis.length; i++)
 		{
+			nis[i].getParent().setDirty();
 			if (nis[i].getProto() instanceof PrimitiveNode && nis[i].getProto() == Generic.tech.cellCenterNode)
 			{
 				nis[i].getParent().adjustReferencePoint(nis[i]);
@@ -891,6 +892,7 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		boolean easyAnnotation = User.isEasySelectionOfAnnotationText();
 		int nodeNameText = 0;
+		if (protoType instanceof Cell && !isExpanded()) nodeNameText = 1;
 		int dispVars = 0;
 		if (easyAnnotation) dispVars = numDisplayableVariables(false);
 		int numExports = getNumExports();
@@ -979,6 +981,8 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			PortInst pi = (PortInst)it.next();
 			int justAdded = pi.addDisplayableVariables(rect, polys, start+numAddedVariables, wnd, multipleStrings);
+			for(int i=0; i<justAdded; i++)
+				polys[start+numAddedVariables+i].setPort(pi.getPortProto());
 			numAddedVariables += justAdded;
 		}
 		return numAddedVariables;

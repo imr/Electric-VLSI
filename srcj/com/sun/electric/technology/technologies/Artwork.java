@@ -150,30 +150,30 @@ public class Artwork extends Technology
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
 		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge()),
 		};
 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(new EdgeH(-0.125, 0), EdgeV.TOPEDGE),
-			new Technology.TechPoint(new EdgeH(0.125, 0), EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(new EdgeH(-0.125, 0), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(new EdgeH(0.125, 0), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
 		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 		};
 
 		//******************** NODES ********************
@@ -187,7 +187,7 @@ public class Artwork extends Technology
 		pinNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pinNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pinNode.setFunction(NodeProto.Function.PIN);
 		pinNode.setArcsWipe();
@@ -197,12 +197,12 @@ public class Artwork extends Technology
 		boxNode = PrimitiveNode.newInstance("Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		boxNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, boxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "box", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		boxNode.setFunction(NodeProto.Function.ART);
 
@@ -210,12 +210,12 @@ public class Artwork extends Technology
 		crossedBoxNode = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		crossedBoxNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, crossedBoxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "fbox", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		crossedBoxNode.setFunction(NodeProto.Function.ART);
 
@@ -223,12 +223,12 @@ public class Artwork extends Technology
 		filledBoxNode = PrimitiveNode.newInstance("Filled-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		filledBoxNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledBoxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "fbox", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledBoxNode.setFunction(NodeProto.Function.ART);
 
@@ -241,7 +241,7 @@ public class Artwork extends Technology
 		circleNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, circleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		circleNode.setFunction(NodeProto.Function.ART);
 
@@ -255,7 +255,7 @@ public class Artwork extends Technology
 		filledCircleNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledCircleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledCircleNode.setFunction(NodeProto.Function.ART);
 		filledCircleNode.setSquare();
@@ -269,7 +269,7 @@ public class Artwork extends Technology
 		splineNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, splineNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		splineNode.setFunction(NodeProto.Function.ART);
 		splineNode.setHoldsOutline();
@@ -283,7 +283,7 @@ public class Artwork extends Technology
 		triangleNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, triangleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "triangle", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		triangleNode.setFunction(NodeProto.Function.ART);
 
@@ -296,7 +296,7 @@ public class Artwork extends Technology
 		filledTriangleNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledTriangleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "ftriangle", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledTriangleNode.setFunction(NodeProto.Function.ART);
 
@@ -309,7 +309,7 @@ public class Artwork extends Technology
 		arrowNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, arrowNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "arrow", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.RIGHTEDGE, EdgeV.CENTER, EdgeH.RIGHTEDGE, EdgeV.CENTER)
+					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
 		arrowNode.setFunction(NodeProto.Function.ART);
 
@@ -322,7 +322,7 @@ public class Artwork extends Technology
 		openedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		openedPolygonNode.setFunction(NodeProto.Function.ART);
 		openedPolygonNode.setHoldsOutline();
@@ -336,7 +336,7 @@ public class Artwork extends Technology
 		openedDottedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedDottedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		openedDottedPolygonNode.setFunction(NodeProto.Function.ART);
 		openedDottedPolygonNode.setHoldsOutline();
@@ -350,7 +350,7 @@ public class Artwork extends Technology
 		openedDashedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedDashedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		openedDashedPolygonNode.setFunction(NodeProto.Function.ART);
 		openedDashedPolygonNode.setHoldsOutline();
@@ -364,7 +364,7 @@ public class Artwork extends Technology
 		openedThickerPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedThickerPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		openedThickerPolygonNode.setFunction(NodeProto.Function.ART);
 		openedThickerPolygonNode.setHoldsOutline();
@@ -378,7 +378,7 @@ public class Artwork extends Technology
 		closedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, closedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		closedPolygonNode.setFunction(NodeProto.Function.ART);
 		closedPolygonNode.setHoldsOutline();
@@ -392,7 +392,7 @@ public class Artwork extends Technology
 		filledPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledPolygonNode.setFunction(NodeProto.Function.ART);
 		filledPolygonNode.setHoldsOutline();
@@ -406,7 +406,7 @@ public class Artwork extends Technology
 		thickCircleNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, thickCircleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		thickCircleNode.setFunction(NodeProto.Function.ART);
 	};

@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
@@ -162,13 +163,17 @@ public class GetInfoNode extends javax.swing.JDialog
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			if (h.getType() == Highlight.Type.GEOM)
+			if (h.getType() == Highlight.Type.EOBJ)
 			{
-				Geometric geom = h.getGeom();
-				if (geom instanceof NodeInst)
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst)
 				{
-					ni = (NodeInst)geom;
-					pp = h.getPort();
+					pp = ((PortInst)eobj).getPortProto();
+					eobj = ((PortInst)eobj).getNodeInst();
+				}
+				if (eobj instanceof NodeInst)
+				{
+					ni = (NodeInst)eobj;
 					nodeCount++;
 				}
 			}
@@ -1464,8 +1469,8 @@ public class GetInfoNode extends javax.swing.JDialog
 		if (ai == null) return;
 		NodeInst ni = theDialog.shownNode;
 		Highlight.clear();
-		Highlight.addGeometric(ni);
-		Highlight.addGeometric(ai);
+		Highlight.addElectricObject(ni, ni.getParent());
+		Highlight.addElectricObject(ai, ai.getParent());
 		Highlight.finished();
 	}//GEN-LAST:event_seeActionPerformed
 

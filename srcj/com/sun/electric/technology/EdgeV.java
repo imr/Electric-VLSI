@@ -51,13 +51,6 @@ public class EdgeV
 		this.adder = adder;
 	}
 
-	/** Describes the bottom edge of a NodeInst. */
-	public static final EdgeV BOTTOMEDGE = new EdgeV(-0.5, 0.0);
-	/** Describes the top edge of a NodeInst. */
-	public static final EdgeV TOPEDGE = new EdgeV(0.5, 0.0);
-	/** Describes the Y center of a NodeInst. */
-	public static final EdgeV CENTER = new EdgeV(0.0, 0.0);
-
 	/**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst height.
@@ -66,11 +59,26 @@ public class EdgeV
 	public double getMultiplier() { return multiplier; }
 
 	/**
+	 * Sets the multiplier.
+	 * This is the amount to scale a NodeInst height.
+	 * @param multiplier the new multiplier.
+	 */
+	public void setMultiplier(double multiplier) { this.multiplier = multiplier; }
+
+
+	/**
 	 * Returns the adder.
 	 * This is the amount to add to a NodeInst height.
 	 * @return the adder.
 	 */
 	public double getAdder() { return adder; }
+
+	/**
+	 * Sets the adder.
+	 * This is the amount to add to a NodeInst height.
+	 * @param adder the new adder.
+	 */
+	public void setAdder(double adder) { this.adder = adder; }
 
 	/**
 	 * Describes a position that is in from the top by a specified amount.
@@ -98,6 +106,24 @@ public class EdgeV
 	{
 		return new EdgeV(0.0, amt);
 	}
+
+	/**
+	 * Creates a position that describes the bottom edge of the NodeInst.
+	 * @return a position that describes the bottom edge of the NodeInst.
+	 */
+	public static EdgeV makeBottomEdge() { return fromBottom(0); }
+
+	/**
+	 * Creates a position that describes the top edge of the NodeInst.
+	 * @return a position that describes the top edge of the NodeInst.
+	 */
+	public static EdgeV makeTopEdge() { return fromTop(0); }
+
+	/**
+	 * Creates a position that describes the center of the NodeInst.
+	 * @return a position that describes the center of the NodeInst.
+	 */
+	public static EdgeV makeCenter() { return fromCenter(0); }
 
 	/**
 	 * Returns a printable version of this EdgeV.

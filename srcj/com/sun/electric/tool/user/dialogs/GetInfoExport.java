@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
@@ -109,9 +110,10 @@ public class GetInfoExport extends javax.swing.JDialog
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.TEXT) continue;
 			if (h.getVar() != null) continue;
-			if (h.getPort() != null)
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof Export)
 			{
-				pp = (Export)h.getPort();
+				pp = (Export)eobj;
 				exportHighlight = h;
 				exportCount++;
 			}
@@ -1085,13 +1087,10 @@ public class GetInfoExport extends javax.swing.JDialog
 		if (shownExport == null) return;
 		NodeInst ni = shownExport.getOriginalPort().getNodeInst();
 		Cell cell = exportHighlight.getCell();
-		Variable var = exportHighlight.getVar();
-		Name name = exportHighlight.getName();
 
 		Highlight.clear();
-		Highlight.addGeometric(ni);
-		Highlight newHigh = Highlight.addText(cell, var, name);
-		newHigh.setPort(shownExport);
+		Highlight.addElectricObject(ni, cell);
+		Highlight newHigh = Highlight.addText(shownExport, cell, null, null);
 		Highlight.finished();
 	}//GEN-LAST:event_seeActionPerformed
 

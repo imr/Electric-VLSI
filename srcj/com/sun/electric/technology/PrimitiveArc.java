@@ -24,6 +24,8 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -44,6 +46,8 @@ import java.util.Iterator;
  */
 public class PrimitiveArc extends ArcProto
 {
+	/** key of Variable holding override pin. */	public static final Variable.Key ARC_DEFAULT_PIN = ElectricObject.newKey("ARC_Default_Pin");
+
 	// ----------------------- private data -------------------------------
 
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
@@ -99,12 +103,39 @@ public class PrimitiveArc extends ArcProto
 	public Technology.ArcLayer [] getLayers() { return layers; }
 
 	/**
+	 * Routine to find the ArcLayer on this PrimitiveArc with a given Layer.
+	 * If there are more than 1 with the given Layer, the first is returned.
+	 * @param layer the Layer to find.
+	 * @return the ArcLayer that has this Layer.
+	 */
+	public Technology.ArcLayer findArcLayer(Layer layer)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Technology.ArcLayer oneLayer = layers[j];
+			if (oneLayer.getLayer() == layer) return oneLayer;
+		}
+		return null;
+	}
+
+	/**
 	 * Routine to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
 	 * For example, if this PrimitiveArc is metal-1 then return the Metal-1-pin.
 	 * @return the PrimitiveNode pin that matches, or null if there is no match.
 	 */
 	public PrimitiveNode findPinProto()
 	{
+		// see if there is a default on this arc proto
+		Variable var = getVar(ARC_DEFAULT_PIN);
+		if (var != null)
+		{
+			if (var.getObject() instanceof PrimitiveNode)
+			{
+				return (PrimitiveNode)var.getObject();
+			}
+		}
+
+		// search for an appropriate pin
 		Iterator it = tech.getNodes();
 		while (it.hasNext())
 		{

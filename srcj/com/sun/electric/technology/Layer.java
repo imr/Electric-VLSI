@@ -183,6 +183,7 @@ public class Layer
 	}
 
 	private String name;
+	private int index;
 	private Technology tech;
 	private EGraphics graphics;
 	private Function function;
@@ -220,6 +221,20 @@ public class Layer
 	 * @return the name of this Layer.
 	 */
 	public String getName() { return name; }
+
+	/**
+	 * Routine to return the index of this Layer.
+	 * The index is 0-based.
+	 * @return the index of this Layer.
+	 */
+	public int getIndex() { return index; }
+
+	/**
+	 * Routine to set the index of this Layer.
+	 * The index is 0-based.
+	 * @param index the index of this Layer.
+	 */
+	public void setIndex(int index) { this.index = index; }
 
 	/**
 	 * Routine to return the Technology of this Layer.

@@ -25,10 +25,14 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -215,6 +219,54 @@ public class Variable
 //		unitname = us_variableunits(var);
 //		if (unitname != 0) formatinfstr(infstr, x_(" (%s)"), unitname);
 		return trueName;
+	}
+
+	/**
+	 * Routine to return a full description of this Variable.
+	 * The description includes the object on which this Variable resides.
+	 * @return a full description of this Variable.
+	 */
+	public String getFullDescription(ElectricObject eobj)
+	{
+		String trueName = getReadableName();
+		String description = null;
+		if (eobj instanceof Export)
+		{
+			description = trueName + " on export '" + ((Export)eobj).getProtoName() + "'";
+		} else if (eobj instanceof PortInst)
+		{
+			PortInst pi = (PortInst)eobj;
+			description = trueName + " on port " + pi.getPortProto().getProtoName() +
+				" of " + pi.getNodeInst().describe();
+		} else if (eobj instanceof ArcInst)
+		{
+			description = trueName + " on " + ((ArcInst)eobj).describe();
+		} else if (eobj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)eobj;
+			description = trueName + " on " + ni.describe();
+			if (ni.getProto() == Generic.tech.invisiblePinNode)
+			{
+				String varName = getKey().getName();
+				if (varName.equals("ART_message"))
+				{
+					description = "Annotation text";
+				} else if (varName.equals("VERILOG_code"))
+				{
+					description = "Verilog code";
+				} else if (varName.equals("VERILOG_declaration"))
+				{
+					description = "Verilog declaration";
+				} else if (varName.equals("SIM_spice_card"))
+				{
+					description = "SPICE card";
+				}
+			}
+		} else if (eobj instanceof Cell)
+		{
+			description = trueName + " of cell " + ((Cell)eobj).describe();
+		}
+		return description;
 	}
 
 	/**

@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -110,7 +111,7 @@ public class GetInfoText extends javax.swing.JDialog
 			if (h.getType() != Highlight.Type.TEXT) continue;
 
 			// ignore export text
-			if (h.getVar() == null && h.getPort() != null) continue;
+			if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
 			textHighlight = h;
 			textCount++;
 		}
@@ -120,6 +121,7 @@ public class GetInfoText extends javax.swing.JDialog
 			if (shownText != null)
 			{
 				// no text selected, disable the dialog
+				header.setText("No Text Selected");
 				theText.setEditable(false);
 				evaluation.setText("");
 				xOffset.setEditable(false);
@@ -166,59 +168,30 @@ public class GetInfoText extends javax.swing.JDialog
 		String description = "Unknown text";
 		initialText = "";
 		TextDescriptor td = null;
-		NodeInst ni = null;
 		posNotOffset = false;
 		boolean editable = true;
+		ElectricObject eobj = textHighlight.getElectricObject();
+		NodeInst ni = null;
+		if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
 		Variable var = textHighlight.getVar();
 		if (var != null)
 		{
+			if (ni != null)
+			{
+				if (ni.getProto() == Generic.tech.invisiblePinNode) posNotOffset = true;
+			}
 			td = var.getTextDescriptor();
 			initialText = var.getPureValue(-1, -1);
-			String trueName = var.getReadableName();
-			if (textHighlight.getGeom() != null)
-			{
-				if (textHighlight.getPort() != null)
-				{
-					description = trueName + " on export '" + textHighlight.getPort().getProtoName() + "'";
-				} else
-				{
-					description = trueName + " on " + textHighlight.getGeom().describe();
-					if (textHighlight.getGeom() instanceof NodeInst)
-					{
-						ni = (NodeInst)textHighlight.getGeom();
-						if (ni.getProto() == Generic.tech.invisiblePinNode)
-						{
-							posNotOffset = true;
-							String varName = var.getKey().getName();
-							if (varName.equals("ART_message"))
-							{
-								description = "Annotation text";
-							} else if (varName.equals("VERILOG_code"))
-							{
-								description = "Verilog code";
-							} else if (varName.equals("VERILOG_declaration"))
-							{
-								description = "Verilog declaration";
-							} else if (varName.equals("SIM_spice_card"))
-							{
-								description = "SPICE card";
-							}
-						}
-					}
-				}
-			} else
-			{
-				description = trueName + " of cell " + textHighlight.getCell().describe();
-			}
+			description = var.getFullDescription(eobj);
 			if (var.getLength() > 1) editable = false;
 		} else
 		{
 			if (textHighlight.getName() != null)
 			{
-				Geometric geom = textHighlight.getGeom();
-				td = geom.getNameTextDescriptor();
-				if (geom != null)
+				if (eobj instanceof Geometric)
 				{
+					Geometric geom = (Geometric)eobj;
+					td = geom.getNameTextDescriptor();
 					if (geom instanceof NodeInst)
 					{
 						description = "Name of node " + ((NodeInst)geom).getProto().describe();
@@ -226,13 +199,13 @@ public class GetInfoText extends javax.swing.JDialog
 					{
 						description = "Name of arc " + ((ArcInst)geom).getProto().describe();
 					}
+					initialText = geom.getName();
 				}
-				initialText = geom.getName();
-			} else if (textHighlight.getGeom() != null)
+			} else if (eobj instanceof NodeInst)
 			{
-				description = "Name of cell instance " + textHighlight.getGeom().describe();
-				td = ((NodeInst)textHighlight.getGeom()).getProtoTextDescriptor();
-				initialText = ((NodeInst)textHighlight.getGeom()).getProto().describe();
+				description = "Name of cell instance " + ni.describe();
+				td = ni.getProtoTextDescriptor();
+				initialText = ni.getProto().describe();
 				editable = false;
 			}
 		}
@@ -439,18 +412,19 @@ public class GetInfoText extends javax.swing.JDialog
 
 			TextDescriptor td = null;
 			Variable var = text.getVar();
-			Geometric geom = text.getGeom();
+			ElectricObject eobj = text.getElectricObject();
 			if (var != null)
 			{
 				td = var.getTextDescriptor();
 			} else
 			{
-				if (text.getName() != null)
+				if (text.getName() != null && eobj instanceof Geometric)
 				{
+					Geometric geom = (Geometric)eobj;
 					td = geom.getNameTextDescriptor();
-				} else if (text.getGeom() != null)
+				} else if (eobj != null && eobj instanceof NodeInst)
 				{
-					td = ((NodeInst)text.getGeom()).getProtoTextDescriptor();
+					td = ((NodeInst)eobj).getProtoTextDescriptor();
 				}
 			}
 
@@ -465,23 +439,9 @@ public class GetInfoText extends javax.swing.JDialog
 					boolean oldJava = var.isJava();
 					boolean oldDisplay = var.isDisplay();
 					boolean oldTemporary = var.isDontSave();
-					Variable newVar = null;
-					if (geom != null)
-					{
-						if (text.getPort() != null)
-						{
-							// change variable on export
-							newVar = text.getPort().newVar(var.getKey(), currentText);
-						} else
-						{
-							// change variable on NodeInst or ArcInst
-							newVar = geom.newVar(var.getKey(), currentText);
-						}
-					} else
-					{
-						// change variable on cell
-						newVar = text.getCell().newVar(var.getKey(), currentText);
-					}
+
+					// change variable
+					Variable newVar = eobj.newVar(var.getKey(), currentText);
 					if (newVar != null)
 					{
 						newVar.setDescriptor(td);
@@ -494,10 +454,10 @@ public class GetInfoText extends javax.swing.JDialog
 				{
 					if (text.getName() != null)
 					{
-						if (geom != null)
+						if (eobj != null)
 						{
 							// change name of NodeInst or ArcInst
-							geom.setName(currentText);
+							((Geometric)eobj).setName(currentText);
 						}
 					}
 				}
@@ -530,7 +490,7 @@ public class GetInfoText extends javax.swing.JDialog
 				changed = true;
 				if (dialog.posNotOffset)
 				{
-					NodeInst ni = (NodeInst)geom;
+					NodeInst ni = (NodeInst)eobj;
 					double dX = currentXOffset - ni.getCenterX();
 					double dY = currentYOffset - ni.getCenterY();
 					ni.modifyInstance(dX, dY, 0, 0, 0);
@@ -680,9 +640,9 @@ public class GetInfoText extends javax.swing.JDialog
 
 			if (changed)
 			{
-				if (geom != null)
+				if (eobj != null)
 				{
-					Undo.redrawObject(geom);
+					Undo.redrawObject(eobj);
 				} else
 				{
 					if (text.getCell().getNumNodes() > 0)
@@ -808,8 +768,8 @@ public class GetInfoText extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         getContentPane().add(header, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1291,17 +1251,18 @@ public class GetInfoText extends javax.swing.JDialog
 
 	private void seeNodeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeNodeActionPerformed
 	{//GEN-HEADEREND:event_seeNodeActionPerformed
-		Geometric geom = shownText.getGeom();
-		if (geom == null) return;
-		Cell cell = shownText.getCell();
-		Variable var = shownText.getVar();
-		Name name = shownText.getName();
+		ElectricObject eobj = shownText.getElectricObject();
+		if (eobj instanceof NodeInst || eobj instanceof PortInst)
+		{
+			Cell cell = shownText.getCell();
+			Variable var = shownText.getVar();
+			Name name = shownText.getName();
 
-		Highlight.clear();
-		Highlight.addGeometric(geom);
-		Highlight newHigh = Highlight.addText(cell, var, name);
-		newHigh.setGeom(geom);
-		Highlight.finished();
+			Highlight.clear();
+			Highlight.addElectricObject(eobj, cell);
+			Highlight newHigh = Highlight.addText(eobj, cell, var, name);
+			Highlight.finished();
+		}
 	}//GEN-LAST:event_seeNodeActionPerformed
 
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed

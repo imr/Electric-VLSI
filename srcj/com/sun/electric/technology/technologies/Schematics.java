@@ -323,13 +323,13 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		wirePinNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		wirePinNode.setFunction(NodeProto.Function.PIN);
 		wirePinNode.setSquare();
@@ -340,16 +340,16 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(bus_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		busPinNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, busPinNode, new ArcProto[] {wire_arc, bus_arc}, "bus", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		busPinNode.setFunction(NodeProto.Function.PIN);
 		busPinNode.setSquare();
@@ -360,8 +360,8 @@ public class Schematics extends Technology
 		wireConNode = PrimitiveNode.newInstance("Wire_Con", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				letterJ = new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, Technology.TechPoint.ATCENTER)
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				letterJ = new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, Technology.TechPoint.makeCenterBox())
 			});
 		PrimitivePort wireCon_port = PrimitivePort.newInstance(this, wireConNode, new ArcProto[] {wire_arc, bus_arc}, "wire", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 			EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5));
@@ -377,19 +377,19 @@ public class Schematics extends Technology
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint [] {
-						new Technology.TechPoint(RIGHTBYP66, EdgeV.CENTER),
-						new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP875),
-						new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP875)
+						new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP875),
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP875)
 					})
 			});
 		bufferNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
+					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc}, "c", 270,0, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, BOTBYP33, EdgeH.CENTER, BOTBYP33),
+					EdgeH.makeCenter(), BOTBYP33, EdgeH.makeCenter(), BOTBYP33),
 				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2, PortProto.Characteristic.UNKNOWN,
-					RIGHTBYP66, EdgeV.CENTER, RIGHTBYP66, EdgeV.CENTER)
+					RIGHTBYP66, EdgeV.makeCenter(), RIGHTBYP66, EdgeV.makeCenter())
 			});
 		bufferNode.setFunction(NodeProto.Function.BUFFER);
 
@@ -398,27 +398,27 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
 						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
-						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeTopEdge()),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeBottomEdge()),
 						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))
 					})
 			});
 		PrimitivePort and_port = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-4), EdgeV.TOPEDGE);
+			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-4), EdgeV.makeTopEdge());
 		and_port.setIsolated();
 		andNode.addPrimitivePorts(new PrimitivePort []
 			{
 				and_port,
 				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(3.5), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(3.5), EdgeV.TOPEDGE),
+					EdgeH.fromCenter(3.5), EdgeV.makeBottomEdge(), EdgeH.fromCenter(3.5), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(2.75), EdgeV.fromCenter(2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
@@ -431,36 +431,36 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeTopEdge()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
 		PrimitivePort or_port = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE);
+			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-3), EdgeV.makeTopEdge());
 		or_port.setIsolated();
 		orNode.addPrimitivePorts(new PrimitivePort []
 			{
 				or_port,
 				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
+					EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
@@ -473,40 +473,40 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(-3))}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeTopEdge()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
-					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
 		PrimitivePort xor_port = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE);
+			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-3), EdgeV.makeTopEdge());
 		xor_port.setIsolated();
 		xorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				xor_port,
 				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
+					EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
 				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
@@ -515,11 +515,11 @@ public class Schematics extends Technology
 		xorNode.setFunction(NodeProto.Function.GATEXOR);
 
 		/** general flip flop */
-		Technology.NodeLayer ffBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX);
+		Technology.NodeLayer ffBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox());
 		Technology.NodeLayer ffArrow = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-				new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP2),
-				new Technology.TechPoint(LEFTBYP7, EdgeV.CENTER),
-				new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP2)});
+				new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP2),
+				new Technology.TechPoint(LEFTBYP7, EdgeV.makeCenter()),
+				new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP2)});
 		Technology.NodeLayer ffWaveformN = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6, TOPBYP2),
 			new Technology.TechPoint(LEFTBYP4, TOPBYP2),
@@ -536,81 +536,81 @@ public class Schematics extends Technology
 			new Technology.TechPoint(LEFTBYP4, TOPBYP2),
 			new Technology.TechPoint(LEFTBYP2, TOPBYP2),
 			new Technology.TechPoint(LEFTBYP2, BOTBYP2),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP2)});
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP2)});
 		Technology.NodeLayer ffLetterD = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterD.setMessage("D");
 		ffLetterD.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterR.setMessage("R");
 		ffLetterR.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterJ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterJ.setMessage("J");
 		ffLetterJ.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterT = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterT.setMessage("T");
 		ffLetterT.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterE = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterE.setMessage("E");
 		ffLetterE.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterS = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterS.setMessage("S");
 		ffLetterS.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterK = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP4),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterK.setMessage("K");
 		ffLetterK.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterQ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP4),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP8),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP4),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       TOPBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       TOPBYP4)});
 		ffLetterQ.setMessage("Q");
 		ffLetterQ.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterQB = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP4),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP8),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP4),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       BOTBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       BOTBYP4)});
 		ffLetterQB.setMessage("QB");
 		ffLetterQB.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterPR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6,        TOPBYP6),
-			new Technology.TechPoint(LEFTBYP6,        EdgeV.TOPEDGE),
-			new Technology.TechPoint(RIGHTBYP6,       EdgeV.TOPEDGE),
+			new Technology.TechPoint(LEFTBYP6,        EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP6,       EdgeV.makeTopEdge()),
 			new Technology.TechPoint(RIGHTBYP6,       TOPBYP6)});
 		ffLetterPR.setMessage("PR");
 		ffLetterPR.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterCLR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6,        BOTBYP6),
-			new Technology.TechPoint(LEFTBYP6,        EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(RIGHTBYP6,       EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP6,        EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP6,       EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(RIGHTBYP6,       BOTBYP6)});
 		ffLetterCLR.setMessage("CLR");
 		ffLetterCLR.setDescriptor(tdSmall);
@@ -678,19 +678,19 @@ public class Schematics extends Technology
 		flipflopNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i1", 180,45, 0, PortProto.Characteristic.IN,
-					EdgeH.LEFTEDGE, TOPBYP6, EdgeH.LEFTEDGE, TOPBYP6),
+					EdgeH.makeLeftEdge(), TOPBYP6, EdgeH.makeLeftEdge(), TOPBYP6),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i2", 180,45, 1, PortProto.Characteristic.IN,
-					EdgeH.LEFTEDGE, BOTBYP6, EdgeH.LEFTEDGE, BOTBYP6),
+					EdgeH.makeLeftEdge(), BOTBYP6, EdgeH.makeLeftEdge(), BOTBYP6),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "q", 0,45, 2, PortProto.Characteristic.OUT,
-					EdgeH.RIGHTEDGE, TOPBYP6, EdgeH.RIGHTEDGE, TOPBYP6),
+					EdgeH.makeRightEdge(), TOPBYP6, EdgeH.makeRightEdge(), TOPBYP6),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "qb", 0,45, 3, PortProto.Characteristic.OUT,
-					EdgeH.RIGHTEDGE, BOTBYP6, EdgeH.RIGHTEDGE, BOTBYP6),
+					EdgeH.makeRightEdge(), BOTBYP6, EdgeH.makeRightEdge(), BOTBYP6),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "ck", 180,45, 4, PortProto.Characteristic.IN,
-					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
+					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "preset", 90,45, 5, PortProto.Characteristic.IN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "clear", 270,45, 6, PortProto.Characteristic.IN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		flipflopNode.setFunction(NodeProto.Function.FLIPFLOP);
 
@@ -702,20 +702,20 @@ public class Schematics extends Technology
 					new Technology.TechPoint [] {
 						new Technology.TechPoint(RIGHTBYP8, TOPBYP75),
 						new Technology.TechPoint(RIGHTBYP8, BOTBYP75),
-						new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
-						new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE)
+						new Technology.TechPoint(LEFTBYP8, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge())
 					})
 			});
 		PrimitivePort mux_port = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			LEFTBYP8, EdgeV.BOTTOMEDGE, LEFTBYP8, EdgeV.TOPEDGE);
+			LEFTBYP8, EdgeV.makeBottomEdge(), LEFTBYP8, EdgeV.makeTopEdge());
 		mux_port.setIsolated();
 		muxNode.addPrimitivePorts(new PrimitivePort []
 			{
 				mux_port,
 				PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc}, "s", 270,0, 2, PortProto.Characteristic.IN,
-					EdgeH.CENTER, BOTBYP875, EdgeH.CENTER, BOTBYP875),
+					EdgeH.makeCenter(), BOTBYP875, EdgeH.makeCenter(), BOTBYP875),
 				PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					RIGHTBYP8, EdgeV.CENTER, RIGHTBYP8, EdgeV.CENTER)
+					RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter())
 			});
 		muxNode.setFunction(NodeProto.Function.MUX);
 
@@ -723,19 +723,19 @@ public class Schematics extends Technology
 		bboxNode = PrimitiveNode.newInstance("Bbox", this, 10.0, 10.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		PrimitivePort bbox_port1 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "a", 0,45, 0, PortProto.Characteristic.UNKNOWN,
-			EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
+			EdgeH.makeRightEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		bbox_port1.setIsolated();
 		PrimitivePort bbox_port2 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "b", 90,45, 1, PortProto.Characteristic.UNKNOWN,
-			EdgeH.LEFTEDGE, EdgeV.TOPEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
+			EdgeH.makeLeftEdge(), EdgeV.makeTopEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		bbox_port2.setIsolated();
 		PrimitivePort bbox_port3 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "c", 180,45, 2, PortProto.Characteristic.UNKNOWN,
-			EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.TOPEDGE);
+			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeLeftEdge(), EdgeV.makeTopEdge());
 		bbox_port3.setIsolated();
 		PrimitivePort bbox_port4 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "d", 270,45, 3, PortProto.Characteristic.UNKNOWN,
-			EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE);
+			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge());
 		bbox_port4.setIsolated();
 		bboxNode.addPrimitivePorts(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
 		bboxNode.setFunction(NodeProto.Function.UNKNOWN);
@@ -745,13 +745,13 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.fromRight(1.25), EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromRight(1.25), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromCenter(1))})
 			});
 		PrimitivePort switch_port = PrimitivePort.newInstance(this, switchNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Characteristic.UNKNOWN,
@@ -761,7 +761,7 @@ public class Schematics extends Technology
 			{
 				switch_port,
 				PrimitivePort.newInstance(this, switchNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,90, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.fromRight(1), EdgeV.CENTER, EdgeH.fromRight(1), EdgeV.CENTER)
+					EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter())
 			});
 		switchNode.setFunction(NodeProto.Function.UNKNOWN);
 
@@ -770,18 +770,18 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
-					new Technology.TechPoint(RIGHTBYP5, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(RIGHTBYP5, EdgeV.BOTTOMEDGE)})
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge())})
 			});
 		offpageNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, offpageNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,45, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
+					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, offpageNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,45, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.RIGHTEDGE, EdgeV.CENTER, EdgeH.RIGHTEDGE, EdgeV.CENTER)
+					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
 		offpageNode.setFunction(NodeProto.Function.CONNECT);
 
@@ -790,16 +790,16 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, TOPBYP75)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP75)})
 			});
 		powerNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, powerNode, new ArcProto[] {wire_arc}, "pwr", 0,180, 0, PortProto.Characteristic.PWR,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		powerNode.setFunction(NodeProto.Function.CONPOWER);
 		powerNode.isSquare();
@@ -809,17 +809,17 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER), new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER), new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()), new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()), new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 					new Technology.TechPoint(LEFTBYP75, BOTBYP25), new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
 					new Technology.TechPoint(LEFTBYP5, BOTBYP5), new Technology.TechPoint(RIGHTBYP5, BOTBYP5),
 					new Technology.TechPoint(LEFTBYP25, BOTBYP75), new Technology.TechPoint(RIGHTBYP25, BOTBYP75),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE), new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge()), new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
 		groundNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, groundNode, new ArcProto[] {wire_arc}, "gnd", 90,90, 0, PortProto.Characteristic.GND,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
 		groundNode.setFunction(NodeProto.Function.CONGROUND);
 
@@ -828,83 +828,83 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(LEFTBYP3, TOPBYP6), new Technology.TechPoint(RIGHTBYP3, TOPBYP6),
-					new Technology.TechPoint(EdgeH.CENTER, TOPBYP3), new Technology.TechPoint(EdgeH.CENTER, TOPBYP9)})
+					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP3), new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP9)})
 			});
 		sourceNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, sourceNode, new ArcProto[] {wire_arc}, "plus", 90,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, sourceNode, new ArcProto[] {wire_arc}, "minus", 270,0, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		sourceNode.setFunction(NodeProto.Function.SOURCE);
 		sourceNode.isSquare();
 
 		/** transistor */
 		Technology.NodeLayer tranLayerMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP75, BOTBYP5),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer tranLayerTranTop = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP25)});
 		Technology.NodeLayer tranLayerNMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(1))});
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
 		Technology.NodeLayer tranLayerPMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP25),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(1))});
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP25),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
 		Technology.NodeLayer tranLayerPMOSCircle = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25)});
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25)});
 		Technology.NodeLayer tranLayerDMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP75, BOTBYP75),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP5)});
 		Technology.NodeLayer tranLayerBTran1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP25, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP25, BOTBYP25),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer tranLayerBTran2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP75, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP875)});
 		Technology.NodeLayer tranLayerBTran3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP375),
 			new Technology.TechPoint(LEFTBYP25, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP25, BOTBYP5)});
 		Technology.NodeLayer tranLayerBTran4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP875, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP875, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer tranLayerBTran5 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP125, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25),
-			new Technology.TechPoint(RIGHTBYP125, EdgeV.CENTER)});
+			new Technology.TechPoint(LEFTBYP125, EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25),
+			new Technology.TechPoint(RIGHTBYP125, EdgeV.makeCenter())});
 		Technology.NodeLayer tranLayerBTran6 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP125, EdgeV.CENTER),
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP25),
-			new Technology.TechPoint(RIGHTBYP125, EdgeV.CENTER)});
+			new Technology.TechPoint(LEFTBYP125, EdgeV.makeCenter()),
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP25),
+			new Technology.TechPoint(RIGHTBYP125, EdgeV.makeCenter())});
 		Technology.NodeLayer tranLayerBTran7 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP875, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
@@ -913,9 +913,9 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP5, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP875, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP25),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
 		tranLayersN = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS};
 		tranLayersP = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerPMOS, tranLayerPMOSCircle};
 		tranLayersD = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerDMOS};
@@ -929,11 +929,11 @@ public class Schematics extends Technology
 		transistorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, transistorNode, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortProto.Characteristic.IN,
-					EdgeH.CENTER, EdgeV.fromTop(1), EdgeH.CENTER, EdgeV.fromTop(1)),
+					EdgeH.makeCenter(), EdgeV.fromTop(1), EdgeH.makeCenter(), EdgeV.fromTop(1)),
 				PrimitivePort.newInstance(this, transistorNode, new ArcProto[] {wire_arc}, "s", 180,90, 1, PortProto.Characteristic.BIDIR,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 				PrimitivePort.newInstance(this, transistorNode, new ArcProto[] {wire_arc}, "d", 0,90, 2, PortProto.Characteristic.BIDIR,
-					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)
+					EdgeH.makeRightEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())
 			});
 		transistorNode.setFunction(NodeProto.Function.TRANS);
 
@@ -942,36 +942,36 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(LEFTBYP66, EdgeV.CENTER),
-					new Technology.TechPoint(LEFTBYP6, EdgeV.CENTER),
-					new Technology.TechPoint(LEFTBYP5, EdgeV.TOPEDGE),
-					new Technology.TechPoint(LEFTBYP3, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(LEFTBYP1, EdgeV.TOPEDGE),
-					new Technology.TechPoint(RIGHTBYP1, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(RIGHTBYP3, EdgeV.TOPEDGE),
-					new Technology.TechPoint(RIGHTBYP5, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(RIGHTBYP6, EdgeV.CENTER),
-					new Technology.TechPoint(RIGHTBYP66, EdgeV.CENTER)})
+					new Technology.TechPoint(LEFTBYP66, EdgeV.makeCenter()),
+					new Technology.TechPoint(LEFTBYP6, EdgeV.makeCenter()),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(LEFTBYP3, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP1, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP1, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(RIGHTBYP3, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter()),
+					new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter())})
 			});
 		resistorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, resistorNode, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortProto.Characteristic.UNKNOWN,
-					LEFTBYP66, EdgeV.CENTER, LEFTBYP66, EdgeV.CENTER),
+					LEFTBYP66, EdgeV.makeCenter(), LEFTBYP66, EdgeV.makeCenter()),
 				PrimitivePort.newInstance(this, resistorNode, new ArcProto[] {wire_arc}, "b", 0,90, 1, PortProto.Characteristic.UNKNOWN,
-					RIGHTBYP66, EdgeV.CENTER, RIGHTBYP66, EdgeV.CENTER)
+					RIGHTBYP66, EdgeV.makeCenter(), RIGHTBYP66, EdgeV.makeCenter())
 			});
 		resistorNode.setFunction(NodeProto.Function.RESIST);
 
 		/** capacitor */
 		Technology.NodeLayer capacitorLayer = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP2),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP2),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP2),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP2),
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP2),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP2),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP2),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP2),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP2),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP2),
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP2),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP2),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer capacitorLayerEl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP2, BOTBYP6),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP6),
@@ -983,44 +983,44 @@ public class Schematics extends Technology
 		capacitorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		capacitorNode.setFunction(NodeProto.Function.CAPAC);
 
 		/** diode */
 		Technology.NodeLayer diodeLayer1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer diodeLayer2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP5),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5)});
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP5),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP5)});
 		Technology.NodeLayer diodeLayer3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP75),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP5),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP25),
-			new Technology.TechPoint(EdgeH.CENTER, TOPBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP5),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP75),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP25),
+			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP5),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())});
 		diodeLayersNorm = new Technology.NodeLayer [] {diodeLayer1, diodeLayer2};
 		diodeLayersZener = new Technology.NodeLayer [] {diodeLayer3, diodeLayer2};
 		diodeNode = PrimitiveNode.newInstance("Diode", this, 2.0, 4.0, null,diodeLayersNorm);
 		diodeNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, diodeNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, diodeNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		diodeNode.setFunction(NodeProto.Function.DIODE);
 
@@ -1029,45 +1029,45 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(LEFTBYP5, TOPBYP33),
-					new Technology.TechPoint(EdgeH.CENTER, TOPBYP33)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP33)}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(LEFTBYP5, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER)}),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(LEFTBYP5, BOTBYP33),
-					new Technology.TechPoint(EdgeH.CENTER, BOTBYP33)})
+					new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP33)})
 			});
 		inductorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, inductorNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, inductorNode, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		inductorNode.setFunction(NodeProto.Function.INDUCT);
 
 		/** meter */
-		Technology.NodeLayer meterLetterV = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, Technology.TechPoint.FULLBOX);
+		Technology.NodeLayer meterLetterV = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, Technology.TechPoint.makeFullBox());
 		meterLetterV.setMessage("V");
 		meterLetterV.setDescriptor(tdBig);
 		meterNode = PrimitiveNode.newInstance("Meter", this, 6.0, 6.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)}),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())}),
 				meterLetterV
 			});
 		meterNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, meterNode, new ArcProto[] {wire_arc}, "a", 90,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 				PrimitivePort.newInstance(this, meterNode, new ArcProto[] {wire_arc}, "b", 270,0, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		meterNode.setFunction(NodeProto.Function.METER);
 		meterNode.isSquare();
@@ -1077,15 +1077,15 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
 		wellNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wellNode, new ArcProto[] {wire_arc}, "well", 90,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
 		wellNode.setFunction(NodeProto.Function.WELL);
 
@@ -1094,41 +1094,41 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
 		substrateNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, substrateNode, new ArcProto[] {wire_arc}, "substrate", 90,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
 			});
 		substrateNode.setFunction(NodeProto.Function.SUBSTRATE);
 
 		/** two-port */
 		Technology.NodeLayer twoLayerBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
-			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.makeBottomEdge())});
 		Technology.NodeLayer twoLayerNormWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP66),
 			new Technology.TechPoint(LEFTBYP6, TOPBYP66),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP66),
 			new Technology.TechPoint(LEFTBYP6, BOTBYP66),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP66),
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP66),
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP66),
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP3),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP66),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP66),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP66),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP3)});
 		Technology.NodeLayer twoLayerVSC = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(RIGHTBYP6, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP3)});
 		Technology.NodeLayer twoLayerURPl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP35, TOPBYP66),
@@ -1148,51 +1148,51 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP3833, BOTBYP33),
 			new Technology.TechPoint(RIGHTBYP433, BOTBYP166)});
 		Technology.NodeLayer twoLayerGWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP66),
 			new Technology.TechPoint(LEFTBYP8, TOPBYP66),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP66),
 			new Technology.TechPoint(LEFTBYP8, BOTBYP66),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP66),
 			new Technology.TechPoint(RIGHTBYP8, TOPBYP66),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP66),
 			new Technology.TechPoint(RIGHTBYP8, BOTBYP66)});
 		Technology.NodeLayer twoLayerCSWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP3),
-			new Technology.TechPoint(RIGHTBYP45, EdgeV.CENTER),
-			new Technology.TechPoint(RIGHTBYP45, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP45, EdgeV.makeCenter()),
+			new Technology.TechPoint(RIGHTBYP45, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP3),
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP3),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.CENTER),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.CENTER),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeCenter()),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP6, TOPBYP3)});
 		Technology.NodeLayer twoLayerCCWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6, TOPBYP66),
 			new Technology.TechPoint(LEFTBYP6, BOTBYP66)});
 		Technology.NodeLayer twoLayerTrBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
-			new Technology.TechPoint(RIGHTBYP8, EdgeV.TOPEDGE),
-			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.makeBottomEdge())});
 		Technology.NodeLayer twoLayerTr1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE)});
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge())});
 		Technology.NodeLayer twoLayerTr2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBY1P6, EdgeV.CENTER),
-			new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE),
-			new Technology.TechPoint(LEFTBYP8, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(LEFTBY1P6, EdgeV.makeCenter()),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(LEFTBYP8, EdgeV.makeBottomEdge())});
 		Technology.NodeLayer twoLayerTr3 = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-			new Technology.TechPoint(RIGHTBYP8, EdgeV.TOPEDGE),
-			new Technology.TechPoint(RIGHTBYP8, EdgeV.BOTTOMEDGE)});
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP8, EdgeV.makeBottomEdge())});
 		Technology.NodeLayer twoLayerTrWire = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP66),
 			new Technology.TechPoint(LEFTBYP8, TOPBYP66),
-			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP66),
 			new Technology.TechPoint(LEFTBYP8, BOTBYP66),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP66),
 			new Technology.TechPoint(RIGHTBYP9, TOPBYP66),
-			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP66),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), BOTBYP66),
 			new Technology.TechPoint(RIGHTBYP9, BOTBYP66)});
 		Technology.NodeLayer twoLayerURRPl = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP5166, TOPBYP66),
@@ -1209,51 +1209,51 @@ public class Schematics extends Technology
 		twoportNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, TOPBYP66, EdgeH.LEFTEDGE, TOPBYP66),
+					EdgeH.makeLeftEdge(), TOPBYP66, EdgeH.makeLeftEdge(), TOPBYP66),
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "b", 180,90, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, BOTBYP66, EdgeH.LEFTEDGE, BOTBYP66),
+					EdgeH.makeLeftEdge(), BOTBYP66, EdgeH.makeLeftEdge(), BOTBYP66),
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "x", 0,90, 2, PortProto.Characteristic.UNKNOWN,
-					EdgeH.RIGHTEDGE, TOPBYP66, EdgeH.RIGHTEDGE, TOPBYP66),
+					EdgeH.makeRightEdge(), TOPBYP66, EdgeH.makeRightEdge(), TOPBYP66),
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "y", 0,90, 3, PortProto.Characteristic.UNKNOWN,
-					EdgeH.RIGHTEDGE, BOTBYP66, EdgeH.RIGHTEDGE, BOTBYP66)
+					EdgeH.makeRightEdge(), BOTBYP66, EdgeH.makeRightEdge(), BOTBYP66)
 			});
 		twoportNode.setFunction(NodeProto.Function.TLINE);
 
 		/** 4-port transistor */
 		Technology.NodeLayer tranLayerNMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
 			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
 		Technology.NodeLayer tranLayerPMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
 		Technology.NodeLayer tranLayerDMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
 			new Technology.TechPoint(LEFTBYP35, BOTBYP9),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP9)});
 		Technology.NodeLayer tranLayerBIP4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.CENTER, BOTBYP25)});
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25)});
 		Technology.NodeLayer tranLayerPMES4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
 		Technology.NodeLayer tranLayerNMES4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.BOTTOMEDGE),
+			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP35, BOTBYP5),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
@@ -1271,25 +1271,25 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)})
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
 		transistor4Node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortProto.Characteristic.IN,
-					EdgeH.CENTER, EdgeV.fromTop(1), EdgeH.CENTER, EdgeV.fromTop(1)),
+					EdgeH.makeCenter(), EdgeV.fromTop(1), EdgeH.makeCenter(), EdgeV.fromTop(1)),
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "s", 180,90, 1, PortProto.Characteristic.BIDIR,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "d", 0,90, 2, PortProto.Characteristic.BIDIR,
-					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE),
+					EdgeH.makeRightEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge()),
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "b", 270,90, 3, PortProto.Characteristic.BIDIR,
-					LEFTBYP5, EdgeV.BOTTOMEDGE, LEFTBYP5, EdgeV.BOTTOMEDGE)
+					LEFTBYP5, EdgeV.makeBottomEdge(), LEFTBYP5, EdgeV.makeBottomEdge())
 			});
 		transistor4Node.setFunction(NodeProto.Function.TRANS4);
 
@@ -1298,20 +1298,20 @@ public class Schematics extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.TOPEDGE),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.BOTTOMEDGE)}),
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())}),
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(LEFTBYP9, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, TOPBYP9),
-					new Technology.TechPoint(RIGHTBYP9, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, BOTBYP9)})
+					new Technology.TechPoint(LEFTBYP9, EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP9),
+					new Technology.TechPoint(RIGHTBYP9, EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP9)})
 			});
 		globalNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, globalNode, new ArcProto[] {wire_arc}, "global", 270,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		globalNode.setFunction(NodeProto.Function.CONNECT);
 	}
@@ -1408,14 +1408,14 @@ public class Schematics extends Technology
 			if (busDiscSize > 0)
 			{
 				busPinLayers[totalLayers++] = new Technology.NodeLayer(bus_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, new EdgeV(busDiscSize, 0))});
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(busDiscSize, 0))});
 			}
 			if (wireDiscSize > 0)
 			{
 				busPinLayers[totalLayers++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, new EdgeV(wireDiscSize, 0))});
+					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(wireDiscSize, 0))});
 			}
 			primLayers = busPinLayers;
 		} else if (np == flipflopNode)

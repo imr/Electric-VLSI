@@ -51,13 +51,6 @@ public class EdgeH
 		this.adder = adder;
 	}
 
-	/** Describes the left edge of a NodeInst. */
-	public static final EdgeH LEFTEDGE = new EdgeH(-0.5, 0.0);
-	/** Describes the right edge of a NodeInst. */
-	public static final EdgeH RIGHTEDGE = new EdgeH(0.5, 0.0);
-	/** Describes the X center of a NodeInst. */
-	public static final EdgeH CENTER = new EdgeH(0.0, 0.0);
-
 	/**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst width.
@@ -66,11 +59,25 @@ public class EdgeH
 	public double getMultiplier() { return multiplier; }
 
 	/**
+	 * Sets the multiplier.
+	 * This is the amount to scale a NodeInst width.
+	 * @param multiplier the new multiplier.
+	 */
+	public void setMultiplier(double multiplier) { this.multiplier = multiplier; }
+
+	/**
 	 * Returns the adder.
 	 * This is the amount to add to a NodeInst width.
 	 * @return the adder.
 	 */
 	public double getAdder() { return adder; }
+
+	/**
+	 * Sets the adder.
+	 * This is the amount to add to a NodeInst width.
+	 * @param adder the new adder.
+	 */
+	public void setAdder(double adder) { this.adder = adder; }
 
 	/**
 	 * Describes a position that is in from the left by a specified amount.
@@ -98,6 +105,24 @@ public class EdgeH
 	{
 		return new EdgeH(0.0, amt);
 	}
+
+	/**
+	 * Creates a position that describes the left edge of the NodeInst.
+	 * @return a position that describes the left edge of the NodeInst.
+	 */
+	public static EdgeH makeLeftEdge() { return fromLeft(0); }
+
+	/**
+	 * Creates a position that describes the right edge of the NodeInst.
+	 * @return a position that describes the right edge of the NodeInst.
+	 */
+	public static EdgeH makeRightEdge() { return fromRight(0); }
+
+	/**
+	 * Creates a position that describes the center of the NodeInst.
+	 * @return a position that describes the center of the NodeInst.
+	 */
+	public static EdgeH makeCenter() { return fromCenter(0); }
 
 	/**
 	 * Returns a printable version of this EdgeH.

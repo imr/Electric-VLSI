@@ -166,6 +166,14 @@ public abstract class ArcProto extends ElectricObject
 	public double getDefaultWidth() { return defaultWidth; }
 
 	/**
+	 * Routine to set the full default width of this ArcProto.
+	 * This is the full width, including nonselectable layers such as implants.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * @param defaultWidth the full default width of this ArcProto.
+	 */
+	public void setDefaultWidth(double defaultWidth) { this.defaultWidth = defaultWidth; }
+
+	/**
 	 * Routine to set the width offset of this ArcProto.
 	 * The width offset excludes the surrounding implang material.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
@@ -289,7 +297,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if instances of this ArcProto have their ends extended.
 	 */
-	public boolean isExtended() { return (userBits & WANTNOEXTEND) != 0; }
+	public boolean isExtended() { return (userBits & WANTNOEXTEND) == 0; }
 
 	/**
 	 * Routine to set this ArcProto so that instances of it are negated.

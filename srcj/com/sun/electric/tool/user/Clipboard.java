@@ -642,11 +642,11 @@ public class Clipboard
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						Highlight h = Highlight.addText(tocell, poly.getVariable(), poly.getName());
+						Highlight h = Highlight.addText(ni, tocell, poly.getVariable(), poly.getName());
 					}
 					continue;
 				}
-				Highlight h = Highlight.addGeometric(ni);
+				Highlight h = Highlight.addElectricObject(ni, tocell);
 			}
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -654,7 +654,7 @@ public class Clipboard
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
 				ai = (ArcInst)ai.getTempObj();
-				Highlight h = Highlight.addGeometric(ai);
+				Highlight h = Highlight.addElectricObject(ai, tocell);
 			}
 			Highlight.finished();
 		}

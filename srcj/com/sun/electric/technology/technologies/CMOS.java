@@ -412,8 +412,8 @@ public class CMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromTop(3)),
 		};
 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
-			new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.TOPEDGE),
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.makeTopEdge()),
 		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromBottom(3)),
@@ -425,22 +425,22 @@ public class CMOS extends Technology
 		};
 		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(4)),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(4)),
 		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromBottom(4)),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromBottom(4)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4)),
 		};
 		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5)),
-			new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromTop(1.5)),
+			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1.5)),
 		};
 		Technology.TechPoint [] box_8 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.makeCenter()),
 		};
 		Technology.TechPoint [] box_9 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.CENTER),
+			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
 		};
 		Technology.TechPoint [] box_10 = new Technology.TechPoint[] {
@@ -462,7 +462,7 @@ public class CMOS extends Technology
 		PrimitiveNode mp_node = PrimitiveNode.newInstance("Metal-Pin", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -477,7 +477,7 @@ public class CMOS extends Technology
 		PrimitiveNode pp_node = PrimitiveNode.newInstance("Polysilicon-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		pp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -492,8 +492,8 @@ public class CMOS extends Technology
 		PrimitiveNode dpp_node = PrimitiveNode.newInstance("Diffusion-P-Pin", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PP0_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
+				new Technology.NodeLayer(PP0_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		dpp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -508,8 +508,8 @@ public class CMOS extends Technology
 		PrimitiveNode dwp_node = PrimitiveNode.newInstance("Diffusion-Well-Pin", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX)
+				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3))
 			});
 		dwp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -524,8 +524,8 @@ public class CMOS extends Technology
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-Polysilicon-Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_12)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
@@ -539,9 +539,9 @@ public class CMOS extends Technology
 		PrimitiveNode mdpc_node = PrimitiveNode.newInstance("Metal-Diff-P-Con", this, 8, 8, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX),
+				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2)),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2)),
 				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_12)
 			});
 		mdpc_node.addPrimitivePorts(new PrimitivePort[]
@@ -555,9 +555,9 @@ public class CMOS extends Technology
 		PrimitiveNode mdwc_node = PrimitiveNode.newInstance("Metal-Diff-Well-Con", this, 10, 10, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX),
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_12)
 			});
 		mdwc_node.addPrimitivePorts(new PrimitivePort[]
@@ -572,7 +572,7 @@ public class CMOS extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11, 3, 3, 0, 0),
-				new Technology.NodeLayer(P0_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX, 3, 3, 2, 2),
+				new Technology.NodeLayer(P0_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1), 3, 3, 2, 2),
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10, 1, 1, 2, 2)
 			});
 		t_node.addPrimitivePorts(new PrimitivePort[]
@@ -596,7 +596,7 @@ public class CMOS extends Technology
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11, 3, 3, 0, 0),
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10, 1, 1, 2, 2),
-				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 4, 4, 3, 3)
+				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox(), 4, 4, 3, 3)
 			});
 		tw_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -618,9 +618,9 @@ public class CMOS extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P0_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX),
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN3BOX),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
 				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_6),
 				new Technology.NodeLayer(OC_lay, 1, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_5)
 			});
@@ -656,7 +656,7 @@ public class CMOS extends Technology
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-Node", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
 			});
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -670,7 +670,7 @@ public class CMOS extends Technology
 		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -684,7 +684,7 @@ public class CMOS extends Technology
 		PrimitiveNode dn_node = PrimitiveNode.newInstance("Diffusion-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		dn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -698,7 +698,7 @@ public class CMOS extends Technology
 		PrimitiveNode pn0_node = PrimitiveNode.newInstance("P-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -712,7 +712,7 @@ public class CMOS extends Technology
 		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		cn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -726,7 +726,7 @@ public class CMOS extends Technology
 		PrimitiveNode ocn_node = PrimitiveNode.newInstance("Ohmic-Cut-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(OC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(OC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		ocn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -740,7 +740,7 @@ public class CMOS extends Technology
 		PrimitiveNode wn_node = PrimitiveNode.newInstance("Well-Node", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		wn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -754,7 +754,7 @@ public class CMOS extends Technology
 		PrimitiveNode on_node = PrimitiveNode.newInstance("Overglass-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(O_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
+				new Technology.NodeLayer(O_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
 			});
 		on_node.addPrimitivePorts(new PrimitivePort[]
 			{

@@ -38,7 +38,8 @@ import java.util.Iterator;
  */
 public class PrimitiveNode extends NodeProto
 {
-	// constants used in the "specialValues" field
+	// constants used in the "specialType" field
+	/** Defines a normal node. */							public static final int NORMAL = 0;
 	/** Defines a serpentine transistor. */					public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */					public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */						public static final int MULTICUT =  3;
@@ -48,7 +49,8 @@ public class PrimitiveNode extends NodeProto
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** flag bits */								private int userBits;
 	/** Index of this PrimitiveNode. */				private int primNodeIndex;
-	/** special factors for unusual primitives */	private int[] specialValues;
+	/** special type of unusual primitives */		private int specialType;
+	/** special factors for unusual primitives */	private double[] specialValues;
 	/** default width and height */					private double defWidth, defHeight;
 	/** offset from database to user */				private SizeOffset offset;
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
@@ -68,7 +70,8 @@ public class PrimitiveNode extends NodeProto
 		this.tech = tech;
 		this.layers = layers;
 		this.userBits = 0;
-		this.specialValues = new int [] {0,0,0,0,0,0};
+		specialType = NORMAL;
+//		this.specialValues = new double [] {0,0,0,0,0,0};
 		this.defWidth = defWidth;
 		this.defHeight = defHeight;
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
@@ -118,6 +121,22 @@ public class PrimitiveNode extends NodeProto
 	public Technology.NodeLayer [] getLayers() { return layers; }
 
 	/**
+	 * Routine to find the NodeLayer on this PrimitiveNode with a given Layer.
+	 * If there are more than 1 with the given Layer, the first is returned.
+	 * @param layer the Layer to find.
+	 * @return the NodeLayer that has this Layer.
+	 */
+	public Technology.NodeLayer findNodeLayer(Layer layer)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Technology.NodeLayer oneLayer = layers[j];
+			if (oneLayer.getLayer() == layer) return oneLayer;
+		}
+		return null;
+	}
+
+	/**
 	 * Routine to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
@@ -141,10 +160,16 @@ public class PrimitiveNode extends NodeProto
 	public double getDefHeight() { return defHeight; }
 
 	/**
-	 * Routine to size offset of this PrimitiveNode.
+	 * Routine to get the size offset of this PrimitiveNode.
 	 * @return the size offset of this PrimitiveNode.
 	 */
 	public SizeOffset getSizeOffset() { return offset; }
+
+	/**
+	 * Routine to set the size offset of this PrimitiveNode.
+	 * @param offset the size offset of this PrimitiveNode.
+	 */
+	public void setSizeOffset(SizeOffset offset) { this.offset = offset; }
 
 	/**
 	 * Routine to return the Technology of this PrimitiveNode.
@@ -162,38 +187,50 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
+	 * Routine to return the special type of this PrimitiveNode.
+	 * It can be one of NORMAL, SERPTRANS, POLYGONAL, or MULTICUT.
+	 * @return the special type of this PrimitiveNode.
+	 */
+	public int getSpecialType() { return specialType; }
+
+	/**
+	 * Routine to set the special type of this PrimitiveNode.
+	 * @param specialType the newspecial type of this PrimitiveNode.
+	 * It can be NORMAL, SERPTRANS, POLYGONAL, or MULTICUT.
+	 */
+	public void setSpecialType(int specialType) { this.specialType = specialType; }
+
+	/**
 	 * Routine to return the special values stored on this PrimitiveNode.
 	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
-	 * Element [0] of the array is one of SERPTRANS, POLYGONAL, or MULTICUT.
-	 * Other values depend on the first entry:
+	 * They are only relevant for certain specialType cases:
 	 * <UL>
 	 * <LI>for MULTICUT:
 	 *   <UL>
-	 *   <LI>cut size is [1] x [2]
-	 *   <LI>cut indented [3] from highlighting
-	 *   <LI>cuts spaced [4] apart
+	 *   <LI>cut size is [0] x [1]
+	 *   <LI>cut indented [2] from highlighting
+	 *   <LI>cuts spaced [3] apart
 	 *   </UL>
 	 * <LI>for SERPTRANS:
 	 *   <UL>
-	 *   <LI>layer count is [1]
-	 *   <LI>active port inset [2] from end of serpentine path
-	 *   <LI>active port is [3] from poly edge
-	 *   <LI>poly width is [4]
-	 *   <LI>poly port inset [5] from poly edge
-	 *   <LI>poly port is [6] from active edge
+	 *   <LI>layer count is [0]
+	 *   <LI>active port inset [1] from end of serpentine path
+	 *   <LI>active port is [2] from poly edge
+	 *   <LI>poly width is [3]
+	 *   <LI>poly port inset [4] from poly edge
+	 *   <LI>poly port is [5] from active edge
 	 *   </UL>
 	 * @return the special values stored on this PrimitiveNode.
 	 */
-	public int [] getSpecialValues() { return specialValues; }
+	public double [] getSpecialValues() { return specialValues; }
 
 	/**
 	 * Routine to set the special values stored on this PrimitiveNode.
-	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
-	 * The first element of the array is one of SERPTRANS, POLYGONAL, MULTICUT, or MOSTRANS.
-	 * Other values depend on the first entry (see the documentation for "getSpecialValues").
+	 * The special values are an array of values that describe unusual features of the PrimitiveNode.
+	 * The meaning depends on the specialType (see the documentation for "getSpecialValues").
 	 * @param specialValues the special values for this PrimitiveNode.
 	 */
-	public void setSpecialValues(int [] specialValues) { this.specialValues = specialValues; }
+	public void setSpecialValues(double [] specialValues) { this.specialValues = specialValues; }
 
 	/**
 	 * Routine to tell whether this PrimitiveNode is a Pin.

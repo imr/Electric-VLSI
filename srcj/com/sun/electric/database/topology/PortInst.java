@@ -28,6 +28,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
 
@@ -122,6 +123,26 @@ public class PortInst extends ElectricObject
 	public Poly getPoly()
 	{
 		return nodeInst.getShapeOfPort(portProto);
+	}
+
+	/**
+	 * Routine to add all displayable Variables on this PortInsts to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the NodeInst on which the PortInsts reside.
+	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
+	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @param multipleStrings true to break multiline text into multiple Polys.
+	 * @return the number of Polys that were added.
+	 */
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	{
+		if (super.numDisplayableVariables(multipleStrings) == 0) return 0;
+
+		Poly portPoly = getPoly();
+		int justAdded = super.addDisplayableVariables(portPoly.getBounds2D(), polys, start, wnd, multipleStrings);
+		for(int i=0; i<justAdded; i++)
+			polys[start+i].setPort(getPortProto());
+		return justAdded;
 	}
 
 	/**

@@ -255,65 +255,55 @@ public class Attributes extends javax.swing.JDialog
 			if (Highlight.getNumHighlights() == 1)
 			{
 				Highlight high = (Highlight)Highlight.getHighlights().next();
-				Geometric geom = high.getGeom();
+				ElectricObject eobj = high.getElectricObject();
 				selectedVar = high.getVar();
-				if (high.getType() == Highlight.Type.GEOM)
+				if (high.getType() == Highlight.Type.EOBJ)
 				{
-					if (geom instanceof ArcInst)
+					if (eobj instanceof ArcInst)
 					{
-						selectedArc = (ArcInst)geom;   selectedObject = selectedArc;   currentButton = currentArc;
-					} else
+						selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+					} else if (eobj instanceof NodeInst)
 					{
-						selectedNode = (NodeInst)geom;   selectedObject = selectedNode;   currentButton = currentNode;
-						if (high.getPort() != null)
-						{
-							NodeInst ni = (NodeInst)geom;
-							for(Iterator it = ni.getExports(); it.hasNext(); )
-							{
-								Export pp = (Export)it.next();
-								if (pp.getOriginalPort().getPortProto() == high.getPort())
-								{
-									selectedExport = pp;
-								}
-							}
-							selectedPort = ni.findPortInstFromProto(high.getPort());
-						}
+						selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+					} else if (eobj instanceof PortInst)
+					{
+						PortInst pi = (PortInst)eobj;
+						selectedNode = (NodeInst)pi.getNodeInst();   selectedObject = selectedNode;   currentButton = currentNode;
+						selectedPort = pi;
 					}
-				}
-				if (high.getType() == Highlight.Type.TEXT)
+				} else if (high.getType() == Highlight.Type.TEXT)
 				{
-					if (geom != null)
+					if (selectedVar != null)
 					{
-						if (geom instanceof NodeInst)
+						if (eobj instanceof NodeInst)
 						{
-							// node variable
-							selectedNode = (NodeInst)geom;   selectedObject = selectedNode;   currentButton = currentNode;
-							if (high.getPort() != null)
-							{
-								selectedExport = (Export)high.getPort();   selectedObject = selectedExport;   currentButton = currentExport;
-							}
-						} else
+							selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+						} else if (eobj instanceof ArcInst)
+						{
+							selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+						} else if (eobj instanceof PortInst)
+						{
+							selectedPort = (PortInst)eobj;   selectedObject = selectedPort;   currentButton = currentPort;
+							selectedNode = selectedPort.getNodeInst();
+						} else if (eobj instanceof Export)
+						{
+							selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
+						}
+					} else if (high.getName() != null)
+					{
+						// node or arc name
+						if (eobj instanceof NodeInst)
+						{
+							// node name
+							selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+						} else if (eobj instanceof ArcInst)
 						{
 							// arc variable
-							selectedArc = (ArcInst)geom;   selectedObject = selectedArc;   currentButton = currentArc;
+							selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
 						}
-					}
-					if (selectedVar == null)
+					} else if (eobj instanceof Export)
 					{
-						if (geom != null)
-						{
-							if (geom instanceof NodeInst)
-							{
-								selectedNode = (NodeInst)geom;   selectedObject = selectedNode;   currentButton = currentNode;
-							} else
-							{
-								selectedArc = (ArcInst)geom;   selectedObject = selectedArc;   currentButton = currentArc;
-							}
-						}
-						if (high.getPort() != null)
-						{
-							selectedExport = (Export)high.getPort();   selectedObject = selectedExport;   currentButton = currentExport;
-						}
+						selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
 					}
 				}
 			}
