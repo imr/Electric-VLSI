@@ -413,7 +413,8 @@ public class ClickZoomWireListener
 	
 	            // if already over highlighted object, move it
 	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY)) {
-	                // over something, user may want to move objects
+	                highlighter.finished();
+                    // over something, user may want to move objects
 	                dbMoveStartX = (int)dbClick.getX();
 	                dbMoveStartY = (int)dbClick.getY();
                     moveDelta = null;

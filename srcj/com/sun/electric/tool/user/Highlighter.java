@@ -1043,7 +1043,7 @@ public class Highlighter implements DatabaseChangeListener {
 							{
 								alreadyHighlighted.setElectricObject(got.getElectricObject());
 								alreadyHighlighted.setPoint(got.getPoint());
-								//wnd.repaintContents(null);
+								changed = true;
 							}
 							break;
 						}
