@@ -71,6 +71,7 @@ public class GetInfoMulti extends EDialog
 			JFrame jf = TopLevel.getCurrentJFrame();
 			theDialog = new GetInfoMulti(jf, false);
 		}
+        theDialog.loadMultiInfo();
 		theDialog.show();
 	}
 
@@ -80,6 +81,7 @@ public class GetInfoMulti extends EDialog
 	public static void load()
 	{
 		if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
 		theDialog.loadMultiInfo();
 	}
 

@@ -97,6 +97,7 @@ public class GetInfoNode extends EDialog
 			JFrame jf = TopLevel.getCurrentJFrame();
 			theDialog = new GetInfoNode(jf, false);
 		}
+        theDialog.loadNodeInfo();
 		theDialog.show();
 	}
 
@@ -106,6 +107,7 @@ public class GetInfoNode extends EDialog
 	public static void load()
 	{
 		if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
 		theDialog.loadNodeInfo();
 	}
 

@@ -92,6 +92,7 @@ public class Attributes extends EDialog
                 theDialog = new Attributes(null, false);
             }
         }
+        theDialog.loadAttributesInfo();
         theDialog.show();
     }
 
@@ -101,6 +102,7 @@ public class Attributes extends EDialog
     public static void load()
     {
         if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
         theDialog.loadAttributesInfo();
     }
 

@@ -83,6 +83,7 @@ public class GetInfoExport extends EDialog
 	public static void load()
 	{
 		if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
 		theDialog.loadExportInfo();
 	}
 

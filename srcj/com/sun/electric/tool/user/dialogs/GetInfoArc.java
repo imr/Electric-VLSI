@@ -62,6 +62,7 @@ public class GetInfoArc extends EDialog
 			JFrame jf = TopLevel.getCurrentJFrame();
 			theDialog = new GetInfoArc(jf, false);
 		}
+        theDialog.loadArcInfo();
 		theDialog.show();
 	}
 
@@ -71,6 +72,7 @@ public class GetInfoArc extends EDialog
 	public static void load()
 	{
 		if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
 		theDialog.loadArcInfo();
 	}
 
