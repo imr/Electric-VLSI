@@ -43,6 +43,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -412,7 +413,23 @@ public class Export extends ElectricObject implements PortProto
 		TextDescriptor.Position pos = td.getPos();
 		Poly.Type style = pos.getPolyType();
 		Point2D [] pointList = new Point2D.Double[1];
-		pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+//		pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+
+		// must untransform the node to apply the offset
+		NodeInst ni = getOriginalPort().getNodeInst();
+		if (ni.getAngle() != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
+		{
+			pointList[0] = new Point2D.Double(cX, cY);
+			AffineTransform trans = ni.rotateIn();
+			trans.transform(pointList[0], pointList[0]);
+			pointList[0].setLocation(pointList[0].getX() + offX, pointList[0].getY() + offY);
+			trans = ni.rotateOut();
+			trans.transform(pointList[0], pointList[0]);
+		} else
+		{
+			pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+		}
+
 		poly = new Poly(pointList);
 		poly.setStyle(style);
 		poly.setPort(this);

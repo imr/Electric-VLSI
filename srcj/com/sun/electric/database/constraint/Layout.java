@@ -64,7 +64,7 @@ public class Layout extends Constraints
 {
 	private static final Layout layoutConstraint = new Layout();
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	/**
 	 * The meaning of changeClock for object modification:

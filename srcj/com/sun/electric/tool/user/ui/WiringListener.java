@@ -23,44 +23,42 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.*;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.EditMenu;
 
-import java.applet.Applet;
-import java.applet.AudioClip;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 public class WiringListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
@@ -412,26 +410,11 @@ public class WiringListener
 				if (arcsCreated != 0) msg += arcsCreated + " arcs";
 				if (nodesCreated != 0) msg += " and " + nodesCreated + " nodes";
 				System.out.println(msg);
-				playSound(arcsCreated);
+				User.playSound(arcsCreated);
 			}
 			highlighter.finished();
 		}
 		return added;
-	}
-
-	private static AudioClip clickSound = null;
-
-	private static void playSound(int arcsCreated)
-	{
-		if (User.isPlayClickSoundsWhenCreatingArcs())
-		{
-			//URL url = WiringListener.class.getResource("Click.wav");
-			URL url = Resources.getURLResource(WiringListener.class, "Click.wav");
-			if (url == null) return;
-			if (clickSound == null)
-				clickSound = Applet.newAudioClip(url);
-			clickSound.play();
-		}
 	}
 
 	/**

@@ -155,6 +155,7 @@ public abstract class Router {
                 System.out.println("1 node created");
             else
                 System.out.println(nodesCreated+" nodes created");
+			User.playSound(arcsCreated);
         }
 
         if (highlightRouteEnd && (highlighter != null)) {

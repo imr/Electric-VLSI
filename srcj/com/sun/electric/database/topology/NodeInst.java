@@ -781,7 +781,7 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
 		if (dXSize != 0) sX = DBMath.round(sX + dXSize);
-		if (dYSize != 0) sX = DBMath.round(sY + dYSize);
+		if (dYSize != 0) sY = DBMath.round(sY + dYSize);
 		angle = (angle + dRot) % 3600;
 
 		// fill in the Geometric fields

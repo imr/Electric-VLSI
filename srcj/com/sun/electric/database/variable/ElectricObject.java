@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.Font;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -412,15 +413,16 @@ public abstract class ElectricObject
 				if (this instanceof Export)
 				{
 					Export pp = (Export)this;
-					Rectangle2D bounds = pp.getOriginalPort().getBounds();
-					TextDescriptor td = pp.getTextDescriptor();
-					Poly.Type style = td.getPos().getPolyType();
-					Point2D [] pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
-					poly = new Poly(pointList);
-					poly.setStyle(style);
-					poly.setTextDescriptor(td);
-					poly.setString(pp.getName());
+					poly = pp.getNamePoly();
+//					Rectangle2D bounds = pp.getOriginalPort().getBounds();
+//					TextDescriptor td = pp.getTextDescriptor();
+//					Poly.Type style = td.getPos().getPolyType();
+//					Point2D [] pointList = new Point2D.Double[1];
+//					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
+//					poly = new Poly(pointList);
+//					poly.setStyle(style);
+//					poly.setTextDescriptor(td);
+//					poly.setString(pp.getName());
 				} else
 				{
 					// cell instance name

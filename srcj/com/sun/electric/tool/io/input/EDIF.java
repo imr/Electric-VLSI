@@ -29,13 +29,16 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -46,6 +49,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -71,15 +75,7 @@ import java.util.ArrayList;
  */
 public class EDIF extends Input
 {
-//	
-//	#define IGNORESTRINGSWITHSQUAREBRACKETS 1		/* uncomment to ignore strings starting with "[" */
-//	#define SLOPDISTANCE                    1		/* allow connections when this many lambda away (0 to force exact placement) */
-
-//	#define INCH (10*el_curlib->lambda[technology->techindex])
-//	
-//	// some length defines
-//	#define LINE      4096
-//	#define WORD      4096
+	private static final double INCH = 10;
 	private static final int MAXLAYERS = 256;
 
 	private static class TEXTJUST {}
@@ -193,6 +189,7 @@ public class EDIF extends Input
 	private static class EDPROPERTY
 	{
 		String name;
+//		Object val;
 //		union
 //		{
 			int integer;
@@ -778,6 +775,1710 @@ public class EDIF extends Input
 			return matissa * Math.pow(10.0, exponent);
 		}
 		return TextUtils.atof(value);
+	}
+	
+	/* This function allocates ports */
+	private void io_edallocport()
+	{
+		EDPORT port = new EDPORT();
+	
+		port.next = ports;
+		ports = port;
+		port.reference = port_reference;
+		port.name = port_name;
+	
+		port.direction = direction;
+		port.arrayx = arrayx;
+		port.arrayy = arrayy;
+	}
+	
+	private int io_edgetrot(OTYPES o)
+	{
+		if (o == OR0)    return 0;
+		if (o == OR90)   return 900;
+		if (o == OR180)  return 1800;
+		if (o == OR270)  return 2700;
+		if (o == OMX)    return 2700;
+		if (o == OMY)    return 900;
+		if (o == OMXR90) return 1800;
+		if (o == OMYR90) return 0;
+		return 0;
+	}
+	
+	private int io_edgettrans(OTYPES o)
+	{
+		if (o == OR0)    return 0;
+		if (o == OR90)   return 0;
+		if (o == OR180)  return 0;
+		if (o == OR270)  return 0;
+		if (o == OMY)    return 1;
+		if (o == OMX)    return 1;
+		if (o == OMYR90) return 1;
+		if (o == OMXR90) return 1;
+		return 0;
+	}
+	
+	private boolean getMirrorX(OTYPES o)
+	{
+		if (o == OR0)    return false;
+		if (o == OR90)   return false;
+		if (o == OR180)  return false;
+		if (o == OR270)  return false;
+		if (o == OMY)    return false;
+		if (o == OMX)    return true;
+		if (o == OMYR90) return false;
+		if (o == OMXR90) return true;
+		return false;
+	}
+	
+	private boolean getMirrorY(OTYPES o)
+	{
+		if (o == OR0)    return false;
+		if (o == OR90)   return false;
+		if (o == OR180)  return false;
+		if (o == OR270)  return false;
+		if (o == OMY)    return true;
+		if (o == OMX)    return false;
+		if (o == OMYR90) return true;
+		if (o == OMXR90) return false;
+		return false;
+	}
+	
+	private NodeInst io_edifiplacepin(NodeProto np, double cX, double cY, double sX, double sY,
+		int angle, Cell parent)
+	{
+		for(Iterator it = parent.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() != np) continue;
+			if (ni.getAngle() != angle) continue;
+			if (ni.isXMirrored() != (sX < 0)) continue;
+			if (ni.isYMirrored() != (sY < 0)) continue;
+			if (ni.getAnchorCenterX() != cX) continue;
+			if (ni.getAnchorCenterY() != cY) continue;
+			return ni;
+		}
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, angle, null, 0);
+		return ni;
+	}
+
+	/* pop the keyword state stack, called when ')' is encountered. Note this function
+	   needs to broken into a simple function call structure. */
+//	#define MAXBUSPINS 256
+	private void io_edpop_stack()
+	{
+//		INTBIG eindex, key, lambda;
+//		INTBIG lx, ly, hx, hy, cx, cy, cnt, Ix, Iy, gx, gy, xoff, yoff, dist;
+//		INTBIG *trace, *pt, pts[26], fcnt, tcnt, psx, psy;
+//		INTBIG width, height, x[3], y[3], radius, trans;
+//		INTBIG count, user_max, i, j, dup, fbus, tbus, instcount, instptx, instpty;
+//		UINTBIG descript[TEXTDESCRIPTSIZE];
+//		CHAR nodename[WORD+1], portname[WORD+1], basename[WORD+1], orig[WORD+1];
+//		CHAR **layers, **layer_numbers;
+//		NODEPROTO *np, *nnp;
+//		ARCPROTO *ap, *lap;
+//		ARCINST *ai;
+//		PORTPROTO *ppt, *fpp, *lpp, *pp, *lastport;
+//		NODEINST *ni, *lastpin, *fni, *lni;
+//		EPT_PTR point;
+//		EDPROPERTY_PTR property, nproperty;
+//		double ar, so;
+//		VARIABLE *var;
+//		XARRAY rot;
+//		EDPORT_PTR eport, neport;
+//		// bus connection variables
+//		PORTPROTO *fpps[MAXBUSPINS], *tpps[MAXBUSPINS];
+//		NODEINST *fnis[MAXBUSPINS], *tnis[MAXBUSPINS];
+//		REGISTER void *infstr;
+	
+//		lambda = el_curlib->lambda[technology->techindex];
+		if (kstack_ptr != 0)
+		{
+			if (!ignoreblock)
+			{
+				if (state == KFIGURE)
+				{
+					cur_nametbl = null;
+					visible = true;
+					justification = LOWERLEFT;
+					textheight = 0;
+				} else if (state == KBOUNDINGBOX)
+				{
+					figure_group = null;
+				} else if (state == KTECHNOLOGY)
+				{
+//					var = getval((INTBIG)technology, VTECHNOLOGY, VSTRING|VISARRAY,
+//						x_("IO_gds_layer_numbers"));
+//					if (var != NOVARIABLE)
+//					{
+//						layer_numbers = (CHAR **)var->addr;
+//						count = getlength(var);
+//						var = getval((INTBIG)technology, VTECHNOLOGY, VSTRING|VISARRAY,
+//							x_("TECH_layer_names"));
+//						if (var != NOVARIABLE)
+//						{
+//							layers = (CHAR **) var->addr;
+//							user_max = layer_ptr;
+//							// for all layers assign their GDS number
+//							for (i=0; i<count; i++)
+//							{
+//								if (*layer_numbers[i] != 0)
+//								{
+//									// search for this layer
+//									for (j=0; j<user_max; j++)
+//									{
+//										if (!namesame(nametbl[j].replace, layers[i])) break;
+//									}
+//									if (user_max == j)
+//									{
+//										// add to the list
+//										io_edifgbl.nametbl[layer_ptr] = (NAMETABLE_PTR)
+//											emalloc(sizeof(NAMETABLE), io_tool->cluster);
+//										if (io_edifgbl.nametbl[layer_ptr] == NONAMETABLE) RET_NOMEMORY();
+//										if (allocstring(&io_edifgbl.nametbl[layer_ptr]->replace, layers[i],
+//											io_tool->cluster)) RET_NOMEMORY();
+//										esnprintf(orig, WORD+1, x_("layer_%s"), layer_numbers[i]);
+//										if (allocstring(&io_edifgbl.nametbl[layer_ptr]->original,
+//											orig, io_tool->cluster)) RET_NOMEMORY();
+//										io_edifgbl.nametbl[layer_ptr]->textheight = 0;
+//										io_edifgbl.nametbl[layer_ptr]->justification = LOWERLEFT;
+//										layer_ptr++;
+//									}
+//								}
+//							}
+//						}
+//					}
+//	
+//					// sort the layer list
+//					esort(io_edifgbl.nametbl, layer_ptr, sizeof(NAMETABLE_PTR),
+//						io_edcompare_name);
+//	
+//					// now look for nodes to map MASK layers to
+//					for (eindex = 0; eindex < layer_ptr; eindex++)
+//					{
+//						esnprintf(nodename, WORD+1, x_("%s-node"), io_edifgbl.nametbl[eindex]->replace);
+//						for (np = io_edifgbl.technology->firstnodeproto; np != NONODEPROTO;
+//							np = np->nextnodeproto)
+//						{
+//							if (!namesame(nodename, np->protoname)) break;
+//						}
+//						if (np == NONODEPROTO)
+//						{
+//							np = art_boxprim;
+//						}
+//						for (ap = technology->firstarcproto; ap != NOARCPROTO;
+//							ap = ap->nextarcproto)
+//						{
+//							if (!namesame(ap->protoname, io_edifgbl.nametbl[eindex]->replace))
+//								break;
+//						}
+//						io_edifgbl.nametbl[eindex]->node = np;
+//						io_edifgbl.nametbl[eindex]->arc = ap;
+//					}
+				} else if (state == KINTERFACE)
+				{
+					if (active_view == VNETLIST)
+					{
+						// create a black-box symbol at the current scale
+//						String nodename = current_cell.getName() + "{ic}";
+//						nnp = io_edmakeiconcell(current_cell->firstportproto, current_cell->protoname,
+//							nodename, library);
+//						if (nnp == NONODEPROTO)
+//						{
+//							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create icon <" + nodename + ">");
+//							errors++;
+//						} else
+//						{
+//							// now compute the bounds of this cell
+//							db_boundcell(nnp, &nnp->lowx, &nnp->highx, &nnp->lowy, &nnp->highy);
+//						}
+					}
+				} else if (state == KVIEW)
+				{
+//					if (vendor == EVVIEWLOGIC && active_view != VNETLIST)
+//					{
+//						// fixup incorrect bus nets
+//						for (ai = current_cell->firstarcinst; ai != NOARCINST;
+//							ai = ai->nextarcinst)
+//						{
+//							ai->temp1 = ai->temp2 = 0;
+//						}
+//	
+//						// now scan for BUS nets, and verify all wires connected to bus
+//						for (ai = current_cell->firstarcinst; ai != NOARCINST;
+//							ai = ai->nextarcinst)
+//						{
+//							if (ai->temp1 == 0 && ai->proto == sch_busarc)
+//							{
+//								// get name of arc
+//								var = getvalkey((INTBIG)ai, VARCINST, VSTRING, el_arc_name_key);
+//								if (var != NOVARIABLE && ((aName = (CHAR *)var->addr) != NULL))
+//								{
+//									// create the basename
+//									(void)estrcpy(basename, aName);
+//									aName = estrrchr(basename, '[');
+//									if (aName != NULL) *aName = 0;
+//	
+//									// expand this arc, and locate non-bracketed names
+//									io_edcheck_busnames(ai, basename);
+//								}
+//							}
+//						}
+//					}
+//	
+//					ports = null;
+				} else if (state == KPORT)
+				{
+					io_edallocport();
+					double cX = 0, cY = 0;
+					PortProto fpp = default_input;
+					if (ports.direction == INPUTE)
+					{
+						cY = ipos;
+						ipos += INCH;
+					} else if (ports.direction == INOUT)
+					{
+						cX = 3*INCH;
+						cY = bpos;
+						bpos += INCH;
+					} else if (ports.direction == OUTPUTE)
+					{
+						cX = 6*INCH;
+						cY = opos;
+						opos += INCH;
+						fpp = default_output;
+					}
+	
+					// now create the off-page reference
+					double psx = Schematics.tech.offpageNode.getDefWidth();
+					double psy = Schematics.tech.offpageNode.getDefHeight();
+					NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psx, psy, current_cell);
+					if (ni == null)
+					{
+						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create external port");
+						errors++;
+						return;
+					}
+	
+					// now create the port
+					PortInst pi = ni.findPortInstFromProto(fpp);
+					Export ppt = Export.newInstance(current_cell, pi, ports.name);
+					if (ppt == null)
+					{
+						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create port <" + ports.name + ">");
+						errors++;
+					} else
+					{
+						if (ports.direction == INPUTE) ppt.setCharacteristic(PortCharacteristic.IN); else
+							if (ports.direction == OUTPUTE) ppt.setCharacteristic(PortCharacteristic.OUT); else
+								if (ports.direction == INOUT) ppt.setCharacteristic(PortCharacteristic.BIDIR);
+					}
+					port_reference = "";
+	
+					// move the property list to the free list
+//					for (EDPROPERTY property = properties; property != null; property = nproperty)
+//					{
+//						key = makekey(property->name);
+//						switch (property->type)
+//						{
+//							case PINTEGER:
+//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, (INTBIG)property->val.integer,
+//									VINTEGER);
+//								break;
+//							case PNUMBER:
+//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, castint(property->val.number),
+//									VFLOAT);
+//								break;
+//							case PSTRING:
+//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, (INTBIG)property->val.string,
+//									VSTRING);
+//								break;
+//							default:
+//								break;
+//						}
+//						nproperty = property.next;
+//					}
+					properties = null;
+				} else if (state == KINSTANCE)
+				{
+//					if (active_view == VNETLIST)
+//					{
+//						for (int Ix = 0; Ix < arrayx; Ix++)
+//						{
+//							for (int Iy = 0; Iy < arrayy; Iy++)
+//							{
+//								// create this instance in the current sheet
+//								width = cellRefProto->highx - cellRefProto->lowx;
+//								height = cellRefProto->highy - cellRefProto->lowy;
+//								width = (width + INCH - 1) / INCH;
+//								height = (height + INCH - 1) / INCH;
+//	
+//								// verify room for the icon
+//								if (sh_xpos != -1)
+//								{
+//									if ((sh_ypos + (height + 1)) >= SHEETHEIGHT)
+//									{
+//										sh_ypos = 1;
+//										if ((sh_xpos += sh_offset) >= SHEETWIDTH)
+//												sh_xpos = sh_ypos = -1; else
+//													sh_offset = 2;
+//									}
+//								}
+//								if (sh_xpos == -1)
+//								{
+//									// create the new page
+//									String nodename = cell_name + "{" + (++pageno) + "}";
+//									current_cell = us_newnodeproto(nodename, library);
+//									if (current_cell == NONODEPROTO) throw new IOException("Error creating cell");
+//									current_cell->temp1 = 0;
+//									sh_xpos = sh_ypos = 1;
+//									sh_offset = 2;
+//								}
+//	
+//								// create this instance
+//								// find out where true center moves
+//								cx = ((cellRefProto->lowx+cellRefProto->highx) >> 1) +
+//									((sh_xpos - (SHEETWIDTH >> 1)) * INCH);
+//								cy = ((cellRefProto->lowy+cellRefProto->highy) >> 1) +
+//									((sh_ypos - (SHEETHEIGHT >> 1)) * INCH);
+//								current_node = ni = newnodeinst(cellRefProto,
+//									cellRefProto->lowx + cx,
+//									cellRefProto->highx + cx,
+//									cellRefProto->lowy + cy,
+//									cellRefProto->highy + cy,
+//									io_edgettrans(orientation),
+//									io_edgetrot(orientation),
+//									current_cell);
+//								if (ni == NONODEINST)
+//								{
+//									System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create instance");
+//									errors++;
+//									break;
+//								} else
+//								{
+//									if (cellRefProto->userbits & WANTNEXPAND)
+//										ni->userbits |= NEXPAND;
+//	
+//									// update the current position
+//									if ((width + 2) > sh_offset)
+//										sh_offset = width + 2;
+//									if ((sh_ypos += (height + 1)) >= SHEETHEIGHT)
+//									{
+//										sh_ypos = 1;
+//										if ((sh_xpos += sh_offset) >= SHEETWIDTH)
+//											sh_xpos = sh_ypos = -1; else
+//												sh_offset = 2;
+//									}
+//	
+//									// name the instance
+//									if (instance_reference.length() > 0)
+//									{
+//										// if single element or array with no offset
+//										// construct the representative extended EDIF name (includes [...])
+//										if ((arrayx == 1 && arrayy == 1) ||
+//											(deltaxX == 0 && deltaxY == 0 &&
+//											deltayX == 0 && deltayY == 0))
+//												nodename = instance_reference;
+//											// if array in the x dimension
+//										else if (arrayx > 1)
+//										{
+//											if (arrayy > 1)
+//												nodename = instance_refrence + "[" + Ix + "," + Iy + "]";
+//											else
+//												nodename = instance_reference + "[" + Ix + "]";
+//										}
+//										// if array in the y dimension
+//										else if (arrayy > 1)
+//											nodename = instance_reference + "[" + Iy + "]";
+//	
+//										// check for array element descriptor
+//										if (arrayx > 1 || arrayy > 1)
+//										{
+//											// array descriptor is of the form index:index:range index:index:range
+//											(void)esnprintf(basename, WORD+1, x_("%ld:%ld:%d %ld:%ld:%d"), Ix,
+//												(deltaxX == 0 && deltayX == 0) ?
+//												arrayx-1:Ix, arrayx, Iy,
+//												(deltaxY == 0 && deltayY == 0) ?
+//												arrayy-1:Iy, arrayy);
+//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_array_key, (INTBIG)basename,
+//												VSTRING);
+//	
+//										}
+//	
+//										/* now set the name of the component (note that Electric allows any string
+//										 * of characters as a name, this name is open to the user, for ECO and other
+//										 * consistancies, the EDIF_name is saved on a variable)
+//										 */
+//										if (!namesame(instance_reference, instance_name))
+//										{
+//											var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
+//												(INTBIG)nodename, VSTRING|VDISPLAY);
+//											if (var != NOVARIABLE)
+//												defaulttextsize(3, var->textdescript);
+//										} else
+//										{
+//											// now add the original name as the displayed name (only to the first element)
+//											if (Ix == 0 && Iy == 0)
+//											{
+//												var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
+//													(INTBIG)instance_name, VSTRING|VDISPLAY);
+//												if (var != NOVARIABLE)
+//													defaulttextsize(3, var->textdescript);
+//											}
+//											// now save the EDIF name (not displayed)
+//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_name_key,
+//												(INTBIG)nodename, VSTRING);
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//	
+//					// move the property list to the free list
+//					for (property = properties; property != NOEDPROPERTY; property = nproperty)
+//					{
+//						if (current_node != null)
+//						{
+//							key = makekey(property->name);
+//							switch (property->type)
+//							{
+//								case PINTEGER:
+//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
+//										(INTBIG)property->val.integer, VINTEGER);
+//									break;
+//								case PNUMBER:
+//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
+//										castint(property->val.number), VFLOAT);
+//									break;
+//								case PSTRING:
+//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
+//										(INTBIG)property->val.string, VSTRING);
+//									break;
+//								default:
+//									break;
+//							}
+//						}
+//						nproperty = property->next;
+//					}
+//					properties = null;
+//					instance_reference = "";
+//					current_node = null;
+//					io_edfreesavedptlist();
+				} else if (state == KNET)
+				{
+//					// move the property list to the free list
+//					for (property = properties; property != NOEDPROPERTY; property = nproperty)
+//					{
+//						if (current_arc != null)
+//						{
+//							key = makekey(property->name);
+//							switch (property->type)
+//							{
+//								case PINTEGER:
+//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
+//										(INTBIG)property->val.integer, VINTEGER);
+//									break;
+//								case PNUMBER:
+//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
+//										castint(property->val.number), VFLOAT);
+//									break;
+//								case PSTRING:
+//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
+//										(INTBIG)property->val.string, VSTRING);
+//									break;
+//								default:
+//									break;
+//							}
+//						}
+//						nproperty = property->next;
+//					}
+//					properties = null;
+//					net_reference = "";
+//					current_arc = null;
+//					if (geometry != GBUS) geometry = GUNKNOWN;
+//					io_edfreesavedptlist();
+				} else if (state == KNETBUNDLE)
+				{
+					bundle_reference = "";
+					current_arc = null;
+					geometry = GUNKNOWN;
+					io_edfreesavedptlist();
+				} else if (state == KPROPERTY)
+				{
+//					if (active_view == VNETLIST || active_view == VSCHEMATIC)
+//					{
+//						// add as a variable to the current object
+//						i = 0;
+//						switch (kstack[kstack_ptr - 1])
+//						{
+//							case KINTERFACE:
+//								// add to the {sch} view nodeproto
+//								for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//								{
+//									if (!namesame(np->protoname, cell_name) &&
+//										!namesame(np->cellview->sviewname, x_("sch"))) break;
+//								}
+//								if (np == NONODEPROTO)
+//								{
+//									// allocate the cell
+//									String nodename = cell_name + "{sch}";
+//									np = us_newnodeproto(nodename, library);
+//									if (np == null) throw new IOException("Error creating cell");
+//									np->temp1 = 0;
+//								}
+//								i = (INTBIG) np;
+//								j = VNODEPROTO;
+//								break;
+//							case KINSTANCE:
+//							case KNET:
+//							case KPORT:
+//								i = -1;
+//								break;
+//							default:
+//								i = 0;
+//								break;
+//						}
+//						if (i > 0)
+//						{
+//							key = makekey(property_reference);
+//							switch (ptype)
+//							{
+//								case PINTEGER:
+//									var = setvalkey(i, j, key, (INTBIG)pval_integer, VINTEGER);
+//									break;
+//								case PNUMBER:
+//									var = setvalkey(i, j, key, castint(pval_number), VFLOAT);
+//									break;
+//								case PSTRING:
+//									var = setvalkey(i, j, key, (INTBIG)pval_string, VSTRING);
+//									break;
+//								default:
+//									break;
+//							}
+//						} else if (i == -1)
+//						{
+//							// add to the current property list, will be added latter
+//							switch (ptype)
+//							{
+//								case PINTEGER:
+//									(void)io_edallocproperty(property_reference, ptype,
+//										(INTBIG)pval_integer, 0.0, NULL);
+//									break;
+//								case PNUMBER:
+//									(void)io_edallocproperty(property_reference, ptype,
+//										0, pval_number, NULL);
+//									break;
+//								case PSTRING:
+//									(void)io_edallocproperty(property_reference, ptype,
+//										0, 0.0, pval_string);
+//									break;
+//								default:
+//									break;
+//							}
+//						}
+//					}
+//					property_reference = "";
+//					io_edfreesavedptlist();
+				} else if (state == KPORTIMPLEMENTATION)
+				{
+					geometry = GUNKNOWN;
+				} else if (state == KTRANSFORM)
+				{
+					if (kstack_ptr <= 1 || kstack[kstack_ptr-1] != KINSTANCE)
+					{
+						io_edfreeptlist();
+						return;
+					}
+	
+					// get the corner offset
+					double instptx = 0, instpty = 0;
+					int instcount = points.size();
+					if (instcount > 0)
+					{
+						EPT point = (EPT)points.get(0);
+						instptx = point.x;
+						instpty = point.y;
+					}
+	
+					// if no points are specified, presume the origin
+					if (instcount == 0) instcount = 1;
+	
+					// create node instance rotations about the origin not center
+					AffineTransform rot = NodeInst.pureRotate(io_edgetrot(orientation), getMirrorX(orientation), getMirrorY(orientation));
+	
+//					if (instcount == 1 && cellRefProto != null)
+//					{
+//						for (Ix = 0; Ix < arrayx; Ix++)
+//						{
+//							lx = instptx + Ix * deltaxX;
+//							ly = instpty + Ix * deltaxY;
+//							for (Iy = 0; Iy < arrayy; Iy++)
+//							{
+//								// find out where true center moves
+//								cx = (cellRefProto->lowx+cellRefProto->highx)/2;
+//								cy = (cellRefProto->lowy+cellRefProto->highy)/2;
+//								xform(cx, cy, &gx, &gy, rot);
+//	
+//								// now calculate the delta movement of the center
+//								cx = gx - cx;
+//								cy = gy - cy;
+//								current_node = ni = newnodeinst(cellRefProto,
+//									lx + cellRefProto->lowx + cx,
+//									lx + cellRefProto->highx + cx,
+//									ly + cellRefProto->lowy + cy,
+//									ly + cellRefProto->highy + cy,
+//									io_edgettrans(orientation),
+//									io_edgetrot(orientation),
+//									current_cell);
+//								if (ni == NONODEINST)
+//								{
+//									System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create instance");
+//									errors++;
+//	
+//									// and exit for loop
+//									Ix = arrayx;
+//									Iy = arrayy;
+//								} else
+//								{
+//									if (cellRefProto->userbits & WANTNEXPAND)
+//										ni->userbits |= NEXPAND;
+//								}
+//								if (geometry == GPIN && lx == 0 && ly == 0)
+//								{
+//									// determine an appropriate port name
+//									portname = port_name;
+//	
+//									// check if port already exists (will occur for multiple portImplementation statements
+//									for (dup = 0, (void)estrcpy(basename, portname);
+//										(ppt = getportproto(ni->parent, portname)) != NOPORTPROTO;
+//										dup++)
+//									{
+//										if (dup == 0) pp = ppt;
+//										(void)esnprintf(portname, WORD+1, x_("%s_%ld"), basename, dup+1);
+//									}
+//	
+//									// only once
+//									Ix = arrayx;
+//									Iy = arrayy;
+//									ppt = newportproto(ni->parent, ni, default_iconport, portname);
+//									if (ppt == NOPORTPROTO)
+//									{
+//										System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
+//										errors++;
+//									} else
+//									{
+//										// locate the direction of the port
+//										for (eport = ports; eport != NOEDPORT; eport = eport->next)
+//										{
+//											if (!namesame(eport->reference, port_reference))
+//											{
+//												// set the direction
+//												switch (eport->direction)
+//												{
+//													case INPUTE:
+//														ppt->userbits = (ppt->userbits & ~STATEBITS) | INPORT;
+//														break;
+//													case OUTPUTE:
+//														ppt->userbits = (ppt->userbits & ~STATEBITS) | OUTPORT;
+//														break;
+//													case INOUT:
+//														ppt->userbits = (ppt->userbits & ~STATEBITS) | BIDIRPORT;
+//														break;
+//												}
+//												break;
+//											}
+//										}
+//									}
+//								} else
+//								{
+//									// name the instance
+//									if (instance_reference.length() > 0)
+//									{
+//										// if single element or array with no offset
+//										// construct the representative extended EDIF name (includes [...])
+//										if ((arrayx == 1 && arrayy == 1) ||
+//											(deltaxX == 0 && deltaxY == 0 &&
+//											deltayX == 0 && deltayY == 0))
+//											nodename = instance_reference;
+//											// if array in the x dimension
+//										else if (arrayx > 1)
+//										{
+//											if (arrayy > 1)
+//												nodename = instance_reference + "[" + Ix + "," + Iy + "]";
+//											else
+//												nodename = instance_reference + "[" + Ix + "]";
+//										}
+//										// if array in the y dimension
+//										else if (arrayy > 1)
+//											nodename = instance_reference + "[" + Iy + "]";
+//	
+//										// check for array element descriptor
+//										if (arrayx > 1 || arrayy > 1)
+//										{
+//											// array descriptor is of the form index:index:range index:index:range
+//											(void)esnprintf(basename, WORD+1, x_("%ld:%ld:%d %ld:%ld:%d"),
+//												Ix, (deltaxX == 0 && deltayX == 0) ? arrayx-1:Ix,
+//												arrayx, Iy,
+//												(deltaxY == 0 && deltayY == 0) ? arrayy-1:Iy,
+//												arrayy);
+//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_array_key, (INTBIG)basename,
+//												VSTRING);
+//										}
+//	
+//										/* now set the name of the component (note that Electric allows any string
+//				   						 * of characters as a name, this name is open to the user, for ECO and other
+//										 * consistancies, the EDIF_name is saved on a variable)
+//										 */
+//										if (!namesame(instance_reference, instance_name))
+//										{
+//											var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
+//												(INTBIG)nodename, VSTRING|VDISPLAY);
+//											if (var != NOVARIABLE)
+//												defaulttextsize(3, var->textdescript);
+//										} else
+//										{
+//											// now add the original name as the displayed name (only to the first element)
+//											if (Ix == 0 && Iy == 0)
+//											{
+//												var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
+//													(INTBIG)instance_name, VSTRING|VDISPLAY);
+//												if (var != NOVARIABLE)
+//													defaulttextsize(3, var->textdescript);
+//											}
+//	
+//											// now save the EDIF name (not displayed)
+//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_name_key,
+//												(INTBIG)nodename, VSTRING);
+//										}
+//	
+//										// now check for saved name attributes
+//										if (save_points.size() != 0)
+//										{
+//											// now set the position, relative to the center of the current object
+//											xoff = save_points->x - ((ni->highx+ni->lowx)>>1);
+//											yoff = save_points->y - ((ni->highy+ni->lowy)>>1);
+//	
+//											// convert to quarter lambda units
+//											xoff = 4*xoff / lambda;
+//											yoff = 4*yoff / lambda;
+//	
+//											/*
+//											 * determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in
+//											 * fonts range from 4 to 20 points
+//											 */
+//											if (save_textheight == 0) i = TXTSETQLAMBDA(4); else
+//											{
+//												i = io_ediftextsize(save_textheight);
+//											}
+//											TDCOPY(descript, var->textdescript);
+//											TDSETOFF(descript, xoff, yoff);
+//											TDSETSIZE(descript, i);
+//											TDSETPOS(descript, VTPOSCENT);
+//											switch (save_justification)
+//											{
+//												case UPPERLEFT:
+//													TDSETPOS(descript, VTPOSUPRIGHT);
+//													break;
+//												case UPPERCENTER:
+//													TDSETPOS(descript, VTPOSUP);
+//													break;
+//												case UPPERRIGHT:
+//													TDSETPOS(descript, VTPOSUPLEFT);
+//													break;
+//												case CENTERLEFT:
+//													TDSETPOS(descript, VTPOSRIGHT);
+//													break;
+//												case CENTERCENTER:
+//													TDSETPOS(descript, VTPOSCENT);
+//													break;
+//												case CENTERRIGHT:
+//													TDSETPOS(descript, VTPOSLEFT);
+//													break;
+//												case LOWERLEFT:
+//													TDSETPOS(descript, VTPOSDOWNRIGHT);
+//													break;
+//												case LOWERCENTER:
+//													TDSETPOS(descript, VTPOSDOWN);
+//													break;
+//												case LOWERRIGHT:
+//													TDSETPOS(descript, VTPOSDOWNLEFT);
+//													break;
+//											}
+//											TDCOPY(var->textdescript, descript);
+//										}
+//									}
+//								}
+//								if (deltayX == 0 && deltayY == 0) break;
+//	
+//								// bump the y delta and x deltas
+//								lx += deltayX;
+//								ly += deltayY;
+//							}
+//							if (deltaxX == 0 && deltaxY == 0) break;
+//						}
+//					}
+//					io_edfreeptlist();
+				} else if (state == KPORTREF)
+				{
+//					// check for the last pin
+//					fni = current_node;
+//					fpp = current_port;
+//					if (port_reference.length() > 0)
+//					{
+//						// For internal pins of an instance, determine the base port location and other pin assignments
+//						if (instance_reference.length() > 0)
+//						{
+//							nodename = instance_reference;
+//	
+//							// locate the node and and port
+//							if (active_view == VNETLIST)
+//							{
+//								// scan all pages for this nodeinst
+//								ni = NONODEINST;
+//								for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//								{
+//									if (namesame(np->protoname, cell_name) != 0) continue;
+//									for (ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//									{
+//										if ((var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_name_key)) == NOVARIABLE &&
+//											(var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key)) == NOVARIABLE)
+//												continue;
+//										if (!namesame((CHAR *)var->addr, nodename)) break;
+//									}
+//									if (ni != NONODEINST) break;
+//								}
+//								if (ni == NONODEINST)
+//								{
+//									(void)ttyputmsg(_("error, line #%d: could not locate netlist node (%s)"),
+//										io_edifgbl.lineno, nodename);
+//									break;
+//								}
+//								ap = gen_unroutedarc;
+//							} else
+//							{
+//								// net always references the current page
+//								for (ni = current_cell->firstnodeinst; ni != NONODEINST;
+//									ni = ni->nextnodeinst)
+//								{
+//									if ((var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_name_key)) == NOVARIABLE &&
+//										(var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key)) == NOVARIABLE)
+//											continue;
+//									if (!namesame((CHAR *)var->addr, nodename)) break;
+//								}
+//								if (ni == NONODEINST)
+//								{
+//									(void)ttyputmsg(_("error, line #%d: could not locate schematic node '%s' in cell %s"),
+//										io_edifgbl.lineno, nodename, describenodeproto(current_cell));
+//									break;
+//								}
+//								if (!isarray) ap = sch_wirearc; else
+//									ap = sch_busarc;
+//							}
+//	
+//							// locate the port for this portref
+//							pp = getportproto(ni->proto, port_reference);
+//							if (pp == NOPORTPROTO)
+//							{
+//								(void)ttyputmsg(_("error, line #%d: could not locate port (%s) on node (%s)"),
+//									io_edifgbl.lineno, port_reference, nodename);
+//								break;
+//							}
+//	
+//							// we have both, set global variable
+//							current_node = ni;
+//							current_port = pp;
+//							np = ni->parent;
+//	
+//							// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
+//							if (active_view == VNETLIST)
+//							{
+//								// route all pins with an extension
+//								if (ni != NONODEINST)
+//								{
+//									portposition(ni, pp, &hx, &hy);
+//									lx = hx;
+//									ly = hy;
+//									switch (pp->userbits&STATEBITS)
+//									{
+//										case INPORT:
+//											lx = hx - (INCH/10);
+//											break;
+//										case BIDIRPORT:
+//											ly = hy - (INCH/10);
+//											break;
+//										case OUTPORT:
+//											lx = hx + (INCH/10);
+//											break;
+//									}
+//	
+//									// need to create a destination for the wire
+//									if (isarray)
+//									{
+//										lni = io_edifiplacepin(sch_buspinprim, lx + sch_buspinprim->lowx,
+//											lx + sch_buspinprim->highx, ly + sch_buspinprim->lowy,
+//											ly + sch_buspinprim->highy, 0, 0, np);
+//										if (lni == NONODEINST)
+//										{
+//											ttyputmsg(_("error, line#%d: could not create bus pin"),
+//												io_edifgbl.lineno);
+//											break;
+//										}
+//										lpp = default_busport;
+//										lap = sch_busarc;
+//									} else
+//									{
+//										lni = io_edifiplacepin(sch_wirepinprim, lx + sch_wirepinprim->lowx,
+//											lx + sch_wirepinprim->highx, ly + sch_wirepinprim->lowy,
+//											ly + sch_wirepinprim->highy, 0, 0, np);
+//										if (lni == NONODEINST)
+//										{
+//											ttyputmsg(_("error, line#%d: could not create wire pin"),
+//												io_edifgbl.lineno);
+//											break;
+//										}
+//										lpp = default_port;
+//										lap = sch_wirearc;
+//									}
+//									current_arc = newarcinst(lap, defaultarcwidth(lap), CANTSLIDE,
+//										lni, lpp, lx, ly, ni, pp, hx, hy, np);
+//									if (current_arc == NOARCINST)
+//										ttyputmsg(_("error, line #%d: could not create auto-path"),
+//											io_edifgbl.lineno);
+//									else
+//										io_ednamearc(current_arc);
+//								}
+//							}
+//						} else
+//						{
+//							// external port reference, look for a off-page reference in {sch} with this port name
+//							for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//							{
+//								if (namesame(np->protoname, cell_name) != 0) continue;
+//								if (np->cellview == el_schematicview) break;
+//							}
+//							if (np == NONODEPROTO)
+//							{
+//								ttyputmsg(_("error, line #%d: could not locate top level schematic"),
+//									io_edifgbl.lineno);
+//								break;
+//							}
+//	
+//							// now look for an instance with the correct port name
+//							pp = getportproto(np, port_reference);
+//							if (pp == NOPORTPROTO)
+//							{
+//								if (original.length() > 0)
+//									pp = getportproto(np, original);
+//								if (pp == NOPORTPROTO)
+//								{
+//									ttyputmsg(_("error, line #%d: could not locate port '%s'"), io_edifgbl.lineno,
+//										port_reference);
+//									break;
+//								}
+//							}
+//							fni = pp->subnodeinst;
+//							fpp = pp->subportproto;
+//							portposition(fni, fpp, &lx, &ly);
+//	
+//							// determine x position by original placement
+//							switch (pp->userbits&STATEBITS)
+//							{
+//								case INPORT:
+//									lx = 1*INCH;
+//									break;
+//								case BIDIRPORT:
+//									lx = 4*INCH;
+//									break;
+//								case OUTPORT:
+//									lx = 5*INCH;
+//									break;
+//							}
+//	
+//							// need to create a destination for the wire
+//							if (isarray)
+//							{
+//								ni = io_edifiplacepin(sch_buspinprim, lx + sch_buspinprim->lowx,
+//									lx + sch_buspinprim->highx, ly + sch_buspinprim->lowy,
+//									ly + sch_buspinprim->highy, 0, 0, np);
+//								if (ni == NONODEINST)
+//								{
+//									ttyputmsg(_("error, line#%d: could not create bus pin"),
+//										io_edifgbl.lineno);
+//									break;
+//								}
+//								pp = default_busport;
+//							} else
+//							{
+//								ni = io_edifiplacepin(sch_wirepinprim, lx + sch_wirepinprim->lowx,
+//									lx + sch_wirepinprim->highx, ly + sch_wirepinprim->lowy,
+//									ly + sch_wirepinprim->highy, 0, 0, np);
+//								if (ni == NONODEINST)
+//								{
+//									ttyputmsg(_("error, line#%d: could not create wire pin"),
+//										io_edifgbl.lineno);
+//									break;
+//								}
+//								pp = default_port;
+//							}
+//							if (!isarray) ap = sch_wirearc; else
+//								ap = sch_busarc;
+//						}
+//	
+//						// now connect if we have from node and port
+//						if (fni != NONODEINST && fpp != NOPORTPROTO)
+//						{
+//							if (fni->parent != ni->parent)
+//							{
+//								ttyputmsg(_("error, line #%d: could not create path (arc) between cells %s and %s"),
+//									io_edifgbl.lineno, describenodeproto(fni->parent), describenodeproto(ni->parent));
+//							} else
+//							{
+//								// locate the position of the new ports
+//								portposition(fni, fpp, &lx, &ly);
+//								portposition(ni, pp, &hx, &hy);
+//	
+//								// for nets with no physical representation ...
+//								current_arc = null;
+//								if (lx == hx && ly == hy) dist = 0; else
+//									dist = computedistance(lx, ly, hx, hy);
+//								if (dist <= 1)
+//								{
+//									current_arc = newarcinst(ap, defaultarcwidth(ap),
+//										FIXANG|CANTSLIDE, fni, fpp, lx, ly, ni, pp, hx, hy, np);
+//									if (current_arc == null)
+//									{
+//										ttyputmsg(_("error, line #%d: could not create path (arc)"),
+//											io_edifgbl.lineno);
+//									}
+//								}
+//								// use unrouted connection for NETLIST views
+//								else if (active_view == VNETLIST)
+//								{
+//									current_arc = newarcinst(ap, defaultarcwidth(ap),
+//										CANTSLIDE, fni, fpp, lx, ly, ni, pp, hx, hy, np);
+//									if (current_arc == null)
+//									{
+//										ttyputmsg(_("error, line #%d: could not create auto-path"),
+//											io_edifgbl.lineno);
+//									}
+//								}
+//	
+//								// add the net name
+//								if (current_arc != null)
+//									io_ednamearc(current_arc);
+//							}
+//						}
+//					}
+				} else if (state == KINSTANCEREF)
+				{
+				} else if (state == KPATH)
+				{
+//					// check for openShape type path
+//					if (path_width == 0 &&
+//						geometry != GNET && geometry != GBUS) goto dopoly;
+//					fcnt = 0;
+//					if (geometry == GBUS || isarray) np = sch_buspinprim;
+//					else np = sch_wirepinprim;
+//					if (points.size() == 0) break;
+//					for (point = points; point->nextpt != NOEPT; point = point->nextpt)
+//					{
+//						if (geometry == GNET || geometry == GBUS)
+//						{
+//							// create a pin to pin connection
+//							if (fcnt == 0)
+//							{
+//								// look for the first pin
+//								fcnt = io_edfindport(current_cell, point->x,
+//									point->y, sch_wirearc, fnis, fpps);
+//								if (fcnt == 0)
+//								{
+//									// create the "from" pin
+//									fnis[0] = io_edifiplacepin(np, point->x + np->lowx, point->x + np->highx,
+//										point->y + np->lowy, point->y + np->highy,
+//										0, 0, current_cell);
+//									if (fnis[0] == NONODEINST) fcnt = 0; else
+//									{
+//										fpps[0] = (geometry == GBUS || isarray) ?
+//											default_busport : default_port;
+//										fcnt = 1;
+//									}
+//								}
+//							}
+//							// now the second ...
+//							tcnt = io_edfindport(current_cell, point->nextpt->x,
+//								point->nextpt->y, sch_wirearc, tnis, tpps);
+//							if (tcnt == 0)
+//							{
+//								// create the "to" pin
+//								tnis[0] = io_edifiplacepin(np, point->nextpt->x + np->lowx,
+//									point->nextpt->x + np->highx,
+//									point->nextpt->y + np->lowy,
+//									point->nextpt->y + np->highy,
+//									0, 0, current_cell);
+//								if (tnis[0] == NONODEINST) tcnt = 0; else
+//								{
+//									tpps[0] = (geometry == GBUS || isarray) ?
+//										default_busport : default_port;
+//									tcnt = 1;
+//								}
+//							}
+//	
+//							if (tcnt == 0 || fcnt == 0)
+//							{
+//								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create path");
+//								errors++;
+//							} else
+//							{
+//								// connect it
+//								for (count = 0; count < fcnt || count < tcnt; count++)
+//								{
+//									if (count < fcnt)
+//									{
+//										lastpin = fnis[count];
+//										lastport = fpps[count];
+//	
+//										// check node for array variable
+//										var = getvalkey((INTBIG)lastpin, VNODEINST, VSTRING, EDIF_array_key);
+//										if (var != NOVARIABLE) fbus = 1; else
+//											if (lastport->protoname[estrlen(lastport->protoname)-1] == ']') fbus = 1; else
+//												fbus = 0;
+//									}
+//									if (count < tcnt)
+//									{
+//										ni = tnis[count];
+//										pp = tpps[count];
+//	
+//										// check node for array variable
+//										var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_array_key);
+//										if (var != NOVARIABLE) tbus = 1; else
+//											if (pp->protoname[estrlen(pp->protoname)-1] == ']') tbus = 1; else
+//												tbus = 0;
+//									}
+//	
+//									// if bus to bus
+//									if ((lastport == default_busport || fbus) &&
+//										(pp == default_busport || tbus)) ap = sch_busarc;
+//											// wire to other
+//									else ap = sch_wirearc;
+//	
+//									ai = newarcinst(ap, defaultarcwidth(ap), FIXANG|CANTSLIDE,
+//										lastpin, lastport, point->x, point->y,
+//										ni, pp, point->nextpt->x, point->nextpt->y,
+//										current_cell);
+//									if (ai == NOARCINST)
+//									{
+//										System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create path (arc)");
+//										errors++;
+//									} else if (geometry == GNET && points == point)
+//									{
+//										if (net_reference.length() > 0)
+//										{
+//											var = setvalkey((INTBIG)ai, VARCINST, EDIF_name_key,
+//												(INTBIG)net_reference, VSTRING);
+//										}
+//										if (net_name.length() > 0)
+//										{
+//											// set name of arc but don't display name
+//											var = setvalkey((INTBIG)ai, VARCINST, el_arc_name_key,
+//												(INTBIG)net_name, VSTRING);
+//											if (var != NOVARIABLE)
+//												defaulttextsize(4, var->textdescript);
+//										}
+//									} else if (geometry == GBUS && points == point)
+//									{
+//										if (bundle_reference.length() > 0)
+//										{
+//											var = setvalkey((INTBIG)ai, VARCINST, EDIF_name_key,
+//												(INTBIG)bundle_reference, VSTRING);
+//										}
+//										if (bundle_name.length() > 0)
+//										{
+//											// set bus' EDIF name but don't display name
+//											var = setvalkey((INTBIG)ai, VARCINST, el_arc_name_key,
+//												(INTBIG)bundle_name, VSTRING);
+//											if (var != NOVARIABLE)
+//												defaulttextsize(4, var->textdescript);
+//										}
+//									}
+//								}
+//								if (ai != NOARCINST) current_arc = ai;
+//								for (count = 0; count < tcnt; count++)
+//								{
+//									fnis[count] = tnis[count];
+//									fpps[count] = tpps[count];
+//								}
+//								fcnt = tcnt;
+//							}
+//						} else
+//						{
+//							// rectalinear paths with some width
+//							// create a path from here to there (orthogonal only now)
+//							lx = hx = point->x;
+//							ly = hy = point->y;
+//							if (lx > point->nextpt->x) lx = point->nextpt->x;
+//							if (hx < point->nextpt->x) hx = point->nextpt->x;
+//							if (ly > point->nextpt->y) ly = point->nextpt->y;
+//							if (hy < point->nextpt->y) hy = point->nextpt->y;
+//							if (ly == hy || extend_end)
+//							{
+//								ly -= path_width/2;
+//								hy += path_width/2;
+//							}
+//							if (lx == hx || extend_end)
+//							{
+//								lx -= path_width/2;
+//								hx += path_width/2;
+//							}
+//							ni = io_edifiplacepin(figure_group, lx, hx, ly, hy,
+//								io_edgettrans(orientation),
+//								io_edgetrot(orientation),
+//								current_cell);
+//							if (ni == NONODEINST)
+//							{
+//								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create path");
+//								errors++;
+//							}
+//						}
+//					}
+//					io_edfreeptlist();
+				} else if (state == KCIRCLE)
+				{
+					if (points.size() == 2)
+					{
+						EPT p0 = (EPT)points.get(0);
+						EPT p1 = (EPT)points.get(1);
+						double lx = Math.min(p0.x, p1.x);
+						double hx = Math.max(p0.x, p1.x);
+						double ly = Math.min(p0.y, p1.y);
+						double hy = Math.max(p0.y, p1.y);
+						if (lx == hx)
+						{
+							lx -= (hy - ly) / 2;
+							hx += (hy - ly) / 2;
+						} else
+						{
+							ly -= (hx - lx) / 2;
+							hy += (hx - lx) / 2;
+						}
+						double sX = hx - lx;
+						double sY = hy - ly;
+						if (getMirrorX(orientation)) sX = -sX;
+						if (getMirrorY(orientation)) sY = -sY;
+
+						// create the node instance
+						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double((lx+hx)/2,(ly+hy)/2),
+							sX, sY, current_cell, io_edgetrot(orientation), null, 0);
+						if (ni == null)
+						{
+							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create circle");
+							errors++;
+						}
+					}
+					io_edfreeptlist();
+				} else if (state == KNAME)
+				{
+					// save the data and break
+					io_edfreesavedptlist();
+					save_string = string;
+					string = "";
+					save_points = points;
+					points = new ArrayList();
+					save_textheight = textheight;
+					textheight = 0;
+					save_justification = justification;
+					justification = LOWERLEFT;
+					save_orientation = orientation;
+					orientation = OR0;
+					save_visible = visible;
+					visible = true;
+				} else if (state == KSTRINGDISPLAY)
+				{
+//					if (kstack_ptr <= 1)
+//					{
+//						System.out.println("error, line #" + lineReader.getLineNumber() + ": bad location for \"stringDisplay\"");
+//						errors++;
+//					}
+//					else if (kstack[kstack_ptr-1] == KRENAME)
+//					{
+//						// save the data and break
+//						io_edfreesavedptlist();
+//						save_string = string;
+//						string = "";
+//						save_points = points;
+//						points = new ArrayList();
+//						save_textheight = textheight;
+//						textheight = 0;
+//						save_justification = justification;
+//						justification = LOWERLEFT;
+//						save_orientation = orientation;
+//						orientation = OR0;
+//						save_visible = visible;
+//						visible = true;
+//					}
+//	
+//					// output the data for annotate (display graphics) and string (on properties)
+//					else if (kstack[kstack_ptr-1] == KANNOTATE || kstack[kstack_ptr-1] == KSTRING)
+//					{
+//						// supress this if it starts with "["
+//						if (!string.startsWith("[") && points.size() != 0)
+//						{
+//							// see if a pre-existing node or arc exists to add text
+//							ai = NOARCINST;
+//							ni = NONODEINST;
+//							if (property_reference.length() > 0 && current_node != null)
+//							{
+//								ni = current_node;
+//								key = makekey(property_reference);
+//								xoff = points->x - ((ni->highx+ni->lowx)>>1);
+//								yoff = points->y - ((ni->highy+ni->lowy)>>1);
+//							}
+//							else if (property_reference.length() > 0 && current_arc != null)
+//							{
+//								ai = current_arc;
+//								key = makekey(property_reference);
+//								xoff = points->x - ((ai->end[0].xpos + ai->end[1].xpos)>>1);
+//								yoff = points->y - ((ai->end[0].ypos + ai->end[1].ypos)>>1);
+//							} else
+//							{
+//								// create the node instance
+//								xoff = yoff = 0;
+//								ni = newnodeinst(gen_invispinprim,
+//									points->x, points->x,
+//									points->y, points->y, 0, 0,
+//									current_cell);
+//								key = EDIF_annotate_key;
+//							}
+//							if (ni != NONODEINST || ai != NOARCINST)
+//							{
+//								if (ni != NONODEINST)
+//								{
+//									var = setvalkey((INTBIG)ni, VNODEINST, key, (INTBIG)string,
+//										(visible ? VSTRING|VDISPLAY : VSTRING));
+//	
+//									// now set the position, relative to the center of the current object
+//									xoff = points->x - ((ni->highx+ni->lowx)>>1);
+//									yoff = points->y - ((ni->highy+ni->lowy)>>1);
+//								} else
+//								{
+//									var = setvalkey((INTBIG)ai, VARCINST, key, (INTBIG)string,
+//										(visible ? VSTRING|VDISPLAY : VSTRING));
+//	
+//									// now set the position, relative to the center of the current object
+//									xoff = points->x - ((ai->end[0].xpos + ai->end[1].xpos)>>1);
+//									yoff = points->y - ((ai->end[0].ypos + ai->end[1].ypos)>>1);
+//								}
+//	
+//								// convert to quarter lambda units
+//								xoff = 4*xoff / lambda;
+//								yoff = 4*yoff / lambda;
+//	
+//								// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
+//								if (textheight == 0) i = TXTSETQLAMBDA(4); else
+//								{
+//									i = io_ediftextsize(textheight);
+//								}
+//								TDCOPY(descript, var->textdescript);
+//								TDSETSIZE(descript, i);
+//								TDSETOFF(descript, xoff, yoff);
+//								TDSETPOS(descript, VTPOSCENT);
+//								switch (justification)
+//								{
+//									case UPPERLEFT:    TDSETPOS(descript, VTPOSUPRIGHT);    break;
+//									case UPPERCENTER:  TDSETPOS(descript, VTPOSUP);         break;
+//									case UPPERRIGHT:   TDSETPOS(descript, VTPOSUPLEFT);     break;
+//									case CENTERLEFT:   TDSETPOS(descript, VTPOSRIGHT);      break;
+//									case CENTERCENTER: TDSETPOS(descript, VTPOSCENT);       break;
+//									case CENTERRIGHT:  TDSETPOS(descript, VTPOSLEFT);       break;
+//									case LOWERLEFT:    TDSETPOS(descript, VTPOSDOWNRIGHT);  break;
+//									case LOWERCENTER:  TDSETPOS(descript, VTPOSDOWN);       break;
+//									case LOWERRIGHT:   TDSETPOS(descript, VTPOSDOWNLEFT);   break;
+//								}
+//								TDCOPY(var->textdescript, descript);
+//							} else
+//							{
+//								System.out.println("error, line #" + lineReader.getLineNumber() + ": nothing to attach text to");
+//								errors++;
+//							}
+//						}
+//					}
+//	
+//					// clean up DISPLAY attributes
+//					io_edfreeptlist();
+//					cur_nametbl = NONAMETABLE;
+//					visible = true;
+//					justification = LOWERLEFT;
+//					textheight = 0;
+				} else if (state == KDOT)
+				{
+//					if (geometry == GPIN)
+//					{
+//						for (eport = ports; eport != NOEDPORT; eport = eport->next)
+//						{
+//							if (!namesame(eport->reference, name)) break;
+//						}
+//						if (eport != NOEDPORT)
+//						{
+//							// create a internal wire port using the pin-proto, and create the port and export
+//							ni = io_edifiplacepin(cellRefProto,
+//								points->x+cellRefProto->lowx,
+//								points->x+cellRefProto->highx,
+//								points->y+cellRefProto->lowy,
+//								points->y+cellRefProto->highy,
+//								io_edgettrans(orientation),
+//								io_edgetrot(orientation),
+//								current_cell);
+//							if (ni == NONODEINST)
+//							{
+//								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create pin");
+//								errors++;
+//							}
+//							(void)estrcpy(portname, eport->name);
+//							for (dup = 0, (void)estrcpy(basename, portname);
+//								(ppt = getportproto(ni->parent, portname)) != NOPORTPROTO; dup++)
+//							{
+//								if (dup == 0) pp = ppt;
+//								(void)esnprintf(portname, WORD+1, x_("%s_%ld"), basename, dup+1);
+//							}
+//							ppt = newportproto(ni->parent, ni, default_iconport, portname);
+//							if (ppt == NOPORTPROTO)
+//							{
+//								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
+//								errors++;
+//							} else
+//							{
+//								// set the direction
+//								switch (eport->direction)
+//								{
+//									case INPUTE:
+//										ppt->userbits = (ppt->userbits & ~STATEBITS) | INPORT;
+//										break;
+//									case OUTPUTE:
+//										ppt->userbits = (ppt->userbits & ~STATEBITS) | OUTPORT;
+//										break;
+//									case INOUT:
+//										ppt->userbits = (ppt->userbits & ~STATEBITS) | BIDIRPORT;
+//										break;
+//								}
+//							}
+//						}
+//					} else
+//					{
+//						// create the node instance
+//						ni = newnodeinst(figure_group != null ? figure_group : art_boxprim,
+//							points->x, points->x,
+//							points->y, points->y,
+//							io_edgettrans(orientation),
+//							io_edgetrot(orientation),
+//							current_cell);
+//						if (ni == NONODEINST)
+//						{
+//							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create rectangle");
+//							errors++;
+//						}
+//					}
+//					io_edfreeptlist();
+				} else if (state == KRECTANGLE)
+				{
+					if (kstack_ptr > 1 && (kstack[kstack_ptr-1] == KPAGESIZE ||
+						kstack[kstack_ptr-1] == KBOUNDINGBOX)) return;
+					if (points.size() == 2)
+					{
+						// create the node instance
+						EPT p0 = (EPT)points.get(0);
+						EPT p1 = (EPT)points.get(1);
+						double hx = p1.x;
+						double lx = p0.x;
+						if (p0.x > p1.x)
+						{
+							lx = p1.x;
+							hx = p0.x;
+						}
+						double hy = p1.y;
+						double ly = p0.y;
+						if (p0.y > p1.y)
+						{
+							ly = p1.y;
+							hy = p0.y;
+						}
+						double sX = hx - lx;
+						double sY = hy - ly;
+						if (getMirrorX(orientation)) sX = -sX;
+						if (getMirrorY(orientation)) sY = -sY;
+						NodeInst ni = NodeInst.makeInstance(figure_group != null ? figure_group : Artwork.tech.boxNode,
+							new Point2D.Double((lx+hx)/2, (ly+hy)/2), sX, sY, current_cell, io_edgetrot(orientation), null, 0);
+						if (ni == null)
+						{
+							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create rectangle");
+							errors++;
+						}
+						else if (figure_group == Artwork.tech.openedDottedPolygonNode)
+						{
+//							cnt = 5;
+//							cx = (p0.x + p1.x) / 2;
+//							cy = (p0.y + p1.y) / 2;
+//							pts[0] = p0.x-cx;
+//							pts[1] = p0.y-cy;
+//							pts[2] = p0.x-cx;
+//							pts[3] = p1.y-cy;
+//							pts[4] = p1.x-cx;
+//							pts[5] = p1.y-cy;
+//							pts[6] = p1.x-cx;
+//							pts[7] = p0.y-cy;
+//							pts[8] = p0.x-cx;
+//							pts[9] = p0.y-cy;
+//	
+//							// store the trace information
+//							(void)setvalkey((INTBIG)ni, VNODEINST, el_trace_key, (INTBIG)pts,
+//								VINTEGER|VISARRAY|((cnt*2)<<VLENGTHSH));
+						}
+						else if (geometry == GPIN)
+						{
+							// create a rectangle using the pin-proto, and create the port and export ensure full sized port
+							sX = cellRefProto.getDefWidth();
+							sY = cellRefProto.getDefHeight();
+							if (getMirrorX(orientation)) sX = -sX;
+							if (getMirrorY(orientation)) sY = -sY;
+							ni = io_edifiplacepin(cellRefProto, (lx+hx)/2, (ly+hy)/2, sX, sY,
+								io_edgetrot(orientation), current_cell);
+							if (ni == null)
+							{
+								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create pin");
+								errors++;
+							}
+							PortProto ppt = current_cell.findPortProto(name);
+							if (ppt == null)
+							{
+								PortInst pi = ni.findPortInstFromProto(default_iconport);
+								ppt = Export.newInstance(current_cell, pi, name);
+							}
+							if (ppt == null)
+							{
+								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create port <" + name + ">");
+								errors++;
+							}
+						}
+					}
+					io_edfreeptlist();
+				} else if (state == KARC)
+				{
+//					// set array values
+//					for (point = points, i = 0; point && i < 3; point = point->nextpt,i++)
+//					{
+//						x[i] = point->x;
+//						y[i] = point->y;
+//					}
+//					io_ededif_arc(x, y, &cx, &cy, &radius, &so, &ar, &j, &trans);
+//					lx = cx - radius;   hx = cx + radius;
+//					ly = cy - radius;   hy = cy + radius;
+//	
+//					// get the bounds of the circle
+//					ni = newnodeinst(figure_group != null && figure_group != art_boxprim ?
+//						figure_group : art_circleprim, lx, hx, ly, hy,
+//						trans, j, current_cell);
+//					if (ni == NONODEINST)
+//					{
+//						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create arc");
+//						errors++;
+//					} else
+//					{
+//						// store the angle of the arc
+//						setarcdegrees(ni, so, ar*EPI/1800.0);
+//					}
+//					io_edfreeptlist();
+				} else if (state == KSYMBOL || state == KPAGE)
+				{
+//					np = current_cell;
+//					if (np != NONODEPROTO)
+//					{
+//						// now compute the bounds of this cell
+//						db_boundcell(np, &np->lowx, &np->highx, &np->lowy, &np->highy);
+//					}
+					active_view = VNULL;
+				} else if (state == KOPENSHAPE || state == KPOLYGON)
+				{
+//	dopoly:
+//					if (points.size() == 0) break;
+//	
+//					// get the bounds of the poly
+//					lx = hx = points->x;
+//					ly = hy = points->y;
+//					point = points->nextpt;
+//					while (point)
+//					{
+//						if (lx > point->x) lx = point->x;
+//						if (hx < point->x) hx = point->x;
+//						if (ly > point->y) ly = point->y;
+//						if (hy < point->y) hy = point->y;
+//						point = point->nextpt;
+//					}
+//					if (lx != hx || ly != hy)
+//					{
+//						if (figure_group != null && figure_group != art_boxprim)
+//							np = figure_group; else
+//						{
+//							if (state == KPOLYGON) np = art_closedpolygonprim; else
+//								np = art_openedpolygonprim;
+//						}
+//						ni = newnodeinst(np, lx, hx, ly, hy, io_edgettrans(orientation),
+//							io_edgetrot(orientation), current_cell);
+//						if (ni == NONODEINST)
+//						{
+//							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create polygon");
+//							errors++;
+//						} else
+//						{
+//							pt = trace = emalloc((points.size()*2*SIZEOFINTBIG), el_tempcluster);
+//							if (trace == 0) RET_NOMEMORY();
+//							cx = (hx + lx) / 2;
+//							cy = (hy + ly) / 2;
+//							point = points;
+//							while (point != NOEPT)
+//							{
+//								*pt++ = point->x - cx;
+//								*pt++ = point->y - cy;
+//								point = point->nextpt;
+//							}
+//	
+//							// store the trace information
+//							(void)setvalkey((INTBIG)ni, VNODEINST, el_trace_key, (INTBIG)trace,
+//								VINTEGER|VISARRAY|((points.size()*2)<<VLENGTHSH));
+//	
+//							// free the polygon memory
+//							efree((CHAR *)trace);
+//						}
+//					}
+//					io_edfreeptlist();
+				} else if (state == KARRAY)
+				{
+					if (arrayx == 0) arrayx = 1;
+					if (arrayy == 0) arrayy = 1;
+				} else if (state == KMEMBER)
+				{
+					if (memberx != -1)
+					{
+						// adjust the name of the current INSTANCE/NET/PORT(/VALUE)
+						String baseName = "[" + memberx + "]";
+						if (membery != -1) baseName = "[" + memberx + "," + membery + "]";
+						if (kstack[kstack_ptr-1] == KINSTANCEREF) instance_reference = baseName; else
+							if (kstack[kstack_ptr-1] == KPORTREF) port_reference = baseName;
+					}
+				} else if (state == KDESIGN)
+				{
+					if (cellRefProto != null)
+					{
+//						library->curnodeproto = cellRefProto;
+					}
+				} else if (state == KEDIF)
+				{
+					// free the netport list
+					io_edfreenetports();
+				}
+			}
+			if (kstack_ptr != 0) state = kstack[--kstack_ptr]; else
+				state = KINIT;
+			return;
+		}
 	}
 
 	/****************************************** PARSING TABLE ******************************************/
@@ -2175,1725 +3876,6 @@ public class EDIF extends Input
 //		}
 //	}
 //	
-//	/* pop the keyword state stack, called when ')' is encountered. Note this function
-//	   needs to broken into a simple function call structure. */
-//	#define MAXBUSPINS 256
-//	INTBIG io_edpop_stack(void)
-//	{
-//		INTBIG eindex, key, lambda;
-//		INTBIG lx, ly, hx, hy, cx, cy, cnt, Ix, Iy, gx, gy, xoff, yoff, dist;
-//		INTBIG *trace, *pt, pts[26], fcnt, tcnt, psx, psy;
-//		INTBIG width, height, x[3], y[3], radius, trans;
-//		INTBIG count, user_max, i, j, dup, fbus, tbus, instcount, instptx, instpty;
-//		UINTBIG descript[TEXTDESCRIPTSIZE];
-//		CHAR nodename[WORD+1], portname[WORD+1], basename[WORD+1], orig[WORD+1];
-//		CHAR **layers, **layer_numbers;
-//		NODEPROTO *np, *nnp;
-//		ARCPROTO *ap, *lap;
-//		ARCINST *ai;
-//		PORTPROTO *ppt, *fpp, *lpp, *pp, *lastport;
-//		NODEINST *ni, *lastpin, *fni, *lni;
-//		EPT_PTR point;
-//		EDPROPERTY_PTR property, nproperty;
-//		double ar, so;
-//		VARIABLE *var;
-//		XARRAY rot;
-//		EDPORT_PTR eport, neport;
-//		// bus connection variables
-//		PORTPROTO *fpps[MAXBUSPINS], *tpps[MAXBUSPINS];
-//		NODEINST *fnis[MAXBUSPINS], *tnis[MAXBUSPINS];
-//		REGISTER void *infstr;
-//	
-//		lambda = el_curlib->lambda[technology->techindex];
-//		if (kstack_ptr)
-//		{
-//			if (!ignoreblock)
-//			{
-//				switch (state)
-//				{
-//				case KFIGURE:
-//					cur_nametbl = null;
-//					visible = true;
-//					justification = LOWERLEFT;
-//					textheight = 0;
-//					break;
-//				case KBOUNDINGBOX:
-//					figure_group = null;
-//					break;
-//				case KTECHNOLOGY:
-//					var = getval((INTBIG)technology, VTECHNOLOGY, VSTRING|VISARRAY,
-//						x_("IO_gds_layer_numbers"));
-//					if (var != NOVARIABLE)
-//					{
-//						layer_numbers = (CHAR **)var->addr;
-//						count = getlength(var);
-//						var = getval((INTBIG)technology, VTECHNOLOGY, VSTRING|VISARRAY,
-//							x_("TECH_layer_names"));
-//						if (var != NOVARIABLE)
-//						{
-//							layers = (CHAR **) var->addr;
-//							user_max = layer_ptr;
-//							// for all layers assign their GDS number
-//							for (i=0; i<count; i++)
-//							{
-//								if (*layer_numbers[i] != 0)
-//								{
-//									// search for this layer
-//									for (j=0; j<user_max; j++)
-//									{
-//										if (!namesame(nametbl[j].replace, layers[i])) break;
-//									}
-//									if (user_max == j)
-//									{
-//										// add to the list
-//										io_edifgbl.nametbl[layer_ptr] = (NAMETABLE_PTR)
-//											emalloc(sizeof(NAMETABLE), io_tool->cluster);
-//										if (io_edifgbl.nametbl[layer_ptr] == NONAMETABLE) RET_NOMEMORY();
-//										if (allocstring(&io_edifgbl.nametbl[layer_ptr]->replace, layers[i],
-//											io_tool->cluster)) RET_NOMEMORY();
-//										esnprintf(orig, WORD+1, x_("layer_%s"), layer_numbers[i]);
-//										if (allocstring(&io_edifgbl.nametbl[layer_ptr]->original,
-//											orig, io_tool->cluster)) RET_NOMEMORY();
-//										io_edifgbl.nametbl[layer_ptr]->textheight = 0;
-//										io_edifgbl.nametbl[layer_ptr]->justification = LOWERLEFT;
-//										layer_ptr++;
-//									}
-//								}
-//							}
-//						}
-//					}
-//	
-//					// sort the layer list
-//					esort(io_edifgbl.nametbl, layer_ptr, sizeof(NAMETABLE_PTR),
-//						io_edcompare_name);
-//	
-//					// now look for nodes to map MASK layers to
-//					for (eindex = 0; eindex < layer_ptr; eindex++)
-//					{
-//						esnprintf(nodename, WORD+1, x_("%s-node"), io_edifgbl.nametbl[eindex]->replace);
-//						for (np = io_edifgbl.technology->firstnodeproto; np != NONODEPROTO;
-//							np = np->nextnodeproto)
-//						{
-//							if (!namesame(nodename, np->protoname)) break;
-//						}
-//						if (np == NONODEPROTO)
-//						{
-//							np = art_boxprim;
-//						}
-//						for (ap = technology->firstarcproto; ap != NOARCPROTO;
-//							ap = ap->nextarcproto)
-//						{
-//							if (!namesame(ap->protoname, io_edifgbl.nametbl[eindex]->replace))
-//								break;
-//						}
-//						io_edifgbl.nametbl[eindex]->node = np;
-//						io_edifgbl.nametbl[eindex]->arc = ap;
-//					}
-//					break;
-//				case KINTERFACE:
-//					if (active_view == VNETLIST)
-//					{
-//						// create a black-box symbol at the current scale
-//						np = current_cell;
-//						(void)esnprintf(nodename, WORD+1, x_("%s{ic}"), np->protoname);
-//						nnp = io_edmakeiconcell(np->firstportproto, np->protoname,
-//							nodename, library);
-//						if (nnp == NONODEPROTO)
-//						{
-//							ttyputerr(_("error, line #%d: could not create icon <%s>"),
-//								io_edifgbl.lineno, nodename);
-//							errors++;
-//						} else
-//						{
-//							// now compute the bounds of this cell
-//							db_boundcell(nnp, &nnp->lowx, &nnp->highx, &nnp->lowy, &nnp->highy);
-//						}
-//					}
-//					break;
-//				case KVIEW:
-//	
-//					if (vendor == EVVIEWLOGIC && active_view != VNETLIST)
-//					{
-//						// fixup incorrect bus nets
-//						for (ai = current_cell->firstarcinst; ai != NOARCINST;
-//							ai = ai->nextarcinst)
-//						{
-//							ai->temp1 = ai->temp2 = 0;
-//						}
-//	
-//						// now scan for BUS nets, and verify all wires connected to bus
-//						for (ai = current_cell->firstarcinst; ai != NOARCINST;
-//							ai = ai->nextarcinst)
-//						{
-//							if (ai->temp1 == 0 && ai->proto == sch_busarc)
-//							{
-//								// get name of arc
-//								var = getvalkey((INTBIG)ai, VARCINST, VSTRING, el_arc_name_key);
-//								if (var != NOVARIABLE && ((aName = (CHAR *)var->addr) != NULL))
-//								{
-//									// create the basename
-//									(void)estrcpy(basename, aName);
-//									aName = estrrchr(basename, '[');
-//									if (aName != NULL) *aName = 0;
-//	
-//									// expand this arc, and locate non-bracketed names
-//									io_edcheck_busnames(ai, basename);
-//								}
-//							}
-//						}
-//					}
-//	
-//					ports = null;
-//					break;
-//				case KPORT:
-//					if (io_edallocport()) return(1);
-//					eport = ports;
-//					np = current_cell;
-//					switch (eport->direction)
-//					{
-//						case INPUTE:
-//							cx = 0;
-//							cy = ipos;
-//							ipos += INCH;
-//							fpp = default_input;
-//							break;
-//						case INOUT:
-//							cx = 3*INCH;
-//							cy = bpos;
-//							bpos += INCH;
-//							fpp = default_input;
-//							break;
-//						case OUTPUTE:
-//							cx = 6*INCH;
-//							cy = opos;
-//							opos += INCH;
-//							fpp = default_output;
-//							break;
-//					}
-//	
-//					// now create the off-page reference
-//					defaultnodesize(sch_offpageprim, &psx, &psy);
-//					ni = newnodeinst(sch_offpageprim,
-//						cx + (sch_offpageprim->lowx+sch_offpageprim->highx-psx)/2,
-//						cx + (sch_offpageprim->lowx+sch_offpageprim->highx+psx)/2,
-//						cy + (sch_offpageprim->lowy+sch_offpageprim->highy-psy)/2,
-//						cy + (sch_offpageprim->lowy+sch_offpageprim->highy+psy)/2, 0,0, np);
-//					if (ni == NONODEINST)
-//					{
-//						ttyputerr(_("error, line #%d: could not create external port"),
-//							io_edifgbl.lineno);
-//						errors++;
-//						break;
-//					}
-//	
-//					// now create the port
-//					ppt = newportproto(ni->parent, ni, fpp, eport->name);
-//					if (ppt == NOPORTPROTO)
-//					{
-//						ttyputerr(_("error, line #%d: could not create port <%s>"),
-//							io_edifgbl.lineno, eport->name);
-//						errors++;
-//					} else
-//					{
-//						switch (eport->direction)
-//						{
-//							case INPUTE:
-//								ppt->userbits = (ppt->userbits & ~STATEBITS) | INPORT;
-//								break;
-//							case OUTPUTE:
-//								ppt->userbits = (ppt->userbits & ~STATEBITS) | OUTPORT;
-//								break;
-//							case INOUT:
-//								ppt->userbits = (ppt->userbits & ~STATEBITS) | BIDIRPORT;
-//								break;
-//						}
-//					}
-//					port_reference = "";
-//	
-//					// move the property list to the free list
-//					for (property = properties; property != NOEDPROPERTY; property = nproperty)
-//					{
-//						key = makekey(property->name);
-//						switch (property->type)
-//						{
-//							case PINTEGER:
-//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, (INTBIG)property->val.integer,
-//									VINTEGER);
-//								break;
-//							case PNUMBER:
-//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, castint(property->val.number),
-//									VFLOAT);
-//								break;
-//							case PSTRING:
-//								var = setvalkey((INTBIG)ppt, VPORTPROTO, key, (INTBIG)property->val.string,
-//									VSTRING);
-//								break;
-//							default:
-//								break;
-//						}
-//						nproperty = property->next;
-//					}
-//					properties = null;
-//					break;
-//				case KINSTANCE:
-//					if (active_view == VNETLIST)
-//					{
-//						for (Ix = 0; Ix < arrayx; Ix++)
-//						{
-//							for (Iy = 0; Iy < arrayy; Iy++)
-//							{
-//								// create this instance in the current sheet
-//								width = cellRefProto->highx - cellRefProto->lowx;
-//								height = cellRefProto->highy - cellRefProto->lowy;
-//								width = (width + INCH - 1) / INCH;
-//								height = (height + INCH - 1) / INCH;
-//	
-//								// verify room for the icon
-//								if (sh_xpos != -1)
-//								{
-//									if ((sh_ypos + (height + 1)) >= SHEETHEIGHT)
-//									{
-//										sh_ypos = 1;
-//										if ((sh_xpos += sh_offset) >= SHEETWIDTH)
-//												sh_xpos = sh_ypos = -1; else
-//													sh_offset = 2;
-//									}
-//								}
-//								if (sh_xpos == -1)
-//								{
-//									// create the new page
-//									String nodename = cell_name + "{" + (++pageno) + "}";
-//									current_cell = np = us_newnodeproto(nodename, library);
-//									if (current_cell == NONODEPROTO) throw new IOException("Error creating cell");
-//									np->temp1 = 0;
-//									sh_xpos = sh_ypos = 1;
-//									sh_offset = 2;
-//								}
-//	
-//								// create this instance
-//								// find out where true center moves
-//								cx = ((cellRefProto->lowx+cellRefProto->highx) >> 1) +
-//									((sh_xpos - (SHEETWIDTH >> 1)) * INCH);
-//								cy = ((cellRefProto->lowy+cellRefProto->highy) >> 1) +
-//									((sh_ypos - (SHEETHEIGHT >> 1)) * INCH);
-//								current_node = ni = newnodeinst(cellRefProto,
-//									cellRefProto->lowx + cx,
-//									cellRefProto->highx + cx,
-//									cellRefProto->lowy + cy,
-//									cellRefProto->highy + cy,
-//									io_edgettrans(orientation),
-//									io_edgetrot(orientation),
-//									current_cell);
-//								if (ni == NONODEINST)
-//								{
-//									ttyputerr(_("error, line #%d: could not create instance"),
-//										io_edifgbl.lineno);
-//									errors++;
-//									break;
-//								} else
-//								{
-//									if (cellRefProto->userbits & WANTNEXPAND)
-//										ni->userbits |= NEXPAND;
-//	
-//									// update the current position
-//									if ((width + 2) > sh_offset)
-//										sh_offset = width + 2;
-//									if ((sh_ypos += (height + 1)) >= SHEETHEIGHT)
-//									{
-//										sh_ypos = 1;
-//										if ((sh_xpos += sh_offset) >= SHEETWIDTH)
-//											sh_xpos = sh_ypos = -1; else
-//												sh_offset = 2;
-//									}
-//	
-//									// name the instance
-//									if (instance_reference.length() > 0)
-//									{
-//										// if single element or array with no offset
-//										// construct the representative extended EDIF name (includes [...])
-//										if ((arrayx == 1 && arrayy == 1) ||
-//											(deltaxX == 0 && deltaxY == 0 &&
-//											deltayX == 0 && deltayY == 0))
-//												nodename = instance_reference;
-//											// if array in the x dimension
-//										else if (arrayx > 1)
-//										{
-//											if (arrayy > 1)
-//												nodename = instance_refrence + "[" + Ix + "," + Iy + "]";
-//											else
-//												nodename = instance_reference + "[" + Ix + "]";
-//										}
-//										// if array in the y dimension
-//										else if (arrayy > 1)
-//											nodename = instance_reference + "[" + Iy + "]";
-//	
-//										// check for array element descriptor
-//										if (arrayx > 1 || arrayy > 1)
-//										{
-//											// array descriptor is of the form index:index:range index:index:range
-//											(void)esnprintf(basename, WORD+1, x_("%ld:%ld:%d %ld:%ld:%d"), Ix,
-//												(deltaxX == 0 && deltayX == 0) ?
-//												arrayx-1:Ix, arrayx, Iy,
-//												(deltaxY == 0 && deltayY == 0) ?
-//												arrayy-1:Iy, arrayy);
-//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_array_key, (INTBIG)basename,
-//												VSTRING);
-//	
-//										}
-//	
-//										/* now set the name of the component (note that Electric allows any string
-//										 * of characters as a name, this name is open to the user, for ECO and other
-//										 * consistancies, the EDIF_name is saved on a variable)
-//										 */
-//										if (!namesame(instance_reference, instance_name))
-//										{
-//											var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//												(INTBIG)nodename, VSTRING|VDISPLAY);
-//											if (var != NOVARIABLE)
-//												defaulttextsize(3, var->textdescript);
-//										} else
-//										{
-//											// now add the original name as the displayed name (only to the first element)
-//											if (Ix == 0 && Iy == 0)
-//											{
-//												var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//													(INTBIG)instance_name, VSTRING|VDISPLAY);
-//												if (var != NOVARIABLE)
-//													defaulttextsize(3, var->textdescript);
-//											}
-//											// now save the EDIF name (not displayed)
-//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_name_key,
-//												(INTBIG)nodename, VSTRING);
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//	
-//					// move the property list to the free list
-//					for (property = properties; property != NOEDPROPERTY; property = nproperty)
-//					{
-//						if (current_node != null)
-//						{
-//							key = makekey(property->name);
-//							switch (property->type)
-//							{
-//								case PINTEGER:
-//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
-//										(INTBIG)property->val.integer, VINTEGER);
-//									break;
-//								case PNUMBER:
-//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
-//										castint(property->val.number), VFLOAT);
-//									break;
-//								case PSTRING:
-//									var = setvalkey((INTBIG)current_node, VNODEINST, key,
-//										(INTBIG)property->val.string, VSTRING);
-//									break;
-//								default:
-//									break;
-//							}
-//						}
-//						nproperty = property->next;
-//					}
-//					properties = null;
-//					instance_reference = "";
-//					current_node = null;
-//					io_edfreesavedptlist();
-//					break;
-//				case KNET:
-//					// move the property list to the free list
-//					for (property = properties; property != NOEDPROPERTY; property = nproperty)
-//					{
-//						if (current_arc != null)
-//						{
-//							key = makekey(property->name);
-//							switch (property->type)
-//							{
-//								case PINTEGER:
-//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
-//										(INTBIG)property->val.integer, VINTEGER);
-//									break;
-//								case PNUMBER:
-//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
-//										castint(property->val.number), VFLOAT);
-//									break;
-//								case PSTRING:
-//									var = setvalkey((INTBIG)current_arc, VARCINST, key,
-//										(INTBIG)property->val.string, VSTRING);
-//									break;
-//								default:
-//									break;
-//							}
-//						}
-//						nproperty = property->next;
-//					}
-//					properties = null;
-//					net_reference = "";
-//					current_arc = null;
-//					if (geometry != GBUS) geometry = GUNKNOWN;
-//					io_edfreesavedptlist();
-//					break;
-//				case KNETBUNDLE:
-//					bundle_reference = "";
-//					current_arc = null;
-//					geometry = GUNKNOWN;
-//					io_edfreesavedptlist();
-//					break;
-//				case KPROPERTY:
-//					if (active_view == VNETLIST || active_view == VSCHEMATIC)
-//					{
-//						// add as a variable to the current object
-//						i = 0;
-//						switch (kstack[kstack_ptr - 1])
-//						{
-//							case KINTERFACE:
-//								// add to the {sch} view nodeproto
-//								for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//								{
-//									if (!namesame(np->protoname, cell_name) &&
-//										!namesame(np->cellview->sviewname, x_("sch"))) break;
-//								}
-//								if (np == NONODEPROTO)
-//								{
-//									// allocate the cell
-//									String nodename = cell_name + "{sch}";
-//									np = us_newnodeproto(nodename, library);
-//									if (np == NONODEPROTO) throw new IOException("Error creating cell");
-//									np->temp1 = 0;
-//								}
-//								i = (INTBIG) np;
-//								j = VNODEPROTO;
-//								break;
-//							case KINSTANCE:
-//							case KNET:
-//							case KPORT:
-//								i = -1;
-//								break;
-//							default:
-//								i = 0;
-//								break;
-//						}
-//						if (i > 0)
-//						{
-//							key = makekey(property_reference);
-//							switch (ptype)
-//							{
-//								case PINTEGER:
-//									var = setvalkey(i, j, key, (INTBIG)pval_integer, VINTEGER);
-//									break;
-//								case PNUMBER:
-//									var = setvalkey(i, j, key, castint(pval_number), VFLOAT);
-//									break;
-//								case PSTRING:
-//									var = setvalkey(i, j, key, (INTBIG)pval_string, VSTRING);
-//									break;
-//								default:
-//									break;
-//							}
-//						} else if (i == -1)
-//						{
-//							// add to the current property list, will be added latter
-//							switch (ptype)
-//							{
-//								case PINTEGER:
-//									(void)io_edallocproperty(property_reference, ptype,
-//										(INTBIG)pval_integer, 0.0, NULL);
-//									break;
-//								case PNUMBER:
-//									(void)io_edallocproperty(property_reference, ptype,
-//										0, pval_number, NULL);
-//									break;
-//								case PSTRING:
-//									(void)io_edallocproperty(property_reference, ptype,
-//										0, 0.0, pval_string);
-//									break;
-//								default:
-//									break;
-//							}
-//						}
-//					}
-//					property_reference = "";
-//					io_edfreesavedptlist();
-//					break;
-//				case KPORTIMPLEMENTATION:
-//					geometry = GUNKNOWN;
-//					break;
-//				case KTRANSFORM:
-//					if (kstack_ptr <= 1 || kstack[kstack_ptr-1] != KINSTANCE)
-//					{
-//						io_edfreeptlist();
-//						break;
-//					}
-//	
-//					// get the corner offset
-//					instcount = points.size();
-//					if (instcount > 0)
-//					{
-//						instptx = points->x;
-//						instpty = points->y;
-//					}
-//	
-//					// if no points are specified, presume the origin
-//					if (instcount == 0)
-//					{
-//						instptx = instpty = 0;
-//						instcount = 1;
-//					}
-//	
-//					// create node instance rotations about the origin not center
-//					makeangle(io_edgetrot(orientation), io_edgettrans(orientation), rot);
-//	
-//					if (instcount == 1 && cellRefProto != null)
-//					{
-//						for (Ix = 0; Ix < arrayx; Ix++)
-//						{
-//							lx = instptx + Ix * deltaxX;
-//							ly = instpty + Ix * deltaxY;
-//							for (Iy = 0; Iy < arrayy; Iy++)
-//							{
-//								// find out where true center moves
-//								cx = (cellRefProto->lowx+cellRefProto->highx)/2;
-//								cy = (cellRefProto->lowy+cellRefProto->highy)/2;
-//								xform(cx, cy, &gx, &gy, rot);
-//	
-//								// now calculate the delta movement of the center
-//								cx = gx - cx;
-//								cy = gy - cy;
-//								current_node = ni = newnodeinst(cellRefProto,
-//									lx + cellRefProto->lowx + cx,
-//									lx + cellRefProto->highx + cx,
-//									ly + cellRefProto->lowy + cy,
-//									ly + cellRefProto->highy + cy,
-//									io_edgettrans(orientation),
-//									io_edgetrot(orientation),
-//									current_cell);
-//								if (ni == NONODEINST)
-//								{
-//									ttyputerr(_("error, line #%d: could not create instance"),
-//										io_edifgbl.lineno);
-//									errors++;
-//	
-//									// and exit for loop
-//									Ix = arrayx;
-//									Iy = arrayy;
-//								} else
-//								{
-//									if (cellRefProto->userbits & WANTNEXPAND)
-//										ni->userbits |= NEXPAND;
-//								}
-//								if (geometry == GPIN && lx == 0 && ly == 0)
-//								{
-//									// determine an appropriate port name
-//									portname = port_name;
-//	
-//									// check if port already exists (will occur for multiple portImplementation statements
-//									for (dup = 0, (void)estrcpy(basename, portname);
-//										(ppt = getportproto(ni->parent, portname)) != NOPORTPROTO;
-//										dup++)
-//									{
-//										if (dup == 0) pp = ppt;
-//										(void)esnprintf(portname, WORD+1, x_("%s_%ld"), basename, dup+1);
-//									}
-//	
-//									// only once
-//									Ix = arrayx;
-//									Iy = arrayy;
-//									ppt = newportproto(ni->parent, ni, default_iconport, portname);
-//									if (ppt == NOPORTPROTO)
-//									{
-//										ttyputerr(_("error, line #%d: could not create port <%s>"),
-//											io_edifgbl.lineno, portname);
-//										errors++;
-//									} else
-//									{
-//										// locate the direction of the port
-//										for (eport = ports; eport != NOEDPORT; eport = eport->next)
-//										{
-//											if (!namesame(eport->reference, port_reference))
-//											{
-//												// set the direction
-//												switch (eport->direction)
-//												{
-//													case INPUTE:
-//														ppt->userbits = (ppt->userbits & ~STATEBITS) | INPORT;
-//														break;
-//													case OUTPUTE:
-//														ppt->userbits = (ppt->userbits & ~STATEBITS) | OUTPORT;
-//														break;
-//													case INOUT:
-//														ppt->userbits = (ppt->userbits & ~STATEBITS) | BIDIRPORT;
-//														break;
-//												}
-//												break;
-//											}
-//										}
-//									}
-//								} else
-//								{
-//									// name the instance
-//									if (instance_reference.length() > 0)
-//									{
-//										// if single element or array with no offset
-//										// construct the representative extended EDIF name (includes [...])
-//										if ((arrayx == 1 && arrayy == 1) ||
-//											(deltaxX == 0 && deltaxY == 0 &&
-//											deltayX == 0 && deltayY == 0))
-//											nodename = instance_reference;
-//											// if array in the x dimension
-//										else if (arrayx > 1)
-//										{
-//											if (arrayy > 1)
-//												nodename = instance_reference + "[" + Ix + "," + Iy + "]";
-//											else
-//												nodename = instance_reference + "[" + Ix + "]";
-//										}
-//										// if array in the y dimension
-//										else if (arrayy > 1)
-//											nodename = instance_reference + "[" + Iy + "]";
-//	
-//										// check for array element descriptor
-//										if (arrayx > 1 || arrayy > 1)
-//										{
-//											// array descriptor is of the form index:index:range index:index:range
-//											(void)esnprintf(basename, WORD+1, x_("%ld:%ld:%d %ld:%ld:%d"),
-//												Ix, (deltaxX == 0 && deltayX == 0) ? arrayx-1:Ix,
-//												arrayx, Iy,
-//												(deltaxY == 0 && deltayY == 0) ? arrayy-1:Iy,
-//												arrayy);
-//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_array_key, (INTBIG)basename,
-//												VSTRING);
-//										}
-//	
-//										/* now set the name of the component (note that Electric allows any string
-//				   						 * of characters as a name, this name is open to the user, for ECO and other
-//										 * consistancies, the EDIF_name is saved on a variable)
-//										 */
-//										if (!namesame(instance_reference, instance_name))
-//										{
-//											var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//												(INTBIG)nodename, VSTRING|VDISPLAY);
-//											if (var != NOVARIABLE)
-//												defaulttextsize(3, var->textdescript);
-//										} else
-//										{
-//											// now add the original name as the displayed name (only to the first element)
-//											if (Ix == 0 && Iy == 0)
-//											{
-//												var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//													(INTBIG)instance_name, VSTRING|VDISPLAY);
-//												if (var != NOVARIABLE)
-//													defaulttextsize(3, var->textdescript);
-//											}
-//	
-//											// now save the EDIF name (not displayed)
-//											var = setvalkey((INTBIG)ni, VNODEINST, EDIF_name_key,
-//												(INTBIG)nodename, VSTRING);
-//										}
-//	
-//										// now check for saved name attributes
-//										if (save_points.size() != 0)
-//										{
-//											// now set the position, relative to the center of the current object
-//											xoff = save_points->x - ((ni->highx+ni->lowx)>>1);
-//											yoff = save_points->y - ((ni->highy+ni->lowy)>>1);
-//	
-//											// convert to quarter lambda units
-//											xoff = 4*xoff / lambda;
-//											yoff = 4*yoff / lambda;
-//	
-//											/*
-//											 * determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in
-//											 * fonts range from 4 to 20 points
-//											 */
-//											if (save_textheight == 0) i = TXTSETQLAMBDA(4); else
-//											{
-//												i = io_ediftextsize(save_textheight);
-//											}
-//											TDCOPY(descript, var->textdescript);
-//											TDSETOFF(descript, xoff, yoff);
-//											TDSETSIZE(descript, i);
-//											TDSETPOS(descript, VTPOSCENT);
-//											switch (save_justification)
-//											{
-//												case UPPERLEFT:
-//													TDSETPOS(descript, VTPOSUPRIGHT);
-//													break;
-//												case UPPERCENTER:
-//													TDSETPOS(descript, VTPOSUP);
-//													break;
-//												case UPPERRIGHT:
-//													TDSETPOS(descript, VTPOSUPLEFT);
-//													break;
-//												case CENTERLEFT:
-//													TDSETPOS(descript, VTPOSRIGHT);
-//													break;
-//												case CENTERCENTER:
-//													TDSETPOS(descript, VTPOSCENT);
-//													break;
-//												case CENTERRIGHT:
-//													TDSETPOS(descript, VTPOSLEFT);
-//													break;
-//												case LOWERLEFT:
-//													TDSETPOS(descript, VTPOSDOWNRIGHT);
-//													break;
-//												case LOWERCENTER:
-//													TDSETPOS(descript, VTPOSDOWN);
-//													break;
-//												case LOWERRIGHT:
-//													TDSETPOS(descript, VTPOSDOWNLEFT);
-//													break;
-//											}
-//											TDCOPY(var->textdescript, descript);
-//										}
-//									}
-//								}
-//								if (deltayX == 0 && deltayY == 0) break;
-//	
-//								// bump the y delta and x deltas
-//								lx += deltayX;
-//								ly += deltayY;
-//							}
-//							if (deltaxX == 0 && deltaxY == 0) break;
-//						}
-//					}
-//					io_edfreeptlist();
-//					break;
-//				case KPORTREF:
-//					// check for the last pin
-//					fni = current_node;
-//					fpp = current_port;
-//					if (port_reference.length() > 0)
-//					{
-//						// For internal pins of an instance, determine the base port location and other pin assignments
-//						if (instance_reference.length() > 0)
-//						{
-//							nodename = instance_reference;
-//	
-//							// locate the node and and port
-//							if (active_view == VNETLIST)
-//							{
-//								// scan all pages for this nodeinst
-//								ni = NONODEINST;
-//								for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//								{
-//									if (namesame(np->protoname, cell_name) != 0) continue;
-//									for (ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//									{
-//										if ((var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_name_key)) == NOVARIABLE &&
-//											(var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key)) == NOVARIABLE)
-//												continue;
-//										if (!namesame((CHAR *)var->addr, nodename)) break;
-//									}
-//									if (ni != NONODEINST) break;
-//								}
-//								if (ni == NONODEINST)
-//								{
-//									(void)ttyputmsg(_("error, line #%d: could not locate netlist node (%s)"),
-//										io_edifgbl.lineno, nodename);
-//									break;
-//								}
-//								ap = gen_unroutedarc;
-//							} else
-//							{
-//								// net always references the current page
-//								for (ni = current_cell->firstnodeinst; ni != NONODEINST;
-//									ni = ni->nextnodeinst)
-//								{
-//									if ((var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_name_key)) == NOVARIABLE &&
-//										(var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key)) == NOVARIABLE)
-//											continue;
-//									if (!namesame((CHAR *)var->addr, nodename)) break;
-//								}
-//								if (ni == NONODEINST)
-//								{
-//									(void)ttyputmsg(_("error, line #%d: could not locate schematic node '%s' in cell %s"),
-//										io_edifgbl.lineno, nodename, describenodeproto(current_cell));
-//									break;
-//								}
-//								if (!isarray) ap = sch_wirearc; else
-//									ap = sch_busarc;
-//							}
-//	
-//							// locate the port for this portref
-//							pp = getportproto(ni->proto, port_reference);
-//							if (pp == NOPORTPROTO)
-//							{
-//								(void)ttyputmsg(_("error, line #%d: could not locate port (%s) on node (%s)"),
-//									io_edifgbl.lineno, port_reference, nodename);
-//								break;
-//							}
-//	
-//							// we have both, set global variable
-//							current_node = ni;
-//							current_port = pp;
-//							np = ni->parent;
-//	
-//							// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
-//							if (active_view == VNETLIST)
-//							{
-//								// route all pins with an extension
-//								if (ni != NONODEINST)
-//								{
-//									portposition(ni, pp, &hx, &hy);
-//									lx = hx;
-//									ly = hy;
-//									switch (pp->userbits&STATEBITS)
-//									{
-//										case INPORT:
-//											lx = hx - (INCH/10);
-//											break;
-//										case BIDIRPORT:
-//											ly = hy - (INCH/10);
-//											break;
-//										case OUTPORT:
-//											lx = hx + (INCH/10);
-//											break;
-//									}
-//	
-//									// need to create a destination for the wire
-//									if (isarray)
-//									{
-//										lni = io_edifiplacepin(sch_buspinprim, lx + sch_buspinprim->lowx,
-//											lx + sch_buspinprim->highx, ly + sch_buspinprim->lowy,
-//											ly + sch_buspinprim->highy, 0, 0, np);
-//										if (lni == NONODEINST)
-//										{
-//											ttyputmsg(_("error, line#%d: could not create bus pin"),
-//												io_edifgbl.lineno);
-//											break;
-//										}
-//										lpp = default_busport;
-//										lap = sch_busarc;
-//									} else
-//									{
-//										lni = io_edifiplacepin(sch_wirepinprim, lx + sch_wirepinprim->lowx,
-//											lx + sch_wirepinprim->highx, ly + sch_wirepinprim->lowy,
-//											ly + sch_wirepinprim->highy, 0, 0, np);
-//										if (lni == NONODEINST)
-//										{
-//											ttyputmsg(_("error, line#%d: could not create wire pin"),
-//												io_edifgbl.lineno);
-//											break;
-//										}
-//										lpp = default_port;
-//										lap = sch_wirearc;
-//									}
-//									current_arc = newarcinst(lap, defaultarcwidth(lap), CANTSLIDE,
-//										lni, lpp, lx, ly, ni, pp, hx, hy, np);
-//									if (current_arc == NOARCINST)
-//										ttyputmsg(_("error, line #%d: could not create auto-path"),
-//											io_edifgbl.lineno);
-//									else
-//										io_ednamearc(current_arc);
-//								}
-//							}
-//						} else
-//						{
-//							// external port reference, look for a off-page reference in {sch} with this port name
-//							for (np = library->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//							{
-//								if (namesame(np->protoname, cell_name) != 0) continue;
-//								if (np->cellview == el_schematicview) break;
-//							}
-//							if (np == NONODEPROTO)
-//							{
-//								ttyputmsg(_("error, line #%d: could not locate top level schematic"),
-//									io_edifgbl.lineno);
-//								break;
-//							}
-//	
-//							// now look for an instance with the correct port name
-//							pp = getportproto(np, port_reference);
-//							if (pp == NOPORTPROTO)
-//							{
-//								if (original.length() > 0)
-//									pp = getportproto(np, original);
-//								if (pp == NOPORTPROTO)
-//								{
-//									ttyputmsg(_("error, line #%d: could not locate port '%s'"), io_edifgbl.lineno,
-//										port_reference);
-//									break;
-//								}
-//							}
-//							fni = pp->subnodeinst;
-//							fpp = pp->subportproto;
-//							portposition(fni, fpp, &lx, &ly);
-//	
-//							// determine x position by original placement
-//							switch (pp->userbits&STATEBITS)
-//							{
-//								case INPORT:
-//									lx = 1*INCH;
-//									break;
-//								case BIDIRPORT:
-//									lx = 4*INCH;
-//									break;
-//								case OUTPORT:
-//									lx = 5*INCH;
-//									break;
-//							}
-//	
-//							// need to create a destination for the wire
-//							if (isarray)
-//							{
-//								ni = io_edifiplacepin(sch_buspinprim, lx + sch_buspinprim->lowx,
-//									lx + sch_buspinprim->highx, ly + sch_buspinprim->lowy,
-//									ly + sch_buspinprim->highy, 0, 0, np);
-//								if (ni == NONODEINST)
-//								{
-//									ttyputmsg(_("error, line#%d: could not create bus pin"),
-//										io_edifgbl.lineno);
-//									break;
-//								}
-//								pp = default_busport;
-//							} else
-//							{
-//								ni = io_edifiplacepin(sch_wirepinprim, lx + sch_wirepinprim->lowx,
-//									lx + sch_wirepinprim->highx, ly + sch_wirepinprim->lowy,
-//									ly + sch_wirepinprim->highy, 0, 0, np);
-//								if (ni == NONODEINST)
-//								{
-//									ttyputmsg(_("error, line#%d: could not create wire pin"),
-//										io_edifgbl.lineno);
-//									break;
-//								}
-//								pp = default_port;
-//							}
-//							if (!isarray) ap = sch_wirearc; else
-//								ap = sch_busarc;
-//						}
-//	
-//						// now connect if we have from node and port
-//						if (fni != NONODEINST && fpp != NOPORTPROTO)
-//						{
-//							if (fni->parent != ni->parent)
-//							{
-//								ttyputmsg(_("error, line #%d: could not create path (arc) between cells %s and %s"),
-//									io_edifgbl.lineno, describenodeproto(fni->parent), describenodeproto(ni->parent));
-//							} else
-//							{
-//								// locate the position of the new ports
-//								portposition(fni, fpp, &lx, &ly);
-//								portposition(ni, pp, &hx, &hy);
-//	
-//								// for nets with no physical representation ...
-//								current_arc = null;
-//								if (lx == hx && ly == hy) dist = 0; else
-//									dist = computedistance(lx, ly, hx, hy);
-//								if (dist <= lambda*SLOPDISTANCE)
-//								{
-//									current_arc = newarcinst(ap, defaultarcwidth(ap),
-//										FIXANG|CANTSLIDE, fni, fpp, lx, ly, ni, pp, hx, hy, np);
-//									if (current_arc == null)
-//									{
-//										ttyputmsg(_("error, line #%d: could not create path (arc)"),
-//											io_edifgbl.lineno);
-//									}
-//								}
-//								// use unrouted connection for NETLIST views
-//								else if (active_view == VNETLIST)
-//								{
-//									current_arc = newarcinst(ap, defaultarcwidth(ap),
-//										CANTSLIDE, fni, fpp, lx, ly, ni, pp, hx, hy, np);
-//									if (current_arc == null)
-//									{
-//										ttyputmsg(_("error, line #%d: could not create auto-path"),
-//											io_edifgbl.lineno);
-//									}
-//								}
-//	
-//								// add the net name
-//								if (current_arc != null)
-//									io_ednamearc(current_arc);
-//							}
-//						}
-//					}
-//					break;
-//				case KINSTANCEREF:
-//					break;
-//				case KPATH:
-//					// check for openShape type path
-//					if (path_width == 0 &&
-//						geometry != GNET && geometry != GBUS) goto dopoly;
-//					fcnt = 0;
-//					if (geometry == GBUS || isarray) np = sch_buspinprim;
-//					else np = sch_wirepinprim;
-//					if (points.size() == 0) break;
-//					for (point = points; point->nextpt != NOEPT; point = point->nextpt)
-//					{
-//						if (geometry == GNET || geometry == GBUS)
-//						{
-//							// create a pin to pin connection
-//							if (fcnt == 0)
-//							{
-//								// look for the first pin
-//								fcnt = io_edfindport(current_cell, point->x,
-//									point->y, sch_wirearc, fnis, fpps);
-//								if (fcnt == 0)
-//								{
-//									// create the "from" pin
-//									fnis[0] = io_edifiplacepin(np, point->x + np->lowx, point->x + np->highx,
-//										point->y + np->lowy, point->y + np->highy,
-//										0, 0, current_cell);
-//									if (fnis[0] == NONODEINST) fcnt = 0; else
-//									{
-//										fpps[0] = (geometry == GBUS || isarray) ?
-//											default_busport : default_port;
-//										fcnt = 1;
-//									}
-//								}
-//							}
-//							// now the second ...
-//							tcnt = io_edfindport(current_cell, point->nextpt->x,
-//								point->nextpt->y, sch_wirearc, tnis, tpps);
-//							if (tcnt == 0)
-//							{
-//								// create the "to" pin
-//								tnis[0] = io_edifiplacepin(np, point->nextpt->x + np->lowx,
-//									point->nextpt->x + np->highx,
-//									point->nextpt->y + np->lowy,
-//									point->nextpt->y + np->highy,
-//									0, 0, current_cell);
-//								if (tnis[0] == NONODEINST) tcnt = 0; else
-//								{
-//									tpps[0] = (geometry == GBUS || isarray) ?
-//										default_busport : default_port;
-//									tcnt = 1;
-//								}
-//							}
-//	
-//							if (tcnt == 0 || fcnt == 0)
-//							{
-//								ttyputerr(_("error, line #%d: could not create path"), io_edifgbl.lineno);
-//								errors++;
-//							} else
-//							{
-//								// connect it
-//								for (count = 0; count < fcnt || count < tcnt; count++)
-//								{
-//									if (count < fcnt)
-//									{
-//										lastpin = fnis[count];
-//										lastport = fpps[count];
-//	
-//										// check node for array variable
-//										var = getvalkey((INTBIG)lastpin, VNODEINST, VSTRING, EDIF_array_key);
-//										if (var != NOVARIABLE) fbus = 1; else
-//											if (lastport->protoname[estrlen(lastport->protoname)-1] == ']') fbus = 1; else
-//												fbus = 0;
-//									}
-//									if (count < tcnt)
-//									{
-//										ni = tnis[count];
-//										pp = tpps[count];
-//	
-//										// check node for array variable
-//										var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, EDIF_array_key);
-//										if (var != NOVARIABLE) tbus = 1; else
-//											if (pp->protoname[estrlen(pp->protoname)-1] == ']') tbus = 1; else
-//												tbus = 0;
-//									}
-//	
-//									// if bus to bus
-//									if ((lastport == default_busport || fbus) &&
-//										(pp == default_busport || tbus)) ap = sch_busarc;
-//											// wire to other
-//									else ap = sch_wirearc;
-//	
-//									ai = newarcinst(ap, defaultarcwidth(ap), FIXANG|CANTSLIDE,
-//										lastpin, lastport, point->x, point->y,
-//										ni, pp, point->nextpt->x, point->nextpt->y,
-//										current_cell);
-//									if (ai == NOARCINST)
-//									{
-//										ttyputerr(_("error, line #%d: could not create path (arc)"),
-//											io_edifgbl.lineno);
-//										errors++;
-//									} else if (geometry == GNET && points == point)
-//									{
-//										if (net_reference.length() > 0)
-//										{
-//											var = setvalkey((INTBIG)ai, VARCINST, EDIF_name_key,
-//												(INTBIG)net_reference, VSTRING);
-//										}
-//										if (net_name.length() > 0)
-//										{
-//											// set name of arc but don't display name
-//											var = setvalkey((INTBIG)ai, VARCINST, el_arc_name_key,
-//												(INTBIG)net_name, VSTRING);
-//											if (var != NOVARIABLE)
-//												defaulttextsize(4, var->textdescript);
-//										}
-//									} else if (geometry == GBUS && points == point)
-//									{
-//										if (bundle_reference.length() > 0)
-//										{
-//											var = setvalkey((INTBIG)ai, VARCINST, EDIF_name_key,
-//												(INTBIG)bundle_reference, VSTRING);
-//										}
-//										if (bundle_name.length() > 0)
-//										{
-//											// set bus' EDIF name but don't display name
-//											var = setvalkey((INTBIG)ai, VARCINST, el_arc_name_key,
-//												(INTBIG)bundle_name, VSTRING);
-//											if (var != NOVARIABLE)
-//												defaulttextsize(4, var->textdescript);
-//										}
-//									}
-//								}
-//								if (ai != NOARCINST) current_arc = ai;
-//								for (count = 0; count < tcnt; count++)
-//								{
-//									fnis[count] = tnis[count];
-//									fpps[count] = tpps[count];
-//								}
-//								fcnt = tcnt;
-//							}
-//						} else
-//						{
-//							// rectalinear paths with some width
-//							// create a path from here to there (orthogonal only now)
-//							lx = hx = point->x;
-//							ly = hy = point->y;
-//							if (lx > point->nextpt->x) lx = point->nextpt->x;
-//							if (hx < point->nextpt->x) hx = point->nextpt->x;
-//							if (ly > point->nextpt->y) ly = point->nextpt->y;
-//							if (hy < point->nextpt->y) hy = point->nextpt->y;
-//							if (ly == hy || extend_end)
-//							{
-//								ly -= path_width/2;
-//								hy += path_width/2;
-//							}
-//							if (lx == hx || extend_end)
-//							{
-//								lx -= path_width/2;
-//								hx += path_width/2;
-//							}
-//							ni = io_edifiplacepin(figure_group, lx, hx, ly, hy,
-//								io_edgettrans(orientation),
-//								io_edgetrot(orientation),
-//								current_cell);
-//							if (ni == NONODEINST)
-//							{
-//								ttyputerr(_("error, line #%d: could not create path"),
-//									io_edifgbl.lineno);
-//								errors++;
-//							}
-//						}
-//					}
-//					io_edfreeptlist();
-//					break;
-//				case KCIRCLE:
-//					if (points.size() == 2)
-//					{
-//						lx = mini(points->x, lastpt->x);
-//						hx = maxi(points->x, lastpt->x);
-//						ly = mini(points->y, lastpt->y);
-//						hy = maxi(points->y, lastpt->y);
-//						if (lx == hx)
-//						{
-//							lx -= (hy - ly)>>1;
-//							hx += (hy - ly)>>1;
-//						} else
-//						{
-//							ly -= (hx - lx)>>1;
-//							hy += (hx - lx)>>1;
-//						}
-//	
-//						// create the node instance
-//						ni = newnodeinst(art_circleprim, lx, hx, ly, hy,
-//							io_edgettrans(orientation),
-//							io_edgetrot(orientation),
-//							current_cell);
-//						if (ni == NONODEINST)
-//						{
-//							ttyputerr(_("error, line #%d: could not create circle"),
-//								io_edifgbl.lineno);
-//							errors++;
-//						}
-//					}
-//					io_edfreeptlist();
-//					break;
-//				case KNAME:
-//					// save the data and break
-//					io_edfreesavedptlist();
-//					save_string = string;
-//					string = "";
-//					save_points = points;
-//					points = new ArrayList();
-//					save_textheight = textheight;
-//					textheight = 0;
-//					save_justification = justification;
-//					justification = LOWERLEFT;
-//					save_orientation = orientation;
-//					orientation = OR0;
-//					save_visible = visible;
-//					visible = true;
-//					break;
-//				case KSTRINGDISPLAY:
-//					if (kstack_ptr <= 1)
-//					{
-//						ttyputerr(_("error, line #%d: bad location for \"stringDisplay\""),
-//							io_edifgbl.lineno);
-//						errors++;
-//					}
-//					else if (kstack[kstack_ptr-1] == KRENAME)
-//					{
-//						// save the data and break
-//						io_edfreesavedptlist();
-//						save_string = string;
-//						string = "";
-//						save_points = points;
-//						points = new ArrayList();
-//						save_textheight = textheight;
-//						textheight = 0;
-//						save_justification = justification;
-//						justification = LOWERLEFT;
-//						save_orientation = orientation;
-//						orientation = OR0;
-//						save_visible = visible;
-//						visible = true;
-//					}
-//	
-//					// output the data for annotate (display graphics) and string (on properties)
-//					else if (kstack[kstack_ptr-1] == KANNOTATE || kstack[kstack_ptr-1] == KSTRING)
-//					{
-//	#ifdef IGNORESTRINGSWITHSQUAREBRACKETS
-//						// supress this if it starts with "["
-//						if (!string.startsWith("[") && points.size() != 0)
-//	#endif
-//						{
-//							// see if a pre-existing node or arc exists to add text
-//							ai = NOARCINST;
-//							ni = NONODEINST;
-//							if (property_reference.length() > 0 && current_node != null)
-//							{
-//								ni = current_node;
-//								key = makekey(property_reference);
-//								xoff = points->x - ((ni->highx+ni->lowx)>>1);
-//								yoff = points->y - ((ni->highy+ni->lowy)>>1);
-//							}
-//							else if (property_reference.length() > 0 && current_arc != null)
-//							{
-//								ai = current_arc;
-//								key = makekey(property_reference);
-//								xoff = points->x - ((ai->end[0].xpos + ai->end[1].xpos)>>1);
-//								yoff = points->y - ((ai->end[0].ypos + ai->end[1].ypos)>>1);
-//							} else
-//							{
-//								// create the node instance
-//								xoff = yoff = 0;
-//								ni = newnodeinst(gen_invispinprim,
-//									points->x, points->x,
-//									points->y, points->y, 0, 0,
-//									current_cell);
-//								key = EDIF_annotate_key;
-//							}
-//							if (ni != NONODEINST || ai != NOARCINST)
-//							{
-//								if (ni != NONODEINST)
-//								{
-//									var = setvalkey((INTBIG)ni, VNODEINST, key, (INTBIG)string,
-//										(visible ? VSTRING|VDISPLAY : VSTRING));
-//	
-//									// now set the position, relative to the center of the current object
-//									xoff = points->x - ((ni->highx+ni->lowx)>>1);
-//									yoff = points->y - ((ni->highy+ni->lowy)>>1);
-//								} else
-//								{
-//									var = setvalkey((INTBIG)ai, VARCINST, key, (INTBIG)string,
-//										(visible ? VSTRING|VDISPLAY : VSTRING));
-//	
-//									// now set the position, relative to the center of the current object
-//									xoff = points->x - ((ai->end[0].xpos + ai->end[1].xpos)>>1);
-//									yoff = points->y - ((ai->end[0].ypos + ai->end[1].ypos)>>1);
-//								}
-//	
-//								// convert to quarter lambda units
-//								xoff = 4*xoff / lambda;
-//								yoff = 4*yoff / lambda;
-//	
-//								// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
-//								if (textheight == 0) i = TXTSETQLAMBDA(4); else
-//								{
-//									i = io_ediftextsize(textheight);
-//								}
-//								TDCOPY(descript, var->textdescript);
-//								TDSETSIZE(descript, i);
-//								TDSETOFF(descript, xoff, yoff);
-//								TDSETPOS(descript, VTPOSCENT);
-//								switch (justification)
-//								{
-//									case UPPERLEFT:    TDSETPOS(descript, VTPOSUPRIGHT);    break;
-//									case UPPERCENTER:  TDSETPOS(descript, VTPOSUP);         break;
-//									case UPPERRIGHT:   TDSETPOS(descript, VTPOSUPLEFT);     break;
-//									case CENTERLEFT:   TDSETPOS(descript, VTPOSRIGHT);      break;
-//									case CENTERCENTER: TDSETPOS(descript, VTPOSCENT);       break;
-//									case CENTERRIGHT:  TDSETPOS(descript, VTPOSLEFT);       break;
-//									case LOWERLEFT:    TDSETPOS(descript, VTPOSDOWNRIGHT);  break;
-//									case LOWERCENTER:  TDSETPOS(descript, VTPOSDOWN);       break;
-//									case LOWERRIGHT:   TDSETPOS(descript, VTPOSDOWNLEFT);   break;
-//								}
-//								TDCOPY(var->textdescript, descript);
-//							} else
-//							{
-//								ttyputerr(_("error, line #%d: nothing to attach text to"), io_edifgbl.lineno);
-//								errors++;
-//							}
-//						}
-//					}
-//	
-//					// clean up DISPLAY attributes
-//					io_edfreeptlist();
-//					cur_nametbl = NONAMETABLE;
-//					visible = true;
-//					justification = LOWERLEFT;
-//					textheight = 0;
-//					break;
-//				case KDOT:
-//					if (geometry == GPIN)
-//					{
-//						for (eport = ports; eport != NOEDPORT; eport = eport->next)
-//						{
-//							if (!namesame(eport->reference, name)) break;
-//						}
-//						if (eport != NOEDPORT)
-//						{
-//							// create a internal wire port using the pin-proto, and create the port and export
-//							ni = io_edifiplacepin(cellRefProto,
-//								points->x+cellRefProto->lowx,
-//								points->x+cellRefProto->highx,
-//								points->y+cellRefProto->lowy,
-//								points->y+cellRefProto->highy,
-//								io_edgettrans(orientation),
-//								io_edgetrot(orientation),
-//								current_cell);
-//							if (ni == NONODEINST)
-//							{
-//								ttyputerr(_("error, line #%d: could not create pin"), io_edifgbl.lineno);
-//								errors++;
-//							}
-//							(void)estrcpy(portname, eport->name);
-//							for (dup = 0, (void)estrcpy(basename, portname);
-//								(ppt = getportproto(ni->parent, portname)) != NOPORTPROTO; dup++)
-//							{
-//								if (dup == 0) pp = ppt;
-//								(void)esnprintf(portname, WORD+1, x_("%s_%ld"), basename, dup+1);
-//							}
-//							ppt = newportproto(ni->parent, ni, default_iconport, portname);
-//							if (ppt == NOPORTPROTO)
-//							{
-//								ttyputerr(_("error, line #%d: could not create port <%s>"),
-//									io_edifgbl.lineno, portname);
-//								errors++;
-//							} else
-//							{
-//								// set the direction
-//								switch (eport->direction)
-//								{
-//									case INPUTE:
-//										ppt->userbits = (ppt->userbits & ~STATEBITS) | INPORT;
-//										break;
-//									case OUTPUTE:
-//										ppt->userbits = (ppt->userbits & ~STATEBITS) | OUTPORT;
-//										break;
-//									case INOUT:
-//										ppt->userbits = (ppt->userbits & ~STATEBITS) | BIDIRPORT;
-//										break;
-//								}
-//							}
-//						}
-//					} else
-//					{
-//						// create the node instance
-//						ni = newnodeinst(figure_group != null ? figure_group : art_boxprim,
-//							points->x, points->x,
-//							points->y, points->y,
-//							io_edgettrans(orientation),
-//							io_edgetrot(orientation),
-//							current_cell);
-//						if (ni == NONODEINST)
-//						{
-//							ttyputerr(_("error, line #%d: could not create rectangle"),
-//								io_edifgbl.lineno);
-//							errors++;
-//						}
-//					}
-//					io_edfreeptlist();
-//					break;
-//				case KRECTANGLE:
-//					if (kstack_ptr > 1 && (kstack[kstack_ptr-1] == KPAGESIZE ||
-//						kstack[kstack_ptr-1] == KBOUNDINGBOX)) break;
-//					if (points.size() == 2)
-//					{
-//						// create the node instance
-//						if (points->x > lastpt->x)
-//						{
-//							lx = lastpt->x;
-//							hx = points->x;
-//						} else
-//						{
-//							hx = lastpt->x;
-//							lx = points->x;
-//						}
-//						if (points->y > lastpt->y)
-//						{
-//							ly = lastpt->y;
-//							hy = points->y;
-//						} else
-//						{
-//							hy = lastpt->y;
-//							ly = points->y;
-//						}
-//						ni = newnodeinst(figure_group != null ? figure_group : art_boxprim,
-//							lx, hx, ly, hy,
-//							io_edgettrans(orientation),
-//							io_edgetrot(orientation),
-//							current_cell);
-//						if (ni == NONODEINST)
-//						{
-//							ttyputerr(_("error, line #%d: could not create rectangle"),
-//								io_edifgbl.lineno);
-//							errors++;
-//						}
-//						else if (figure_group == art_openeddottedpolygonprim)
-//						{
-//							cnt = 5;
-//							cx = (points->x + lastpt->x) / 2;
-//							cy = (points->y + lastpt->y) / 2;
-//							pts[0] = points->x-cx;
-//							pts[1] = points->y-cy;
-//							pts[2] = points->x-cx;
-//							pts[3] = lastpt->y-cy;
-//							pts[4] = lastpt->x-cx;
-//							pts[5] = lastpt->y-cy;
-//							pts[6] = lastpt->x-cx;
-//							pts[7] = points->y-cy;
-//							pts[8] = points->x-cx;
-//							pts[9] = points->y-cy;
-//	
-//							// store the trace information
-//							(void)setvalkey((INTBIG)ni, VNODEINST, el_trace_key, (INTBIG)pts,
-//								VINTEGER|VISARRAY|((cnt*2)<<VLENGTHSH));
-//						}
-//						else if (geometry == GPIN)
-//						{
-//							// create a rectangle using the pin-proto, and create the port and export
-//							// ensure full sized port
-//							lx += cellRefProto->lowx;
-//							hx += cellRefProto->highx;
-//							ly += cellRefProto->lowy;
-//							hy += cellRefProto->highy;
-//	
-//							// create the node instance
-//							ni = io_edifiplacepin(cellRefproto, lx, hx, ly, hy,
-//								io_edgettrans(orientation),
-//								io_edgetrot(orientation),
-//								current_cell);
-//							if (ni == NONODEINST)
-//							{
-//								ttyputerr(_("error, line #%d: could not create pin"),
-//									io_edifgbl.lineno);
-//								errors++;
-//							}
-//							ppt = getportproto(ni->parent, name);
-//							if (ppt == NOPORTPROTO)
-//								ppt = newportproto(ni->parent, ni, default_iconport, name);
-//							if (ppt == NOPORTPROTO)
-//							{
-//								ttyputerr(_("error, line #%d: could not create port <%s>"),
-//									io_edifgbl.lineno, name);
-//								errors++;
-//							}
-//						}
-//					}
-//					io_edfreeptlist();
-//	
-//					break;
-//	
-//				case KARC:
-//					// set array values
-//					for (point = points, i = 0; point && i < 3; point = point->nextpt,i++)
-//					{
-//						x[i] = point->x;
-//						y[i] = point->y;
-//					}
-//					io_ededif_arc(x, y, &cx, &cy, &radius, &so, &ar, &j, &trans);
-//					lx = cx - radius;   hx = cx + radius;
-//					ly = cy - radius;   hy = cy + radius;
-//	
-//					// get the bounds of the circle
-//					ni = newnodeinst(figure_group != null && figure_group != art_boxprim ?
-//						figure_group : art_circleprim, lx, hx, ly, hy,
-//						trans, j, current_cell);
-//					if (ni == NONODEINST)
-//					{
-//						ttyputerr(_("error, line #%d: could not create arc"), io_edifgbl.lineno);
-//						errors++;
-//					} else
-//					{
-//						// store the angle of the arc
-//						setarcdegrees(ni, so, ar*EPI/1800.0);
-//					}
-//					io_edfreeptlist();
-//					break;
-//	
-//				case KSYMBOL:
-//				case KPAGE:
-//					np = current_cell;
-//					if (np != NONODEPROTO)
-//					{
-//						// now compute the bounds of this cell
-//						db_boundcell(np, &np->lowx, &np->highx, &np->lowy, &np->highy);
-//					}
-//					active_view = VNULL;
-//					break;
-//	
-//				case KOPENSHAPE:
-//				case KPOLYGON:
-//	dopoly:
-//					if (points.size() == 0) break;
-//	
-//					// get the bounds of the poly
-//					lx = hx = points->x;
-//					ly = hy = points->y;
-//					point = points->nextpt;
-//					while (point)
-//					{
-//						if (lx > point->x) lx = point->x;
-//						if (hx < point->x) hx = point->x;
-//						if (ly > point->y) ly = point->y;
-//						if (hy < point->y) hy = point->y;
-//						point = point->nextpt;
-//					}
-//					if (lx != hx || ly != hy)
-//					{
-//						if (figure_group != null && figure_group != art_boxprim)
-//							np = figure_group; else
-//						{
-//							if (state == KPOLYGON) np = art_closedpolygonprim; else
-//								np = art_openedpolygonprim;
-//						}
-//						ni = newnodeinst(np, lx, hx, ly, hy, io_edgettrans(orientation),
-//							io_edgetrot(orientation), current_cell);
-//						if (ni == NONODEINST)
-//						{
-//							ttyputerr(_("error, line #%d: could not create polygon"), io_edifgbl.lineno);
-//							errors++;
-//						} else
-//						{
-//							pt = trace = emalloc((points.size()*2*SIZEOFINTBIG), el_tempcluster);
-//							if (trace == 0) RET_NOMEMORY();
-//							cx = (hx + lx) / 2;
-//							cy = (hy + ly) / 2;
-//							point = points;
-//							while (point != NOEPT)
-//							{
-//								*pt++ = point->x - cx;
-//								*pt++ = point->y - cy;
-//								point = point->nextpt;
-//							}
-//	
-//							// store the trace information
-//							(void)setvalkey((INTBIG)ni, VNODEINST, el_trace_key, (INTBIG)trace,
-//								VINTEGER|VISARRAY|((points.size()*2)<<VLENGTHSH));
-//	
-//							// free the polygon memory
-//							efree((CHAR *)trace);
-//						}
-//					}
-//					io_edfreeptlist();
-//					break;
-//				case KARRAY:
-//					if (arrayx == 0) arrayx = 1;
-//					if (arrayy == 0) arrayy = 1;
-//					break;
-//				case KMEMBER:
-//					if (memberx != -1)
-//					{
-//						// adjust the name of the current INSTANCE/NET/PORT(/VALUE)
-//						if (membery != -1)
-//							(void)esnprintf(basename, WORD+1, x_("[%d,%d]"), memberx, membery);
-//						else (void)esnprintf(basename, WORD+1, x_("[%d]"), memberx);
-//						switch (kstack[kstack_ptr-1])
-//						{
-//							case KINSTANCEREF:
-//								instance_reference = basename;
-//								break;
-//							case KPORTREF:
-//								port_reference = basename;
-//								break;
-//							default:
-//								break;
-//						}
-//					}
-//					break;
-//				case KDESIGN:
-//					if (cellRefProto != null)
-//					{
-//						if (io_verbose < 0)
-//						{
-//							infstr = initinfstr();
-//							formatinfstr(infstr, _("Design %s"),
-//								cellRefProto->protoname);
-//							DiaSetTextProgress(io_edifprogressdialog, returninfstr(infstr));
-//						}
-//						else ttyputmsg(_("Design %s"), cellRefProto->protoname);
-//						library->curnodeproto = cellRefProto;
-//					}
-//					break;
-//	
-//				case KEDIF:
-//					// free the netport list
-//					io_edfreenetports();
-//					break;
-//				default:
-//					break;
-//				}
-//			}
-//			if (kstack_ptr) state = kstack[--kstack_ptr]; else
-//				state = KINIT;
-//			return(0);
-//		}
-//		else return(1);
-//	}
-//	
-//	INTSML io_edgetrot(OTYPES o)
-//	{
-//		switch (o)
-//		{
-//			case OR0:     return(0);
-//			case OR90:    return(90*10);
-//			case OR180:   return(180*10);
-//			case OR270:   return(270*10);
-//			case OMX:     return(270*10);
-//			case OMY:     return(90*10);
-//			case OMXR90:  return(180*10);
-//			case OMYR90:  return(0);
-//			default:      break;
-//		}
-//		return(0);
-//	}
-//	
-//	INTSML io_edgettrans(OTYPES o)
-//	{
-//		switch (o)
-//		{
-//			case OR0:     return(0);
-//			case OR90:    return(0);
-//			case OR180:   return(0);
-//			case OR270:   return(0);
-//			case OMY:     return(1);
-//			case OMX:     return(1);
-//			case OMYR90:  return(1);
-//			case OMXR90:  return(1);
-//			default:      break;
-//		}
-//		return(0);
-//	}
-//	
 //	/*
 //	 * Routine to return the text height to use when it says "textheight" units in the EDIF file.
 //	 */
@@ -3954,24 +3936,6 @@ public class EDIF extends Input
 //	}
 //	
 //	/************ INPUT SUPPORT *********/
-//	
-//	/* This function allocates ports */
-//	INTBIG io_edallocport(void)
-//	{
-//		EDPORT_PTR port;
-//	
-//		EDPORT port = new EDPORT();
-//	
-//		port.next = ports;
-//		ports = port;
-//		port.reference = port_reference;
-//		port.name = port_name;
-//	
-//		port->direction = direction;
-//		port->arrayx = arrayx;
-//		port->arrayy = arrayy;
-//		return(0);
-//	}
 //	
 //	INTBIG io_edallocproperty(CHAR *aName, PROPERTY_TYPE type, int integer,
 //		float number, CHAR *str)
@@ -4567,31 +4531,3 @@ public class EDIF extends Input
 //		}
 //		return(cnt);
 //	}
-//	
-//	
-//	NODEINST *io_edifiplacepin(NODEPROTO *np, INTBIG lx, INTBIG hx, INTBIG ly, INTBIG hy,
-//		INTBIG trans, INTBIG angle, NODEPROTO *parent)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER INTBIG cx, cy, sx, sy, icx, icy, isx, isy;
-//	
-//		cx = (lx + hx) / 2;
-//		cy = (ly + hy) / 2;
-//		sx = hx - lx;
-//		sy = hy - ly;
-//	
-//		for(ni = parent->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto != np) continue;
-//			if (ni->rotation != angle || ni->transpose != trans) continue;
-//			icx = (ni->lowx + ni->highx) / 2;
-//			icy = (ni->lowy + ni->highy) / 2;
-//			isx = ni->highx - ni->lowx;
-//			isy = ni->highy - ni->lowy;
-//			if (icx != cx || icy != cy) continue;
-//			return(ni);
-//		}
-//		ni = newnodeinst(np, lx, hx, ly, hy, trans, angle, parent);
-//		return(ni);
-//	}
-//	

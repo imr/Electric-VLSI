@@ -1008,7 +1008,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // if swapXY, X size was put in Y text box, and vice versa.
             if (dialog.swapXY)
             {
-                // get true size minus offset (this is the size the user sees
+                // get true size minus offset (this is the size the user sees)
                 currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
                 currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
                 initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentXSize));

@@ -3859,6 +3859,7 @@ public class CircuitChanges
 						{
 							Export pp = (Export)eobj;
 							TextDescriptor td = pp.getTextDescriptor();
+//							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
 							adjustTextDescriptor(td, pp.getOriginalPort().getNodeInst());
 						}
 					}

@@ -42,6 +42,8 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
 import java.util.Iterator;
 
 
@@ -64,6 +66,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private TextDescriptor td;
     private String futureVarName;
     private ElectricObject owner;
+    private NodeInst unTransformNi;
 
     /**
      * Create a new TextInfoPanel that can be used to edit
@@ -186,22 +189,43 @@ public class TextInfoPanel extends javax.swing.JPanel
         NodeInst ni = null;
         // use location of owner if it is a generic invisible pin, because
         // this is the location of the text on the cell
-        if (owner != null) {
-            if (owner instanceof NodeInst) {
+        if (owner != null)
+        {
+            if (owner instanceof NodeInst)
+            {
                 ni = (NodeInst)owner;
-                if (ni.getProto() != Generic.tech.invisiblePinNode) {
+                if (ni.getProto() != Generic.tech.invisiblePinNode)
+                {
                     ni = null;                  // ni is null unless owner is invisible pin
                 }
             }
         }
 
+        // find the node that this is sitting on, to handle offsets and rotations
+        unTransformNi = null;
+        if (owner != null)
+        {
+        	if (owner instanceof NodeInst) unTransformNi = (NodeInst)owner; else
+        		if (owner instanceof Export) unTransformNi = ((Export)owner).getOriginalPort().getNodeInst();
+        }
+
         // set the offset
-        if (ni != null) {
+        if (ni != null)
+        {
             initialXOffset = ni.getAnchorCenterX();
             initialYOffset = ni.getAnchorCenterY();
-        } else {
+        } else
+        {
             initialXOffset = td.getXOff();
             initialYOffset = td.getYOff();
+        	if (unTransformNi != null)
+        	{
+        		Point2D off = new Point2D.Double(initialXOffset, initialYOffset);
+        		AffineTransform trans = unTransformNi.pureRotateOut();
+        		trans.transform(off, off);
+        		initialXOffset = off.getX();
+        		initialYOffset = off.getY();
+        	}
         }
         xOffset.setText(TextUtils.formatDouble(initialXOffset));
         yOffset.setText(TextUtils.formatDouble(initialYOffset));
@@ -408,6 +432,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         ChangeText job = new ChangeText(
                 td,
                 owner,
+				unTransformNi,
                 futureVarName,
                 newSize,
                 newPosition, newBoxedWidth, newBoxedHeight,
@@ -438,6 +463,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 	{
         private TextDescriptor td;
         private ElectricObject owner;
+        private NodeInst unTransformNi;
         private String futureVar;
         private TextDescriptor.Size size;
         private TextDescriptor.Position position;
@@ -451,6 +477,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         private ChangeText(
                 TextDescriptor td,
                 ElectricObject owner,
+				NodeInst unTransformNi,
                 String futureVar,
                 TextDescriptor.Size size,
                 TextDescriptor.Position position, double boxedWidth, double boxedHeight,
@@ -463,6 +490,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.td = td;
             this.owner = owner;
+            this.unTransformNi = unTransformNi;
             this.futureVar = futureVar;
             this.size = size;
             this.position = position;
@@ -522,6 +550,14 @@ public class TextInfoPanel extends javax.swing.JPanel
                     ni.modifyInstance(dX, dY, 0, 0, 0);
                 } else td.setOff(xoffset, yoffset);
             } else {
+            	if (unTransformNi != null)
+            	{
+            		Point2D off = new Point2D.Double(xoffset, yoffset);
+            		AffineTransform trans = unTransformNi.pureRotateIn();
+            		trans.transform(off, off);
+            		xoffset = off.getX();
+            		yoffset = off.getY();
+            	}
                 td.setOff(xoffset, yoffset);
             }
 

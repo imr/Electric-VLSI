@@ -27,29 +27,30 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.user.dialogs.*;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
-import com.sun.electric.Main;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
 import java.awt.Color;
-import java.util.Iterator;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This is the User Interface tool.
@@ -204,6 +205,20 @@ public class User extends Listener
 
 		// update live dialogs and status bar
 		//updateInformationAreas();
+	}
+
+	private static AudioClip clickSound = null;
+
+	public static void playSound(int arcsCreated)
+	{
+		if (User.isPlayClickSoundsWhenCreatingArcs())
+		{
+			URL url = Resources.getURLResource(TopLevel.class, "Click.wav");
+			if (url == null) return;
+			if (clickSound == null)
+				clickSound = Applet.newAudioClip(url);
+			clickSound.play();
+		}
 	}
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/

@@ -47,7 +47,6 @@ public class GeneralTab extends PreferencePanel
 	public String getName() { return "General"; }
 
 	private boolean initialBeepAfterLongJobs;
-	private boolean initialClickSounds;
 	private boolean initialShowFileSelectionForNetlists;
 	private boolean initialShowCursorCoordinates;
 	private boolean initialIncludeDateAndVersion;

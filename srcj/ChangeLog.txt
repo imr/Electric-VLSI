@@ -21,6 +21,16 @@ IMP: (11/2/04, DN) TextUtils.nameSameNumeric is made case-insensitive.
 BUG: (11/2/04, GVG) Rounding errors in PolyBase.halfCropBox
 FIX: Same wrapper operations as in PolyBase.cropBox.
 
+IMP: (11/1/04, SMR) Added "click" sounds when wiring.
+
+BUG: (11/1/04, SMR) Mirroring in Y does not work.
+FIX: In NodeInst.lowLevelModify()", fixed "sX" that should have been "sY".
+
+BUG: (11/1/04, SMR) Export text offset is wrong.
+FIX: In Export.getNamePoly(), apply text offset before transformation of node;
+     In ElectricObject.computeTextPoly(), use Export.getNamePoly();
+     In TextInfoPanel, show true offsets.
+
 IMP: (11/1/04, DN) Coordinates and sizes of ArcInst and NodeInst are
     rounded to DBMath.GRID when loaded from libraries. Comparison
     functions from DBMath consider neighbour grid points as equal.
