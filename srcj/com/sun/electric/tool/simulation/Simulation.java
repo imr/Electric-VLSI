@@ -29,6 +29,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
@@ -83,7 +84,7 @@ public class Simulation extends Tool
 			// find the necessary methods on the IRSIM class
 			try
 			{
-				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, String.class});			
+				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});			
 			} catch (NoSuchMethodException e)
 			{
 				irsimClass = null;
@@ -100,12 +101,12 @@ public class Simulation extends Tool
 	 * Method to invoke the IRSIM on a Cell via reflection.
 	 * @param cell the Cell to simulate.
 	 */
-	public static void simulateIRSIM(Cell cell, String fileName)
+	public static void simulateIRSIM(Cell cell, VarContext context, String fileName)
 	{
 		if (!hasIRSIM()) return;
 		try
 		{
-			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, fileName});
+			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
 			return;
 		} catch (Exception e)
 		{

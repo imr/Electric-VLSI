@@ -1080,6 +1080,7 @@ public class ToolMenu {
     public static void simulateCellWithIRSIM(boolean forceDeck)
     {
     	Cell cell = null;
+        VarContext context = null;
     	String fileName = null;
     	if (forceDeck)
     	{
@@ -1090,8 +1091,10 @@ public class ToolMenu {
     	{
 	        cell = WindowFrame.needCurCell();
 	        if (cell == null) return;
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null) context = wnd.getVarContext();
     	}
-    	Simulation.simulateIRSIM(cell, fileName);
+    	Simulation.simulateIRSIM(cell, context, fileName);
     }
 
     /**

@@ -51,6 +51,7 @@ import java.util.Date;
  */
 public class IRSIM extends Output
 {
+    private VarContext context;
 	/**
 	 * The main entry point for IRSIM deck writing.
 	 * @param cell the top-level cell to write.
@@ -70,6 +71,7 @@ public class IRSIM extends Output
 
 		IRSIMNetlister netlister = new IRSIMNetlister();
 		Netlist netlist = cell.getNetlist(true);
+        this.context = context;
 		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		if (closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
@@ -80,6 +82,7 @@ public class IRSIM extends Output
 	 */
 	private IRSIM()
 	{
+        context = null;
 	}
 
 	private void writeHeader(Cell cell)
@@ -153,9 +156,14 @@ public class IRSIM extends Output
             // print out transistor
             if (isNMOS) printWriter.print("n"); else
 				printWriter.print("p");
-			printWriter.print(" " + iinfo.getUniqueNetName(gnet, "/"));
-			printWriter.print(" " + iinfo.getUniqueNetName(snet, "/"));
-			printWriter.print(" " + iinfo.getUniqueNetName(dnet, "/"));
+            String removeContext = context.getInstPath("/");
+            int len = removeContext.length();
+            String gnetname = iinfo.getUniqueNetName(gnet, "/");
+            String snetname = iinfo.getUniqueNetName(snet, "/");
+            String dnetname = iinfo.getUniqueNetName(dnet, "/");
+			printWriter.print(" " + gnetname.substring(len+1, gnetname.length()));
+			printWriter.print(" " + snetname.substring(len+1, snetname.length()));
+			printWriter.print(" " + dnetname.substring(len+1, dnetname.length()));
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
             	dim = new TransistorSize(new Double(2), new Double(2));
@@ -166,7 +174,7 @@ public class IRSIM extends Output
 			printWriter.print(" " + ni.getAnchorCenterY());             // ypos
             if (isNMOS)
 				printWriter.print(" g=S_gnd");
-            else 
+            else
 				printWriter.print(" g=S_vdd");
 
 			// no parasitics yet
@@ -174,6 +182,12 @@ public class IRSIM extends Output
             double sourcePerim = dim.getDoubleWidth() + 12;
             double drainArea = dim.getDoubleWidth() * 6;
             double drainPerim = dim.getDoubleWidth() + 12;
+/*
+            double sourceArea = 0;
+            double sourcePerim = 0;
+            double drainArea = 0;
+            double drainPerim = 0;
+*/
 			printWriter.print(" s=A_" + sourceArea + ",P_" + sourcePerim);
 			printWriter.print(" d=A_" + drainArea + ",P_" + drainPerim);
 			printWriter.println();

@@ -22,6 +22,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -141,22 +142,24 @@ public class Analyzer extends Engine
 	 * @param cell the cell to simulate.
 	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell, String fileName)
+	public static void simulateCell(Cell cell, VarContext context, String fileName)
 	{
     	Analyzer theAnalyzer = new Analyzer();
-		new StartIRSIM(cell, fileName, theAnalyzer);
+		new StartIRSIM(cell, context, fileName, theAnalyzer);
 	}
 
 	private static class StartIRSIM extends Job
     {
         private Cell cell;
+        private VarContext context;
         private String fileName;
         private Analyzer analyzer;
 
-        public StartIRSIM(Cell cell, String fileName, Analyzer analyzer)
+        public StartIRSIM(Cell cell, VarContext context, String fileName, Analyzer analyzer)
         {
             super("Simulate cell", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
+            this.context = context;
             this.fileName = fileName;
             this.analyzer = analyzer;
             startJob();
@@ -176,7 +179,7 @@ public class Analyzer extends Engine
     		if (fileName == null)
     		{
     			fileName = "Electric.XXXXXX";
-    			Output.writeCell(cell, null, fileName, FileType.IRSIM);
+    			Output.writeCell(cell, context, fileName, FileType.IRSIM);
     		}
 
     		URL fileURL = TextUtils.makeURLToFile(fileName);
