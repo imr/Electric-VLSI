@@ -4,10 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+************************* Version 8.02f: *********************************
+
 BUG: (02/02/05, SMR) Verilog output writes indexed signal names wrong (Bug #189).
 FIX: In Verilog.getSafeNetName() distinguish busses from plain signals and handle them properly.
-
-************************* Version 8.02f: *********************************
 
 BUG: (02/02/05, SMR) Verilog output writes indexed signal names wrong (Bug #188).
 FIX: In Verilog.getSafeNetName() allow square brackets if they enclose a singly indexed number.
