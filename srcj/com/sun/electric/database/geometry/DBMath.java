@@ -106,9 +106,10 @@ public class DBMath extends GenMath {
 	}
 	
 	/**
-	 * @param x 
-	 * @return the return value is an approximation of x rounded to GRID
-	 * Sign of retrun values is the same as sign of x
+	 * Method to round a database value to database precision.
+	 * @param x the value to round.
+	 * @return the return value is an approximation of x rounded to GRID.
+	 * Sign of return values is the same as sign of x
 	 */
 	public static double round(double x)
 	{

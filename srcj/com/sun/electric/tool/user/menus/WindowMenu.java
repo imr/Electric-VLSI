@@ -83,8 +83,8 @@ public class WindowMenu {
         m = specialZoomSubMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
-//        m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
+        m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
         specialZoomSubMenu.addMenuItem("Make Grid Just Visible", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
         specialZoomSubMenu.addMenuItem("Match Other Window", null,
@@ -208,13 +208,13 @@ public class WindowMenu {
         wf.getContent().zoomInContents();
     }
 
-//    public static void zoomBoxCommand()
-//    {
-//        // only works with click zoom wire listener
-//        EventListener oldListener = WindowFrame.getListener();
-//        WindowFrame.setListener(ClickZoomWireListener.theOne);
-//        ClickZoomWireListener.theOne.zoomBoxSingleShot(oldListener);
-//    }
+    public static void zoomBoxCommand()
+    {
+        // only works with click zoom wire listener
+        EventListener oldListener = WindowFrame.getListener();
+        WindowFrame.setListener(ClickZoomWireListener.theOne);
+        ClickZoomWireListener.theOne.zoomBoxSingleShot(oldListener);
+    }
 
     /**
      * Method to make the current window's grid be just visible.

@@ -18,13 +18,15 @@ IMP/MAN: (01/29/05, DN) JELIB is the default library format.
 BUG: (01/29/05, DN) Deleting exports invalidates database invariants (Bug #181).
 FIX: In "Export.kill()" disconnect all PortInsts of this Export before deletion.
 
+IMP: (01/29/05, SMR) Shift-right in waveform now zooms (Bug #177).
+
 ************************* Version 8.02e: *********************************
 
 IMP/MAN: (01/28/05, GVG) Adding exhaustive checking option in DRC (mostly for regression purposes)
 
 IMP: (01/27/05, GVG) Side effects of ordered database in DRC. Speed improvements
-to avoid checking two node instances multiple time. Some statistics:
-qFourP2:qFourP1top:qFourP1top: v8.01=22 min, v8.02d=37min, v8.02e=8min.
+     to avoid checking two node instances multiple time. Some statistics:
+     qFourP2:qFourP1top:qFourP1top: v8.01=22 min, v8.02d=37min, v8.02e=8min.
 
 IMP/MAN: (01/27/05, JKG) Added option under GDS preferences to have brackets in
     export names converted to underscores.
@@ -170,7 +172,7 @@ IMP/MAN: (01/13/05, JKG) Added option on Skill preferences tab to truncate cell 
 
 IMP: (01/13/05, JKG) Topology: "getSafeNetName" now properly applied to non-aggregating netlisters
 
-IMP: (01/12/05, SMR) First implementation of node extractor.
+IMP/MAN: (01/12/05, SMR) First implementation of node extractor.  Added to "network tab" in "Preferences" dialog
 
 BUG: (01/13/05, DN) Rename arc/nodes and undo can spoil database invariants (Bug #157).
 FIX: In "NodeInst.lowLevelSetNameKey" and ArcInst.lowLevelSetNameKey remove "isUsernamed()".

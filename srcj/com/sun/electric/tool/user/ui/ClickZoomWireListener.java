@@ -191,13 +191,13 @@ public class ClickZoomWireListener
      */
     public Point2D getLastMouse() { return new Point2D.Double(mouseX, mouseY); }
 
-//    /**
-//     * Sets the mode to zoom box for the next right click only.
-//     */
-//    public void zoomBoxSingleShot(EventListener oldListener) {
-//        modeRight = Mode.zoomBoxSingleShot;
-//        this.oldListener = oldListener;
-//    }
+    /**
+     * Sets the mode to zoom box for the next right click only.
+     */
+    public void zoomBoxSingleShot(EventListener oldListener) {
+        modeRight = Mode.zoomBoxSingleShot;
+        this.oldListener = oldListener;
+    }
 
     /**
      * See if event is a left mouse click.  Platform independent.

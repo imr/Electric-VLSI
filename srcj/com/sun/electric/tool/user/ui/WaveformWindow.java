@@ -1358,6 +1358,8 @@ public class WaveformWindow implements WindowContent
 				return;
 			}
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+				mode = ToolBar.CursorMode.ZOOM;
 			if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
 					mousePressedSelect(evt);
@@ -1366,6 +1368,8 @@ public class WaveformWindow implements WindowContent
 		public void mouseReleased(MouseEvent evt)
 		{
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+				mode = ToolBar.CursorMode.ZOOM;
 			if (mode == ToolBar.CursorMode.ZOOM) mouseReleasedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mouseReleasedPan(evt); else
 					mouseReleasedSelect(evt);
@@ -1388,6 +1392,8 @@ public class WaveformWindow implements WindowContent
 		public void mouseDragged(MouseEvent evt)
 		{
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
+			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+				mode = ToolBar.CursorMode.ZOOM;
 			if (mode == ToolBar.CursorMode.ZOOM) mouseDraggedZoom(evt); else
 				if (mode == ToolBar.CursorMode.PAN) mouseDraggedPan(evt); else
 					mouseDraggedSelect(evt);
@@ -1614,7 +1620,7 @@ public class WaveformWindow implements WindowContent
 			{
 				Panel wp = (Panel)it.next();
 				if (!waveWindow.timeLocked && wp != this) continue;
-				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
+				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0 || ClickZoomWireListener.isRightMouse(evt))
 				{
 					// standard click: zoom in
 					wp.minTime = lowTime;

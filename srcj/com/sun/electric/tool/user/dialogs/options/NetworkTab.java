@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.tool.extract.Extract;
 
 import javax.swing.JPanel;
 
@@ -45,6 +46,7 @@ public class NetworkTab extends PreferencePanel
 	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
 	private String netUnificationPrefixInitial;
 	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
+	private boolean netExtractExactCutsInitial;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -72,6 +74,9 @@ public class NetworkTab extends PreferencePanel
 		netBusAscendingInitial = NetworkTool.isBusAscending();
 		if (netBusAscendingInitial) netAscending.setSelected(true); else
 			netDescending.setSelected(true);
+
+		netExtractExactCutsInitial = Extract.isExactCutExtraction();
+		extractExactContacts.setSelected(netExtractExactCutsInitial);
 	}
 
 	public void term()
@@ -93,6 +98,9 @@ public class NetworkTab extends PreferencePanel
 
 		nowBoolean = netAscending.isSelected();
 		if (netBusAscendingInitial != nowBoolean) NetworkTool.setBusAscending(nowBoolean);
+
+		nowBoolean = extractExactContacts.isSelected();
+		if (netExtractExactCutsInitial != nowBoolean) Extract.setExactCutExtraction(nowBoolean);
 	}
 
 	/** This method is called from within the constructor to
@@ -106,19 +114,20 @@ public class NetworkTab extends PreferencePanel
 
         netDefaultOrder = new javax.swing.ButtonGroup();
         network = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         netUnifyPwrGnd = new javax.swing.JCheckBox();
         netUnifyLikeNamedNets = new javax.swing.JCheckBox();
         netIgnoreResistors = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         netUnificationPrefix = new javax.swing.JTextField();
-        jSeparator5 = new javax.swing.JSeparator();
-        jLabel26 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
         jLabel27 = new javax.swing.JLabel();
         netStartingIndex = new javax.swing.JComboBox();
         jLabel28 = new javax.swing.JLabel();
         netAscending = new javax.swing.JRadioButton();
         netDescending = new javax.swing.JRadioButton();
-        jLabel29 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        extractExactContacts = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -134,75 +143,72 @@ public class NetworkTab extends PreferencePanel
 
         network.setLayout(new java.awt.GridBagLayout());
 
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Network Numbering"));
         netUnifyPwrGnd.setText("Unify Power and Ground");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(netUnifyPwrGnd, gridBagConstraints);
+
+        netUnifyLikeNamedNets.setText("Unify all like-named nets");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        network.add(netUnifyPwrGnd, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(netUnifyLikeNamedNets, gridBagConstraints);
 
-        netUnifyLikeNamedNets.setText("Unify all like-named nets");
+        netIgnoreResistors.setText("Ignore Resistors");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        network.add(netUnifyLikeNamedNets, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(netIgnoreResistors, gridBagConstraints);
 
-        netIgnoreResistors.setText("Ignore Resistors");
+        jLabel3.setText("Unify Networks that start with:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        network.add(netIgnoreResistors, gridBagConstraints);
-
-        jLabel3.setText("Unify Networks that start with:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        network.add(jLabel3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(jLabel3, gridBagConstraints);
 
         netUnificationPrefix.setColumns(20);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
-        network.add(netUnificationPrefix, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        jPanel1.add(netUnificationPrefix, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        network.add(jSeparator5, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        network.add(jPanel1, gridBagConstraints);
 
-        jLabel26.setText("For busses:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        network.add(jLabel26, gridBagConstraints);
+        jPanel2.setLayout(new java.awt.GridBagLayout());
 
+        jPanel2.setBorder(new javax.swing.border.TitledBorder("For Busses"));
         jLabel27.setText("Default starting index:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        network.add(jLabel27, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -210,7 +216,7 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        network.add(netStartingIndex, gridBagConstraints);
+        jPanel2.add(netStartingIndex, gridBagConstraints);
 
         jLabel28.setText("Default order:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -218,36 +224,49 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        network.add(jLabel28, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(jLabel28, gridBagConstraints);
 
-        netAscending.setText("Ascending (0:N)");
         netDefaultOrder.add(netAscending);
+        netAscending.setText("Ascending (0:N)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
-        network.add(netAscending, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        jPanel2.add(netAscending, gridBagConstraints);
 
-        netDescending.setText("Descending (N:0)");
         netDefaultOrder.add(netDescending);
+        netDescending.setText("Descending (N:0)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
-        network.add(netDescending, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        jPanel2.add(netDescending, gridBagConstraints);
 
-        jLabel29.setText("Network numbering:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        network.add(jLabel29, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        network.add(jPanel2, gridBagConstraints);
+
+        jPanel3.setLayout(new java.awt.GridBagLayout());
+
+        jPanel3.setBorder(new javax.swing.border.TitledBorder("Node Extraction"));
+        extractExactContacts.setText("Force exact cut placement");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel3.add(extractExactContacts, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        network.add(jPanel3, gridBagConstraints);
 
         getContentPane().add(network, new java.awt.GridBagConstraints());
 
@@ -262,12 +281,13 @@ public class NetworkTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel26;
+    private javax.swing.JCheckBox extractExactContacts;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
-    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JSeparator jSeparator5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JRadioButton netAscending;
     private javax.swing.ButtonGroup netDefaultOrder;
     private javax.swing.JRadioButton netDescending;

@@ -24,16 +24,19 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * User: gainsley
@@ -50,7 +53,7 @@ public class SimpleWirer extends InteractiveRouter {
 
 
     protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute,
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
                                 boolean contactsOnEndObj) {
 
         RouteElementPort startRE = route.getEnd();
@@ -78,18 +81,29 @@ public class SimpleWirer extends InteractiveRouter {
             int pin1Quad = findQuadrant(endLoc, pin1);
             int pin2Quad = findQuadrant(endLoc, pin2);
             int oppositeQuad = (clickedQuad + 2) % 4;
+            // presume pin1 by default
+            cornerLoc = pin1;
             if (pin2Quad == clickedQuad)
             {
-                pin1 = pin2;                // same quad as pin2, use pin2
+            	cornerLoc = pin2;                // same quad as pin2, use pin2
             } else if (pin1Quad == clickedQuad)
             {
-                // pin1 = pin1;                // same quad as pin1, use pin1
+                cornerLoc = pin1;                // same quad as pin1, use pin1
             } else if (pin1Quad == oppositeQuad)
             {
-                pin1 = pin2;                // near to pin2 quad, use pin2
+            	cornerLoc = pin2;                // near to pin2 quad, use pin2
             }
-            // else it is near to pin1 quad, use pin1
-            cornerLoc = pin1;
+
+            if (stayInside != null && useArc != null)
+            {
+            	// make sure the bend stays inside of the merge area
+            	double pinSize = useArc.getDefaultWidth() - useArc.getWidthOffset();
+            	Layer pinLayer = ((PrimitiveArc)useArc).getLayers()[0].getLayer();
+            	Rectangle2D pin1Rect = new Rectangle2D.Double(pin1.getX()-pinSize/2, pin1.getY()-pinSize/2, pinSize, pinSize);
+            	Rectangle2D pin2Rect = new Rectangle2D.Double(pin2.getX()-pinSize/2, pin2.getY()-pinSize/2, pinSize, pinSize);
+            	if (stayInside.contains(pinLayer, pin1Rect)) cornerLoc = pin1; else
+                	if (stayInside.contains(pinLayer, pin2Rect)) cornerLoc = pin2;
+            }
         }
 
         // never use universal arcs unless the user has selected them

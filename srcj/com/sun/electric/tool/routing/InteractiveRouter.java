@@ -25,6 +25,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.ArcProto;
@@ -86,7 +87,7 @@ public abstract class InteractiveRouter extends Router {
     public String toString() { return "Interactive Router"; }
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute,
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
                                 boolean contactsOnEndObject);
 
     // ----------------------- Interactive Route Control --------------------------
@@ -134,7 +135,7 @@ public abstract class InteractiveRouter extends Router {
     public void makeRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // plan the route
-        Route route = planRoute(cell, startObj, endObj, clicked);
+        Route route = planRoute(cell, startObj, endObj, clicked, null);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         wnd.getHighlighter().clear();
@@ -221,7 +222,7 @@ public abstract class InteractiveRouter extends Router {
     public void highlightRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // highlight route
-        Route route = planRoute(cell, startObj, endObj, clicked);
+        Route route = planRoute(cell, startObj, endObj, clicked, null);
         highlightRoute(wnd, route, cell);
     }
 
@@ -251,9 +252,10 @@ public abstract class InteractiveRouter extends Router {
      * @param endObj a PortInst or ArcInst to end the route on. May be null
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
+     * @param stayInside the area in which to route (null if not applicable).
      * @return a List of RouteElements denoting route
      */
-    protected Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+    protected Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside) {
 
         Route route = new Route();               // hold the route
         if (cell == null) return route;
@@ -386,7 +388,7 @@ public abstract class InteractiveRouter extends Router {
         //route.add(endRE); route.setEnd(endRE);
 
         // Tell Router to route between startRE and endRE
-        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, vroute, contactsOnEndObject)) {
+        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject)) {
             return route;
         } else
             return new Route();             // error, return empty route

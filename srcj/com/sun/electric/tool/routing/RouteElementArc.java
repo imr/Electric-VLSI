@@ -309,7 +309,8 @@ public class RouteElementArc extends RouteElement {
         }
         if (getAction() == RouteElementAction.deleteArc) {
             // delete existing arc
-            arcInst.kill();
+        	if (arcInst.isLinked())
+        		arcInst.kill();
             setDone();
         }
         return null;
