@@ -508,6 +508,8 @@ public class ClickZoomWireListener
 	                    endObj = null;
 	                    wiringTarget = null;
 	                } else {
+                        Iterator hIt = highlighter.getHighlights().iterator();
+                        Highlight h2 = (Highlight)hIt.next();                        
 	                    // The user can switch between wiring targets under the cursor using a key stroke
 	                    // if wiring target non-null, and still under cursor, use that
 	                    endObj = null;
@@ -529,8 +531,6 @@ public class ClickZoomWireListener
 	                    }
 	                    // if target is null, find new target
 	                    if (endObj == null) {
-	                        Iterator hIt = highlighter.getHighlights().iterator();
-	                        Highlight h2 = (Highlight)hIt.next();
 	                        endObj = h2.getElectricObject();
 	                    }
 	                    EditWindow.gridAlign(dbMouse);
