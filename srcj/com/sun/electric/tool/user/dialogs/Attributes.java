@@ -543,6 +543,14 @@ public class Attributes extends EDialog
             }
             // create the attribute
             owner.newVar(newName, newValue);
+            // if created on a cell, set the parameter and inherits properties
+            if (owner instanceof Cell) {
+                Variable var = owner.getVar(newName);
+                if (var == null) return false;
+                TextDescriptor td = var.getTextDescriptor();
+                td.setParam();
+                td.setInherit();
+            }
             return true;
         }
     }
