@@ -260,6 +260,7 @@ public class ToolBar extends JToolBar
 		EditWindow.setListener(ClickAndDragListener.theOne);
 		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
+		selectButton.setSelected(true);
 	}
 
 	/**
@@ -271,6 +272,7 @@ public class ToolBar extends JToolBar
 		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 8, 24);
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
+		wireButton.setSelected(true);
 	}
 
 	/**
@@ -282,6 +284,7 @@ public class ToolBar extends JToolBar
 		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 8, 9);
 		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
+		selectSpecialButton.setSelected(true);
 	}
 
 	/**
@@ -293,6 +296,7 @@ public class ToolBar extends JToolBar
 		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 16, 16);
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
+		panButton.setSelected(true);
 	}
 
 	/**
@@ -304,6 +308,7 @@ public class ToolBar extends JToolBar
 		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 13, 13);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
+		zoomButton.setSelected(true);
 	}
 
 	/**

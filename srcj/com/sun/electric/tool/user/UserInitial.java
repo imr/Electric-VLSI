@@ -143,24 +143,19 @@ public final class UserInitial
 			PortInst p1PortB = poly1PinB.getOnlyPortInst();
 			PortInst transPortR = transistor.findPortInst("p-trans-poly-right");
 			PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-right");
-			ArcInst metal2Arc = ArcInst.newInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port, null);
+			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port, null);
 			if (metal2Arc == null) return;
 			metal2Arc.setRigid();
-			ArcInst metal1Arc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port, null);
+			ArcInst metal1Arc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port, null);
 			if (metal1Arc == null) return;
-			metal1Arc.setFixedAngle();
-			ArcInst polyArc1 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB, null);
+			ArcInst polyArc1 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB, null);
 			if (polyArc1 == null) return;
-			polyArc1.setFixedAngle();
-			ArcInst polyArc3 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA, null);
+			ArcInst polyArc3 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA, null);
 			if (polyArc3 == null) return;
-			polyArc3.setFixedAngle();
-			ArcInst polyArc2 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA, null);
+			ArcInst polyArc2 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA, null);
 			if (polyArc2 == null) return;
-			polyArc2.setFixedAngle();
-			ArcInst polyArc4 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB, null);
+			ArcInst polyArc4 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB, null);
 			if (polyArc4 == null) return;
-			polyArc4.setFixedAngle();
 
 			// export the two pins
 			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
@@ -213,8 +208,7 @@ public final class UserInitial
 
 			PortInst instance1Port = instance1Node.findPortInst("in");
 			PortInst instance2Port = instance1UNode.findPortInst("in");
-			ArcInst instanceArc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port, null);
-			instanceArc.setFixedAngle();
+			ArcInst instanceArc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port, null);
 			System.out.println("Created cell " + higherCell.describe());
 
 

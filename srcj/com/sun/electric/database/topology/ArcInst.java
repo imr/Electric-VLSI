@@ -112,6 +112,61 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
+	 * Routine to create a new ArcInst with appropriate defaults, connecting two PortInsts.
+	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @param name the name of the new ArcInst
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
+	{
+		ArcInst ai = newInstance(type, width, head, tail, name);
+		if (ai != null)
+		{
+			// set default information from the prototype
+			if (type.isRigid()) ai.setRigid();
+			if (type.isFixedAngle()) ai.setFixedAngle();
+			if (type.isSlidable()) ai.setSlidable();
+			if (type.isExtended()) ai.setExtended();
+			if (type.isNegated()) ai.setNegated();
+			if (type.isDirectional()) ai.setDirectional();
+		}
+		return ai;
+	}
+
+	/**
+	 * Routine to create a new ArcInst with appropriate defaults, connecting two PortInsts at specified locations.
+	 * This is more general than the version that does not take coordinates.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param name the name of the new ArcInst
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst makeInstance(ArcProto type, double width,
+		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
+	{
+		ArcInst ai = newInstance(type, width, head, headPt, tail, tailPt, name);
+		if (ai != null)
+		{
+			// set default information from the prototype
+			if (type.isRigid()) ai.setRigid();
+			if (type.isFixedAngle()) ai.setFixedAngle();
+			if (type.isSlidable()) ai.setSlidable();
+			if (type.isExtended()) ai.setExtended();
+			if (type.isNegated()) ai.setNegated();
+			if (type.isDirectional()) ai.setDirectional();
+		}
+		return ai;
+	}
+
+	/**
 	 * Routine to create a new ArcInst connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.

@@ -66,6 +66,7 @@ class WiringListener
 	private Point2D startPoint;
 	private Geometric startObj;
 	private PortProto startPort;
+	private WiringPlan [] wpStartList;
 	private Point2D endPoint;
 	private Geometric endObj;
 	private PortProto endPort;
@@ -98,24 +99,30 @@ class WiringListener
 				startPort = high.getPort(); else
 					startPort = null;
 			doingWiringDrag = true;
-			return;
+		} else
+		{
+			// new selection: see if cursor is over anything
+			Highlight.findObject(startPoint, wnd, false, another, true, false, false);
+			if (Highlight.getNumHighlights() == 1)
+			{
+				// not over anything: bail
+				Highlight high = (Highlight)Highlight.getHighlights().next();
+				if (high.getType() == Highlight.Type.GEOM)
+				{
+					startObj = high.getGeom();
+					if (startObj instanceof NodeInst)
+						startPort = high.getPort(); else
+							startPort = null;
+					cellBeingWired = startObj.getParent();
+					doingWiringDrag = true;
+				}
+			}
 		}
 
-		// new selection: see if cursor is over anything
-		Highlight.findObject(startPoint, wnd, false, another, true, false, false);
-		if (Highlight.getNumHighlights() == 1)
+		if (doingWiringDrag)
 		{
-			// not over anything: bail
-			Highlight high = (Highlight)Highlight.getHighlights().next();
-			if (high.getType() == Highlight.Type.GEOM)
-			{
-				startObj = high.getGeom();
-				if (startObj instanceof NodeInst)
-					startPort = high.getPort(); else
-						startPort = null;
-				cellBeingWired = startObj.getParent();
-				doingWiringDrag = true;
-			}
+			wpStartList = WiringPlan.getClosestEnd(startObj, startPort, startPoint, startPoint);
+			if (wpStartList == null) doingWiringDrag = false;
 		}
 		wnd.repaint();
 	}
@@ -127,11 +134,9 @@ class WiringListener
 
 		EditWindow wnd = (EditWindow)evt.getSource();
 		getEndObject(evt.getX(), evt.getY(), wnd);
+		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endObj, endPort, endPoint, startPoint);
 
-		// if still over the initial object, stop
-		if (startObj == endObj && startPort == endPort) return;
-
-		WiringPlan [] curPath = WiringPlan.getWiringPlan(startPoint, startObj, startPort, endPoint, endObj, endPort);
+		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 
 		Highlight.clear();
@@ -177,11 +182,10 @@ class WiringListener
 		doingWiringDrag = false;
 
 		EditWindow wnd = (EditWindow)evt.getSource();
-		Cell cell = wnd.getCell();
-
-		// handle showing the intended wiring path during dragging
 		getEndObject(evt.getX(), evt.getY(), wnd);
-		WiringPlan [] curPath = WiringPlan.getWiringPlan(startPoint, startObj, startPort, endPoint, endObj, endPort);
+		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endObj, endPort, endPoint, startPoint);
+
+		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 		RealizeWiring job = new RealizeWiring(curPath, this);
 		wnd.redraw();
@@ -292,21 +296,31 @@ class WiringListener
 				}
 				if (wp.getType() == WiringListener.Type.ARCADD)
 				{
-					WiringPlan headWp = (WiringPlan)wp.getArcHeadObject();
-					WiringPlan tailWp = (WiringPlan)wp.getArcTailObject();
-					NodeInst headNi = (NodeInst)headWp.getNodeObject();
-					NodeInst tailNi = (NodeInst)tailWp.getNodeObject();
+					NodeInst headNi, tailNi;
+					Object headObj = wp.getArcHeadObject();
+					if (headObj instanceof NodeInst) headNi = (NodeInst)headObj; else
+						headNi = (NodeInst)((WiringPlan)headObj).getNodeObject();
 					PortInst headPi = headNi.findPortInstFromProto(wp.getArcHeadPortProto());
+
+					Object tailObj = wp.getArcTailObject();
+					if (tailObj instanceof NodeInst) tailNi = (NodeInst)tailObj; else
+						tailNi = (NodeInst)((WiringPlan)tailObj).getNodeObject();
 					PortInst tailPi = tailNi.findPortInstFromProto(wp.getArcTailPortProto());
+
 					ArcProto ap = wp.getArcType();
 					if (ap == null)
 					{
 						System.out.println("Arc proto null");
 						return;
 					}
-					ArcInst newAi = ArcInst.newInstance(ap, wp.getArcWidth(), headPi, tailPi, null);
+					ArcInst newAi = ArcInst.makeInstance(ap, wp.getArcWidth(), headPi, tailPi, null);
 					if (newAi == null) return;
 					arcsCreated++;
+				}
+				if (wp.getType() == WiringListener.Type.ARCDEL)
+				{
+					ArcInst ai = wp.getArc();
+					ai.kill();
 				}
 			}
 
@@ -340,11 +354,9 @@ class WiringListener
 		 */
 		public String toString() { return name; }
 
-		/** Describes a highlighted geometric. */		public static final Type NODEADD = new Type("add node");
-		/** Describes highlighted text. */				public static final Type ARCADD = new Type("add arc");
-		/** Describes a highlighted area. */			public static final Type NODEDEL = new Type("delete node");
-		/** Describes a highlighted line. */			public static final Type ARCDEL = new Type("delete arc");
-		/** Describes a highlighted line. */			public static final Type RECONNECT = new Type("add reconnect arc");
+		/** Describes an added node. */				public static final Type NODEADD = new Type("add node");
+		/** Describes an added arc. */				public static final Type ARCADD = new Type("add arc");
+		/** Describes a deleted arc. */				public static final Type ARCDEL = new Type("delete arc");
 	}
 
 	/**
@@ -360,6 +372,7 @@ class WiringListener
 		private double pinWidth, pinHeight;
 
 		private ArcProto arcType;
+		private ArcInst arc;
 		private Object arcHeadObj;
 		private PortProto arcHeadPort;
 		private Object arcTailObj;
@@ -379,6 +392,7 @@ class WiringListener
 		public double getNodeHeight() { return pinHeight; }
 
 		public ArcProto getArcType() { return arcType; }
+		public ArcInst getArc() { return arc; }
 		public Object getArcHeadObject() { return arcHeadObj; }
 		public PortProto getArcHeadPortProto() { return arcHeadPort; }
 		public Object getArcTailObject() { return arcTailObj; }
@@ -412,38 +426,90 @@ class WiringListener
 			return wp;
 		}
 
-		static WiringPlan getClosestEnd(Geometric startObj, PortProto startPort, Point2D startPoint)
+		static WiringPlan killArc(ArcInst ai)
 		{
-			if (startObj instanceof NodeInst)
+			WiringPlan wp = new WiringPlan();
+			wp.type = Type.ARCDEL;
+			wp.arc = ai;
+			return wp;
+		}
+
+		static WiringPlan [] getWiringPath(WiringPlan start, ArcProto startAp, WiringPlan end, ArcProto endAp)
+		{
+			Point2D startLoc = new Point2D.Double();
+			if (start.getNodeObject() == null) startLoc.setLocation(start.getNodeLocation()); else
+				startLoc.setLocation(figureCenter(start.getNodeObject(), start.getNodePort()));
+
+			Point2D endLoc = new Point2D.Double();
+			if (end.getNodeObject() == null) endLoc.setLocation(end.getNodeLocation()); else
+				endLoc.setLocation(figureCenter(end.getNodeObject(), end.getNodePort()));
+			if (EMath.doublesEqual(startLoc.getX(), endLoc.getX()) ||
+				EMath.doublesEqual(startLoc.getY(), endLoc.getY()))
 			{
-				NodeInst ni = (NodeInst)startObj;
-				if (startPort == null)
-				{
-					PortInst pi = ni.findClosestPortInst(startPoint);
-					startPort = pi.getPortProto();
-				}
-				return WiringPlan.makeNode(ni, ni.getProto(), startPort, ni.getCenter(), ni.getXSize(), ni.getYSize());
+				// they line up: make one arc
+				WiringPlan [] list = new WiringPlan[1];
+				list[0] = WiringPlan.makeArc(startAp, start, start.getNodePort(),
+					end, end.getNodePort(), startAp.getWidth());
+				return list;
 			}
-			if (startObj instanceof ArcInst)
+
+			// make one-bend
+			WiringPlan [] list = new WiringPlan[3];
+			Point2D intermediate = new Point2D.Double(start.getNodeLocation().getX(), end.getNodeLocation().getY());
+			PrimitiveNode np = ((PrimitiveArc)startAp).findPinProto();
+			PrimitivePort pp = (PrimitivePort)np.getPorts().next();
+			list[0] = WiringPlan.makeNode(null, np, pp, intermediate, np.getDefWidth(), np.getDefHeight());
+			list[1] = WiringPlan.makeArc(startAp, list[0], pp,
+				end, end.getNodePort(), startAp.getWidth());
+			list[2] = WiringPlan.makeArc(startAp, start, start.getNodePort(),
+				list[0], pp, startAp.getWidth());
+			return list;
+		}
+
+		/**
+		 * Routine to create a wiring plan for one end of the wiring route.
+		 */
+		static WiringPlan [] getClosestEnd(Geometric geom, PortProto port, Point2D point, Point2D startPoint)
+		{
+			if (geom instanceof NodeInst)
 			{
-				ArcInst ai = (ArcInst)startObj;
+				NodeInst ni = (NodeInst)geom;
+				if (port == null)
+				{
+					PortInst pi = ni.findClosestPortInst(point);
+					port = pi.getPortProto();
+				}
+				PortInst pi = ni.findPortInstFromProto(port);
+				Poly portPoly = pi.getPoly();
+				Point2D portCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
+				WiringPlan [] list = new WiringPlan[1];
+				list[0] = WiringPlan.makeNode(ni, ni.getProto(), port, portCenter, ni.getXSize(), ni.getYSize());
+				return list;
+			}
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
 
 				// if point is on the arc, it may be a "t" operation
 				Poly poly = ai.makePoly(ai.getXSize(), ai.getWidth(), Poly.Type.FILLED);
-				if (poly.isInside(startPoint))
+				if (poly.isInside(point))
 				{
 					// clicked on the arc
-					if (ai.getHead().getLocation().distance(startPoint) < ai.getWidth())
+					if (ai.getHead().getLocation().distance(point) < ai.getWidth())
 					{
 						PortInst pi = ai.getHead().getPortInst();
 						NodeInst ni = pi.getNodeInst();
-						return WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						WiringPlan [] list = new WiringPlan[1];
+						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						return list;
 					}
-					if (ai.getTail().getLocation().distance(startPoint) < ai.getWidth())
+					if (ai.getTail().getLocation().distance(point) < ai.getWidth())
 					{
 						PortInst pi = ai.getTail().getPortInst();
 						NodeInst ni = pi.getNodeInst();
-						return WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						WiringPlan [] list = new WiringPlan[1];
+						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						return list;
 					}
 
 					// splitting the arc in the middle
@@ -451,21 +517,29 @@ class WiringListener
 					PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 					Point2D center = EMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), startPoint);
 					EditWindow.gridAlign(center, 1);
-					return WiringPlan.makeNode(null, np, pp, center, np.getDefWidth(), np.getDefHeight());
+					WiringPlan [] list = new WiringPlan[4];
+					list[0] = WiringPlan.makeNode(null, np, pp, center, np.getDefWidth(), np.getDefHeight());
+					list[1] = WiringPlan.makeArc(ai.getProto(), ai.getHead().getPortInst().getNodeInst(),
+						ai.getHead().getPortInst().getPortProto(), list[0], pp, ai.getWidth());
+					list[2] = WiringPlan.makeArc(ai.getProto(), list[0], pp, ai.getTail().getPortInst().getNodeInst(),
+						ai.getTail().getPortInst().getPortProto(), ai.getWidth());
+					list[3] = WiringPlan.killArc(ai);
+					return list;
 				}
 
 				// pick the closer end
-				if (startPoint.distance(ai.getHead().getLocation()) < startPoint.distance(ai.getTail().getLocation()))
+				PortInst pi = null;
+				if (point.distance(ai.getHead().getLocation()) < point.distance(ai.getTail().getLocation()))
 				{
-					PortInst pi = ai.getHead().getPortInst();
-					NodeInst ni = pi.getNodeInst();
-					return WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+					pi = ai.getHead().getPortInst();
 				} else
 				{
-					PortInst pi = ai.getTail().getPortInst();
-					NodeInst ni = pi.getNodeInst();
-					return WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+					pi = ai.getTail().getPortInst();
 				}
+				NodeInst ni = pi.getNodeInst();
+				WiringPlan [] list = new WiringPlan[1];
+				list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+				return list;
 			}
 			return null;
 		}
@@ -497,19 +571,46 @@ class WiringListener
 			return null;
 		}
 
-		public static WiringPlan [] getWiringPlan(Point2D startPoint, Geometric startObj, PortProto startPort,
-			Point2D endPoint, Geometric endObj, PortProto endPort)
+		public static ArcProto getArcConnectedToPorts(PrimitivePort pp1, PrimitivePort pp2)
 		{
-			if (endObj == null)
+			// see if current arcproto works
+			ArcProto curAp = User.tool.getCurrentArcProto();
+			if (pp1.connectsTo(curAp) && pp2.connectsTo(curAp)) return curAp;
+
+			// find one that works if current doesn't
+			Technology tech = pp1.getParent().getTechnology();
+			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)it.next();
+				if (pp1.connectsTo(ap) && pp2.connectsTo(ap)) return ap;
+			}
+
+			// none in current technology: try any technology
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology anyTech = (Technology)it.next();
+				for(Iterator aIt = anyTech.getArcs(); aIt.hasNext(); )
+				{
+					PrimitiveArc ap = (PrimitiveArc)aIt.next();
+					if (pp1.connectsTo(ap) && pp2.connectsTo(ap)) return ap;
+				}
+			}
+			return null;
+		}
+
+		public static WiringPlan [] getWiringPlan(WiringPlan [] wpStartList,
+			WiringPlan [] wpEndList, Point2D endPt)
+		{
+			WiringPlan wpStart = wpStartList[0];
+			if (wpEndList == null)
 			{
 				// wiring out into space: check out the origin of the wire
-				WiringPlan wp = getClosestEnd(startObj, startPort, startPoint);
-				if (wp == null) return null;
+				WiringPlan wp = wpStartList[0];
 
 				NodeProto np = wp.getNodeType();
 				PrimitivePort pp = null;
-				if (startPort != null)
-					pp = startPort.getBasePort();
+				if (wp.getNodePort() != null)
+					pp = wp.getNodePort().getBasePort();
 				if (pp == null)
 					pp = ((PortProto)np.getPorts().next()).getBasePort();
 
@@ -521,17 +622,17 @@ class WiringListener
 				int angleInc = ((PrimitiveArc)useAp).getAngleIncrement();
 				if (angleInc == 0)
 				{
-					trueEnd.setLocation(endPoint);
+					trueEnd.setLocation(endPt);
 				} else
 				{
-					Point2D center = wp.getNodeLocation();
+					Point2D center = wpStart.getNodeLocation();
 					double bestDist = Double.MAX_VALUE;
 					for(int a=0; a<360; a += angleInc)
 					{
 						Point2D radialEnd = new Point2D.Double(center.getX() + Math.cos(a*Math.PI/180.0),
 							center.getY() + Math.sin(a*Math.PI/180.0));
-						Point2D closestToRadial = EMath.closestPointToLine(center, radialEnd, endPoint);
-						double thisDist = closestToRadial.distance(endPoint);
+						Point2D closestToRadial = EMath.closestPointToLine(center, radialEnd, endPt);
+						double thisDist = closestToRadial.distance(endPt);
 						if (thisDist < bestDist)
 						{
 							bestDist = thisDist;
@@ -545,16 +646,57 @@ class WiringListener
 				PrimitivePort pinPort = (PrimitivePort)pinType.getPorts().next();
 
 				// create the destination pin and run the wire
-				WiringPlan [] returnValue = new WiringPlan[3];
-				returnValue[0] = wp;
-				returnValue[1] = makeNode(null, pinType, pinPort, trueEnd, pinType.getDefWidth(), pinType.getDefHeight());
-				returnValue[2] = makeArc(useAp, returnValue[0], wp.getNodePort(),
-					returnValue[1], pinPort, useAp.getDefaultWidth());
+				WiringPlan [] returnValue = new WiringPlan[wpStartList.length + 2];
+				int i = 0;
+				for(int j=0; j<wpStartList.length; j++)
+					returnValue[i++] = wpStartList[j];
+				WiringPlan endNode = makeNode(null, pinType, pinPort, trueEnd, pinType.getDefWidth(), pinType.getDefHeight());
+				returnValue[i++] = endNode;
+				returnValue[i++] = makeArc(useAp, returnValue[0], wp.getNodePort(),
+					endNode, pinPort, useAp.getDefaultWidth());
 				return returnValue;
 			}
-			return null;
-		}
 
-		// connecting between two points
+			// ignore if wiring from an object to itself
+			WiringPlan wpEnd = wpEndList[0];
+			if (wpStart.getNodeObject() == wpEnd.getNodeObject() && wpStart.getNodeObject() != null &&
+				wpStart.getNodePort() == wpEnd.getNodePort()) return null;
+
+			// over another object: connect to it
+			NodeProto npStart = wpStart.getNodeType();
+			PrimitivePort ppStart = null;
+			if (wpStart.getNodePort() != null)
+				ppStart = wpStart.getNodePort().getBasePort();
+			if (ppStart == null)
+				ppStart = ((PortProto)npStart.getPorts().next()).getBasePort();
+
+			NodeProto npEnd = wpEnd.getNodeType();
+			PrimitivePort ppEnd = null;
+			if (wpEnd.getNodePort() != null)
+				ppEnd = wpEnd.getNodePort().getBasePort();
+			if (ppEnd == null)
+				ppEnd = ((PortProto)npEnd.getPorts().next()).getBasePort();
+
+			// determine the type of arc to run: see if default works
+			ArcProto useAp = getArcConnectedToPorts(ppStart, ppEnd);
+			if (useAp == null)
+			{
+				// no single arc can connect these: may need a contact
+				return null;
+			}
+
+			WiringPlan [] inbetween = getWiringPath(wpStartList[0], useAp, wpEndList[0], useAp);
+			if (inbetween == null) return null;
+
+			WiringPlan [] returnValue = new WiringPlan[wpStartList.length + inbetween.length + wpEndList.length];
+			int i=0;
+			for(int j=0; j<wpStartList.length; j++)
+				returnValue[i++] = wpStartList[j];
+			for(int j=0; j<wpEndList.length; j++)
+				returnValue[i++] = wpEndList[j];
+			for(int j=0; j<inbetween.length; j++)
+				returnValue[i++] = inbetween[j];
+			return returnValue;
+		}
 	}
 }

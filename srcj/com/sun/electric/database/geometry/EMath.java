@@ -71,7 +71,7 @@ public class EMath
 	 * <UL>
 	 * <LI>This routine does not throw an exception if the number is invalid (or blank).
 	 * </UL>
-	 * @param s the string with a number in it.
+	 * @param text the string with a number in it.
 	 * @return the numeric value.
 	 */
 	public static double atof(String text)

@@ -1089,7 +1089,17 @@ public class EditWindow extends JPanel
 	public void mouseWheelMoved(MouseWheelEvent evt) { curMouseWheelListener.mouseWheelMoved(evt); }
 
 	// the KeyListener events
-	public void keyPressed(KeyEvent evt) { curKeyListener.keyPressed(evt); }
+	public void keyPressed(KeyEvent evt)
+	{
+		int key = evt.getKeyCode();
+		if (key == KeyEvent.VK_W) ToolBar.wiringCommand(); else
+		if (key == KeyEvent.VK_M) ToolBar.selectCommand(); else
+		if (key == KeyEvent.VK_P) ToolBar.panCommand(); else
+		if (key == KeyEvent.VK_Z) ToolBar.zoomCommand(); else
+		{
+			curKeyListener.keyPressed(evt);
+		}
+	}
 	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
 	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
 

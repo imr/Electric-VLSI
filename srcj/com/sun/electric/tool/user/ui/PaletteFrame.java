@@ -78,6 +78,7 @@ import javax.swing.JDesktopPane;
 import javax.swing.JComboBox;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.event.PopupMenuListener;
 
 /**
  * This class defines a palette window for component selection.
@@ -491,6 +492,8 @@ public class PaletteFrame
 						menuItem.addActionListener(new PlacePopupListener(panel, cell));
 						cellMenu.add(menuItem);
 					}
+//					cellMenu.addMouseListener(new MyPopupListener());
+//					cellMenu.addPopupMenuListener(new MyPopupListener());
 					cellMenu.show(panel, e.getX(), e.getY());
 				} if (msg.equals("Spice"))
 				{
@@ -518,6 +521,18 @@ public class PaletteFrame
 			}
 			repaint();
 		}
+
+//		static class MyPopupListener implements PopupMenuListener, MouseListener
+//		{
+//			public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) { System.out.println("cancelled"); }
+//			public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {}
+//			public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
+//			public void mouseClicked(MouseEvent e) {}
+//			public void mouseEntered(MouseEvent e) {}
+//			public void mouseExited(MouseEvent e) {}
+//			public void mousePressed(MouseEvent e) {}
+//			public void mouseReleased(MouseEvent e) { System.out.println("Mouse released"); }
+//		}
 
 		/**
 		 * Class to read a Spice library in a new thread.

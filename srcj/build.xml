@@ -78,6 +78,9 @@
             <fileset dir=".">
                 <include name="**/*.class"/>
             </fileset>
+            <fileset dir="../srcjClasses">
+                <include name="**/*.class"/>
+            </fileset>
         </delete>
     <delete file="electric.jar"/>
         <delete dir="apidoc"/>

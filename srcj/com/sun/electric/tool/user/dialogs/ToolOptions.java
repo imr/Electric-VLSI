@@ -147,14 +147,18 @@ public class ToolOptions extends javax.swing.JDialog
 		// factory reset not working yet
 		factoryReset.setEnabled(false);
 
-		// initialize the SPICE Options panel
-		initSpice();
-
-		// initialize the Logical Effort Options panel
-		initLogicalEffort();
-
-		// initialize the Network Options panel
-		initNetwork();
+		initDRC();				// initialize the DRC Options panel
+		initDesignRules();		// initialize the Design Rules panel
+		initSpice();			// initialize the SPICE Options panel
+		initVerilog();			// initialize the Verilog Options panel
+		initFastHenry();		// initialize the Fast Henry Options panel
+		initWellCheck();		// initialize the Well Check Options panel
+		initAntennaRules();		// initialize the Antenna Rules Options panel
+		initNetwork();			// initialize the Network Options panel
+		initNCC();				// initialize the NCC Options panel
+		initLogicalEffort();	// initialize the Logical Effort Options panel
+		initRouting();			// initialize the Routing Options panel
+		initCompaction();		// initialize the Compaction Options panel
 	}
 
 	private void showLayersInTechnology(DefaultListModel model)
@@ -165,6 +169,48 @@ public class ToolOptions extends javax.swing.JDialog
 			Layer layer = (Layer)it.next();
 			model.addElement(layer.getName());
 		}
+	}
+
+	//******************************** DRC ********************************
+
+	private void initDRC()
+	{
+		drcIncrementalOn.setEnabled(false);
+		drcOneErrorPerCell.setEnabled(false);
+		drcClearValidDates.setEnabled(false);
+		drcUseMultipleProcessors.setEnabled(false);
+		drcNumberOfProcessors.setEditable(false);
+		drcIgnoreCenterCuts.setEnabled(false);		
+		drcEditRulesDeck.setEnabled(false);		
+	}
+
+	//******************************** DESIGN RULES ********************************
+
+	private void initDesignRules()
+	{
+		drLayers.setEnabled(false);
+		drNodes.setEnabled(false);
+		drFromList.setEnabled(false);
+		drToList.setEnabled(false);
+		drShowOnlyLinesWithRules.setEnabled(false);
+		drMinWidth.setEditable(false);
+		drMinWidthRule.setEditable(false);
+		drMinHeight.setEditable(false);
+		drNormalConnected.setEditable(false);
+		drNormalConnectedRule.setEditable(false);
+		drNormalUnconnected.setEditable(false);
+		drNormalUnconnectedRule.setEditable(false);
+		drNormalEdge.setEditable(false);
+		drNormalEdgeRule.setEditable(false);
+		drWideLimit.setEditable(false);
+		drWideConnected.setEditable(false);
+		drWideConnectedRule.setEditable(false);
+		drWideUnconnected.setEditable(false);
+		drWideUnconnectedRule.setEditable(false);
+		drMultiConnected.setEditable(false);
+		drMultiConnectedRule.setEditable(false);
+		drMultiUnconnected.setEditable(false);
+		drMultiUnconnectedRule.setEditable(false);
 	}
 
 	//******************************** SPICE ********************************
@@ -465,6 +511,156 @@ public class ToolOptions extends javax.swing.JDialog
 		public void removeUpdate(DocumentEvent e) { change(e); }
 	}
 
+	//******************************** VERILOG ********************************
+
+	private void initVerilog()
+	{
+		verLibrary.setEnabled(false);
+		verCells.setEnabled(false);
+		verUseAssign.setEnabled(false);
+		verDefWireTrireg.setEnabled(false);
+		verDeriveModel.setEnabled(false);
+		verUseModelFile.setEnabled(false);
+		verBrowse.setEnabled(false);
+		verFileName.setEditable(false);
+	}
+
+	//******************************** FAST HENRY ********************************
+
+	private void initFastHenry()
+	{
+		fhUseSingleFrequency.setEnabled(false);
+		fhMakeMultipole.setEnabled(false);
+		fhFrequencyStart.setEditable(false);
+		fhFrequencyEnd.setEditable(false);
+		fhRunsPerDecade.setEditable(false);
+		fhNumberOfPoles.setEditable(false);
+		fhDefaultThickness.setEditable(false);
+		fhDefaultWidthSubs.setEditable(false);
+		fhDefaultHeightSubs.setEditable(false);
+		fhMaxSegmentLength.setEditable(false);
+		fhMakePostScript.setEnabled(false);
+		fhMakeSpice.setEnabled(false);
+		fhAfterAction.setEnabled(false);
+	}
+
+	//******************************** WELL CHECK ********************************
+
+	private void initWellCheck()
+	{
+		wellPMustHaveAllContacts.setEnabled(false);
+		wellPMustHave1Contact.setEnabled(false);
+		wellPNoContactCheck.setEnabled(false);
+		wellNMustHaveAllContacts.setEnabled(false);
+		wellNMustHave1Contact.setEnabled(false);
+		wellNNoContactCheck.setEnabled(false);
+		wellPMustConnectGround.setEnabled(false);
+		wellNMustConnectPower.setEnabled(false);
+		wellFindFarthestDistance.setEnabled(false);
+	}
+
+	//******************************** ANTENNA RULES ********************************
+
+	private void initAntennaRules()
+	{
+		antTechnology.setEnabled(false);
+		antArcList.setEnabled(false);
+		antMaxRatio.setEditable(false);
+	}
+
+	//******************************** NETWORK ********************************
+
+	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
+	private String netUnificationPrefixInitial;
+	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
+
+	private void initNetwork()
+	{
+		netUnifyPwrGndInitial = JNetwork.isUnifyPowerAndGround();
+		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
+
+		netUnifyLikeNamedNetsInitial = JNetwork.isUnifyLikeNamedNets();
+		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
+
+		netIgnoreResistorsInitial = JNetwork.isIgnoreResistors();
+		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
+
+		netUnificationPrefixInitial = JNetwork.getUnificationPrefix();
+		netUnificationPrefix.setText(netUnificationPrefixInitial);
+
+		netBusBaseZeroInitial = JNetwork.isBusBaseZero();
+		netStartingIndex.addItem("0");
+		netStartingIndex.addItem("1");
+		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
+
+		netBusAscendingInitial = JNetwork.isBusAscending();
+		if (netBusAscendingInitial) netAscending.setSelected(true); else
+			netDescending.setSelected(true);
+	}
+
+	private void termNetwork()
+	{
+		boolean nowBoolean = netUnifyPwrGnd.isSelected();
+		if (netUnifyPwrGndInitial != nowBoolean) JNetwork.setUnifyPowerAndGround(nowBoolean);
+
+		nowBoolean = netUnifyLikeNamedNets.isSelected();
+		if (netUnifyLikeNamedNetsInitial != nowBoolean) JNetwork.setUnifyLikeNamedNets(nowBoolean);
+
+		nowBoolean = netIgnoreResistors.isSelected();
+		if (netIgnoreResistorsInitial != nowBoolean) JNetwork.setIgnoreResistors(nowBoolean);
+
+		String nowString = netUnificationPrefix.getText();
+		if (!netUnificationPrefixInitial.equals(nowString)) JNetwork.setUnificationPrefix(nowString);
+
+		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
+		if (netBusBaseZeroInitial != nowBoolean) JNetwork.setBusBaseZero(nowBoolean);
+
+		nowBoolean = netAscending.isSelected();
+		if (netBusAscendingInitial != nowBoolean) JNetwork.setBusAscending(nowBoolean);
+	}
+
+	//******************************** NCC ********************************
+
+	private void initNCC()
+	{
+		nccFirstCell.setEditable(false);
+		nccSetFirstCell.setEnabled(false);
+		nccNextFirstCell.setEnabled(false);
+		nccSecondCell.setEditable(false);
+		nccSetSecondCell.setEnabled(false);
+		nccNextSecondCell.setEnabled(false);
+		nccExpandHierarchy.setEnabled(false);
+		nccExpandHierarchyYes.setEnabled(false);
+		nccExpandHierarchyNo.setEnabled(false);
+		nccExpandHierarchyDefault.setEnabled(false);
+		nccMergeParallel.setEnabled(false);
+		nccMergeParallelYes.setEnabled(false);
+		nccMergeParallelNo.setEnabled(false);
+		nccMergeParallelDefault.setEnabled(false);
+		nccMergeSeries.setEnabled(false);
+		nccMergeSeriesYes.setEnabled(false);
+		nccMergeSeriesNo.setEnabled(false);
+		nccMergeSeriesDefault.setEnabled(false);
+		nccClearDatesThisLibrary.setEnabled(false);
+		nccClearDatesAllLibraries.setEnabled(false);
+		nccIgnorePwrGnd.setEnabled(false);
+		nccCheckExportNames.setEnabled(false);
+		nccCheckComponentSizes.setEnabled(false);
+		nccSizeTolerancePct.setEditable(false);
+		nccSizeToleranceAmt.setEditable(false);
+		nccAllowNoCompNets.setEnabled(false);
+		nccRecurse.setEnabled(false);
+		nccAutomaticResistorExclusion.setEnabled(false);
+		nccDebuggingOptions.setEnabled(false);
+		nccShowMatchTags.setEnabled(false);
+		nccLibraryPopup.setEnabled(false);
+		nccCellList.setEnabled(false);
+		nccListForcedMatches.setEnabled(false);
+		nccRemoveForcedMatches.setEnabled(false);
+		nccListOverrides.setEnabled(false);
+		nccRemoveOverrides.setEnabled(false);
+	}
+
 	//******************************** LOGICAL EFFORT ********************************
 
 	private JList leArcList;
@@ -646,55 +842,26 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 	}
 
-	//******************************** NETWORK ********************************
+	//******************************** ROUTING ********************************
 
-	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
-	private String netUnificationPrefixInitial;
-	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
-
-	private void initNetwork()
+	private void initRouting()
 	{
-		netUnifyPwrGndInitial = JNetwork.isUnifyPowerAndGround();
-		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
-
-		netUnifyLikeNamedNetsInitial = JNetwork.isUnifyLikeNamedNets();
-		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
-
-		netIgnoreResistorsInitial = JNetwork.isIgnoreResistors();
-		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
-
-		netUnificationPrefixInitial = JNetwork.getUnificationPrefix();
-		netUnificationPrefix.setText(netUnificationPrefixInitial);
-
-		netBusBaseZeroInitial = JNetwork.isBusBaseZero();
-		netStartingIndex.addItem("0");
-		netStartingIndex.addItem("1");
-		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
-
-		netBusAscendingInitial = JNetwork.isBusAscending();
-		if (netBusAscendingInitial) netAscending.setSelected(true); else
-			netDescending.setSelected(true);
+		routDefaultArc.setEnabled(false);
+		routMimicCanUnstitch.setEnabled(false);
+		routMimicPortsMustMatch.setEnabled(false);
+		routMimicNumArcsMustMatch.setEnabled(false);
+		routMimicNodeSizesMustMatch.setEnabled(false);
+		routMimicNodeTypesMustMatch.setEnabled(false);
+		routMimicNoOtherArcs.setEnabled(false);
+		routMimicInteractive.setEnabled(false);
 	}
 
-	private void termNetwork()
+	//******************************** COMPACTION ********************************
+
+	private void initCompaction()
 	{
-		boolean nowBoolean = netUnifyPwrGnd.isSelected();
-		if (netUnifyPwrGndInitial != nowBoolean) JNetwork.setUnifyPowerAndGround(nowBoolean);
-
-		nowBoolean = netUnifyLikeNamedNets.isSelected();
-		if (netUnifyLikeNamedNetsInitial != nowBoolean) JNetwork.setUnifyLikeNamedNets(nowBoolean);
-
-		nowBoolean = netIgnoreResistors.isSelected();
-		if (netIgnoreResistorsInitial != nowBoolean) JNetwork.setIgnoreResistors(nowBoolean);
-
-		String nowString = netUnificationPrefix.getText();
-		if (!netUnificationPrefixInitial.equals(nowString)) JNetwork.setUnificationPrefix(nowString);
-
-		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
-		if (netBusBaseZeroInitial != nowBoolean) JNetwork.setBusBaseZero(nowBoolean);
-
-		nowBoolean = netAscending.isSelected();
-		if (netBusAscendingInitial != nowBoolean) JNetwork.setBusAscending(nowBoolean);
+		compAllowSpreading.setEnabled(false);
+		compVerbose.setEnabled(false);
 	}
 
 	/** This method is called from within the constructor to
@@ -714,34 +881,34 @@ public class ToolOptions extends javax.swing.JDialog
         tabs = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
         jLabel30 = new javax.swing.JLabel();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        drcIncrementalOn = new javax.swing.JCheckBox();
         jSeparator6 = new javax.swing.JSeparator();
         jLabel31 = new javax.swing.JLabel();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jButton1 = new javax.swing.JButton();
+        drcOneErrorPerCell = new javax.swing.JCheckBox();
+        drcClearValidDates = new javax.swing.JButton();
         jSeparator7 = new javax.swing.JSeparator();
         jLabel32 = new javax.swing.JLabel();
-        jCheckBox3 = new javax.swing.JCheckBox();
+        drcUseMultipleProcessors = new javax.swing.JCheckBox();
         jLabel33 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jCheckBox4 = new javax.swing.JCheckBox();
+        drcNumberOfProcessors = new javax.swing.JTextField();
+        drcIgnoreCenterCuts = new javax.swing.JCheckBox();
         jSeparator8 = new javax.swing.JSeparator();
         jLabel34 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        drcRules = new javax.swing.JPanel();
+        drcEditRulesDeck = new javax.swing.JButton();
+        designRules = new javax.swing.JPanel();
         jLabel35 = new javax.swing.JLabel();
         jLabel36 = new javax.swing.JLabel();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        drLayers = new javax.swing.JRadioButton();
+        drNodes = new javax.swing.JRadioButton();
+        drFromList = new javax.swing.JScrollPane();
         jLabel37 = new javax.swing.JLabel();
-        jCheckBox5 = new javax.swing.JCheckBox();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        drShowOnlyLinesWithRules = new javax.swing.JCheckBox();
+        drToList = new javax.swing.JScrollPane();
         jLabel38 = new javax.swing.JLabel();
         jLabel39 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
+        drMinWidth = new javax.swing.JTextField();
+        drMinWidthRule = new javax.swing.JTextField();
+        drMinHeight = new javax.swing.JTextField();
         jLabel40 = new javax.swing.JLabel();
         jLabel41 = new javax.swing.JLabel();
         jLabel42 = new javax.swing.JLabel();
@@ -756,21 +923,21 @@ public class ToolOptions extends javax.swing.JDialog
         jLabel51 = new javax.swing.JLabel();
         jLabel52 = new javax.swing.JLabel();
         jLabel53 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jTextField6 = new javax.swing.JTextField();
-        jTextField7 = new javax.swing.JTextField();
-        jTextField8 = new javax.swing.JTextField();
-        jTextField9 = new javax.swing.JTextField();
-        jTextField10 = new javax.swing.JTextField();
-        jTextField11 = new javax.swing.JTextField();
-        jTextField12 = new javax.swing.JTextField();
-        jTextField13 = new javax.swing.JTextField();
-        jTextField14 = new javax.swing.JTextField();
-        jTextField15 = new javax.swing.JTextField();
-        jTextField16 = new javax.swing.JTextField();
-        jTextField17 = new javax.swing.JTextField();
-        jTextField18 = new javax.swing.JTextField();
-        jTextField19 = new javax.swing.JTextField();
+        drNormalConnected = new javax.swing.JTextField();
+        drNormalConnectedRule = new javax.swing.JTextField();
+        drNormalUnconnected = new javax.swing.JTextField();
+        drNormalUnconnectedRule = new javax.swing.JTextField();
+        drNormalEdge = new javax.swing.JTextField();
+        drNormalEdgeRule = new javax.swing.JTextField();
+        drWideLimit = new javax.swing.JTextField();
+        drWideConnected = new javax.swing.JTextField();
+        drWideConnectedRule = new javax.swing.JTextField();
+        drWideUnconnected = new javax.swing.JTextField();
+        drWideUnconnectedRule = new javax.swing.JTextField();
+        drMultiConnected = new javax.swing.JTextField();
+        drMultiConnectedRule = new javax.swing.JTextField();
+        drMultiUnconnected = new javax.swing.JTextField();
+        drMultiUnconnectedRule = new javax.swing.JTextField();
         spice = new javax.swing.JPanel();
         spice1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -881,7 +1048,7 @@ public class ToolOptions extends javax.swing.JDialog
         antTechnology = new javax.swing.JLabel();
         antArcList = new javax.swing.JScrollPane();
         jLabel68 = new javax.swing.JLabel();
-        jTextField20 = new javax.swing.JTextField();
+        antMaxRatio = new javax.swing.JTextField();
         network = new javax.swing.JPanel();
         netUnifyPwrGnd = new javax.swing.JCheckBox();
         netUnifyLikeNamedNets = new javax.swing.JCheckBox();
@@ -900,50 +1067,50 @@ public class ToolOptions extends javax.swing.JDialog
         jPanel1 = new javax.swing.JPanel();
         jLabel71 = new javax.swing.JLabel();
         jLabel72 = new javax.swing.JLabel();
-        jTextField21 = new javax.swing.JTextField();
-        jTextField22 = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        nccFirstCell = new javax.swing.JTextField();
+        nccSecondCell = new javax.swing.JTextField();
+        nccSetFirstCell = new javax.swing.JButton();
+        nccSetSecondCell = new javax.swing.JButton();
+        nccNextFirstCell = new javax.swing.JButton();
+        nccNextSecondCell = new javax.swing.JButton();
         jLabel73 = new javax.swing.JLabel();
         jSeparator10 = new javax.swing.JSeparator();
         jPanel2 = new javax.swing.JPanel();
         jLabel74 = new javax.swing.JLabel();
-        jCheckBox6 = new javax.swing.JCheckBox();
-        jCheckBox7 = new javax.swing.JCheckBox();
-        jCheckBox8 = new javax.swing.JCheckBox();
-        jButton7 = new javax.swing.JButton();
-        jButton8 = new javax.swing.JButton();
-        jCheckBox9 = new javax.swing.JCheckBox();
-        jCheckBox10 = new javax.swing.JCheckBox();
-        jCheckBox11 = new javax.swing.JCheckBox();
+        nccExpandHierarchy = new javax.swing.JCheckBox();
+        nccMergeParallel = new javax.swing.JCheckBox();
+        nccMergeSeries = new javax.swing.JCheckBox();
+        nccClearDatesThisLibrary = new javax.swing.JButton();
+        nccClearDatesAllLibraries = new javax.swing.JButton();
+        nccIgnorePwrGnd = new javax.swing.JCheckBox();
+        nccCheckExportNames = new javax.swing.JCheckBox();
+        nccCheckComponentSizes = new javax.swing.JCheckBox();
         jLabel75 = new javax.swing.JLabel();
         jLabel76 = new javax.swing.JLabel();
-        jTextField23 = new javax.swing.JTextField();
-        jTextField24 = new javax.swing.JTextField();
-        jCheckBox12 = new javax.swing.JCheckBox();
-        jCheckBox13 = new javax.swing.JCheckBox();
-        jCheckBox14 = new javax.swing.JCheckBox();
-        jButton9 = new javax.swing.JButton();
-        jCheckBox15 = new javax.swing.JCheckBox();
+        nccSizeTolerancePct = new javax.swing.JTextField();
+        nccSizeToleranceAmt = new javax.swing.JTextField();
+        nccAllowNoCompNets = new javax.swing.JCheckBox();
+        nccRecurse = new javax.swing.JCheckBox();
+        nccAutomaticResistorExclusion = new javax.swing.JCheckBox();
+        nccDebuggingOptions = new javax.swing.JButton();
+        nccShowMatchTags = new javax.swing.JCheckBox();
         jSeparator9 = new javax.swing.JSeparator();
         jLabel77 = new javax.swing.JLabel();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jRadioButton4 = new javax.swing.JRadioButton();
-        jRadioButton5 = new javax.swing.JRadioButton();
-        jRadioButton6 = new javax.swing.JRadioButton();
-        jRadioButton7 = new javax.swing.JRadioButton();
-        jRadioButton8 = new javax.swing.JRadioButton();
-        jRadioButton9 = new javax.swing.JRadioButton();
-        jRadioButton10 = new javax.swing.JRadioButton();
-        jRadioButton11 = new javax.swing.JRadioButton();
-        jComboBox1 = new javax.swing.JComboBox();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jButton10 = new javax.swing.JButton();
-        jButton11 = new javax.swing.JButton();
-        jButton12 = new javax.swing.JButton();
-        jButton13 = new javax.swing.JButton();
+        nccExpandHierarchyYes = new javax.swing.JRadioButton();
+        nccExpandHierarchyNo = new javax.swing.JRadioButton();
+        nccExpandHierarchyDefault = new javax.swing.JRadioButton();
+        nccMergeParallelYes = new javax.swing.JRadioButton();
+        nccMergeParallelNo = new javax.swing.JRadioButton();
+        nccMergeParallelDefault = new javax.swing.JRadioButton();
+        nccMergeSeriesYes = new javax.swing.JRadioButton();
+        nccMergeSeriesNo = new javax.swing.JRadioButton();
+        nccMergeSeriesDefault = new javax.swing.JRadioButton();
+        nccLibraryPopup = new javax.swing.JComboBox();
+        nccCellList = new javax.swing.JScrollPane();
+        nccListForcedMatches = new javax.swing.JButton();
+        nccRemoveForcedMatches = new javax.swing.JButton();
+        nccListOverrides = new javax.swing.JButton();
+        nccRemoveOverrides = new javax.swing.JButton();
         logicalEffort = new javax.swing.JPanel();
         leArc = new javax.swing.JScrollPane();
         jLabel4 = new javax.swing.JLabel();
@@ -1010,14 +1177,14 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         drc.add(jLabel30, gridBagConstraints);
 
-        jCheckBox1.setText("On");
+        drcIncrementalOn.setText("On");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jCheckBox1, gridBagConstraints);
+        drc.add(drcIncrementalOn, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1035,23 +1202,23 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         drc.add(jLabel31, gridBagConstraints);
 
-        jCheckBox2.setText("Just 1 error per cell");
+        drcOneErrorPerCell.setText("Just 1 error per cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jCheckBox2, gridBagConstraints);
+        drc.add(drcOneErrorPerCell, gridBagConstraints);
 
-        jButton1.setText("Clear valid DRC dates");
+        drcClearValidDates.setText("Clear valid DRC dates");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jButton1, gridBagConstraints);
+        drc.add(drcClearValidDates, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1069,14 +1236,14 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         drc.add(jLabel32, gridBagConstraints);
 
-        jCheckBox3.setText("Use multiple processors");
+        drcUseMultipleProcessors.setText("Use multiple processors");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jCheckBox3, gridBagConstraints);
+        drc.add(drcUseMultipleProcessors, gridBagConstraints);
 
         jLabel33.setText("Number of processors:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1086,20 +1253,20 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         drc.add(jLabel33, gridBagConstraints);
 
-        jTextField1.setColumns(6);
+        drcNumberOfProcessors.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 9;
-        drc.add(jTextField1, gridBagConstraints);
+        drc.add(drcNumberOfProcessors, gridBagConstraints);
 
-        jCheckBox4.setText("Ignore center cuts in large contacts");
+        drcIgnoreCenterCuts.setText("Ignore center cuts in large contacts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jCheckBox4, gridBagConstraints);
+        drc.add(drcIgnoreCenterCuts, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1117,18 +1284,18 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         drc.add(jLabel34, gridBagConstraints);
 
-        jButton2.setText("Edit Rules Deck");
+        drcEditRulesDeck.setText("Edit Rules Deck");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jButton2, gridBagConstraints);
+        drc.add(drcEditRulesDeck, gridBagConstraints);
 
         tabs.addTab("DRC", drc);
 
-        drcRules.setLayout(new java.awt.GridBagLayout());
+        designRules.setLayout(new java.awt.GridBagLayout());
 
         jLabel35.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1136,7 +1303,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel35, gridBagConstraints);
+        designRules.add(jLabel35, gridBagConstraints);
 
         jLabel36.setText("mocmos");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1144,48 +1311,48 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        drcRules.add(jLabel36, gridBagConstraints);
+        designRules.add(jLabel36, gridBagConstraints);
 
-        jRadioButton1.setText("Layers:");
+        drLayers.setText("Layers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jRadioButton1, gridBagConstraints);
+        designRules.add(drLayers, gridBagConstraints);
 
-        jRadioButton2.setText("Nodes:");
+        drNodes.setText("Nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jRadioButton2, gridBagConstraints);
+        designRules.add(drNodes, gridBagConstraints);
 
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(100, 100));
+        drFromList.setPreferredSize(new java.awt.Dimension(100, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weighty = 0.5;
-        drcRules.add(jScrollPane1, gridBagConstraints);
+        designRules.add(drFromList, gridBagConstraints);
 
         jLabel37.setText("To Layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        drcRules.add(jLabel37, gridBagConstraints);
+        designRules.add(jLabel37, gridBagConstraints);
 
-        jCheckBox5.setText("Show only lines with rules");
+        drShowOnlyLinesWithRules.setText("Show only lines with rules");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        drcRules.add(jCheckBox5, gridBagConstraints);
+        designRules.add(drShowOnlyLinesWithRules, gridBagConstraints);
 
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(200, 200));
+        drToList.setPreferredSize(new java.awt.Dimension(200, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -1194,54 +1361,54 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.5;
-        drcRules.add(jScrollPane2, gridBagConstraints);
+        designRules.add(drToList, gridBagConstraints);
 
         jLabel38.setText("Minimum Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        drcRules.add(jLabel38, gridBagConstraints);
+        designRules.add(jLabel38, gridBagConstraints);
 
         jLabel39.setText("Minimum Height:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        drcRules.add(jLabel39, gridBagConstraints);
+        designRules.add(jLabel39, gridBagConstraints);
 
-        jTextField2.setColumns(6);
+        drMinWidth.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField2, gridBagConstraints);
+        designRules.add(drMinWidth, gridBagConstraints);
 
-        jTextField3.setColumns(6);
+        drMinWidthRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField3, gridBagConstraints);
+        designRules.add(drMinWidthRule, gridBagConstraints);
 
-        jTextField4.setColumns(6);
+        drMinHeight.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField4, gridBagConstraints);
+        designRules.add(drMinHeight, gridBagConstraints);
 
         jLabel40.setText("Size");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        drcRules.add(jLabel40, gridBagConstraints);
+        designRules.add(jLabel40, gridBagConstraints);
 
         jLabel41.setText("Rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        drcRules.add(jLabel41, gridBagConstraints);
+        designRules.add(jLabel41, gridBagConstraints);
 
         jLabel42.setText("Normal:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1249,21 +1416,21 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel42, gridBagConstraints);
+        designRules.add(jLabel42, gridBagConstraints);
 
         jLabel43.setText("Distance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel43, gridBagConstraints);
+        designRules.add(jLabel43, gridBagConstraints);
 
         jLabel44.setText("Rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel44, gridBagConstraints);
+        designRules.add(jLabel44, gridBagConstraints);
 
         jLabel45.setText("When connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1271,7 +1438,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel45, gridBagConstraints);
+        designRules.add(jLabel45, gridBagConstraints);
 
         jLabel46.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1279,7 +1446,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel46, gridBagConstraints);
+        designRules.add(jLabel46, gridBagConstraints);
 
         jLabel47.setText("Edge:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1287,7 +1454,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel47, gridBagConstraints);
+        designRules.add(jLabel47, gridBagConstraints);
 
         jLabel48.setText("Wide (when bigger than this):");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1296,7 +1463,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel48, gridBagConstraints);
+        designRules.add(jLabel48, gridBagConstraints);
 
         jLabel49.setText("When connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1304,7 +1471,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel49, gridBagConstraints);
+        designRules.add(jLabel49, gridBagConstraints);
 
         jLabel50.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1312,7 +1479,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel50, gridBagConstraints);
+        designRules.add(jLabel50, gridBagConstraints);
 
         jLabel51.setText("Multiple cuts:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1320,7 +1487,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drcRules.add(jLabel51, gridBagConstraints);
+        designRules.add(jLabel51, gridBagConstraints);
 
         jLabel52.setText("When connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1328,7 +1495,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel52, gridBagConstraints);
+        designRules.add(jLabel52, gridBagConstraints);
 
         jLabel53.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1336,42 +1503,42 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
-        drcRules.add(jLabel53, gridBagConstraints);
+        designRules.add(jLabel53, gridBagConstraints);
 
-        jTextField5.setColumns(6);
+        drNormalConnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField5, gridBagConstraints);
+        designRules.add(drNormalConnected, gridBagConstraints);
 
-        jTextField6.setColumns(6);
+        drNormalConnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField6, gridBagConstraints);
+        designRules.add(drNormalConnectedRule, gridBagConstraints);
 
-        jTextField7.setColumns(6);
+        drNormalUnconnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField7, gridBagConstraints);
+        designRules.add(drNormalUnconnected, gridBagConstraints);
 
-        jTextField8.setColumns(6);
+        drNormalUnconnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField8, gridBagConstraints);
+        designRules.add(drNormalUnconnectedRule, gridBagConstraints);
 
-        jTextField9.setColumns(6);
-        jTextField9.addActionListener(new java.awt.event.ActionListener()
+        drNormalEdge.setColumns(6);
+        drNormalEdge.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                jTextField9ActionPerformed(evt);
+                drNormalEdgeActionPerformed(evt);
             }
         });
 
@@ -1379,79 +1546,79 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField9, gridBagConstraints);
+        designRules.add(drNormalEdge, gridBagConstraints);
 
-        jTextField10.setColumns(6);
+        drNormalEdgeRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField10, gridBagConstraints);
+        designRules.add(drNormalEdgeRule, gridBagConstraints);
 
-        jTextField11.setColumns(6);
+        drWideLimit.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField11, gridBagConstraints);
+        designRules.add(drWideLimit, gridBagConstraints);
 
-        jTextField12.setColumns(6);
+        drWideConnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField12, gridBagConstraints);
+        designRules.add(drWideConnected, gridBagConstraints);
 
-        jTextField13.setColumns(6);
+        drWideConnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField13, gridBagConstraints);
+        designRules.add(drWideConnectedRule, gridBagConstraints);
 
-        jTextField14.setColumns(6);
+        drWideUnconnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField14, gridBagConstraints);
+        designRules.add(drWideUnconnected, gridBagConstraints);
 
-        jTextField15.setColumns(6);
+        drWideUnconnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField15, gridBagConstraints);
+        designRules.add(drWideUnconnectedRule, gridBagConstraints);
 
-        jTextField16.setColumns(6);
+        drMultiConnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField16, gridBagConstraints);
+        designRules.add(drMultiConnected, gridBagConstraints);
 
-        jTextField17.setColumns(6);
+        drMultiConnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField17, gridBagConstraints);
+        designRules.add(drMultiConnectedRule, gridBagConstraints);
 
-        jTextField18.setColumns(6);
+        drMultiUnconnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField18, gridBagConstraints);
+        designRules.add(drMultiUnconnected, gridBagConstraints);
 
-        jTextField19.setColumns(6);
+        drMultiUnconnectedRule.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        drcRules.add(jTextField19, gridBagConstraints);
+        designRules.add(drMultiUnconnectedRule, gridBagConstraints);
 
-        tabs.addTab("Design Rules", drcRules);
+        tabs.addTab("Design Rules", designRules);
 
         spice.setLayout(new java.awt.GridBagLayout());
 
@@ -2372,13 +2539,13 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         antennaRules.add(jLabel68, gridBagConstraints);
 
-        jTextField20.setColumns(8);
+        antMaxRatio.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        antennaRules.add(jTextField20, gridBagConstraints);
+        antennaRules.add(antMaxRatio, gridBagConstraints);
 
         tabs.addTab("Antenna Rules", antennaRules);
 
@@ -2532,38 +2699,38 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jTextField21, gridBagConstraints);
+        jPanel1.add(nccFirstCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jTextField22, gridBagConstraints);
+        jPanel1.add(nccSecondCell, gridBagConstraints);
 
-        jButton3.setText("Set");
+        nccSetFirstCell.setText("Set");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        jPanel1.add(jButton3, gridBagConstraints);
+        jPanel1.add(nccSetFirstCell, gridBagConstraints);
 
-        jButton4.setText("Set");
+        nccSetSecondCell.setText("Set");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        jPanel1.add(jButton4, gridBagConstraints);
+        jPanel1.add(nccSetSecondCell, gridBagConstraints);
 
-        jButton5.setText("Next");
+        nccNextFirstCell.setText("Next");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        jPanel1.add(jButton5, gridBagConstraints);
+        jPanel1.add(nccNextFirstCell, gridBagConstraints);
 
-        jButton6.setText("Next");
+        nccNextSecondCell.setText("Next");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        jPanel1.add(jButton6, gridBagConstraints);
+        jPanel1.add(nccNextSecondCell, gridBagConstraints);
 
         jLabel73.setText("!!! WARNING: These cells are not on the screen !!!");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2593,69 +2760,69 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         jPanel2.add(jLabel74, gridBagConstraints);
 
-        jCheckBox6.setText("Expand hierarchy");
+        nccExpandHierarchy.setText("Expand hierarchy");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox6, gridBagConstraints);
+        jPanel2.add(nccExpandHierarchy, gridBagConstraints);
 
-        jCheckBox7.setText("Merge parallel components");
+        nccMergeParallel.setText("Merge parallel components");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jCheckBox7, gridBagConstraints);
+        jPanel2.add(nccMergeParallel, gridBagConstraints);
 
-        jCheckBox8.setText("Merge series transistors");
+        nccMergeSeries.setText("Merge series transistors");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox8, gridBagConstraints);
+        jPanel2.add(nccMergeSeries, gridBagConstraints);
 
-        jButton7.setText("Clear NCC dates this library");
+        nccClearDatesThisLibrary.setText("Clear NCC dates this library");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(jButton7, gridBagConstraints);
+        jPanel2.add(nccClearDatesThisLibrary, gridBagConstraints);
 
-        jButton8.setText("Clear NCC dates all libraries");
+        nccClearDatesAllLibraries.setText("Clear NCC dates all libraries");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(jButton8, gridBagConstraints);
+        jPanel2.add(nccClearDatesAllLibraries, gridBagConstraints);
 
-        jCheckBox9.setText("Ignore power and ground");
+        nccIgnorePwrGnd.setText("Ignore power and ground");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox9, gridBagConstraints);
+        jPanel2.add(nccIgnorePwrGnd, gridBagConstraints);
 
-        jCheckBox10.setText("Check export names");
+        nccCheckExportNames.setText("Check export names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox10, gridBagConstraints);
+        jPanel2.add(nccCheckExportNames, gridBagConstraints);
 
-        jCheckBox11.setText("Check component sizes");
+        nccCheckComponentSizes.setText("Check component sizes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox11, gridBagConstraints);
+        jPanel2.add(nccCheckComponentSizes, gridBagConstraints);
 
         jLabel75.setText("Size tolerance (%):");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2673,58 +2840,58 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         jPanel2.add(jLabel76, gridBagConstraints);
 
-        jTextField23.setColumns(6);
+        nccSizeTolerancePct.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(jTextField23, gridBagConstraints);
+        jPanel2.add(nccSizeTolerancePct, gridBagConstraints);
 
-        jTextField24.setColumns(6);
+        nccSizeToleranceAmt.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(jTextField24, gridBagConstraints);
+        jPanel2.add(nccSizeToleranceAmt, gridBagConstraints);
 
-        jCheckBox12.setText("Allow no-component nets");
+        nccAllowNoCompNets.setText("Allow no-component nets");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox12, gridBagConstraints);
+        jPanel2.add(nccAllowNoCompNets, gridBagConstraints);
 
-        jCheckBox13.setText("Recurse through hierarchy");
+        nccRecurse.setText("Recurse through hierarchy");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox13, gridBagConstraints);
+        jPanel2.add(nccRecurse, gridBagConstraints);
 
-        jCheckBox14.setText("Automatic Resistor Exclusion");
+        nccAutomaticResistorExclusion.setText("Automatic Resistor Exclusion");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(jCheckBox14, gridBagConstraints);
+        jPanel2.add(nccAutomaticResistorExclusion, gridBagConstraints);
 
-        jButton9.setText("NCC Debugging options...");
+        nccDebuggingOptions.setText("NCC Debugging options...");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 2;
-        jPanel2.add(jButton9, gridBagConstraints);
+        jPanel2.add(nccDebuggingOptions, gridBagConstraints);
 
-        jCheckBox15.setText("Show 'NCCMatch' tags");
+        nccShowMatchTags.setText("Show 'NCCMatch' tags");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 16;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jCheckBox15, gridBagConstraints);
+        jPanel2.add(nccShowMatchTags, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -2742,75 +2909,75 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(jLabel77, gridBagConstraints);
 
-        jRadioButton3.setText("Yes");
+        nccExpandHierarchyYes.setText("Yes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton3, gridBagConstraints);
+        jPanel2.add(nccExpandHierarchyYes, gridBagConstraints);
 
-        jRadioButton4.setText("No");
+        nccExpandHierarchyNo.setText("No");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton4, gridBagConstraints);
+        jPanel2.add(nccExpandHierarchyNo, gridBagConstraints);
 
-        jRadioButton5.setText("Default");
+        nccExpandHierarchyDefault.setText("Default");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton5, gridBagConstraints);
+        jPanel2.add(nccExpandHierarchyDefault, gridBagConstraints);
 
-        jRadioButton6.setText("Yes");
+        nccMergeParallelYes.setText("Yes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton6, gridBagConstraints);
+        jPanel2.add(nccMergeParallelYes, gridBagConstraints);
 
-        jRadioButton7.setText("No");
+        nccMergeParallelNo.setText("No");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton7, gridBagConstraints);
+        jPanel2.add(nccMergeParallelNo, gridBagConstraints);
 
-        jRadioButton8.setText("Default");
+        nccMergeParallelDefault.setText("Default");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton8, gridBagConstraints);
+        jPanel2.add(nccMergeParallelDefault, gridBagConstraints);
 
-        jRadioButton9.setText("Yes");
+        nccMergeSeriesYes.setText("Yes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton9, gridBagConstraints);
+        jPanel2.add(nccMergeSeriesYes, gridBagConstraints);
 
-        jRadioButton10.setText("No");
+        nccMergeSeriesNo.setText("No");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton10, gridBagConstraints);
+        jPanel2.add(nccMergeSeriesNo, gridBagConstraints);
 
-        jRadioButton11.setText("Default");
+        nccMergeSeriesDefault.setText("Default");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jRadioButton11, gridBagConstraints);
+        jPanel2.add(nccMergeSeriesDefault, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jComboBox1, gridBagConstraints);
+        jPanel2.add(nccLibraryPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -2820,35 +2987,35 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel2.add(jScrollPane3, gridBagConstraints);
+        jPanel2.add(nccCellList, gridBagConstraints);
 
-        jButton10.setText("List all forced matches");
+        nccListForcedMatches.setText("List all forced matches");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 16;
         gridBagConstraints.gridwidth = 3;
-        jPanel2.add(jButton10, gridBagConstraints);
+        jPanel2.add(nccListForcedMatches, gridBagConstraints);
 
-        jButton11.setText("Remove all forced matches");
+        nccRemoveForcedMatches.setText("Remove all forced matches");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 17;
         gridBagConstraints.gridwidth = 3;
-        jPanel2.add(jButton11, gridBagConstraints);
+        jPanel2.add(nccRemoveForcedMatches, gridBagConstraints);
 
-        jButton12.setText("List all overrides");
+        nccListOverrides.setText("List all overrides");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 3;
-        jPanel2.add(jButton12, gridBagConstraints);
+        jPanel2.add(nccListOverrides, gridBagConstraints);
 
-        jButton13.setText("Remove all overrides");
+        nccRemoveOverrides.setText("Remove all overrides");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 3;
-        jPanel2.add(jButton13, gridBagConstraints);
+        jPanel2.add(nccRemoveOverrides, gridBagConstraints);
 
         ncc.add(jPanel2, java.awt.BorderLayout.CENTER);
 
@@ -3218,10 +3385,10 @@ public class ToolOptions extends javax.swing.JDialog
 		// Add your handling code here:
 	}//GEN-LAST:event_wellFindFarthestDistanceActionPerformed
 
-	private void jTextField9ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jTextField9ActionPerformed
-	{//GEN-HEADEREND:event_jTextField9ActionPerformed
+	private void drNormalEdgeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_drNormalEdgeActionPerformed
+	{//GEN-HEADEREND:event_drNormalEdgeActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_jTextField9ActionPerformed
+	}//GEN-LAST:event_drNormalEdgeActionPerformed
 
 	private void netAscendingActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_netAscendingActionPerformed
 	{//GEN-HEADEREND:event_netAscendingActionPerformed
@@ -3287,14 +3454,45 @@ public class ToolOptions extends javax.swing.JDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane antArcList;
+    private javax.swing.JTextField antMaxRatio;
     private javax.swing.JLabel antTechnology;
     private javax.swing.JPanel antennaRules;
     private javax.swing.JButton cancel;
     private javax.swing.JCheckBox compAllowSpreading;
     private javax.swing.JCheckBox compVerbose;
     private javax.swing.JPanel compaction;
+    private javax.swing.JPanel designRules;
+    private javax.swing.JScrollPane drFromList;
+    private javax.swing.JRadioButton drLayers;
+    private javax.swing.JTextField drMinHeight;
+    private javax.swing.JTextField drMinWidth;
+    private javax.swing.JTextField drMinWidthRule;
+    private javax.swing.JTextField drMultiConnected;
+    private javax.swing.JTextField drMultiConnectedRule;
+    private javax.swing.JTextField drMultiUnconnected;
+    private javax.swing.JTextField drMultiUnconnectedRule;
+    private javax.swing.JRadioButton drNodes;
+    private javax.swing.JTextField drNormalConnected;
+    private javax.swing.JTextField drNormalConnectedRule;
+    private javax.swing.JTextField drNormalEdge;
+    private javax.swing.JTextField drNormalEdgeRule;
+    private javax.swing.JTextField drNormalUnconnected;
+    private javax.swing.JTextField drNormalUnconnectedRule;
+    private javax.swing.JCheckBox drShowOnlyLinesWithRules;
+    private javax.swing.JScrollPane drToList;
+    private javax.swing.JTextField drWideConnected;
+    private javax.swing.JTextField drWideConnectedRule;
+    private javax.swing.JTextField drWideLimit;
+    private javax.swing.JTextField drWideUnconnected;
+    private javax.swing.JTextField drWideUnconnectedRule;
     private javax.swing.JPanel drc;
-    private javax.swing.JPanel drcRules;
+    private javax.swing.JButton drcClearValidDates;
+    private javax.swing.JButton drcEditRulesDeck;
+    private javax.swing.JCheckBox drcIgnoreCenterCuts;
+    private javax.swing.JCheckBox drcIncrementalOn;
+    private javax.swing.JTextField drcNumberOfProcessors;
+    private javax.swing.JCheckBox drcOneErrorPerCell;
+    private javax.swing.JCheckBox drcUseMultipleProcessors;
     private javax.swing.JButton factoryReset;
     private javax.swing.JPanel fastHenry;
     private javax.swing.JComboBox fhAfterAction;
@@ -3310,35 +3508,6 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JTextField fhNumberOfPoles;
     private javax.swing.JTextField fhRunsPerDecade;
     private javax.swing.JCheckBox fhUseSingleFrequency;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton11;
-    private javax.swing.JButton jButton12;
-    private javax.swing.JButton jButton13;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
-    private javax.swing.JButton jButton7;
-    private javax.swing.JButton jButton8;
-    private javax.swing.JButton jButton9;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox10;
-    private javax.swing.JCheckBox jCheckBox11;
-    private javax.swing.JCheckBox jCheckBox12;
-    private javax.swing.JCheckBox jCheckBox13;
-    private javax.swing.JCheckBox jCheckBox14;
-    private javax.swing.JCheckBox jCheckBox15;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JCheckBox jCheckBox3;
-    private javax.swing.JCheckBox jCheckBox4;
-    private javax.swing.JCheckBox jCheckBox5;
-    private javax.swing.JCheckBox jCheckBox6;
-    private javax.swing.JCheckBox jCheckBox7;
-    private javax.swing.JCheckBox jCheckBox8;
-    private javax.swing.JCheckBox jCheckBox9;
-    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -3417,20 +3586,6 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton10;
-    private javax.swing.JRadioButton jRadioButton11;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JRadioButton jRadioButton4;
-    private javax.swing.JRadioButton jRadioButton5;
-    private javax.swing.JRadioButton jRadioButton6;
-    private javax.swing.JRadioButton jRadioButton7;
-    private javax.swing.JRadioButton jRadioButton8;
-    private javax.swing.JRadioButton jRadioButton9;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator10;
     private javax.swing.JSeparator jSeparator2;
@@ -3441,30 +3596,6 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JSeparator jSeparator7;
     private javax.swing.JSeparator jSeparator8;
     private javax.swing.JSeparator jSeparator9;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    private javax.swing.JTextField jTextField12;
-    private javax.swing.JTextField jTextField13;
-    private javax.swing.JTextField jTextField14;
-    private javax.swing.JTextField jTextField15;
-    private javax.swing.JTextField jTextField16;
-    private javax.swing.JTextField jTextField17;
-    private javax.swing.JTextField jTextField18;
-    private javax.swing.JTextField jTextField19;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField20;
-    private javax.swing.JTextField jTextField21;
-    private javax.swing.JTextField jTextField22;
-    private javax.swing.JTextField jTextField23;
-    private javax.swing.JTextField jTextField24;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
-    private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextField jTextField9;
     private javax.swing.JScrollPane leArc;
     private javax.swing.JTextField leConvergence;
     private javax.swing.JTextField leDefaultWireCapRatio;
@@ -3480,6 +3611,42 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JTextField leWireRatio;
     private javax.swing.JPanel logicalEffort;
     private javax.swing.JPanel ncc;
+    private javax.swing.JCheckBox nccAllowNoCompNets;
+    private javax.swing.JCheckBox nccAutomaticResistorExclusion;
+    private javax.swing.JScrollPane nccCellList;
+    private javax.swing.JCheckBox nccCheckComponentSizes;
+    private javax.swing.JCheckBox nccCheckExportNames;
+    private javax.swing.JButton nccClearDatesAllLibraries;
+    private javax.swing.JButton nccClearDatesThisLibrary;
+    private javax.swing.JButton nccDebuggingOptions;
+    private javax.swing.JCheckBox nccExpandHierarchy;
+    private javax.swing.JRadioButton nccExpandHierarchyDefault;
+    private javax.swing.JRadioButton nccExpandHierarchyNo;
+    private javax.swing.JRadioButton nccExpandHierarchyYes;
+    private javax.swing.JTextField nccFirstCell;
+    private javax.swing.JCheckBox nccIgnorePwrGnd;
+    private javax.swing.JComboBox nccLibraryPopup;
+    private javax.swing.JButton nccListForcedMatches;
+    private javax.swing.JButton nccListOverrides;
+    private javax.swing.JCheckBox nccMergeParallel;
+    private javax.swing.JRadioButton nccMergeParallelDefault;
+    private javax.swing.JRadioButton nccMergeParallelNo;
+    private javax.swing.JRadioButton nccMergeParallelYes;
+    private javax.swing.JCheckBox nccMergeSeries;
+    private javax.swing.JRadioButton nccMergeSeriesDefault;
+    private javax.swing.JRadioButton nccMergeSeriesNo;
+    private javax.swing.JRadioButton nccMergeSeriesYes;
+    private javax.swing.JButton nccNextFirstCell;
+    private javax.swing.JButton nccNextSecondCell;
+    private javax.swing.JCheckBox nccRecurse;
+    private javax.swing.JButton nccRemoveForcedMatches;
+    private javax.swing.JButton nccRemoveOverrides;
+    private javax.swing.JTextField nccSecondCell;
+    private javax.swing.JButton nccSetFirstCell;
+    private javax.swing.JButton nccSetSecondCell;
+    private javax.swing.JCheckBox nccShowMatchTags;
+    private javax.swing.JTextField nccSizeToleranceAmt;
+    private javax.swing.JTextField nccSizeTolerancePct;
     private javax.swing.JRadioButton netAscending;
     private javax.swing.ButtonGroup netDefaultOrder;
     private javax.swing.JRadioButton netDescending;

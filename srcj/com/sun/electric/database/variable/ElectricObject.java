@@ -266,7 +266,6 @@ public class ElectricObject
 	/**
 	 * Routine to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
-	 * @param uniqueNames true to change node and arc names to be unique.
 	 */
 	public void copyVars(ElectricObject other)
 	{

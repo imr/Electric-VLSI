@@ -45,7 +45,7 @@ public class LayoutLib {
 	/**
 	 * Print a message, dump a stack trace, and throw a RuntimeException if 
 	 * predicate is true.
-	 * @param if <code>pred</code> is true an error has occurred.
+	 * @param <code>pred</code> if true an error has occurred.
 	 * @param msg the message to print when an error occurs. 
 	 */
 	public static void error(boolean pred, String msg) {
@@ -164,8 +164,7 @@ public class LayoutLib {
 	}
 
 	/** Return a list of ArcInsts attached to this PortInst.
-	 * @param pi PortInst on which to find attached ArcInsts.
-	 * @param list of ArcInsts. */
+	 * @param pi PortInst on which to find attached ArcInsts. */
 	public static Iterator getArcInstsOnPortInst(PortInst pi) {
 		ArrayList arcs = new ArrayList();
 		NodeInst ni = pi.getNodeInst();

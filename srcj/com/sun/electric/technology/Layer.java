@@ -389,7 +389,7 @@ public class Layer
 	/**
 	 * Routine to set the capacitance for this Layer.
 	 * Also saves this information in the permanent options.
-	 * @param resistance the new capacitance for this Layer.
+	 * @param capacitance the new capacitance for this Layer.
 	 */
 	public void setCapacitance(double capacitance)
 	{
@@ -414,7 +414,7 @@ public class Layer
 	/**
 	 * Routine to set the edge capacitance for this Layer.
 	 * Also saves this information in the permanent options.
-	 * @param resistance the new edge capacitance for this Layer.
+	 * @param edgeCapacitance the new edge capacitance for this Layer.
 	 */
 	public void setEdgeCapacitance(double edgeCapacitance)
 	{
