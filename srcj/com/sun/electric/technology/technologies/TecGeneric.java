@@ -31,6 +31,9 @@ public class TecGeneric extends Technology
 	public PrimitiveNode drc_node;
 	public PrimitiveNode essentialBounds_node;
 	public PrimitiveNode simProbe_node;
+	public PrimitiveArc universal_arc;
+	public PrimitiveArc invisible_arc;
+	public PrimitiveArc unrouted_arc;
 
 	// -------------------- private and protected methods ------------------------
 	private TecGeneric()
@@ -81,7 +84,7 @@ public class TecGeneric extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** Universal arc */
-		PrimitiveArc universal_arc = PrimitiveArc.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
+		universal_arc = PrimitiveArc.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(universal_lay, 0, Poly.Type.FILLED)
 		});
@@ -90,7 +93,7 @@ public class TecGeneric extends Technology
 		universal_arc.setAngleIncrement(45);
 
 		/** Invisible arc */
-		PrimitiveArc invisible_arc = PrimitiveArc.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
+		invisible_arc = PrimitiveArc.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(invisible_lay, 0, Poly.Type.FILLED)
 		});
@@ -99,7 +102,7 @@ public class TecGeneric extends Technology
 		invisible_arc.setAngleIncrement(45);
 
 		/** Unrouted arc */
-		PrimitiveArc unrouted_arc = PrimitiveArc.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
+		unrouted_arc = PrimitiveArc.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
 		});

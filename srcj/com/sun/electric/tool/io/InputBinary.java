@@ -35,7 +35,7 @@ import java.nio.ByteOrder;
 import java.awt.geom.Rectangle2D;
 
 
-public class BinaryIn extends Input
+public class InputBinary extends Input
 {
 	// ------------------------- private data ----------------------------
 	/** the magic number in the library file */								private int magic;
@@ -145,7 +145,7 @@ public class BinaryIn extends Input
 	/** older magic number: version 2 */		private static final int MAGIC2 =  -1575;
 	/** oldest magic number: version 1 */		private static final int MAGIC1 =  -1573;
 
-	BinaryIn()
+	InputBinary()
 	{
 	}
 
@@ -176,7 +176,7 @@ public class BinaryIn extends Input
 
 		// read the magic number and determine whether bytes are swapped
 		if (readHeader()) return true;
-		
+
 		// get count of objects in the file
 		toolCount = readBigInteger();
 		techCount = readBigInteger();
@@ -800,7 +800,7 @@ public class BinaryIn extends Input
 		{
 			Cell cell = nodeProtoList[i];
 			if (cell != null) continue;
-			readExternalNodeProto(lib, i);
+			if (readExternalNodeProto(lib, i)) return true;
 		}
 
 		// now that external cells are resolved, fix all variables that may have used them
@@ -1013,9 +1013,12 @@ public class BinaryIn extends Input
 			Export pp = portProtoList[i];
 			NodeInst subNodeInst = portProtoSubNodeList[i];
 			PortProto subPortProto = portProtoSubPortList[i];
-			String exportName = portProtoNameList[i];
-			
+
+			// null entries happen when there are external cell references
+			if (subNodeInst == null || subPortProto == null) continue;
+
 			// convert portproto to portinst
+			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
 			if (!pp.lowLevelPopulate(cell, subNodeInst, pi, exportName))
 			{
@@ -1282,7 +1285,7 @@ public class BinaryIn extends Input
 	}
 
 	/** routine to read node prototype for external references */
-	void readExternalNodeProto(Library lib, int cellIndex)
+	boolean readExternalNodeProto(Library lib, int cellIndex)
 		throws IOException
 	{
 		// read the cell information (version 9 and later)
@@ -1362,7 +1365,7 @@ public class BinaryIn extends Input
 //				if (pt != 0) filename = pt;
 			}
 			elib = Library.newInstance(libName, externalFile);
-			if (elib == null) return;
+			if (elib == null) return true;
 
 			// read the external library
 //			if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
@@ -1539,8 +1542,12 @@ public class BinaryIn extends Input
 					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
 			}
 			portProtoList[portProtoCount] = pp;
+			portProtoNameList[portProtoCount] = protoName;
+//			portProtoSubNodeList[portProtoCount] = protoName;
+//			portProtoSubPortList[portProtoCount] = protoName;
 			portProtoCount++;
 		}
+		return false;
 	}
 
 	/**
@@ -1761,42 +1768,42 @@ public class BinaryIn extends Input
 
 	// --------------------------------- VARIABLES ---------------------------------
 
-	private static final int VUNKNOWN=                   0;		/** undefined variable */
-	private static final int VINTEGER=                  01;		/** 32-bit integer variable */
-	private static final int VADDRESS=                  02;		/** unsigned address */
-	private static final int VCHAR=                     03;		/** character variable */
-	private static final int VSTRING=                   04;		/** string variable */
-	private static final int VFLOAT=                    05;		/** floating point variable */
-	private static final int VDOUBLE=                   06;		/** double-precision floating point */
-	private static final int VNODEINST=                 07;		/** nodeinst pointer */
-	private static final int VNODEPROTO=               010;		/** nodeproto pointer */
-	private static final int VPORTARCINST=             011;		/** portarcinst pointer */
-	private static final int VPORTEXPINST=             012;		/** portexpinst pointer */
-	private static final int VPORTPROTO=               013;		/** portproto pointer */
-	private static final int VARCINST=                 014;		/** arcinst pointer */
-	private static final int VARCPROTO=                015;		/** arcproto pointer */
-	private static final int VGEOM=                    016;		/** geometry pointer */
-	private static final int VLIBRARY=                 017;		/** library pointer */
-	private static final int VTECHNOLOGY=              020;		/** technology pointer */
-	private static final int VTOOL=                    021;		/** tool pointer */
-	private static final int VRTNODE=                  022;		/** R-tree pointer */
-	private static final int VFRACT=                   023;		/** fractional integer (scaled by WHOLE) */
-	private static final int VNETWORK=                 024;		/** network pointer */
-	private static final int VVIEW=                    026;		/** view pointer */
-	private static final int VWINDOWPART=              027;		/** window partition pointer */
-	private static final int VGRAPHICS=                030;		/** graphics object pointer */
-	private static final int VSHORT=                   031;		/** 16-bit integer */
-	private static final int VCONSTRAINT=              032;		/** constraint solver */
-	private static final int VGENERAL=                 033;		/** general address/type pairs (used only in fixed-length arrays) */
-	private static final int VWINDOWFRAME=             034;		/** window frame pointer */
-	private static final int VPOLYGON=                 035;		/** polygon pointer */
-	private static final int VBOOLEAN=                 036;		/** boolean variable */
-	private static final int VTYPE=                    037;		/** all above type fields */
-	private static final int VCODE1=                   040;		/** variable is interpreted code (with VCODE2) */
-	private static final int VDISPLAY=                0100;		/** display variable (uses textdescript field) */
-	private static final int VISARRAY=                0200;		/** set if variable is array of above objects */
-	private static final int VLENGTH=          03777777000;		/** array length (0: array is -1 terminated) */
-	private static final int VCODE2=           04000000000;		/** variable is interpreted code (with VCODE1) */
+	private static final int VUNKNOWN =                  0;		/** undefined variable */
+	private static final int VINTEGER =                 01;		/** 32-bit integer variable */
+	private static final int VADDRESS =                 02;		/** unsigned address */
+	private static final int VCHAR =                    03;		/** character variable */
+	private static final int VSTRING =                  04;		/** string variable */
+	private static final int VFLOAT =                   05;		/** floating point variable */
+	private static final int VDOUBLE =                  06;		/** double-precision floating point */
+	private static final int VNODEINST =                07;		/** nodeinst pointer */
+	private static final int VNODEPROTO =              010;		/** nodeproto pointer */
+	private static final int VPORTARCINST =            011;		/** portarcinst pointer */
+	private static final int VPORTEXPINST =            012;		/** portexpinst pointer */
+	private static final int VPORTPROTO =              013;		/** portproto pointer */
+	private static final int VARCINST =                014;		/** arcinst pointer */
+	private static final int VARCPROTO =               015;		/** arcproto pointer */
+	private static final int VGEOM =                   016;		/** geometry pointer */
+	private static final int VLIBRARY =                017;		/** library pointer */
+	private static final int VTECHNOLOGY =             020;		/** technology pointer */
+	private static final int VTOOL =                   021;		/** tool pointer */
+	private static final int VRTNODE =                 022;		/** R-tree pointer */
+	private static final int VFRACT =                  023;		/** fractional integer (scaled by WHOLE) */
+	private static final int VNETWORK =                024;		/** network pointer */
+	private static final int VVIEW =                   026;		/** view pointer */
+	private static final int VWINDOWPART =             027;		/** window partition pointer */
+	private static final int VGRAPHICS =               030;		/** graphics object pointer */
+	private static final int VSHORT =                  031;		/** 16-bit integer */
+	private static final int VCONSTRAINT =             032;		/** constraint solver */
+	private static final int VGENERAL =                033;		/** general address/type pairs (used only in fixed-length arrays) */
+	private static final int VWINDOWFRAME =            034;		/** window frame pointer */
+	private static final int VPOLYGON =                035;		/** polygon pointer */
+	private static final int VBOOLEAN =                036;		/** boolean variable */
+	private static final int VTYPE =                   037;		/** all above type fields */
+	private static final int VCODE1 =                  040;		/** variable is interpreted code (with VCODE2) */
+	private static final int VDISPLAY =               0100;		/** display variable (uses textdescript field) */
+	private static final int VISARRAY =               0200;		/** set if variable is array of above objects */
+	private static final int VLENGTH =         03777777000;		/** array length (0: array is -1 terminated) */
+	private static final int VCODE2 =          04000000000;		/** variable is interpreted code (with VCODE1) */
 
 	/**
 	 * routine to read the global namespace.  returns true upon error
@@ -2334,9 +2341,6 @@ public class BinaryIn extends Input
 		}
 	}
 
-	/** used to swap bytes and adjust when disk size differs from memory size */
-	private static byte [] swapBuf = new byte[128];
-
 	/**
 	 * routine to read a number of bytes from the input stream and return it.
 	 */
@@ -2352,31 +2356,31 @@ public class BinaryIn extends Input
 		} else
 		{
 			// not a simple read, use a buffer
-			int ret = dataInputStream.read(swapBuf, 0, diskSize);
+			int ret = dataInputStream.read(rawData, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
 			if (diskSize == memorySize)
 			{
-				for(int i=0; i<memorySize; i++) data[i] = swapBuf[i];
+				for(int i=0; i<memorySize; i++) data[i] = rawData[i];
 			} else
 			{
 				if (diskSize > memorySize)
 				{
 					// trouble! disk has more bits than memory.  check for clipping
-					for(int i=0; i<memorySize; i++) data[i] = swapBuf[i];
+					for(int i=0; i<memorySize; i++) data[i] = rawData[i];
 					for(int i=memorySize; i<diskSize; i++)
-						if (swapBuf[i] != 0 && swapBuf[i] != 0xFF)
+						if (rawData[i] != 0 && rawData[i] != 0xFF)
 							clippedIntegers++;
 				} else
 				{
 					// disk has smaller integer
-					if (!signExtend || (swapBuf[diskSize-1] & 0x80) == 0)
+					if (!signExtend || (rawData[diskSize-1] & 0x80) == 0)
 					{
-						for(int i=diskSize; i<memorySize; i++) swapBuf[i] = 0;
+						for(int i=diskSize; i<memorySize; i++) rawData[i] = 0;
 					} else
 					{
-						for(int i=diskSize; i<memorySize; i++) swapBuf[i] = (byte)0xFF;
+						for(int i=diskSize; i<memorySize; i++) rawData[i] = (byte)0xFF;
 					}
-					for(int i=0; i<memorySize; i++) data[i] = swapBuf[i];
+					for(int i=0; i<memorySize; i++) data[i] = rawData[i];
 				}
 			}
 		}

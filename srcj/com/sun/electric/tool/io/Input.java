@@ -57,7 +57,19 @@ public class Input
 		Input in;
 
 		if (type == ImportType.BINARY)
-			in = (Input)new BinaryIn(); else
+		{
+			in = (Input)new InputBinary();
+		} else if (type == ImportType.TEXT)
+		{
+//			in = (Input)new InputText();
+			
+			// no text reader yet, see if an elib can be found
+			if (fileName.endsWith(".txt"))
+			{
+				fileName = fileName.substring(0, fileName.length()-4) + ".elib";
+			}
+			in = (Input)new InputBinary();
+		} else
 		{
 			System.out.println("Unknown import type");
 			return null;

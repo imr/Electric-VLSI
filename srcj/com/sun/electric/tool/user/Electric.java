@@ -62,7 +62,7 @@ public final class Electric
 		
 		
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Technology.setCurrent(TecGeneric.tech);
+		Technology.setCurrent(TecGeneric.tech);		// must be called first
 		Technology.setCurrent(TecSchematics.tech);
 		Technology.setCurrent(TecArtwork.tech);
 		Technology.setCurrent(TecCMOS.tech);
