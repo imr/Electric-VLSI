@@ -1206,7 +1206,7 @@ public class User extends Listener
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
     /**************************** 3D Display Preferences **************************************/
-	private static Pref cache3DPerspective = Pref.makeBooleanPref("Perspective3D", User.tool.prefs, true);
+	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw 3D views with perspective.
 	 * The default is "true".
@@ -1219,7 +1219,7 @@ public class User extends Listener
 	 */
 	public static void set3DPerspective(boolean on) { cache3DPerspective.setBoolean(on); }
 
-    private static Pref cache3DAntialiasing = Pref.makeBooleanPref("Antialiasing3D", User.tool.prefs, false);
+    private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.tool.prefs, false);
 	/**
 	 * Method to tell whether to use antialiasing in 3D view.
 	 * The default is "false" due to performance.
@@ -1232,7 +1232,7 @@ public class User extends Listener
 	 */
 	public static void set3DAntialiasing(boolean on) { cache3DAntialiasing.setBoolean(on); }
     
-    private static Pref cache3DFactor = Pref.makeDoublePref("Scale3D", User.tool.prefs, 1.0);
+    private static Pref cache3DFactor = Pref.makeDoublePref("3DScaleZ", User.tool.prefs, 1.0);
 	/**
 	 * Method to get current scale factor for Z values.
 	 * The default is 1.0
@@ -1245,7 +1245,7 @@ public class User extends Listener
 	 */
 	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
 
-    private static Pref cache3DRotX = Pref.makeDoublePref("RotX3D", User.tool.prefs, 0);
+    private static Pref cache3DRotX = Pref.makeDoublePref("3DRotX", User.tool.prefs, 0);
 	/**
 	 * Method to get default rotation along X value for the view
 	 * The default is 0 and values are in radiant
@@ -1258,7 +1258,7 @@ public class User extends Listener
 	 */
 	public static void set3DRotX(double value) { cache3DRotX.setDouble(value); }
 
-    private static Pref cache3DRotY = Pref.makeDoublePref("RotY3D", User.tool.prefs, 0);
+    private static Pref cache3DRotY = Pref.makeDoublePref("3DRotY", User.tool.prefs, 0);
 	/**
 	 * Method to get default rotation along Y value for the view
 	 * The default is 0 and values are in radiant
@@ -1271,7 +1271,7 @@ public class User extends Listener
 	 */
 	public static void set3DRotY(double value) { cache3DRotY.setDouble(value); }
 
-    private static Pref cache3DOrigZoom= Pref.makeDoublePref("RotY3D", User.tool.prefs, 1);
+    private static Pref cache3DOrigZoom = Pref.makeDoublePref("3DOrigZoom3D", User.tool.prefs, 1);
 	/**
 	 * Method to get original zoom factor for the view
 	 * The default is 1
