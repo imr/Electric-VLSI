@@ -26,6 +26,9 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -155,7 +158,7 @@ public abstract class InteractiveRouter extends Router {
         RouteElementPort startRE = RouteElementPort.existingPortInst(startPort, poly);
         Route route = new Route();
         route.add(startRE); route.setStart(startRE);
-        route.setEnd(startRE);
+        //route.setEnd(startRE);
 
         PrimitiveNode pn = ((PrimitiveArc)arc).findOverridablePinProto();
         PortProto pp = pn.getPort(0);
@@ -169,9 +172,33 @@ public abstract class InteractiveRouter extends Router {
         // they will correctly show up if this job is undone.
         Highlight.clear();
         Highlight.setHighlightList(startRouteHighlights);
-        createRoute(route, startPort.getNodeInst().getParent());
+        MakeVerticalRouteJob job = new MakeVerticalRouteJob(this, route, startPort.getNodeInst().getParent(), true);
         started = false;
         return true;
+    }
+
+    public static class MakeVerticalRouteJob extends Router.CreateRouteJob {
+        protected MakeVerticalRouteJob(Router router, Route route, Cell cell, boolean verbose) {
+            super(router, route, cell, false);
+        }
+
+        /** Implemented doIt() method to perform Job */
+        public boolean doIt() {
+            if (!super.doIt()) return false;
+
+            RouteElementPort startRE = route.getStart();
+            if (startRE.getAction() == RouteElement.RouteElementAction.existingPortInst) {
+                // if this is a pin, replace it with the first contact in vertical route
+                PortInst pi = startRE.getPortInst();
+                NodeInst ni = pi.getNodeInst();
+                if (ni.getProto().getFunction() == NodeProto.Function.PIN) {
+                    CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
+                    if (re != null) re.reconnectArcs();
+                    ni.kill();
+                }
+            }
+            return true;
+       }
     }
 
     // -------------------------- Highlight Route Methods -------------------------

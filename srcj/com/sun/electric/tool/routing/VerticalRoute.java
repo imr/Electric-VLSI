@@ -241,6 +241,11 @@ public class VerticalRoute {
                         endLoc, location, null);
                 route.add(arc2);
             }
+        } else {
+            if (route.getEnd() == null) {
+                // both endRE and end of route are null, use end of vertical route
+                route.setEnd(vertRoute.getEnd());
+            }
         }
 
         // resize contacts to right size, and add to route
@@ -251,6 +256,7 @@ public class VerticalRoute {
                 ((RouteElementPort)re).setNodeSize(size);
             if (!route.contains(re)) route.add(re);
         }
+
     }
 
     /**

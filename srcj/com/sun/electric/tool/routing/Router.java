@@ -167,11 +167,11 @@ public abstract class Router {
      * Job to create the route.
      * Highlights the end of the Route after it creates it.
      */
-    private static class CreateRouteJob extends Job {
+    protected static class CreateRouteJob extends Job {
 
-        /** route to build */                       private Route route;
-        /** print message on what was done */       private boolean verbose;
-        /** cell in which to build route */         private Cell cell;
+        /** route to build */                       protected Route route;
+        /** print message on what was done */       protected boolean verbose;
+        /** cell in which to build route */         protected Cell cell;
 
         /** Constructor */
         protected CreateRouteJob(Router router, Route route, Cell cell, boolean verbose) {
@@ -184,6 +184,8 @@ public abstract class Router {
 
         /** Implemented doIt() method to perform Job */
         public boolean doIt() {
+            if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
             return createRouteNoJob(route, cell, verbose);
        }
     }

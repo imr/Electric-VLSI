@@ -4181,7 +4181,7 @@ public class CircuitChanges
 	 * This class handles deleting pins that are between two arcs,
 	 * and reconnecting the arcs without the pin.
 	 */
-	private static class Reconnect
+	public static class Reconnect
 	{
 		/** node in the center of the reconnect */			private NodeInst ni;
         /** list of reconnected arcs */                     private ArrayList reconnectedArcs;
