@@ -86,6 +86,7 @@ public class RouteElement {
     /** the action to be taken */                   private RouteElementAction action;
     /** the Cell in which to take the action */     private Cell cell;
     /** If action has been done */                  private boolean done;
+    /** Whether or not to highlight */              private boolean showHighlight;
 
     // ---- New Node info ----
     /** Node type to create */                      private NodeProto np;
@@ -139,6 +140,7 @@ public class RouteElement {
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList();
         e.setNodeSize(new Dimension2D.Double(width, height));
+        e.showHighlight = true;
         return e;
     }
 
@@ -166,6 +168,7 @@ public class RouteElement {
         headRE.addConnectingNewArc(e);
         tailRE.addConnectingNewArc(e);
         e.arcAngle = 0;
+        e.showHighlight = true;
         return e;
     }
 
@@ -177,6 +180,7 @@ public class RouteElement {
         RouteElement e = new RouteElement(RouteElementAction.deleteNode);
         e.done = false;
         e.nodeInstToDelete = nodeInstToDelete;
+        e.showHighlight = true;
         return e;
     }
 
@@ -188,6 +192,7 @@ public class RouteElement {
         RouteElement e = new RouteElement(RouteElementAction.deleteArc);
         e.done = false;
         e.arcInstToDelete = arcInstToDelete;
+        e.showHighlight = true;
         return e;
     }
 
@@ -204,6 +209,7 @@ public class RouteElement {
         e.existingPortInst = existingPortInst;
         e.newArcs = new ArrayList();
         e.cell = existingPortInst.getNodeInst().getParent();
+        e.showHighlight = true;
         return e;
     }
 
@@ -500,6 +506,9 @@ public class RouteElement {
         }
     }
 
+    /** Set show highlight property */
+    public void setShowHighlight(boolean b) { showHighlight = b; }
+
     // -------------------------- Action/Highlight Methods ------------------------
 
     /**
@@ -574,6 +583,9 @@ public class RouteElement {
         }
         if (action == RouteElementAction.existingPortInst) {
             Highlight.addElectricObject(existingPortInst, cell);
+        }
+        if (action == RouteElementAction.deleteArc) {
+            Highlight.addElectricObject(arcInstToDelete, cell);
         }
     }
 }

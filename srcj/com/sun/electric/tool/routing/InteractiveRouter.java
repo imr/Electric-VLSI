@@ -89,7 +89,7 @@ public abstract class InteractiveRouter extends Router {
             Highlight h = (Highlight)it.next();
             startRouteHighlights.add(h);
         }
-
+        Highlight.clear();
     }
 
     /**
@@ -167,7 +167,7 @@ public abstract class InteractiveRouter extends Router {
     public void highlightRoute(EditWindow wnd, Route route) {
         // highlight all objects in route
         Highlight.clear();
-        Highlight.setHighlightList(startRouteHighlights);
+        //Highlight.setHighlightList(startRouteHighlights);
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.addHighlightArea();
@@ -493,10 +493,14 @@ public abstract class InteractiveRouter extends Router {
         // make dummy end pins
         RouteElement headRE = RouteElement.existingPortInst(arc.getHead().getPortInst());
         RouteElement tailRE = RouteElement.existingPortInst(arc.getTail().getPortInst());
+        headRE.setShowHighlight(false);
+        tailRE.setShowHighlight(false);
         // add two arcs to rebuild old startArc
         String name = arc.getName();
         RouteElement newHeadArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE, name);
         RouteElement newTailArcRE = RouteElement.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE, null);
+        newHeadArcRE.setShowHighlight(false);
+        newTailArcRE.setShowHighlight(false);
         // delete old arc
         RouteElement deleteArcRE = RouteElement.deleteArc(arc);
         // add new stuff to route

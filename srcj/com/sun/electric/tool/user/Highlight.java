@@ -137,6 +137,7 @@ public class Highlight
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
+    /** last list of highlighted objects */                     private static List lastHighlightsList = new ArrayList();
 
     /** List of HighlightListeners */                           private static List highlightListeners = new ArrayList();
 
@@ -172,6 +173,25 @@ public class Highlight
 	 */
 	public static synchronized void finished()
 	{
+        // only do something if highlights changed
+        boolean changed = false;
+        if (highlightList.size() != lastHighlightsList.size()) {
+            changed = true;
+        } else {
+            // check actual list
+            for (int i=0; i<highlightList.size(); i++) {
+                if (highlightList.get(i) != lastHighlightsList.get(i)) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (!changed) return;
+
+        // set lastHighlightList to current list
+        lastHighlightsList.clear();
+        lastHighlightsList.add(highlightList);
+
 		// see if arcs of a single type were selected
 		boolean mixedArc = false;
 		ArcProto foundArcProto = null;
