@@ -95,7 +95,7 @@ public class Change extends EDialog implements HighlightListener
 				jf = TopLevel.getCurrentJFrame();
 			theDialog = new Change(jf, false);
 		}
-		theDialog.loadInfo();
+		theDialog.loadInfo(true);
 		theDialog.setVisible(true);
 	}
 
@@ -134,20 +134,20 @@ public class Change extends EDialog implements HighlightListener
 		if (curIndex >= 0) librariesPopup.setSelectedIndex(curIndex);
 		librariesPopup.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { reload(); }
+			public void actionPerformed(ActionEvent evt) { reload(false); }
 		});
 
 		showPrimitives.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { reload(); }
+			public void actionPerformed(ActionEvent evt) { reload(false); }
 		});
 		showCells.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { reload(); }
+			public void actionPerformed(ActionEvent evt) { reload(false); }
 		});
 		changeNodesWithArcs.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { reload(); }
+			public void actionPerformed(ActionEvent evt) { reload(false); }
 		});
 
 		// setup the radio buttons that select what to change
@@ -187,7 +187,7 @@ public class Change extends EDialog implements HighlightListener
 	public void highlightChanged(Highlighter which)
 	{
 		if (!isVisible()) return;
-		loadInfo();
+		loadInfo(true);
 	}
 
 	/**
@@ -198,7 +198,7 @@ public class Change extends EDialog implements HighlightListener
 	public void highlighterLostFocus(Highlighter highlighterGainedFocus)
 	{
 		if (!isVisible()) return;
-		loadInfo();        
+		loadInfo(false);
 	}
 
 	protected void escapePressed() { done(null); }
@@ -219,7 +219,7 @@ public class Change extends EDialog implements HighlightListener
 				if (changeNodesWithArcs.isSelected())
 				{
 					changeNodesWithArcs.setSelected(false);
-					reload();
+					reload(false);
 				}
 				changeNodesWithArcs.setEnabled(false);
 			}
@@ -236,7 +236,7 @@ public class Change extends EDialog implements HighlightListener
 	 * Method called when the current selection has changed.
 	 * Makes sure displayed options are correct.
 	 */
-	private void loadInfo()
+	private void loadInfo(boolean showHighlighted)
 	{
 		// update current window
 		EditWindow curWnd = EditWindow.getCurrent();
@@ -309,18 +309,24 @@ public class Change extends EDialog implements HighlightListener
 			changeNodesWithArcs.setSelected(nodesAndArcs);
 		}
 
-		reload();
+		if (geomToChange instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)geomToChange;
+            // if true, this will reload dialog
+            if (ni.getProto() instanceof Cell)
+                librariesPopup.setSelectedItem(((Cell)ni.getProto()).getLibrary().getName());
+            else
+                reload(true);
+        } else
+            reload(true);
 	}
-
-	private boolean dontReload = false;
 
 	/**
 	 * Method called when dialog controls have changed.
 	 * Makes sure the displayed lists and options are correct.
 	 */
-	private void reload()
+	private void reload(boolean showHighlighted)
 	{
-		if (dontReload) return;
 		changeListModel.clear();
 		changeNodeProtoList.clear();
 		if (geomsToChange.size() == 0) return;
@@ -332,15 +338,6 @@ public class Change extends EDialog implements HighlightListener
 			if (showCells.isSelected())
 			{
 				// cell: only list other cells as replacements
-				if (ni.getProto() instanceof Cell)
-				{
-					Cell parent = (Cell)ni.getProto();
-					Library lib = parent.getLibrary();
-					dontReload = true;
-					librariesPopup.setSelectedItem(lib.getName());
-					dontReload = false;
-				}
-
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
 				List cells = lib.getCellsSortedByName();
@@ -370,7 +367,26 @@ public class Change extends EDialog implements HighlightListener
 					changeNodeProtoList.add(Generic.tech.unroutedPinNode);
 				}
 			}
-			changeList.setSelectedIndex(0);
+            changeList.setSelectedIndex(0);
+            // try to select prototype of selected node
+            if (ni.getProto() instanceof Cell) {
+                Cell c = (Cell)ni.getProto();
+                for (int i=0; i<changeListModel.getSize(); i++) {
+                    String str = (String)changeListModel.get(i);
+                    if (str.equals(c.noLibDescribe())) {
+                        changeList.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            } else {
+                for (int i=0; i<changeListModel.getSize(); i++) {
+                    String str = (String)changeListModel.get(i);
+                    if (str.equals(ni.getProto().describe())) {
+                        changeList.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
 			if (showCells.isSelected())
 			{
 				String geomName = ((NodeInst)geomToChange).getProto().describe();
