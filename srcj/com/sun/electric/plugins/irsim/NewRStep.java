@@ -20,6 +20,7 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.Iterator;
 
@@ -370,7 +371,21 @@ public class NewRStep extends Eval
 				{
 					if (r.finall == Sim.X)
 					{
-						tau = r.rMin * r.cA;
+                        if (Simulation.isIRSIMDelayedX()) {
+                            // When fighting, instead of using the dominant time constant,
+                            // use a value proportional to the difference in pull up and pull down
+                            // strengths
+                            double reff;
+                            if (r.rUp.min == r.rDown.min) {
+                                reff = Sim.LIMIT;
+                            } else if (r.rUp.min > r.rDown.min) {
+                                reff = 1 / ( (1/r.rDown.min) - (1/r.rUp.min));
+                            } else {
+                                reff = 1 / ( (1/r.rUp.min) - (1/r.rDown.min));
+                            }
+                            tau = reff * r.cA;
+                        } else
+						    tau = r.rMin * r.cA;
 					} else if ((r.flags & T_DEFINITE) != 0)
 					{
 						tau = r.rMax * r.cA;
@@ -961,7 +976,11 @@ public class NewRStep extends Eval
 		r.cD = n.nCap;
 		if (dom == Sim.X)			// assume X nodes are charged high
 		{
-			r.cA = (n.nPot == Sim.LOW) ? 0.0 : n.nCap;
+            if (Simulation.isIRSIMDelayedX()) {
+                // X nodes are charged to X through Rup and Rdown fighting
+                r.cA = n.nCap;
+            } else
+			    r.cA = (n.nPot == Sim.LOW) ? 0.0 : n.nCap;
 		} else
 		{
 			r.cA = (n.nPot == dom) ? 0.0 : n.nCap;

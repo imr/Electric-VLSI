@@ -812,6 +812,18 @@ public class Simulation extends Tool
 	 */
 	public static void setIRSIMStepModel(String m) { cacheIRSIMStepModel.setString(m); }
 
+    private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", Simulation.tool.prefs, true);
+    /**
+     * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
+     * @return true if using the delayed X model, false if using the old fast-propogating X model
+     */
+    public static boolean isIRSIMDelayedX() { return cacheIRSIMDelayedX.getBoolean(); }
+    /**
+     * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
+     * @param b true to use the delayed X model, false to use the old fast-propogating X model
+     */
+    public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
+
 	/****************************** SPICE OPTIONS ******************************/
 
 	/** Spice 2 engine. */		public static final int SPICE_ENGINE_2 = 0;

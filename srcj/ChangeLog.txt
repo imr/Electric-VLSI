@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP/MAN: (04/06/05, JKG) Added IRSIM option to use delayed X propogation.
+    Implemented delayed X propogation in code.
+
 BUG: (04/05/05, GVG) Coordinates cut off in status bar on Mac (Bug #229)
 FIX: Add insets according to platform.
 
