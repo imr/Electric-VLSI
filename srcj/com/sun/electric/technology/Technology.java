@@ -1106,6 +1106,22 @@ public class Technology extends ElectricObject
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 		//Dimension2D dim = new Dimension2D.Double(width, height);
 		//return dim;
+        PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        int specialType = np.getSpecialType();
+        if (specialType == PrimitiveNode.SERPTRANS) {
+            // get transistor width from distance of trace
+            Variable trace = ni.getVar("trace");
+            if (trace != null) {
+                width = 0;
+                Point2D [] tracePts = (Point2D [])trace.getObject();
+                for (int i = 1; i<tracePts.length; i++) {
+                    Point2D p1 = tracePts[i-1];
+                    Point2D p2 = tracePts[i];
+                    width += p1.distance(p2);
+                }
+                height = 2;
+            }
+        }
 		TransistorSize size = new TransistorSize(new Double(width), new Double(height));
 		return size;
 	}
