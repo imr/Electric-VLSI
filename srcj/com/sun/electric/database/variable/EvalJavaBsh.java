@@ -102,6 +102,7 @@ public class EvalJavaBsh extends Tool {
                 bsh.TargetError te = (bsh.TargetError)e;
                 Throwable t = te.getTarget();
                 System.out.println("  Exception thrown: "+t+"; "+t.getMessage());
+                e.printStackTrace(System.out);
             }
         }
     }

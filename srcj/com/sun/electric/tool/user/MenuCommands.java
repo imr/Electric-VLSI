@@ -714,7 +714,7 @@ public final class MenuCommands
 
         /********************************* Hidden Menus *******************************/
 
-        Menu wiringShortcuts = new Menu("Wiring");
+        Menu wiringShortcuts = new Menu("Circuit Editing");
         menuBar.addHidden(wiringShortcuts);
         wiringShortcuts.addMenuItem("Wire to Poly", KeyStroke.getKeyStroke(KeyEvent.VK_0, 0),
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(0); }});
@@ -730,7 +730,8 @@ public final class MenuCommands
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(5); }});
         wiringShortcuts.addMenuItem("Wire to M6", KeyStroke.getKeyStroke(KeyEvent.VK_6, 0),
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(6); }});
-
+        //wiringShortcuts.addMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0),
+        //        new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.switchWiringTarget(); }});
 
 		// return the menu bar
 		return menuBar;

@@ -742,19 +742,15 @@ public class ClickZoomWireListener
         Cell cell = wnd.getCell();
         if (cell == null) return;
 
-        // delete highlighted objects
-        if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE) {
-            CircuitChanges.deleteSelected();
-        }
         // move stuff around
         else if (chr == KeyEvent.VK_LEFT) {
-            moveSelected(evt, -1, 0);
+            moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
         } else if (chr == KeyEvent.VK_RIGHT) {
-            moveSelected(evt, 1, 0);
+            moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
         } else if (chr == KeyEvent.VK_UP) {
-            moveSelected(evt, 0, 1);
+            moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
         } else if (chr == KeyEvent.VK_DOWN) {
-            moveSelected(evt, 0, -1);
+            moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
         }
         // cancel current mode
         else if (chr == KeyEvent.VK_ESCAPE) {
@@ -782,7 +778,7 @@ public class ClickZoomWireListener
             }
         } */
         if (chr == KeyEvent.VK_SPACE) {
-            switchWiringTarget(wnd);
+            switchWiringTarget();
         }
     }
 
@@ -796,21 +792,24 @@ public class ClickZoomWireListener
 
     // ********************************* Moving Stuff ********************************
 
-    /** Move selected object(s) via keystroke
-     *
-     * @param evt the event of the keystroke
+    /** Move selected object(s) via keystroke.  If either scaleMove or scaleMove2
+     * is true, the move is multiplied by the grid Bold frequency.  If both are
+     * true the move gets multiplied twice.
      * @param dX amount to move in X in lambda
      * @param dY amount to move in Y in lambda
+     * @param scaleMove scales move up if true
+     * @param scaleMove2 scales omve up if true (stacks with scaleMove)
      */
-    public void moveSelected(KeyEvent evt, double dX, double dY) {
+    public static void moveSelected(double dX, double dY, boolean scaleMove, boolean scaleMove2) {
         // scale distance according to arrow motion
-        EditWindow wnd = (EditWindow)evt.getSource();
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		int scale = User.getDefGridXBoldFrequency();
-		if (evt.isShiftDown()) { dX *= scale;   dY *= scale; }
-		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
+		if (scaleMove) { dX *= scale;   dY *= scale; }
+		if (scaleMove2) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY, wnd);
 		wnd.repaintContents();
@@ -836,7 +835,10 @@ public class ClickZoomWireListener
 
     // ********************************* Wiring Stuff ********************************
 
-    public void switchWiringTarget(EditWindow wnd) {
+    public void switchWiringTarget() {
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
         // this command only valid if in wiring mode
         if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
             // can only switch if something under the mouse to wire to

@@ -174,7 +174,7 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	public static void rebuildExplorerTree()
+	public static synchronized void rebuildExplorerTree()
 	{
 		if (!explorerChanged) return;
 
@@ -208,7 +208,7 @@ public class ExplorerTree extends JTree
 		explorerChanged = false;
 	}
 
-	private static void rebuildExplorerTreeByName()
+	private static synchronized void rebuildExplorerTreeByName()
 	{
 		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
@@ -226,7 +226,7 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	private static void rebuildExplorerTreeByHierarchy()
+	private static synchronized void rebuildExplorerTreeByHierarchy()
 	{
 		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
@@ -307,7 +307,7 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	private static void rebuildExplorerTreeByGroups()
+	private static synchronized void rebuildExplorerTreeByGroups()
 	{
 		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
@@ -377,13 +377,13 @@ public class ExplorerTree extends JTree
 		cellFlag.freeFlagSet();
 	}
 
-	public void cacheExpansion()
+	public synchronized void cacheExpansion()
 	{
 		expanded.clear();
 		recursivelyCache(new TreePath(rootNode), true);
 	}
 
-	public void restoreExpansion()
+	public synchronized void restoreExpansion()
 	{
 		recursivelyCache(new TreePath(rootNode), false);
 		expanded.clear();
