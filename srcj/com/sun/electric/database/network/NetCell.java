@@ -68,16 +68,16 @@ class NetCell
 	/** Cell from database. */										final Cell cell;
 	/** Flags of this NetCell. */									int flags;
 
-	/** Exports of original cell. */								Export[] dbExports;
 	/**
      * Equivalence of ports. equivPorts.size == ports.size.
 	 * equivPorts[i] contains minimal index among ports of its group.
      */																int[] equivPorts;
-	/** Node offsets. */											private int[] ni_pi;
+	/** Node offsets. */											int[] ni_pi;
 	/** */															int arcsOffset;
 	/** */															private int[] headConn;
 	/** */															private int[] tailConn;
 	/** */															int[] drawns;
+	/** */															int numDrawns;
 
 	/** A map from Name to NetName. */								Map netNames = new HashMap();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
@@ -95,12 +95,7 @@ class NetCell
 	NetCell(Cell cell)
 	{
 		this.cell = cell;
-		if (cell != null) {
-			Network.setCell(cell, this, 0);
-		} else {
-			dbExports = new Export[0];
-			equivPorts = new int[0];
-		}
+		Network.setCell(cell, this);
 	}
 
 	final void setNetworksDirty()
@@ -141,13 +136,12 @@ class NetCell
 		invalidateUsagesOf(false);
 	}
 
-	void invalidateUsagesOf(boolean strong) { invalidateUsagesOf(cell, strong); }
-
-	static void invalidateUsagesOf(Cell cell, boolean strong) {
+	void invalidateUsagesOf(boolean strong) {
 		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
 			NodeUsage nu = (NodeUsage)it.next();
 			if (nu.isIconOfParent()) continue;
-			Network.getNetCell(nu.getParent()).setInvalid(strong);
+			NetCell netCell = Network.getNetCell(nu.getParent());
+			if (netCell != null) netCell.setInvalid(strong);
 		}
 	}
 
@@ -225,27 +219,6 @@ class NetCell
 		return 1;
 	}
 
-	/**
-	 * Check if cell has changed exports.
-	 * @return true if this cell has changed exports.
-	 */
-	boolean updateExports() {
-		boolean changed = false;
-		if (dbExports == null || dbExports.length != cell.getNumPorts()) {
-			changed = true;
-			dbExports = new Export[cell.getNumPorts()];
-			}
-		for (Iterator it = cell.getPorts(); it.hasNext();) {
-			Export e = (Export) it.next();
-			int portIndex = e.getPortIndex();
-			if (dbExports[portIndex] != e) {
-				changed = true;
-				dbExports[portIndex] = e;
-			}
-		}
-		return changed;
-	}          
-
 	private void checkLayoutCell() {
 		int numNodes = cell.getNumNodes();
 		for (int i = 0; i < numNodes; i++) {
@@ -257,10 +230,13 @@ class NetCell
 			NodeUsage nu = (NodeUsage)it.next();
 			NodeProto np = nu.getProto();
 			boolean err = false;
-			if (isSchem(np)) {
-				System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
-					" " + np.describe() + " nodes");
-				err = true;
+			if (np instanceof Cell) {
+				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
+				if (sch != null) {
+					System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
+						" " + np.describe() + " nodes");
+					err = true;
+				}
 			}
 			if (np == Generic.tech.universalPinNode) {
 				System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
@@ -316,9 +292,10 @@ class NetCell
 			headConn[i] = i;
 			tailConn[i] = i;
 		}
-		for (int i = 0; i < dbExports.length; i++) {
+		for (int i = 0; i < numPorts; i++) {
 			int portOffset = i;
-			int orig = getPortInstOffset(dbExports[i].getOriginalPort());
+			Export export = (Export)cell.getPort(i);
+			int orig = getPortInstOffset(export.getOriginalPort());
 			headConn[portOffset] = headConn[orig];
 			headConn[orig] = portOffset;
 			tailConn[portOffset] = -1;
@@ -360,31 +337,32 @@ class NetCell
 		}
 	}
 
-	private void addToDrawn1(PortInst pi, int drawn) {
+	private void addToDrawn1(PortInst pi) {
 		int piOffset = getPortInstOffset(pi);
 		if (drawns[piOffset] >= 0) return;
 		PortProto pp = pi.getPortProto();
 		if (pp.isIsolated()) return;
-		drawns[piOffset] = drawn;
-		if (Network.debug) System.out.println(drawn + ": " + pi);
+		drawns[piOffset] = numDrawns;
+		if (Network.debug) System.out.println(numDrawns + ": " + pi);
 
 		for (int k = piOffset; headConn[k] != piOffset; ) {
 			k = headConn[k];
 			if (drawns[k] >= 0) continue;
-			if (k < dbExports.length) {
-				drawns[k] = drawn;
-				if (Network.debug) System.out.println(drawn + ": " + cell.getPort(k));
+			if (k < arcsOffset) {
+				// This is port
+				drawns[k] = numDrawns;
+				if (Network.debug) System.out.println(numDrawns + ": " + cell.getPort(k));
 				continue;
 			}
 			ArcInst ai = cell.getArc(k - arcsOffset);
 			ArcProto ap = ai.getProto();
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			if (pp == busPinPort && ap != busArc) continue;
-			drawns[k] = drawn;
-			if (Network.debug) System.out.println(drawn + ": " + ai.describe());
+			drawns[k] = numDrawns;
+			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst tpi = ai.getTail().getPortInst();
 			if (tpi.getPortProto() == busPinPort && ap != busArc) continue;
-			addToDrawn(tpi, drawn);
+			addToDrawn(tpi);
 		}
 		for (int k = piOffset; tailConn[k] != piOffset; ) {
 			k = tailConn[k];
@@ -393,57 +371,64 @@ class NetCell
 			ArcProto ap = ai.getProto();
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			if (pp == busPinPort && ap != busArc) continue;
-			drawns[k] = drawn;
-			if (Network.debug) System.out.println(drawn + ": " + ai.describe());
+			drawns[k] = numDrawns;
+			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst hpi = ai.getHead().getPortInst();
 			if (hpi.getPortProto() == busPinPort && ap != busArc) continue;
-			addToDrawn(hpi, drawn);
+			addToDrawn(hpi);
 		}
 	}
 
-	private void addToDrawn(PortInst pi, int drawn) {
+	private void addToDrawn(PortInst pi) {
 		PortProto pp = pi.getPortProto();
 		NodeProto np = pp.getParent();
 		int numPorts = np.getNumPorts();
 		if (numPorts == 1 || np instanceof Cell) {
-			addToDrawn1(pi, drawn);
+			addToDrawn1(pi);
+			return;
+		}
+		NodeInst ni = pi.getNodeInst();
+		if (np == Schematics.tech.resistorNode && Network.shortResistors) {
+			
+			addToDrawn1(ni.getPortInst(0));
+			addToDrawn1(ni.getPortInst(1));
 			return;
 		}
 		int topology = pp.getTopology();
-		NodeInst ni = pi.getNodeInst();
 		for (int i = 0; i < numPorts; i++) {
 			if (np.getPort(i).getTopology() != topology) continue;
-			addToDrawn1(ni.getPortInst(i), drawn);
+			addToDrawn1(ni.getPortInst(i));
 		}
 	}
 
-	int makeDrawns() {
+	void makeDrawns() {
 		initConnections();
 		Arrays.fill(drawns, -1);
-		int drawn = 0;
-		int numPorts = dbExports.length;
+		numDrawns = 0;
+		int numPorts = cell.getNumPorts();
 		int numNodes = cell.getNumNodes();
 		int numArcs = cell.getNumArcs();
 		for (int i = 0; i < numPorts; i++) {
 			if (drawns[i] >= 0) continue;
-			drawns[i] = drawn;
-			addToDrawn(dbExports[i].getOriginalPort(), drawn);
-			drawn++;
+			drawns[i] = numDrawns;
+			Export export = (Export)cell.getPort(i);
+			addToDrawn(export.getOriginalPort());
+			numDrawns++;
 		}
 		for (int i = 0; i < numArcs; i++) {
 			if (drawns[arcsOffset + i] >= 0) continue;
 			ArcInst ai = cell.getArc(i);
 			ArcProto ap = ai.getProto();
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
-			drawns[arcsOffset + i] = drawn;
-			if (Network.debug) System.out.println(drawn + ": " + ai.describe());
+			drawns[arcsOffset + i] = numDrawns;
+			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst hpi = ai.getHead().getPortInst();
 			if (hpi.getPortProto() != busPinPort || ap == busArc)
-				addToDrawn(hpi, drawn);
+				addToDrawn(hpi);
 			PortInst tpi = ai.getTail().getPortInst();
 			if (tpi.getPortProto() != busPinPort || ap == busArc)
-				addToDrawn(tpi, drawn);
-			drawn++;
+				addToDrawn(tpi);
+			numDrawns++;
 		}
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
@@ -464,16 +449,15 @@ class NetCell
 				if (pi.getPortProto().isIsolated()) continue;
 				if (np.getFunction() == NodeProto.Function.PIN)
 					System.out.println("Network: " + cell + " has unconnected pin " + pi.describe());
-				addToDrawn(pi, drawn);
-				drawn++;
+				addToDrawn(pi);
+				numDrawns++;
 			}
 		}
-		return drawn;
 //  		System.out.println(cell + " has " + cell.getNumPorts() + " ports, " + cell.getNumNodes() + " nodes, " +
 //  			cell.getNumArcs() + " arcs, " + (arcsOffset - cell.getNumPorts()) + " portinsts, " + netMap.length + "(" + piDrawns + ") drawns");
 	}
 
-	int initNetnames() {
+	void initNetnames() {
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); ) {
 			NetName nn = (NetName)it.next();
 			nn.name = null;
@@ -499,7 +483,8 @@ class NetCell
 			else if (Network.debug)
 				System.out.println("NetName "+nn.name+" "+nn.index);
 		}
-		return netNameCount;
+		if (netNameCount != netNames.size())
+			System.out.println("Error netNameCount in NetCell.initNetnames");
 	}
 
 	void addNetNames(Name name) {
@@ -520,30 +505,32 @@ class NetCell
 		}
 	}
 
-	private void mergeInternallyConnected()
+	private void internalConnections()
 	{
 		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
-			if (Network.getNetCell((Cell)np) instanceof NetSchem) continue;
-			int[] eq = Network.getEquivPorts(np);
+			NetCell netCell = Network.getNetCell((Cell)np);
+			if (netCell instanceof NetSchem || netCell instanceof NetSchem.Icon) continue;
+			int[] eq = netCell.equivPorts;
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
-			if (np instanceof Cell && !isSchem(np)) {
-				for (int i = 0; i < eq.length; i++)
-				{
-					if (eq[i] == i) continue;
-					connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
-				}
+			for (int i = 0; i < eq.length; i++)
+			{
+				if (eq[i] == i) continue;
+				connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
 			}
 		}
-		closureMap();
 	}
 
 	final int getPortInstOffset(PortInst pi) {
 		return ni_pi[pi.getNodeInst().getNodeIndex()] + pi.getPortProto().getPortIndex();
 	}
+
+	int getPortOffset(int portIndex, int busIndex) { return busIndex == 0 ? portIndex : -1; }
+
+	NetSchem getSchem() { return null; }
 
 	private void buildNetworkList()
 	{
@@ -557,9 +544,9 @@ class NetCell
 				networks[i] = null;
 		}
 		JNetwork[] netNameToNet = new JNetwork[netNames.size()];
-		int numPorts = dbExports.length;
+		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
-			Export e = dbExports[i];
+			Export e = (Export)cell.getPort(i);
 			setNetName(netNameToNet, drawns[i], e.getProtoNameKey());
 		}
 		int numArcs = cell.getNumArcs();
@@ -619,7 +606,12 @@ class NetCell
 	 */
 	private boolean updateInterface() {
 		boolean changed = false;
-		int numPorts = dbExports.length;
+		int numPorts = cell.getNumPorts();
+		if (equivPorts == null || equivPorts.length != numPorts) {
+			changed = true;
+			equivPorts = new int[numPorts];
+		}
+
 		int[] netToPort = new int[numPorts];
 		Arrays.fill(netToPort, -1);
 		for (int i = 0; i < numPorts; i++) {
@@ -691,28 +683,26 @@ class NetCell
 			return;
 		}
 
-		boolean changed = false;
-		if (updateExports()) changed = true;
-		if (equivPorts == null || equivPorts.length != dbExports.length)
-			equivPorts = new int[dbExports.length];
+		makeDrawns();
+		// Gather port and arc names
+		initNetnames();
 
+		if (redoNetworks1())
+			invalidateUsagesOf(true);
+		flags |= (LOCALVALID|VALID);
+	}
+
+	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-		initConnections();
-		int numDrawns = makeDrawns();
 		if (netMap == null || netMap.length != numDrawns) {
 			netMap = new int[numDrawns];
 		}
 
-		// Gather port and arc names
-		int netNameSize = initNetnames();
-
-		mergeInternallyConnected();
+		internalConnections();
+		closureMap();
 		buildNetworkList();
-		if (updateInterface()) changed = true;
-		if (changed)
-			invalidateUsagesOf(true);
-		flags |= (LOCALVALID|VALID);
+		return updateInterface();
 	}
 
 	/**
@@ -778,9 +768,4 @@ class NetCell
 		}
 		return true;
 	}
-
-	static boolean isSchem(NodeProto np) {
-		return np instanceof Cell && Network.getNetCell((Cell)np) instanceof NetSchem;
-	}
 }
-

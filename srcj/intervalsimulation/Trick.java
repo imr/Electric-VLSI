@@ -6,34 +6,61 @@ import java.text.DecimalFormat;
 
 class Segment
 {
+    static final int OFF = 0;
+    static final int ON = 1;
+    static final int PLUS = 2;
+    static final int MINUS = 3;
+
     double t0;
     double t1;
     Matrix v0;
-    boolean on;
+    int type;
 
-    Segment(boolean on, double t0, Matrix v0)
+    Segment(int type, double t0, Matrix v0)
     {
-	this.on = on;
+	this.type = type;
 	this.t0 = t0;
-	if (on)
-	    this.v0 = v0.minus(Trick.es.times(Math.sin(Trick.omega*t0))).minus(Trick.ec.times(Math.cos(Trick.omega*t0)));
-	else
-	    this.v0 = v0.copy();
+	switch (type) {
+	    case OFF:
+		this.v0 = v0.copy();
+		break;
+	    case ON:
+		this.v0 = v0.minus(Trick.es.times(Math.sin(Trick.omega*t0))).minus(Trick.ec.times(Math.cos(Trick.omega*t0)));
+		break;
+	    case PLUS:
+		this.v0 = v0.minus(Trick.ej);
+		break;
+	    case MINUS:
+		this.v0 = v0.plus(Trick.ej);
+		break;
+	}
     }
 
     void eval(double t, Matrix vv, Matrix vg)
     {
 	Matrix expA;
 
-	if (on)
-	{
-	    vv.setMatrix(0, 2, 0, 0, Trick.expAont(t - t0).times(v0));
-	    vg.setMatrix(0, 2, 0, 0, Trick.Aon.times(vv));
-	    vv.setMatrix(0, 2, 0, 0, vv.plus(Trick.es.times(Math.sin(Trick.omega*t))).plus(Trick.ec.times(Math.cos(Trick.omega*t))));
-	    vg.setMatrix(0, 2, 0, 0, vg.plus(Trick.es.times(Trick.omega*Math.cos(Trick.omega*t))).plus(Trick.ec.times(-Trick.omega*Math.sin(Trick.omega*t))));
-	} else {
-	    vv.setMatrix(0, 2, 0, 0, Trick.expAofft(t - t0).times(v0));
-	    vg.setMatrix(0, 2, 0, 0, Trick.Aoff.times(vv));
+	switch (type) {
+	    case OFF:
+		vv.setMatrix(0, 2, 0, 0, Trick.expAofft(t - t0).times(v0));
+		vg.setMatrix(0, 2, 0, 0, Trick.Aoff.times(vv));
+		break;
+	    case ON:
+		vv.setMatrix(0, 2, 0, 0, Trick.expAont(t - t0).times(v0));
+		vg.setMatrix(0, 2, 0, 0, Trick.Aon.times(vv));
+		vv.setMatrix(0, 2, 0, 0, vv.plus(Trick.es.times(Math.sin(Trick.omega*t))).plus(Trick.ec.times(Math.cos(Trick.omega*t))));
+		vg.setMatrix(0, 2, 0, 0, vg.plus(Trick.es.times(Trick.omega*Math.cos(Trick.omega*t))).plus(Trick.ec.times(-Trick.omega*Math.sin(Trick.omega*t))));
+		break;
+	    case PLUS:
+		vv.setMatrix(0, 2, 0, 0, Trick.expAofft(t - t0).times(v0));
+		vg.setMatrix(0, 2, 0, 0, Trick.Aoff.times(vv));
+		vv.setMatrix(0, 2, 0, 0, vv.plus(Trick.ej));
+		break;
+	    case MINUS:
+		vv.setMatrix(0, 2, 0, 0, Trick.expAofft(t - t0).times(v0));
+		vg.setMatrix(0, 2, 0, 0, Trick.Aoff.times(vv));
+		vv.setMatrix(0, 2, 0, 0, vv.minus(Trick.ej));
+		break;
 	}
     }
 
@@ -42,6 +69,7 @@ class Segment
 	Matrix vv = new Matrix(3, 1);
 	Matrix vg = new Matrix(3, 1);
 	double t = t0;
+	boolean on = (type == ON);
 	do {
 	    t += 1e-4;
 	    eval(t, vv, vg);
@@ -256,6 +284,25 @@ public class Trick {
 
     }
 
+    static void halfperiod() {
+	double t = Math.PI/Math.abs(doffi[1]);
+	System.out.println("halfperiod = "+t);
+	Matrix half = expAofft(t);
+	Matrix id = Matrix.identity(3, 3);
+	Matrix v = id.plus(half).inverse().times(id.minus(half)).times(ej);
+	printM("v", v);
+
+	Segment seg = new Segment(Segment.MINUS, 0, v);
+	Matrix vv = new Matrix(3, 1);
+	Matrix vg = new Matrix(3, 1);
+	seg.eval(t, vv, vg);
+	printM("hvv", vv);
+	printM("hvg", vg);
+	Segment seg1 = new Segment(Segment.PLUS, t, vv);
+	seg1.eval(t*2, vv, vg);
+	printM("hvv1", vv);
+    }
+
     static void exponent() {
 	int dim = 3;
 	int pow = 10;
@@ -301,7 +348,7 @@ public class Trick {
     }
 
     static double omega = 2*Math.PI*50.0;
-    static Matrix ec, es;
+    static Matrix ec, es, ej;
 
     private static void excitement()
     {
@@ -323,6 +370,11 @@ public class Trick {
 	es.setMatrix(0, 2, 0, 0, r.getMatrix(0, 2, 0, 0));
 	ec.setMatrix(0, 2, 0, 0, r.getMatrix(3, 5, 0, 0));
 	printM("exc=", lu.solve(b));
+
+	ej = new Matrix(3, 1);
+	ej.set(0, 0, 1.0);
+	ej = Goff.inverse().times(ej);
+	printM("ej=", ej);
     }
 
     static LinkedList sl = new LinkedList();
@@ -332,13 +384,13 @@ public class Trick {
 	Matrix vv = new Matrix(3, 1);
 	Matrix vg = new Matrix(3, 1);
 	double t = 0;
-	boolean on = true;
+	int type = Segment.ON;
 	for (int i = 0; i < 100; i++) {
- 	    Segment seg = new Segment(on, t, vv);
+ 	    Segment seg = new Segment(type, t, vv);
 	    sl.add(seg);
 	    t = seg.nextT();
 	    seg.eval(t, vv, vg);
-	    on = !on;
+	    type = (type == Segment.ON ? Segment.OFF : Segment.ON);
 	    //System.out.println("nextT="+t);
 	}
     }
@@ -364,7 +416,7 @@ public class Trick {
 	    if (t1 >= s.t1) continue;
 	    if (t2 <= s.t0) break;
 	    double dt =  Math.min(t2, s.t1) - Math.max(t1, s.t0);
-	    M = (s.on?expAont(dt):expAofft(dt)).times(M);
+	    M = (s.type == Segment.ON?expAont(dt):expAofft(dt)).times(M);
 	}
 	return M;
     }
@@ -389,7 +441,7 @@ public class Trick {
 	    if (s == sg) break;
 	    double sen = Math.abs(listSense(s.t0, sg.t0).get(0,0));
 	    double integr = integrate(s, sg.t1);
-	    if (s.on) {
+	    if (s.type == Segment.ON) {
 		con += sen;
 		ion += integr;
 	    } else {
@@ -397,7 +449,7 @@ public class Trick {
 		ioff += integr;
 	    }
 	}
-	System.out.println("sg.t0="+sg.t0+"\tsg.on="+sg.on+"\tcon="+con+"\tcoff="+coff+"\tion="+ion+"\tioff="+ioff);
+	System.out.println("sg.t0="+sg.t0+"\tsg.type="+sg.type+"\tcon="+con+"\tcoff="+coff+"\tion="+ion+"\tioff="+ioff);
     }
 
     private static void plotResponse()
@@ -614,8 +666,9 @@ public class Trick {
        printM("Voff=", Voff);
        printM("Voff1=", Voff1);
        //energy();
-       exponent();
+       //exponent();
        excitement();
+       halfperiod();
       
        makeList();
        evolution();

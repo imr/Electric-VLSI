@@ -1513,6 +1513,24 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void removePortInst(PortProto pp)
 	{
+		PortInst pi = (PortInst) portInsts.get(pp.getPortIndex());
+
+		// kill the arcs attached to the connections to this port instance.
+		// This will also remove the connections themselves
+		for (int i = connections.size() - 1; i >= 0; i--)
+		{
+			Connection con = (Connection)connections.get(i);
+			if (con.getPortInst() == pi) con.getArc().kill();
+			
+		}
+
+		// remove connected exports
+		for (int i = exports.size() - 1; i >= 0; i--)
+		{
+			Export export = (Export)exports.get(i);
+			if (export.getOriginalPort() == pi) export.kill();
+		}
+
 		portInsts.remove(pp.getPortIndex());
 	}
 
