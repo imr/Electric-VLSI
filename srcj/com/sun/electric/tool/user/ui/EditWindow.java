@@ -123,7 +123,6 @@ public class EditWindow extends JPanel
 
 	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
     /** the window frame containing this editwindow */      private WindowFrame wf;
-	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
 	/** X spacing of grid dots in this window */			private double gridXSpacing;
 	/** Y spacing of grid dots in this window */			private double gridYSpacing;
@@ -136,18 +135,14 @@ public class EditWindow extends JPanel
     /** current key listener */								private static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
     /** the offset of each new window on the screen */		private static int windowOffset = 0;
-	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
+//	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+//	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 
     /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
     /** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
     /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
     /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
-	EGraphics blackGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	EGraphics redGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0, 1.0,1,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
 
     // ************************************* CONTROL *************************************
@@ -275,12 +270,6 @@ public class EditWindow extends JPanel
 
 	// ************************************* RENDERING A WINDOW *************************************
 
-	public void repaintContents()
-	{
-		needsUpdate = true;
-		repaint();
-	}
-
 	public static void repaintAllContents()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -313,329 +302,83 @@ public class EditWindow extends JPanel
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setSize(getSize());
-			needsUpdate = true;
+			repaintContents();
+			return;
 		}
-		if (needsUpdate)
-		{
-			needsUpdate = false;
-			setScrollPosition();
-long startTime = System.currentTimeMillis();
-			drawImage();
-long endTime = System.currentTimeMillis();
-//System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
-		}
+
+		// show the image
 		g.drawImage(offscreen.getImage(), 0, 0, this);
 
-        if (cell == null) return;
-
-        // add in grid
-		if (showGrid) drawGrid(g);
-
-		// add in highlighting
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		// overlay other things if there is a valid cell
+		if (cell != null)
 		{
-			Highlight h = (Highlight)it.next();
-			Cell highCell = h.getCell();
-			if (highCell != cell) continue;
-			h.showHighlight(this, g);
-		}
+			// add in grid if requested
+			if (showGrid) drawGrid(g);
 
-		// add in drag area
-		if (doingAreaDrag)
-			showDragBox(g);
-	}
-
-	public void initDrawing() { offscreen.clearImage(); }
-
-	public Image termDrawing() { offscreen.composite(); return offscreen.getImage(); }
-
-	/**
-	 * Method to draw the current window.
-	 */
-	private void drawImage()
-	{
-		// initialize rendering into the offscreen image
-		initDrawing();
-
-		if (cell == null)
-		{
-			if (noCellTextDescriptor == null)
+			// add in highlighting
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
-				noCellTextDescriptor = new TextDescriptor(null);
-				noCellTextDescriptor.setAbsSize(18);
-				noCellTextDescriptor.setBold();
+				Highlight h = (Highlight)it.next();
+				Cell highCell = h.getCell();
+				if (highCell != cell) continue;
+				h.showHighlight(this, g);
 			}
-			Rectangle rect = new Rectangle(sz);
-			offscreen.drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
-		} else
-		{
-			// draw everything
-			drawCell(cell, EMath.MATID, true);
-		}
 
-		// merge transparent image into opaque one
-		termDrawing();
-	}
-
-	/**
-	 * Method to draw the contents of cell "c", transformed through "prevTrans".
-	 */
-	void drawCell(Cell cell, AffineTransform prevTrans, boolean topLevel)
-	{
-		// draw all arcs
-		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
-		{
-			drawArc((ArcInst)arcs.next(), prevTrans);
-		}
-
-		// draw all nodes
-		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
-		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topLevel);
-		}
-
-		// show cell variables if at the top level
-		if (topLevel && User.isTextVisibilityOnCell())
-		{
-			// show displayable variables on the instance
-			int numPolys = cell.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			cell.addDisplayableVariables(CENTERRECT, polys, 0, this, true);
-			drawPolys(polys, EMath.MATID);
+			// add in drag area
+			if (doingAreaDrag) showDragBox(g);
 		}
 	}
 
-	/**
-	 * Method to draw node "ni", transformed through "trans".
-	 */
-	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel)
+	public void repaintContents()
 	{
-		NodeProto np = ni.getProto();
-		AffineTransform localTrans = ni.rotateOut(trans);
+		// start rendering thread
+		if (offscreen == null) return;
 
-		// see if the node is completely clipped from the screen
-		Point2D ctr = ni.getTrueCenter();
-		trans.transform(ctr, ctr);
-		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-		Rectangle2D databaseBounds = getDisplayedBounds();
-		if (ctr.getX() + halfWidth < databaseBounds.getMinX()) return;
-		if (ctr.getX() - halfWidth > databaseBounds.getMaxX()) return;
-		if (ctr.getY() + halfWidth < databaseBounds.getMinY()) return;
-		if (ctr.getY() - halfWidth > databaseBounds.getMaxY()) return;
+		// do the redraw in the main thread
+		offscreen.drawImage(getCell());
+		repaint();
 
-		if (np instanceof Cell)
+		// do the redraw in a separate thread
+//		RenderJob renderJob = new RenderJob(this, offscreen);
+//		renderJob.start();
+	}
+
+	class RenderJob extends Thread
+	{
+		private EditWindow wnd;
+		private PixelDrawing offscreen;
+
+		public RenderJob(EditWindow wnd, PixelDrawing offscreen)
 		{
-			// cell instance
-			Cell subCell = (Cell)np;
-
-			// two ways to draw a cell instance
-			if (ni.isExpanded())
-			{
-				// show the contents
-				AffineTransform subTrans = ni.translateOut(localTrans);
-				drawCell(subCell, subTrans, false);
-			} else
-			{
-				// draw the instance outline
-				Rectangle2D bounds = ni.getBounds();
-				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
-				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
-				poly.transform(localPureTrans);
-				Point2D [] points = poly.getPoints();
-				for(int i=0; i<points.length; i++)
-				{
-					int lastI = i - 1;
-					if (lastI < 0) lastI = points.length - 1;
-					Point from = databaseToScreen(points[lastI]);
-					Point to = databaseToScreen(points[i]);
-					offscreen.drawLine(from, to, null, blackGraphics, 0);
-				}
-
-				// draw the instance name
-				if (User.isTextVisibilityOnInstance())
-				{
-					bounds = poly.getBounds2D();
-					Rectangle rect = databaseToScreen(bounds);
-					TextDescriptor descript = ni.getProtoTextDescriptor();
-					offscreen.drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
-				}
-
-				// show the ports that are not further exported or connected
-				FlagSet fs = PortProto.getFlagSet(1);
-				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-				{
-					PortProto pp = (PortProto)it.next();
-					pp.clearBit(fs);
-				}
-				for(Iterator it = ni.getConnections(); it.hasNext();)
-				{
-					Connection con = (Connection) it.next();
-					PortInst pi = con.getPortInst();
-					pi.getPortProto().setBit(fs);
-				}
-				for(Iterator it = ni.getExports(); it.hasNext();)
-				{
-					Export exp = (Export) it.next();
-					PortInst pi = exp.getOriginalPort();
-					pi.getPortProto().setBit(fs);
-				}
-				int portDisplayLevel = User.getPortDisplayLevel();
-				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-				{
-					PortProto pp = (PortProto)it.next();
-					if (pp.isBit(fs)) continue;
-
-					Poly portPoly = ni.getShapeOfPort(pp);
-					if (portPoly == null) continue;
-					portPoly.transform(trans);
-					if (portDisplayLevel == 2)
-					{
-						// draw port as a crossz
-						offscreen.drawCross(portPoly, redGraphics);
-					} else
-					{
-						// draw port as text
-						if (User.isTextVisibilityOnPort())
-						{
-							TextDescriptor descript = portPoly.getTextDescriptor();
-							Poly.Type type = descript.getPos().getPolyType();
-							String portName = pp.getProtoName();
-							if (portDisplayLevel == 1)
-							{
-								// use shorter port name
-								portName = pp.getShortProtoName();
-							}
-							Point pt = databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
-							Rectangle rect = new Rectangle(pt);
-							offscreen.drawText(rect, type, descript, portName, null, redGraphics);
-						}
-					}
-				}
-				fs.freeFlagSet();
-			}
-
-			// draw any displayable variables on the instance
-			if (User.isTextVisibilityOnNode())
-			{
-				int numPolys = ni.numDisplayableVariables(true);
-				Poly [] polys = new Poly[numPolys];
-				Rectangle2D rect = ni.getBounds();
-				ni.addDisplayableVariables(rect, polys, 0, this, true);
-				drawPolys(polys, localTrans);
-			}
-		} else
-		{
-			// primitive
-			if (topLevel || !ni.isVisInside())
-			{
-				EditWindow wnd = this;
-				PrimitiveNode prim = (PrimitiveNode)np;
-				if (!User.isTextVisibilityOnNode()) wnd = null;
-				if (prim == Generic.tech.invisiblePinNode)
-				{
-					if (!User.isTextVisibilityOnAnnotation()) wnd = null;
-				}
-				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, wnd);
-				drawPolys(polys, localTrans);
-			}
+			this.wnd = wnd;
+			this.offscreen = offscreen;
 		}
 
-		// draw any exports from the node
-		if (topLevel && User.isTextVisibilityOnExport())
+		public void run()
 		{
-			int exportDisplayLevel = User.getExportDisplayLevel();
-			Iterator it = ni.getExports();
-			while (it.hasNext())
-			{
-				Export e = (Export)it.next();
-				Poly poly = e.getNamePoly();
-				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-				if (exportDisplayLevel == 2)
-				{
-					// draw port as a cross
-					offscreen.drawCross(poly, blackGraphics);
-				} else
-				{
-					// draw port as text
-					TextDescriptor descript = poly.getTextDescriptor();
-					Poly.Type type = descript.getPos().getPolyType();
-					String portName = e.getProtoName();
-					if (exportDisplayLevel == 1)
-					{
-						// use shorter port name
-						portName = e.getShortProtoName();
-					}
-					Point pt = databaseToScreen(poly.getCenterX(), poly.getCenterY());
-					Rectangle textRect = new Rectangle(pt);
-					offscreen.drawText(textRect, type, descript, portName, null, blackGraphics);
-				}
-
-				// draw variables on the export
-				int numPolys = e.numDisplayableVariables(true);
-				if (numPolys > 0)
-				{
-					Poly [] polys = new Poly[numPolys];
-					e.addDisplayableVariables(rect, polys, 0, this, true);
-					drawPolys(polys, localTrans);
-				}
-			}
+			offscreen.drawImage(wnd.getCell());
+			wnd.repaint();
 		}
 	}
 
-	/**
-	 * Method to draw arc "ai", transformed through "trans".
-	 */
-	public void drawArc(ArcInst ai, AffineTransform trans)
+	public Image renderNode(NodeInst ni, double scale)
 	{
-		ArcProto ap = ai.getProto();
-		Technology tech = ap.getTechnology();
-		EditWindow wnd = this;
-		if (!User.isTextVisibilityOnArc()) wnd = null;
-		Poly [] polys = tech.getShapeOfArc(ai, wnd);
-		drawPolys(polys, trans);
+		offscreen.clearImage(false);
+		setScale(scale);
+		offscreen.drawNode(ni, EMath.MATID, true);
+		return offscreen.composite();
 	}
 
-	/**
-	 * Method to draw polygon "poly", transformed through "trans".
-	 */
-	private void drawPolys(Poly [] polys, AffineTransform trans)
+	public Image renderArc(ArcInst ai, double scale)
 	{
-		if (polys == null) return;
-		for(int i = 0; i < polys.length; i++)
-		{
-			// get the polygon and transform it
-			Poly poly = polys[i];
-			if (poly == null)
-			{
-				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
-				return;
-			}
-			Layer layer = poly.getLayer();
-			EGraphics graphics = null;
-			if (layer != null)
-			{
-				if (!layer.isVisible()) continue;
-				graphics = layer.getGraphics();
-			}
-
-			// transform the bounds
-			poly.transform(trans);
-
-			// render the polygon
-			offscreen.renderPoly(poly, graphics);
-		}
+		offscreen.clearImage(false);
+		setScale(scale);
+		offscreen.drawArc(ai, EMath.MATID);
+		return offscreen.composite();
 	}
 
-	/**
-	 * Method to convert a string and descriptor to a GlyphVector.
-	 * @param text the string to convert.
-	 * @param descript the Text Descriptor, with size, style, etc.
-	 * @return a GlyphVector describing the text.
-	 */
-	public GlyphVector getGlyphs(String text, TextDescriptor descript)
+	public Font getFont(TextDescriptor descript)
 	{
-		// make a glyph vector for the desired text
 		int size = 14;
 		int fontStyle = Font.PLAIN;
 		String fontName = "SansSerif";
@@ -653,8 +396,24 @@ long endTime = System.currentTimeMillis();
 			}
 		}
 		Font font = new Font(fontName, fontStyle, size);
+		return font;
+	}
+
+	/**
+	 * Method to convert a string and descriptor to a GlyphVector.
+	 * @param text the string to convert.
+	 * @param font the Font to use.
+	 * @return a GlyphVector describing the text.
+	 */
+	public GlyphVector getGlyphs(String text, Font font)
+	{
+		// make a glyph vector for the desired text
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = font.createGlyphVector(frc, text);
+//		java.awt.font.LineMetrics lm = font.getLineMetrics(text, frc);
+//		int baselineIndex = lm.getBaselineIndex();
+//		float [] manyBLI = lm.getBaselineOffsets();
+//System.out.println("Text '"+text+"' has BLI="+baselineIndex+" and baseline="+manyBLI[baselineIndex]);
 		return gv;
 	}
 
@@ -937,7 +696,7 @@ long endTime = System.currentTimeMillis();
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
 		computeDatabaseBounds();
-		needsUpdate = true;
+		repaintContents();
 	}
 
 	/**
@@ -955,7 +714,7 @@ long endTime = System.currentTimeMillis();
 				focusScreen(cellBounds);
 			}
 		}
- 		needsUpdate = true;
+ 		repaintContents();
    }
 
     // ************************************* HIERARCHY TRAVERSAL *************************************

@@ -1868,18 +1868,6 @@ public class InputBinary extends InputLibrary
 		{
 			// read the portproto name
 			String protoName = localPortNames[j];
-//			Export pp = c.findExport(protoName);
-//			if (pp == null)
-//			{
-//				if (newCell)
-//				{
-//					PortInst pi = fakeNodeInst.findPortInst("univ");
-//					pp = Export.newInstance(c, pi, protoName);
-//				} else
-//				{
-//					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
-//				}
-//			}
 			portProtoList[portProtoIndex] = c;
 			portProtoNameList[portProtoIndex] = protoName;
 			portProtoIndex++;

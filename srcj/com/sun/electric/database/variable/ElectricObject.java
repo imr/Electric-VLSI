@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.Font;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -196,15 +197,16 @@ public class ElectricObject
 		if (varLength > 1)
 		{
 			// compute text height
-			GlyphVector gv = wnd.getGlyphs(var.describe(0, -1, wnd.getVarContext(), this), td);
-			Rectangle2D glyphBounds = gv.getVisualBounds();
-			height = glyphBounds.getHeight() / wnd.getScale();
+			Font font = wnd.getFont(td);
+			height = font.getSize2D() / wnd.getScale();
 			if (multipleStrings)
 			{
 				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
 					cY += height * (varLength-1) / 2;
 				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
 					cY += height * (varLength-1);
+				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+					cY -= height*2;
 			} else
 			{
 				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)

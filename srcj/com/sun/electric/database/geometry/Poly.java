@@ -37,6 +37,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Rectangle;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
@@ -108,12 +109,6 @@ public class Poly implements Shape
 		 * The last point is not implicitly connected to the first point.
 		 */
 		public static final Type OPENEDT3 = new Type("opened-thick", false);
-		/**
-		 * Describes an open outline pushed outward by 1 screen pixel.
-		 * The last point is not implicitly connected to the first point.
-		 * This is useful in highlighting objects where the highlight line belongs outside of the highlighted object.
-		 */
-		public static final Type OPENEDO1 = new Type("opened-out1", false);
 		/**
 		 * Describes a vector endpoint pairs, solid.
 		 * There must be an even number of points in the Poly so that vectors can be drawn from point 0 to 1,
@@ -450,8 +445,8 @@ public class Poly implements Shape
 			if (style != Type.FILLED && style != Type.CLOSED && style != Type.TEXTBOX) return null;
 		} else if (points.length == 5)
 		{
-			if (style != Type.OPENED && style != Type.OPENEDT1 && style != Type.OPENEDT2 &&
-				style != Type.OPENEDT3 && style != Type.OPENEDO1) return null;
+			if (style != Type.OPENED && style != Type.OPENEDT1 &&
+				style != Type.OPENEDT2 && style != Type.OPENEDT3) return null;
 			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return null;
 		} else return null;
 
@@ -826,15 +821,17 @@ public class Poly implements Shape
 		double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();
 		double hY = bounds.getMaxY();
-		GlyphVector gv = wnd.getGlyphs(getString(), getTextDescriptor());
+		Font font = wnd.getFont(getTextDescriptor());
+		GlyphVector gv = wnd.getGlyphs(getString(), font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Point2D corner = getTextCorner(wnd, gv, getStyle(), numLines, lX, hX, lY, hY);
+		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), numLines, lX, hX, lY, hY);
 		double cX = corner.getX();
 		double cY = corner.getY();
 
-		double textScale = getTextScale(wnd,gv, getStyle(), lX, hX, lY, hY);
+		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
 		double width = glyphBounds.getWidth() * textScale;
-		double height = glyphBounds.getHeight() * textScale * numLines;
+//		double height = glyphBounds.getHeight() * textScale * numLines;
+		double height = font.getSize() * textScale * numLines;
 		points = new Point2D.Double[] {
 			new Point2D.Double(cX, cY),
 			new Point2D.Double(cX+width, cY),
@@ -881,7 +878,7 @@ public class Poly implements Shape
 	 * @param hY the high Y bound of the polygon containing the text.
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
-	private Point2D getTextCorner(EditWindow wnd, GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
+	private Point2D getTextCorner(EditWindow wnd, Font font, GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
 	{
 		// adjust to place text in the center
 		Rectangle2D glyphBounds = gv.getVisualBounds();
@@ -889,7 +886,7 @@ public class Poly implements Shape
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
 		double textWidth = glyphBounds.getWidth() * textScale;
-		double textHeight = glyphBounds.getHeight() * textScale;
+		double textHeight = font.getSize() * textScale;
 		if (style == Poly.Type.TEXTCENT)
 		{
 			cX -= glyphBounds.getCenterX() * textScale;
@@ -1030,8 +1027,7 @@ public class Poly implements Shape
 
 		// handle opened outline figures
 		if (localStyle == Type.OPENED || localStyle == Type.OPENEDT1 ||
-			localStyle == Type.OPENEDT2 || localStyle == Type.OPENEDT3 ||
-			localStyle == Type.OPENEDO1)
+			localStyle == Type.OPENEDT2 || localStyle == Type.OPENEDT3)
 		{
 			if (otherIsPoint)
 			{

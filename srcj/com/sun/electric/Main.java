@@ -73,7 +73,7 @@ public final class Main
         if (!openCommandLineLibs(argsList)) {
             // open default library (or maybe open none at all?)
             Library mainLib = Library.newInstance("noname", null);
-            Library.setCurrent(mainLib);
+            mainLib.setCurrent();
 			WindowFrame window1 = WindowFrame.createEditWindow(null);
         }
 

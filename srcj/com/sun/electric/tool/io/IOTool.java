@@ -147,6 +147,7 @@ public class IOTool extends Tool
 
 	public static void fixVariableFont(ElectricObject eobj)
 	{
+		if (eobj == null) return;
 		for(Iterator it = eobj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();

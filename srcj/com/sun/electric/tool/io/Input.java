@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.InputLibrary;
 import com.sun.electric.tool.user.dialogs.Progress;
+import com.sun.electric.tool.user.MenuCommands;
 
 import java.awt.geom.Point2D;
 import java.io.File;
@@ -208,7 +209,7 @@ public class Input extends IOTool
 			if (lib != null)
 			{
 				// library already exists, prompt for save
-				System.out.println("Library already exists: overwriting");
+				if (MenuCommands.preventLoss(lib, 2)) return null;
 				lib.erase();
 			} else
 			{
@@ -238,36 +239,6 @@ public class Input extends IOTool
 			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
-//		if (topLevel)
-//		{
-//			mainLibDirectory = null;
-//			System.out.println("Top level done.  Libraries are");
-//			for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
-//			{
-//				Input i = (Input)it.next();
-//				Library l = i.lib;
-//				System.out.println("   Library " + l.getLibName());
-//				for(Iterator cit = l.getCells(); cit.hasNext(); )
-//				{
-//					Cell cell = (Cell)cit.next();
-//					for(Iterator eit = cell.getPorts(); eit.hasNext(); )
-//					{
-//						Export pp = (Export)eit.next();
-//						if (pp.getOriginalNode() != null && pp.getOriginalPort() != null) continue;
-//
-//						// must do final conversion
-//						Object subPort = pp.getPureOriginalPort();
-//						if (subPort instanceof PortProto)
-//						{
-//							System.out.println("correcting export " + pp.getProtoName() + " of cell " + cell.getProtoName());
-//							NodeInst subNode = pp.getOriginalNode();
-//							PortInst pi = subNode.findPortInst(((PortProto)subPort).getProtoName());
-//							pp.lowLevelSetOriginalPort(pi);
-//						}
-//					}
-//				}
-//			}
-//		}
 		return in.lib;
 	}
 	
@@ -328,35 +299,6 @@ public class Input extends IOTool
 		}
 	}
 
-//	/**
-//	 * Method to set name of Geometric object.
-//	 * @param geom the Geometric object.
-//	 * @param value name of object
-//	 * @param td text descriptor.
-//	 * @param type type mask.
-//	 */
-//	protected Name makeGeomName(Geometric geom, Object value, int type)
-//	{
-//		if (value == null || !(value instanceof String)) return null;
-//		String str = (String)value;
-//		Name name = Name.findName(str);
-//		if ((type & BinaryConstants.VDISPLAY) != 0)
-//		{
-//			if (name.isTempname())
-//			{
-//				String newS = "";
-//				for (int i = 0; i < str.length(); i++)
-//				{
-//					char c = str.charAt(i);
-//					if (c == '@') c = '_';
-//					newS += c;
-//				}
-//				name = Name.findName(newS);
-//			}
-//		} else if (!name.isTempname()) return null;
-//		return name;
-//	}
-//
 //	private static String [] fontNames = null;
 //
 //	/**

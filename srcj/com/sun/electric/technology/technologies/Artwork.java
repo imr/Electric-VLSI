@@ -703,8 +703,8 @@ public class Artwork extends Technology
 			graphics.setColor(EGraphics.BLACK);
 		} else
 		{
-			Integer color = (Integer)var.getObject();
-			graphics.setColor(color.intValue());
+			int color = ((Integer)var.getObject()).intValue();
+			graphics.setColor(color);
 		}
 
 //		// get the stipple pattern information

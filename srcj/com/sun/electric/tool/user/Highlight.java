@@ -844,10 +844,11 @@ public class Highlight
 					} else if (ai.isSlidable()) constraints = "S";
 				}
 				Point p = wnd.databaseToScreen(ai.getTrueCenterX(), ai.getTrueCenterY());
-				GlyphVector gv = wnd.getGlyphs(constraints, null);
+				Font font = wnd.getFont(null);
+				GlyphVector gv = wnd.getGlyphs(constraints, font);
 				Rectangle2D glyphBounds = gv.getVisualBounds();
 				g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
-					(int)(p.y + glyphBounds.getHeight()/2 + highOffY));
+					(int)(p.y + font.getSize()/2 + highOffY));
 			}
 			return;
 		}

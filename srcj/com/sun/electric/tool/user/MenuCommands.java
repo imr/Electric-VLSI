@@ -94,6 +94,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.ExplorerTree;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
@@ -141,15 +142,22 @@ public final class MenuCommands
 		Menu fileMenu = Menu.createMenu("File", 'F');
 		menuBar.add(fileMenu);
 
-		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', buckyBit),
+		fileMenu.addMenuItem("New Library", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
+		fileMenu.addMenuItem("Open Library", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 		Menu importSubMenu = Menu.createMenu("Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
-		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
-		fileMenu.addMenuItem("Save as...",null,
+
+		fileMenu.addSeparator();
+
+		fileMenu.addMenuItem("Close Library", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
+		fileMenu.addMenuItem("Save Library", KeyStroke.getKeyStroke('S', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent()); } });
+		fileMenu.addMenuItem("Save Library as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
 		Menu exportSubMenu = Menu.createMenu("Export");
 		fileMenu.add(exportSubMenu);
@@ -159,6 +167,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
 		exportSubMenu.addMenuItem("PostScript", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.POSTSCRIPT, OpenFile.POSTSCRIPT); } });
+
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
 			fileMenu.addSeparator();
@@ -601,6 +610,17 @@ public final class MenuCommands
 
 	// ---------------------- THE FILE MENU -----------------
 
+	public static void newLibraryCommand()
+	{
+		String newLibName = JOptionPane.showInputDialog("New Library Name", "");
+		if (newLibName == null) return;
+		Library lib = Library.newInstance(newLibName, null);
+		if (lib == null) return;
+		lib.setCurrent();
+		ExplorerTree.explorerTreeChanged();
+		EditWindow.repaintAll();
+	}
+
 	/**
 	 * This method implements the command to read a library.
 	 * It is interactive, and pops up a dialog box.
@@ -635,7 +655,7 @@ public final class MenuCommands
 			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
-			Library.setCurrent(lib);
+			lib.setCurrent();
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
@@ -686,7 +706,7 @@ public final class MenuCommands
 			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
-			Library.setCurrent(lib);
+			lib.setCurrent();
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
@@ -704,13 +724,23 @@ public final class MenuCommands
 		}
 	}
 
+	public static void closeLibraryCommand(Library lib)
+	{
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to delete library " + lib.getLibName() + "?");
+		if (response != JOptionPane.YES_OPTION) return;
+		String libName = lib.getLibName();
+		if (lib.kill())
+			System.out.println("Library " + libName + " deleted");
+		ExplorerTree.explorerTreeChanged();
+		EditWindow.repaintAll();
+	}
+
 	/**
 	 * This method implements the command to save a library.
 	 * It is interactive, and pops up a dialog box.
 	 */
-	public static void saveLibraryCommand()
+	public static void saveLibraryCommand(Library lib)
 	{
-		Library lib = Library.getCurrent();
 		String fileName;
 		if (lib.isFromDisk())
 		{
@@ -762,7 +792,7 @@ public final class MenuCommands
 	{
 		Library lib = Library.getCurrent();
 		lib.clearFromDisk();
-		saveLibraryCommand();
+		saveLibraryCommand(lib);
 	}
 
 	/**
@@ -825,7 +855,53 @@ public final class MenuCommands
 	 */
 	public static void quitCommand()
 	{
+		if (preventLoss(null, 0)) return;
 		System.exit(0);
+	}
+
+	/**
+	 * Method to ensure that one or more libraries are saved.
+	 * @param desiredLib the library to check for being saved.
+	 * If desiredLib is null, all libraries are checked.
+	 * @param action the type of action that will occur:
+	 * 0: quit;
+	 * 1: close a library;
+	 * 2: replace a library.
+	 * @return true if the operation should be aborted;
+	 * false to continue with the quit/close/replace.
+	 */
+	public static boolean preventLoss(Library desiredLib, int action)
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (desiredLib != null && desiredLib != lib) continue;
+			if (lib.isHidden()) continue;
+			if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+
+			// warn about this library
+			String how = "significantly";
+			if (!lib.isChangedMajor()) how = "insignificantly";
+
+			String theAction = "Save before quitting?";
+			if (action == 1) theAction = "Save before closing?"; else
+				if (action == 2) theAction = "Save before replacing?";
+			String [] options = {"Yes", "No", "Cancel", "No to All"};
+			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				"Library " + lib.getLibName() + " has changed " + how + ".  " + theAction,
+				"Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+				null, options, options[0]);
+			if (ret == 0)
+			{
+				// save the library
+				saveLibraryCommand(lib);
+				continue;
+			}
+			if (ret == 1) continue;
+			if (ret == 2) return true;
+			if (ret == 3) break;
+		}
+		return false;
 	}
 
 	// ---------------------- THE EDIT MENU -----------------

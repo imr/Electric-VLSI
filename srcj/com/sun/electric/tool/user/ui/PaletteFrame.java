@@ -481,37 +481,7 @@ public class PaletteFrame
 					}
 				}
 
-				// remember the listener that was there before
-				EventListener oldListener = EditWindow.getListener();
-				Cursor oldCursor = TopLevel.getCurrentCursor();
-
-				NodeProto np = null;
-				NodeInst ni = null;
-				if (obj instanceof NodeProto)
-				{
-					np = (NodeProto)obj;
-				} else if (obj instanceof NodeInst)
-				{
-					ni = (NodeInst)obj;
-					np = ni.getProto();
-				}
-				if (np != null)
-				{
-					System.out.println("Click to create node "+np.describe());
-					EventListener currentListener = oldListener;
-					if (currentListener != null && currentListener instanceof PlaceNodeListener)
-					{
-						((PlaceNodeListener)currentListener).setParameter(np);
-					} else
-					{
-						currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
-						EditWindow.setListener(currentListener);
-					}
-					frame.highlightedNode = np;
-				}
-
-				// change the cursor
-				TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				placeInstance(obj, panel);
 			} else if (obj instanceof PrimitiveArc)
 			{
 				PrimitiveArc ap = (PrimitiveArc)obj;
@@ -650,25 +620,7 @@ public class PaletteFrame
 				// the popup of libraies changed
 				JMenuItem mi = (JMenuItem)evt.getSource();
 				String msg = mi.getText();
-
-				EventListener oldListener = EditWindow.getListener();
-				Cursor oldCursor = TopLevel.getCurrentCursor();
-
-				if (obj instanceof Cell)
-					System.out.println("Click to create an instance of cell "+((Cell)obj).describe());
-				EventListener currentListener = oldListener;
-				if (currentListener != null && currentListener instanceof PlaceNodeListener)
-				{
-					((PlaceNodeListener)currentListener).setParameter(obj);
-				} else
-				{
-					currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
-					EditWindow.setListener(currentListener);
-				}
-				if (obj == Generic.tech.invisiblePinNode)
-					((PlaceNodeListener)currentListener).setTextNode();
-				PaletteFrame frame = panel.getFrame();
-//				frame.highlightedNode = obj;
+				placeInstance(obj, panel);
 			}
 		};
 
@@ -869,10 +821,7 @@ public class PaletteFrame
 			double scalex = frame.entrySize/largest * 0.8;
 			double scaley = frame.entrySize/largest * 0.8;
 			double scale = Math.min(scalex, scaley);
-			wnd.initDrawing();
-			wnd.setScale(scale);
-			wnd.drawNode(ni, EMath.MATID, true);
-			return wnd.termDrawing();
+			return wnd.renderNode(ni, scale);
 		}
 
 		private final static double menuArcLength = 8;
@@ -911,12 +860,57 @@ public class PaletteFrame
 				double scalex = frame.entrySize/largest * 0.8;
 				double scaley = frame.entrySize/largest * 0.8;
 				double scale = Math.min(scalex, scaley);
-				wnd.initDrawing();
-				wnd.setScale(scale);
-				wnd.drawArc(ai, EMath.MATID);
-				return wnd.termDrawing();
+				return wnd.renderArc(ai, scale);
 			}
 			return null;
+		}
+	}
+
+	/**
+	 * Method to interactively place an instance of a node.
+	 * @param obj the node to create.
+	 * If this is a NodeProto, one of these types is created.
+	 * If this is a NodeInst, one of these is created, and the specifics of this instance are copied.
+	 * @param panel the PalettePanel that invoked this request.
+	 * If this is null, then the request did not come from the palette.
+	 */
+	public static void placeInstance(Object obj, PalettePanel panel)
+	{
+		NodeProto np = null;
+		NodeInst ni = null;
+		if (obj instanceof NodeProto)
+		{
+			np = (NodeProto)obj;
+		} else if (obj instanceof NodeInst)
+		{
+			ni = (NodeInst)obj;
+			np = ni.getProto();
+		}
+		if (np != null)
+		{
+			// remember the listener that was there before
+			EventListener oldListener = EditWindow.getListener();
+			Cursor oldCursor = TopLevel.getCurrentCursor();
+
+			if (np instanceof Cell)
+				System.out.println("Click to create an instance of cell " + np.describe()); else
+					System.out.println("Click to create node " + np.describe());
+			EventListener currentListener = oldListener;
+			if (currentListener != null && currentListener instanceof PlaceNodeListener)
+			{
+				((PlaceNodeListener)currentListener).setParameter(np);
+			} else
+			{
+				currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
+				EditWindow.setListener(currentListener);
+			}
+			if (np == Generic.tech.invisiblePinNode)
+				((PlaceNodeListener)currentListener).setTextNode();
+			if (panel != null)
+				panel.getFrame().highlightedNode = np;
+
+			// change the cursor
+			TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		}
 	}
 
@@ -1039,9 +1033,12 @@ public class PaletteFrame
 			Highlight.clear();
 			Highlight.finished();
 			EditWindow.setListener(oldListener);
-			window.frame.highlightedNode = null;
 			TopLevel.setCurrentCursor(oldCursor);
-			window.repaint();
+			if (window != null)
+			{
+				window.frame.highlightedNode = null;
+				window.repaint();
+			}
 		}
 
 		public void mousePressed(MouseEvent evt) {}

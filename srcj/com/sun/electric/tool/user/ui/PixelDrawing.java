@@ -24,9 +24,25 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.awt.Image;
@@ -39,12 +55,14 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
+import java.util.Iterator;
 import javax.swing.JPanel;
 
 
@@ -57,23 +75,39 @@ public class PixelDrawing
 		PolySeg nextactive;
 	}
 
-	/** the EditWindow being drawn */						private EditWindow world;
+	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the size of the EditWindow */						private Dimension sz;
+
+	// the full-depth image
     /** the offscreen opaque image of the window */			private Image img;
 	/** opaque layer of the window */						private int [] opaqueData;
 	/** size of the opaque layer of the window */			private int total;
+	/** the background color of the offscreen image */		private int backgroundColor;
+	/** the "unset" color of the offscreen image */			private int backgroundValue;
 
+	// the transparent bitmaps
 	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
 	/** row pointers for transparent layers */				private byte [][] compositeRows;
 	/** the number of transparent layers */					private int numLayerBitMaps;
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
-	/** the nuber of offscreen transparent maps made */		private int numLayerBitMapsCreated;
+	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the color map of the window */						private Color [] colorMap;
+	/** the technology of the window */						private Technology curTech;
 
-	public PixelDrawing(Dimension sz, EditWindow world)
+	/** whether to occasionally update the display. */		private boolean periodicRefresh;
+	/** keeps track of when to update the display. */		private int objectCount;
+	/** keeps track of when to update the display. */		private long lastRefreshTime;
+	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
+	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0, 1.0,1,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+
+	public PixelDrawing(Dimension sz, EditWindow wnd)
 	{
+		this.wnd = wnd;
 		this.sz = sz;
-		this.world = world;
 
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -81,24 +115,46 @@ public class PixelDrawing
 		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
+		numBytesPerRow = (sz.width + 7) / 8;
+		backgroundColor = Color.LIGHT_GRAY.getRGB();
+		backgroundValue = backgroundColor | 0xFF000000;
 
+		curTech = null;
+		initForTechnology();
+
+		// initialize the data
+		clearImage(false);
+	}
+
+	private void initForTechnology()
+	{
 		// allocate pointers to the overlappable layers
 		Technology tech = Technology.getCurrent();
 		if (tech == null) return;
-		numLayerBitMaps = tech.getNumTransparentLayers();
+		if (tech == curTech) return;
+		int transLayers = tech.getNumTransparentLayers();
+		if (transLayers == 0) return;
+
+		// use this technology's transparency information
+		curTech = tech;
+		numLayerBitMaps = transLayers;
 		layerBitMaps = new byte[numLayerBitMaps][][];
 		compositeRows = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
-		numBytesPerRow = (sz.width + 7) / 8;
 		numLayerBitMapsCreated = 0;
 		colorMap = tech.getColorMap();
+		backgroundColor = colorMap[0].getRGB();
+		backgroundValue = backgroundColor | 0xFF000000;
 	}
 
 	public Image getImage() { return img; }
 
-	public void clearImage()
+	public void clearImage(boolean periodicRefresh)
 	{
-		// erase the overlappable bitmaps
+		// pickup new technology if it changed
+		initForTechnology();
+
+		// erase the transparent bitmaps
 		for(int i=0; i<numLayerBitMaps; i++)
 		{
 			byte [][] layerBitMap = layerBitMaps[i];
@@ -112,10 +168,17 @@ public class PixelDrawing
 		}
 
 		// erase opaque image
-		for(int i=0; i<total; i++) opaqueData[i] = -1;
+		for(int i=0; i<total; i++) opaqueData[i] = backgroundValue;
+
+		this.periodicRefresh = periodicRefresh;
+		if (periodicRefresh)
+		{
+			objectCount = 0;
+			lastRefreshTime = System.currentTimeMillis();
+		}
 	}
 
-	public void composite()
+	public Image composite()
 	{
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
@@ -134,7 +197,7 @@ public class PixelDrawing
 				for(int x=0; x<sz.width; x++)
 				{
 					int index = baseIndex + x;
-					if (opaqueData[index] == -1)
+					if (opaqueData[index] == backgroundValue)
 					{
 						int bits = 0;
 						int entry = x >> 3;
@@ -153,7 +216,7 @@ public class PixelDrawing
 						} else
 						{
 							// set the background color
-							opaqueData[index] = Color.LIGHT_GRAY.getRGB();
+							opaqueData[index] = backgroundColor;
 						}
 					}
 				}
@@ -162,22 +225,312 @@ public class PixelDrawing
 		{
 			// nothing in transparent layers: make sure background color is right
 			for(int i=0; i<total; i++)
-				if (opaqueData[i] == -1) opaqueData[i] = Color.LIGHT_GRAY.getRGB();
+				if (opaqueData[i] == backgroundValue) opaqueData[i] = backgroundColor;
+		}
+		return img;
+	}
+
+	/**
+	 * Method to draw a Cell in the current window.
+	 */
+	public void drawImage(Cell cell)
+	{
+		// initialize rendering into the offscreen image
+		clearImage(true);
+
+		if (cell == null)
+		{
+			if (noCellTextDescriptor == null)
+			{
+				noCellTextDescriptor = new TextDescriptor(null);
+				noCellTextDescriptor.setAbsSize(18);
+				noCellTextDescriptor.setBold();
+			}
+			Rectangle rect = new Rectangle(sz);
+			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
+		} else
+		{
+			// draw everything
+			drawCell(cell, EMath.MATID, true);
+		}
+
+		// merge transparent image into opaque one
+		composite();
+	}
+
+	/**
+	 * Method to draw the contents of a cell, transformed through "prevTrans".
+	 */
+	private void drawCell(Cell cell, AffineTransform prevTrans, boolean topLevel)
+	{
+		// draw all arcs
+		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
+		{
+			drawArc((ArcInst)arcs.next(), prevTrans);
+		}
+
+		// draw all nodes
+		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+		{
+			drawNode((NodeInst)nodes.next(), prevTrans, topLevel);
+		}
+
+		// show cell variables if at the top level
+		if (topLevel && User.isTextVisibilityOnCell())
+		{
+			// show displayable variables on the instance
+			int numPolys = cell.numDisplayableVariables(true);
+			Poly [] polys = new Poly[numPolys];
+			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
+			drawPolys(polys, EMath.MATID);
+		}
+	}
+
+	/**
+	 * Method to draw node "ni", transformed through "trans".
+	 */
+	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel)
+	{
+		NodeProto np = ni.getProto();
+		AffineTransform localTrans = ni.rotateOut(trans);
+
+		// see if the node is completely clipped from the screen
+		Point2D ctr = ni.getTrueCenter();
+		trans.transform(ctr, ctr);
+		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
+		Rectangle2D databaseBounds = wnd.getDisplayedBounds();
+		if (ctr.getX() + halfWidth < databaseBounds.getMinX()) return;
+		if (ctr.getX() - halfWidth > databaseBounds.getMaxX()) return;
+		if (ctr.getY() + halfWidth < databaseBounds.getMinY()) return;
+		if (ctr.getY() - halfWidth > databaseBounds.getMaxY()) return;
+
+		if (np instanceof Cell)
+		{
+			// cell instance
+			Cell subCell = (Cell)np;
+
+			// two ways to draw a cell instance
+			if (ni.isExpanded())
+			{
+				// show the contents
+				AffineTransform subTrans = ni.translateOut(localTrans);
+				drawCell(subCell, subTrans, false);
+			} else
+			{
+				// draw the instance outline
+				Rectangle2D bounds = ni.getBounds();
+				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
+				poly.transform(localPureTrans);
+				Point2D [] points = poly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					int lastI = i - 1;
+					if (lastI < 0) lastI = points.length - 1;
+					Point from = wnd.databaseToScreen(points[lastI]);
+					Point to = wnd.databaseToScreen(points[i]);
+					drawLine(from, to, null, blackGraphics, 0);
+				}
+
+				// draw the instance name
+				if (User.isTextVisibilityOnInstance())
+				{
+					bounds = poly.getBounds2D();
+					Rectangle rect = wnd.databaseToScreen(bounds);
+					TextDescriptor descript = ni.getProtoTextDescriptor();
+					drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
+				}
+
+				// show the ports that are not further exported or connected
+				FlagSet fs = PortProto.getFlagSet(1);
+				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+				{
+					PortProto pp = (PortProto)it.next();
+					pp.clearBit(fs);
+				}
+				for(Iterator it = ni.getConnections(); it.hasNext();)
+				{
+					Connection con = (Connection) it.next();
+					PortInst pi = con.getPortInst();
+					pi.getPortProto().setBit(fs);
+				}
+				for(Iterator it = ni.getExports(); it.hasNext();)
+				{
+					Export exp = (Export) it.next();
+					PortInst pi = exp.getOriginalPort();
+					pi.getPortProto().setBit(fs);
+				}
+				int portDisplayLevel = User.getPortDisplayLevel();
+				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+				{
+					PortProto pp = (PortProto)it.next();
+					if (pp.isBit(fs)) continue;
+
+					Poly portPoly = ni.getShapeOfPort(pp);
+					if (portPoly == null) continue;
+					portPoly.transform(trans);
+					Color col = pp.colorOfPort();
+					portGraphics.setColor(col);
+					if (portDisplayLevel == 2)
+					{
+						// draw port as a cross
+						drawCross(portPoly, portGraphics);
+					} else
+					{
+						// draw port as text
+						if (User.isTextVisibilityOnPort())
+						{
+							TextDescriptor descript = portPoly.getTextDescriptor();
+							Poly.Type type = descript.getPos().getPolyType();
+							String portName = pp.getProtoName();
+							if (portDisplayLevel == 1)
+							{
+								// use shorter port name
+								portName = pp.getShortProtoName();
+							}
+							Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
+							Rectangle rect = new Rectangle(pt);
+							drawText(rect, type, descript, portName, null, portGraphics);
+						}
+					}
+				}
+				fs.freeFlagSet();
+			}
+
+			// draw any displayable variables on the instance
+			if (User.isTextVisibilityOnNode())
+			{
+				int numPolys = ni.numDisplayableVariables(true);
+				Poly [] polys = new Poly[numPolys];
+				Rectangle2D rect = ni.getBounds();
+				ni.addDisplayableVariables(rect, polys, 0, wnd, true);
+				drawPolys(polys, localTrans);
+			}
+		} else
+		{
+			// primitive
+			if (topLevel || !ni.isVisInside())
+			{
+				EditWindow nodeWnd = wnd;
+				PrimitiveNode prim = (PrimitiveNode)np;
+				if (!User.isTextVisibilityOnNode()) nodeWnd = null;
+				if (prim == Generic.tech.invisiblePinNode)
+				{
+					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
+				}
+				Technology tech = prim.getTechnology();
+				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd);
+				drawPolys(polys, localTrans);
+			}
+		}
+
+		// draw any exports from the node
+		if (topLevel && User.isTextVisibilityOnExport())
+		{
+			int exportDisplayLevel = User.getExportDisplayLevel();
+			Iterator it = ni.getExports();
+			while (it.hasNext())
+			{
+				Export e = (Export)it.next();
+				Poly poly = e.getNamePoly();
+				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
+				if (exportDisplayLevel == 2)
+				{
+					// draw port as a cross
+					drawCross(poly, blackGraphics);
+				} else
+				{
+					// draw port as text
+					TextDescriptor descript = poly.getTextDescriptor();
+					Poly.Type type = descript.getPos().getPolyType();
+					String portName = e.getProtoName();
+					if (exportDisplayLevel == 1)
+					{
+						// use shorter port name
+						portName = e.getShortProtoName();
+					}
+					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+					Rectangle textRect = new Rectangle(pt);
+					drawText(textRect, type, descript, portName, null, blackGraphics);
+				}
+
+				// draw variables on the export
+				int numPolys = e.numDisplayableVariables(true);
+				if (numPolys > 0)
+				{
+					Poly [] polys = new Poly[numPolys];
+					e.addDisplayableVariables(rect, polys, 0, wnd, true);
+					drawPolys(polys, localTrans);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to draw arc "ai", transformed through "trans".
+	 */
+	public void drawArc(ArcInst ai, AffineTransform trans)
+	{
+		ArcProto ap = ai.getProto();
+		Technology tech = ap.getTechnology();
+		EditWindow arcWnd = wnd;
+		if (!User.isTextVisibilityOnArc()) arcWnd = null;
+		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
+		drawPolys(polys, trans);
+	}
+
+	/**
+	 * Method to draw polygon "poly", transformed through "trans".
+	 */
+	private void drawPolys(Poly [] polys, AffineTransform trans)
+	{
+		if (polys == null) return;
+		for(int i = 0; i < polys.length; i++)
+		{
+			// get the polygon and transform it
+			Poly poly = polys[i];
+			if (poly == null)
+			{
+				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
+				return;
+			}
+			Layer layer = poly.getLayer();
+			EGraphics graphics = null;
+			if (layer != null)
+			{
+				if (!layer.isVisible()) continue;
+				graphics = layer.getGraphics();
+			}
+
+			// transform the bounds
+			poly.transform(trans);
+
+			// render the polygon
+			renderPoly(poly, graphics);
+
+			// handle refreshing
+			if (periodicRefresh)
+			{
+				objectCount++;
+				if (objectCount > 100)
+				{
+					objectCount = 0;
+					long currentTime = System.currentTimeMillis();
+					if (currentTime - lastRefreshTime > 1000)
+					{
+						lastRefreshTime = currentTime;
+						wnd.repaint();
+					}
+				}
+			}
 		}
 	}
 
 	/**
 	 * Render a Poly to the offscreen buffer.
 	 */
-	public void renderPoly(Poly poly, EGraphics graphics)
+	private void renderPoly(Poly poly, EGraphics graphics)
 	{
-//		Rectangle2D databaseBounds = world.getDisplayedBounds();
-//		Rectangle2D polyBounds = poly.getBounds2D();
-//		if (polyBounds.getMaxX() < databaseBounds.getMinX()) return;
-//		if (polyBounds.getMinX() > databaseBounds.getMaxX()) return;
-//		if (polyBounds.getMaxY() < databaseBounds.getMinY()) return;
-//		if (polyBounds.getMinY() > databaseBounds.getMaxY()) return;
-
 		int layerNum = -1;
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum >= numLayerBitMaps) return;
@@ -189,13 +542,14 @@ public class PixelDrawing
 			if (layerBitMap == null)
 			{
 				 // allocate this bitplane dynamically
-				layerBitMap = layerBitMaps[layerNum] = new byte[sz.height][];
+				layerBitMap = new byte[sz.height][];
 				for(int y=0; y<sz.height; y++)
 				{
 					byte [] row = new byte[numBytesPerRow];
 					for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-					layerBitMaps[layerNum][y] = row;
+					layerBitMap[y] = row;
 				}
+				layerBitMaps[layerNum] = layerBitMap;
 				numLayerBitMapsCreated++;
 			}
 		}
@@ -209,10 +563,10 @@ public class PixelDrawing
 			if (bounds != null)
 			{
 				// convert coordinates
-				int lX = world.databaseToScreenX(bounds.getMinX());
-				int hX = world.databaseToScreenX(bounds.getMaxX());
-				int hY = world.databaseToScreenY(bounds.getMinY());
-				int lY = world.databaseToScreenY(bounds.getMaxY());
+				int lX = wnd.databaseToScreenX(bounds.getMinX());
+				int hX = wnd.databaseToScreenX(bounds.getMaxX());
+				int hY = wnd.databaseToScreenY(bounds.getMinY());
+				int lY = wnd.databaseToScreenY(bounds.getMaxY());
 
 				// do clipping
 				if (lX < 0) lX = 0;
@@ -227,17 +581,17 @@ public class PixelDrawing
 			}
 			Point [] intPoints = new Point[points.length];
 			for(int i=0; i<points.length; i++)
-				intPoints[i] = world.databaseToScreen(points[i]);
+				intPoints[i] = wnd.databaseToScreen(points[i]);
 			Point [] clippedPoints = clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
 			drawPolygon(clippedPoints, layerBitMap, graphics);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
 		{
-			Point pt0a = world.databaseToScreen(points[0]);
-			Point pt1a = world.databaseToScreen(points[1]);
-			Point pt2a = world.databaseToScreen(points[2]);
-			Point pt3a = world.databaseToScreen(points[3]);
+			Point pt0a = wnd.databaseToScreen(points[0]);
+			Point pt1a = wnd.databaseToScreen(points[1]);
+			Point pt2a = wnd.databaseToScreen(points[2]);
+			Point pt3a = wnd.databaseToScreen(points[3]);
 			Point pt0b = new Point(pt0a);   Point pt0c = new Point(pt0a);
 			Point pt1b = new Point(pt1a);   Point pt1c = new Point(pt1a);
 			Point pt2b = new Point(pt2a);   Point pt2c = new Point(pt2a);
@@ -253,30 +607,30 @@ public class PixelDrawing
 		if (style.isText())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
-			Rectangle rect = world.databaseToScreen(bounds);
+			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
 			drawText(rect, style, descript, str, layerBitMap, graphics);
 			return;
 		}
 		if (style == Poly.Type.CLOSED || style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
-			style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3 || style == Poly.Type.OPENEDO1)
+			style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3)
 		{
 			int lineType = 0;
 			if (style == Poly.Type.OPENEDT1) lineType = 1; else
 			if (style == Poly.Type.OPENEDT2) lineType = 2; else
 			if (style == Poly.Type.OPENEDT3) lineType = 3;
 
-			Point pt1 = world.databaseToScreen(points[0]);
+			Point pt1 = wnd.databaseToScreen(points[0]);
 			for(int j=1; j<points.length; j++)
 			{
-				Point pt2 = world.databaseToScreen(points[j]);
+				Point pt2 = wnd.databaseToScreen(points[j]);
 				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
 				pt1 = pt2;
 			}
 			if (style == Poly.Type.CLOSED)
 			{
-				Point pt2 = world.databaseToScreen(points[0]);
+				Point pt2 = wnd.databaseToScreen(points[0]);
 				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
 			}
 			return;
@@ -285,37 +639,38 @@ public class PixelDrawing
 		{
 			for(int j=0; j<points.length; j+=2)
 			{
-				Point pt1 = world.databaseToScreen(points[j]);
-				Point pt2 = world.databaseToScreen(points[j+1]);
+				Point pt1 = wnd.databaseToScreen(points[j]);
+				Point pt2 = wnd.databaseToScreen(points[j+1]);
 				drawLine(pt1, pt2, layerBitMap, graphics, 0);
 			}
 			return;
 		}
 		if (style == Poly.Type.CIRCLE)
 		{
-			Point center = world.databaseToScreen(points[0]);
-			Point edge = world.databaseToScreen(points[1]);
+			Point center = wnd.databaseToScreen(points[0]);
+			Point edge = wnd.databaseToScreen(points[1]);
 			drawCircle(center, edge, layerBitMap, graphics);
 			return;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
-			Point center = world.databaseToScreen(points[0]);
-			Point edge = world.databaseToScreen(points[1]);
+			Point center = wnd.databaseToScreen(points[0]);
+			Point edge = wnd.databaseToScreen(points[1]);
 			drawThickCircle(center, edge, layerBitMap, graphics);
 			return;
-		} else if (style == Poly.Type.DISC)
+		}
+		if (style == Poly.Type.DISC)
 		{
-			Point center = world.databaseToScreen(points[0]);
-			Point edge = world.databaseToScreen(points[1]);
+			Point center = wnd.databaseToScreen(points[0]);
+			Point edge = wnd.databaseToScreen(points[1]);
 			drawDisc(center, edge, layerBitMap, graphics);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 		{
-			Point center = world.databaseToScreen(points[0]);
-			Point edge1 = world.databaseToScreen(points[1]);
-			Point edge2 = world.databaseToScreen(points[2]);
+			Point center = wnd.databaseToScreen(points[0]);
+			Point edge1 = wnd.databaseToScreen(points[1]);
+			Point edge2 = wnd.databaseToScreen(points[2]);
 			drawCircleArc(center, edge1, edge2, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics);
 			return;
 		}
@@ -328,7 +683,7 @@ public class PixelDrawing
 		if (style == Poly.Type.BIGCROSS)
 		{
 			// draw the big cross
-			Point center = world.databaseToScreen(points[0]);
+			Point center = wnd.databaseToScreen(points[0]);
 			int size = 5;
 			drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), layerBitMap, graphics, 0);
 			drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), layerBitMap, graphics, 0);
@@ -341,7 +696,7 @@ public class PixelDrawing
 	/*
 	 * Method to draw a line on the off-screen buffer.
 	 */
-	public void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture)
+	private void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture)
 	{
 		// first clip the line
 		if (clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
@@ -356,10 +711,10 @@ public class PixelDrawing
 		}
 	}
 
-	public void drawCross(Poly poly, EGraphics graphics)
+	private void drawCross(Poly poly, EGraphics graphics)
 	{
 		Point2D [] points = poly.getPoints();
-		Point center = world.databaseToScreen(points[0]);
+		Point center = wnd.databaseToScreen(points[0]);
 		int size = 3;
 		drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), null, graphics, 0);
 		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0);
@@ -796,7 +1151,7 @@ public class PixelDrawing
 	/*
 	 * Method to draw a box on the off-screen buffer.
 	 */
-	void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
+	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get color and pattern information
 		Color col = Color.BLACK;
@@ -843,7 +1198,7 @@ public class PixelDrawing
 	/*
 	 * Method to draw a text on the off-screen buffer
 	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc)
+	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get parameters
 		// quit if string is null
@@ -863,7 +1218,7 @@ public class PixelDrawing
 		int rotation = 0;
 		if (descript != null)
 		{
-			size = descript.getTrueSize(world);
+			size = descript.getTrueSize(wnd);
 			if (size <= 0) size = 1;
 			italic = descript.isItalic();
 			bold = descript.isBold();
@@ -1045,7 +1400,8 @@ public class PixelDrawing
 
 		// allocate space for the rendered text
 		Rectangle rect = gv.getPixelBounds(frc, 0, 0);
-		BufferedImage textImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_BYTE_GRAY);
+		int height = theFont.getSize();
+		BufferedImage textImage = new BufferedImage(rect.width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
@@ -1055,7 +1411,6 @@ public class PixelDrawing
 		// return the bits
 		return textImage.getData();
 	}
-
 
 	/****************************** CIRCLE DRAWING ******************************/
 
@@ -1723,7 +2078,7 @@ public class PixelDrawing
 	 * Method to clip a line from (fx,fy) to (tx,ty) in the rectangle lx <= X <= hx and ly <= Y <= hy.
 	 * Returns true if the line is not visible.
 	 */
-	boolean clipLine(Point from, Point to, int lx, int hx, int ly, int hy)
+	private boolean clipLine(Point from, Point to, int lx, int hx, int ly, int hy)
 	{
 		for(;;)
 		{

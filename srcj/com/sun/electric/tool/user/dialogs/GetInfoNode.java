@@ -379,8 +379,8 @@ public class GetInfoNode extends javax.swing.JDialog
 		// load easy of selection
 		initialEasyToSelect = !ni.isHardSelect();
 		easyToSelect.setSelected(initialEasyToSelect);
-//		if (np->primindex == 0 && (us_useroptions&NOINSTANCESELECT) != 0)
-//			dimItem(DGIN_EASYSELECT);
+		if (np instanceof Cell && !User.isEasySelectionOfCellInstances())
+			easyToSelect.setEnabled(false);
 
 		// load locked state
 		initialLocked = ni.isLocked();

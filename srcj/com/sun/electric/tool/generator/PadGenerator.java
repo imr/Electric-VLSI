@@ -159,7 +159,7 @@ public class PadGenerator
 												System.out.println("Line " + lineno + ": cannot read library " + keyWord);
 												return;
 											}		
-											Library.setCurrent(saveLib);
+											saveLib.setCurrent();
 										}
 									}
 

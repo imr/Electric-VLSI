@@ -201,21 +201,35 @@ public class Library extends ElectricObject
 
 	/**
 	 * Method to delete this Library.
+	 * @return true if the library was deleted.
 	 */
-	public void kill()
+	public boolean kill()
 	{
 		// cannot delete the current library
+		Library newCurLib = null;
 		if (curLib == this)
 		{
-			System.out.println("Cannot delete the current library");
-			return;
+			// find another library
+			for(Iterator it = getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib == curLib) continue;
+				if (lib.isHidden()) continue;
+				newCurLib = lib;
+				break;
+			}
+			if (newCurLib == null)
+			{
+				System.out.println("Cannot delete the last library");
+				return false;
+			}
 		}
 
 		// make sure it is in the list of libraries
 		if (!libraries.contains(this))
 		{
 			System.out.println("Cannot delete library " + this);
-			return;
+			return false;
 		}
 
 		// remove all cells in the library
@@ -223,6 +237,10 @@ public class Library extends ElectricObject
 
 		// remove it from the list of libraries
 		libraries.remove(this);
+
+		// set the new current library if appropriate
+		if (newCurLib != null) newCurLib.setCurrent();
+		return true;
 	}
 
 	/**
@@ -376,10 +394,9 @@ public class Library extends ElectricObject
 	public static Library getCurrent() { return curLib; }
 	
 	/**
-	 * Method to set the current Library.
-	 * @param lib the new current Library.
+	 * Method to make this the current Library.
 	 */
-	public static void setCurrent(Library lib) { curLib = lib; }
+	public void setCurrent() { curLib = this; }
 	
 	/**
 	 * Low-level method to get the user bits.

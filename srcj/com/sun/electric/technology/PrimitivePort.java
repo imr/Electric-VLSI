@@ -24,10 +24,14 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
+
+import java.awt.Color;
 
 /**
  * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
@@ -187,6 +191,37 @@ public class PrimitivePort extends PortProto
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Method to compute the color of this PrimitivePort.
+	 * Combines all arcs that can connect.
+	 * @return the color to use for this PrimitivePort.
+	 */
+	public Color getPortColor()
+	{
+		Technology tech = getParent().getTechnology();
+		int numColors = 0;
+		int r=0, g=0, b=0;
+		for (int i = 0; i < portArcs.length; i++)
+		{
+			PrimitiveArc ap = (PrimitiveArc)portArcs[i];
+
+			// ignore the generic arcs
+			if (ap.getTechnology() != tech) continue;
+
+			// get the arc's color
+			Technology.ArcLayer [] layers = ap.getLayers();
+			Layer layer = layers[0].getLayer();
+			EGraphics graphics = layer.getGraphics();
+			Color layerCol = graphics.getColor();
+			r += layerCol.getRed();
+			g += layerCol.getGreen();
+			b += layerCol.getBlue();
+			numColors++;
+		}
+		if (numColors == 0) return null;
+		return new Color((int)(r/numColors), (int)(g/numColors), (int)(b/numColors));
 	}
 
 	/**

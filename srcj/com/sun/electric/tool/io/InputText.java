@@ -101,7 +101,6 @@ public class InputText extends InputLibrary
 	/** The index of the current NodeInst being processed. */		private int curNodeInstIndex;
 	/** The index of the current ArcInst being processed. */		private int curArcInstIndex;
 	/** The index of the current Export being processed. */			private int curExportIndex;
-//	/** Lambda values for cells being read. */						private double [] cellLambda;
 	/** Offset values for cells being read. */						private double [] nodeProtoOffX, nodeProtoOffY;
 	/** All data for NodeInsts in each Cell. */						private InputLibrary.NodeInstList[] nodeInstList;
 	/** All data for ArcInsts in each Cell. */						private ArcInstList[] arcInstList;
@@ -556,11 +555,6 @@ public class InputText extends InputLibrary
 		{
 			Export pp = el.exportList[j];
 			if (pp.lowLevelName(cell, el.exportName[j])) return;
-//			if (!el.exportSubNode[j].isLinked())
-//			{
-//System.out.println("Text export UNRESOLVED");
-//				continue;
-//			}
 			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
 			if (pp.lowLevelPopulate(pi)) return;
 			if (pp.lowLevelLink(null)) return;
@@ -626,12 +620,6 @@ public class InputText extends InputLibrary
 				if (exportName.equalsIgnoreCase(portName)) return true;
 			}
 			break;
-//			Export pp = el.exportList[j];
-//			if (pp.lowLevelName(cell, el.exportName[j])) return;
-//			if (!el.exportSubNode[j].isLinked()) continue;
-//			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
-//			if (pp.lowLevelPopulate(pi)) return;
-//			if (pp.lowLevelLink(null)) return;
 		}
 		System.out.println("readHasExport could not find port!!!!");
 		return false;

@@ -35,6 +35,18 @@ public class EGraphics
 	/** whether to draw color in foregound */				private int foreground;
 	/** stipple pattern to draw */							private int [] pattern;
 
+	/**
+	 * There are 3 ways to encode color in an integer.
+	 * If the lowest bit (FULLRGBBIT) is set, this is a full RGB color in the high 3 bytes.
+	 * If the next lowest bit (OPAQUEBIT) is set, this is an "old C Electric" opaque color
+	 * (such as WHITE, BLACK, etc., listed below).
+	 * If neither of these bits is set, this is a transparent layer
+	 * (LAYERT1, LAYERT2, etc., listed below).
+	 */
+	/** Describes the full RGB escape bit. */				public final static int FULLRGBBIT = 01;
+	/** Describes opaque color escape bit. */				public final static int OPAQUEBIT =  02;
+
+	// the opaque colors
 	/** Describes the color white. */						public final static int WHITE =    0002;
 	/** Describes the color black. */						public final static int BLACK =    0006;
 	/** Describes the color red. */							public final static int RED =      0012;
@@ -64,6 +76,20 @@ public class EGraphics
 	/** Describes the color dark green. */					public final static int DGREEN =   0152;
 	/** Describes the color light blue. */					public final static int LBLUE =    0156;
 	/** Describes the color dark blue. */					public final static int DBLUE =    0162;
+
+	// the transparent layers
+	/** Describes transparent layer 1. */					public final static int LAYERT1 =      04;
+	/** Describes transparent layer 2. */					public final static int LAYERT2 =     010;
+	/** Describes transparent layer 3. */					public final static int LAYERT3 =     020;
+	/** Describes transparent layer 4. */					public final static int LAYERT4 =     040;
+	/** Describes transparent layer 5. */					public final static int LAYERT5 =    0100;
+	/** Describes transparent layer 6. */					public final static int LAYERT6 =    0200;
+	/** Describes transparent layer 7. */					public final static int LAYERT7 =    0400;
+	/** Describes transparent layer 8. */					public final static int LAYERT8 =   01000;
+	/** Describes transparent layer 9. */					public final static int LAYERT9 =   02000;
+	/** Describes transparent layer 10. */					public final static int LAYERT10 =  04000;
+	/** Describes transparent layer 11. */					public final static int LAYERT11 = 010000;
+	/** Describes transparent layer 12. */					public final static int LAYERT12 = 020000;
 
 	// drawing styles
 	/** choice between solid and patterned */				private final static int NATURE =     1;
@@ -95,6 +121,10 @@ public class EGraphics
 		this.opacity = opacity;
 		this.foreground = foreground;
 		this.pattern = pattern;
+		if (transparentLayer < 0 || transparentLayer >= 12)
+		{
+			System.out.println("Graphics transparent color bad: " + transparentLayer);
+		}
 		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
 		{
 			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
@@ -138,6 +168,14 @@ public class EGraphics
 	 * Instead, use the "getColor()" method to get its solid color.
 	 */
 	public int getTransparentLayer() { return transparentLayer; }
+
+	/**
+	 * Method to set the transparent layer associated with this EGraphics.
+	 * @param transparentLayer the transparent layer associated with this EGraphics.
+	 * A value of zero means that this Layer is not drawn transparently.
+	 * Then, use the "setColor()" method to set its solid color.
+	 */
+	public void setTransparentLayer(int transparentLayer) { this.transparentLayer = transparentLayer; }
 	
 	/**
 	 * Method to return the color associated with this EGraphics.
@@ -156,76 +194,118 @@ public class EGraphics
 	 * @param green the green color to set.
 	 * @param blue the blue color to set.
 	 */
-	public void setColor(int red, int green, int blue)
+	public void setColor(Color color)
 	{
-		this.red = red;
-		this.green = green;
-		this.blue = blue;
-	}
-
-	public static int findColorIndex(String name)
-	{
-		if (name.equals("white"))       return WHITE;
-		if (name.equals("black"))       return BLACK;
-		if (name.equals("red"))         return RED;
-		if (name.equals("blue"))        return BLUE;
-		if (name.equals("green"))       return GREEN;
-		if (name.equals("cyan"))        return CYAN;
-		if (name.equals("magenta"))     return MAGENTA;
-		if (name.equals("yellow"))      return YELLOW;
-		if (name.equals("gray"))        return GRAY;
-		if (name.equals("orange"))      return ORANGE;
-		if (name.equals("purple"))      return PURPLE;
-		if (name.equals("brown"))       return BROWN;
-		if (name.equals("light-gray"))  return LGRAY;
-		if (name.equals("dark-gray"))   return DGRAY;
-		if (name.equals("light-red"))   return LRED;
-		if (name.equals("dark-red"))    return DRED;
-		if (name.equals("light-green")) return LGREEN;
-		if (name.equals("dark-green"))  return DGREEN;
-		if (name.equals("light-blue"))  return LBLUE;
-		if (name.equals("dark-blue"))   return DBLUE;
-		return 0;
+		transparentLayer = 0;
+		red = color.getRed();
+		green = color.getGreen();
+		blue = color.getBlue();
 	}
 
 	/**
 	 * Method to set the color associated with this EGraphics.
-	 * @param index the color to set.
+	 * @param color the color to set.
 	 */
-	public void setColor(int index)
+	public void setColor(int color)
 	{
-		switch (index)
+		if ((color&OPAQUEBIT) != 0)
 		{
-			case WHITE:   this.red = 255;   this.green = 255;   this.blue = 255;   break;
-			case BLACK:   this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case RED:     this.red = 255;   this.green =   0;   this.blue =   0;   break;
-			case BLUE:    this.red =   0;   this.green =   0;   this.blue = 255;   break;
-			case GREEN:   this.red =   0;   this.green = 255;   this.blue =   0;   break;
-			case CYAN:    this.red =   0;   this.green = 255;   this.blue = 255;   break;
-			case MAGENTA: this.red = 255;   this.green =   0;   this.blue = 255;   break;
-			case YELLOW:  this.red = 255;   this.green = 255;   this.blue =   0;   break;
-			case CELLTXT: this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case CELLOUT: this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case WINBOR:  this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case HWINBOR: this.red =   0;   this.green = 255;   this.blue =   0;   break;
-			case MENBOR:  this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case HMENBOR: this.red = 255;   this.green = 255;   this.blue = 255;   break;
-			case MENTXT:  this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case MENGLY:  this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case CURSOR:  this.red =   0;   this.green =   0;   this.blue =   0;   break;
-			case GRAY:    this.red = 180;   this.green = 180;   this.blue = 180;   break;
-			case ORANGE:  this.red = 255;   this.green = 190;   this.blue =   6;   break;
-			case PURPLE:  this.red = 186;   this.green =   0;   this.blue = 255;   break;
-			case BROWN:   this.red = 139;   this.green =  99;   this.blue =  46;   break;
-			case LGRAY:   this.red = 230;   this.green = 230;   this.blue = 230;   break;
-			case DGRAY:   this.red = 100;   this.green = 100;   this.blue = 100;   break;
-			case LRED:    this.red = 255;   this.green = 150;   this.blue = 150;   break;
-			case DRED:    this.red = 159;   this.green =  80;   this.blue =  80;   break;
-			case LGREEN:  this.red = 175;   this.green = 255;   this.blue = 175;   break;
-			case DGREEN:  this.red =  89;   this.green = 159;   this.blue =  85;   break;
-			case LBLUE:   this.red = 150;   this.green = 150;   this.blue = 255;   break;
-			case DBLUE:   this.red =   2;   this.green =  15;   this.blue = 159;   break;
+			// an opaque color
+			transparentLayer = 0;
+			switch (color)
+			{
+				case WHITE:   red = 255;   green = 255;   blue = 255;   break;
+				case BLACK:   red =   0;   green =   0;   blue =   0;   break;
+				case RED:     red = 255;   green =   0;   blue =   0;   break;
+				case BLUE:    red =   0;   green =   0;   blue = 255;   break;
+				case GREEN:   red =   0;   green = 255;   blue =   0;   break;
+				case CYAN:    red =   0;   green = 255;   blue = 255;   break;
+				case MAGENTA: red = 255;   green =   0;   blue = 255;   break;
+				case YELLOW:  red = 255;   green = 255;   blue =   0;   break;
+				case CELLTXT: red =   0;   green =   0;   blue =   0;   break;
+				case CELLOUT: red =   0;   green =   0;   blue =   0;   break;
+				case WINBOR:  red =   0;   green =   0;   blue =   0;   break;
+				case HWINBOR: red =   0;   green = 255;   blue =   0;   break;
+				case MENBOR:  red =   0;   green =   0;   blue =   0;   break;
+				case HMENBOR: red = 255;   green = 255;   blue = 255;   break;
+				case MENTXT:  red =   0;   green =   0;   blue =   0;   break;
+				case MENGLY:  red =   0;   green =   0;   blue =   0;   break;
+				case CURSOR:  red =   0;   green =   0;   blue =   0;   break;
+				case GRAY:    red = 180;   green = 180;   blue = 180;   break;
+				case ORANGE:  red = 255;   green = 190;   blue =   6;   break;
+				case PURPLE:  red = 186;   green =   0;   blue = 255;   break;
+				case BROWN:   red = 139;   green =  99;   blue =  46;   break;
+				case LGRAY:   red = 230;   green = 230;   blue = 230;   break;
+				case DGRAY:   red = 100;   green = 100;   blue = 100;   break;
+				case LRED:    red = 255;   green = 150;   blue = 150;   break;
+				case DRED:    red = 159;   green =  80;   blue =  80;   break;
+				case LGREEN:  red = 175;   green = 255;   blue = 175;   break;
+				case DGREEN:  red =  89;   green = 159;   blue =  85;   break;
+				case LBLUE:   red = 150;   green = 150;   blue = 255;   break;
+				case DBLUE:   red =   2;   green =  15;   blue = 159;   break;
+			}
+			return;
 		}
+		if ((color&FULLRGBBIT) != 0)
+		{
+			// a full RGB color (opaque)
+			transparentLayer = 0;
+			red =   (color >> 24) & 0xFF;
+			green = (color >> 16) & 0xFF;
+			blue =  (color >> 8) & 0xFF;
+			return;
+		}
+
+		// a transparent color
+		if ((color&LAYERT1) != 0) transparentLayer = 1; else
+		if ((color&LAYERT2) != 0) transparentLayer = 2; else
+		if ((color&LAYERT3) != 0) transparentLayer = 3; else
+		if ((color&LAYERT4) != 0) transparentLayer = 4; else
+		if ((color&LAYERT5) != 0) transparentLayer = 5; else
+		if ((color&LAYERT6) != 0) transparentLayer = 6; else
+		if ((color&LAYERT7) != 0) transparentLayer = 7; else
+		if ((color&LAYERT8) != 0) transparentLayer = 8; else
+		if ((color&LAYERT9) != 0) transparentLayer = 9; else
+		if ((color&LAYERT10) != 0) transparentLayer = 10; else
+		if ((color&LAYERT11) != 0) transparentLayer = 11; else
+		if ((color&LAYERT12) != 0) transparentLayer = 12;
+	}
+
+	public static int findColorIndex(String name)
+	{
+		if (name.equals("white"))          return WHITE;
+		if (name.equals("black"))          return BLACK;
+		if (name.equals("red"))            return RED;
+		if (name.equals("blue"))           return BLUE;
+		if (name.equals("green"))          return GREEN;
+		if (name.equals("cyan"))           return CYAN;
+		if (name.equals("magenta"))        return MAGENTA;
+		if (name.equals("yellow"))         return YELLOW;
+		if (name.equals("gray"))           return GRAY;
+		if (name.equals("orange"))         return ORANGE;
+		if (name.equals("purple"))         return PURPLE;
+		if (name.equals("brown"))          return BROWN;
+		if (name.equals("light-gray"))     return LGRAY;
+		if (name.equals("dark-gray"))      return DGRAY;
+		if (name.equals("light-red"))      return LRED;
+		if (name.equals("dark-red"))       return DRED;
+		if (name.equals("light-green"))    return LGREEN;
+		if (name.equals("dark-green"))     return DGREEN;
+		if (name.equals("light-blue"))     return LBLUE;
+		if (name.equals("dark-blue"))      return DBLUE;
+		if (name.equals("transparent-1"))  return LAYERT1;
+		if (name.equals("transparent-2"))  return LAYERT2;
+		if (name.equals("transparent-3"))  return LAYERT3;
+		if (name.equals("transparent-4"))  return LAYERT4;
+		if (name.equals("transparent-5"))  return LAYERT5;
+		if (name.equals("transparent-6"))  return LAYERT6;
+		if (name.equals("transparent-7"))  return LAYERT7;
+		if (name.equals("transparent-8"))  return LAYERT8;
+		if (name.equals("transparent-9"))  return LAYERT9;
+		if (name.equals("transparent-10")) return LAYERT10;
+		if (name.equals("transparent-11")) return LAYERT11;
+		if (name.equals("transparent-12")) return LAYERT12;
+		return 0;
 	}
 
 	/**
@@ -233,32 +313,51 @@ public class EGraphics
 	 * @param index the color number.
 	 * @return the name of that color.
 	 */
-	public static String getColorName(int index)
+	public static String getColorName(int color)
 	{
-		switch (index)
+		if ((color&FULLRGBBIT) != 0)
 		{
-			case WHITE:   return "white";
-			case BLACK:   return "black";
-			case RED:     return "red";
-			case BLUE:    return "blue";
-			case GREEN:   return "green";
-			case CYAN:    return "cyan";
-			case MAGENTA: return "magenta";
-			case YELLOW:  return "yellow";
-			case GRAY:    return "gray";
-			case ORANGE:  return "orange";
-			case PURPLE:  return "purple";
-			case BROWN:   return "brown";
-			case LGRAY:   return "light-gray";
-			case DGRAY:   return "dark-gray";
-			case LRED:    return "light-red";
-			case DRED:    return "dark-red";
-			case LGREEN:  return "light-green";
-			case DGREEN:  return "dark-green";
-			case LBLUE:   return "light-blue";
-			case DBLUE:   return "dark-blue";
+			int red =   (color >> 24) & 0xFF;
+			int green = (color >> 16) & 0xFF;
+			int blue =  (color >> 8) & 0xFF;
+			return "Color (" + red + "," + green + "," + blue + ")";
 		}
-		return "Color "+index;
+		switch (color)
+		{
+			case WHITE:    return "white";
+			case BLACK:    return "black";
+			case RED:      return "red";
+			case BLUE:     return "blue";
+			case GREEN:    return "green";
+			case CYAN:     return "cyan";
+			case MAGENTA:  return "magenta";
+			case YELLOW:   return "yellow";
+			case GRAY:     return "gray";
+			case ORANGE:   return "orange";
+			case PURPLE:   return "purple";
+			case BROWN:    return "brown";
+			case LGRAY:    return "light-gray";
+			case DGRAY:    return "dark-gray";
+			case LRED:     return "light-red";
+			case DRED:     return "dark-red";
+			case LGREEN:   return "light-green";
+			case DGREEN:   return "dark-green";
+			case LBLUE:    return "light-blue";
+			case DBLUE:    return "dark-blue";
+			case LAYERT1:  return "transparent-1";
+			case LAYERT2:  return "transparent-2";
+			case LAYERT3:  return "transparent-3";
+			case LAYERT4:  return "transparent-4";
+			case LAYERT5:  return "transparent-5";
+			case LAYERT6:  return "transparent-6";
+			case LAYERT7:  return "transparent-7";
+			case LAYERT8:  return "transparent-8";
+			case LAYERT9:  return "transparent-9";
+			case LAYERT10: return "transparent-10";
+			case LAYERT11: return "transparent-11";
+			case LAYERT12: return "transparent-12";
+		}
+		return "Color "+color;
 	}
 
 	/**
@@ -268,7 +367,9 @@ public class EGraphics
 	public static int [] getColors()
 	{
 		return new int [] {WHITE, BLACK, RED, BLUE, GREEN, CYAN, MAGENTA, YELLOW,
-			GRAY, ORANGE, PURPLE, BROWN, LGRAY, DGRAY, LRED, DRED, LGREEN, DGREEN, LBLUE, DBLUE};
+			GRAY, ORANGE, PURPLE, BROWN, LGRAY, DGRAY, LRED, DRED, LGREEN, DGREEN, LBLUE, DBLUE,
+			LAYERT1, LAYERT2, LAYERT3, LAYERT4, LAYERT5, LAYERT6, LAYERT7, LAYERT8, LAYERT9,
+			LAYERT10, LAYERT11, LAYERT12};
 	}
 
 	/**

@@ -34,6 +34,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -473,16 +474,6 @@ public class ExplorerTree extends JTree
 		return nodeInfo.toString();
 	}
 
-	// if need custom image to show tree
-	/* XXX not used, use MyRenderer instead
-	public void addTreeBranchImage(ImageIcon icon)
-	{
-		DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-		renderer.setLeafIcon(icon);
-		setCellRenderer(renderer);
-	}
-	*/
-
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
 		public MyRenderer()
@@ -736,9 +727,15 @@ public class ExplorerTree extends JTree
 
 				menu.addSeparator();
 
+				menuItem = new JMenuItem("Place Instance of Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellInstanceAction(); } });
+
 				menuItem = new JMenuItem("Create New Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
+				menu.addSeparator();
 
 				menuItem = new JMenuItem("Create New Version of Cell");
 				menu.add(menuItem);
@@ -748,17 +745,15 @@ public class ExplorerTree extends JTree
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellAction(); } });
 
-				menu.addSeparator();
-
 				menuItem = new JMenuItem("Delete Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
 
+				menu.addSeparator();
+
 				menuItem = new JMenuItem("Rename Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameCellAction(); } });
-
-				menu.addSeparator();
 
 				JMenu subMenu = new JMenu("Change View");
 				menu.add(subMenu);
@@ -933,7 +928,7 @@ public class ExplorerTree extends JTree
 		private void setCurLibAction()
 		{
 			Library lib = (Library)currentSelectedObject;
-			Library.setCurrent(lib);
+			lib.setCurrent();
 			explorerTreeChanged();
 			EditWindow.repaintAll();
 		}
@@ -949,11 +944,7 @@ public class ExplorerTree extends JTree
 		private void deleteLibraryAction()
 		{
 			Library lib = (Library)currentSelectedObject;
-			int response = JOptionPane.showConfirmDialog(tree, "Are you sure you want to delete library " + lib.getLibName() + "?");
-			if (response != JOptionPane.YES_OPTION) return;
-			System.out.println("Library " + lib.getLibName() + " deleted");
-			lib.kill();
-			ExplorerTree.explorerTreeChanged();
+			MenuCommands.closeLibraryCommand(lib);
 		}
 
 		private void editCellAction(boolean newWindow)
@@ -966,6 +957,13 @@ public class ExplorerTree extends JTree
 			{
 				wnd.setCell(cell, VarContext.globalContext);
 			}
+		}
+
+		private void newCellInstanceAction()
+		{
+			Cell cell = (Cell)currentSelectedObject;
+			if (cell == null) return;
+			PaletteFrame.placeInstance(cell, null);
 		}
 
 		private void newCellAction()

@@ -31,6 +31,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitivePort;
 
+import java.awt.Color;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
@@ -564,6 +565,16 @@ public abstract class PortProto extends ElectricObject
 	public boolean connectsTo(ArcProto arc)
 	{
 		return getBasePort().connectsTo(arc);
+	}
+
+	/**
+	 * Method to compute the color of this PortProto.
+	 * Uses the PrimitivePort at the bottom of the hierarchy.
+	 * @return the color to use for this PortProto.
+	 */
+	public Color colorOfPort()
+	{
+		return getBasePort().getPortColor();
 	}
 
 	/**
