@@ -900,7 +900,9 @@ public class PixelDrawing
 			// set the bit
 			if (layerBitMap == null)
 			{
-				opaqueData[y * sz.width + x] = col;
+				int index = y * sz.width + x;
+				int alpha = (opaqueData[index] >> 24) & 0xFF;
+				if (alpha == 0xFF) opaqueData[index] = col;
 			} else
 			{
 				layerBitMap[y][x>>3] |= (1 << (x&7));
@@ -1471,7 +1473,11 @@ public class PixelDrawing
 				{
 					int baseIndex = y * sz.width + lX;
 					for(int x=lX; x<=hX; x++)
-						opaqueData[baseIndex++] = col;
+					{
+						int index = baseIndex++;
+						int alpha = (opaqueData[index] >> 24) & 0xFF;
+						if (alpha == 0xFF) opaqueData[index] = col;
+					}
 				}
 			} else
 			{
@@ -2720,7 +2726,9 @@ public class PixelDrawing
 				int baseIndex = thisy * sz.width;
 				for(int x=startx; x<=endx; x++)
 				{
-					opaqueData[baseIndex + x] = col;
+					int index = baseIndex + x;
+					int alpha = (opaqueData[index] >> 24) & 0xFF;
+					if (alpha == 0xFF) opaqueData[index] = col;
 				}
 			} else
 			{
