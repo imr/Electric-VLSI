@@ -1432,6 +1432,7 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer distance
+		// Data base on 18nm technology with 200nm as lambda.
 		double BULK_LAYER = 10;
 		double DIFF_LAYER = 1; // dummy distance for noe 0.2/0.2
 		double ILD_LAYER = 3.5; // 0.7/0.2
