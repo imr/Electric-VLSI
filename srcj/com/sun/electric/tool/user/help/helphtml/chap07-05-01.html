@@ -16,18 +16,16 @@ To make a physical connection of a wire to a bus,
 the bus pin can connect to either, so it acts as a tap.
 In addition, the Wire Con node connects wires to busses,
 or connects busses of different width, replicating the narrower side to make it as wide as the wider side.
-Use the <B>Rip Bus</B> subcommand of the <B>Arc</B> command of the <B>Edit</B>
-menu to automatically add taps to a bus.
+Use the <B>Rip Bus</B> command (in menu <B>Edit / Arc</B>) to automatically add taps to a bus.
 <P>
 Digital schematics are built with the And, Or, Xor, Buffer,
 Multiplexor, and Flip-Flop nodes that appear in the component menu.
 By attaching arcs to these components and negating them
-(with the <B>Toggle Port Negation</B> subcommand of the <B>Technology Specific</B>
-command of the <B>Edit</B> menu), these turn into NAND, NOR,
+(with the <B>Toggle Port Negation</B> command, in menu <B>Edit / Technology Specific</B>), these turn into NAND, NOR,
 Inverter, and many other specialized components.
 Note that the size of the negating bubble can be controlled by using the "Technology"
-tab of the "Technology" section of the <B>Preferences...</B>
-command of the <B>File</B> menu, and setting the "Negating Bubble Size" value in the "Schematics" area.
+preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab),
+and setting the "Negating Bubble Size" value in the "Schematics" area.
 </TD></TR></TABLE>
 <P>
 The And, Or, Xor, and Multiplexor nodes can accept any number of input connections on the left,
@@ -68,16 +66,15 @@ By default, it does not connect the networks on its two ends,
 and this is the correct way to treat it when doing low-level simulation such as SPICE.
 However, for higher-level simulations (such as Verilog)
 the resistor should be ignored and treated as if it connects its two networks.
-To make this happen, use the <B>Preferences...</B> command of the <B>File</B>
- menu,
-select the "Network" tab of the "Tools" section, and check "Ignore Resistors".
+To make this happen, use the
+"Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab), and check "Ignore Resistors".
 Note that if resistors are being ignored, Spice deck generation will temporarily include them while the netlist is being created.
 <P>
 Some commands that analyze a schematic circuit need to know which layout technology will be used to fabricate the design.
 For example, when generating a Spice deck from a schematic,
 it is necessary to know the sizes and parasitics that are associated with the actual circuit.
-To set the layout technology to use for schematic circuits, use the <B>Preferences...</B> command of the <B>File</B> menu,
-select the "Technology" tab of the "Technology" section,
+To set the layout technology to use for schematic circuits, use the
+"Technology" preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab),
 and set the "Use scale values from this technology" popup.
 
 <!-- TRAILER -->

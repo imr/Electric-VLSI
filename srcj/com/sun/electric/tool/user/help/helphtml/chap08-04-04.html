@@ -7,7 +7,7 @@
 There are many powerful facilities for running Spice with Electric.
 Special primitives exist for creating special Spice cards.
 Note that the example shown here is available in the Samples library as cell "tool-SimulateSpice"
-(you can read the library with the <B>Load Samples Library</B> command of the <B>Help</B> menu).
+(you can read the library with the <B>Load Samples Library</B> command, in menu <B>Help</B>).
 <P>
 <TABLE><TR><TD>
 All input values to Spice are controlled with special nodes,
@@ -18,7 +18,8 @@ so there may be a delay.
 <P>
 The Spice primitives described here are for Electric's default set.
 However, additional sets can (and have) been written.
-To choose another set, use the "Spice" tab of the "Tools" section of the <B>Preferences...</B> command of the <B>File</B> menu.
+To choose another set, use the
+"Spice" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
 Under the setting "Spice primitive set", choose another set.
 <P>
 <TABLE><TR>
@@ -48,16 +49,15 @@ To create this text, use the "Add Spice Card" under the "Misc." button in the co
 The command creates a piece of text that can be modified arbitrarily.
 <P>
 Another option that can be used when modeling transistors and other component is to set a specific Spice model to use for that component.
-To set a node's model, select it and use the <B>Set Spice Model...</B> subcommand of the <B>Simulation (Spice)</B>
-command of the <B>Tool</B>
- menu.
+To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tool / Simulation (Spice)</B>
+).
 <P>
 The <B>Add Multiplier</B> subcommand places a multiplier on the currently selected node.
 Multipliers (also called "M" factors) scale the size of transistors inside of them.
 <P>
 <!-- NEED 7in -->
-Some nongraphical information can also be given to the Spice simulator with the "Spice"
-tab of the "Tools" section of the <B>Preferences...</B> command of the <B>File</B> menu.
+Some nongraphical information can also be given to the Spice simulator with the
+"Spice" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
 <P>
 <CENTER><IMG SRC="fig09-03.png" ALT="Figure 9.3"></CENTER>
 <P>
@@ -112,8 +112,8 @@ the information that you set will not be used.
 Note also that schematics, although a technology in Electric, are not considered to be Spice technology.
 You can set the proper layout technology that you want to use when dealing with schematics by using the
 "Use Scale values from this Technology" popup.
-This popup can be found in the "Technology" tab of the "Technology" section of the <B>Preferences...</B>
-command of the <B>File</B> menu.
+This popup can be found in the
+"Technology" preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab).
 <P>
 The bottom section of the dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
 This disk file replaces the any Spice description that may be derived from the circuitry.
