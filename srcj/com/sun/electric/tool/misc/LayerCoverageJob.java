@@ -87,8 +87,6 @@ public class LayerCoverageJob extends Job
 		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
         job.startJob();
 	    return geoms;
-
-		// @TODO GVG lambda and ratio ==0 (when is the case?)
 	}
 
     public static GeometryOnNetwork listGeometryOnNetworksNoJob(Cell cell, HashSet nets, boolean printable) {
