@@ -183,6 +183,19 @@ public class TopLevel extends JFrame
 		// setup the size of the screen
 		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 
+		// a more advanced way of determining the size of a screen
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice [] gs = ge.getScreenDevices();
+		Rectangle [] areas = new Rectangle[gs.length];
+		if (gs.length > 0)
+		{
+			GraphicsDevice gd = gs[0];
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			Rectangle r = gc.getBounds();
+//System.out.println("Screen size was "+scrnSize.width+"x"+scrnSize.height+" but now is "+r.width+"x"+r.height);
+			scrnSize.setSize(r.width, r.height);
+		}
+
 		// setup specific look-and-feel
         Mode osMode = null;
 		try{
