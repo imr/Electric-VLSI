@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01al: *********************************
 
+BUG: (11/5/04, RK) NCC crashed if all the Cells being compared had no Exports
+
 ************************* Version 8.01ak: *********************************
 
 IMP: (11/5/04, DN) Version and CellName classes are mada Comparable.
