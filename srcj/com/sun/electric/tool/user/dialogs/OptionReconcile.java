@@ -187,10 +187,12 @@ public class OptionReconcile extends EDialog
             JRadioButton curValue = new JRadioButton(oldValue, false);
             currentSettings.add(curValue);
 			optionBox.add(curValue, gbc);
+/*
             curValue.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     updateButtonState();
                 }});
+*/
 
 			// the fourth column is the Libraries value
 			gbc.gridx = 3;       gbc.gridy = rowNumber;
@@ -201,10 +203,12 @@ public class OptionReconcile extends EDialog
             JRadioButton libValue = new JRadioButton(newValue, true);
             changedOptions.put(libValue, meaning);
 			optionBox.add(libValue, gbc);
+/*
             libValue.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     updateButtonState();
                 }});
+*/
 
             ButtonGroup group = new ButtonGroup();
             group.add(curValue);
@@ -221,7 +225,6 @@ public class OptionReconcile extends EDialog
 			rowNumber++;
 		}
 
-        updateButtonState();
         pack();
 	}
 
@@ -296,7 +299,7 @@ public class OptionReconcile extends EDialog
             }
         });
 
-        ok.setText("Apply Above Settings");
+        ok.setText("Use Above Settings");
         ok.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ok(evt);
@@ -332,7 +335,7 @@ public class OptionReconcile extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(optionHeader, gridBagConstraints);
 
-        ignoreLibraryOptions.setText("Ignore All Library Options");
+        ignoreLibraryOptions.setText("Use All Current Options");
         ignoreLibraryOptions.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ignoreLibraryOptionsActionPerformed(evt);
@@ -370,7 +373,7 @@ public class OptionReconcile extends EDialog
             AbstractButton b = (AbstractButton)it.next();
             b.setSelected(true);
         }
-        updateButtonState();
+        ok(null);
     }//GEN-LAST:event_useLibraryOptionsActionPerformed
 
 	private void ignoreLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ignoreLibraryOptionsActionPerformed
@@ -380,7 +383,7 @@ public class OptionReconcile extends EDialog
             AbstractButton b = (AbstractButton)it.next();
             b.setSelected(true);
         }
-        updateButtonState();
+        ok(null);
 	}//GEN-LAST:event_ignoreLibraryOptionsActionPerformed
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok

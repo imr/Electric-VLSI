@@ -19,7 +19,7 @@
   <SubComponents>
     <Component class="javax.swing.JButton" name="ok">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Apply Above Settings"/>
+        <Property name="text" type="java.lang.String" value="Use Above Settings"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ok"/>
@@ -59,7 +59,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="ignoreLibraryOptions">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Ignore All Library Options"/>
+        <Property name="text" type="java.lang.String" value="Use All Current Options"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ignoreLibraryOptionsActionPerformed"/>
