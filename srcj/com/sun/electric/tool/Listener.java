@@ -27,24 +27,12 @@ import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-// import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-// import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.ElectricObject;
-// import com.sun.electric.tool.drc.DRC;
-// import com.sun.electric.tool.logicaleffort.LETool;
-// import com.sun.electric.tool.routing.Routing;
-// import com.sun.electric.tool.simulation.Simulation;
-// import com.sun.electric.tool.user.User;
-
-// import java.util.List;
-// import java.util.ArrayList;
-// import java.util.Iterator;
-// import java.util.prefs.Preferences;
 
 /**
  * This class represents a Listener - a Tool which can listen Changes.
