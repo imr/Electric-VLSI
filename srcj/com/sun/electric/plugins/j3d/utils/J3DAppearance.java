@@ -201,7 +201,15 @@ public class J3DAppearance extends Appearance
         Color userColor = new Color(User.get3DColorAxis());
 
         if (axisApp == null)
+        {
             axisApp = new J3DAppearance(null, TransparencyAttributes.NONE, 0.5f, userColor);
+
+            RenderingAttributes ra = new RenderingAttributes();
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+            ra.setVisible(User.is3DAxesOn());
+            axisApp.setRenderingAttributes(ra);
+        }
         else if (initValue == null) // redoing color only when it was changed in GUI
             axisApp.set3DColor(null, userColor);
     }

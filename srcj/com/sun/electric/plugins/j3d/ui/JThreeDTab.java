@@ -175,6 +175,7 @@ public class JThreeDTab extends ThreeDTab
         threeDAntialiasing.setSelected(User.is3DAntialiasing());
         threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
         threeDCellBnd.setSelected(User.is3DCellBndOn());
+        threeDAxes.setSelected(User.is3DAxesOn());
 
         for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
         {
@@ -307,8 +308,14 @@ public class JThreeDTab extends ThreeDTab
         currentBoolean = threeDCellBnd.isSelected();
 		if (currentBoolean != User.is3DCellBndOn())
 		{
-            J3DAppearance.setCellVisibility(currentBoolean);
+            J3DAppearance.cellApp.getRenderingAttributes().setVisible(currentBoolean);
 			User.set3DCellBndOn(currentBoolean);
+		}
+        currentBoolean = threeDAxes.isSelected();
+		if (currentBoolean != User.is3DAxesOn())
+		{
+            J3DAppearance.axisApp.getRenderingAttributes().setVisible(currentBoolean);
+			User.set3DAxesOn(currentBoolean);
 		}
 
         double currentValue = TextUtils.atof(scaleField.getText());
@@ -400,6 +407,7 @@ public class JThreeDTab extends ThreeDTab
         zRotLabel = new javax.swing.JLabel();
         scaleField = new javax.swing.JTextField();
         scaleLabel = new javax.swing.JLabel();
+        threeDAxes = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -780,6 +788,17 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(initialViewPanel, gridBagConstraints);
 
+        threeDAxes.setSelected(true);
+        threeDAxes.setText("Show Axes");
+        threeDAxes.setToolTipText("Turn on Antialiasing if available");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDAxes, gridBagConstraints);
+
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -816,6 +835,7 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JSeparator separator;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
+    private javax.swing.JCheckBox threeDAxes;
     private javax.swing.JCheckBox threeDCellBnd;
     private javax.swing.JTextField threeDHeight;
     private javax.swing.JScrollPane threeDLayerPane;

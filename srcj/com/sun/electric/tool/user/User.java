@@ -1360,8 +1360,20 @@ public class User extends Listener
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
     /**************************** 3D Display Preferences **************************************/
+    private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.tool.prefs, true);
+    /**
+     * Method to tell whether to draw 3D axes or not.
+     * The default is "true".
+     * @return true to draw 3D axes.
+     */
+    public static boolean is3DAxesOn() { return cache3DAxes.getBoolean(); }
+    /**
+     * Method to set whether to draw 3D axes or not.
+     * @param on true to draw 3D axes.
+     */
+    public static void set3DAxesOn(boolean on) { cache3DAxes.setBoolean(on); }
 
-    private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DPCellBnd", User.tool.prefs, true);
+    private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw bounding box for the cells.
 	 * The default is "true".
