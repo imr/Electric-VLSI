@@ -689,9 +689,9 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		// remove this node from the cell
 		unLinkGeom(parent);
+		parent.removeNodables(this, subs);
 		parent.removeNode(this);
 		nodeUsage = null;
-		parent.removeNodables(this, subs);
 	}
 
 	/**

@@ -28,6 +28,7 @@ import com.sun.electric.database.change.Change;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -93,6 +94,7 @@ public class Tool extends ElectricObject implements Change
 	{
 		// Because of lazy evaluation, tools aren't initialized unless they're referenced here
 		User.tool.init();
+		Network.tool.init();
         EvalJavaBsh.tool.init();
         // Init LEtool -> must be initialized after EvalJavaBash init() runs, 
         // otherwise Interpreter will be null

@@ -1180,7 +1180,6 @@ public class InputBinary extends Input
 			}
 			bytesSwapped = true;
 		}
-		System.out.println("bytesSwapped="+bytesSwapped);
 		
 		// determine the size of "big" and "small" integers as well as characters on disk
 		if (magic <= MAGIC10)
