@@ -2727,7 +2727,7 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Thick-Active-Node */
-		thickActiveNode_node = PrimitiveNode.newInstance("Thick-Active-Node", this, 2.0, 2.0, null,
+		thickActiveNode_node = PrimitiveNode.newInstance("Thick-Active-Node", this, 4.0, 4.0, null, // 4.0 is given by rule 24.1
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(thickActive_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
