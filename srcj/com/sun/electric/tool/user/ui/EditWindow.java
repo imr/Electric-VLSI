@@ -217,13 +217,18 @@ public class EditWindow extends JPanel
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() instanceof Cell) {
-                if ((ni.getProto() == currentCell) || (ni.getProto() == currentCell.iconView())) {
+                Cell nodeCell = (Cell)ni.getProto();
+                if (nodeCell == currentCell) {
                     highlighter.addElectricObject(ni, cell);
-                    highlighter.finished();
+                    break;
+                }
+                if (nodeCell.isIconOf(currentCell)) {
+                    highlighter.addElectricObject(ni, cell);
                     break;
                 }
             }
         }
+        highlighter.finished();
 	}
 
 	// the MouseListener events
@@ -2118,6 +2123,7 @@ public class EditWindow extends JPanel
     public void upHierarchy()
 	{
         if (cell == null) return;
+        Cell oldCell = cell;
         try {
             Nodable no = cellVarContext.getNodable();
 			if (no != null)
@@ -2195,6 +2201,23 @@ public class EditWindow extends JPanel
 				// just one parent cell: show it
 				Cell parent = (Cell)found.iterator().next();
 				setCell(parent, VarContext.globalContext);
+                // highlight instance
+                NodeInst highlightNi = null;
+                for (Iterator it = parent.getNodes(); it.hasNext(); ){
+                    NodeInst ni = (NodeInst)it.next();
+                    if (ni.getProto() instanceof Cell) {
+                        Cell nodeCell = (Cell)ni.getProto();
+                        if (nodeCell == oldCell) {
+                            highlighter.addElectricObject(ni, parent);
+                            break;
+                        }
+                        if (nodeCell.isIconOf(oldCell)) {
+                            highlighter.addElectricObject(ni, parent);
+                            break;
+                        }
+                    }
+                }
+                highlighter.finished();
 			} else
 			{
 				// prompt the user to choose a parent cell
