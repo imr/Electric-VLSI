@@ -6,6 +6,8 @@
  */
 package com.sun.electric.tool.ncc;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +32,7 @@ public class NetEquivalence {
 	private boolean nameMatch(NetNameProxy prox, Network net) {
 		for (Iterator it=prox.leafNames(); it.hasNext();) {
 			String proxNm = (String) it.next();
+//			System.out.println("Name in cell: "+proxNm);
 			if (net.hasName(proxNm)) return true;
 		}
 		return false;
@@ -43,15 +46,17 @@ public class NetEquivalence {
 			nameIndices[i] = new NccNameIndex(equivNets[i]); 
 		}
 	}
-	public NetNameProxy findEquivalent(VarContext vc, Network net, int designIndex) {
-		LayoutLib.error(designIndex!=0 && designIndex!=1, "designIndex must be 0 or 1");
+	public NetNameProxy findEquivalent(VarContext vc, Network net, 
+			                           int designIndex) {
+		LayoutLib.error(designIndex!=0 && designIndex!=1, 
+				        "designIndex must be 0 or 1");
 		NccNameIndex nameIndex = nameIndices[designIndex];
-		List indices = nameIndex.search(vc);
-		for (int i=0; i<indices.size(); i++) {
-			NetNameProxy prox = equivNets[designIndex][i];
+		for (Iterator it=nameIndex.search(vc); it.hasNext();) {
+			int index = ((Integer)it.next()).intValue();
+			NetNameProxy prox = equivNets[designIndex][index];
 			if (nameMatch(prox, net)) {
 				int equivDesign = designIndex==0 ? 1 : 0;
-				return equivNets[equivDesign][i];
+				return equivNets[equivDesign][index];
 			}
 		}
 		return null;
@@ -65,6 +70,7 @@ class NccNameIndex {
 		NccContext nc = (NccContext) varToNccContext.get(vc);
 		if (nc==null) {
 			nc = new NccContext(vc);
+			varToNccContext.put(vc, nc);
 			if (vc==VarContext.globalContext) {
 				root = nc;
 			} else {
@@ -89,22 +95,23 @@ class NccNameIndex {
 	public NccNameIndex(NameProxy[] objects) {
 		int numObj = objects.length;
 		for (int i=0; i<numObj; i++) {
+//			System.out.println("Adding object: "+objects[i].toString());
 			addObjectIndex(objects[i], i);
 		}
 	}
-	public List search(VarContext vc) {
+	public Iterator search(VarContext vc) {
 		List names = instNames(vc);
 		NccContext nc = root;
 		for (Iterator it=names.iterator(); it.hasNext();) {
 			String instNm = (String) it.next();
 			NccContext child = nc.findChild(instNm);
 			if (child==null) {
-				NodeProto np = nc.getProto();
+//				NodeProto np = nc.getProto();
 				System.out.println(
 					"Can't find instance named: "+instNm+
-					" in NodeProto: "+np.getName()+
+//					" in NodeProto: "+np.getName()+
 					" along path: "+vc.getInstPath("/"));
-				return new ArrayList();
+				return (new ArrayList()).iterator();
 			}
 		}
 		return nc.getIndices();
@@ -117,16 +124,21 @@ class NccNameIndex {
 class NccContext {
 	private VarContext context;
 	private Map nodableNameToChild = new HashMap();
-	private List objectIndices = new ArrayList();
+	private Set objectIndices = new HashSet();
 	public NccContext(VarContext vc) {context=vc;}
 	public void addChild(NccContext child) {
 		String name = child.context.getNodable().getName();
+		LayoutLib.error(nodableNameToChild.containsKey(name), 
+				        "2 nodables with same name?");
 		nodableNameToChild.put(name, child);
 	}
 	public void addIndex(int i) {
-		objectIndices.add(new Integer(i));
+		Integer bi = new Integer(i);
+		LayoutLib.error(objectIndices.contains(bi),
+				        "duplicate index?");
+		objectIndices.add(bi);
 	}
-	public List getIndices() {return objectIndices;}
+	public Iterator getIndices() {return objectIndices.iterator();}
 	public NccContext findChild(String instNm) {
 		return (NccContext) nodableNameToChild.get(instNm);
 	}
