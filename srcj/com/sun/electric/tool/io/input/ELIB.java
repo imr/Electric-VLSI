@@ -163,9 +163,26 @@ public class ELIB extends LibraryFiles
 
 	// the variable information
 	/** number of variable names in the library */							private int nameCount;
-	/** list of variable keys in the library */								private Variable.Key [] realKey;
+    /** variable Keys possibly in the library */                            private VarKeys varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
+
+    /** Holder for all variable keys read in. Keys are only created if used */
+    private static class VarKeys {
+        private String [] keys;
+        private VarKeys(int i) {
+            keys = new String[i];
+        }
+        /** Add a Variable Key */
+        protected void addKey(int i, String name) {
+            keys[i] = name;
+        }
+        /** Get a Variable Key */
+        protected Variable.Key getKey(int i) {
+            String name = keys[i];
+            return ElectricObject.newKey(name);
+        }
+    }
 
 	ELIB() {}
 
@@ -2413,9 +2430,10 @@ public class ELIB extends LibraryFiles
 		if (nameCount == 0) return false;
 
 		// read in the namespace
-		realKey = new Variable.Key[nameCount];
-		for(int i=0; i<nameCount; i++)
-			realKey[i] = ElectricObject.newKey(readString());
+        varKeys = new VarKeys(nameCount);
+		for(int i=0; i<nameCount; i++) {
+            varKeys.addKey(i, readString());
+        }
 		return false;
 	}
 
@@ -2544,8 +2562,8 @@ public class ELIB extends LibraryFiles
 			// Geometric names are saved as variables.
 			if (newAddr instanceof String)
 			{
-				if ((obj instanceof NodeInst && realKey[key] == NodeInst.NODE_NAME) ||
-					(obj instanceof ArcInst && realKey[key] == ArcInst.ARC_NAME))
+				if ((obj instanceof NodeInst && varKeys.getKey(key) == NodeInst.NODE_NAME) ||
+					(obj instanceof ArcInst && varKeys.getKey(key) == ArcInst.ARC_NAME))
 				{
 					Geometric geom = (Geometric)obj;
 					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1, 0);
@@ -2561,7 +2579,7 @@ public class ELIB extends LibraryFiles
 			}
 
 			// see if the variable is deprecated
-			Variable.Key varKey = realKey[key];
+			Variable.Key varKey = varKeys.getKey(key);
 			if (obj.isDeprecatedVariable(varKey)) continue;
 
 			// see if the variable is a "meaning option"
