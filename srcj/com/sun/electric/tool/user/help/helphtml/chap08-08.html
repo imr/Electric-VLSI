@@ -20,42 +20,66 @@ Note: It is highly recommended that the user is familiar with the concept of Log
 as described in the above book before using the Logical Effort Tool in Electric.
 <P>
 Two commands may be given to the Logical Effort tool:
+<UL>
+<LI><B>Optimize for Equal Gate Delays</B>
+<LI><B>Print Info for Selected Node</B>
+</UL>
+<P>
 <H2>Optimize for Equal Gate Delays</H2>
 <P>
 Optimizes all Logical Effort gates (Cells) to have the same delay.  The delay is specified by the
-Global fan-out (step-up) option.  A Logical Effort gate is simply a schematic or layout cell
+Global fan-out (step-up) option.  This is *NOT* a path optimization algorithm.
+<P>
+A Logical Effort gate is simply a schematic or layout cell
 that conforms to the following specifications:
 <UL>
 <LI>The Cell has an attribute "LEGATE" which is set to "1".
-<LI>The Cell has only one output, which may have a logical effort attribute (explained below)
+<LI>The Cell has only one output, which may have a logical effort attribute (explained below).
 <LI>The Cell has zero or more inputs/bidirectional ports.  Each of these must have a
-logical effort attribute (explained below)
+logical effort attribute (explained below).
 <LI>The Cell has an attribute whose name does not matter, but whose value is "LE.getdrive()",
-and whose code is set to "Java"
+and whose code is set to "Java".
 </UL>
+<CENTER><IMG SRC="fig09-25.png" ALT="Figure 9.25"></CENTER>
 <P>
-On the inputs and output exports of the Cell, we can define an attribute named "le".  The value
+On the inputs and output Exports of the Cell, we can define an attribute named "le"
+(Double-click on the export text to get the Export Properties dialog, then hit the
+Attributes button to define the attribute).  The value
 of this attribute is the logical effort of that port.  For example, a NAND gate typically
-has a logical effort on each input of 4/3, and an output logical effort of 2.
+has a logical effort on each input of 4/3, and an output logical effort of 2.  An inverter is
+defined to have an input logical effort of 1, and an output logical effort of 1.
 <P>
-The size assigned to the logical effort gate is retrieve via the "LE.getdrive()" call. This value
-can then be used to size transistors within the gate.  The size retrieve is scaled with respect
-to the minimum sized inverter (as are all other logical effort parameters).  So a size of "1"
+The size assigned to the logical effort gate is retrieved via the "LE.getdrive()" call. This value
+can then be used to size transistors within the gate.  The size retrieved is scaled with respect
+to a minimum sized inverter (as are all other logical effort parameters).  So a size of "1"
 denotes a minimum sized inverter.
 <P>
 While these attributes are defined on the layout or schematic Cell *definition*, they must also
 be present on the instantiated icon or instance of that definition.  By default they will be.
 <P>
+Finally, this command should be performed on a Cell containing instances of Logical Effort gates.
+There must be at least one load that is driven by the gates in order for them to be sized.  A load
+is either an Electric transistor or capacitor.  Gates that do not drive loads, or that do not drive
+gates that drive loads, will not be assigned sizes.
+<P>
+<B>Advanced Features</B>
+<P>
 There are several advanced features that may be added to the Cell definition:
 <UL>
-<LI>Attribute "LEKEEPER=1". This Cell is now a keeper, whose size will be the size of the
+<LI>Attribute "LEKEEPER=1". This Cell is defined as a keeper, whose size will be the size of the
 smallest Logical Effort gate driving against it, multiplied by the Keeper Ratio.
 <LI>Attribute "LEPARALLGRP=0". If set to 0, this gate drives by itself. If an integer greater
-than zero, all gates of with that value whose outputs drive the same network are assumed to
+than zero, all gates with that value whose outputs drive the same network are assumed to
 drive in parallel. The size needed to drive the load on the network will be equally divided
 amongst those gates.
+<LI>Attribute "su=-1". This specifies the step-up (fanout) of the gate, and overrides the global
+fanout specified in the options.  If set to -1, this attribute is ignored, and the global value is used.
 </UL>
 
 <H2>Print Info for Selected Node</H2>
+<P>
+After running sizing, information about a specific logical effort gate can be found by
+selecting the gate instance and running this command.
+<P>
 
 <!-- TRAILER -->
