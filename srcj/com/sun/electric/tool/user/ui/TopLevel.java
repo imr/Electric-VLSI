@@ -192,7 +192,6 @@ public class TopLevel extends JFrame
 			GraphicsDevice gd = gs[0];
 			GraphicsConfiguration gc = gd.getDefaultConfiguration();
 			Rectangle r = gc.getBounds();
-//System.out.println("Screen size was "+scrnSize.width+"x"+scrnSize.height+" but now is "+r.width+"x"+r.height);
 			scrnSize.setSize(r.width, r.height);
 		}
 

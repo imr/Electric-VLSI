@@ -852,11 +852,11 @@ public class AutoStitch
         //Router.createRouteNoJob(route, ni.getParent(), false);
 
         // if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
-        if (ni.getFunction() == PrimitiveNode.Function.PIN) {
+        if (ni.getFunction() == PrimitiveNode.Function.PIN && ni.getNumExports() == 0 && ni.getNumConnections() == 0) {
             if (!possibleInlinePins.contains(ni))
                 possibleInlinePins.add(ni);
         }
-        if (oNi.getFunction() == PrimitiveNode.Function.PIN) {
+        if (oNi.getFunction() == PrimitiveNode.Function.PIN && oNi.getNumExports() == 0 && oNi.getNumConnections() == 0) {
             if (!possibleInlinePins.contains(oNi))
                 possibleInlinePins.add(oNi);
         }

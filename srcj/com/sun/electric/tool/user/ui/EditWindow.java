@@ -686,10 +686,11 @@ public class EditWindow extends JPanel
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setScreenSize(getSize());
+//System.out.println("Size changed, offscreen="+offscreen);
 			repaintContents(null);
 			return;
 		}
-
+//System.out.println("PAINT");
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
 		synchronized(img) { g.drawImage(img, 0, 0, this); };

@@ -351,7 +351,12 @@ public class Library extends ElectricObject
      */
     public void removeReferencedLib(Library lib) {
         synchronized(referencedLibs) {
-            assert(referencedLibs.contains(lib));
+            if (!referencedLibs.contains(lib))
+            {
+            	System.out.println("Internal error: referenced library list incorrect");
+            	return;
+            }
+//            assert(referencedLibs.contains(lib));
         }
         boolean refFound = false;
         for (Iterator itCell = getCells(); itCell.hasNext(); ) {
