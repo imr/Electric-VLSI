@@ -372,6 +372,7 @@ public class Netlist
 	 * @return signal on port index or null.
 	 */
 	public Network getNetwork(PortInst pi) {
+		if (!pi.isActuallyLinked()) return null;
 		PortProto portProto = pi.getPortProto();
 		if (portProto.getNameKey().isBus())
 		{
@@ -388,6 +389,7 @@ public class Netlist
 	 * @return network.
 	 */
 	public Network getNetwork(Export export, int busIndex) {
+		if (!export.isActuallyLinked()) return null;
 		int netIndex = getNetIndex(export, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -400,6 +402,7 @@ public class Netlist
 	 * @return network.
 	 */
 	public Network getNetwork(ArcInst ai, int busIndex) {
+		if (!ai.isActuallyLinked()) return null;
 		int netIndex = getNetIndex(ai, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -415,6 +418,9 @@ public class Netlist
 	public boolean sameNetwork(ArcInst ai1, ArcInst ai2)
 	{
 		if (ai1 == null || ai2 == null) return false;
+		if (!ai1.isActuallyLinked()) return false;
+		if (!ai2.isActuallyLinked()) return false;
+
 		int busWidth1 = netCell.getBusWidth(ai1);
 		int busWidth2 = netCell.getBusWidth(ai2);
 		if (busWidth1 != busWidth2) return false;
@@ -476,6 +482,7 @@ public class Netlist
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */
 	public String getNetworkName(ArcInst ai) {
+		if (!ai.isActuallyLinked()) return null;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return null;
 		int busWidth = netCell.getBusWidth(ai);
@@ -492,6 +499,7 @@ public class Netlist
 	 * @return the name of the bus on this ArcInst.
 	 */
 	public Name getBusName(ArcInst ai) {
+		if (!ai.isActuallyLinked()) return null;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return null;
 		int busWidth = netCell.getBusWidth(ai);
@@ -514,6 +522,7 @@ public class Netlist
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public int getBusWidth(ArcInst ai) {
+		if (!ai.isActuallyLinked()) return 0;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return 0;
 		return netCell.getBusWidth(ai);

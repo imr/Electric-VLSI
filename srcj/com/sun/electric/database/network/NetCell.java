@@ -762,6 +762,9 @@ class NetCell
 			return;
 		}
 
+		// Mark this netcell changed
+		modCount++;
+
 		makeDrawns();
 		// Gather port and arc names
 		initNetnames();
