@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02d: *********************************
 
+BUG: (01/24/04, JKG) The Font Association String[] var was being incorrectly
+    written out in the ELIB writer, as the "additionalVar" in ELIB.writeVariables().
+FIX: A fix has been implemented that checks for version 8.02c of the libraries and
+    ignores the variable. Additionally, the ELIB writer has been fixed.
+
 BUG: (01/24/05, SMR) CIF input places cell instances incorrectly.
 FIX: In CIF.nodesCall(), must compute instance position to account for cell-centers.
 
