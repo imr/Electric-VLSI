@@ -55,6 +55,7 @@ public abstract class TrackRouter {
 	double width = 0;
 	Double center = null;
 	PortInst prevElbow;
+    boolean endsExtend;
 
 	// ------------------ private and protected methods ----------------------
 	static void error(boolean pred, String msg) {
@@ -86,7 +87,8 @@ public abstract class TrackRouter {
 	private void addArc(ViaStack v1, ViaStack v2) {
 		PortInst p1 = v1.getPort1();
 		PortInst p2 = v2.getPort1();
-		LayoutLib.newArcInst(layer, width, p1, p2);
+		ArcInst ai = LayoutLib.newArcInst(layer, width, p1, p2);
+        ai.setExtended(endsExtend);
 	}
 
 	private void addArcs(ViaStack prev, ViaStack via, ViaStack next) {
@@ -160,6 +162,7 @@ public abstract class TrackRouter {
 		parent = parnt;
 		layer = lay;
 		width = wid;
+        endsExtend = true;
 	}
 
 	// ports may be offset from routing track
@@ -169,7 +172,11 @@ public abstract class TrackRouter {
 		layer = lay;
 		width = wid;
 		center = new Double(centerVal);
+        endsExtend = true;
 	}
+
+    public void setEndsExtend(boolean b) { endsExtend = b; }
+    public boolean getEndsExtend() { return endsExtend; }
 
 	public void connect(ArrayList nodeInsts, String portNm) {
 		ArrayList ports = new ArrayList();

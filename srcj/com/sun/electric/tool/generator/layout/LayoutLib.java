@@ -45,12 +45,15 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 /*
  * The LayoutLib class provides an assortment of methods that I
  * found to be useful for programatic layout generation.
@@ -729,4 +732,47 @@ public class LayoutLib {
 						  (NodeInst)nodeInsts.get(i));
 		}
 	}
+
+    /**
+     * Get the bounding box for the layer in the Cell.
+     * Note this does not include geometry from sub-cells.
+     * @param cell the cell to examine
+     * @param function the layer's function
+     * @return a bounding box around all instances of the layer in the cell
+     */
+    public static Rectangle2D getBounds(Cell cell, Layer.Function function) {
+        Rectangle2D bounds = null;
+        Technology tech = cell.getTechnology();
+        // get layer from nodes
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            Poly [] polys = tech.getShapeOfNode(ni);
+            if (polys == null) continue;
+            for (int i=0; i<polys.length; i++) {
+                if (polys[i] == null) continue;
+                if (polys[i].getLayer().getFunction() == function) {
+                    if (bounds == null)
+                        bounds = polys[i].getBox();
+                    else
+                        bounds = bounds.createUnion(polys[i].getBox());
+                }
+            }
+        }
+        // get layer from arcs
+        for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+            ArcInst ai = (ArcInst)it.next();
+            Poly [] polys = tech.getShapeOfArc(ai);
+            if (polys == null) continue;
+            for (int i=0; i<polys.length; i++) {
+                if (polys[i] == null) continue;
+                if (polys[i].getLayer().getFunction() == function) {
+                    if (bounds == null)
+                        bounds = polys[i].getBox();
+                    else
+                        bounds = bounds.createUnion(polys[i].getBox());
+                }
+            }
+        }
+        return bounds;
+    }
 }

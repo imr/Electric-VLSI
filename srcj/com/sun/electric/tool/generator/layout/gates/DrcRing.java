@@ -83,7 +83,7 @@ public class DrcRing {
     if (ring!=null) return ring;
     ring = stdCell.newPart(nm);
 
-    drawRing(Tech.p1, w, h, ring);
+    if (!Tech.isTSMC90()) drawRing(Tech.p1, w, h, ring);
     drawRing(Tech.m1, w, h, ring);
     drawRing(Tech.m2, w, h, ring);
     drawRing(Tech.m3, w, h, ring);

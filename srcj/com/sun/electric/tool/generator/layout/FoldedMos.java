@@ -31,6 +31,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.Tech.MosInst;
 
+import java.awt.geom.Rectangle2D;
+
 /** first cut at a folded transistor generator.  Transistors are
  * rotated 90 degrees counter clockwise so that gates are vertical.
  *
@@ -212,7 +214,8 @@ public abstract class FoldedMos {
 		// diffusion contact is always justified up or down and because it
 		// is always an integral number of lambdas high, it's edges and
 		// center are on the same .5 lambda grid as the transistor edges.
-		difContWid = Math.max(stdCell.getMinDifContWid(), ((int) gateWidth/5) * 5);
+        double difConIncr = stdCell.getDifConIncr();
+		difContWid = Math.max(stdCell.getMinDifContWid(), ((int) (gateWidth/difConIncr)) * difConIncr);
 		double difContSlop = Math.max(0, (gateWidth-difContWid)/2);
 		double difContY = y;
 		switch (justifyDiffCont) {
@@ -333,4 +336,14 @@ public abstract class FoldedMos {
 	 * "generic:Uinversal" arcs in order to fool Electric's NCC into
 	 * paralleling transistor stacks of series transistors. */
 	public PortInst getInternalSrcDrn(int col) {return internalDiffs[col];}
+
+    /** Get the extends of the select layer around the folded Mos. This will
+     * be a box that may or may not be fully filled with select, but will
+     * denote the maximum extents to which the folded mos' select extends.
+     * @param stdCell the standard cell params used to create the folded mos
+     * @return a rectangle that is the maximum extend of the select layer around the mos.
+     */
+    public Rectangle2D getSelectExtents(StdCellParams stdCell) {
+        return null;
+    }
 }

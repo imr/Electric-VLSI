@@ -126,6 +126,15 @@ public class StdCellParams {
 
     /** This determines width of arcs connecting to diffusion contacts */
     private double difWidHint;
+    /** Diff Contact to Gate node spacing */
+    private double viaToMosPitch;
+    /** Gate to Gate node spacing */
+    private double mosToMosPitch;
+    private double viaToViaPitch;
+    private double gridResolution;
+    /** Incremental size of diffusion contacts that creates a new cut in the multi-cut contact */
+    private double difConIncr;
+    private double drcRingSpace;
 
     // ======================================================
 
@@ -192,6 +201,12 @@ public class StdCellParams {
         diffContWid = 5;
         maxMosWidth = 45;
         difWidHint = 4;
+        viaToMosPitch = 4;
+        mosToMosPitch = 5;
+        viaToViaPitch = 5;
+        gridResolution = 0.5;
+        difConIncr = 5;
+        drcRingSpace = 3;
     }
 
     private void initTSMC90() {
@@ -226,6 +241,12 @@ public class StdCellParams {
         diffContWid = 5;
         maxMosWidth = 45;
         difWidHint = 3.4;
+        viaToMosPitch = 4;
+        mosToMosPitch = 6;
+        viaToViaPitch = 5.2;
+        gridResolution = 0.1;
+        difConIncr = 5.2;
+        drcRingSpace = 7;
     }
 
     /** Initialize Tracks after setting up parameters */
@@ -356,10 +377,10 @@ public class StdCellParams {
 		NodeInst dFill = LayoutLib.newNodeInst(diffNode, thisX-dist/2, mosY, 
 											   dist, diffWid, 0, f);
 		double contY = LayoutLib.roundCenterY(thisPort); // contact is always on grid
-		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY, 
+		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, mosY,
 							 dFill.getOnlyPortInst(), 
 							 LayoutLib.roundCenterX(dFill.getOnlyPortInst()), 
-							 contY);
+							 mosY);
 		addSelAroundDiff(dFill);
 
 		// Never place wide arcs directly onto the FoldedMos
@@ -489,6 +510,10 @@ public class StdCellParams {
 
     public double getDifWidHint() { return difWidHint; }
 
+    public double getDifConIncr() { return difConIncr; }
+
+    public double getDRCRingSpacing() { return drcRingSpace; }
+
     /** Get the minimum diffusion contact width. This is the size reported by
      * the GUI, not the pre-offset size.
      */
@@ -502,16 +527,17 @@ public class StdCellParams {
         else return 6;
     }
 
-    public double getViaToMosPitch() {
-        return 4;
-    }
+    public void setViaToMosPitch(double p) { viaToMosPitch = p; }
+    public double getViaToMosPitch() { return viaToMosPitch; }
 
+    public void setMosToMosPitch(double p) { mosToMosPitch = p; }
     /** This is the minimum pitch between gates that share src/drc without diffusion
      * contacts in that shared src/drn area. */
-    public double getMosToMosPitch() {
-        if (Tech.isTSMC90()) return 6;//6
-        else return 5;
-    }
+    public double getMosToMosPitch() { return mosToMosPitch; }
+
+    public double getViaToViaPitch() { return viaToViaPitch; }
+
+    public double getGridResolution() { return gridResolution; }
 
     /** Get the fold pitch for folded transistor, given the number of series transistors */
     public double getFoldPitch(int nbSeries) {
@@ -708,9 +734,14 @@ public class StdCellParams {
 		return enableGateStrengthRatio;
 	}
 
-	/** round to nearest multiple of 1/2 lambda */
+    /** round to nearest multiple of 1/2 lambda for MoCMOS,
+     * nearest multiple of 0.2 for TSMC90 */
 	public double roundGateWidth(double w) {
-		return Math.rint(w * 2) / 2;
+        if (Tech.isTSMC90()) {
+		    return Math.rint(w * 5) / 5;
+        } else {
+            return Math.rint(w * 2) / 2;
+        }
 	}
 
 	/** quantize size.  Temporary hack because it doesn't control errors

@@ -132,7 +132,7 @@ public class GateRegression extends Job {
         stdCell.setPmosWellHeight(70);
 
         Cell gallery = Gallery.makeGallery(scratchLib);
-        DrcRings.addDrcRings(gallery, FILTER);
+        DrcRings.addDrcRings(gallery, FILTER, stdCell.getDRCRingSpacing());
 
         LayoutLib.writeLibrary(scratchLib);
 

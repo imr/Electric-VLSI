@@ -37,8 +37,12 @@ public class DrcRings {
 	public static class Filter {
 		public boolean skip(NodeInst ni) {return false;}
 	}
-	
-	public static void addDrcRings(Cell gallery, Filter filter) {
+
+    public static void addDrcRings(Cell gallery, Filter filter) {
+        addDrcRings(gallery, filter, 3);
+    }
+
+	public static void addDrcRings(Cell gallery, Filter filter, double spacing) {
 		if (filter==null) filter = new Filter();
 		
 		Library lib = gallery.getLibrary();
@@ -62,8 +66,8 @@ public class DrcRings {
 			
 			Rectangle2D cellBounds = LayoutLib.getBounds(ni);
 			
-			double ringW = cellBounds.getWidth() + 3;
-			double ringH = cellBounds.getHeight() + 3;
+			double ringW = cellBounds.getWidth() + spacing;
+			double ringH = cellBounds.getHeight() + spacing;
 			Cell ringProto = DrcRing.makePart(ringW, ringH, stdCell);
 			
 			// Center the ring about the cell			
