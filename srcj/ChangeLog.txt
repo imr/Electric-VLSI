@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/15/04, SMR) "Change current library" and "Change" dialogs accept double-click to terminate.
+
 IMP: (6/14/04, SMR) Implemented SPICE writing in lambda units.
 
 IMP: (6/14/04, GVG) More stable version of crosslibcopy with compare functions. Refactoring for getProtoName, getLibName, setLibName, getProtoNamekey

@@ -523,7 +523,7 @@ public class Artwork extends Technology
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np == pinNode || np == arrowNode)
 		{
-			return super.getShapeOfPort(ni, pp);
+			return super.getShapeOfPort(ni, pp, selectPt);
 		}
 		Poly [] polys = getShapeOfNode(ni);
 		return polys[0];

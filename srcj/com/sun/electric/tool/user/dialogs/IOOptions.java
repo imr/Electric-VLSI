@@ -998,6 +998,7 @@ public class IOOptions extends EDialog
         jLabel9 = new javax.swing.JLabel();
         gdsDefaultTextLayer = new javax.swing.JTextField();
         gdsTechName = new javax.swing.JLabel();
+        jLabel29 = new javax.swing.JLabel();
         edif = new javax.swing.JPanel();
         edifUseSchematicView = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
@@ -1217,12 +1218,12 @@ public class IOOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 10;
+        gridBagConstraints.gridheight = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsLayerList, gridBagConstraints);
 
         jLabel6.setText("GDS Layer(s):");
@@ -1364,6 +1365,13 @@ public class IOOptions extends EDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsTechName, gridBagConstraints);
+
+        jLabel29.setText("Negative layer values generate no GDS");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 3;
+        gds.add(jLabel29, gridBagConstraints);
 
         tabPane.addTab("GDS", gds);
 
@@ -2152,6 +2160,7 @@ public class IOOptions extends EDialog
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
+    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

@@ -2375,6 +2375,22 @@ public class Technology extends ElectricObject
 		setColorMap(map);
 	}
 
+//	private static Color normalizeColor(Color a)
+//	{
+//		double r = a.getRed() / 255.0;
+//		double g = a.getGreen() / 255.0;
+//		double b = a.getBlue() / 255.0;
+//
+//		double mag = Math.sqrt(r * r + g * g + b * b);
+//		if (mag > 1.0e-11)
+//		{
+//			r /= mag;
+//			g /= mag;
+//			b /= mag;
+//		}
+//		return new Color((int)(r * 255), (int)(g * 255), (int)(b * 255));
+//	}
+
 	/**
 	 * Method to get the factory design rules.
 	 * Individual technologies subclass this to create their own rules.

@@ -48,6 +48,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
@@ -109,6 +111,13 @@ public class Change extends EDialog
 		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listPane.setViewportView(changeList);
 		changeNodeProtoList = new ArrayList();
+		changeList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2) ok(null);
+			}
+		});
 
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();

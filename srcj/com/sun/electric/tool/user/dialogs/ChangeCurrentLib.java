@@ -48,8 +48,8 @@ import javax.swing.JPanel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Insets;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import javax.swing.JScrollPane;
@@ -94,6 +94,13 @@ public class ChangeCurrentLib extends EDialog
 			Library lib = (Library)it.next();
 			changeListModel.addElement(lib.getName());
 		}
+		changeList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2) okActionPerformed(null);
+			}
+		});
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

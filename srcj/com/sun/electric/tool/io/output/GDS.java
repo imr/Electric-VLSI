@@ -300,6 +300,9 @@ public class GDS extends Geometry
 
 	protected void writePoly(Poly poly, int layerNumber)
 	{
+		// ignore negative layer numbers
+		if (layerNumber < 0) return;
+
 		Point2D [] points = poly.getPoints();
 		if (poly.getStyle() == Poly.Type.DISC)
 		{
