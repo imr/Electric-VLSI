@@ -27,12 +27,14 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -510,14 +512,21 @@ public abstract class Router {
         if (pi == null) return ap.getDefaultWidth();
 
         // get all ArcInsts on pi, find largest
-        double width = 0;
-        boolean found = false;
+        double width = ap.getDefaultWidth();
         for (Iterator it = pi.getConnections(); it.hasNext(); ) {
             Connection c = (Connection)it.next();
-            found = true;
             if (width < c.getArc().getWidth()) width = c.getArc().getWidth();
         }
-        if (!found) return ap.getDefaultWidth();
+        // check any wires that connect to the export of this portinst in the
+        // prototype, if this is a cell instance
+        NodeInst ni = pi.getNodeInst();
+        if (ni.getProto() instanceof Cell) {
+            Cell cell = (Cell)ni.getProto();
+            Export export = cell.findExport(pi.getPortProto().getProtoName());
+            PortInst exportedInst = export.getOriginalPort();
+            double width2 = getArcWidthToUse(exportedInst, ap);
+            if (width2 > width) width = width2;
+        }
         return width;
     }
 
@@ -531,6 +540,11 @@ public abstract class Router {
     protected static double getArcWidthToUse(RouteElement re, ArcProto ap) {
         double width = ap.getDefaultWidth();
         double connectedWidth = re.getWidestConnectingArc(ap);
+        if (re.getConnectingPort() != null) {
+            // check if prototype connection to export has larger wire
+            double width2 = getArcWidthToUse(re.getConnectingPort(), ap);
+            if (width2 > connectedWidth) connectedWidth = width2;
+        }
         if (width > connectedWidth) return width;
         else return connectedWidth;
     }
