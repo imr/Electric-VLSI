@@ -2,10 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.01ag: *********************************
+************************* Version 8.01ah: *********************************
 
 BUG: (10/29/04, DN) Network tool when there layout instances in schematic cell.
 FIX: In NetSchem.internalConnection netCell added to reference subcell.
+
+************************* Version 8.01ag: *********************************
 
 BUG: (10/29/04, DN) Network tool and user tool doesn't feel rename of Exports and Cells.
 FIX: Add parameter "oldVersion" to "renameObject" methods of these tools.
