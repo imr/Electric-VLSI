@@ -734,6 +734,7 @@ public class DRC extends Listener
 		Date lastDRCDate = new Date(lastDRCDateInSeconds);
 		return lastDRCDate;
 	}
+	
 	/**
 	 * Method to set the date of the last successful DRC of a given Cell.
 	 * @param cell the cell to modify.
