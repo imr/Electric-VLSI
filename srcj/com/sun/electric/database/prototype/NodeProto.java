@@ -1181,6 +1181,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public PortProto findPortProto(String name)
 	{
+        if (name == null) return null;
 		return findPortProto(Name.findName(name));
 	}
 
@@ -1190,6 +1191,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public PortProto findPortProto(Name name)
 	{
+        if (name == null) return null;
 		name = name.lowerCase();
 		for (int i = 0; i < ports.size(); i++)
 		{

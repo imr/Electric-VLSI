@@ -942,18 +942,22 @@ public class PadGenerator {
                             }
                         }
                         // core export
-                        PortProto ppcore = cell.findPortProto(pe.corename);
-                        if (ppcore == null) {
-                            err("no port called '" + pe.padname + "' on Cell " + cell.noLibDescribe());
-                        } else {
-                            ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_" + pad.exportsname);
-                            if (ppcore == null)
-                                err("Creating export core_" + pad.exportsname);
-                            else {
-                                TextDescriptor td = ppcore.getTextDescriptor();
-                                td.setAbsSize(14);
-                                corePorts.add(ppcore);
+                        if (pe.corename != null) {
+                            PortProto ppcore = cell.findPortProto(pe.corename);
+                            if (ppcore == null) {
+                                err("no port called '" + pe.corename + "' on Cell " + cell.noLibDescribe());
+                            } else {
+                                ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_" + pad.exportsname);
+                                if (ppcore == null)
+                                    err("Creating export core_" + pad.exportsname);
+                                else {
+                                    TextDescriptor td = ppcore.getTextDescriptor();
+                                    td.setAbsSize(14);
+                                    corePorts.add(ppcore);
+                                }
                             }
+                        } else {
+                            corePorts.add(null);
                         }
                     }
                 }
@@ -1084,6 +1088,11 @@ public class PadGenerator {
                 total = 0;
                 for (Iterator it = corePorts.iterator(); it.hasNext();) {
                     Export pp = (Export) it.next();
+
+                    if (pp == null) {
+                        total++;
+                        continue;
+                    }
                     if (pp.isBodyOnly()) continue;
 
                     // determine location of the port

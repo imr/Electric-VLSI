@@ -240,7 +240,7 @@ public class Name implements Comparable
 	private static Name findTrimmedName(String ns)
 	{
 		Name name = (Name)allNames.get(ns);
-		if (name == null)
+		if (name == null && ns != null)
 		{
 			name = new Name(ns);
 			allNames.put(name.ons, name);
@@ -251,10 +251,11 @@ public class Name implements Comparable
 	/**
 	 * Returns the trimmed string for given string.
 	 * @param ns given string
-	 * @return trimmed string.
+	 * @return trimmed string, or null if argument is null
 	 */
 	private static String trim(String ns)
 	{
+        if (ns == null) return null;
 		int len = ns.length();
 		int newLen = 0;
 		for (int i = 0; i < len; i++)
