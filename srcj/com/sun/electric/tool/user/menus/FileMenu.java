@@ -555,7 +555,8 @@ public class FileMenu {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-            type = getLibraryFormat(lib.getLibFile().getFile(), type);
+            if (lib.getLibFile() != null)
+                type = getLibraryFormat(lib.getLibFile().getFile(), type);
             if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType)) break;
         }
     }
@@ -570,12 +571,14 @@ public class FileMenu {
         for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
-            // set library file to new format
-            String fullName = lib.getLibFile().getFile();
-            //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
-            // match ".<word><endline>"
-            fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
-            lib.setLibFile(TextUtils.makeURLToFile(fullName));
+            if (lib.getLibFile() != null) {
+                // set library file to new format
+                String fullName = lib.getLibFile().getFile();
+                //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
+                // match ".<word><endline>"
+                fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
+                lib.setLibFile(TextUtils.makeURLToFile(fullName));
+            }
             lib.setChangedMajor();
             lib.setChangedMinor();
         }
