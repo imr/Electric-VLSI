@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -554,8 +555,10 @@ public class Array extends EDialog
 					} else
 					{
 						String arcName = ai.getName();
-						if (arcName != null)
+						if (arcName != null) {
 							newAi.setName(ElectricObject.uniqueObjectName(arcName, cell, ArcInst.class));
+                            newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
+                        }
 					}
 				}
 			}
