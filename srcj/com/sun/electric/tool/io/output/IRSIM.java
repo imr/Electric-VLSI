@@ -111,7 +111,6 @@ public class IRSIM extends Output
 		// write the header
 		double scale = technology.getScale() / 10;
         Technology layoutTech = Schematics.getDefaultSchematicTechnology();
-        double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
 		printWriter.println("| units: " + scale + " tech: " + technology.getTechName() + " format: SU");
 		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName());
@@ -137,6 +136,8 @@ public class IRSIM extends Output
 
 		if (closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
+        ParasiticTool.getParasiticErrorLogger().sortLogs();
+        ParasiticTool.getParasiticErrorLogger().termLogging(true);
 	}
 
 	/**

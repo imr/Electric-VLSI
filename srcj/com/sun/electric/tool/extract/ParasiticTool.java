@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -46,6 +45,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.geom.AffineTransform;
@@ -58,6 +58,8 @@ import java.util.List;
 public class ParasiticTool extends Tool{
 
     /** The Parasitic Extraction tool */              private static ParasiticTool tool = new ParasiticTool();
+
+    private static ErrorLogger errorLogger = ErrorLogger.newInstance("Parasitics Extraction");;
 
     private ParasiticTool() { super("Parasitic");}
 
@@ -74,17 +76,20 @@ public class ParasiticTool extends Tool{
      */
     public static ParasiticTool getParasiticTool() { return tool; }
 
+    public static ErrorLogger getParasiticErrorLogger() { return errorLogger; }
+
     public static double getAreaScale(double scale) { return scale*scale/1000000; } // area in square microns
 
     public static double getPerimScale(double scale) { return scale/1000; }          // perim in microns
 
     public void netwokParasitic(Network network, Cell cell)
     {
-        AnalyzeParasitic job = new AnalyzeParasitic(network, cell);
+        new AnalyzeParasitic(network, cell);
     }
 
     public static List calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
     {
+        errorLogger.clearLogs(cell);
         Netlist netList = cell.getNetlist(false);
         if (context == null) context = VarContext.globalContext;
         ParasiticVisitor visitor = new ParasiticVisitor(tool, netList, context);
@@ -551,6 +556,8 @@ public class ParasiticTool extends Tool{
             }
             long endTime = System.currentTimeMillis();
             System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+			// sort the errors by layer
+			errorLogger.sortLogs();
             return true;
         }
     }

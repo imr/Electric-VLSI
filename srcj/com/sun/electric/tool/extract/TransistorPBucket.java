@@ -96,6 +96,18 @@ public class TransistorPBucket implements ExtractedPBucket
 //        line.append(" d=A_" + (int)activeArea + ",P_" + (int)activePerim);
 //        double areaScale = ParasiticTool.getAreaScale(scale); // area in square microns
 //        double perimScale = ParasiticTool.getPerimScale(scale);           // perim in microns
+        // In case of schematic
+        // Reset four values according to transistor sizes
+        if (sourceArea == 0 || sourcePerim == 0 || drainArea == 0 || drainPerim == 0)
+        {
+            drainArea = sourceArea = getActiveArea();
+            drainPerim = sourcePerim = getActivePerim();
+        }
+        if (sourceArea == 0 || sourcePerim == 0 || drainArea == 0 || drainPerim == 0)
+        {
+            ParasiticTool.getParasiticErrorLogger().logError("Zero active area/perimenter in parasitics extraction for '" + ni.getName() + "' in '"
+                    + ni.getParent().getName() + "'", ni.getParent(), ni.getParent().hashCode());
+        }
         line.append(" s=A_" + (int)(sourceArea) + ",P_" + (int)(sourcePerim));
         line.append(" d=A_" + (int)(drainArea) + ",P_" + (int)(drainPerim));
         return line.toString();
