@@ -467,7 +467,7 @@ public class Artwork extends Technology
 			}
 		} else if (np == splineNode)
 		{
-			Float [] tracePoints = ni.getTrace();
+			Point2D [] tracePoints = ni.getTrace();
 			if (tracePoints != null)
 			{
 				double cX = ni.getGrabCenterX();
@@ -576,27 +576,27 @@ public class Artwork extends Technology
 
 	/**
 	 * Method to extract an X coordinate from an array.
-	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
+	 * @param tracePoints the array of coordinate values.
 	 * @param index the entry in the array to retrieve.
 	 * @param cX an offset value to add to the retrieved value.
 	 * @return the X coordinate value.
 	 */
-	private double getTracePointX(Float [] tracePoints, int index, double cX)
+	private double getTracePointX(Point2D [] tracePoints, int index, double cX)
 	{
-		double v = tracePoints[index*2].doubleValue();
+		double v = tracePoints[index].getX();
 		return v + cX;
 	}
 
 	/**
 	 * Method to extract an Y coordinate from an array.
-	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
+	 * @param tracePoints the array of coordinate values.
 	 * @param index the entry in the array to retrieve.
 	 * @param cY an offset value to add to the retrieved value.
 	 * @return the Y coordinate value.
 	 */
-	private double getTracePointY(Float [] tracePoints, int index, double cY)
+	private double getTracePointY(Point2D [] tracePoints, int index, double cY)
 	{
-		double v = tracePoints[index*2+1].doubleValue();
+		double v = tracePoints[index].getY();
 		return v + cY;
 	}
 
@@ -614,28 +614,20 @@ public class Artwork extends Technology
 			np == openedDashedPolygonNode ||  np == openedThickerPolygonNode ||
 			np == splineNode)
 		{
-			Float [] outline = new Float[8];
-			outline[0] = new Float(-3);
-			outline[1] = new Float(-3);
-			outline[2] = new Float(-1);
-			outline[3] = new Float(3);
-			outline[4] = new Float(1);
-			outline[5] = new Float(-3);
-			outline[6] = new Float(3);
-			outline[7] = new Float(3);
+			Point2D [] outline = new Point2D[4];
+			outline[0] = new Point2D.Double(-3, -3);
+			outline[1] = new Point2D.Double(-1, 3);
+			outline[2] = new Point2D.Double(1, -3);
+			outline[3] = new Point2D.Double(3, 3);
 			ni.newVar(NodeInst.TRACE, outline);
 		}
 		if (np == closedPolygonNode || np == filledPolygonNode)
 		{
-			Float [] outline = new Float[8];
-			outline[0] = new Float(0);
-			outline[1] = new Float(-3);
-			outline[2] = new Float(-3);
-			outline[3] = new Float(0);
-			outline[4] = new Float(0);
-			outline[5] = new Float(3);
-			outline[6] = new Float(3);
-			outline[7] = new Float(-3);
+			Point2D [] outline = new Point2D[4];
+			outline[0] = new Point2D.Double(0, -3);
+			outline[1] = new Point2D.Double(-3, 0);
+			outline[2] = new Point2D.Double(0, 3);
+			outline[3] = new Point2D.Double(3, -3);
 			ni.newVar(NodeInst.TRACE, outline);
 		}
 	}
@@ -647,10 +639,10 @@ public class Artwork extends Technology
 	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
 	 * @return an array of points that describes the spline.
 	 */
-	private Point2D [] fillSpline(double cX, double cY, Float [] tracePoints)
+	private Point2D [] fillSpline(double cX, double cY, Point2D [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
-		int count = tracePoints.length / 2;
+		int count = tracePoints.length;
 		int outPoints = (count - 1) * steps + 1;
 		Point2D [] points = new Point2D.Double[outPoints];
 		int out = 0;

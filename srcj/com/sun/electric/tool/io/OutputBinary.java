@@ -730,18 +730,6 @@ public class OutputBinary extends Output
 		int rotation = ni.getAngle();
 		if (ni.isXMirrored()) transpose |= 2;
 		if (ni.isYMirrored()) transpose |= 4;
-//		if (ni.isXMirrored())
-//		{
-//			if (ni.isYMirrored()) rotation = (rotation + 1800) % 3600; else
-//			{
-//				rotation = (rotation + 900) % 3600;
-//				transpose = 1 - transpose;
-//			}
-//		} else if (ni.isYMirrored())
-//		{
-//			rotation = (rotation + 2700) % 3600;
-//			transpose = 1 - transpose;
-//		}
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
@@ -942,6 +930,16 @@ public class OutputBinary extends Output
 			{
 				type |= getVarType(varObj);
 			}
+
+			// special case for "trace" information on NodeInsts
+			boolean convertTrace = false;
+			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Object[])
+			{
+				Object [] objList = (Object [])varObj;
+				type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
+				type |= BinaryConstants.VFLOAT | BinaryConstants.VISARRAY | ((objList.length*2) << BinaryConstants.VLENGTHSH);
+				convertTrace = true;
+			}
 			writeBigInteger(type);
 
 			// write the text descriptor
@@ -951,12 +949,19 @@ public class OutputBinary extends Output
 
 			if (varObj instanceof Object[])
 			{
-				int len = ((Object[])varObj).length;
-				writeBigInteger(len);
+				Object [] objList = (Object [])varObj;
+				int len = objList.length;
+				if (convertTrace)
+				{
+					writeBigInteger(len*2);
+				} else
+				{
+					writeBigInteger(len);
+				}
 
 				for(int i=0; i<len; i++)
 				{
-					Object oneObj = ((Object[])varObj)[i];
+					Object oneObj = objList[i];
 					putOutVar(oneObj);
 				}
 			} else
@@ -1039,6 +1044,12 @@ public class OutputBinary extends Output
 		if (obj instanceof Double)
 		{
 			writeDouble(((Double)obj).doubleValue());
+			return;
+		}
+		if (obj instanceof Point2D)
+		{
+			writeFloat((float)((Point2D)obj).getX());
+			writeFloat((float)((Point2D)obj).getY());
 			return;
 		}
 		if (obj instanceof Technology)

@@ -898,15 +898,14 @@ public class NodeInst extends Geometric implements Nodable
 			// special case for polygonally-defined nodes: compute precise geometry */
 			if (protoType.isHoldsOutline())
 			{
-				Float [] outline = getTrace();
+				Point2D [] outline = getTrace();
 				if (outline != null)
 				{
-					int numPoints = outline.length / 2;
-					Point2D [] pointList = new Point2D.Double[numPoints];
-					for(int i=0; i<numPoints; i++)
+					Point2D [] pointList = new Point2D.Double[outline.length];
+					for(int i=0; i<outline.length; i++)
 					{
-						pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i*2].floatValue(),
-							getGrabCenterY() + outline[i*2+1].floatValue());
+						pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i].getX(),
+							getGrabCenterY() + outline[i].getY());
 					}
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
@@ -1402,15 +1401,33 @@ public class NodeInst extends Geometric implements Nodable
 	 * used by pure-layer nodes in all layout technologies to allow
 	 * them to take any shape.  It is even used by many MOS
 	 * transistors to allow a precise gate path to be specified.
-	 * @return an array of Floats, organized as X/Y/X/Y.
+	 * @return an array of Point2D.
 	 */
-	public Float [] getTrace()
+	public Point2D [] getTrace()
 	{
-		Variable var = getVar(TRACE, Float[].class);
+		Variable var = getVar(TRACE, Point2D[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
-		if (obj instanceof Object[]) return (Float []) obj;
+		if (obj instanceof Object[]) return (Point2D []) obj;
 		return null;
+	}
+
+	/**
+	 * Method to tell whether the outline information on this NodeInst wraps.
+	 * Wrapping outline information applies to closed figures, such as pure-layer nodes.
+	 * Nodes that do not wrap include serpentine transistors, splines, and opened polygons.
+	 * @return true if this node's outline information wraps.
+	 */
+	public boolean traceWraps()
+	{
+		if (protoType == Artwork.tech.splineNode ||
+			protoType == Artwork.tech.openedPolygonNode ||
+			protoType == Artwork.tech.openedDottedPolygonNode ||
+			protoType == Artwork.tech.openedDashedPolygonNode ||
+			protoType == Artwork.tech.openedThickerPolygonNode)
+				return false;
+		if (isFET()) return false;
+		return true;
 	}
 
 	/****************************** PORTS ******************************/

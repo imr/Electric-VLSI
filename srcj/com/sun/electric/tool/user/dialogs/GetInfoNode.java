@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
+import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -328,7 +329,7 @@ public class GetInfoNode extends javax.swing.JDialog
 
 		// see if this node has outline information
 		boolean holdsOutline = false;
-		Float [] outline = ni.getTrace();
+		Point2D [] outline = ni.getTrace();
 		if (outline != null)
 		{
 			holdsOutline = true;

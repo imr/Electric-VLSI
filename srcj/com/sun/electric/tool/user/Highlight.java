@@ -163,7 +163,7 @@ public class Highlight
 		this.type = type;
 		this.eobj = null;
 		this.cell = null;
-		this.point = 0;
+		this.point = -1;
 		this.var = null;
 		this.name = null;
 		this.bounds = null;
@@ -322,7 +322,7 @@ public class Highlight
 	 * Method to set an outline point to be displayed with this Highlight.
 	 * @param point the outline point to show with this Highlight (must be a NodeInst highlight).
 	 */
-	private void setPoint(int point) { this.point = point; }
+	public void setPoint(int point) { this.point = point; }
 
 	/**
 	 * Method to return the bounds associated with this Highlight object.
@@ -422,7 +422,7 @@ public class Highlight
 			}
 			if (h.getType() == Type.BBOX)
 			{
-				List inArea = findAllInArea(h.getCell(), false, false, false, false, false, h.getBounds(), null);
+				List inArea = findAllInArea(h.getCell(), false, false, false, false, false, false, h.getBounds(), null);
 				for(Iterator ait = inArea.iterator(); ait.hasNext(); )
 				{
 					Highlight ah = (Highlight)ait.next();
@@ -599,6 +599,33 @@ public class Highlight
 	}
 
 	/**
+	 * Method to return the only highlighted object.
+	 * If there is not one highlighted object, an error is issued.
+	 * @return the highlighted object (null if error).
+	 */
+	public static ElectricObject getOneElectricObject(Class type)
+	{
+		Highlight high = getOneHighlight();
+		if (high == null) return null;
+		if (high.getType() != Highlight.Type.EOBJ)
+		{
+            System.out.println("Must first select an object");
+            return null;
+        }
+        ElectricObject eobj = high.getElectricObject();
+		if (type == NodeInst.class)
+		{
+			if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+		}
+		if (type != eobj.getClass())
+		{
+            System.out.println("Wrong type of object is selected");
+            return null;
+		}
+		return eobj;
+	}
+
+	/**
 	 * Method to set a screen offset for the display of highlighting.
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.
@@ -623,7 +650,7 @@ public class Highlight
 		boolean invertSelection, boolean findSpecial)
 	{
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
-		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, true, searchArea, wnd);
+		List underCursor = findAllInArea(wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
 		if (invertSelection)
 		{
 			for(Iterator it = underCursor.iterator(); it.hasNext(); )
@@ -678,7 +705,7 @@ public class Highlight
 				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 				if (eobj instanceof Geometric)
 				{
-					Highlight got = checkOutObject((Geometric)eobj, true, true, searchArea, wnd, directHitDist, false);
+					Highlight got = checkOutObject((Geometric)eobj, true, false, true, searchArea, wnd, directHitDist, false);
 					if (got == null) continue;
 					ElectricObject hObj = got.getElectricObject();
 					ElectricObject hReal = hObj;
@@ -912,6 +939,103 @@ public class Highlight
 //				}
 			}
 
+			// draw the selected point
+			int offX = highOffX;
+			int offY = highOffY;
+			if (point >= 0)
+			{
+				Point2D [] points = ni.getTrace();
+				if (points != null)
+				{
+					boolean showWrap = ni.traceWraps();
+					double x = ni.getGrabCenterX() + points[point].getX();
+					double y = ni.getGrabCenterY() + points[point].getY();
+					float size = 3 / (float)wnd.getScale();
+					Point c1 = wnd.databaseToScreen(x+size, y+size);
+					Point c2 = wnd.databaseToScreen(x-size, y-size);
+					Point c3 = wnd.databaseToScreen(x-size, y+size);
+					Point c4 = wnd.databaseToScreen(x+size, y-size);
+					g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
+					g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
+
+					// draw two connected lines
+					Point2D prevPt = null, nextPt = null;
+					Point2D thisPt = new Point2D.Double(x, y);
+					Point cThis = wnd.databaseToScreen(thisPt);
+					int prevPoint = point - 1;
+					if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
+					if (prevPoint >= 0)
+					{
+						prevPt = new Point2D.Double(ni.getGrabCenterX() + points[prevPoint].getX(),
+							ni.getGrabCenterY() + points[prevPoint].getY());
+						if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
+						{
+							Point cPrev = wnd.databaseToScreen(prevPt);
+							g.drawLine(cThis.x + offX, cThis.y + offY, cPrev.x, cPrev.y);
+						}
+					}
+					int nextPoint = point + 1;
+					if (nextPoint >= points.length)
+					{
+						if (showWrap) nextPoint = 0; else
+							nextPoint = -1;
+					}
+					if (nextPoint >= 0)
+					{
+						nextPt = new Point2D.Double(ni.getGrabCenterX() + points[nextPoint].getX(),
+							ni.getGrabCenterY() + points[nextPoint].getY());
+						if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
+						{
+							Point cNext = wnd.databaseToScreen(nextPt);
+							g.drawLine(cThis.x + offX, cThis.y + offY, cNext.x, cNext.y);
+						}
+					}
+
+					// draw arrows on the lines
+					if (offX == 0 && offY == 0 && points.length > 2)
+					{
+						double arrowLen = Double.MAX_VALUE;
+						if (prevPoint >= 0) arrowLen = Math.min(thisPt.distance(prevPt), arrowLen);
+						if (nextPoint >= 0) arrowLen = Math.min(thisPt.distance(nextPt), arrowLen);
+						arrowLen /= 10;
+						if (prevPoint >= 0)
+						{
+							Point2D prevCtr = new Point2D.Double((prevPt.getX()+thisPt.getX()) / 2,
+								(prevPt.getY()+thisPt.getY()) / 2);
+							double prevAngle = EMath.figureAngleRadians(prevPt, thisPt);
+							Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+Math.PI*0.75) * arrowLen,
+								prevCtr.getY() + Math.sin(prevAngle+Math.PI*0.75) * arrowLen);
+							Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-Math.PI*0.75) * arrowLen,
+								prevCtr.getY() + Math.sin(prevAngle-Math.PI*0.75) * arrowLen);
+							Point cPrevCtr = wnd.databaseToScreen(prevCtr);
+							Point cPrevArrow1 = wnd.databaseToScreen(prevArrow1);
+							Point cPrevArrow2 = wnd.databaseToScreen(prevArrow2);
+							g.drawLine(cPrevCtr.x, cPrevCtr.y, cPrevArrow1.x, cPrevArrow1.y);
+							g.drawLine(cPrevCtr.x, cPrevCtr.y, cPrevArrow2.x, cPrevArrow2.y);
+						}
+
+						if (nextPoint >= 0)
+						{
+							Point2D nextCtr = new Point2D.Double((nextPt.getX()+thisPt.getX()) / 2,
+								(nextPt.getY()+thisPt.getY()) / 2);
+							double nextAngle = EMath.figureAngleRadians(thisPt, nextPt);
+							Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+Math.PI*0.75) * arrowLen,
+								nextCtr.getY() + Math.sin(nextAngle+Math.PI*0.75) * arrowLen);
+							Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-Math.PI*0.75) * arrowLen,
+								nextCtr.getY() + Math.sin(nextAngle-Math.PI*0.75) * arrowLen);
+							Point cNextCtr = wnd.databaseToScreen(nextCtr);
+							Point cNextArrow1 = wnd.databaseToScreen(nextArrow1);
+							Point cNextArrow2 = wnd.databaseToScreen(nextArrow2);
+							g.drawLine(cNextCtr.x, cNextCtr.y, cNextArrow1.x, cNextArrow1.y);
+							g.drawLine(cNextCtr.x, cNextCtr.y, cNextArrow2.x, cNextArrow2.y);
+						}
+					}
+
+					// do not offset the node, just this point
+					offX = offY = 0;
+				}
+			}
+
 			// setup outline of node with standard offset
 			double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 			double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
@@ -926,15 +1050,15 @@ public class Highlight
 				Point c2 = wnd.databaseToScreen(x-size, y);
 				Point c3 = wnd.databaseToScreen(x, y+size);
 				Point c4 = wnd.databaseToScreen(x, y-size);
-				g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
-				g.drawLine(c3.x + highOffX, c3.y + highOffY, c4.x + highOffX, c4.y + highOffY);
+				g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
+				g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
 			} else
 			{
 				double nodeX = (nodeLowX + nodeHighX) / 2;
 				double nodeY = (nodeLowY + nodeHighY) / 2;
 				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				poly.transform(trans);
-				drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
+				drawOutlineFromPoints(wnd, g,  poly.getPoints(), offX, offY, false);
 			}
 
 			// draw the selected port
@@ -949,17 +1073,17 @@ public class Highlight
 					Point2D [] points = poly.getPoints();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
-					drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+					drawOutlineFromPoints(wnd, g,  pts, offX, offY, opened);
 				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
 				{
 					Point2D [] points = poly.getPoints();
 					double [] angles = ni.getArcDegrees();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
-					drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+					drawOutlineFromPoints(wnd, g,  pts, offX, offY, opened);
 				} else
 				{
-					drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
+					drawOutlineFromPoints(wnd, g,  poly.getPoints(), offX, offY, opened);
 				}
 
 				// handle verbose highlighting of nodes
@@ -1000,7 +1124,7 @@ public class Highlight
 					if (!ai.isBit(markObj)) continue;
 					Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
 					Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
-					g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
+					g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
 				}
 
 				// draw dots in all connected nodes
@@ -1026,7 +1150,7 @@ public class Highlight
 							Point c1 = wnd.databaseToScreen(arcEnd);
 							Point c2 = wnd.databaseToScreen(nodeCenter);
 							g2.setStroke(dottedLine);
-							g.drawLine(c1.x + highOffX, c1.y + highOffY, c2.x + highOffX, c2.y + highOffY);
+							g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
 						}
 					}
 				}
@@ -1148,13 +1272,14 @@ public class Highlight
 	 * @param another true to find another object under the point (when there are multiple ones).
 	 * @param invert true to invert selection (add if not selected, remove if already selected).
 	 * @param findPort true to also show the closest port on a selected node.
+	 * @param findPoint true to also show the closest point on a selected outline node.
 	 * @param findSpecial true to select hard-to-find objects.
 	 * @param findText true to select text objects.
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
 	public static int findObject(Point2D pt, EditWindow wnd, boolean exclusively,
-		boolean another, boolean invert, boolean findPort, boolean findSpecial, boolean findText)
+		boolean another, boolean invert, boolean findPort, boolean findPoint, boolean findSpecial, boolean findText)
 	{
 		// initialize
 		double bestdist = Double.MAX_VALUE;
@@ -1163,7 +1288,7 @@ public class Highlight
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
 		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		List underCursor = findAllInArea(cell, exclusively, another, findPort, findSpecial, findText, bounds, wnd);
+		List underCursor = findAllInArea(cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
 
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
@@ -1253,6 +1378,7 @@ public class Highlight
 	 * This happens during "outline edit" when the node doesn't change, just the point on it.
 	 * @param another true to find another object under the point (when there are multiple ones).
 	 * @param findPort true to also show the closest port on a selected node.
+	 * @param findPoint true to also show the closest point on a selected outline node.
 	 * @param findSpecial true to select hard-to-find objects.
 	 * @param findText true to select text objects.
 	 * The name of an unexpanded cell instance is always hard-to-select.
@@ -1263,7 +1389,7 @@ public class Highlight
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
 	public static List findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
-		 boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
+		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
@@ -1379,6 +1505,24 @@ public class Highlight
 			}
 		}
 
+		if (exclusively)
+		{
+			// special case: only review what is already highlighted
+			for(Iterator sIt = getHighlights(); sIt.hasNext(); )
+			{
+				Highlight h = (Highlight)sIt.next();
+				if (h.getType() != Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+				if (eobj instanceof NodeInst)
+				{
+					h = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
+					if (h != null) list.add(h);
+				}
+			}
+			return list;
+		}
+
 		// determine proper area to search
 		Rectangle2D searchArea = new Rectangle2D.Double(bounds.getMinX() - directHitDist,
 			bounds.getMinY() - directHitDist, bounds.getWidth()+directHitDist*2, bounds.getHeight()+directHitDist*2);
@@ -1402,18 +1546,18 @@ public class Highlight
 					case 0:			// check primitive nodes
 						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof Cell) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 					case 1:			// check Cell instances
 						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 					case 2:			// check arcs
 						if (!(geom instanceof ArcInst)) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+						h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
 				}
@@ -1426,6 +1570,7 @@ public class Highlight
 	 * Method to determine whether an object is in a bounds.
 	 * @param geom the Geometric being tested for selection.
 	 * @param findPort true if a port should be selected with a NodeInst.
+	 * @param findPoint true if a point should be selected with an outline NodeInst.
 	 * @param findSpecial true if hard-to-select and other special selection is being done.
 	 * @param bounds the selected area or point.
 	 * @param wnd the window being examined (null to ignore window scaling).
@@ -1433,7 +1578,7 @@ public class Highlight
 	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D bounds,
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
 		if (areaMustEnclose)
@@ -1486,6 +1631,30 @@ public class Highlight
 						}
 					}
 					if (bestPort != null) eobj = bestPort;
+				}
+
+				// add the closest point
+				if (findPoint)
+				{
+					Point2D [] points = ni.getTrace();
+					Point2D cursor = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+					if (points != null)
+					{
+						double bestDist = Double.MAX_VALUE;
+						int bestPoint = -1;
+						for(int i=0; i<points.length; i++)
+						{
+							Point2D pt = new Point2D.Double(ni.getGrabCenterX() + points[i].getX(),
+								ni.getGrabCenterY() + points[i].getY());
+							dist = pt.distance(cursor);
+							if (dist < bestDist)
+							{
+								bestDist = dist;
+								bestPoint = i;
+							}
+						}
+						if (bestPoint >= 0) h.setPoint(bestPoint);
+					}
 				}
 				h.setElectricObject(eobj);
 				h.setCell(geom.getParent());

@@ -70,7 +70,7 @@ public class EMath
 		double dy = end2.getY() - end1.getY();
 		if (dx == 0.0 && dy == 0.0)
 		{
-			System.out.println("Warning: domain violation while figuring angle");
+			System.out.println("Warning: domain violation while figuring angle in radians");
 			return 0;
 		}
 		double ang = Math.atan2(dy, dx);

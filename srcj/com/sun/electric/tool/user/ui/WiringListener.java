@@ -128,7 +128,7 @@ public class WiringListener
 		} else
 		{
 			// new selection: see if cursor is over anything
-			Highlight.findObject(startPoint, wnd, false, another, false, true, false, false);
+			Highlight.findObject(startPoint, wnd, false, another, false, true, false, false, false);
 			if (Highlight.getNumHighlights() == 1)
 			{
 				// not over anything: bail
@@ -268,7 +268,7 @@ public class WiringListener
 
 		// see what object it is over
 		Rectangle2D bounds = new Rectangle2D.Double(endPoint.getX(), endPoint.getY(), 0, 0);
-		List underCursor = Highlight.findAllInArea(cellBeingWired, false, false, true, false, false, bounds, wnd);
+		List underCursor = Highlight.findAllInArea(cellBeingWired, false, false, true, false, false, false, bounds, wnd);
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();

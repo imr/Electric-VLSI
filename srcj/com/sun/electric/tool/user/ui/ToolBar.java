@@ -23,7 +23,11 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.Button;
 
 import java.awt.BorderLayout;
@@ -72,6 +76,7 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");
 		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
+		/** Describes Outline edit mode. */						public static final CursorMode OUTLINE = new CursorMode("outline");
 	}
 
 	/**
@@ -111,7 +116,7 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
 	}
 
-	private static JToggleButton selectButton, wireButton, selectSpecialButton, panButton, zoomButton;
+	private static JToggleButton selectButton, wireButton, selectSpecialButton, panButton, zoomButton, outlineButton;
 	private static JToggleButton fullButton, halfButton, quarterButton;
 	private static JToggleButton objectsButton, areaButton;
 	private static ButtonGroup modeGroup, arrowGroup, selectGroup;
@@ -122,6 +127,7 @@ public class ToolBar extends JToolBar
 	private static Cursor panCursor = null;
 	private static Cursor specialSelectCursor = null;
 	private static Cursor wiringCursor = null;
+	private static Cursor outlineCursor = null;
 	private static ToolBar toolbar;
 
 	private ToolBar() {}
@@ -177,6 +183,14 @@ public class ToolBar extends JToolBar
 		zoomButton.setToolTipText("Zoom");
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
+
+		// the "Outline edit mode" button
+		outlineButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
+		outlineButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { outlineEditCommand(); } });
+		outlineButton.setToolTipText("Outline Edit");
+		toolbar.add(outlineButton);
+		modeGroup.add(outlineButton);
 
 		// a separator
 		toolbar.addSeparator();
@@ -277,6 +291,7 @@ public class ToolBar extends JToolBar
 		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 0, 1);
 		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 8, 8);
 		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 6, 6);
+		if (outlineCursor == null) outlineCursor = readCursor("CursorOutline.gif", 0, 0);
 	}
 
 	private static Cursor readCursor(String cursorName, int hotX, int hotY)
@@ -371,7 +386,6 @@ public class ToolBar extends JToolBar
 	public static void zoomCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
-		TopLevel.setCurrentCursor(panCursor);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 		zoomButton.setSelected(true);
@@ -379,8 +393,35 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
+	 * Method called when the "outline edit" button is pressed.
+	 */
+	public static void outlineEditCommand()
+	{
+		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		if (ni == null)
+		{
+			System.out.println("Must first select a node with outline capabilities");
+			selectCommand();
+			return;
+		}
+		if (!ni.getProto().isHoldsOutline())
+		{
+			System.out.println("Cannot edit outline information on " + ni.getProto().describe() + " nodes");
+			selectCommand();
+			return;
+		}
+
+		EditWindow.setListener(OutlineListener.theOne);
+		OutlineListener.theOne.setNode(ni);
+		TopLevel.setCurrentCursor(outlineCursor);
+		curMode = CursorMode.OUTLINE;
+		outlineButton.setSelected(true);
+		MenuCommands.cursorOutline.setSelected(true);
+	}
+
+	/**
 	 * Method to tell which cursor mode is in effect.
-	 * @return the current mode (select, special-select, pan, or zoom).
+	 * @return the current mode (select, special-select, pan, zoom, or outline).
 	 */
 	public static CursorMode getCursorMode() { return curMode; }
 

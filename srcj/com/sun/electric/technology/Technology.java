@@ -1121,18 +1121,17 @@ public class Technology extends ElectricObject
 		double [] specialValues = np.getSpecialValues();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
-			Float [] outline = ni.getTrace();
+			Point2D [] outline = ni.getTrace();
 			if (outline != null)
 			{
 				int numPolys = 1;
 				if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
-				int numPoints = outline.length / 2;
-				Point2D [] pointList = new Point2D.Double[numPoints];
-				for(int i=0; i<numPoints; i++)
+				Point2D [] pointList = new Point2D.Double[outline.length];
+				for(int i=0; i<outline.length; i++)
 				{
-					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i*2].floatValue(),
-						ni.getTrueCenterY() + outline[i*2+1].floatValue());
+					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
+						ni.getTrueCenterY() + outline[i].getY());
 				}
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
@@ -1410,23 +1409,19 @@ public class Technology extends ElectricObject
 		 */
 		public SerpentineTrans(NodeInst ni, double [] specialValues)
 		{
-			points = null;
 			layersTotal = 0;
-			Float [] outline = ni.getTrace();
-			if (outline != null)
+			points = ni.getTrace();
+			if (points != null)
 			{
-				if (outline.length < 4) outline = null;
+				if (points.length < 2) points = null;
 			}
-			if (outline != null)
+			if (points != null)
 			{
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 				primLayers = np.getLayers();
 				int count = primLayers.length;
-				numSegments = outline.length/2 - 1;
+				numSegments = points.length - 1;
 				layersTotal = count * numSegments;
-				points = new Point2D.Double[outline.length/2];
-				for(int i=0; i<outline.length; i += 2)
-					points[i/2] = new Point2D.Double(outline[i].intValue(), outline[i+1].intValue());
 
 				extraScale = 0;
 				Variable varw = ni.getVar("transistor_width", Integer.class);
@@ -1763,16 +1758,15 @@ public class Technology extends ElectricObject
 			if (np.isHoldsOutline())
 			{
 				// outline may determine the port
-				Float [] outline = ni.getTrace();
+				Point2D [] outline = ni.getTrace();
 				if (outline != null)
 				{
 					double cX = ni.getTrueCenterX();
 					double cY = ni.getTrueCenterY();
-					int numPoints = outline.length / 2;
-					Point2D [] pointList = new Point2D.Double[numPoints];
-					for(int i=0; i<numPoints; i++)
+					Point2D [] pointList = new Point2D.Double[outline.length];
+					for(int i=0; i<outline.length; i++)
 					{
-						pointList[i] = new Point2D.Double(cX + outline[i*2].floatValue(), cY + outline[i*2+1].floatValue());
+						pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
 					}
 					Poly portPoly = new Poly(pointList);
 					portPoly.setStyle(Poly.Type.FILLED);

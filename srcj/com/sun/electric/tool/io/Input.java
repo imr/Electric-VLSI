@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.dialogs.Progress;
 
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
@@ -289,20 +290,45 @@ public class Input extends IOTool
 
 		// see if there really is outline information
 		Variable var = ni.getVar(NodeInst.TRACE, Integer[].class);
-		if (var == null) return;
-
-		// scale the outline information
-		Integer [] outline = (Integer [])var.getObject();
-		Float [] newOutline = new Float[outline.length];
-		for(int j=0; j<outline.length; j++)
+		if (var != null)
 		{
-			float oldValue = outline[j].intValue();
-			newOutline[j] = new Float(oldValue/lambda);
+			// scale the outline information
+			Integer [] outline = (Integer [])var.getObject();
+			int newLength = outline.length / 2;
+			Point2D [] newOutline = new Point2D[newLength];
+			for(int j=0; j<newLength; j++)
+			{
+				double oldX = outline[j*2].intValue();
+				double oldY = outline[j*2+1].intValue();
+				newOutline[j] = new Point2D.Double(oldX / lambda, oldY / lambda);
+			}
+			//ni.delVar(NodeInst.TRACE);
+			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
+			if (newVar == null)
+				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
+			return;
 		}
-		//ni.delVar(NodeInst.TRACE);
-		Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
-		if (newVar == null)
-			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
+
+		// see if there really is outline information
+		var = ni.getVar(NodeInst.TRACE, Float[].class);
+		if (var != null)
+		{
+			// scale the outline information
+			Float [] outline = (Float [])var.getObject();
+			int newLength = outline.length / 2;
+			Point2D [] newOutline = new Point2D[newLength];
+			for(int j=0; j<newLength; j++)
+			{
+				double oldX = outline[j*2].floatValue();
+				double oldY = outline[j*2+1].floatValue();
+				newOutline[j] = new Point2D.Double(oldX, oldY);
+			}
+			//ni.delVar(NodeInst.TRACE);
+			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
+			if (newVar == null)
+				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
+			return;
+		}
 	}
 
 //	/**

@@ -1216,19 +1216,8 @@ public class EditWindow extends JPanel
      * Push into an instance (go down the hierarchy)
      */
     public void downHierarchy() {
-		Highlight h = Highlight.getOneHighlight();
-		if (h == null) return;
-		if (h.getType() != Highlight.Type.EOBJ) {
-            System.out.println("Must first select a cell instance");
-            return;
-        }
-        ElectricObject eobj = h.getElectricObject();
-		if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-        if (!(eobj instanceof NodeInst)) {
-            System.out.println("Must first select a cell instance");
-            return;
-        }
-        NodeInst ni = (NodeInst)eobj;
+        NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		if (ni == null) return;
         NodeProto np = ni.getProto();
         if (!(np instanceof Cell)) {
             System.out.println("Can only descend into cell instances");

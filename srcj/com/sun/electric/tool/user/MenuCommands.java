@@ -121,7 +121,7 @@ public final class MenuCommands
 {
 	public static JMenuItem selectArea, selectObjects;
 	public static JMenuItem moveFull, moveHalf, moveQuarter;
-	public static JMenuItem cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom;
+	public static JMenuItem cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom, cursorOutline;
 
 	// It is never useful for anyone to create an instance of this class
 	private MenuCommands() {}
@@ -254,12 +254,15 @@ public final class MenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
         cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
+		cursorOutline = modeSubMenuEdit.addRadioButton("Outline Edit", false, editGroup, KeyStroke.getKeyStroke('Y', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Outline Edit"); } });
 		ToolBar.CursorMode cm = ToolBar.getCursorMode();
 		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true); else
 		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true); else
 		if (cm == ToolBar.CursorMode.SELECTSPECIAL) cursorSelectSpecial.setSelected(true); else
 		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true); else
-			cursorZoom.setSelected(true);
+		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true); else
+			cursorOutline.setSelected(true);
 
 		Menu modeSubMenuMovement = Menu.createMenu("Movement");
         modeSubMenu.add(modeSubMenuMovement);
@@ -1068,6 +1071,7 @@ public final class MenuCommands
         if (mode.equals("Wiring")) ToolBar.wiringCommand();
         if (mode.equals("Pan")) ToolBar.panCommand();
         if (mode.equals("Zoom")) ToolBar.zoomCommand();
+        if (mode.equals("Outline Edit")) ToolBar.outlineEditCommand();
     }
 
     public static void setMovementModeCommand(String mode)
