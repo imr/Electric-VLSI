@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
@@ -1396,6 +1397,18 @@ public class TextUtils
         {
             Network n1 = (Network)o1;
             Network n2 = (Network)o2;
+            String s1 = n1.describe();
+            String s2 = n2.describe();
+            return s1.compareToIgnoreCase(s2);
+        }
+    }
+
+	public static class PrimitiveNodeByName implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            PrimitiveNode n1 = (PrimitiveNode)o1;
+            PrimitiveNode n2 = (PrimitiveNode)o2;
             String s1 = n1.describe();
             String s2 = n2.describe();
             return s1.compareToIgnoreCase(s2);

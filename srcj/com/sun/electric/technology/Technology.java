@@ -1174,6 +1174,19 @@ public class Technology
 	/****************************** NODES ******************************/
 
 	/**
+	 * Method to return a sorted list of nodes in the technology
+	 * @return a list with all nodes sorted
+	 */
+	public List getNodesSortedByName()
+	{
+		List sortedList = new ArrayList();
+		for(Iterator it = getNodes(); it.hasNext(); )
+			sortedList.add(it.next());
+		Collections.sort(sortedList, new TextUtils.PrimitiveNodeByName());
+		return sortedList;
+	}
+
+	/**
 	 * Returns the PrimitiveNode in this technology with a particular name.
 	 * @param name the name of the PrimitiveNode.
 	 * @return the PrimitiveNode in this technology with that name.
