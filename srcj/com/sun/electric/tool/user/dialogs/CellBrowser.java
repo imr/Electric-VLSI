@@ -460,9 +460,7 @@ public class CellBrowser extends EDialog {
                 cell.getProtoName());
             if (newName == null) return;
 
-            System.out.println("Can't rename yet " + newName);
-            //CircuitChanges.
-
+            CircuitChanges.renameCellInJob(cell, newName);
 
         } else if (action == DoAction.duplicateCell) {
             String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
