@@ -59,9 +59,16 @@ public class SimpleWirer extends InteractiveRouter {
 
         RouteElementPort startRE = route.getEnd();
 
+        // find port protos of startRE and endRE, and find connecting arc type
+        PortProto startPort = startRE.getPortProto();
+        PortProto endPort = endRE.getPortProto();
+        ArcProto useArc = getArcToUse(startPort, endPort);
+
         // first, find location of corner of L if routing will be an L shape
         Point2D cornerLoc = null;
-        if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
+
+        if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() ||
+                (useArc.getAngleIncrement() == 0)) {
             // single arc
             if (contactsOnEndObj)
                 cornerLoc = endLoc;
@@ -89,10 +96,6 @@ public class SimpleWirer extends InteractiveRouter {
             cornerLoc = pin1;
         }
 
-        // find port protos of startRE and endRE, and find connecting arc type
-        PortProto startPort = startRE.getPortProto();
-        PortProto endPort = endRE.getPortProto();
-        ArcProto useArc = getArcToUse(startPort, endPort);
         // never use universal arcs unless the user has selected them
         if (useArc == null) {
             // use universal if selected
