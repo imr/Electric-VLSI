@@ -242,7 +242,6 @@ public class Input extends IOTool
 				double oldY = outline[j*2+1].intValue();
 				newOutline[j] = new Point2D.Double(oldX / lambdaX, oldY / lambdaY);
 			}
-			//ni.delVar(NodeInst.TRACE);
 			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
 			if (newVar == null)
 				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
@@ -263,7 +262,6 @@ public class Input extends IOTool
 				double oldY = outline[j*2+1].floatValue();
 				newOutline[j] = new Point2D.Double(oldX, oldY);
 			}
-			//ni.delVar(NodeInst.TRACE);
 			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
 			if (newVar == null)
 				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());

@@ -122,6 +122,21 @@ public class Output extends IOTool
 			listener.writeLibrary(lib);
 		}
 
+		// make sure all technologies with irrelevant scale information have the same scale value
+		double largestScale = 0;
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (tech.isScaleRelevant()) continue;
+			if (tech.getScale() > largestScale) largestScale = tech.getScale();
+		}
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (tech.isScaleRelevant()) continue;
+			tech.setScale(largestScale);
+		}
+
 		// handle different file types
 		URL libFile = lib.getLibFile();
 		if (libFile == null)

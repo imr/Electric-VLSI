@@ -954,13 +954,20 @@ public class ELIB extends Output
 			}
 
 			// special case for "trace" information on NodeInsts
-			boolean convertTrace = false;
 			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
 				type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
-				type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | ((objList.length*2) << ELIBConstants.VLENGTHSH);
-				convertTrace = true;
+				Point2D [] points = (Point2D [])objList;
+				int len = points.length * 2;
+				type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
+				Float [] newPoints = new Float[len];
+				for(int i=0; i<points.length; i++)
+				{
+					newPoints[i*2] = new Float(points[i].getX());
+					newPoints[i*2+1] = new Float(points[i].getY());
+				}
+				varObj = newPoints;
 			}
 			writeBigInteger(type);
 
@@ -973,14 +980,7 @@ public class ELIB extends Output
 			{
 				Object [] objList = (Object [])varObj;
 				int len = objList.length;
-				if (convertTrace)
-				{
-					writeBigInteger(len*2);
-				} else
-				{
-					writeBigInteger(len);
-				}
-
+				writeBigInteger(len);
 				for(int i=0; i<len; i++)
 				{
 					Object oneObj = objList[i];

@@ -2410,6 +2410,10 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VLIBRARY:    newAddrArray = new Library[cou];     break;
 					case ELIBConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
 				}
+				if (newAddrArray == null)
+				{
+					System.out.println("Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE));
+				}
 				newAddr = newAddrArray;
 				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
 				{
@@ -2417,7 +2421,7 @@ public class ELIB extends LibraryFiles
 					{
 						int type = readBigInteger();
 						int addr = readBigInteger();
-						newAddrArray[j] = null;
+						if (newAddrArray != null) newAddrArray[j] = null;
 					}
 				} else
 				{
@@ -2425,7 +2429,7 @@ public class ELIB extends LibraryFiles
 					{
 						Object ret = getInVar(newtype);
 						if (ret == null) return(-1);
-						newAddrArray[j] = ret;
+						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
 					
 				}

@@ -2403,6 +2403,12 @@ public class Technology extends ElectricObject
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
 				Technology nodeTech = np.getTechnology();
+				if (np instanceof Cell)
+				{
+					Cell subCell = (Cell)np;
+					if (subCell.getView() == View.ICON)
+						nodeTech = Schematics.tech;
+				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
 		}
@@ -2528,6 +2534,42 @@ public class Technology extends ElectricObject
 		}
 
 		// give up and report the generic technology
+//System.out.println("Cell "+cell.describe()+" is "+retTech.getTechName()+" bestlayout="+bestLayoutTech+" best="+bestTech);
+//if (retTech == Artwork.tech)
+//{
+//	if (nodeProtoList != null)
+//	{
+//		// iterate over the NodeProtos in the list
+//		for(int i=startNodeProto; i<endNodeProto; i++)
+//		{
+//			NodeProto np = nodeProtoList[i];
+//			if (np == null) continue;
+//			Technology nodeTech = np.getTechnology();
+//			if (np instanceof Cell)
+//			{
+//				Cell subCell = (Cell)np;
+//				if (subCell.getView() == View.ICON)
+//					nodeTech = Schematics.tech;
+//			}
+//System.out.println("  has node "+np.describe()+" which is technology "+nodeTech);
+//		}
+//	} else
+//	{
+//		for(Iterator it = ((Cell)cell).getNodes(); it.hasNext(); )
+//		{
+//			NodeInst ni = (NodeInst)it.next();
+//			NodeProto np = ni.getProto();
+//			Technology nodeTech = np.getTechnology();
+//			if (np instanceof Cell)
+//			{
+//				Cell subCell = (Cell)np;
+//				if (subCell.getView() == View.ICON)
+//					nodeTech = Schematics.tech;
+//			}
+//			System.out.println("  has nodeinst "+ni.describe()+" which is technology "+nodeTech);
+//		}
+//	}
+//}
 		return retTech;
 	}
 

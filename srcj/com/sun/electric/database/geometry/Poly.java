@@ -775,8 +775,9 @@ public class Poly implements Shape
 	 */
 	public void setExactTextBounds(EditWindow wnd)
 	{
+		String theString = getString().trim();
+		if (theString.length() == 0) return;
 		int numLines = 1;
-		String theString = getString();
 		if (var != null)
 		{
 			numLines = var.getLength();

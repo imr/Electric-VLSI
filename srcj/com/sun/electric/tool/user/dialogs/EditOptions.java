@@ -117,6 +117,39 @@ public class EditOptions extends EDialog
 		initTechnology();		// initialize the Technology Options panel
 	}
 
+	/**
+	 * Class to update primitive node information.
+	 */
+	protected static class OKUpdate extends Job
+	{
+		EditOptions dialog;
+
+		protected OKUpdate(EditOptions dialog)
+		{
+			super("Update Edit Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			dialog.termGeneral();		// terminate the General Options panel
+			dialog.termNewNodes();		// terminate the New Nodes Options panel
+			dialog.termNewArcs();		// terminate the New Arcs Options panel
+			dialog.termSelection();		// terminate the Selection Options panel
+			dialog.termPorts();			// terminate the Ports Options panel
+			dialog.termFrame();			// terminate the Frame Options panel
+			dialog.termIcon();			// terminate the Icon Options panel
+			dialog.termGrid();			// terminate the Grid Options panel
+			dialog.termLayers();		// terminate the Layers Options panel
+			dialog.termColors();		// terminate the Colors Options panel
+			dialog.termText();			// terminate the Text Options panel
+			dialog.term3D();			// terminate the 3D Options panel
+			dialog.termTechnology();	// terminate the Technology Options panel
+			dialog.closeDialog(null);
+		}
+	}
+
 	//******************************** GENERAL ********************************
 
 	private boolean initialBeepAfterLongJobs;
@@ -631,6 +664,7 @@ public class EditOptions extends EDialog
 		String initialProjectName, currentProjectName;
 	}
 	private HashMap frameLibInfo;
+	private boolean frameInfoUpdating = false;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -697,13 +731,16 @@ public class EditOptions extends EDialog
 	{
 		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(Library.getCurrent());
 		if (lfi == null) return;
+		frameInfoUpdating = true;
 		frameLibraryCompany.setText(lfi.currentCompanyName);
 		frameLibraryDesigner.setText(lfi.currentDesignerName);
 		frameLibraryProject.setText(lfi.currentProjectName);
+		frameInfoUpdating = false;
 	}
 
 	private void updateFrameLibInfo()
 	{
+		if (frameInfoUpdating) return;
 		String libName = (String)frameLibrary.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
 		LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
@@ -3559,39 +3596,6 @@ public class EditOptions extends EDialog
 	{//GEN-HEADEREND:event_okActionPerformed
 		OKUpdate job = new OKUpdate(this);
 	}//GEN-LAST:event_okActionPerformed
-
-	/**
-	 * Class to update primitive node information.
-	 */
-	protected static class OKUpdate extends Job
-	{
-		EditOptions dialog;
-
-		protected OKUpdate(EditOptions dialog)
-		{
-			super("Update Edit Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			startJob();
-		}
-
-		public void doIt()
-		{
-			dialog.termGeneral();		// terminate the General Options panel
-			dialog.termNewNodes();		// terminate the New Nodes Options panel
-			dialog.termNewArcs();		// terminate the New Arcs Options panel
-			dialog.termSelection();		// terminate the Selection Options panel
-			dialog.termPorts();			// terminate the Ports Options panel
-			dialog.termFrame();			// terminate the Frame Options panel
-			dialog.termIcon();			// terminate the Icon Options panel
-			dialog.termGrid();			// terminate the Grid Options panel
-			dialog.termLayers();		// terminate the Layers Options panel
-			dialog.termColors();		// terminate the Colors Options panel
-			dialog.termText();			// terminate the Text Options panel
-			dialog.term3D();			// terminate the 3D Options panel
-			dialog.termTechnology();	// terminate the Technology Options panel
-			dialog.closeDialog(null);
-		}
-	}
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog

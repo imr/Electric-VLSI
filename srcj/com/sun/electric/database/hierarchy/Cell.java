@@ -990,8 +990,8 @@ public class Cell extends NodeProto
 				NodeInst ni = (NodeInst) nodes.get(i);
 				NodeProto np = ni.getProto();
 
-				// special case: do not include "cell center" or "essential-bounds" primitives from Generic
-				if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
+				// special case: do not include "cell center" primitives from Generic
+				if (np == Generic.tech.cellCenterNode) continue;
 
 				// special case for invisible pins: do not include if inheritable or interior-only
 				if (np == Generic.tech.invisiblePinNode)
@@ -1042,7 +1042,6 @@ public class Cell extends NodeProto
 			}
 			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
 				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
-//			cellBounds.setRect(cellLowX, cellLowY, cellHighX - cellLowX, cellHighY - cellLowY);
 			boundsDirty = false;
 		}
 		return cellBounds;
