@@ -30,10 +30,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
@@ -142,8 +139,11 @@ public class SimpleWirer extends InteractiveRouter {
             // otherwise, create new pin and two arcs for corner
             // make new pin of arc type
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            SizeOffset so = pn.getProtoSizeOffset();
+            double defwidth = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
+            double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
             RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), cornerLoc,
-                    pn.getDefWidth(), pn.getDefHeight());
+                    defwidth, defheight);
             RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width, startRE, pinRE, null);
             RouteElement arcRE2 = RouteElement.newArc(cell, useArc, width, pinRE, endRE, null);
             route.add(pinRE);

@@ -318,8 +318,10 @@ public abstract class InteractiveRouter extends Router {
             }
             // make new pin to route to
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            SizeOffset so = pn.getProtoSizeOffset();
             endRE = RouteElement.newNode(cell, pn, pn.getPort(0), endPoint,
-                    pn.getDefWidth(), pn.getDefHeight());
+                    pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset(),
+                    pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset());
         }
 
         // favors arcs for location of contact cuts
@@ -637,9 +639,12 @@ public abstract class InteractiveRouter extends Router {
         Cell cell = arc.getParent();
         // determine pin type to use if bisecting arc
         PrimitiveNode pn = ((PrimitiveArc)arc.getProto()).findOverridablePinProto();
+        SizeOffset so = pn.getProtoSizeOffset();
+        double width = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
+        double height = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
         // make new pin
         RouteElement newPinRE = RouteElement.newNode(cell, pn, pn.getPort(0),
-                bisectPoint, pn.getDefWidth(), pn.getDefHeight());
+                bisectPoint, width, height);
         newPinRE.setBisectArcPin(true);
         // make dummy end pins
         RouteElement headRE = RouteElement.existingPortInst(arc.getHead().getPortInst(), null);
