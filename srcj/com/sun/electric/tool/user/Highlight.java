@@ -1087,7 +1087,7 @@ public class Highlight
 				}
 
                 // show name of port
-                if ((g instanceof Graphics2D)) {
+                if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D)) {
                     Font font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(1.5*EditWindow.getDefaultFontSize()));
                     GlyphVector v = wnd.getGlyphs(pp.getProtoName(), font);
                     Point2D point = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
