@@ -32,6 +32,7 @@ import java.util.Set;
 import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 
+import com.sun.electric.technology.Technology;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -56,6 +57,7 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
@@ -70,6 +72,7 @@ public class NccNetlist {
 	private ArrayList wires, parts, ports;
 	private boolean exportAssertionFailures;
 	private boolean exportGlobalConflicts;
+	private boolean badTransistorType;
 
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
@@ -86,21 +89,29 @@ public class NccNetlist {
 			parts = v.getPartList();
 			ports = v.getPortList();
 			exportAssertionFailures = v.exportAssertionFailures();
-		} catch (ExportGlobalConflict e) {
-			exportGlobalConflicts = true;
+		} catch (RuntimeException e) {
+			if (e instanceof ExportGlobalConflict) {
+				exportGlobalConflicts = true;
+			} else if (e instanceof BadTransistorType) {
+				badTransistorType = true;
+			} else {
+				throw e;
+			}
 		}
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
 	public boolean netlistErrors() {
-		return exportAssertionFailures || exportGlobalConflicts;
+		return exportAssertionFailures || exportGlobalConflicts ||
+		       badTransistorType;
 	}
 	public Cell getRootCell() {return rootCell;}
 	public VarContext getRootContext() {return rootContext;}
 }
 
 class ExportGlobalConflict extends RuntimeException {}
+class BadTransistorType extends RuntimeException {}
 
 /** map from netID to NCC Wire */
 class Wires {
@@ -310,6 +321,7 @@ class ExportGlobal {
 class Visitor extends HierarchyEnumerator.Visitor {
 	// --------------------------- private data -------------------------------
 	private static final boolean debug = false;
+	private static final Technology SCHEMATIC = Technology.findTechnology("schematic");
 	private final NccGlobals globals;
 	/** If I'm building a netlist from a node that isn't at the top of the 
 	 * design hierarchy then Part and Wire names all share a common prefix.
@@ -380,8 +392,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			ports.add(it.next());
 	}
 	
-	/** Get the Wire that's attached to port pi. The Nodable must be an instance
-	 * of a PrimitiveNode. 
+	/** Get the Wire that's attached to port pi. The Nodable must be an 
+	 * instance of a PrimitiveNode. 
 	 * @return the attached Wire. */
 	private Wire getWireForPortInst(PortInst pi, CellInfo info) {
 		NodeInst ni = pi.getNodeInst();
@@ -392,8 +404,47 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		error(netIDs.length!=1, "Primitive Port connected to bus?");
 		return wires.get(netIDs[0], info);
 	}
+	
+	private boolean isInstanceOfSchematicPrimitive(NodeInst ni) {
+		return ni.getProto().getTechnology()==SCHEMATIC;
+	}
+	
+	private boolean isNmosPrimitive(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
 
-	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
+		if (func==PrimitiveNode.Function.TRA4NMOS ||
+	        func==PrimitiveNode.Function.TRANMOS) {
+			return true;
+		} else {
+			LayoutLib.error(func!=PrimitiveNode.Function.TRA4PMOS &&
+			                func!=PrimitiveNode.Function.TRAPMOS,
+							"Not NMOS or PMOS Primitive Node");
+			return false;
+		}
+	}
+	
+	private Transistor.Type getTransistorType(NodeInst ni) {
+		String typeNm;
+		if (isInstanceOfSchematicPrimitive(ni)) {
+			Cell parent = ni.getParent();
+			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
+			typeNm = ann==null ? null : ann.getTransistorType();
+			if (typeNm==null) {
+				// No transistorType annotation. Use defaults.
+				typeNm = isNmosPrimitive(ni) ? "N-Transistor" : "P-Transistor";
+			}
+		} else {
+			typeNm = ni.getProto().getName();
+		}
+		Transistor.Type t = Transistor.TYPES.getTypeFromLongName(typeNm);
+		if (t==null) {
+			System.out.println("  Unrecognized transistor type: "+typeNm);
+			throw new BadTransistorType();
+		}
+		return t;
+	}
+
+	private void buildMOS(NodeInst ni, NccCellInfo info) {
 		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
 		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
 		double width=0, length=0;
@@ -405,24 +456,15 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
+		Transistor.Type type = getTransistorType(ni);
 		Part t = new Transistor(type, name, width, length, s, g, d);
 		parts.add(t);								 
 	}
 	
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
 		PrimitiveNode.Function func = ni.getFunction();
-		if (func==PrimitiveNode.Function.TRA4NMOS) {
-			// schematic NMOS
-			buildMOS(ni, Transistor.NTYPE, info);
-		} else if (func==PrimitiveNode.Function.TRA4PMOS) {
-			// schematic PMOS
-			buildMOS(ni, Transistor.PTYPE, info);
-		} else if (func==PrimitiveNode.Function.TRANMOS) {
-			// layout NMOS
-			buildMOS(ni, Transistor.NTYPE, info);
-		} else if (func==PrimitiveNode.Function.TRAPMOS) {
-			// layout PMOS
-			buildMOS(ni, Transistor.PTYPE, info);
+		if (ni.isPrimitiveTransistor()) {
+			buildMOS(ni, info);
 		} else if (func==PrimitiveNode.Function.RESIST) {
 //		    error(true, "can't handle Resistors yet");
 		} else {	

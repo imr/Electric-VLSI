@@ -46,6 +46,9 @@ public class NccCellAnnotations {
 			return isRegExp ? name.matches(pattern) : name.equals(pattern);
 		}
 		public boolean stringEquals(String name) {return name.equals(pattern);}
+		/** @return If NamePattern is a name then return the name. If 
+		 * NamePattern is a regular expression then return null. */
+		public String getName() {return isRegExp ? null : pattern;}
 	}
 	/** I need a special Lexer for name patterns because spaces are
 	 * significant inside regular expressions. For example the 
@@ -127,6 +130,7 @@ public class NccCellAnnotations {
 	private List exportsToRename = new ArrayList();
 	/** Reason why we should treat this Cell as a black box */
 	private String blackBoxReason;
+	private String transistorType;
 	
 	private void processExportsConnAnnot(NamePatternLexer lex) {
 		List connected = new ArrayList();
@@ -190,6 +194,27 @@ public class NccCellAnnotations {
 	}
 	private void processBlackBox(NamePatternLexer lex) {
 	}
+	private void processTransistorType(NamePatternLexer lex) {
+		NamePattern type = lex.nextPattern();
+		if (type==null) {
+			prErr("Bad transistorType annotation: missing type");
+			return;
+		}
+		NamePattern type2 = lex.nextPattern();
+		if (type2!=null) {
+			prErr("Bad transistorType annotation: only one type allowed");
+			return;
+		}
+		if (transistorType!=null) {
+			prErr("only one transistorType annotation allowed per Cell");
+			return;
+		}
+		transistorType = type.getName();
+		if (transistorType==null) {
+			prErr("Transistor type may not be a regular expression");
+			return;
+		}
+	}
 
 	private void doAnnotation(String note) {
 		annotText.add(note); // for prErr()
@@ -211,6 +236,8 @@ public class NccCellAnnotations {
 			processExportsToRenameAnnotation(lex);
 		} else if (key.stringEquals("blackBox")) {
 			processBlackBox(lex);
+		} else if (key.stringEquals("transistorType")) {
+			processTransistorType(lex);
 		} else {
 			prErr("Unrecognized NCC annotation.");
 		}
@@ -269,4 +296,7 @@ public class NccCellAnnotations {
 	/** @return the reason given by the user for block boxing this Cell.
 	 * return null if there is no blackBox annotation. */
 	public String getBlackBoxReason() {return blackBoxReason;}
+	/** @return the transistor type if Cell has a transitorType annotation.
+	 * Otherwise return null. */
+	public String getTransistorType() {return transistorType;}
 }

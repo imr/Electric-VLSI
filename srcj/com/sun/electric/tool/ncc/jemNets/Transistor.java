@@ -24,7 +24,9 @@
 
 package com.sun.electric.tool.ncc.jemNets;
 import java.util.ArrayList;
+ 
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -40,10 +42,50 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 public class Transistor extends Part {
 	public static class Type {
 		private String name;
-		private Type(String s) {name=s;}
+		private int ordinal;
+		private Type(int ord, String s) {ordinal=ord; name=s;}
+		
+		public String getName() {return name;}
+		public int getOrdinal() {return ordinal;}
 	}
-	public static final Type NTYPE= new Type("NMOS");
-	public static final Type PTYPE= new Type("PMOS");
+	public static class TypeTable {
+		private int numTypes = 0;
+		private int log2NumTypes;
+		private ArrayList types = new ArrayList();
+		private HashMap nameToType = new HashMap();
+		/** Long type names are used only to create the net lists. */
+		private HashMap longNameToType = new HashMap();
+		private void add(String typeName, String longTypeName) {
+			Type t = new Type(numTypes++, typeName);
+			LayoutLib.error(nameToType.containsKey(typeName), 
+					        "duplicate type name");
+			nameToType.put(typeName, t);
+			LayoutLib.error(longNameToType.containsKey(longTypeName), 
+	        				"duplicate long type name");
+			longNameToType.put(longTypeName, t);
+			types.add(t);
+
+			log2NumTypes = (int) Math.ceil( Math.log(numTypes)/Math.log(2) );
+		}
+		private TypeTable() {
+			add("NMOS",      "N-Transistor");
+			add("NMOS-VTH",  "VTH-N--Transistor");
+			add("NMOS-VTL",  "VTL-N--Transistor");
+			add("NMOS-NT",   "NT_N-Transistor");
+			add("NMOS-OD18", "OD18-N--Transistor");
+			add("PMOS",      "P-Transistor");
+			add("PMOS-VTH",  "VTH-P--Transistor");
+			add("PMOS-VTL",  "VTL-P--Transistor");
+			add("PMOS-OD18", "OD18-P--Transistor");
+		}
+		public int log2NumTypes() {return log2NumTypes;}
+		public Iterator iterator() {return types.iterator();}
+		public Type get(String nm) {return (Type) nameToType.get(nm);}
+		public Type getTypeFromLongName(String nm) {
+			return (Type) longNameToType.get(nm);
+		}
+	}
+	public static final TypeTable TYPES = new TypeTable();
 
 	private static class GateType implements PinType {
 		private final int numSeries;
@@ -68,7 +110,7 @@ public class Transistor extends Part {
 			return count;
 		}
 		public String description() {
-			String t = np==NTYPE ? "NMOS" : "PMOS";
+			String t = np.getName();
 			String c = cap ? "_CAP" : "";
 			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
 			int hiGate = numSeries+1 - gateHeight;
@@ -79,7 +121,7 @@ public class Transistor extends Part {
 			return t+c+h+" gate"+g;
 		}
 		public GateType(Type np, int numSeries, int gateHeight, boolean cap) {
-			LayoutLib.error(np!=NTYPE && np!=PTYPE, "bad type");
+			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
 			LayoutLib.error(gateHeight>highestGateInLowerHalfOfStack, "bad gate Height");
@@ -107,13 +149,13 @@ public class Transistor extends Part {
 			return count;
 		}
 		public String description() {
-			String t = np==NTYPE ? "NMOS" : "PMOS";
+			String t = np.getName();
 			String c = cap ? "_CAP" : "";
 			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
 			return t+c+h+" diffusion";
 		}
 		public DiffType(Type np, int numSeries, boolean cap) {
-			LayoutLib.error(np!=NTYPE && np!=PTYPE, "bad type");
+			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
 			this.np = np;
@@ -122,32 +164,12 @@ public class Transistor extends Part {
 		}
 	}
 
-//	public static final Collection PIN_TYPES = new ArrayList();
-//	static {
-//		Type[] types = {NTYPE, PTYPE};
-//		for (int i=0; i<2; i++) {
-//			Type type = types[i]; 
-//			for (int j=0; j<2; j++) {
-//				boolean cap = j==0 ? false : true;
-//				for (int numSeries=1; numSeries<=5; numSeries++) {
-//					PIN_TYPES.add(new DiffType(type, numSeries, cap));
-//
-//					int maxHeight = (numSeries+1) / 2;
-//					for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
-//						PIN_TYPES.add(new GateType(type, numSeries, gateHeight, cap));
-//					}
-//				}
-//			}
-//		}
-//	}
-
 	private static final List PIN_TYPES = new ArrayList();
 	static {
-		Type[] types = {NTYPE, PTYPE};
-		for (int i=0; i<2; i++) {
+		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+			Type type = (Type) it.next(); 
 			List tList = new ArrayList();
 			PIN_TYPES.add(tList);
-			Type type = types[i]; 
 			for (int j=0; j<2; j++) {
 				List cList = new ArrayList();
 				tList.add(cList);
@@ -167,7 +189,7 @@ public class Transistor extends Part {
 		}
 	}
 	public Set getPinTypes() {
-		int t = type==NTYPE ? 0 : 1;
+		int t = type.getOrdinal();
 		ArrayList l1 = (ArrayList) PIN_TYPES.get(t);
 		int c = isCapacitor() ? 1 : 0;
 		ArrayList l2 = (ArrayList) l1.get(c);
@@ -219,7 +241,7 @@ public class Transistor extends Part {
 		type = np;
 		this.width = width;
 		this.length = length;
-		LayoutLib.error(type!=NTYPE && type!=PTYPE, "bad type");
+		LayoutLib.error(type==null, "null type?");
 		
 		term_coeffs = CoeffGen.getCoeffArray(pins.length);
 	}
@@ -263,8 +285,6 @@ public class Transistor extends Part {
     public Type getType() {return type;}
     public double getLength() {return length;}
     public double getWidth() {return width;}
-    public boolean isNtype(){return (type== NTYPE);}
-    public boolean isPtype(){return (type== PTYPE);}
 	public boolean isThisGate(int x){return x!=0 && x!=pins.length-1;}
 	public int numSeries() {return pins.length-2;}
 	public int[] getTermCoefs() {return term_coeffs;}
@@ -274,9 +294,6 @@ public class Transistor extends Part {
 		return false;
 	}
 
-//	public boolean touchesAtDiffusion(Wire w){
-//		return w==pins[0] || w==pins[pins.length-1];
-//	}
 	public boolean touchesOneDiffPinAndNoOtherPins(Wire w) {
 		return (w==pins[0] ^ w==pins[pins.length-1]) &&
 			   !touchesAtGate(w);
@@ -317,8 +334,8 @@ public class Transistor extends Part {
 		final int tw = Part.TYPE_FIELD_WIDTH;
 		return Part.TRANSISTOR +
 			   ((isCapacitor()?1:0) << tw) +
-			   ((isNtype()?1:0) << tw+1) +
-			   (numSeries() << tw+2);
+			   (type.getOrdinal() << tw+1) +
+			   (numSeries() << tw+1+TYPES.log2NumTypes());
 	}
 
 	// ---------- printing methods ----------
