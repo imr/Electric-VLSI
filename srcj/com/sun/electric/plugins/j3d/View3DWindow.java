@@ -1006,7 +1006,7 @@ public class View3DWindow extends JPanel
      */
     public J3DUtils.ThreeDDemoKnot moveAndRotate(double[] values)
     {
-        Vector3d newPos = new Vector3d(values[0], values[1], values[2]);
+        Vector3f newPos = new Vector3f((float)values[0], (float)values[1], (float)values[2]);
         double factor = 10;
         Quat4f quaf = J3DUtils.createQuaternionFromEuler(factor*values[3], factor*values[4], factor*values[5]);
         Transform3D currXform = new Transform3D();
@@ -1059,8 +1059,10 @@ public class View3DWindow extends JPanel
                 grp.setTransform(currXform);
             }
         }
-        return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
-                        0, 0, 0, values[3], values[4], values[5]));
+//        return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
+//                        0, 0, 0, values[3], values[4], values[5]));
+
+        return(new J3DUtils.ThreeDDemoKnot(1, newPos, quaf));
     }
 
 	public void mouseClicked(MouseEvent evt)
@@ -1349,6 +1351,7 @@ public class View3DWindow extends JPanel
             {
                 Shape3D obj = (Shape3D)list.get(j);
                 TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+                interMap = addInterpolatorPerGroup(knotList, grp, interMap);
                 BranchGroup behaviorBranch = new BranchGroup();
                 behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
                 TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
@@ -1367,6 +1370,39 @@ public class View3DWindow extends JPanel
                 interpolatorMap.put(grp, tcbSplineInter);
             }
         }
+        return interMap;
+    }
+
+
+    /**
+     * Method to add interpolator per group
+     * @param knotList
+     * @param grp
+     * @param interMap
+     * @return
+     */
+    public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap)
+    {
+        if (interMap == null)
+            interMap = new HashMap(1);
+        if (grp == null)
+            grp = objTrans;
+        BranchGroup behaviorBranch = new BranchGroup();
+        behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
+        TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
+        for (int i = 0; i < knotList.size(); i++)
+        {
+            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(i);
+            keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
+        }
+        Transform3D yAxis = new Transform3D();
+        Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+                                                  yAxis, keyFrames);
+        tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
+        behaviorBranch.addChild(tcbSplineInter);
+        interMap.put(grp, behaviorBranch);
+        grp.addChild(behaviorBranch);
+        interpolatorMap.put(grp, tcbSplineInter);
         return interMap;
     }
 

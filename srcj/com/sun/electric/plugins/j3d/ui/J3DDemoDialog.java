@@ -27,6 +27,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
@@ -34,6 +36,7 @@ import com.sun.electric.plugins.j3d.utils.J3DAlpha;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
+import javax.media.j3d.TransformGroup;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -177,12 +180,15 @@ public class J3DDemoDialog extends EDialog
 
     private void demoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_demoActionPerformed
         if (demo.getText().equals("Start Demo")) {
-            interMap = view3D.addInterpolator(knots);
+            interMap = view3D.addInterpolatorPerGroup(knots, null, interMap);
             if (interMap != null) // no error
                 demo.setText("Stop Demo");
         } else {
             demo.setText("Start Demo");
+            String fileName = OpenFile.chooseOutputFile(FileType.TEXT, "Save 3D Demo File", "demo.j3d");
+            J3DUtils.saveKnots(knots, fileName);
             view3D.removeInterpolator(interMap);
+            interMap.clear();
         }
     }//GEN-LAST:event_demoActionPerformed
 

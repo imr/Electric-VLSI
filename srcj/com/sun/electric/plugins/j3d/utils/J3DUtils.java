@@ -39,6 +39,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
+import java.io.Serializable;
+import java.io.FileOutputStream;
 
 /**
  * Utility class for 3D module
@@ -626,7 +629,7 @@ public final class J3DUtils
     /*******************************************************************************************************
      *                      DEMO SECTION
      *******************************************************************************************************/
-    public static class ThreeDDemoKnot
+    public static class ThreeDDemoKnot implements Serializable
     {
         float xValue;
         float yValue;
@@ -664,6 +667,25 @@ public final class J3DUtils
             this.scale = (float)scale;
             this.translation = trans;
             this.rotation = rot;
+        }
+    }
+
+    public static void saveKnots(List knotList, String filename)
+    {
+        if (filename == null || knotList == null) return;
+
+        try
+        {
+        FileOutputStream outputStream = new FileOutputStream(filename);
+
+        for(int i = 0; i < knotList.size(); i++)
+        {
+
+        }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
@@ -709,7 +731,7 @@ public final class J3DUtils
      * @param angle
      * @return
      */
-	public static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
+	private static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
 	{
 		double sin_a = Math.sin( angle / 2 );
 		double cos_a = Math.cos( angle / 2 );
