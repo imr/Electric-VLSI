@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+BUG: (01/20/05, DN) Can't rename cell groups (Bug #167).
+FIX: CircuitChanges.RenameCellGroup.doIt stores cells from group in
+     array before renaming.
+
 IMP: (01/19/05, SMR) Cleaned up use of "getUserNetlist".
 
 IMP: (01/18/05, SMR) Improved GDS floating point output.  Code from Tom Valine <tomv@transmeta.com>.

@@ -249,7 +249,7 @@ public class NetworkTool extends Listener
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors());
 		}
-        if (SwingUtilities.isEventDispatchThread())
+        if (Main.DEBUG && SwingUtilities.isEventDispatchThread())
 		{
 			System.out.println("getUserNetlist() used in GUI thread");
 		}

@@ -1888,7 +1888,11 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
+			ArrayList cells = new ArrayList();
 			for(Iterator it = cellGroup.getCells(); it.hasNext(); )
+				cells.add(it.next());
+			for(Iterator it = cells.iterator(); it.hasNext(); )
+//			for(Iterator it = cellGroup.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				cell.rename(newName);
