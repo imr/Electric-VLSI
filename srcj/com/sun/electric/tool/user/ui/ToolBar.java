@@ -515,7 +515,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void panCommand()
 	{
-        if (WindowFrame.getListener() == ZoomAndPanListener.theOne) {
+        if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.PAN) {
             // switch back to click zoom wire listener
             setCursorMode(CursorMode.CLICKZOOMWIRE);
             return;
@@ -531,7 +531,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void zoomCommand()
 	{
-        if (WindowFrame.getListener() == ZoomAndPanListener.theOne) {
+        if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.ZOOM) {
             // switch back to click zoom wire listener
             setCursorMode(CursorMode.CLICKZOOMWIRE);
             return;
