@@ -28,7 +28,10 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
@@ -36,10 +39,12 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -66,14 +71,14 @@ public class HPGL extends Output
 	/** the Window being printed (for text). */		private EditWindow wnd;
 	/** the current line type */					private int        currentLineType;
 	/** the current pen number */					private int        currentPen;
-	/** if fill info written for the current pen */	private boolean    fillEmitted;	
+	/** if fill info written for the current pen */	private boolean    fillEmitted;
 
 	private static class PenColor
-	{	
-		/** line type (0=solid, 1=dotted, 2-6=dashed) */			private int lineType;		
-		/** fill type (0=none, 1=solid, 3=lines 4=crosshatched) */	private int fillType;		
-		/** fill distance between lines (fillType 3 or 4 only) */	private int fillDist;		
-		/** fill angle of lines (fillType 3 or 4 only) */			private int fillAngle;		
+	{
+		/** line type (0=solid, 1=dotted, 2-6=dashed) */			private int lineType;
+		/** fill type (0=none, 1=solid, 3=lines 4=crosshatched) */	private int fillType;
+		/** fill distance between lines (fillType 3 or 4 only) */	private int fillDist;
+		/** fill angle of lines (fillType 3 or 4 only) */			private int fillAngle;
 	};
 
 	private PenColor [] penColorTable;
@@ -178,7 +183,7 @@ public class HPGL extends Output
 			List geoms = (List)cellGeoms.get(layer);
 			for (Iterator it = geoms.iterator(); it.hasNext();)
 			{
-				Poly poly = (Poly)it.next();
+				PolyBase poly = (PolyBase)it.next();
 				emitPoly(poly);
 			}
 		}
@@ -186,19 +191,6 @@ public class HPGL extends Output
 		// HPGL/2 termination
 		writeLine("PUSP0PG;");
 	}
-
-	/**
-	 * method to determine whether or not to merge geometry
-	 */
-	protected boolean mergeGeom(int hierLevelsFromBottom) { return true; }
-	   
-    /**
-     * Method to determine whether or not to include the original Geometric with a Poly
-     */
-    protected boolean includeGeometric() { return false; }
-    
-    /** Overridable method to determine the current EditWindow to use for text scaling */
-    protected EditWindow windowBeingRendered() { return wnd; }
 
 	/****************************** VISITOR SUBCLASS ******************************/
 
@@ -221,7 +213,7 @@ public class HPGL extends Output
 		/**
 		 * Traverses the visible hierarchy.
 		 */
-		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			NodeInst ni = (NodeInst)no;
 			NodeProto np = ni.getProto();
@@ -232,71 +224,139 @@ public class HPGL extends Output
 			return true;
 		}
 
-		public boolean enterCell(HierarchyEnumerator.CellInfo info) 
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
 			return true;
 		}
 
-		public void exitCell(HierarchyEnumerator.CellInfo info) 
+		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
 			AffineTransform trans = info.getTransformToRoot();
 
+			// prepare to merge geometry in this cell
+			PolyMerge merge = new PolyMerge();
+
 			// add nodes to cellGeom
-			for (Iterator it = info.getCell().getNodes(); it.hasNext();)
+			for(Iterator it = info.getCell().getNodes(); it.hasNext();)
 			{
 				NodeInst ni = (NodeInst)it.next();
 				AffineTransform nodeTrans = ni.rotateOut(trans);
 				if (ni.getProto() instanceof PrimitiveNode)
-					addNodeInst(ni, nodeTrans);
-		    }
+				{
+					PrimitiveNode prim = (PrimitiveNode)ni.getProto();
+					Technology tech = prim.getTechnology();
+					Poly [] polys = tech.getShapeOfNode(ni, wnd);
+					for (int i=0; i<polys.length; i++)
+						polys[i].transform(nodeTrans);
+					addPolys(polys, merge);
+				} else
+				{
+					if (!ni.isExpanded())
+					{
+						Cell subCell = (Cell)ni.getProto();
+						AffineTransform subTrans = ni.translateOut(nodeTrans);
+						Rectangle2D bounds = subCell.getBounds();
+						Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+						poly.transform(subTrans);
+						poly.setStyle(Poly.Type.CLOSED);
+						List layerList = getListForLayer(null);
+						layerList.add(poly);
+
+						poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+						poly.transform(subTrans);
+						poly.setStyle(Poly.Type.TEXTBOX);
+						MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
+						td.setAbsSize(24);
+						poly.setTextDescriptor(td);
+						poly.setString(ni.getProto().describe());
+						layerList.add(poly);
+					}
+				}
+
+				// draw any exports from the node
+				if (info.isRootCell() && User.isTextVisibilityOnExport())
+				{
+					int exportDisplayLevel = User.getExportDisplayLevel();
+					for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+					{
+						Export e = (Export)eIt.next();
+						Poly poly = e.getNamePoly();
+						List layerList = getListForLayer(null);
+						if (exportDisplayLevel == 2)
+						{
+							// draw port as a cross
+							poly.setStyle(Poly.Type.CROSS);
+							layerList.add(poly);
+						} else
+						{
+							// draw port as text
+							if (exportDisplayLevel == 1)
+							{
+								// use shorter port name
+								String portName = e.getShortName();
+								poly.setString(portName);
+							}
+							layerList.add(poly);
+						}
+					}
+				}
+			}
 
 			// add arcs to cellGeom
-			for (Iterator it = info.getCell().getArcs(); it.hasNext();)
+			for(Iterator it = info.getCell().getArcs(); it.hasNext();)
 			{
 				ArcInst ai = (ArcInst)it.next();
-				addArcInst(ai);
-		    }
+				ArcProto ap = ai.getProto();
+				Technology tech = ap.getTechnology();
+				Poly [] polys = tech.getShapeOfArc(ai, wnd);
+				addPolys(polys, merge);
+			}
+
+			// extract merged data and add it to overall geometry
+			for(Iterator it = merge.getKeyIterator(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				List layerList = getListForLayer(layer);
+				List geom = merge.getMergedPoints(layer, true);
+				for(Iterator gIt = geom.iterator(); gIt.hasNext(); )
+					layerList.add(gIt.next());
+			}
 		}
 
-		private void addNodeInst(NodeInst ni, AffineTransform trans)
+		/** add polys to cell geometry */
+		private void addPolys(Poly[] polys, PolyMerge merge)
 		{
-			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
-			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, windowBeingRendered());
 			for (int i=0; i<polys.length; i++)
-				polys[i].transform(trans);
-			addPolys(polys);
+			{
+				Poly poly = polys[i];
+				Layer layer = poly.getLayer();
+				if (layer == null || poly.getStyle() != Poly.Type.FILLED)
+				{
+					List layerList = getListForLayer(layer);
+					layerList.add(poly);
+					continue;
+				}
+
+				merge.addPolygon(layer, poly);
+			}
 		}
 
-		private void addArcInst(ArcInst ai)
+		private List getListForLayer(Layer layer)
 		{
-			ArcProto ap = ai.getProto();
-			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, windowBeingRendered());
-			addPolys(polys);
+			List layerList = (List)outGeom.cellGeoms.get(layer);
+			if (layerList == null)
+			{
+				layerList = new ArrayList();
+				outGeom.cellGeoms.put(layer, layerList);
+			}
+			return layerList;
 		}
-	       
-        /** add polys to cell geometry */
-        private void addPolys(Poly[] polys)
-        {
-            for (int i=0; i<polys.length; i++)
-            {
-            	Layer layer = polys[i].getLayer();
-            	List layerList = (List)outGeom.cellGeoms.get(layer);
-                if (layerList == null)
-                {
-                	layerList = new ArrayList();
-                	outGeom.cellGeoms.put(layer, layerList);
-                }
-                layerList.add(polys[i]);
-            }
-        }
 	}
 
 	/**
 	 * Method to plot the polygon "poly"
 	 */
-	private void emitPoly(Poly poly)
+	private void emitPoly(PolyBase poly)
 	{
 		// ignore null layers
 		Layer layer = poly.getLayer();
@@ -398,16 +458,13 @@ public class HPGL extends Output
 			return;
 		}
 
-		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP ||
-			style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTLEFT ||
-			style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
-			style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT ||
-			style == Poly.Type.TEXTBOTRIGHT || style == Poly.Type.TEXTBOX)
+		if (style.isText())
 		{
 			EditWindow wnd = null;
-			double size = poly.getTextDescriptor().getTrueSize(wnd);
-			Rectangle2D box = poly.getBounds2D();
-			emitText(style, box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), size, poly.getString(), layer);
+			Poly textPoly = (Poly)poly;
+			double size = textPoly.getTextDescriptor().getTrueSize(wnd);
+			Rectangle2D box = textPoly.getBounds2D();
+			emitText(style, box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), size, textPoly.getString(), layer);
 			return;
 		}
 	}
