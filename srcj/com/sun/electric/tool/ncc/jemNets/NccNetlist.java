@@ -92,8 +92,9 @@ class Wires {
 }
 
 class NccCellInfo extends HierarchyEnumerator.CellInfo {
-	private HashSet nodablesToDiscard;
-	private HashMap nodableSizeMultipliers;
+	private HashSet nodablesToDiscard = new HashSet();
+	private HashMap nodableSizeMultipliers = new HashMap();
+	private NccGlobals globals;
 
 	// Compute a Nodable's hash code based upon its connectivity and Cell type
 	private int computeNodableHashCode(Nodable no, Netlist netlist) {
@@ -101,9 +102,10 @@ class NccCellInfo extends HierarchyEnumerator.CellInfo {
 		int hash = c.hashCode();
 		for (Iterator it=c.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			for (int i=0; i<e.getProtoNameKey().busWidth(); i++) {
-				int netNdx = netlist.getNetIndex(no, e, i);
-				hash = (hash<<1) ^ netNdx;
+			int[] netIDs = getPortNetIDs(no, e);
+			for (int i=0; i<netIDs.length; i++) {
+				int netID = netIDs[i];
+				hash = (hash<<1) ^ netID;
 			}
 		}
 		return hash;
@@ -129,20 +131,22 @@ class NccCellInfo extends HierarchyEnumerator.CellInfo {
 	
 	private boolean areParalleled(Nodable n1, Nodable n2, Netlist netlist) {
 		Cell c = (Cell) n1.getProto();
-		Cell c2 = (Cell) n1.getProto();
+		Cell c2 = (Cell) n2.getProto();
 		if (c2!=c) return false;
 		for (Iterator it=c.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			if (!netlist.sameNetwork(n1, e, n2, e)) return false;
+			int[] netIDs1 = getPortNetIDs(n1, e);
+			int[] netIDs2 = getPortNetIDs(n2, e);
+			for (int i=0; i<netIDs1.length; i++) {
+				if (netIDs1[i]!=netIDs2[i]) return false;
+			}
 		}
 		return true;
 	}
 	// Find all parallel Nodables. For each group of paralleled Nodables 
 	// discard all Nodables but the first. Record the number of Nodables in 
 	// parallel.
-	private void findParallelNodables(HashMap nodableSizeMultipliers, 
-									  HashSet nodablesToDiscard, LinkedList ll,
-									  Netlist netlist) {
+	private void findParallelNodables(LinkedList ll, Netlist netlist) {
 		for (Iterator it=ll.iterator(); it.hasNext();) {
 			Nodable first = (Nodable) it.next();
 			it.remove();
@@ -163,18 +167,18 @@ class NccCellInfo extends HierarchyEnumerator.CellInfo {
 		Integer i = (Integer) nodableSizeMultipliers.get(no);
 		return (i==null) ? 1 : i.intValue();
 	}
+	
+	// ----------------------------- public methods ---------------------------
+	public NccCellInfo(NccGlobals globals) {this.globals=globals;}
 
 	// Record the information we need to merge parallel instances of the same 
 	// Cell
 	public void recordMergeParallelInfo() {
 		Netlist netlist = getNetlist();
 		HashMap codeToNodables = hashNodablesBasedOnConnectivity(netlist);
-		nodablesToDiscard = new HashSet();
-		nodableSizeMultipliers = new HashMap();
 		for (Iterator it=codeToNodables.keySet().iterator(); it.hasNext();) {
 			LinkedList ll = (LinkedList) codeToNodables.get(it.next());
-			findParallelNodables(nodableSizeMultipliers, nodablesToDiscard, ll, 
-								 netlist);
+			findParallelNodables(ll, netlist);
 		}
 	}
 	public boolean isDiscardable(Nodable no) {
@@ -285,7 +289,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	
 	// --------------------------- public methods -----------------------------
 	public HierarchyEnumerator.CellInfo newCellInfo() {
-		return new NccCellInfo();
+		return new NccCellInfo(globals);
 	}
 	
 	public boolean enterCell(HierarchyEnumerator.CellInfo ci) {
@@ -296,7 +300,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			depth++;
 		}
 		if (info.isRootCell()) getExports(info);
-		info.recordMergeParallelInfo();
+		if (globals.getOptions().mergeParallelCells)  
+			info.recordMergeParallelInfo();
 		return true;
 	}
 

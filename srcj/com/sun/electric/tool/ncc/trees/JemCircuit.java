@@ -38,13 +38,19 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 
 //JemCircuit will add only NetObjects
 
 public class JemCircuit {
 
     private JemEquivRecord myParent;
-    private List content = new ArrayList();
+    // Use HashSet for content in order to make remove() operation
+    // constant time. Otherwise we spend all our time parallel
+    // merge which removes Parts from huge globals.parts 
+    private Set content = new HashSet();
 
     private JemCircuit(){}
 

@@ -14,5 +14,6 @@ public class NccOptions {
 	public Messenger messenger;
 	/** enable size checking */
 	public boolean checkSizes;
-
+	/** merge parallel Cells into one */
+	public boolean mergeParallelCells;
 }

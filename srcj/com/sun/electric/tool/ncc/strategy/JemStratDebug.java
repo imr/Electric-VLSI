@@ -19,7 +19,7 @@ public class JemStratDebug extends JemStrat {
 	private JemStratDebug(NccGlobals globals) {
 		super(globals);
 		globals.println("begin JemStratDebug");
-		globals.println("dumping all leaf JemEquivRecords of size 2");
+		globals.println("dumping all active JemEquivRecords");
 		doFor(globals.getRoot());
 		globals.println("end JemStratDebug");
 	}

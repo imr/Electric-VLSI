@@ -56,6 +56,7 @@ public class NccJob extends Job {
 		NccOptions options = new NccOptions();
 		options.messenger = messenger;
 		options.checkSizes = false;
+		options.mergeParallelCells = true;
 
 		List cells = new ArrayList();
 		cells.add(cell);  cells.add(cell);
@@ -75,8 +76,8 @@ public class NccJob extends Job {
 //			LayoutLib.openLibForRead("qFourP1", testDir+"qFourP1.elib");
 //		Cell cell = lib.findNodeProto("expTail{lay}");
 		Library lib = 
-			LayoutLib.openLibForRead("gasp", testDir+"gasp.elib");
-		Cell cell = lib.findNodeProto("gaspRowC{sch}");
+			LayoutLib.openLibForRead("rxPads", testDir+"rings.elib");
+		Cell cell = lib.findNodeProto("rxPadArray{lay}");
 		compareCellToSelf(cell);
 	}
 	
@@ -99,6 +100,14 @@ public class NccJob extends Job {
 //			if (cell.getProtoName().equals("gaspRowC"))  continue;
 //			if (cell.getProtoName().equals("gaspRing1"))  continue;
 //			if (cell.getProtoName().equals("gaspRowD"))  continue;
+
+			// paralleling hidden from my merger!
+			if (cell.getProtoName().equals("ringTx") && 
+				view==View.LAYOUT)  continue;
+				
+			// I don't understand this one				
+			if (cell.getProtoName().equals("rxPadArray") &&
+				view==View.LAYOUT)  continue;
 			
 			compareCellToSelf(cell);									
 		}
@@ -116,7 +125,7 @@ public class NccJob extends Job {
 		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
 		messenger = new Messenger(testDir+"jeminiLog.txt");
 		
-		//doOneCell(testDir);		
+		doOneCell(testDir);		
 		//doLib(testDir, "purple");		
 		//doLib(testDir, "inv");		
 		//doLib(testDir, "invDrive");		
@@ -127,7 +136,10 @@ public class NccJob extends Job {
 		//doLib(testDir, "scanChainFour");
 		//doLib(testDir, "latches");
 		//doLib(testDir, "gasP_COR");
-		doLib(testDir, "rings");
+		//doLib(testDir, "rings");
+		//doLib(testDir, "senseAmp");
+		//doLib(testDir, "senseReg");
+		//doLib(testDir, "rxPads");
 		
     }
 

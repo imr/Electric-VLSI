@@ -133,6 +133,18 @@ public class LayoutLib {
 		error(lib==null, "can't open Library for modify: "+libName);
 		return lib;
 	}
+	public static Library openLibForWrite(String libName, String libFileName) {
+		// return an open Library if it exists
+		Library lib = Library.findLibrary(libName);
+		if (lib!=null)  return lib;
+
+		// create a new Library
+		URL libFileURL = TextUtils.makeURLToFile(libFileName);
+		lib = Library.newInstance(libName, libFileURL);
+
+		error(lib==null, "can't open Library for modify: "+libName);
+		return lib;
+	}
 	/**
 	 * Write a library in ELIB format.
 	 * @param lib the library to be written.
