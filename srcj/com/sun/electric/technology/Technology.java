@@ -2828,8 +2828,10 @@ public class Technology extends ElectricObject
 		{
 			if (errorLogger != null)
 				errorLogger.logError(errorMessage, null, outerLayer.getIndex());
+			/*
 			else if (Main.getDebug())
 				System.out.println(errorMessage);
+				*/
 		}
 	}
 
@@ -2905,8 +2907,10 @@ public class Technology extends ElectricObject
 					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
 			if (errorLogger != null)
 				errorLogger.logError(errorMessage, null, -1);
+			/*
 			else if (Main.getDebug())
 				System.out.println(errorMessage);
+				*/
 		}
 	}
 
