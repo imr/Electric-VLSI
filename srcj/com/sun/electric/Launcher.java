@@ -118,19 +118,4 @@ public final class Launcher
 		}
 	}
 
-    /** check if command line option 'option' present in
-     * command line args. If present, return true and remove if from the list.
-     * Otherwise, return false.
-     */
-    private static boolean hasCommandLineOption(List argsList, String option)
-    {
-        for (int i=0; i<argsList.size(); i++) {
-            if (((String)argsList.get(i)).equals(option)) {
-                argsList.remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
-
 }
