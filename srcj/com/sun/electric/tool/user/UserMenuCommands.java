@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.ui.Menu;
+import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.util.Iterator;
 import java.awt.event.ActionListener;
@@ -135,6 +136,8 @@ public final class UserMenuCommands
 		Menu networkSubMenu = Menu.createMenu("Network", 'N');
 		toolMenu.add(networkSubMenu);
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
+        logEffortSubMenu.addMenuItem("Analyze Cell", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
 		toolMenu.add(routingSubMenu);
@@ -176,6 +179,10 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(); }});
         jongMenu.addMenuItem("Eval Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
+        jongMenu.addMenuItem("LE test1", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
+        jongMenu.addMenuItem("Open Purple Lib", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
             
 		// return the menu bar
 		return menuBar;
@@ -403,7 +410,20 @@ public final class UserMenuCommands
 		}
 	}
 
-	// ---------------------- THE STEVE MENU -----------------
+	// ---------------------- THE TOOLS MENU -----------------
+
+    // Logical Effort Tool
+    public static void analyzeCellCommand()
+    {
+        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        if (curEdit == null) {
+            System.out.println("Please select valid window first");
+            return;
+        }
+        LENetlister.netlistAndSize(curEdit.getCell(), curEdit.getVarContext());
+    }
+    
+    // ---------------------- THE STEVE MENU -----------------
 
 	public static void getInfoCommand()
 	{
@@ -636,4 +656,11 @@ public final class UserMenuCommands
             }
         }
     }
+    
+    public static void openP4libCommand() {
+        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
+        oThread.start();
+    }
+    
+    
 }

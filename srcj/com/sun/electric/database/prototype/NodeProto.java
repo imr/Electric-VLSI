@@ -1261,7 +1261,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Routine to return an iterator over all instances of this NodeProto.
 	 * @return an iterator over all instances of this NodeProto.
 	 */
-	public Iterator getInstances()
+	public Iterator getInstancesOf()
 	{
 		return new NodeInstsIterator();
 	}

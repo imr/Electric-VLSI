@@ -27,6 +27,9 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.prototype.NodeProto;
 
+import java.lang.Number;
+import java.lang.NumberFormatException;
+
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
  * primary use is to determine the value of variables which contain
@@ -203,20 +206,66 @@ public class VarContext
 	 */
 	public String getInstPath(String sep) 
 	{
-	  if (this==globalContext) return sep;
+        if (this==globalContext) return "";
 
-	  String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
+        String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
 
-	  NodeInst ni = getNodeInst();
-	  if (ni==null) {
-	  	System.out.println("VarContext.getInstPath: context with null NodeInst?");
-	  }
-	  String me = ni.getName();
-	  if (me==null) {
-		System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
-	  }
-
-	  return prefix + sep + me;
+        NodeInst ni = getNodeInst();
+        if (ni==null) {
+            System.out.println("VarContext.getInstPath: context with null NodeInst?");
+        }
+        String me = ni.getName();
+        if (me==null) {
+            //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
+            me = ni.describe();
+        }
+        if (prefix.equals("")) return me;
+        return prefix + sep + me;
 	}
 
+    /** Helper method to convert an Object to a float, if possible.
+     * if not possible, return @param def.
+     */
+    public static float objectToFloat(Object obj, float def) {
+        if (obj instanceof Number) return ((Number)obj).floatValue();
+        try {
+            return Float.valueOf(obj.toString()).floatValue();
+        } catch (NumberFormatException e) {}
+        return def;
+    }
+
+    /** Helper method to convert an Object to an integer, if possible.
+     * if not possible, return @param def.
+     */
+    public static int objectToInt(Object obj, int def) {
+        if (obj instanceof Number) return ((Number)obj).intValue();
+        try {
+            return Integer.valueOf(obj.toString()).intValue();
+        } catch (NumberFormatException e) {}
+        return def;
+    }
+    
+    /** Helper method to convert an Object to a short, if possible.
+     * if not possible, return @param def.
+     */
+    public static short objectToShort(Object obj, short def) {
+        if (obj instanceof Number) return ((Number)obj).shortValue();
+        try {
+            return Short.valueOf(obj.toString()).shortValue();
+        } catch (NumberFormatException e) {}
+        return def;
+    }
+    
+   /** Helper method to convert an Object to a double, if possible.
+     * if not possible, return @param def.
+     */
+    public static double objectToDouble(Object obj, double def) {
+        if (obj instanceof Number) return ((Number)obj).doubleValue();
+        try {
+            return Double.valueOf(obj.toString()).doubleValue();
+        } catch (NumberFormatException e) {}
+        return def;
+    }
+    
+    
 }

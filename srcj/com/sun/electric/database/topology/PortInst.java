@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.awt.geom.Rectangle2D;
 
@@ -76,6 +77,18 @@ public class PortInst
 	 */
 	public PortProto getPortProto() { return portProto; }
 
+    /** 
+     ** Routine to return the equivalent PortProto of this PortInst's PortProto.
+     * This is typically used to find the PortProto in the schematic view.
+     * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
+     */
+    public PortProto getProtoEquivalent() 
+    {
+        Cell schCell = nodeInst.getProtoEquivalent();
+        if (schCell == null) return null;               // no cell equivalent view
+        return schCell.findPortProto(portProto.getProtoName());
+    }
+    
 	/**
 	 * Routine to return the JNetwork connected to this PortInst.
 	 * @return the JNetwork connected to this PortInst.

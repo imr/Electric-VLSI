@@ -1064,6 +1064,17 @@ numExports = 0;
 	 */
 	public NodeProto getProto() { return protoType; }
 
+    /** 
+     * Routine to get the Schematic Cell from a NodeInst icon
+     * @return the equivalent view of the prototype, or null if none
+     * (such as for primitive)
+     */
+    public Cell getProtoEquivalent()
+    {
+        if (!(protoType instanceof Cell)) return null;            // primitive
+        return ((Cell)protoType).getEquivalent();
+    }
+    
 	/**
 	 * Routine to return the NodeUsage of this NodeInst.
 	 * @return the NodeUsage of this NodeInst.

@@ -117,12 +117,13 @@ public final class HierarchyEnumerator {
 
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst) it.next();
-
+                
 			instCnt++;
 			boolean descend = visitor.visitNodeInst(ni, info);
-			NodeProto np = ni.getProto();
-			if (descend && np instanceof Cell) {
-				Cell eq = ((Cell)np).getEquivalent();
+            NodeProto np = ni.getProto();
+            Cell eq = ni.getProtoEquivalent();
+            if (cell == eq) descend = false;  // do not descend into own icon
+            if (descend && np instanceof Cell) {
 				if (eq == null) {
 					System.out.println("Warning: missing schematic: " 
 					                   + np.getProtoName());
@@ -327,6 +328,34 @@ public final class HierarchyEnumerator {
 			return (Integer) netToNetID.get(net);
 		}
 
+        /** Get a unique, flat net name for the network.  The network 
+         * name will contain the hierarchical context as returned by
+         * VarContext.getInstPath() if it is not a top-level network.
+         * @param sep the context separator to use if needed.
+         * @return a unique String identifier for the network
+         */
+        public final String getUniqueNetName(JNetwork net, String sep) {
+            System.out.println("Jnetwork is "+net);
+            Integer netID = (Integer)netToNetID.get(net);
+            System.out.println("netID is "+netID);
+            NetDescription ns = (NetDescription)netIdToNetDesc.get(netID);
+            if (ns == null) System.out.println("ns is null");
+            if (ns.getCellInfo() == null) System.out.println("getCellInfo returned null");
+            VarContext netContext = ns.getCellInfo().getContext();
+            
+            
+            StringBuffer buf = new StringBuffer();
+            buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any
+            if (!buf.toString().equals("")) buf.append(sep);
+        	Iterator it = ns.getNet().getNames();
+            if (it.hasNext()) {
+    			buf.append((String) it.next());
+    		} else {
+        		buf.append("net"+netID.intValue());
+            }
+            return buf.toString();
+        }
+        
 		/** Get the JNetwork that is closest to the root in the design
 		 * hierarchy that corresponds to this netID. */
 		public final NetDescription netIdToNetDescription(Integer netID) {

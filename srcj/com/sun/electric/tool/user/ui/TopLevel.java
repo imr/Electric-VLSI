@@ -34,6 +34,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
+import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
 import javax.swing.UIManager;
 import javax.swing.ImageIcon;
@@ -112,8 +113,10 @@ public class TopLevel extends JFrame
 
 	public static EditWindow getCurrentEditWindow()
 	{
-		WindowFrame wf = (WindowFrame)desktop.getSelectedFrame();
-		if (wf == null) return null;
+        JInternalFrame frame = desktop.getSelectedFrame();
+        if (frame == null || !(frame instanceof WindowFrame))
+            return null;
+		WindowFrame wf = (WindowFrame)frame;
 		return wf.getEditWindow();
 	}
 
