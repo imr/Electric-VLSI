@@ -73,6 +73,9 @@ public class CIF extends Geometry
 
     /** for storing generated errors */                 private ErrorLogger errorLogger;
 
+    /** illegal characters in names (not really illegal but can cause problems) */
+    private static final String badNameChars = ":{}/\\";
+
 	/**
 	 * Main entry point for CIF output.
 	 * @param cell the top-level cell to write.
@@ -167,8 +170,16 @@ public class CIF extends Geometry
 	{
 		cellNumber++;
 		writeLine("DS " + cellNumber + " 1 1;");
-		writeLine("9 " + (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
-			cellGeom.cell.noLibDescribe() + ";");
+        String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
+			cellGeom.cell.noLibDescribe() + ";";
+        // remove bad chars from cell name
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i<cellName.length(); i++) {
+            char ch = cellName.charAt(i);
+            if (badNameChars.indexOf(ch) != -1) ch = '_';
+            sb.append(ch);
+        }
+		writeLine("9 " + sb.toString());
 		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
 
 		// write all polys by Layer
@@ -214,7 +225,7 @@ public class CIF extends Geometry
 	protected boolean writeLayer(Layer layer)
 	{
 		String layName = layer.getCIFLayer();
-		if (layName == null) return true;
+		if (layName == null || layName.equals("")) return true;
 		writeLine("L " + layName + ";");
 		return false;
 	}
