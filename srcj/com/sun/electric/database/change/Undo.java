@@ -44,12 +44,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * This interface defines changes that are made to the database.
  */
 public class Undo
 {
+
 	/**
 	 * Type is a typesafe enum class that describes the nature of a change.
 	 */
@@ -962,6 +965,14 @@ public class Undo
 	private static List undoneList = new ArrayList();
 
     /** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
+    /** List of all PropertyChangeListeners */          private static List propertyChangeListeners = new ArrayList();
+
+    /** Property fired if ability to Undo changes */
+    public static final String propUndoEnabled = "UndoEnabled";
+    /** Property fired if ability to Redo changes */
+    public static final String propRedoEnabled = "RedoEnabled";
+    private static boolean undoEnabled = false;
+    private static boolean redoEnabled = false;
 
 	/**
 	 * Method to start a new batch of changes.
@@ -1054,6 +1065,39 @@ public class Undo
         for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
             DatabaseChangeListener l = (DatabaseChangeListener)it.next();
             l.databaseEndChangeBatch(batch);
+        }
+    }
+
+    /** Add a property change listener. This generates Undo and Redo enabled property changes */
+    public static synchronized void addPropertyChangeListener(PropertyChangeListener l) {
+        propertyChangeListeners.add(l);
+    }
+
+    /** Remove a property change listener. */
+    public static synchronized void removePropertyChangeListener(PropertyChangeListener l) {
+        propertyChangeListeners.remove(l);
+    }
+
+    private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue) {
+        for (Iterator it = propertyChangeListeners.iterator(); it.hasNext(); ) {
+            PropertyChangeListener l = (PropertyChangeListener)it.next();
+            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
+                    new Boolean(oldValue), new Boolean(newValue));
+            l.propertyChange(e);
+        }
+    }
+
+    private static void setUndoEnabled(boolean enabled) {
+        if (enabled != undoEnabled) {
+            firePropertyChange(propUndoEnabled, undoEnabled, enabled);
+            undoEnabled = enabled;
+        }
+    }
+
+    private static void setRedoEnabled(boolean enabled) {
+        if (enabled != redoEnabled) {
+            firePropertyChange(propRedoEnabled, redoEnabled, enabled);
+            redoEnabled = enabled;
         }
     }
 
