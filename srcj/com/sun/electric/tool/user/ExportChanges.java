@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -360,8 +361,8 @@ public final class ExportChanges
 			ExportList el2 = (ExportList)o2;
 			Export e1 = el1.pp;
 			Export e2 = el2.pp;
-			PortProto.Characteristic ch1 = e1.getCharacteristic();
-			PortProto.Characteristic ch2 = e2.getCharacteristic();
+			PortCharacteristic ch1 = e1.getCharacteristic();
+			PortCharacteristic ch2 = e2.getCharacteristic();
 			if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
 			String s1 = e1.getName();
 			String s2 = e2.getName();
@@ -693,8 +694,11 @@ public final class ExportChanges
             if (newPp != null)
             {
                 // copy text descriptor, var, and characteristic
-                newPp.setTextDescriptor(pi.getPortProto().getTextDescriptor());
-                newPp.copyVarsFrom(pi.getPortProto());
+				if (pi.getPortProto() instanceof Export)
+				{
+					newPp.setTextDescriptor(((Export)pi.getPortProto()).getTextDescriptor());
+					newPp.copyVarsFrom(((Export)pi.getPortProto()));
+				}
                 newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
                 // find original export if any, and copy text descriptor, vars, and characteristic
                 if (refExport != null) {

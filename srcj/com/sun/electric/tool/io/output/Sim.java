@@ -33,7 +33,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -152,13 +152,13 @@ public class Sim extends Output
 
 				if (e.isPower()) globalNetVDD = globalNetNum;
 				if (e.isGround()) globalNetGND = globalNetNum;
-				if (e.getCharacteristic() == PortProto.Characteristic.C1 ||
+				if (e.getCharacteristic() == PortCharacteristic.C1 ||
 					e.getName().startsWith("clk1") || e.getName().startsWith("phi1h")) globalNetPhi1H = globalNetNum;
-				if (e.getCharacteristic() == PortProto.Characteristic.C2 ||
+				if (e.getCharacteristic() == PortCharacteristic.C2 ||
 					e.getName().startsWith("phi1l")) globalNetPhi1L = globalNetNum;
-				if (e.getCharacteristic() == PortProto.Characteristic.C3 ||
+				if (e.getCharacteristic() == PortCharacteristic.C3 ||
 					e.getName().startsWith("clk2") || e.getName().startsWith("phi2h")) globalNetPhi2H = globalNetNum;
-				if (e.getCharacteristic() == PortProto.Characteristic.C4 ||
+				if (e.getCharacteristic() == PortCharacteristic.C4 ||
 					e.getName().startsWith("phi2l")) globalNetPhi2L = globalNetNum;
 			}
 

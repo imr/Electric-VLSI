@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -128,7 +128,7 @@ public class Nand2en {
 
 		// Nand input: inb
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nand, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nand);
 		inb.connect(nand.findExport("inb"));
@@ -150,7 +150,7 @@ public class Nand2en {
 		// Nand input: ina
 		double rightDiffX = StdCellParams.getRightDiffX(weak, weak);
 		double inaX = rightDiffX + wirePitch;
-		LayoutLib.newExport(nand, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, nand);
 		ina.connect(nand.findExport("ina"));
@@ -167,7 +167,7 @@ public class Nand2en {
 		
 		// Nand output: out
 		double outX = inaX + wirePitch;
-		LayoutLib.newExport(nand, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outHiY);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nand);
 		outHi.connect(nand.findExport("out"));

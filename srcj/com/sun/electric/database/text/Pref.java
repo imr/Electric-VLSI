@@ -24,6 +24,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
@@ -71,6 +72,7 @@ public class Pref
 	public static class Meaning
 	{
 		private ElectricObject eObj;
+		private Variable.Key key;
 		private boolean valid;
 		private Object desiredValue;
 		private Pref pref;
@@ -88,6 +90,7 @@ public class Pref
 		Meaning(ElectricObject eObj, Pref pref, String location, String description)
 		{
 			this.eObj = eObj;
+			key = ElectricObject.newKey(pref.name);
 			this.pref = pref;
 			this.location = location;
 			this.description = description;
@@ -99,6 +102,12 @@ public class Pref
 		 * @return the Pref associated with this Meaning option.
 		 */
 		public Pref getPref() { return pref; }
+
+		/**
+		 * Method to return the Variable.Key of name of this Meaning option.
+		 * @return the Variable.Key of name of this Meaning option.
+		 */
+		public Variable.Key getKey() { return key; }
 
 		/**
 		 * Method to return the ElectricObject associated with this Meaning option.
@@ -616,27 +625,48 @@ public class Pref
 	}
 
 	/**
-	 * Method to store all changed "meaning" options in the database.
-	 * This is done before saving a library, so that the options related to that
-	 * library get saved as well.
+	 * Method to get a list of "meaning" options assiciatiated with the given
+	 * owner object or list of all "meaning" options, if object in not given
+	 * @param obj owner object, or null
+	 * @return a list of "meaning" option
 	 */
-	public static void installMeaningVariables()
+	public static List getMeaningVariables(Object obj)
 	{
+		ArrayList prefs = new ArrayList();
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
-			Variable.Key key = ElectricObject.newKey(pref.name);
-			if (pref.cachedObj.equals(pref.factoryObj))
-			{
-				pref.meaning.eObj.delVar(key);
-				continue;
-			}
+			if (obj != null && pref.meaning.eObj != obj) continue;
+			if (pref.cachedObj.equals(pref.factoryObj)) continue;
 //System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.eObj);
 //System.out.println("   Current value="+pref.cachedObj+" factory value=" + pref.factoryObj);
-			pref.meaning.eObj.newVar(key, pref.cachedObj);
+			prefs.add(pref);
 		}
+		Collections.sort(prefs, new TextUtils.PrefsByName());
+		return prefs;
 	}
+
+	/**
+	 * Method to store all changed "meaning" options in the database.
+	 * This is done before saving a library, so that the options related to that
+	 * library get saved as well.
+	 */
+// 	public static void installMeaningVariables()
+// 	{
+// 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+// 		{
+// 			Pref pref = (Pref)it.next();
+// 			if (pref.meaning == null) continue;
+// 			Variable.Key key = ElectricObject.newKey(pref.name);
+// 			if (pref.cachedObj.equals(pref.factoryObj))
+// 			{
+// 				pref.meaning.eObj.delVar(key);
+// 				continue;
+// 			}
+// 			pref.meaning.eObj.newVar(key, pref.cachedObj);
+// 		}
+// 	}
 
 	/**
 	 * Method to start the collection of meaning options that have changed.

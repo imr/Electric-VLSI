@@ -73,7 +73,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     {
         int         type;
         Geometric   geom;
-        PortProto   pp;
+        Export      pp;
         boolean     showgeom;
         double      x1, y1;
         double      x2, y2;

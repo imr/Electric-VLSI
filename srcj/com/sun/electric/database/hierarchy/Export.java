@@ -25,6 +25,9 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.Connection;
@@ -54,11 +57,22 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
-public class Export extends PortProto
+public class Export extends ElectricObject implements PortProto
 {
 	/** key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
 
+	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
+	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
+
 	// -------------------------- private data ---------------------------
+	/** The name of this Export. */							private Name name;
+	/** Internal flag bits of this Export. */				private int userBits;
+	/** The parent Cell of this Export. */					private Cell parent;
+	/** Index of this Export in Cell ports. */				private int portIndex;
+	/** The text descriptor of this Export. */				private TextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 	/** The Change object. */								private Undo.Change change;
 
@@ -70,6 +84,7 @@ public class Export extends PortProto
 	protected Export()
 	{
 		super();
+		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
         setLinked(false);
 	}
 
@@ -227,10 +242,9 @@ public class Export extends PortProto
 	{
 		NodeInst newno = newPi.getNodeInst();
 		PortProto newsubpt = (PortProto)newPi.getPortProto();
-		Cell cell = (Cell)getParent();
 
 		// error checks
-		if (newno.getParent() != cell) return true;
+		if (newno.getParent() != parent) return true;
 		if (newsubpt.getParent() != newno.getProto()) return true;
 		if (doesntConnect(newsubpt.getBasePort())) return true;
 
@@ -268,8 +282,7 @@ public class Export extends PortProto
 	{
 		// initialize the parent object
 		this.parent = parent;
-		setProtoName(protoName);
-		setParent(parent);
+		lowLevelRename(protoName);
 		return false;
 	}
 
@@ -280,7 +293,7 @@ public class Export extends PortProto
 	 */
 	public void lowLevelRename(String newName)
 	{
-		setProtoName(newName);
+		this.name = Name.findName(newName);
 	}
 
 	/**
@@ -297,8 +310,10 @@ public class Export extends PortProto
 			return true;
 		}
 		this.originalPort = originalPort;
-		
-		this.userBits = originalPort.getPortProto().lowLevelGetUserbits();
+
+		if (originalPort.getPortProto() instanceof Export)
+			this.userBits = ((Export)originalPort.getPortProto()).lowLevelGetUserbits();
+		setCharacteristic(originalPort.getPortProto().getCharacteristic());
 		return false;
 	}
 
@@ -311,7 +326,7 @@ public class Export extends PortProto
 	{
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
-		((Cell)getParent()).addExport(this, oldPortInsts);
+		parent.addExport(this, oldPortInsts);
         setLinked(true);
 		return false;
 	}
@@ -325,7 +340,7 @@ public class Export extends PortProto
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
         setLinked(false);
-		return ((Cell)getParent()).removeExport(this);
+		return parent.removeExport(this);
 	}
 
 	/**
@@ -349,6 +364,35 @@ public class Export extends PortProto
 //			(newPortProto->userbits & (PORTANGLE|PORTARANGE|PORTNET|PORTISOLATED));
 		changeallports();
 	}
+
+	/**
+	 * Method to set an index of this Export in Cell ports.
+	 * This is a zero-based index of ports on the Cell.
+	 * @param portIndex an index of this Export in Cell ports.
+	 */
+	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
+
+	/**
+	 * Low-level method to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
+	public int lowLevelGetUserbits() { return userBits; }
+
+	/**
+	 * Low-level method to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -382,26 +426,71 @@ public class Export extends PortProto
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
-	public void checkChanging() { Cell parent = (Cell)getParent(); if (parent != null) parent.checkChanging(); }
+	public void checkChanging() { if (parent != null) parent.checkChanging(); }
 
 	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
-	public Cell whichCell() { return (Cell)getParent(); };
+	public Cell whichCell() { return parent; };
 
-//	/**
-//	 * Method to write a description of this Export.
-//	 * Displays the description in the Messages Window.
-//	 */
-//	public void getInfo()
-//	{
-//		System.out.println(" Original: " + originalPort);
-//		System.out.println(" Base: " + getBasePort());
-//		System.out.println(" Cell: " + parent.describe());
-//		super.getInfo();
-//	}
+	/**
+	 * Method to return the parent NodeProto of this Export.
+	 * @return the parent NodeProto of this Export.
+	 */
+	public NodeProto getParent() { return parent; }
+
+	/**
+	 * Method to get the index of this Export.
+	 * This is a zero-based index of ports on the Cell.
+	 * @return the index of this Export.
+	 */
+	public int getPortIndex() { return portIndex; }
+
+	/**
+	 * Method to return the Text Descriptor of this Export.
+	 * Text Descriptors tell how to display the port name.
+	 * @return the Text Descriptor of this Export.
+	 */
+	public TextDescriptor getTextDescriptor() { return descriptor; }
+
+	/**
+	 * Method to set the Text Descriptor of this Export.
+	 * Text Descriptors tell how to display the port name.
+	 * @param descriptor the Text Descriptor of this Export.
+	 */
+	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
+
+	/**
+	 * Method to return the name key of this Export.
+	 * @return the Name key of this Export.
+	 */
+	public Name getNameKey() { return name; }
+
+	/**
+	 * Method to return the name of this Export.
+	 * @return the name of this Export.
+	 */
+	public String getName() { return name.toString(); }
+
+	/**
+	 * Method to return the short name of this PortProto.
+	 * The short name is everything up to the first nonalphabetic character.
+	 * @return the short name of this PortProto.
+	 */
+	public String getShortName()
+	{
+		String name = getNameKey().toString();
+		int len = name.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = name.charAt(i);
+			if (Character.isLetterOrDigit(ch)) continue;
+			return name.substring(0, i);
+		}
+		return name;
+	}
 
 	/**
 	 * Returns a printable version of this Export.
@@ -432,6 +521,133 @@ public class Export extends PortProto
 		return pp.getBasePort();
 	}
 
+	/**
+	 * Method to return true if the specified ArcProto can connect to this Export.
+	 * @param arc the ArcProto to test for connectivity.
+	 * @return true if this Export can connect to the ArcProto, false if it can't.
+	 */
+	public boolean connectsTo(ArcProto arc)
+	{
+		return getBasePort().connectsTo(arc);
+	}
+
+	/**
+	 * Method to return the PortCharacteristic of this Exort.
+	 * @return the PortCharacteristic of this Exort.
+	 */
+	public PortCharacteristic getCharacteristic()
+	{
+		PortCharacteristic characteristic = PortCharacteristic.findCharacteristic((userBits>>STATEBITSSH)&STATEBITSSHIFTED);
+		return characteristic;
+	}
+
+	/**
+	 * Method to set the PortCharacteristic of this Exort.
+	 * @param characteristic the PortCharacteristic of this Exort.
+	 */
+	public void setCharacteristic(PortCharacteristic characteristic)
+	{
+		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
+	}
+
+	/**
+	 * Method to determine whether this Export is of type Power.
+	 * This is determined by either having the proper Characteristic, or by
+	 * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
+	 * @return true if this Export is of type Power.
+	 */
+	public boolean isPower()
+	{
+		PortCharacteristic ch = getCharacteristic();
+		if (ch == PortCharacteristic.PWR) return true;
+		if (ch != PortCharacteristic.UNKNOWN) return false;
+		return isNamedPower();
+	}
+
+	/**
+	 * Method to determine whether this Export has a name that suggests Power.
+	 * This is determined by having a name starting with "vdd", "vcc", "pwr", or "power".
+	 * @return true if this Export has a name that suggests Power.
+	 */
+	public boolean isNamedPower()
+	{
+		String name = getName().toLowerCase();
+		if (name.indexOf("vdd") >= 0) return true;
+		if (name.indexOf("vcc") >= 0) return true;
+		if (name.indexOf("pwr") >= 0) return true;
+		if (name.indexOf("power") >= 0) return true;
+		return false;
+	}
+
+	/**
+	 * Method to determine whether this Export is of type Ground.
+	 * This is determined by either having the proper PortCharacteristic, or by
+	 * having the proper name (starting with "vss", "gnd", or "ground").
+	 * @return true if this Export is of type Ground.
+	 */
+	public boolean isGround()
+	{
+		PortCharacteristic ch = getCharacteristic();
+		if (ch == PortCharacteristic.GND) return true;
+		if (ch != PortCharacteristic.UNKNOWN) return false;
+		return isNamedGround();
+	}
+
+	/**
+	 * Method to determine whether this Export has a name that suggests Ground.
+	 * This is determined by either having a name starting with "vss", "gnd", or "ground".
+	 * @return true if this Export has a name that suggests Ground.
+	 */
+	public boolean isNamedGround()
+	{
+		String name = getName().toLowerCase();
+		if (name.indexOf("vss") >= 0) return true;
+		if (name.indexOf("gnd") >= 0) return true;
+		if (name.indexOf("ground") >= 0) return true;
+		return false;
+	}
+
+	/**
+	 * Method to set this PortProto to be always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 */
+	public void setAlwaysDrawn() { userBits |= PORTDRAWN; }
+
+	/**
+	 * Method to set this PortProto to be not always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 */
+	public void clearAlwaysDrawn() { userBits &= ~PORTDRAWN; }
+
+	/**
+	 * Method to tell whether this PortProto is always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 * @return true if this PortProto is always drawn.
+	 */
+	public boolean isAlwaysDrawn() { return (userBits & PORTDRAWN) != 0; }
+
+	/**
+	 * Method to set this PortProto to exist only in the body of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 */
+	public void setBodyOnly() { userBits |= BODYONLY; }
+
+	/**
+	 * Method to set this PortProto to exist in the body and icon of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 */
+	public void clearBodyOnly() { userBits &= ~BODYONLY; }
+
+	/**
+	 * Method to tell whether this PortProto exists only in the body of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 * @return true if this PortProto exists only in the body of a cell.
+	 */
+	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
+
     /**
      * Returns true if this Export is completely linked into database.
 	 * This means there is path to this Export through lists:
@@ -439,11 +655,10 @@ public class Export extends PortProto
      */
 	public boolean isActuallyLinked()
 	{
-		if (parent == null || !(parent instanceof Cell)) return false;
-		Cell parentCell = (Cell)parent;
+		if (parent == null) return false;
 		int portIndex = getPortIndex();
-		return parentCell.isActuallyLinked() &&
-			0 <= portIndex && portIndex < parentCell.getNumPorts() && parentCell.getPort(portIndex) == this;
+		return parent.isActuallyLinked() &&
+			0 <= portIndex && portIndex < parent.getNumPorts() && parent.getPort(portIndex) == this;
 	}
 
 	/**
@@ -469,7 +684,7 @@ public class Export extends PortProto
 	 */
 	public PortProto getEquivalent()
 	{
-		Cell equiv = ((Cell)parent).getEquivalent();
+		Cell equiv = parent.getEquivalent();
 		if (equiv == parent)
 			return this;
 		if (equiv == null)
@@ -486,8 +701,7 @@ public class Export extends PortProto
 	public Export getEquivalentPort(Cell otherCell)
 	{
 		/* don't waste time searching if the two views are the same */
-		Cell thisCell = (Cell)getParent();
-		if (thisCell == otherCell) return this;
+		if (parent == otherCell) return this;
 
 		// this is the non-cached way to do it
 		return otherCell.findExport(getName());
@@ -530,10 +744,8 @@ public class Export extends PortProto
 	 */
 	public boolean doesntConnect(PrimitivePort newPP)
 	{
-		Cell cell = (Cell)getParent();
-
 		// check every instance of this node
-		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
@@ -573,11 +785,10 @@ public class Export extends PortProto
 		recursivelyChangeAllPorts();
 
 		// look at associated cells and change their ports
-		Cell np = (Cell)getParent();
-		if (np.getView() == View.ICON)
+		if (parent.getView() == View.ICON)
 		{
 			// changed an export on an icon: find contents and change it there
-			Cell onp = np.contentsView();
+			Cell onp = parent.contentsView();
 			if (onp != null)
 			{
 				Export opp = getEquivalentPort(onp);
@@ -591,7 +802,7 @@ public class Export extends PortProto
 		}
 
 		// see if there is an icon to change
-		Cell onp = np.iconView();
+		Cell onp = parent.iconView();
 		if (onp != null)
 		{
 			Export opp = getEquivalentPort(onp);
@@ -609,8 +820,7 @@ public class Export extends PortProto
 	private void recursivelyChangeAllPorts()
 	{
 		// look at all instances of the cell that had port motion
-		Cell cell = (Cell)getParent();
-		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			// see if an instance reexports the port
@@ -629,4 +839,37 @@ public class Export extends PortProto
 			}
 		}
 	}
+
+    /**
+     * This function is to compare Export elements. Initiative CrossLibCopy
+     * @param obj Object to compare to
+     * @param buffer To store comparison messages in case of failure
+     * @return True if objects represent same Export
+     */
+    public boolean compare(Object obj, StringBuffer buffer)
+    {
+        if (this == obj) return (true);
+
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        PortProto no = (PortProto)obj;
+        // getNameKey is required to call proper Name.equals()
+        if (!getNameKey().equals(no.getNameKey()))
+        {
+            if (buffer != null)
+                buffer.append("'" + this + "' and '" + no + "' do not have same name\n");
+            return (false);
+        }
+        PortCharacteristic noC = no.getCharacteristic();
+
+        if (!getCharacteristic().getName().equals(noC.getName()))
+        {
+            if (buffer != null)
+                buffer.append("'" + this + "' and '" + no + "' do not have same characteristic\n");
+            return (false);
+        }
+        return (true);
+    }    
 }

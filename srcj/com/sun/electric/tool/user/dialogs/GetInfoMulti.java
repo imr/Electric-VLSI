@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -148,9 +149,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		listPane.setViewportView(list);
 
 		characteristics.addItem("Leave selection alone");
-		for(Iterator it = PortProto.Characteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
+		for(Iterator it = PortCharacteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
 		{
-			PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
+			PortCharacteristic ch = (PortCharacteristic)it.next();
 			characteristics.addItem(ch.getName());
 		}
 
@@ -539,14 +540,14 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			if (exportCharacteristics != 0)
 			{
 				String charName = (String)dialog.characteristics.getSelectedItem();
-				PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(charName);
+				PortCharacteristic ch = PortCharacteristic.findCharacteristic(charName);
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();
 					if (h.getType() != Highlight.Type.TEXT) continue;
 					if (h.getVar() != null) continue;
 					if (!(h.getElectricObject() instanceof Export)) continue;
-					PortProto pp = (Export)h.getElectricObject();
+					Export pp = (Export)h.getElectricObject();
 					pp.setCharacteristic(ch);
 				}
 			}

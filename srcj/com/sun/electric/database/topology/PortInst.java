@@ -114,7 +114,7 @@ public class PortInst extends ElectricObject
 	 */
     public PortProto getProtoEquivalent() 
     {
-		return portProto.getEquivalent();
+		return portProto instanceof Export ? ((Export)portProto).getEquivalent() : portProto;
     }
     
 	/**

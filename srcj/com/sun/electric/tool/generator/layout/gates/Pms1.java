@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
@@ -68,7 +68,7 @@ public class Pms1 {
 		
 		// leave vertical m1 track for g
 		double gX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(pms1, "g", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(pms1, "g", PortCharacteristic.IN, Tech.m1,
 							4, gX, gY);
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		double pmosY = pmosBot + fw.physWid/2;
@@ -76,7 +76,7 @@ public class Pms1 {
 										fw.gateWid, pms1);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
-		LayoutLib.newExport(pms1, "d", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(pms1, "d", PortCharacteristic.OUT, Tech.m1,
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, pms1);

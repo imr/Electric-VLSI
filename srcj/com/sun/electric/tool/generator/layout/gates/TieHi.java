@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
@@ -50,9 +50,9 @@ public class TieHi {
 		// for the width of metal-2 Vdd connections and one for the width
 		// of metal-1 out connections.
 		String vddName = stdCell.getVddExportName();
-		PortProto.Characteristic vddRole = stdCell.getVddExportRole();
+		PortCharacteristic vddRole = stdCell.getVddExportRole();
 		LayoutLib.newExport(tieHi, vddName, vddRole, Tech.m2, 4, pwrX, pwrY);
-		LayoutLib.newExport(tieHi, "pwr", PortProto.Characteristic.OUT,
+		LayoutLib.newExport(tieHi, "pwr", PortCharacteristic.OUT,
 							Tech.m1, 4, pwrX, pwrY);
 
 		// connect the two exports using a via

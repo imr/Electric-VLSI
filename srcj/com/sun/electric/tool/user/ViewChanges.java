@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -663,27 +664,27 @@ public class ViewChanges
 	 */
 	private static int iconPosition(Export pp)
 	{
-		PortProto.Characteristic character = pp.getCharacteristic();
+		PortCharacteristic character = pp.getCharacteristic();
 
 		// special detection for power and ground ports
-		if (pp.isPower()) character = PortProto.Characteristic.PWR;
-		if (pp.isGround()) character = PortProto.Characteristic.GND;
+		if (pp.isPower()) character = PortCharacteristic.PWR;
+		if (pp.isGround()) character = PortCharacteristic.GND;
 
 		// see which side this type of port sits on
-		if (character == PortProto.Characteristic.IN)
+		if (character == PortCharacteristic.IN)
 			return User.getIconGenInputSide();
-		if (character == PortProto.Characteristic.OUT)
+		if (character == PortCharacteristic.OUT)
 			return User.getIconGenOutputSide();
-		if (character == PortProto.Characteristic.BIDIR)
+		if (character == PortCharacteristic.BIDIR)
 			return User.getIconGenBidirSide();
-		if (character == PortProto.Characteristic.PWR)
+		if (character == PortCharacteristic.PWR)
 			return User.getIconGenPowerSide();
-		if (character == PortProto.Characteristic.GND)
+		if (character == PortCharacteristic.GND)
 			return User.getIconGenGroundSide();
-		if (character == PortProto.Characteristic.CLK || character == PortProto.Characteristic.C1 ||
-			character == PortProto.Characteristic.C2 || character == PortProto.Characteristic.C3 ||
-			character == PortProto.Characteristic.C4 || character == PortProto.Characteristic.C5 ||
-			character == PortProto.Characteristic.C6)
+		if (character == PortCharacteristic.CLK || character == PortCharacteristic.C1 ||
+			character == PortCharacteristic.C2 || character == PortCharacteristic.C3 ||
+			character == PortCharacteristic.C4 || character == PortCharacteristic.C5 ||
+			character == PortCharacteristic.C6)
 				return User.getIconGenClockSide();
 		return User.getIconGenInputSide();
 	}

@@ -36,7 +36,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -926,10 +926,10 @@ public class SchemToLay {
 		
 		// place vdd and gnd exports on the first full height layout instance
 		Export.newInstance(gasp, findFirstPort(layInsts, "gnd"), "gnd")
-		    .setCharacteristic(PortProto.Characteristic.GND);
+		    .setCharacteristic(PortCharacteristic.GND);
 		gnd.connect(gasp.findExport("gnd"));
 		Export.newInstance(gasp, findFirstPort(layInsts, "vdd"), "vdd")
-		    .setCharacteristic(PortProto.Characteristic.PWR);
+		    .setCharacteristic(PortCharacteristic.PWR);
 		vdd.connect(gasp.findExport("vdd"));
 		
 		// connect up vdd and gnd

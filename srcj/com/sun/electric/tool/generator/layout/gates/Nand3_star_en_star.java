@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
@@ -285,7 +285,7 @@ class Nand3_star_en_star {
 		
 		// Nand input C
 		double incHiY = 11;
-		LayoutLib.newExport(nand, "inc", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "inc", PortCharacteristic.IN, Tech.m1,
 							4, incX, incHiY);
 		TrackRouter incHi = new TrackRouterH(Tech.m2, 3, incHiY, nand);
 		incHi.connect(nand.findExport("inc"));
@@ -303,7 +303,7 @@ class Nand3_star_en_star {
 		
 		// Nand input B
 		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nand);
-		LayoutLib.newExport(nand, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		inb.connect(nand.findExport("inb"));
 		if (symmetry.equals("SY")) {
@@ -318,7 +318,7 @@ class Nand3_star_en_star {
 		double inaX = pmosa.getSrcDrn(1).getBounds().getCenterX() + 2 + 3 + 2;
 		double inaHiY = stdCell.getVddY() + stdCell.getVddWidth()/2 +
 			3 + 2;	// m1_m1_sp + m1_wid/2
-		LayoutLib.newExport(nand, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, inaHiY);
 		TrackRouter inaHi = new TrackRouterH(Tech.m1, 3, inaHiY, nand);
 		inaHi.connect(nand.findExport("ina"));
@@ -345,7 +345,7 @@ class Nand3_star_en_star {
 		
 		// Nand output
 		double outX = inaX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nand, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outHiY);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nand);
 		outHi.connect(nand.findExport("out"));

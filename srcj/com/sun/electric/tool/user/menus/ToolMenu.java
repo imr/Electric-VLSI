@@ -60,16 +60,18 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -499,7 +501,7 @@ public class ToolMenu {
                 for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
                 {
                     PortProto pp = (PortProto)pIt.next();
-                    if (pp.isIsolated())
+                    if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isIsolated())
                     {
                         NodeInst ni = (NodeInst)no;
                         for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
@@ -807,13 +809,13 @@ public class ToolMenu {
                 for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
                 {
                     Export pp = (Export)pIt.next();
-                    if (pp.isNamedGround() && pp.getCharacteristic() != PortProto.Characteristic.GND)
+                    if (pp.isNamedGround() && pp.getCharacteristic() != PortCharacteristic.GND)
                     {
                         System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
                             ": does not have 'GROUND' characteristic");
                         total++;
                     }
-                    if (pp.isNamedPower() && pp.getCharacteristic() != PortProto.Characteristic.PWR)
+                    if (pp.isNamedPower() && pp.getCharacteristic() != PortCharacteristic.PWR)
                     {
                         System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
                             ": does not have 'POWER' characteristic");

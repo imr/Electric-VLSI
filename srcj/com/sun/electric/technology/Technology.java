@@ -2164,7 +2164,7 @@ public class Technology extends ElectricObject
 				{
 					portPoly.setStyle(Poly.Type.OPENED);
 				}
-				portPoly.setTextDescriptor(pp.getTextDescriptor());
+				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor(null)/*pp.getTextDescriptor()*/);
 				return portPoly;
 			}
 		}
@@ -2178,7 +2178,7 @@ public class Technology extends ElectricObject
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 		portPoly.setStyle(Poly.Type.FILLED);
-		portPoly.setTextDescriptor(pp.getTextDescriptor());
+		portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor(null)/*pp.getTextDescriptor()*/);
 		return portPoly;
 	}
 

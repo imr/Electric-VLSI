@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -55,8 +55,8 @@ public class Nand2PHfk {
 
 		String vddName = stdCell.getVddExportName();
 		String gndName = stdCell.getGndExportName();
-		PortProto.Characteristic vddRole = stdCell.getVddExportRole();
-		PortProto.Characteristic gndRole = stdCell.getGndExportRole();
+		PortCharacteristic vddRole = stdCell.getVddExportRole();
+		PortCharacteristic gndRole = stdCell.getGndExportRole();
 
 		NodeInst inv2i = LayoutLib.newNodeInst(Inv2i.makePart(sz, stdCell),
 											   0, 0, 1, 1, 0, nand);
@@ -98,13 +98,13 @@ public class Nand2PHfk {
 								  inv1.findPortInst("out")});
 		// exports
 		Export.newInstance(nand, inv2i.findPortInst("in[p]"), "inb")
-			.setCharacteristic(Export.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		Export.newInstance(nand, inv2i.findPortInst("in[n]"), "resetN")
-			.setCharacteristic(Export.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		Export.newInstance(nand, pms1.findPortInst("g"), "ina")
-			.setCharacteristic(Export.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		Export.newInstance(nand, inv2i.findPortInst("out"), "out")
-			.setCharacteristic(Export.Characteristic.OUT);
+			.setCharacteristic(PortCharacteristic.OUT);
 		Export.newInstance(nand, inv2i.findPortInst(vddName), vddName)
 			.setCharacteristic(vddRole);
 		Export.newInstance(nand, inv2i.findPortInst(gndName), gndName)

@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -629,13 +630,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setText(initialTextField);
 
 			popupLabel.setText("Characteristics:");
-			List characteristics = PortProto.Characteristic.getOrderedCharacteristics();
+			List characteristics = PortCharacteristic.getOrderedCharacteristics();
 			for(Iterator it = characteristics.iterator(); it.hasNext(); )
 			{
-				PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
+				PortCharacteristic ch = (PortCharacteristic)it.next();
 				popup.addItem(ch.getName());
 			}
-			PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(ni.getTechSpecific());
+			PortCharacteristic ch = PortCharacteristic.findCharacteristic(ni.getTechSpecific());
 			initialPopupEntry = ch.getName();
 			popup.setSelectedItem(initialPopupEntry);
 			popup.setEnabled(true);
@@ -691,9 +692,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			{
 				PortInst pi = (PortInst)it.next();
 				PortProto pp = pi.getPortProto();
-				PortProto.Characteristic ch = pp.getCharacteristic();
+				PortCharacteristic ch = pp.getCharacteristic();
 				String description;
-				if (ch == PortProto.Characteristic.UNKNOWN) description = "Port "; else
+				if (ch == PortCharacteristic.UNKNOWN) description = "Port "; else
 					description = ch.getName() + " port ";
 				description += pp.getName() + " connects to";
 				ArcProto [] connList = pp.getBasePort().getConnections();
@@ -957,7 +958,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				String currentCharacteristic = (String)dialog.popup.getSelectedItem();
 				if (!currentCharacteristic.equals(dialog.initialPopupEntry))
 				{
-					PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(currentCharacteristic);
+					PortCharacteristic ch = PortCharacteristic.findCharacteristic(currentCharacteristic);
 					ni.setTechSpecific(ch.getBits());
 					dialog.initialPopupEntry = currentCharacteristic;
 					changed = true;

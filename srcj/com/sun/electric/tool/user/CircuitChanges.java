@@ -4745,7 +4745,7 @@ public class CircuitChanges
 	 * Method to add all inheritable export variables from export "pp" on cell "np"
 	 * to instance "ni".
 	 */
-	private static void inheritExportAttributes(PortProto pp, NodeInst ni, Cell np)
+	private static void inheritExportAttributes(Export pp, NodeInst ni, Cell np)
 	{
 		for(Iterator it = pp.getVariables(); it.hasNext(); )
 		{

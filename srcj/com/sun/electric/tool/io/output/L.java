@@ -31,7 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -144,11 +144,11 @@ public class L extends Output
 			double xPos = poly.getCenterX();
 			double yPos = poly.getCenterY();
 			String type = "";
-			if (e.getCharacteristic() == PortProto.Characteristic.GND) type = "GND"; else
-				if (e.getCharacteristic() == PortProto.Characteristic.PWR) type = "VDD"; else
-					if (e.getCharacteristic() == PortProto.Characteristic.IN) type = "IN"; else
-						if (e.getCharacteristic() == PortProto.Characteristic.OUT) type = "OUT"; else
-							if (e.getCharacteristic() == PortProto.Characteristic.BIDIR) type = "INOUT";
+			if (e.getCharacteristic() == PortCharacteristic.GND) type = "GND"; else
+				if (e.getCharacteristic() == PortCharacteristic.PWR) type = "VDD"; else
+					if (e.getCharacteristic() == PortCharacteristic.IN) type = "IN"; else
+						if (e.getCharacteristic() == PortCharacteristic.OUT) type = "OUT"; else
+							if (e.getCharacteristic() == PortCharacteristic.BIDIR) type = "INOUT";
 			ArcProto ap = e.getBasePort().getConnections()[0];
 			String lay = getArcFunctionName(ap, ap.getName());
 			printWriter.println("\t" + type + " " + lay + " " + getLegalName(e.getName()) +

@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -508,7 +509,7 @@ public class LayoutLib {
 	 * @param y the y-coordinate of the layer pin.
 	 */
 	public static Export newExport(Cell cell, String name, 
-	                               PortProto.Characteristic role,
+	                               PortCharacteristic role,
 	                               ArcProto ap, double w, double x, double y) {
 		NodeProto np = ((PrimitiveArc)ap).findOverridablePinProto();
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");

@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -332,18 +333,18 @@ public class ROMGenerator
 		{
 			ap1 = ininvtop1;
 			apport1 = ivttop[i];
-			makeCStyleExport(rom, ap1, apport1, ("sel"+i), PortProto.Characteristic.IN);
+			makeCStyleExport(rom, ap1, apport1, ("sel"+i), PortCharacteristic.IN);
 		}
 		for (int i=0; i<romarray.length/folds; i++)
 		{
 			ap1 = invpln;
 			apport1 = invout[i];
-			makeCStyleExport(rom, ap1, apport1, ("out"+i), PortProto.Characteristic.OUT);
+			makeCStyleExport(rom, ap1, apport1, ("out"+i), PortCharacteristic.OUT);
 		}
 
 		ap2 = rompln;
 		apport2 = rompvdd;
-		makeCStyleExport(rom, ap2, apport2, ("vdd"), PortProto.Characteristic.PWR);
+		makeCStyleExport(rom, ap2, apport2, ("vdd"), PortCharacteristic.PWR);
 
 		// TODO: this arc comes out diagonal!!!
 		ap1 = nplane;
@@ -498,7 +499,7 @@ public class ROMGenerator
 							appos1[1], ap2, apport2, appos2[0], appos2[1]);
 		makeCStyleArcInst(m1arc, 4*lambda, ap2, apport2, appos2[0],
 							appos2[1], ap3, apport3, appos3[0], appos3[1]);
-		makeCStyleExport(rom, ap2, apport2, "gnd", PortProto.Characteristic.GND);
+		makeCStyleExport(rom, ap2, apport2, "gnd", PortCharacteristic.GND);
 
 		//////// connect decoder inverter vdd to rom vdd
 		ap1 = ininvtop2;
@@ -619,7 +620,7 @@ public class ROMGenerator
 			{
 				ap1 = ininvbot1;
 				apport1 = ivbbot[i];
-				makeCStyleExport(rom, ap1, apport1, "colsel"+i, PortProto.Characteristic.IN);
+				makeCStyleExport(rom, ap1, apport1, "colsel"+i, PortCharacteristic.IN);
 			}
 	
 			ap1 = nplane;
@@ -1039,7 +1040,7 @@ public class ROMGenerator
 										 m1m2cbox[2], m1m2cbox[3], 0, 0, romplane);
 				ap1 = m1m2pins[i];
 				apport1 = m1m2cport;
-				makeCStyleExport(romplane, ap1, apport1, "wordline_"+(inputs-i-1), PortProto.Characteristic.IN);
+				makeCStyleExport(romplane, ap1, apport1, "wordline_"+(inputs-i-1), PortCharacteristic.IN);
 			}
 			for (m=0; m<wordlines; m++)
 			{
@@ -1155,7 +1156,7 @@ public class ROMGenerator
 				{
 					ap1 = minpins[m][i];
 					apport1 = minports[m][i];
-					makeCStyleExport(romplane, ap1, apport1, "out_"+m, PortProto.Characteristic.OUT);
+					makeCStyleExport(romplane, ap1, apport1, "out_"+m, PortCharacteristic.OUT);
 				}
 				if (i == 0)
 				{
@@ -1339,7 +1340,7 @@ public class ROMGenerator
 									appos2[0], appos2[1]);
 				if (i == inputs)
 				{
-					makeCStyleExport(romplane, ap1, apport1, "romgnd"+m, PortProto.Characteristic.GND);
+					makeCStyleExport(romplane, ap1, apport1, "romgnd"+m, PortCharacteristic.GND);
 				}
 				ap1 = ap2;
 				apport1 = apport2;
@@ -1374,7 +1375,7 @@ public class ROMGenerator
 								appos1[1], ap2, apport2, appos2[0], appos2[1]);
 			if (m == (wordlines/2 - 1))
 			{
-				makeCStyleExport(romplane, ap2, apport2, "gnd", PortProto.Characteristic.GND);
+				makeCStyleExport(romplane, ap2, apport2, "gnd", PortCharacteristic.GND);
 			}
 		}
 		
@@ -1388,7 +1389,7 @@ public class ROMGenerator
 		appos1 = getCStylePortPosition(ap1, apport1);
 		makeCStyleArcInst(m1arc, 4*lambda, ap1, apport1, appos1[0],
 							appos1[1], ap2, apport2, appos2[0], appos2[1]);
-		makeCStyleExport(romplane, ap1, apport1, "gndc", PortProto.Characteristic.GND);
+		makeCStyleExport(romplane, ap1, apport1, "gndc", PortCharacteristic.GND);
 	
 		ap1 = gndpex[0];
 		apport1 = gndpexport[0];
@@ -1502,7 +1503,7 @@ public class ROMGenerator
 		makeCStyleArcInst(m2arc, 4*lambda, ap1, apport1, appos1[0],
 							appos1[1], ap2, apport2, appos2[0], appos2[1]);
 	
-		makeCStyleExport(romplane, ap2, apport2, "vdd", PortProto.Characteristic.PWR);
+		makeCStyleExport(romplane, ap2, apport2, "vdd", PortCharacteristic.PWR);
 	
 		// connect poly for the pull-up transistor
 		for (m=0; m<wordlines-1; m++)
@@ -1790,7 +1791,7 @@ public class ROMGenerator
 				{
 					ap1 = m1m2pins[m][i];
 					apport1 = m1m2ports[m][i];
-					makeCStyleExport(decn, ap1, apport1, "mid"+m, PortProto.Characteristic.IN);
+					makeCStyleExport(decn, ap1, apport1, "mid"+m, PortCharacteristic.IN);
 				}
 			}
 		}
@@ -1811,7 +1812,7 @@ public class ROMGenerator
 			apport1 = apport2;
 			appos1 = appos2;
 		}
-		makeCStyleExport(decn, ap1, apport1, "gnd", PortProto.Characteristic.GND);
+		makeCStyleExport(decn, ap1, apport1, "gnd", PortCharacteristic.GND);
 	
 		m = wordlines - 1;
 		for (i=0; i<inputs/2; i++)
@@ -1841,10 +1842,10 @@ public class ROMGenerator
 			appos1 = getCStylePortPosition(ap1, apport1); 
 			if (i%2 == 0)
 			{
-				makeCStyleExport(decn, ap1, apport1, "top_in"+(i/2), PortProto.Characteristic.IN);			
+				makeCStyleExport(decn, ap1, apport1, "top_in"+(i/2), PortCharacteristic.IN);			
 			} else
 			{
-				makeCStyleExport(decn, ap1, apport1, "top_in"+((i-1)/2)+"_b", PortProto.Characteristic.IN);			
+				makeCStyleExport(decn, ap1, apport1, "top_in"+((i-1)/2)+"_b", PortCharacteristic.IN);			
 			}
 		
 			ap1 = ortrans[0][i];
@@ -1859,10 +1860,10 @@ public class ROMGenerator
 	
 			if (i%2 == 0)
 			{
-				makeCStyleExport(decn, ap1, apport1, "bot_in"+(i/2), PortProto.Characteristic.IN);
+				makeCStyleExport(decn, ap1, apport1, "bot_in"+(i/2), PortCharacteristic.IN);
 			} else
 			{
-				makeCStyleExport(decn, ap1, apport1, "bot_in"+((i-1)/2)+"_b", PortProto.Characteristic.IN);
+				makeCStyleExport(decn, ap1, apport1, "bot_in"+((i-1)/2)+"_b", PortCharacteristic.IN);
 			}
 	
 			for (m=1; m<wordlines+1; m++)
@@ -1921,7 +1922,7 @@ public class ROMGenerator
 				apport1 = apport2;
 				appos1 = appos2;
 			}
-			makeCStyleExport(decn, ap1, apport1, "word"+m, PortProto.Characteristic.OUT);
+			makeCStyleExport(decn, ap1, apport1, "word"+m, PortCharacteristic.OUT);
 		}
 	
 		// connect transistors to wordline lines
@@ -2290,10 +2291,10 @@ public class ROMGenerator
 			appos1 = getCStylePortPosition(ap1, apport1); 
 			if (i%2 == 0)
 			{
-				makeCStyleExport(decp, ap1, apport1, "top_in"+(i/2), PortProto.Characteristic.IN);
+				makeCStyleExport(decp, ap1, apport1, "top_in"+(i/2), PortCharacteristic.IN);
 			} else
 			{
-				makeCStyleExport(decp, ap1, apport1, "top_in"+((i-1)/2)+"_b", PortProto.Characteristic.IN);
+				makeCStyleExport(decp, ap1, apport1, "top_in"+((i-1)/2)+"_b", PortCharacteristic.IN);
 			}
 			ap1 = andtrans[0][i];
 			if (top == true)
@@ -2306,10 +2307,10 @@ public class ROMGenerator
 			appos1 = getCStylePortPosition(ap1, apport1); 
 			if (i%2 == 0)
 			{
-				makeCStyleExport(decp, ap1, apport1, "bot_in"+(i/2), PortProto.Characteristic.IN);
+				makeCStyleExport(decp, ap1, apport1, "bot_in"+(i/2), PortCharacteristic.IN);
 			} else
 			{
-				makeCStyleExport(decp, ap1, apport1, "bot_in"+((i-1)/2)+"_b", PortProto.Characteristic.IN);
+				makeCStyleExport(decp, ap1, apport1, "bot_in"+((i-1)/2)+"_b", PortCharacteristic.IN);
 			}
 			for (m=1; m<wordlines+1; m++)
 			{
@@ -2433,7 +2434,7 @@ public class ROMGenerator
 		appos2 = getCStylePortPosition(ap2, apport2); 
 		makeCStyleArcInst(m1arc,4*lambda,ap1,apport1,appos1[0],
 							appos1[1],ap2,apport2,appos2[0], appos2[1]);
-		makeCStyleExport(decp, ap1, apport1, "vdd", PortProto.Characteristic.PWR);
+		makeCStyleExport(decp, ap1, apport1, "vdd", PortCharacteristic.PWR);
 	
 		ap1 = vddbpin;
 		apport1 = vddbport;
@@ -2443,7 +2444,7 @@ public class ROMGenerator
 		appos2 = getCStylePortPosition(ap2, apport2); 
 		makeCStyleArcInst(m1arc,4*lambda,ap1,apport1,appos1[0],
 							appos1[1],ap2,apport2,appos2[0], appos2[1]);
-		makeCStyleExport(decp, ap1, apport1, "vddb", PortProto.Characteristic.PWR);
+		makeCStyleExport(decp, ap1, apport1, "vddb", PortCharacteristic.PWR);
 		
 		// connect metal 2 lines
 		for (m=0; m<wordlines; m++)
@@ -2461,8 +2462,8 @@ public class ROMGenerator
 								appos1[1],ap2,apport2,appos2[0], appos2[1]);
 			makeCStyleArcInst(m1arc,4*lambda,ap1,apport1,appos1[0],
 								appos1[1],ap3,apport3,appos3[0], appos3[1]);
-			makeCStyleExport(decp, ap2, apport2, "word"+m, PortProto.Characteristic.OUT);
-			makeCStyleExport(decp, ap1, apport1, "wordin"+m, PortProto.Characteristic.IN);
+			makeCStyleExport(decp, ap2, apport2, "word"+m, PortCharacteristic.OUT);
+			makeCStyleExport(decp, ap1, apport1, "wordin"+m, PortCharacteristic.IN);
 		}
 	}
 
@@ -2648,7 +2649,7 @@ public class ROMGenerator
 										 m1m2cbox[3], 0, 0, muxplane);
 				ap1 = m1m2pins[i];
 				apport1 = m1m2cport;
-				makeCStyleExport(muxplane, ap1, apport1, "sel"+(selects-i-1), PortProto.Characteristic.IN);
+				makeCStyleExport(muxplane, ap1, apport1, "sel"+(selects-i-1), PortCharacteristic.IN);
 			}
 	
 			for (m=0; m<outputbits; m++)
@@ -2769,7 +2770,7 @@ public class ROMGenerator
 				}
 				if (i == 1)
 				{
-					makeCStyleExport(muxplane, ap1, apport1, "muxin"+m, PortProto.Characteristic.IN);
+					makeCStyleExport(muxplane, ap1, apport1, "muxin"+m, PortCharacteristic.IN);
 				}
 				ap1 = ap2;
 				apport1 = apport2;
@@ -2832,7 +2833,7 @@ public class ROMGenerator
 				makeCStyleArcInst(m2arc, 4*lambda, ap1, apport1, appos1[0],
 									appos1[1],ap2, apport2, appos2[0], appos2[1]);
 			}
-			makeCStyleExport(muxplane, ap1, apport1, "muxout"+j, PortProto.Characteristic.OUT);
+			makeCStyleExport(muxplane, ap1, apport1, "muxout"+j, PortCharacteristic.OUT);
 		}
 	}
 		
@@ -3037,7 +3038,7 @@ public class ROMGenerator
 												 m1m2cbox[2]+y-10*lambda,
 												 m1m2cbox[3]+y-10*lambda, 0, 0, invp);
 						gndcport = m1m2cport;
-						makeCStyleExport(invp, gndc, gndcport, "gnd", PortProto.Characteristic.GND);
+						makeCStyleExport(invp, gndc, gndcport, "gnd", PortCharacteristic.GND);
 					}
 				}
 			} else
@@ -3087,7 +3088,7 @@ public class ROMGenerator
 												 m1m2cbox[2]+y-10*lambda,
 												 m1m2cbox[3]+y-10*lambda, 0, 0, invp);
 						gndcport = m1m2cport;
-						makeCStyleExport(invp, gndc, gndcport, "gnd", PortProto.Characteristic.GND);
+						makeCStyleExport(invp, gndc, gndcport, "gnd", PortCharacteristic.GND);
 					}
 				}
 			}
@@ -3401,13 +3402,13 @@ public class ROMGenerator
 				makeCStyleArcInst(m2arc, 4*lambda, ap1, apport1, appos1[0],
 									appos1[1], ap2, apport2, appos2[0], appos2[1]);
 			}
-			makeCStyleExport(invp, ap1, apport1, "vdd", PortProto.Characteristic.PWR);
+			makeCStyleExport(invp, ap1, apport1, "vdd", PortCharacteristic.PWR);
 	
 			for (i=0; i<outs/folds; i++)
 			{
 				ap1 = gndpins2[i];
 				apport1 = gndports2[i];
-				makeCStyleExport(invp, ap1, apport1, "invgnd" + i, PortProto.Characteristic.GND);
+				makeCStyleExport(invp, ap1, apport1, "invgnd" + i, PortCharacteristic.GND);
 			}
 			ap1 = gndpins2[0];
 			apport1 = gndports2[0];
@@ -3466,13 +3467,13 @@ public class ROMGenerator
 				makeCStyleArcInst(m2arc, 4*lambda, ap1, apport1, appos1[0],
 									appos1[1], ap2, apport2, appos2[0], appos2[1]);
 			}
-			makeCStyleExport(invp, ap1, apport1, "vdd", PortProto.Characteristic.PWR);
+			makeCStyleExport(invp, ap1, apport1, "vdd", PortCharacteristic.PWR);
 	
 			for (i=0; i<outs/2; i++)
 			{
 				ap1 = gndpins[i];
 				apport1 = gndports[i];
-				makeCStyleExport(invp, ap1, apport1, "invgnd" + i, PortProto.Characteristic.GND);
+				makeCStyleExport(invp, ap1, apport1, "invgnd" + i, PortCharacteristic.GND);
 			}
 	
 			ap1 = gndpins[0];
@@ -3489,14 +3490,14 @@ public class ROMGenerator
 		{
 			ap1 = inpins[i];
 			apport1 = inports[i];
-			makeCStyleExport(invp, ap1, apport1, "invin" + i, PortProto.Characteristic.IN);
+			makeCStyleExport(invp, ap1, apport1, "invin" + i, PortCharacteristic.IN);
 		}
 	
 		for (i=0; i<outs/folds; i++)
 		{
 			ap1 = pmospins[i];
 			apport1 = pmosports[i];
-			makeCStyleExport(invp, ap1, apport1, "invout"+((outs/folds - 1) - i), PortProto.Characteristic.OUT);
+			makeCStyleExport(invp, ap1, apport1, "invout"+((outs/folds - 1) - i), PortCharacteristic.OUT);
 		}
 	
 	}
@@ -4069,7 +4070,7 @@ public class ROMGenerator
 		appos2 = getCStylePortPosition(ap2, apport2);
 		makeCStyleArcInst(m2arc,4*lambda,ap1,apport1,appos1[0],
 							appos1[1],ap2,apport2,appos2[0], appos2[1]);
-		makeCStyleExport(ininvp, ap2, apport2, "vdd", PortProto.Characteristic.PWR);
+		makeCStyleExport(ininvp, ap2, apport2, "vdd", PortCharacteristic.PWR);
 	
 		ap1 = gndpins2[0];
 		apport1 = gndports2[0];
@@ -4079,7 +4080,7 @@ public class ROMGenerator
 		appos2 = getCStylePortPosition(ap2, apport2);
 		makeCStyleArcInst(m2arc,4*lambda,ap1,apport1,appos1[0],
 							appos1[1],ap2,apport2,appos2[0], appos2[1]);
-		makeCStyleExport(ininvp, ap2, apport2, "gnd", PortProto.Characteristic.GND);
+		makeCStyleExport(ininvp, ap2, apport2, "gnd", PortCharacteristic.GND);
 	
 		if (top == true)
 		{
@@ -4087,7 +4088,7 @@ public class ROMGenerator
 			{
 				ap1 = inpins2[i];
 				apport1 = inports2[i];
-				makeCStyleExport(ininvp, ap1, apport1, "in_top" + i, PortProto.Characteristic.IN);
+				makeCStyleExport(ininvp, ap1, apport1, "in_top" + i, PortCharacteristic.IN);
 			}
 		} else
 		{
@@ -4095,7 +4096,7 @@ public class ROMGenerator
 			{
 				ap1 = inpins[i];
 				apport1 = inports[i];
-				makeCStyleExport(ininvp, ap1, apport1, "in_top" + i, PortProto.Characteristic.IN);
+				makeCStyleExport(ininvp, ap1, apport1, "in_top" + i, PortCharacteristic.IN);
 			}
 		}
 		if (top == true)
@@ -4104,7 +4105,7 @@ public class ROMGenerator
 			{
 				ap1 = outpins[i];
 				apport1 = outports[i];
-				makeCStyleExport(ininvp, ap1, apport1, "in_bot" + i, PortProto.Characteristic.IN);
+				makeCStyleExport(ininvp, ap1, apport1, "in_bot" + i, PortCharacteristic.IN);
 			}
 		} else
 		{
@@ -4112,7 +4113,7 @@ public class ROMGenerator
 			{
 				ap1 = outpins2[i];
 				apport1 = outports2[i];
-				makeCStyleExport(ininvp, ap1, apport1, "in_bot" + i, PortProto.Characteristic.IN);
+				makeCStyleExport(ininvp, ap1, apport1, "in_bot" + i, PortCharacteristic.IN);
 			}
 		}
 	
@@ -4120,7 +4121,7 @@ public class ROMGenerator
 		{
 			ap1 = pmospins[i];
 			apport1 = pmosports[i];
-			makeCStyleExport(ininvp, ap1, apport1, "in_b" + i, PortProto.Characteristic.IN);
+			makeCStyleExport(ininvp, ap1, apport1, "in_b" + i, PortCharacteristic.IN);
 		}
 	}
 
@@ -4340,7 +4341,7 @@ public class ROMGenerator
 	 * @param name the name of the new Export.
 	 * @param exporttype the Characteristic (in, out, etc.) of the new Export.
 	 */
-	private static void makeCStyleExport(Cell parent, NodeInst ni, PortProto pp, String name, PortProto.Characteristic exporttype)
+	private static void makeCStyleExport(Cell parent, NodeInst ni, PortProto pp, String name, PortCharacteristic exporttype)
 	{
 		PortInst pi = ni.findPortInstFromProto(pp);
 		Export e = Export.newInstance(parent, pi, name);

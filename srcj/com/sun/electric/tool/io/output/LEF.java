@@ -34,8 +34,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -217,9 +217,9 @@ public class LEF extends Output
 			Network net = netList.getNetwork(e, 0);
 			io_lefoutspread(cell, net, e.getOriginalPort().getNodeInst(), netList);
 			printWriter.println("    END");
-			if (e.getCharacteristic() == PortProto.Characteristic.PWR)
+			if (e.getCharacteristic() == PortCharacteristic.PWR)
 				printWriter.println("    USE POWER ;");
-			if (e.getCharacteristic() == PortProto.Characteristic.GND)
+			if (e.getCharacteristic() == PortCharacteristic.GND)
 				printWriter.println("    USE GROUND ;");
 			printWriter.println("  END " + e.getName());
 		}

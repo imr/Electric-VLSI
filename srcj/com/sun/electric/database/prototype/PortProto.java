@@ -27,20 +27,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 /**
- * The PortProto class defines a type of PortInst.
- * It is an abstract class that can be implemented as PrimitivePort (for primitives from Technologies)
+ * The PortProto interface defines a type of PortInst.
+ * It is be implemented as PrimitivePort (for primitives from Technologies)
  * or as Export (for cells in Libraries).
  * <P>
  * Every port in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
@@ -57,344 +50,40 @@ import java.util.List;
  * at a higher level in the schematic or layout hierarchy.
  * The PortProto also has a parent cell, characteristics, and more.
  */
-public abstract class PortProto extends ElectricObject
+public interface PortProto
 {
-	/** angle of this port from node center */			private static final int PORTANGLE =               0777;
-	/** right shift of PORTANGLE field */				private static final int PORTANGLESH =                0;
-	/** range of valid angles about port angle */		private static final int PORTARANGE =           0377000;
-	/** right shift of PORTARANGE field */				private static final int PORTARANGESH =               9;
-	/** electrical net of primitive port (0-30) */		private static final int PORTNET =           0177400000;
-           /* 31 stands for one-port net */
-	/** right shift of PORTNET field */					private static final int PORTNETSH =                 17;
-	/** set if arcs to this port do not connect */		private static final int PORTISOLATED =      0200000000;
-	/** set if this port should always be drawn */		private static final int PORTDRAWN =         0400000000;
-	/** set to exclude this port from the icon */		private static final int BODYONLY =         01000000000;
-	/** input/output/power/ground/clock state */		private static final int STATEBITS =       036000000000;
-	/** input/output/power/ground/clock state */		private static final int STATEBITSSHIFTED =         036;
-	/** input/output/power/ground/clock state */		private static final int STATEBITSSH =               27;
-	/** un-phased clock port */							private static final int CLKPORT =                    2;
-	/** clock phase 1 */								private static final int C1PORT =                     4;
-	/** clock phase 2 */								private static final int C2PORT =                     6;
-	/** clock phase 3 */								private static final int C3PORT =                     8;
-	/** clock phase 4 */								private static final int C4PORT =                    10;
-	/** clock phase 5 */								private static final int C5PORT =                    12;
-	/** clock phase 6 */								private static final int C6PORT =                    14;
-	/** input port */									private static final int INPORT =                    16;
-	/** output port */									private static final int OUTPORT =                   18;
-	/** bidirectional port */							private static final int BIDIRPORT =                 20;
-	/** power port */									private static final int PWRPORT =                   22;
-	/** ground port */									private static final int GNDPORT =                   24;
-	/** bias-level reference output port */				private static final int REFOUTPORT =                26;
-	/** bias-level reference input port */				private static final int REFINPORT =                 28;
-	/** bias-level reference base port */				private static final int REFBASEPORT =               30;
-
-	/**
-	 * Characteristic is a typesafe enum class that describes the function of a PortProto.
-	 * Characteristics are technology-independent and describe the nature of the port (input, output, etc.)
-	 */
-	public static class Characteristic
-	{
-		private final String name;
-		private final String shortName;
-		private final String fullName;
-		private final int bits;
-		private final int order;
-		private static int ordering = 0;
-
-		private static HashMap characteristicList = new HashMap();
-
-		private Characteristic(String shortName, String fullName, String name, int bits)
-		{
-			this.shortName = shortName;
-			this.fullName = fullName;
-			this.name = name;
-			this.bits = bits;
-			this.order = ordering++;
-			characteristicList.put(new Integer(bits), this);
-		}
-
-		/**
-		 * Method to return the bit value associated with this Characteristic.
-		 * @return the bit value associated with this Characteristic.
-		 */
-		public int getBits() { return bits; }
-
-		/**
-		 * Method to return the ordering of this Characteristic.
-		 * @return the order number of this Characteristic.
-		 */
-		public int getOrder() { return order; }
-
-		/**
-		 * Method to return the full name of this Characteristic.
-		 * @return the full name of this Characteristic.
-		 */
-		public String getFullName() { return fullName; }
-
-		/**
-		 * Method to return the short name of this Characteristic.
-		 * The short name is one or two characters, used in JELIB files.
-		 * @return the short name of this Characteristic.
-		 */
-		public String getShortName() { return shortName; }
-
-		/**
-		 * Method to return the short name of this Characteristic.
-		 * @return the short name of this Characteristic.
-		 */
-		public String getName() { return name; }
-
-		/**
-		 * Method to tell whether this Characteristic is "reference".
-		 * Reference exports have an extra name that identifies the reference export.
-		 * @return true if this Characteristic is "reference".
-		 */
-		public boolean isReference()
-		{
-			if (this == REFIN || this == REFOUT || this == REFBASE) return true;
-			return false;
-		}
-
-		/**
-		 * Method to find the characteristic associated with the given bit value.
-		 * @param bits the bit value associated with a Characteristic.
-		 * @return the desired Characteristic (null if not found).
-		 */
-		public static Characteristic findCharacteristic(int bits)
-		{
-			Object obj = characteristicList.get(new Integer(bits));
-			if (obj == null) return null;
-			return (Characteristic)obj;
-		}
-
-		/**
-		 * Method to find the characteristic associated with the given name.
-		 * @param wantName the name of a Characteristic.
-		 * @return the desired Characteristic (null if not found).
-		 */
-		public static Characteristic findCharacteristic(String wantName)
-		{
-			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
-			{
-				Characteristic ch = (Characteristic)it.next();
-				if (ch.name.equals(wantName)) return ch;
-			}
-			return null;
-		}
-
-		/**
-		 * Method to find the characteristic associated with the given short name.
-		 * The short name is one or two characters, used in JELIB files.
-		 * @param shortName the short name of a Characteristic.
-		 * @return the desired Characteristic (null if not found).
-		 */
-		public static Characteristic findCharacteristicShort(String shortName)
-		{
-			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
-			{
-				Characteristic ch = (Characteristic)it.next();
-				if (ch.shortName.equals(shortName)) return ch;
-			}
-			return null;
-		}
-
-		/**
-		 * Method to return an iterator over all of the PortProto Characteristics.
-		 * @return an iterator over all of the PortProto Characteristics.
-		 */
-		public static List getOrderedCharacteristics()
-		{
-			List orderedList = new ArrayList();
-			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
-				orderedList.add(it.next());
-			Collections.sort(orderedList, new CharacteristicOrder());
-			return orderedList;
-		}
-
-		static class CharacteristicOrder implements Comparator
-		{
-			public int compare(Object o1, Object o2)
-			{
-				Characteristic c1 = (Characteristic)o1;
-				Characteristic c2 = (Characteristic)o2;
-				return c1.order - c2.order;
-			}
-		}
-
-		/**
-		 * Returns a printable version of this Characteristic.
-		 * @return a printable version of this Characteristic.
-		 */
-		public String toString() { return name; }
-
-		/** Describes an unknown port. */
-			public static final Characteristic UNKNOWN = new Characteristic("U", "Unknown", "unknown", 0);
-		/** Describes an input port. */
-			public static final Characteristic IN      = new Characteristic("I", "Input", "input", INPORT);
-		/** Describes an output port. */
-			public static final Characteristic OUT     = new Characteristic("O", "Output", "output", OUTPORT);
-		/** Describes a bidirectional port. */
-			public static final Characteristic BIDIR   = new Characteristic("B", "Bidirectional", "bidirectional", BIDIRPORT);
-		/** Describes a power port. */
-			public static final Characteristic PWR     = new Characteristic("P", "Power", "power", PWRPORT);
-		/** Describes a ground port. */
-			public static final Characteristic GND     = new Characteristic("G", "Ground", "ground", GNDPORT);
-		/** Describes an un-phased clock port. */
-			public static final Characteristic CLK     = new Characteristic("C", "Clock", "clock", CLKPORT);
-		/** Describes a clock phase 1 port. */
-			public static final Characteristic C1      = new Characteristic("C1", "Clock Phase 1", "clock1", C1PORT);
-		/** Describes a clock phase 2 port. */
-			public static final Characteristic C2      = new Characteristic("C2", "Clock Phase 2", "clock2", C2PORT);
-		/** Describes a clock phase 3 port. */
-			public static final Characteristic C3      = new Characteristic("C3", "Clock Phase 3", "clock3", C3PORT);
-		/** Describes a clock phase 4 port. */
-			public static final Characteristic C4      = new Characteristic("C4", "Clock Phase 4", "clock4", C4PORT);
-		/** Describes a clock phase 5 port. */
-			public static final Characteristic C5      = new Characteristic("C5", "Clock Phase 5", "clock5", C5PORT);
-		/** Describes a clock phase 6 port. */
-			public static final Characteristic C6      = new Characteristic("C6", "Clock Phase 6", "clock6", C6PORT);
-		/** Describes a bias-level reference output port. */
-			public static final Characteristic REFOUT  = new Characteristic("RO", "Reference Output", "refout", REFOUTPORT);
-		/** Describes a bias-level reference input port. */
-			public static final Characteristic REFIN   = new Characteristic("RI", "Reference Input", "refin", REFINPORT);
-		/** Describes a bias-level reference base port. */
-			public static final Characteristic REFBASE = new Characteristic("RB", "Reference Base", "refbase", REFBASEPORT);
-	}
-
 	// ------------------------ private data --------------------------
-
-	/** The name of this PortProto. */							private Name protoName;
-	/** Internal flag bits of this PortProto. */				protected int userBits;
-	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
-	/** Index of this PortProto in NodeProto ports. */			private int portIndex;
-	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
-
-	/**
-	 * This constructor should not be called.
-	 * Use the subclass factory methods to create Export or PrimitivePort objects.
-	 */
-	protected PortProto()
-	{
-		this.parent = null;
-		this.userBits = 0;
-		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
-
-        // Prototypes are always assumed to be linked into the database
-        setLinked(true);
-	}
-
-	/**
-	 * Method to set the parent NodeProto that this PortProto belongs to.
-	 * @param parent the parent NodeProto that this PortProto belongs to.
-	 */
-	public void setParent(NodeProto parent)
-	{
-		this.parent = parent;
-	}
-
-	/**
-	 * Method to set the name of this PortProto.
-     * If this is an Export, you should most likely be using rename() instead.
-	 * @param protoName string with new name of this PortProto.
-	 */
-	public void setProtoName(String protoName)
-	{
-		this.protoName = Name.findName(protoName);
-	}
-
-	/**
-	 * Method to set an index of this PortProto in NodeProto ports.
-	 * This is a zero-based index of ports on the NodeProto.
-	 * @param portIndex an index of this PortProto in NodeProto ports.
-	 */
-	public /*temporarily*/  void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
 	/**
 	 * Method to get the index of this PortProto.
 	 * This is a zero-based index of ports on the NodeProto.
 	 * @return the index of this PortProto.
 	 */
-	public final int getPortIndex() { return portIndex; }
-
-//	/**
-//	 * Method to write a description of this PortProto.
-//	 * Displays the description in the Messages Window.
-//	 */
-//	public void getInfo()
-//	{
-//		System.out.println(" Parent: " + parent);
-//		System.out.println(" Name: " + protoName);
-//		super.getInfo();
-//	}
+	public int getPortIndex();
 
 	/**
 	 * Method to return the name key of this PortProto.
-	 * @return the Name of this PortProto.
+	 * @return the Name key of this PortProto.
 	 */
-	public Name getNameKey() { return protoName; }
+	public Name getNameKey();
 
 	/**
 	 * Method to return the name of this PortProto.
 	 * @return the name of this PortProto.
 	 */
-	public String getName() { return protoName.toString(); }
-
-	/**
-	 * Method to return the short name of this PortProto.
-	 * The short name is everything up to the first nonalphabetic character.
-	 * @return the short name of this PortProto.
-	 */
-	public String getShortName()
-	{
-		String name = protoName.toString();
-		int len = name.length();
-		for(int i=0; i<len; i++)
-		{
-			char ch = name.charAt(i);
-			if (Character.isLetterOrDigit(ch)) continue;
-			return name.substring(0, i);
-		}
-		return name;
-	}
+	public String getName();
 
 	/**
 	 * Method to return the parent NodeProto of this PortProto.
 	 * @return the parent NodeProto of this PortProto.
 	 */
-	public NodeProto getParent() { return parent; }
+	public NodeProto getParent();
 
 	/**
-	 * Method to return the Text Descriptor of this PortProto.
-	 * Text Descriptors tell how to display the port name.
-	 * @return the Text Descriptor of this PortProto.
+	 * Method to return the PortCharacteristic of this PortProto.
+	 * @return the PortCharacteristic of this PortProto.
 	 */
-	public TextDescriptor getTextDescriptor() { return descriptor; }
-
-	/**
-	 * Method to set the Text Descriptor of this PortProto.
-	 * Text Descriptors tell how to display the port name.
-	 * @param descriptor the Text Descriptor of this PortProto.
-	 */
-	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
-
-	/**
-	 * Method to return the Characteristic of this PortProto.
-	 * @return the Characteristic of this PortProto.
-	 */
-	public Characteristic getCharacteristic()
-	{
-		Characteristic characteristic = Characteristic.findCharacteristic((userBits>>STATEBITSSH)&STATEBITSSHIFTED);
-		return characteristic;
-	}
-
-	/**
-	 * Method to set the Characteristic of this PortProto.
-	 * @param characteristic the Characteristic of this PortProto.
-	 */
-	public void setCharacteristic(Characteristic characteristic)
-	{
-		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
-	}
+	public PortCharacteristic getCharacteristic();
 
 	/**
 	 * Method to determine whether this PortProto is of type Power.
@@ -402,293 +91,29 @@ public abstract class PortProto extends ElectricObject
 	 * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
 	 * @return true if this PortProto is of type Power.
 	 */
-	public boolean isPower()
-	{
-		Characteristic ch = getCharacteristic();
-		if (ch == Characteristic.PWR) return true;
-		if (ch != Characteristic.UNKNOWN) return false;
-		return isNamedPower();
-	}
-
-	/**
-	 * Method to determine whether this PortProto has a name that suggests Power.
-	 * This is determined by having a name starting with "vdd", "vcc", "pwr", or "power".
-	 * @return true if this PortProto has a name that suggests Power.
-	 */
-	public boolean isNamedPower()
-	{
-		String name = getName().toLowerCase();
-		if (name.indexOf("vdd") >= 0) return true;
-		if (name.indexOf("vcc") >= 0) return true;
-		if (name.indexOf("pwr") >= 0) return true;
-		if (name.indexOf("power") >= 0) return true;
-		return false;
-	}
+	public boolean isPower();
 
 	/**
 	 * Method to determine whether this PortProto is of type Ground.
-	 * This is determined by either having the proper Characteristic, or by
+	 * This is determined by either having the proper PortCharacteristic, or by
 	 * having the proper name (starting with "vss", "gnd", or "ground").
 	 * @return true if this PortProto is of type Ground.
 	 */
-	public boolean isGround()
-	{
-		Characteristic ch = getCharacteristic();
-		if (ch == Characteristic.GND) return true;
-		if (ch != Characteristic.UNKNOWN) return false;
-		return isNamedGround();
-	}
+	public boolean isGround();
 
 	/**
-	 * Method to determine whether this PortProto has a name that suggests Ground.
-	 * This is determined by either having a name starting with "vss", "gnd", or "ground".
-	 * @return true if this PortProto has a name that suggests Ground.
-	 */
-	public boolean isNamedGround()
-	{
-		String name = getName().toLowerCase();
-		if (name.indexOf("vss") >= 0) return true;
-		if (name.indexOf("gnd") >= 0) return true;
-		if (name.indexOf("ground") >= 0) return true;
-		return false;
-	}
-
-	/**
-	 * Method to return the angle of this PortProto.
-	 * This is the primary angle that the PortProto faces on the NodeProto.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @return the angle of this PortProto.
-	 */
-	public int getAngle()
-	{
-		return (userBits & PORTANGLE) >> PORTANGLESH;
-	}
-
-	/**
-	 * Method to set the angle of this PortProto.
-	 * This is the primary angle that the PortProto faces on the NodeProto.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @param angle the angle of this PortProto.
-	 */
-	protected void setAngle(int angle)
-	{
-		userBits = (userBits & ~PORTANGLE) | (angle << PORTANGLESH);
-	}
-
-	/**
-	 * Method to return the angle range of this PortProto.
-	 * This is the range about the angle of allowable connections.
-	 * When this value is 180, then all angles are permissible, since arcs
-	 * can connect at up to 180 degrees in either direction from the port angle.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @return the angle range of this PortProto.
-	 */
-	public int getAngleRange()
-	{
-		return (userBits & PORTARANGE) >> PORTARANGESH;
-	}
-
-	/**
-	 * Method to set the angle range of this PortProto.
-	 * This is the range about the angle of allowable connections.
-	 * When this value is 180, then all angles are permissible, since arcs
-	 * can connect at up to 180 degrees in either direction from the port angle.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @param angleRange the angle range of this PortProto.
-	 */
-	protected void setAngleRange(int angleRange)
-	{
-		userBits = (userBits & ~PORTARANGE) | (angleRange << PORTARANGESH);
-	}
-
-	/**
-	 * Method to set the topology of this PortProto.
-	 * This is a small integer that is unique among PortProtos on this NodeProto.
-	 * When two PortProtos have the same topology number, it indicates that these
-	 * ports are connected.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @param topologyIndex the topology of this PortProto.
-	 */
-	protected void setTopology(int topologyIndex)
-	{
-		userBits = (userBits & ~PORTNET) | (topologyIndex << PORTNETSH);
-	}
-
-	/**
-	 * Method to get the topology of this PortProto.
-	 * This is a small integer that is unique among PortProtos on this NodeProto.
-	 * When two PortProtos have the same topology number, it indicates that these
-	 * ports are connected.
-	 * It is only used on PrimitivePorts, and is set during Technology creation.
-	 * @return the topology of this PortProto.
-	 */
-	public int getTopology()
-	{
-		return (userBits & PORTNET) >> PORTNETSH;
-	}
-
-	/**
-	 * Method to set this PortProto to be isolated.
-	 * Isolated ports do not electrically connect their arcs.
-	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
-	 */
-	public void setIsolated() { userBits |= PORTISOLATED; }
-
-	/**
-	 * Method to set this PortProto to be not isolated.
-	 * Isolated ports do not electrically connect their arcs.
-	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
-	 */
-	public void clearIsolated() { userBits &= ~PORTISOLATED; }
-
-	/**
-	 * Method to tell whether this PortProto is isolated.
-	 * Isolated ports do not electrically connect their arcs.
-	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
-	 * @return true if this PortProto is isolated.
-	 */
-	public boolean isIsolated() { return (userBits & PORTISOLATED) != 0; }
-
-	/**
-	 * Method to set this PortProto to be always drawn.
-	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
-	 */
-	public void setAlwaysDrawn() { userBits |= PORTDRAWN; }
-
-	/**
-	 * Method to set this PortProto to be not always drawn.
-	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
-	 */
-	public void clearAlwaysDrawn() { userBits &= ~PORTDRAWN; }
-
-	/**
-	 * Method to tell whether this PortProto is always drawn.
-	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
-	 * @return true if this PortProto is always drawn.
-	 */
-	public boolean isAlwaysDrawn() { return (userBits & PORTDRAWN) != 0; }
-
-	/**
-	 * Method to set this PortProto to exist only in the body of a cell.
-	 * Ports that exist only in the body do not have an equivalent in the icon.
-	 * This is used by simulators and icon generators to recognize less significant ports.
-	 */
-	public void setBodyOnly() { userBits |= BODYONLY; }
-
-	/**
-	 * Method to set this PortProto to exist in the body and icon of a cell.
-	 * Ports that exist only in the body do not have an equivalent in the icon.
-	 * This is used by simulators and icon generators to recognize less significant ports.
-	 */
-	public void clearBodyOnly() { userBits &= ~BODYONLY; }
-
-	/**
-	 * Method to tell whether this PortProto exists only in the body of a cell.
-	 * Ports that exist only in the body do not have an equivalent in the icon.
-	 * This is used by simulators and icon generators to recognize less significant ports.
-	 * @return true if this PortProto exists only in the body of a cell.
-	 */
-	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
-
-	/**
-	 * Abstract method to return the base-level port that this PortProto is created from.
+	 * method to return the base-level port that this PortProto is created from.
 	 * For a PrimitivePort, it simply returns itself.
 	 * For an Export, it returns the base port of its sub-port, the port on the NodeInst
 	 * from which the Export was created.
 	 * @return the base-level port that this PortProto is created from.
 	 */
-	public abstract PrimitivePort getBasePort();
+	public PrimitivePort getBasePort();
 
 	/**
 	 * Method to return true if the specified ArcProto can connect to this PortProto.
 	 * @param arc the ArcProto to test for connectivity.
 	 * @return true if this PortProto can connect to the ArcProto, false if it can't.
 	 */
-	public boolean connectsTo(ArcProto arc)
-	{
-		return getBasePort().connectsTo(arc);
-	}
-
-	/**
-	 * Method to compute the color of this PortProto.
-	 * Uses the PrimitivePort at the bottom of the hierarchy.
-	 * @return the color to use for this PortProto.
-	 */
-	public Color colorOfPort()
-	{
-		return getBasePort().getPortColor();
-	}
-
-	/**
-	 * Low-level method to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return userBits; }
-
-	/**
-	 * Low-level method to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
-
-	/**
-	 * Method to return the PortProto that is equivalent to this in the
-	 * corresponding NodeProto. It is overrideen in Export.
-	 * @return the PortProto that is equivalent to this in the corresponding Cell.
-	 */
-	public PortProto getEquivalent()
-	{
-		return this;
-	}
-
-	/**
-	 * Returns a printable version of this PortProto.
-	 * @return a printable version of this PortProto.
-	 */
-	public String toString()
-	{
-		return "PortProto " + protoName;
-	}
-    /**
-     * This function is to compare PortProto elements. Initiative CrossLibCopy
-      * @param obj Object to compare to
-     * @param buffer To store comparison messages in case of failure
-     * @return True if objects represent same PortProto
-     */
-    public boolean compare(Object obj, StringBuffer buffer)
-    {
-        if (this == obj) return (true);
-
-        // Better if compare classes? but it will crash with obj=null
-        if (obj == null || getClass() != obj.getClass())
-            return (false);
-
-        PortProto no = (PortProto)obj;
-        // getNameKey is required to call proper Name.equals()
-        if (!protoName.equals(no.getNameKey()))
-        {
-            if (buffer != null)
-                buffer.append("'" + this + "' and '" + no + "' do not have same name\n");
-            return (false);
-        }
-        Characteristic noC = no.getCharacteristic();
-
-        if (!getCharacteristic().getName().equals(noC.getName()))
-        {
-            if (buffer != null)
-                buffer.append("'" + this + "' and '" + no + "' do not have same characteristic\n");
-            return (false);
-        }
-        return (true);
-    }    
+	public boolean connectsTo(ArcProto arc);
 }

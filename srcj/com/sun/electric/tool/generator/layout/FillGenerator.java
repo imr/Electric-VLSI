@@ -35,6 +35,7 @@ import java.util.List;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -934,7 +935,7 @@ class TiledCell {
 		for (Iterator it=ports.iterator(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			PortProto pp = (PortProto) pi.getPortProto();
-			PortProto.Characteristic role = pp.getCharacteristic(); 
+			PortCharacteristic role = pp.getCharacteristic(); 
 			if (role==stdCell.getVddExportRole()) {
 				//System.out.println(pp.getName());
 				Export e = Export.newInstance(tiled, pi, vddName());
@@ -1127,7 +1128,7 @@ public class FillGenerator {
 		stdCell = new StdCellParams(null);
 		stdCellP = new StdCellParams(null);
 		stdCellP.setVddExportName("power");
-		stdCellP.setVddExportRole(PortProto.Characteristic.IN);
+		stdCellP.setVddExportRole(PortCharacteristic.IN);
 		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
 		capCellP = new CapCell(lib, (CapFloorplan) plans[1], stdCellP);
 		

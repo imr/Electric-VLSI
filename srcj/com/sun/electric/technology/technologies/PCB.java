@@ -28,7 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.EdgeH;
@@ -496,7 +496,7 @@ public class PCB extends Technology
 			});
 		sp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "signal-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "signal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -511,7 +511,7 @@ public class PCB extends Technology
 			});
 		sp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "signal-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "signal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp0_node.setFunction(PrimitiveNode.Function.PIN);
@@ -526,7 +526,7 @@ public class PCB extends Technology
 			});
 		sp1_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "signal-3", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "signal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp1_node.setFunction(PrimitiveNode.Function.PIN);
@@ -541,7 +541,7 @@ public class PCB extends Technology
 			});
 		sp2_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "signal-4", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "signal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp2_node.setFunction(PrimitiveNode.Function.PIN);
@@ -556,7 +556,7 @@ public class PCB extends Technology
 			});
 		sp3_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "signal-5", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "signal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp3_node.setFunction(PrimitiveNode.Function.PIN);
@@ -571,7 +571,7 @@ public class PCB extends Technology
 			});
 		sp4_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "signal-6", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "signal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp4_node.setFunction(PrimitiveNode.Function.PIN);
@@ -586,7 +586,7 @@ public class PCB extends Technology
 			});
 		sp5_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "signal-7", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "signal-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp5_node.setFunction(PrimitiveNode.Function.PIN);
@@ -601,7 +601,7 @@ public class PCB extends Technology
 			});
 		sp6_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sp6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "signal-8", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sp6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "signal-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		sp6_node.setFunction(PrimitiveNode.Function.PIN);
@@ -616,7 +616,7 @@ public class PCB extends Technology
 			});
 		pp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "power-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "power-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -631,7 +631,7 @@ public class PCB extends Technology
 			});
 		pp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "power-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "power-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp0_node.setFunction(PrimitiveNode.Function.PIN);
@@ -646,7 +646,7 @@ public class PCB extends Technology
 			});
 		pp1_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "power-3", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "power-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp1_node.setFunction(PrimitiveNode.Function.PIN);
@@ -661,7 +661,7 @@ public class PCB extends Technology
 			});
 		pp2_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "power-4", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "power-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp2_node.setFunction(PrimitiveNode.Function.PIN);
@@ -676,7 +676,7 @@ public class PCB extends Technology
 			});
 		pp3_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "power-5", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "power-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp3_node.setFunction(PrimitiveNode.Function.PIN);
@@ -691,7 +691,7 @@ public class PCB extends Technology
 			});
 		pp4_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "power-6", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "power-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp4_node.setFunction(PrimitiveNode.Function.PIN);
@@ -706,7 +706,7 @@ public class PCB extends Technology
 			});
 		pp5_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "power-7", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "power-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp5_node.setFunction(PrimitiveNode.Function.PIN);
@@ -721,7 +721,7 @@ public class PCB extends Technology
 			});
 		pp6_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "power-8", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "power-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pp6_node.setFunction(PrimitiveNode.Function.PIN);
@@ -736,7 +736,7 @@ public class PCB extends Technology
 			});
 		tsp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, tsp_node, new ArcProto [] {Top_Silk_arc}, "top-silk", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, tsp_node, new ArcProto [] {Top_Silk_arc}, "top-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		tsp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -751,7 +751,7 @@ public class PCB extends Technology
 			});
 		bsp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bsp_node, new ArcProto [] {Bottom_Silk_arc}, "bottom-silk", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bsp_node, new ArcProto [] {Bottom_Silk_arc}, "bottom-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		bsp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -766,7 +766,7 @@ public class PCB extends Technology
 			});
 		tsp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, tsp0_node, new ArcProto [] {Top_Solder_arc}, "top-solder", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, tsp0_node, new ArcProto [] {Top_Solder_arc}, "top-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		tsp0_node.setFunction(PrimitiveNode.Function.PIN);
@@ -781,7 +781,7 @@ public class PCB extends Technology
 			});
 		bsp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bsp0_node, new ArcProto [] {Bottom_Solder_arc}, "bottom-solder", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bsp0_node, new ArcProto [] {Bottom_Solder_arc}, "bottom-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		bsp0_node.setFunction(PrimitiveNode.Function.PIN);
@@ -796,7 +796,7 @@ public class PCB extends Technology
 			});
 		dp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, dp_node, new ArcProto [] {Signal_1_arc, Signal_2_arc, Signal_3_arc, Signal_4_arc, Signal_5_arc, Signal_6_arc, Signal_7_arc, Signal_8_arc}, "drill", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, dp_node, new ArcProto [] {Signal_1_arc, Signal_2_arc, Signal_3_arc, Signal_4_arc, Signal_5_arc, Signal_6_arc, Signal_7_arc, Signal_8_arc}, "drill", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		dp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -811,7 +811,7 @@ public class PCB extends Technology
 			});
 		ndp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, ndp_node, new ArcProto [] {}, "nondrill", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, ndp_node, new ArcProto [] {}, "nondrill", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		ndp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -826,7 +826,7 @@ public class PCB extends Technology
 			});
 		edp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, edp_node, new ArcProto [] {Drawing_arc}, "engineering", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, edp_node, new ArcProto [] {Drawing_arc}, "engineering", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		edp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -841,7 +841,7 @@ public class PCB extends Technology
 			});
 		sn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "signal-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "signal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -856,7 +856,7 @@ public class PCB extends Technology
 			});
 		sn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "signal-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "signal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn0_node.setFunction(PrimitiveNode.Function.NODE);
@@ -871,7 +871,7 @@ public class PCB extends Technology
 			});
 		sn1_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "signal-3", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "signal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn1_node.setFunction(PrimitiveNode.Function.NODE);
@@ -886,7 +886,7 @@ public class PCB extends Technology
 			});
 		sn2_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "signal-4", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "signal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn2_node.setFunction(PrimitiveNode.Function.NODE);
@@ -901,7 +901,7 @@ public class PCB extends Technology
 			});
 		sn3_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "signal-5", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "signal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn3_node.setFunction(PrimitiveNode.Function.NODE);
@@ -916,7 +916,7 @@ public class PCB extends Technology
 			});
 		sn4_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "signal-6", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "signal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn4_node.setFunction(PrimitiveNode.Function.NODE);
@@ -931,7 +931,7 @@ public class PCB extends Technology
 			});
 		sn5_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "signal-7", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "signal-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn5_node.setFunction(PrimitiveNode.Function.NODE);
@@ -946,7 +946,7 @@ public class PCB extends Technology
 			});
 		sn6_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, sn6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "signal-8", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, sn6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "signal-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		sn6_node.setFunction(PrimitiveNode.Function.NODE);
@@ -961,7 +961,7 @@ public class PCB extends Technology
 			});
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "power-1", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Signal_1_arc, Power_1_arc}, "power-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -976,7 +976,7 @@ public class PCB extends Technology
 			});
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "power-2", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {Signal_2_arc, Power_2_arc}, "power-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn0_node.setFunction(PrimitiveNode.Function.NODE);
@@ -991,7 +991,7 @@ public class PCB extends Technology
 			});
 		pn1_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "power-3", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn1_node, new ArcProto [] {Signal_3_arc, Power_3_arc}, "power-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn1_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1006,7 +1006,7 @@ public class PCB extends Technology
 			});
 		pn2_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "power-4", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn2_node, new ArcProto [] {Signal_4_arc, Power_4_arc}, "power-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn2_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1021,7 +1021,7 @@ public class PCB extends Technology
 			});
 		pn3_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "power-5", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn3_node, new ArcProto [] {Signal_5_arc, Power_5_arc}, "power-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn3_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1036,7 +1036,7 @@ public class PCB extends Technology
 			});
 		pn4_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "power-6", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn4_node, new ArcProto [] {Signal_6_arc, Power_6_arc}, "power-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn4_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1051,7 +1051,7 @@ public class PCB extends Technology
 			});
 		pn5_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "power-7", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn5_node, new ArcProto [] {Signal_7_arc, Power_7_arc}, "power-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn5_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1066,7 +1066,7 @@ public class PCB extends Technology
 			});
 		pn6_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "power-8", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn6_node, new ArcProto [] {Signal_8_arc, Power_8_arc}, "power-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn6_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1081,7 +1081,7 @@ public class PCB extends Technology
 			});
 		tsn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, tsn_node, new ArcProto [] {Top_Silk_arc}, "top-silk", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, tsn_node, new ArcProto [] {Top_Silk_arc}, "top-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		tsn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1096,7 +1096,7 @@ public class PCB extends Technology
 			});
 		bsn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bsn_node, new ArcProto [] {Bottom_Silk_arc}, "bottom-silk", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bsn_node, new ArcProto [] {Bottom_Silk_arc}, "bottom-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		bsn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1111,7 +1111,7 @@ public class PCB extends Technology
 			});
 		tsn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, tsn0_node, new ArcProto [] {Top_Solder_arc}, "top-solder", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, tsn0_node, new ArcProto [] {Top_Solder_arc}, "top-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		tsn0_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1126,7 +1126,7 @@ public class PCB extends Technology
 			});
 		bsn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bsn0_node, new ArcProto [] {Bottom_Solder_arc}, "bottom-solder", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bsn0_node, new ArcProto [] {Bottom_Solder_arc}, "bottom-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		bsn0_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1141,7 +1141,7 @@ public class PCB extends Technology
 			});
 		edn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, edn_node, new ArcProto [] {Drawing_arc}, "engineering", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, edn_node, new ArcProto [] {Drawing_arc}, "engineering", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		edn_node.setFunction(PrimitiveNode.Function.NODE);

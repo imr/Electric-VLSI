@@ -28,7 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -58,7 +58,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	private Export shownExport;
 	private String initialName;
 	private String initialRefName;
-	private PortProto.Characteristic initialCharacteristic;
+	private PortCharacteristic initialCharacteristic;
 	private boolean initialBodyOnly, initialAlwaysDrawn;
     private EditWindow wnd;
 
@@ -191,9 +191,9 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		initialCharacteristic = pp.getCharacteristic();
 		characteristics.setSelectedItem(initialCharacteristic.getName());
 		initialRefName = "";
-		if (initialCharacteristic == PortProto.Characteristic.REFBASE ||
-			initialCharacteristic == PortProto.Characteristic.REFIN ||
-			initialCharacteristic == PortProto.Characteristic.REFOUT)
+		if (initialCharacteristic == PortCharacteristic.REFBASE ||
+			initialCharacteristic == PortCharacteristic.REFIN ||
+			initialCharacteristic == PortCharacteristic.REFOUT)
 		{
 			Variable var = pp.getVar(Export.EXPORT_REFERENCE_NAME);
 			if (var != null)
@@ -232,10 +232,10 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         Undo.addDatabaseChangeListener(this);
 
         // set characteristic combo box
-		List chars = PortProto.Characteristic.getOrderedCharacteristics();
+		List chars = PortCharacteristic.getOrderedCharacteristics();
 		for(Iterator it = chars.iterator(); it.hasNext(); )
 		{
-			PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
+			PortCharacteristic ch = (PortCharacteristic)it.next();
 			characteristics.addItem(ch.getName());
 		}
 
@@ -263,14 +263,14 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         String oldName;
         String newName;
         boolean newBodyOnly, newAlwaysDrawn;
-        PortProto.Characteristic newChar;
+        PortCharacteristic newChar;
         String newRefName;
 
 		protected ChangeExport(Export pp,
                 String oldName,
                 String newName,
                 boolean newBodyOnly, boolean newAlwaysDrawn,
-                PortProto.Characteristic newChar, String newRefName)
+                PortCharacteristic newChar, String newRefName)
 		{
 			super("Modify Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
@@ -501,7 +501,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	private void characteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_characteristicsActionPerformed
 	{//GEN-HEADEREND:event_characteristicsActionPerformed
 		String stringNow = (String)characteristics.getSelectedItem();
-		PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(stringNow);
+		PortCharacteristic ch = PortCharacteristic.findCharacteristic(stringNow);
 		refName.setEditable(ch.isReference());
 	}//GEN-LAST:event_characteristicsActionPerformed
 
@@ -528,7 +528,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         if (newAlwaysDrawn != initialAlwaysDrawn) changed = true;
         // check characteristic
         String newCharName = (String)characteristics.getSelectedItem();
-        PortProto.Characteristic newChar = PortProto.Characteristic.findCharacteristic(newCharName);
+        PortCharacteristic newChar = PortCharacteristic.findCharacteristic(newCharName);
         if (newChar != initialCharacteristic) changed = true;
         // check reference name
         String newRefName = refName.getText();

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -124,9 +124,9 @@ public class Connection
 				if (pp.isNegatable())
 				{					
 					// Check to ensure at least one end of negated arc is attached to functional
-					PortProto.Characteristic characteristic = portInst.getPortProto().getCharacteristic();
-					if (characteristic != PortProto.Characteristic.IN &&
-						characteristic != PortProto.Characteristic.OUT) return;
+					PortCharacteristic characteristic = portInst.getPortProto().getCharacteristic();
+					if (characteristic != PortCharacteristic.IN &&
+						characteristic != PortCharacteristic.OUT) return;
 
 					// negate the connection
                     setNegatedSafe(true);

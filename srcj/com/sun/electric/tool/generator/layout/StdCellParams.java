@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -135,8 +135,8 @@ public class StdCellParams {
 	private boolean simpleName = false;
 	private String vddExportName = "vdd";
 	private String gndExportName = "gnd";
-	private PortProto.Characteristic vddExportRole = PortProto.Characteristic.PWR;
-	private PortProto.Characteristic gndExportRole = PortProto.Characteristic.GND;
+	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
+	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
 
 	// ------------------------ private methods -----------------------------
 
@@ -368,16 +368,16 @@ public class StdCellParams {
 	public String getVddExportName() {return vddExportName;}
 	public void setGndExportName(String gndNm) {gndExportName=gndNm;}
 	public String getGndExportName() {return gndExportName;}
-	public void setVddExportRole(PortProto.Characteristic vddRole) {
+	public void setVddExportRole(PortCharacteristic vddRole) {
 		vddExportRole = vddRole;
 	}
-	public PortProto.Characteristic getVddExportRole() {
+	public PortCharacteristic getVddExportRole() {
 		return vddExportRole;
 	}
-	public void setGndExportRole(PortProto.Characteristic gndRole) {
+	public void setGndExportRole(PortCharacteristic gndRole) {
 		gndExportRole = gndRole;
 	}
-	public PortProto.Characteristic getGndExportRole() {
+	public PortCharacteristic getGndExportRole() {
 		return gndExportRole;
 	}
 
@@ -492,11 +492,11 @@ public class StdCellParams {
 	public String getPmosWellTieName() {
 		return separateWellTies ? "vnw" : vddExportName;
 	}
-	public PortProto.Characteristic getNmosWellTieRole() {
-		return separateWellTies ? PortProto.Characteristic.IN : gndExportRole;
+	public PortCharacteristic getNmosWellTieRole() {
+		return separateWellTies ? PortCharacteristic.IN : gndExportRole;
 	}
-	public PortProto.Characteristic getPmosWellTieRole() {
-		return separateWellTies ? PortProto.Characteristic.IN : vddExportRole;
+	public PortCharacteristic getPmosWellTieRole() {
+		return separateWellTies ? PortCharacteristic.IN : vddExportRole;
 	}
 	public void setSimpleName(boolean b) {simpleName = b;}
 	public boolean getSimpleName() {return simpleName;}
@@ -761,7 +761,7 @@ public class StdCellParams {
 			                                         busY, DEF_SIZE, DEF_SIZE, 0, f);
 			PortInst pin = pinProt.getOnlyPortInst();
 			Export e = Export.newInstance(f, pin, exportNm);
-			PortProto.Characteristic role =	
+			PortCharacteristic role =	
 				mos instanceof FoldedPmos ? vddExportRole : gndExportRole;
 			e.setCharacteristic(role);
 

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -80,7 +80,7 @@ public class InvV {
 
 		// leave vertical m1 track for in
 		double inX = 1.5 + 2; // m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1,
 							4, inX, inY);
 
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
@@ -93,7 +93,7 @@ public class InvV {
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
-		LayoutLib.newExport(inv, "out", PortProto.Characteristic.OUT,
+		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
 							Tech.m1, 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains

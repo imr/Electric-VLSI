@@ -27,6 +27,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
@@ -188,7 +189,7 @@ public class Pads extends Output
 			// save all networks on this node for later
 			for(Iterator it = np.getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
+				Export pp = (Export)it.next();
 				String pName = null;
 				PortInst pi = no.getNodeInst().findPortInstFromProto(pp);
 				Variable pVar = pi.getVar(PIN_KEY);

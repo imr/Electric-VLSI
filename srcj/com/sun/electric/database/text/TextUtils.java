@@ -1128,4 +1128,15 @@ public class TextUtils
 		}
 	}
 
+	public static class PrefsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Pref p1 = (Pref)o1;
+			Pref p2 = (Pref)o2;
+			String s1 = p1.getPrefName();
+			String s2 = p2.getPrefName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 }

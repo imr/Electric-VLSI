@@ -36,6 +36,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -244,9 +245,9 @@ public class EDIF extends Topology
 			{
 				Export e = cs.getExport();
 				String direction = "INPUT";
-				if (e.getCharacteristic() == PortProto.Characteristic.OUT ||
-					e.getCharacteristic() == PortProto.Characteristic.REFOUT) direction = "OUTPUT";
-				if (e.getCharacteristic() == PortProto.Characteristic.BIDIR) direction = "INOUT";
+				if (e.getCharacteristic() == PortCharacteristic.OUT ||
+					e.getCharacteristic() == PortCharacteristic.REFOUT) direction = "OUTPUT";
+				if (e.getCharacteristic() == PortCharacteristic.BIDIR) direction = "INOUT";
 				blockOpen("port");
 				blockPutIdentifier(makeToken(cs.getName()));
 				blockPut("direction", direction);
@@ -639,8 +640,8 @@ public class EDIF extends Topology
 		{
 			PortProto pp = np.getPort(k);
 			String direction = "input";
-			if (pp.getCharacteristic() == PortProto.Characteristic.OUT) direction = "output"; else
-				if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) direction = "inout";
+			if (pp.getCharacteristic() == PortCharacteristic.OUT) direction = "output"; else
+				if (pp.getCharacteristic() == PortCharacteristic.BIDIR) direction = "inout";
 			blockOpen("port");
 			blockPutIdentifier(makeToken(pp.getName()));
 			blockPut("direction", direction);

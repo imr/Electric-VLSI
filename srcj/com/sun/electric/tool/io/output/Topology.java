@@ -35,7 +35,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -827,8 +827,8 @@ public abstract class Topology extends Output
 			if (cs1.pp != null && cs2.pp != null)
 			{
 				// both are exported: sort by characteristics (if different)
-				PortProto.Characteristic ch1 = cs1.pp.getCharacteristic();
-				PortProto.Characteristic ch2 = cs2.pp.getCharacteristic();
+				PortCharacteristic ch1 = cs1.pp.getCharacteristic();
+				PortCharacteristic ch2 = cs2.pp.getCharacteristic();
 				if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
 			}
 			if (cs1.descending != cs2.descending)

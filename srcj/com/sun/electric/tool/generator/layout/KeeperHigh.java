@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -137,13 +138,13 @@ public class KeeperHigh {
 
 		// exports
 		Export.newInstance(keep, mc.findPortInst("in"), "mc")
-			.setCharacteristic(Export.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		Export.newInstance(keep, pmos.findPortInst("d"), "d")
-			.setCharacteristic(Export.Characteristic.BIDIR);
+			.setCharacteristic(PortCharacteristic.BIDIR);
 		Export.newInstance(keep, invK.findPortInst("vdd"), "vdd")
-			.setCharacteristic(Export.Characteristic.PWR);
+			.setCharacteristic(PortCharacteristic.PWR);
 		Export.newInstance(keep, invK.findPortInst("gnd"), "gnd")
-			.setCharacteristic(Export.Characteristic.GND);
+			.setCharacteristic(PortCharacteristic.GND);
 
 		// patch well over pullup
 		stdCell.addNmosWell(

@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -263,16 +264,16 @@ public class ELIB extends Output
 // 				ArcProto ap = (ArcProto)ait.next();
 // 				findXLibVariables(ap);
 // 			}
-			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)nit.next();
+// 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
+// 			{
+// 				PrimitiveNode np = (PrimitiveNode)nit.next();
 //				findXLibVariables(np);
-				for(Iterator eit = np.getPorts(); eit.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)eit.next();
-					findXLibVariables(pp);
-				}
-			}
+// 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
+// 				{
+// 					PrimitivePort pp = (PrimitivePort)eit.next();
+// 					findXLibVariables(pp);
+// 				}
+// 			}
 		}
 // 		for(Iterator it = View.getViews(); it.hasNext(); )
 // 		{
@@ -561,14 +562,14 @@ public class ELIB extends Output
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
-			writeVariables(tool, 0);
+			writeMeaningPrefs(tool);
 		}
 
 		// write the variables on technologies
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			writeVariables(tech, 0);
+			writeMeaningPrefs(tech);
 		}
 
 		// write the arcproto variables
@@ -607,7 +608,9 @@ public class ELIB extends Output
 				for(Iterator pit = np.getPorts(); pit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pit.next();
-					writeVariables(pp, 0);
+					// write zero number of Variables
+					writeBigInteger(0);
+// 					writeVariables(pp, 0);
 				}
 			}
 		}
@@ -1145,6 +1148,42 @@ public class ELIB extends Output
 		}
 
 		return(count);
+	}
+
+	/**
+	 * Method to write a set of meaning preferences.
+	 */
+	private void writeMeaningPrefs(Object obj)
+		throws IOException
+	{
+		List prefs = Pref.getMeaningVariables(obj);
+		writeBigInteger(prefs.size());
+		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		{
+			Pref pref = (Pref)it.next();
+			short index = (short)pref.getMeaning().getKey().getIndex();
+            if (index < 0) {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"ERROR! Too many unique variable names",
+                    "The ELIB format cannot handle this many unique variables names", "Either delete the excess variables, or save to a readable dump"},
+                    "Error saving ELIB file", JOptionPane.ERROR_MESSAGE);
+                throw new IOException("Variable.Key index too large");
+            }
+			writeSmallInteger(index);
+
+			// create the "type" field
+			Object varObj = pref.getValue();
+			int type = ELIBConstants.getVarType(varObj);
+            if (type == 0) {
+                System.out.println("Wrote Type 0 for Variable "+pref.getPrefName()+", value "+varObj);
+            }
+			writeBigInteger(type);
+
+			// write zero text descriptor
+			writeBigInteger(0);
+			writeBigInteger(0);
+
+			putOutVar(varObj);
+		}
 	}
 
 	/**

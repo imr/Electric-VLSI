@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -348,7 +349,7 @@ public class Silos extends Topology
 					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
-						if (pp.getCharacteristic() == PortProto.Characteristic.OUT)
+						if (pp.getCharacteristic() == PortCharacteristic.OUT)
 						{
 							// find the name of the output port
 							writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
@@ -654,7 +655,7 @@ public class Silos extends Topology
 			}
 		}
 		boolean negated = false;
-		if (con != null && con.isNegated() && pp.getCharacteristic() == PortProto.Characteristic.IN) negated = true;
+		if (con != null && con.isNegated() && pp.getCharacteristic() == PortCharacteristic.IN) negated = true;
 
 		Network net = null;
 		if (con != null)

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
@@ -72,7 +72,7 @@ public class Nms2 {
 
 		// leave vertical m1 track for g
 		double gX = 1.5 + 2; // m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(nms2, "g", PortProto.Characteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(nms2, "g", PortCharacteristic.IN, Tech.m1, 4,
 							gX, gY);
 		double mosX = gX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
 
@@ -87,11 +87,11 @@ public class Nms2 {
 				nms2);
 		// g2  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double g2X = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
-		LayoutLib.newExport(nms2, "g2", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nms2, "g2", PortCharacteristic.IN, Tech.m1,
 							4, g2X, g2Y);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = g2X + 2 + 3 + 2;
-		LayoutLib.newExport(nms2, "d", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nms2, "d", PortCharacteristic.OUT, Tech.m1,
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nms2);

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
@@ -133,7 +133,7 @@ public class Nor2kresetV {
 		// Nor input B
 		double inbHiY = outHiY;
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nor, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbHiY);
 		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, jogX, inbHiY, 1, 1, 0,
 											 nor).getOnlyPortInst();
@@ -158,7 +158,7 @@ public class Nor2kresetV {
 		}
 		
 		// Nor input A
-		LayoutLib.newExport(nor, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		TrackRouter inA = new TrackRouterH(Tech.m1, 3, inaY, nor);
 		inA.connect(nor.findExport("ina"));
@@ -177,7 +177,7 @@ public class Nor2kresetV {
 		// ndm1_wid
 		double resetX = StdCellParams.getRightDiffX(bigMos) + 2 + 3 + 2;
 		double resetY = nmosTop - fwS.physWid + 2.5 - wirePitch;
-		LayoutLib.newExport(nor, "resetV", PortProto.Characteristic.IN,
+		LayoutLib.newExport(nor, "resetV", PortCharacteristic.IN,
 							Tech.m1, 4, resetX, resetY);
 		TrackRouter reset = new TrackRouterH(Tech.m1, 3, resetY, nor);
 		reset.connect(nor.findExport("resetV"));
@@ -187,7 +187,7 @@ public class Nor2kresetV {
 		
 		// Nor output
 		double outX = resetX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nor, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outHiY);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nor);
 		outHi.connect(nor.findExport("out"));

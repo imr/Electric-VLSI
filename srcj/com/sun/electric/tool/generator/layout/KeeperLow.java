@@ -28,6 +28,7 @@ import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -102,13 +103,13 @@ public class KeeperLow {
 
 		// exports
 		Export.newInstance(keep, nmos.findPortInst("g"), "mc")
-			.setCharacteristic(Export.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		Export.newInstance(keep, nmos.findPortInst("d"), "d")
-			.setCharacteristic(Export.Characteristic.BIDIR);
+			.setCharacteristic(PortCharacteristic.BIDIR);
 		Export.newInstance(keep, invK.findPortInst("vdd"), "vdd")
-			.setCharacteristic(Export.Characteristic.PWR);
+			.setCharacteristic(PortCharacteristic.PWR);
 		Export.newInstance(keep, invK.findPortInst("gnd"), "gnd")
-			.setCharacteristic(Export.Characteristic.GND);
+			.setCharacteristic(PortCharacteristic.GND);
 
 		// patch well over pulldown
 		stdCell.addPmosWell(0, nmos.getBounds().getWidth(), keep);

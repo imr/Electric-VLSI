@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -61,9 +62,9 @@ public class NewExport extends EDialog
 
 		// setup the export characteristics popup
 		String last = latestCharacteristic;
-		for(Iterator it = PortProto.Characteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
+		for(Iterator it = PortCharacteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
 		{
-			PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
+			PortCharacteristic ch = (PortCharacteristic)it.next();
 			exportCharacteristics.addItem(ch.getName());
 		}
 		if (last != null)
@@ -242,7 +243,7 @@ public class NewExport extends EDialog
 	private void exportCharacteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exportCharacteristicsActionPerformed
 	{//GEN-HEADEREND:event_exportCharacteristicsActionPerformed
 		latestCharacteristic = (String)exportCharacteristics.getSelectedItem();
-		PortProto.Characteristic characteristic = PortProto.Characteristic.findCharacteristic(latestCharacteristic);
+		PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(latestCharacteristic);
 		referenceExport.setEditable(characteristic.isReference());
 	}//GEN-LAST:event_exportCharacteristicsActionPerformed
 
@@ -251,7 +252,7 @@ public class NewExport extends EDialog
 		String name = exportName.getText();
 		String referenceName = referenceExport.getText();
 		String characteristics = (String)exportCharacteristics.getSelectedItem();
-		PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(characteristics);
+		PortCharacteristic ch = PortCharacteristic.findCharacteristic(characteristics);
 		boolean drawn = alwaysDrawn.isSelected();
 		boolean body = bodyOnly.isSelected();
 		if (name.length() <= 0)
@@ -313,10 +314,10 @@ public class NewExport extends EDialog
 		String referenceName;
 		boolean body;
 		boolean drawn;
-		PortProto.Characteristic ch;
+		PortCharacteristic ch;
 
 		protected MakeExport(Cell cell, PortInst pi, String name,
-			boolean body, boolean drawn, PortProto.Characteristic ch, String referenceName)
+			boolean body, boolean drawn, PortCharacteristic ch, String referenceName)
 		{
 			super("Make Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;

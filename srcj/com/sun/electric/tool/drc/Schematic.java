@@ -346,7 +346,7 @@ public class Schematic
 				Cell np = subNp.contentsView();
 				if (np != null)
 				{
-					pp = pi.getPortProto().getEquivalent();
+					pp = ((Export)pi.getPortProto()).getEquivalent();
 					if (pp == null || pp == pi.getPortProto())
 					{
 						ErrorLogger.MessageLog err = errorLogger.logError("Arc " + ai.describe() + " connects to port " +

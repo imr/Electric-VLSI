@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -114,7 +114,7 @@ class Nor2_star {
 		
 		// Nor input A
 		double inaX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
-		LayoutLib.newExport(nor, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		TrackRouter inA = new TrackRouterH(Tech.m1, 3, inaY, nor);
 		inA.connect(nor.findExport("ina"));
@@ -131,7 +131,7 @@ class Nor2_star {
 		
 		// Nor input B
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nor, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nor);
 		inb.connect(nor.findExport("inb"));
@@ -148,7 +148,7 @@ class Nor2_star {
 		
 		// Nor output
 		double outX = inaX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nor, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outHiY);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nor);
 		outHi.connect(nor.findExport("out"));

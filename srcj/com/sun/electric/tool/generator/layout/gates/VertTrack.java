@@ -25,7 +25,7 @@ package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
@@ -48,7 +48,7 @@ public class VertTrack {
 		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin, inX, inY, 1, 1, 0,
 											   vtrack).getOnlyPortInst();
 		Export.newInstance(vtrack, inPin, "in")
-			.setCharacteristic(PortProto.Characteristic.IN);
+			.setCharacteristic(PortCharacteristic.IN);
 		// Add some metal to port to allow software to guess the width
 		// of metal to use to connect to this port.
 		LayoutLib.newArcInst(Tech.m1, 3, inPin, inPin);

@@ -35,7 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -291,9 +291,9 @@ public class DebugMenus {
 
 			// export the two pins
 			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
-			m1Export.setCharacteristic(PortProto.Characteristic.IN);
+			m1Export.setCharacteristic(PortCharacteristic.IN);
 			Export p1Export = Export.newInstance(myCell, p1PortA, "out");
-			p1Export.setCharacteristic(PortProto.Characteristic.OUT);
+			p1Export.setCharacteristic(PortCharacteristic.OUT);
 			System.out.println("Created cell " + myCell.describe());
 
 
@@ -1475,33 +1475,6 @@ public class DebugMenus {
 					Variable var = (Variable)vit.next();
 					System.out.println("tech has " + var);
 				}
-				for (Iterator nit = tech.getNodes(); nit.hasNext();)
-				{
-					PrimitiveNode pn = (PrimitiveNode)nit.next();
-// 					for (Iterator vit = pn.getVariables(); vit.hasNext();)
-// 					{
-// 						Variable var = (Variable)vit.next();
-// 						System.out.println(pn + " has " + var);
-// 					}
-					for (Iterator pit = pn.getPorts(); pit.hasNext();)
-					{
-						PrimitivePort pp = (PrimitivePort)pit.next();
-						for (Iterator vit = pp.getVariables(); vit.hasNext();)
-						{
-							Variable var = (Variable)vit.next();
-							System.out.println(pn + " " + pp + " has " + var);
-						}
-					}
-				}
-// 				for (Iterator ait = tech.getArcs(); ait.hasNext();)
-// 				{
-// 					PrimitiveArc an = (PrimitiveArc)ait.next();
-// 					for (Iterator vit = an.getVariables(); vit.hasNext();)
-// 					{
-// 						Variable var = (Variable)vit.next();
-// 						System.out.println(an + " has " + var);
-// 					}
-// 				}
 			}
 			System.out.println("Tool variables.");
 			for (Iterator tit = Tool.getTools(); tit.hasNext();)
@@ -1514,17 +1487,6 @@ public class DebugMenus {
 					System.out.println("tool has " + var);
 				}
 			}
-// 			System.out.println("View variables.");
-// 			for (Iterator wit = View.getViews(); wit.hasNext();)
-// 			{
-// 				View view = (View)wit.next();
-// 				System.out.println(view + ":");
-// 				for (Iterator vit = view.getVariables(); vit.hasNext();)
-// 				{
-// 					Variable var = (Variable)vit.next();
-// 					System.out.println("view has " + var);
-// 				}
-// 			}
 			return true;
 		}
 	}

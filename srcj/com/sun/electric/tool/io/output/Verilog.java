@@ -33,6 +33,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.TextUtils;
@@ -271,7 +272,7 @@ public class Verilog extends Topology
 			if (pp == null) continue;
 
 			String portType = "input";
-			if (pp.getCharacteristic() == PortProto.Characteristic.OUT)
+			if (pp.getCharacteristic() == PortCharacteristic.OUT)
 				portType = "output";
 			printWriter.print("  " + portType);
 			if (cas.getLowIndex() > cas.getHighIndex())

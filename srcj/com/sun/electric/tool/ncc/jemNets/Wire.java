@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 public class Wire extends NetObject{
@@ -64,7 +64,7 @@ public class Wire extends NetObject{
     
 	/** add a Port to this Wire
 	 * @param p the Port to add */
-    public Port addExport(String portName, PortProto.Characteristic type) {
+    public Port addExport(String portName, PortCharacteristic type) {
 		if (port==null)  port = new Port(portName, type, this);
 		else port.addExport(portName, type); 
 		return port;

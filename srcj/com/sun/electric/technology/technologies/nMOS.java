@@ -30,7 +30,7 @@ import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 
 import java.awt.Color;
@@ -630,7 +630,7 @@ public class nMOS extends Technology
 			});
 		mp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, mp_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, mp_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -645,7 +645,7 @@ public class nMOS extends Technology
 			});
 		pp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		pp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -660,7 +660,7 @@ public class nMOS extends Technology
 			});
 		dp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, dp_node, new ArcProto [] {Diffusion_arc}, "diffusion", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, dp_node, new ArcProto [] {Diffusion_arc}, "diffusion", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		dp_node.setFunction(PrimitiveNode.Function.PIN);
@@ -677,7 +677,7 @@ public class nMOS extends Technology
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, mpc_node, new ArcProto [] {Polysilicon_arc, Metal_arc}, "metal-poly", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, mpc_node, new ArcProto [] {Polysilicon_arc, Metal_arc}, "metal-poly", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
@@ -694,7 +694,7 @@ public class nMOS extends Technology
 			});
 		mdc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, mdc_node, new ArcProto [] {Diffusion_arc, Metal_arc}, "metal-diff", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, mdc_node, new ArcProto [] {Diffusion_arc, Metal_arc}, "metal-diff", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mdc_node.setFunction(PrimitiveNode.Function.CONTACT);
@@ -712,9 +712,9 @@ public class nMOS extends Technology
 			});
 		bc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bc_node, new ArcProto [] {Diffusion_arc, Metal_arc}, "but-diff", 180,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bc_node, new ArcProto [] {Diffusion_arc, Metal_arc}, "but-diff", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(3), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bc_node, new ArcProto [] {Polysilicon_arc, Metal_arc}, "but-poly", 0,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bc_node, new ArcProto [] {Polysilicon_arc, Metal_arc}, "but-poly", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(2), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		bc_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -729,13 +729,13 @@ public class nMOS extends Technology
 			});
 		bcc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Diffusion_arc}, "bur-diff-right", 0,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Diffusion_arc}, "bur-diff-right", 0,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.fromBottom(2), EdgeH.fromRight(1), EdgeV.fromTop(2)),
-				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2)),
-				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(3), EdgeV.fromBottom(1)),
-				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcc_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(3), EdgeV.fromTop(1))
 			});
 		bcc_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -749,13 +749,13 @@ public class nMOS extends Technology
 			});
 		t_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Polysilicon_arc}, "trans-poly-left", 180,85, 1, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Polysilicon_arc}, "trans-poly-left", 180,85, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(3), EdgeH.fromLeft(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_arc}, "trans-diff-top", 90,85, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_arc}, "trans-diff-top", 90,85, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(3), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Polysilicon_arc}, "trans-poly-right", 0,85, 1, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Polysilicon_arc}, "trans-poly-right", 0,85, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.fromBottom(3), EdgeH.fromRight(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_arc}, "trans-diff-bottom", 270,85, 3, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_arc}, "trans-diff-bottom", 270,85, 3, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(3), EdgeV.fromBottom(1))
 			});
 		t_node.setFunction(PrimitiveNode.Function.TRANMOS);
@@ -774,13 +774,13 @@ public class nMOS extends Technology
 			});
 		it_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Polysilicon_arc}, "imp-trans-poly-left", 180,85, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Polysilicon_arc}, "imp-trans-poly-left", 180,85, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(3), EdgeH.fromLeft(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Diffusion_arc}, "imp-trans-diff-top", 90,85, 2, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Diffusion_arc}, "imp-trans-diff-top", 90,85, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(3), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Polysilicon_arc}, "imp-trans-poly-right", 0,85, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Polysilicon_arc}, "imp-trans-poly-right", 0,85, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.fromBottom(3), EdgeH.fromRight(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Diffusion_arc}, "imp-trans-diff-bottom", 270,85, 3, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, it_node, new ArcProto [] {Diffusion_arc}, "imp-trans-diff-bottom", 270,85, 3, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(3), EdgeV.fromBottom(1))
 			});
 		it_node.setFunction(PrimitiveNode.Function.TRADMOS);
@@ -799,13 +799,13 @@ public class nMOS extends Technology
 			});
 		bccs_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2)),
-				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromBottom(1)),
-				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(1), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Diffusion_arc, Polysilicon_arc}, "bur-end-right", 0,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bccs_node, new ArcProto [] {Diffusion_arc, Polysilicon_arc}, "bur-end-right", 0,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(2), EdgeH.fromRight(1), EdgeV.fromTop(2))
 			});
 		bccs_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -820,11 +820,11 @@ public class nMOS extends Technology
 			});
 		bcct_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(2), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-bottom", 270,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(2), EdgeV.fromBottom(1)),
-				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcct_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2))
 			});
 		bcct_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -839,13 +839,13 @@ public class nMOS extends Technology
 			});
 		bcp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2)),
-				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-3", 0,135, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-3", 0,135, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-1", 0,135, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-1", 0,135, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-2", 0,135, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcp_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-2", 0,135, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		bcp_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -860,9 +860,9 @@ public class nMOS extends Technology
 			});
 		bcdi_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcdi_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdi_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(2), EdgeH.fromLeft(1), EdgeV.fromTop(2)),
-				PrimitivePort.newInstance(this, bcdi_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-right", 0,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdi_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-right", 0,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.fromBottom(2), EdgeH.fromRight(1), EdgeV.fromTop(2))
 			});
 		bcdi_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -877,11 +877,11 @@ public class nMOS extends Technology
 			});
 		bcdt_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(3), EdgeV.fromTop(1)),
-				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Diffusion_arc}, "bur-diff-right", 0,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdt_node, new ArcProto [] {Diffusion_arc}, "bur-diff-right", 0,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(3))
 			});
 		bcdt_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -896,9 +896,9 @@ public class nMOS extends Technology
 			});
 		bcdl_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bcdl_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdl_node, new ArcProto [] {Diffusion_arc}, "bur-diff-left", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(3)),
-				PrimitivePort.newInstance(this, bcdl_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bcdl_node, new ArcProto [] {Polysilicon_arc}, "bur-poly-top", 90,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromTop(1), EdgeH.fromRight(2), EdgeV.fromTop(1))
 			});
 		bcdl_node.setFunction(PrimitiveNode.Function.CONNECT);
@@ -911,7 +911,7 @@ public class nMOS extends Technology
 			});
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -926,7 +926,7 @@ public class nMOS extends Technology
 			});
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		pn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -941,7 +941,7 @@ public class nMOS extends Technology
 			});
 		dn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, dn_node, new ArcProto [] {Diffusion_arc}, "diffusion", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, dn_node, new ArcProto [] {Diffusion_arc}, "diffusion", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		dn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -956,7 +956,7 @@ public class nMOS extends Technology
 			});
 		in_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, in_node, new ArcProto [] {}, "implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, in_node, new ArcProto [] {}, "implant", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		in_node.setFunction(PrimitiveNode.Function.NODE);
@@ -971,7 +971,7 @@ public class nMOS extends Technology
 			});
 		cn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		cn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -986,7 +986,7 @@ public class nMOS extends Technology
 			});
 		bn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, bn_node, new ArcProto [] {}, "buried", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, bn_node, new ArcProto [] {}, "buried", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		bn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1001,7 +1001,7 @@ public class nMOS extends Technology
 			});
 		on_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, on_node, new ArcProto [] {}, "overglass", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, on_node, new ArcProto [] {}, "overglass", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		on_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1016,7 +1016,7 @@ public class nMOS extends Technology
 			});
 		lin_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, lin_node, new ArcProto [] {}, "light-implant", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, lin_node, new ArcProto [] {}, "light-implant", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		lin_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1031,7 +1031,7 @@ public class nMOS extends Technology
 			});
 		ocn_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, ocn_node, new ArcProto [] {}, "oversize-contact", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, ocn_node, new ArcProto [] {}, "oversize-contact", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		ocn_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1046,7 +1046,7 @@ public class nMOS extends Technology
 			});
 		hen_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, hen_node, new ArcProto [] {}, "hard-enhancement", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, hen_node, new ArcProto [] {}, "hard-enhancement", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		hen_node.setFunction(PrimitiveNode.Function.NODE);
@@ -1061,7 +1061,7 @@ public class nMOS extends Technology
 			});
 		len_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, len_node, new ArcProto [] {}, "light-enhancement", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, len_node, new ArcProto [] {}, "light-enhancement", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		len_node.setFunction(PrimitiveNode.Function.NODE);

@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -40,6 +41,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
@@ -147,7 +149,7 @@ public class Tegas extends Topology
 				CellSignal cs = (CellSignal)it.next();
 				if (!cs.isExported()) continue;
 				Export e = cs.getExport();
-				if (e.getCharacteristic() != PortProto.Characteristic.IN) continue;
+				if (e.getCharacteristic() != PortCharacteristic.IN) continue;
 				if (isReservedWord(convertName(e.getName())))
 				{
 					System.out.println("ERROR: " + convertName(e.getName()) + " IS A RESERVED WORD");
@@ -165,10 +167,10 @@ public class Tegas extends Topology
 				CellSignal cs = (CellSignal)it.next();
 				if (!cs.isExported()) continue;
 				Export e = cs.getExport();
-				if (e.getCharacteristic() == PortProto.Characteristic.OUT)
+				if (e.getCharacteristic() == PortCharacteristic.OUT)
 				{
 					infstr.append("   " + convertName(e.getName()) + "\n");
-				} else if (e.getCharacteristic() != PortProto.Characteristic.IN)
+				} else if (e.getCharacteristic() != PortCharacteristic.IN)
 				{
 					System.out.println("EXPORT " + e.getName() + " MUST BE EITHER INPUT OR OUTPUT");
 				}
@@ -243,7 +245,7 @@ public class Tegas extends Topology
 			{
 				Connection con = ai.getConnection(i);
 				if (!con.isNegated()) continue;
-				if (con.getPortInst().getPortProto().getCharacteristic() == PortProto.Characteristic.OUT)
+				if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.OUT)
 				{
 					PrimitiveNode.Function fun = con.getPortInst().getNodeInst().getFunction();
 					if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR ||
@@ -335,7 +337,7 @@ public class Tegas extends Topology
 				CellSignal subCs = (CellSignal)it.next();
 				if (!subCs.isExported()) continue;
 				Export e = subCs.getExport();
-				if (e.getCharacteristic() == PortProto.Characteristic.IN) continue;
+				if (e.getCharacteristic() == PortCharacteristic.IN) continue;
 
 				if (needComma) infstr.append(","); else needComma = true;
 				Network net = netList.getNetwork(no, e, subCs.getExportIndex());
@@ -353,7 +355,7 @@ public class Tegas extends Topology
 					if (pp.getName().equals("g")) continue;
 				} else
 				{
-					if (pp.getCharacteristic() == PortProto.Characteristic.IN) continue;
+					if (pp.getCharacteristic() == PortCharacteristic.IN) continue;
 				}
 
 				for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
@@ -408,7 +410,7 @@ public class Tegas extends Topology
 				CellSignal subCs = (CellSignal)it.next();
 				if (!subCs.isExported()) continue;
 				Export e = subCs.getExport();
-				if (e.getCharacteristic() == PortProto.Characteristic.OUT) continue;
+				if (e.getCharacteristic() == PortCharacteristic.OUT) continue;
 
 				if (first) first = false; else infstr.append(",");
 				Network net = netList.getNetwork(no, e, subCs.getExportIndex());
@@ -420,8 +422,8 @@ public class Tegas extends Topology
 			NodeInst ni = (NodeInst)no;
 			for(Iterator it = no.getProto().getPorts(); it.hasNext(); )
 			{
-				PortProto pp = (PortProto)it.next();
-				if (pp.getCharacteristic() != PortProto.Characteristic.IN) continue;
+				PrimitivePort pp = (PrimitivePort)it.next();
+				if (pp.getCharacteristic() != PortCharacteristic.IN) continue;
 	
 				// The transistor "s" port is treated as an inport by electric but is used
 				// as an outport by TDL
@@ -469,7 +471,7 @@ public class Tegas extends Topology
 		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
 		{
 			PortProto pp = (PortProto)it.next();
-			if (pp.getCharacteristic() == PortProto.Characteristic.OUT) continue;
+			if (pp.getCharacteristic() == PortCharacteristic.OUT) continue;
 			String ptr = "NC";   // if no-connection write NC
 
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
@@ -526,7 +528,7 @@ public class Tegas extends Topology
 			Connection con = (Connection)it.next();
 			PortInst pi = con.getPortInst();
 			PortProto pp = pi.getPortProto();
-			if (pp.getCharacteristic() != PortProto.Characteristic.OUT) continue;
+			if (pp.getCharacteristic() != PortCharacteristic.OUT) continue;
 			if (con.isNegated()) return true;
 		}
 		return false;
@@ -560,7 +562,7 @@ public class Tegas extends Topology
 		for(Iterator iIt = ni.getConnections(); iIt.hasNext(); )
 		{
 			Connection con = (Connection)iIt.next();
-			if (con.getPortInst().getPortProto().getCharacteristic() == PortProto.Characteristic.IN) inputs++;
+			if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.IN) inputs++;
 		}
 		if (inputs < 2)
 			System.out.println("MUST HAVE AT LEAST TWO INPUTS ON " + ni.describe());

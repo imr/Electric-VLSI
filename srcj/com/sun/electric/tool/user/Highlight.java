@@ -847,8 +847,11 @@ public class Highlight
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
                     Nodable no = Netlist.getNodableFor(ni, 0);
-                    PortProto epp = pp.getEquivalent();
-                    if (epp == null) epp = pp;
+					PortProto epp = pp;
+					if (pp instanceof Export) {
+						epp = ((Export)pp).getEquivalent();
+						if (epp == null) epp = pp;
+					}
                     int busWidth = pp.getNameKey().busWidth();
 
                     FlagSet markObj = Geometric.getFlagSet(1);

@@ -557,7 +557,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             Network jnet = netlist.getNetwork(ni, pp, 0);
             LEPin.Dir dir = LEPin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
-            if (pp.getCharacteristic() == PortProto.Characteristic.OUT) {
+            if (pp.getCharacteristic() == PortCharacteristic.OUT) {
                 dir = LEPin.Dir.OUTPUT;
                 // set output net
                 if ((type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER) && outputNet != null) {
@@ -570,7 +570,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (type == LENodable.Type.TRANSISTOR) {
                 // primitive Electric Transistors have their source and drain set to BIDIR, we
                 // want them set to OUTPUT so that they count as diffusion capacitance
-                if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) dir = LEPin.Dir.OUTPUT;
+                if (pp.getCharacteristic() == PortCharacteristic.BIDIR) dir = LEPin.Dir.OUTPUT;
             }
             lenodable.addPort(pp.getName(), dir, le, jnet);
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", Network: "+jnet);
@@ -581,23 +581,25 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     }
 
     private float getLE(Nodable ni, LENodable.Type type, PortProto pp, HierarchyEnumerator.CellInfo info) {
-        Variable var = pp.getVar("ATTR_le");
         boolean leFound = false;
         // Note default 'le' value should be one
         float le = 1.0f;
+		if (!(pp instanceof Export))
+			return le;
+        Variable var = ((Export)pp).getVar("ATTR_le");
         if (var != null) {
             leFound = true;
             le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
-        } else if ((pp.getCharacteristic() == PortProto.Characteristic.OUT) &&
+        } else if ((pp.getCharacteristic() == PortCharacteristic.OUT) &&
                 (type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER)) {
             // if this is an Sizeable gate's output, look for diffn and diffp
             float diff = 0;
-            var = pp.getVar("ATTR_diffn");
+            var = ((Export)pp).getVar("ATTR_diffn");
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
             }
-            var = pp.getVar("ATTR_diffp");
+            var = ((Export)pp).getVar("ATTR_diffp");
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;

@@ -822,10 +822,11 @@ public class ELIB extends LibraryFiles
 		// read the primitive portproto variables
 		for(int i=0; i<primPortProtoCount; i++)
 		{
-			PortProto pp = primPortProtoList[i];
-			int j = readVariables(pp, -1);
-			if (j < 0) return true;
-			if (j > 0) getPrimPortProtoList(i);
+			ignoreVariables();
+// 			PortProto pp = primPortProtoList[i];
+// 			int j = readVariables(pp, -1);
+// 			if (j < 0) return true;
+// 			if (j > 0) getPrimPortProtoList(i);
 		}
 
 		// read the view variables (version 9 and later)
@@ -953,11 +954,11 @@ public class ELIB extends LibraryFiles
 // 			PrimitiveNode np = primNodeProtoList[i];
 // 			fixExternalVariables(np);
 // 		}
-		for(int i=0; i<primPortProtoCount; i++)
-		{
-			PrimitivePort pp = primPortProtoList[i];
-			fixExternalVariables(pp);
-		}
+// 		for(int i=0; i<primPortProtoCount; i++)
+// 		{
+// 			PrimitivePort pp = primPortProtoList[i];
+// 			fixExternalVariables(pp);
+// 		}
 // 		for(Iterator it = View.getViews(); it.hasNext(); )
 // 		{
 // 			View view = (View) it.next();

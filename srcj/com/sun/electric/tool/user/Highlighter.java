@@ -43,6 +43,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
@@ -715,7 +716,7 @@ public class Highlighter implements DatabaseChangeListener {
 						else
 						{
 							// if port is isolated, grab all nets
-							if (pi.getPortProto().isIsolated())
+							if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated())
 							{
 								for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
 								{
@@ -1452,7 +1453,8 @@ public class Highlighter implements DatabaseChangeListener {
                         if (poly.getPort() != null)
                         {
                             PortProto pp = poly.getPort();
-                            h.setElectricObject(pp);
+							if (pp instanceof Export)
+								h.setElectricObject((Export)pp);
                             for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
                             {
                                 PortInst pi = (PortInst)pIt.next();

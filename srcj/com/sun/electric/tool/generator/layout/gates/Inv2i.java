@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -97,20 +97,20 @@ public class Inv2i {
 		}
 		
 		// input n
-		LayoutLib.newExport(buf, "in[n]", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(buf, "in[n]", PortCharacteristic.IN, Tech.m1,
 							4, inNX, nGatesY);
 		nGates.connect(buf.findExport("in[n]"));
 		
 		// input p
 		double lastSrcDrnX = StdCellParams.getRightDiffX(pmos, nmos);
 		double inPX = lastSrcDrnX + 2 + 3 + 2; // ndm1/2 + m1_m1_sp + m1_wid/2
-		LayoutLib.newExport(buf,"in[p]", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(buf,"in[p]", PortCharacteristic.IN, Tech.m1,
 							4, inPX, pGatesY);
 		pGates.connect(buf.findExport("in[p]"));
 		
 		// Buf output
 		double outX = inPX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(buf, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(buf, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, 0);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, buf);
 		outHi.connect(buf.findExport("out"));

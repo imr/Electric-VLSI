@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.network;
 
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Name;
 
 import java.util.Arrays;
@@ -43,7 +43,7 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Buffer for construction Global.Set. */	private static PortProto.Characteristic[] globalsBuf;
+	/** Buffer for construction Global.Set. */	private static PortCharacteristic[] globalsBuf;
 	/** Map Name -> Global. */					private static Map globalsByName = new HashMap();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
@@ -57,7 +57,7 @@ public class Global
 		this.name = name;
 		index = allGlobals.length;
 		Global[] newGlobals = new Global[index + 1];
-		PortProto.Characteristic[] newGlobalsBuf = new PortProto.Characteristic[index + 1];
+		PortCharacteristic[] newGlobalsBuf = new PortCharacteristic[index + 1];
 		for (int i = 0; i < index; i++) {
 			newGlobals[i] = allGlobals[i];
 			newGlobalsBuf[i] = globalsBuf[i];
@@ -106,19 +106,19 @@ public class Global
 	 */
 	public static class Set implements Comparable {
 
-		/** bitmap which defines set. */			private PortProto.Characteristic[] elemMap;
+		/** bitmap which defines set. */			private PortCharacteristic[] elemMap;
 		/** map localInd->globalInd. */				private Global[] elems;
 		/** map globalInd->localInd. */				private int[] indexOf;
 
 		/** Map Set->Set of all Global.Sets. */		private static Map allSets = new TreeMap();
-		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new PortProto.Characteristic[0]);
-		/** A private set for search in allSets. */	public static final Global.Set empty = newSet(new PortProto.Characteristic[0]);
+		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new PortCharacteristic[0]);
+		/** A private set for search in allSets. */	public static final Global.Set empty = newSet(new PortCharacteristic[0]);
 
 		/**
 		 * Constructs Global.Set with specified bitmap of Globals.
 		 * @param elemMap bitmap which specifies which elemenst are in set.
 		 */
-		private Set(PortProto.Characteristic[] elemMap) {
+		private Set(PortCharacteristic[] elemMap) {
 			int maxElem = -1;
 			int numElem = 0;
 
@@ -128,7 +128,7 @@ public class Global
 				numElem++;
 			}
 
-			this.elemMap = new PortProto.Characteristic[maxElem + 1];
+			this.elemMap = new PortCharacteristic[maxElem + 1];
 			elems = new Global[numElem];
 			indexOf = new int[maxElem + 1];
 			Arrays.fill(indexOf, -1);
@@ -157,7 +157,7 @@ public class Global
 		 * @param global The Global whose presence in this set is to be tested
 		 * @return Characteristic of specified Global or null.
 		 */
-		public PortProto.Characteristic getCharacteristic(Global global) { return global.index < elemMap.length ? elemMap[global.index] : null; }
+		public PortCharacteristic getCharacteristic(Global global) { return global.index < elemMap.length ? elemMap[global.index] : null; }
 
 		/**
 		 * Returns the number of Globals in this Global.Set.
@@ -253,7 +253,7 @@ public class Global
 		 * @param elemMap bitmap which specifies which elemenst are in set.
 		 * @return set of specified Globals.
 		 */
-		private static Global.Set newSet(PortProto.Characteristic[] elemMap) {
+		private static Global.Set newSet(PortCharacteristic[] elemMap) {
 			fakeSet.elemMap = elemMap;
 			Global.Set set = (Global.Set) allSets.get(fakeSet);
 			fakeSet.elemMap = null;
@@ -278,9 +278,9 @@ public class Global
 	 * Add specified Global to the buffer.
 	 * @param g specified Global.
 	 */
-	static String addToBuf(Global g, PortProto.Characteristic characteristic) {
+	static String addToBuf(Global g, PortCharacteristic characteristic) {
 		String errorMsg = null;
-		PortProto.Characteristic oldCharacteristic = globalsBuf[g.index];
+		PortCharacteristic oldCharacteristic = globalsBuf[g.index];
 		if (oldCharacteristic == null)
 			globalsBuf[g.index] = characteristic;
 		else if (oldCharacteristic != characteristic)

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
@@ -104,7 +104,7 @@ public class Inv_passgate {
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, inv);
-		LayoutLib.newExport(inv, "gnd", PortProto.Characteristic.GND, Tech.m2,
+		LayoutLib.newExport(inv, "gnd", PortCharacteristic.GND, Tech.m2,
 							10, mosX, stdCell.getGndY());
 		TrackRouter gnd = new TrackRouterH(Tech.m2, stdCell.getGndWidth(), inv);
 		gnd.connect(inv.findExport("gnd"));
@@ -126,7 +126,7 @@ public class Inv_passgate {
 		}
 		
 		// Connect input.
-		LayoutLib.newExport(inv, "in", PortProto.Characteristic.IN,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN,
 							Tech.m1, 4, inX, inY);
 		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
 		in.connect(inv.findExport("in"));
@@ -151,12 +151,12 @@ public class Inv_passgate {
 		
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 3, outLoY, inv);
 		outHi.connect(jog);
-		LayoutLib.newExport(inv, "out", PortProto.Characteristic.OUT,
+		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
 							Tech.m1, 4, outX, outLoY);
 		outHi.connect(inv.findExport("out"));
 		
 		// Connect enable.
-		LayoutLib.newExport(inv, "en", PortProto.Characteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "en", PortCharacteristic.IN, Tech.m1, 4,
 							enX, enY);
 		TrackRouter en = new TrackRouterH(Tech.m1, 3, enY, inv);
 		en.connect(inv.findExport("en"));

@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
@@ -653,20 +654,20 @@ class NetSchem extends NetCell {
 			} else {
 				Global g = globalInst(ni);
 				if (g != null) {
-					PortProto.Characteristic characteristic;
+					PortCharacteristic characteristic;
 					if (g == Global.ground)
-						characteristic = PortProto.Characteristic.GND;
+						characteristic = PortCharacteristic.GND;
 					else if (g == Global.power)
-						characteristic = PortProto.Characteristic.PWR;
+						characteristic = PortCharacteristic.PWR;
 					else {
-						characteristic = PortProto.Characteristic.findCharacteristic(ni.getTechSpecific());
+						characteristic = PortCharacteristic.findCharacteristic(ni.getTechSpecific());
 						if (characteristic == null) {
 							String msg = "Network: Cell " + cell.describe() + " has global " + g.getName() +
 								" with unknown characteristic bits";
                             System.out.println(msg);
                             ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                             log.addGeom(ni, true, cell, null);
-							characteristic = PortProto.Characteristic.UNKNOWN;
+							characteristic = PortCharacteristic.UNKNOWN;
 						}
 					}
 					String errorMsg = Global.addToBuf(g, characteristic);

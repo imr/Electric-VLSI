@@ -140,7 +140,7 @@ public class Output
         }
 
 		// make sure that all "meaning" options are attached to the database
-		Pref.installMeaningVariables();
+//		Pref.installMeaningVariables();
 		
 		// make sure that this library save is announced
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
@@ -389,16 +389,16 @@ public class Output
 		{
 			Technology tech = (Technology)it.next();
 			checkFontUsage(tech, fontFound);
-			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)nIt.next();
+// 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+// 			{
+// 				PrimitiveNode np = (PrimitiveNode)nIt.next();
 //				checkFontUsage(np, fontFound);
-				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pIt.next();
-					checkFontUsage(pp, fontFound);
-				}
-			}
+// 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+// 				{
+// 					PrimitivePort pp = (PrimitivePort)pIt.next();
+// 					checkFontUsage(pp, fontFound);
+// 				}
+// 			}
 // 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 // 			{
 // 				PrimitiveArc ap = (PrimitiveArc)aIt.next();

@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -147,7 +148,7 @@ public class MOSSIM extends Topology
 				if (cell == topCell)
 				{
 					Export e = cs.getExport();
-					if (e.getCharacteristic() == PortProto.Characteristic.IN)
+					if (e.getCharacteristic() == PortCharacteristic.IN)
 					{
 						printWriter.println("i " + cs.getName() + " ;");
 					} else

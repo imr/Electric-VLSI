@@ -799,13 +799,13 @@ public class PixelDrawing
 		for(int i = 0; i < numPorts; i++)
 		{
 			if (shownPorts[i]) continue;
-			PortProto pp = ni.getProto().getPort(i);
+			Export pp = (Export)ni.getProto().getPort(i);
 	
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
 			portPoly.transform(trans);
 			Color portColor = col;
-			if (portColor == null) portColor = pp.colorOfPort();
+			if (portColor == null) portColor = pp.getBasePort().getPortColor();
 			portGraphics.setColor(portColor);
 			if (portDisplayLevel == 2)
 			{

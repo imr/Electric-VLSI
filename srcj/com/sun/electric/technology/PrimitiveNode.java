@@ -838,9 +838,7 @@ public class PrimitiveNode implements NodeProto
 		primPorts = ports;
 		for(int i = 0; i < ports.length; i++)
 		{
-			PrimitivePort port = ports[i];
-			port.setParent(this);
-			port.setPortIndex(i);
+			ports[i].setPortIndex(this, i);
 		}
 	}
 

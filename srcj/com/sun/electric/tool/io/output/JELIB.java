@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -56,7 +57,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 
 /**
  * Class to write a library to disk in new Electric-Library format.
@@ -157,7 +157,7 @@ public class JELIB extends Output
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
-			if (tool.numPersistentVariables() != 0) toolList.add(tool);
+			if (Pref.getMeaningVariables(tool).size() != 0) toolList.add(tool);
 		}
 		if (toolList.size() > 0)
 		{
@@ -167,7 +167,7 @@ public class JELIB extends Output
 			{
 				Tool tool = (Tool)it.next();
 				printWriter.print("O" + convertString(tool.getName()));
-				writeVars(tool, null);
+				writeMeaningPrefs(tool);
 				printWriter.print("\n");
 			}
 		}
@@ -178,21 +178,21 @@ public class JELIB extends Output
 			Technology tech = (Technology)it.next();
 
 			// see if the technology has persistent variables
-			boolean hasPersistent = (tech.numPersistentVariables() != 0);
-			if (!hasPersistent)
-			{
-				for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
-				{
-					PrimitiveNode np = (PrimitiveNode)nIt.next();
+			boolean hasPersistent = Pref.getMeaningVariables(tech).size() != 0;
+// 			if (!hasPersistent)
+// 			{
+// 				for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+// 				{
+// 					PrimitiveNode np = (PrimitiveNode)nIt.next();
 // 					if (np.numPersistentVariables() != 0) { hasPersistent = true;   break; }
-					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
-					{
-						PrimitivePort pp = (PrimitivePort)pIt.next();
-						if (pp.numPersistentVariables() != 0) { hasPersistent = true;   break; }
-					}
-					if (hasPersistent) break;
-				}
-			}
+// 					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+// 					{
+// 						PrimitivePort pp = (PrimitivePort)pIt.next();
+// 						if (pp.numPersistentVariables() != 0) { hasPersistent = true;   break; }
+// 					}
+// 					if (hasPersistent) break;
+// 				}
+// 			}
 // 			if (!hasPersistent)
 // 			{
 // 				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
@@ -205,34 +205,34 @@ public class JELIB extends Output
 
 			printWriter.print("\n# Technology " + tech.getTechName() + "\n");
 			printWriter.print("T" + convertString(tech.getTechName()));
-			writeVars(tech, null);
+			writeMeaningPrefs(tech);
 			printWriter.print("\n");
-			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)nIt.next();
-				hasPersistent = false;
+// 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+// 			{
+// 				PrimitiveNode np = (PrimitiveNode)nIt.next();
+// 				hasPersistent = false;
 // 				if (np.numPersistentVariables() != 0) hasPersistent = true; else
-				{
-					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
-					{
-						PrimitivePort pp = (PrimitivePort)pIt.next();
-						if (pp.numPersistentVariables() != 0) { hasPersistent = true;   break; }
-					}
-				}
-				if (!hasPersistent) continue;
+// 				{
+// 					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+// 					{
+// 						PrimitivePort pp = (PrimitivePort)pIt.next();
+// 						if (pp.numPersistentVariables() != 0) { hasPersistent = true;   break; }
+// 					}
+// 				}
+// 				if (!hasPersistent) continue;
 
-				printWriter.print("D" + convertString(np.getName()));
+// 				printWriter.print("D" + convertString(np.getName()));
 // 				writeVars(np, null);
-				printWriter.print("\n");
-				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pIt.next();
-					if (pp.numPersistentVariables() == 0) continue;
-					printWriter.print("P" + convertString(pp.getName()));
-					writeVars(pp, null);
-					printWriter.print("\n");
-				}
-			}
+// 				printWriter.print("\n");
+// 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+// 				{
+// 					PrimitivePort pp = (PrimitivePort)pIt.next();
+// 					if (pp.numPersistentVariables() == 0) continue;
+// 					printWriter.print("P" + convertString(pp.getName()));
+// 					writeVars(pp, null);
+// 					printWriter.print("\n");
+// 				}
+// 			}
 // 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 // 			{
 // 				ArcProto ap = (ArcProto)aIt.next();
@@ -726,6 +726,20 @@ public class JELIB extends Output
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
 			printWriter.print(pt);
+		}
+	}
+
+	/**
+	 * Method to write the meaning preferences on an object.
+	 */
+	private void writeMeaningPrefs(Object obj)
+	{
+		List prefs = Pref.getMeaningVariables(obj);
+		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		{
+			Pref pref = (Pref)it.next();
+			Object value = pref.getValue();
+			printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value, null));
 		}
 	}
 

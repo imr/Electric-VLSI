@@ -39,6 +39,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
@@ -257,8 +258,8 @@ class NccCellInfo extends CellInfo {
 class ExportGlobal {
 	public final String name;
 	public final int netID;
-	public final PortProto.Characteristic type;
-	public ExportGlobal(String nm, int id, PortProto.Characteristic ty) {
+	public final PortCharacteristic type;
+	public ExportGlobal(String nm, int id, PortCharacteristic ty) {
 		name=nm;  netID=id;  type=ty;
 	}
 }
@@ -407,7 +408,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 //		Cell rootCell = rootInfo.getCell();
 //		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 //			Export e = (Export) it.next();
-//			PortProto.Characteristic type = e.getCharacteristic();
+//			PortCharacteristic type = e.getCharacteristic();
 //			int[] expNetIDs = rootInfo.getExportNetIDs(e);
 //			for (int i=0; i<expNetIDs.length; i++) {
 //				Wire wire = wires.get(expNetIDs[i], rootInfo);
@@ -420,7 +421,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 //		Global.Set globals = rootNetlist.getGlobals();
 //		for (int i=0; i<globals.size(); i++) {
 //			Global global = globals.get(i);
-//			PortProto.Characteristic type = globals.getCharacteristic(global);
+//			PortCharacteristic type = globals.getCharacteristic(global);
 //			String globName = global.getName();
 //			int netIndex = rootNetlist.getNetIndex(global);
 //			int netID = rootInfo.getNetID(netIndex);

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -71,7 +71,7 @@ public class MullerC_sy {
 		
 		// leave vertical m1 track for ina
 		double inaX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(mull, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(mull, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		double mosX = inaX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		
@@ -85,11 +85,11 @@ public class MullerC_sy {
 		
 		// inb  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double inbX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
-		LayoutLib.newExport(mull, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(mull, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double outX = inbX + 2 + 3 + 2;
-		LayoutLib.newExport(mull, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(mull, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outLoY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, mull);

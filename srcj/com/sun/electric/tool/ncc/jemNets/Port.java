@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** An NCC Port holds all the Export names associated with a single NCC
@@ -55,27 +55,27 @@ public class Port extends NetObject {
 	public Type getNetObjType() {return Type.PORT;}
 	public Iterator getConnected() {return (new ArrayList()).iterator();}
 	
-	public void addExport(String nm, PortProto.Characteristic type) {
+	public void addExport(String nm, PortCharacteristic type) {
 		names.add(nm);
 		types.add(type);
 	}
 	/** @return the type of Export. If a Wire has multiple Exports of
 	 * different types then return the most common type. */
-	public PortProto.Characteristic getType() {
+	public PortCharacteristic getType() {
 		Map typeToCount = new HashMap();
 		for (Iterator it=types.iterator(); it.hasNext();) {
-			PortProto.Characteristic t = (PortProto.Characteristic) it.next();
+			PortCharacteristic t = (PortCharacteristic) it.next();
 			Integer count = (Integer) typeToCount.get(t);
 			int c = count!=null ? count.intValue() : 0;
 			typeToCount.put(t, new Integer(c+1));
 		}
 		int popularCount = 0;
-		PortProto.Characteristic popularType = null;
+		PortCharacteristic popularType = null;
 		for (Iterator it=typeToCount.keySet().iterator(); it.hasNext();) {
-			PortProto.Characteristic t = (PortProto.Characteristic) it.next();
+			PortCharacteristic t = (PortCharacteristic) it.next();
 			int count = ((Integer) typeToCount.get(t)).intValue();
 			if (count>popularCount ||
-			    (count==popularCount && t!=PortProto.Characteristic.UNKNOWN)) {
+			    (count==popularCount && t!=PortCharacteristic.UNKNOWN)) {
 				popularCount = count;
 				popularType = t;
 			}
@@ -85,10 +85,10 @@ public class Port extends NetObject {
 	
 	/** Warn user if all Exports on a single wire don't have the same type */
 	public void warnIfExportTypesDiffer(String cellName) {
-		PortProto.Characteristic popularType = getType();
+		PortCharacteristic popularType = getType();
 		for (int i=0; i<names.size(); i++) {
 			String nm = (String) names.get(i);
-			PortProto.Characteristic t = (PortProto.Characteristic)types.get(i);
+			PortCharacteristic t = (PortCharacteristic)types.get(i);
 			if (t!=popularType) {
 				System.out.println("In Cell: "+cellName+
                                    " the export: "+nm+

@@ -29,7 +29,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -103,7 +103,7 @@ public class GateLayoutGenerator extends Job {
 		// a properly functioning version of NCC.
 		StdCellParams stdCellPwr = locoParams(outLib);
 		stdCellPwr.setVddExportName("power");
-		stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
+		stdCellPwr.setVddExportRole(PortCharacteristic.IN);
 
 		GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, stdCellPwr);

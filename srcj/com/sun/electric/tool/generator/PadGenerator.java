@@ -936,7 +936,7 @@ public class PadGenerator {
                     PadExports pe = (PadExports) exports.get(pad.cellname);
                     if (pe != null) {
                         // pad export
-                        PortProto pppad = cell.findPortProto(pe.padname);
+                        Export pppad = cell.findExport(pe.padname);
                         if (pppad == null) {
                             err("no port called '" + pe.padname + "' on Cell " + cell.noLibDescribe());
                         } else {
@@ -946,12 +946,24 @@ public class PadGenerator {
                             else {
                                 TextDescriptor td = pppad.getTextDescriptor();
                                 td.setAbsSize(14);
-                                padPorts.add(pppad);
+            //	/**
+//	 * Method to write a description of this Export.
+//	 * Displays the description in the Messages Window.
+//	 */
+//	public void getInfo()
+//	{
+//		System.out.println(" Original: " + originalPort);
+//		System.out.println(" Base: " + getBasePort());
+//		System.out.println(" Cell: " + parent.describe());
+//		super.getInfo();
+//	}
+
+                    padPorts.add(pppad);
                             }
                         }
                         // core export
                         if (pe.corename != null) {
-                            PortProto ppcore = cell.findPortProto(pe.corename);
+                            Export ppcore = cell.findExport(pe.corename);
                             if (ppcore == null) {
                                 err("no port called '" + pe.corename + "' on Cell " + cell.noLibDescribe());
                             } else {

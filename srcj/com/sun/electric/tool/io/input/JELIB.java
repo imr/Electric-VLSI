@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -724,7 +725,7 @@ public class JELIB extends LibraryFiles
 					extras = extras.substring(2);
 				}
 			}
-			PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristicShort(stateInfo);
+			PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(stateInfo);
 			pp.setCharacteristic(ch);
 
 			// add variables in fields 7 and up

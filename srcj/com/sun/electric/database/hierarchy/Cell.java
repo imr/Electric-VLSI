@@ -3674,11 +3674,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         for (Iterator it = getPorts(); it.hasNext(); )
         {
             boolean found = false;
-            PortProto port = (PortProto)it.next();
+            Export port = (Export)it.next();
 
             for (Iterator i = toCompare.getPorts(); i.hasNext();)
             {
-                PortProto p = (PortProto)i.next();
+                Export p = (Export)i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -111,7 +111,7 @@ public class InvCTLn {
 		
 		// Inv input: in 
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortProto.Characteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1, 4,
 							inX, inY);
 		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
 		in.connect(inv.findExport("in"));
@@ -133,7 +133,7 @@ public class InvCTLn {
 		// Inv input: ctl
 		double rightDiffX = StdCellParams.getRightDiffX(nmos, pmoss);
 		double ctlX = rightDiffX + wirePitch;
-		LayoutLib.newExport(inv, "ctl", PortProto.Characteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "ctl", PortCharacteristic.IN, Tech.m1, 4,
 							ctlX, ctlY);
 		TrackRouter ctl = new TrackRouterH(Tech.m1, 3, ctlY, inv);
 		ctl.connect(inv.findExport("ctl"));
@@ -147,7 +147,7 @@ public class InvCTLn {
 		
 		// Inv output: out
 		double outX = ctlX + wirePitch;
-		LayoutLib.newExport(inv, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, outHiY);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
 		outHi.connect(inv.findExport("out"));

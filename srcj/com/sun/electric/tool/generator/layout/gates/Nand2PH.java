@@ -24,7 +24,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
@@ -142,7 +142,7 @@ public class Nand2PH {
 		resetHi.connect(resetNjog);
 		TrackRouter resetLo = new TrackRouterH(Tech.m2, 3, outLoY, gate);
 		resetLo.connect(resetNjog);
-		LayoutLib.newExport(gate, "resetN", PortProto.Characteristic.IN,
+		LayoutLib.newExport(gate, "resetN", PortCharacteristic.IN,
 							Tech.m1, 4, resetNX, outLoY);
 		resetLo.connect(gate.findExport("resetN"));
 		
@@ -155,20 +155,20 @@ public class Nand2PH {
 		aGatesHi.connect(jogA);
 		
 		// input B
-		LayoutLib.newExport(gate, "inb", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(gate, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, pGatesY);
 		bGates.connect(gate.findExport("inb"));
 		
 		// input A
 		double rightDiffX = StdCellParams.getRightDiffX(pmos, nmosA);
 		double inaX = rightDiffX + 7;	// track_pitch
-		LayoutLib.newExport(gate, "ina", PortProto.Characteristic.IN, Tech.m1,
+		LayoutLib.newExport(gate, "ina", PortCharacteristic.IN, Tech.m1,
 							4, inaX, nGatesY);
 		aGatesLo.connect(gate.findExport("ina"));
 		
 		// Gate output
 		double outX = inaX + 7;		// track_pitch
-		LayoutLib.newExport(gate, "out", PortProto.Characteristic.OUT, Tech.m1,
+		LayoutLib.newExport(gate, "out", PortCharacteristic.OUT, Tech.m1,
 							4, outX, 0);
 		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, gate);
 		outHi.connect(gate.findExport("out"));

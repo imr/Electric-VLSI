@@ -35,8 +35,9 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -176,7 +177,7 @@ public class ReadableDump extends Output
 		{
 			Tool tool = (Tool)it.next();
 			printWriter.print("aidname: " + tool.getName() + "\n");
-			writeVars(tool, null);
+			writeMeaningPrefs(tool);
 		}
 		printWriter.print("userbits: " + lib.lowLevelGetUserBits() + "\n");
 		printWriter.print("techcount: " + Technology.getNumTechnologies() + "\n");
@@ -184,7 +185,7 @@ public class ReadableDump extends Output
 		{
 			Technology tech = (Technology)it.next();
 			printWriter.print("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2) + "\n");
-			writeVars(tech, null);
+			writeMeaningPrefs(tech);
 		}
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
@@ -542,6 +543,27 @@ public class ReadableDump extends Output
 			printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
 				Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
 			printWriter.print("\"" + convertString(geom.getName()) + "\"\n");
+		}
+	}
+
+	/**
+	 * Method to write the variables on an object.
+	 */
+	private void writeMeaningPrefs(Object obj)
+	{
+		// count the number of variables
+		List prefs = Pref.getMeaningVariables(obj);
+		if (prefs.size() == 0) return;
+		printWriter.print("variables: " + prefs.size() + "\n");
+		for(Iterator it = prefs.iterator(); it.hasNext(); )
+		{
+			Pref pref = (Pref)it.next();
+			Object varObj = pref.getValue();
+			int objType = ELIBConstants.getVarType(varObj);
+			if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
+			String pt = makeString(varObj, null);
+			if (pt == null) pt = "";
+			printWriter.print(pref.getPrefName() + "[0" + Integer.toOctalString(objType) + ",0/0]: " + pt + "\n");
 		}
 	}
 

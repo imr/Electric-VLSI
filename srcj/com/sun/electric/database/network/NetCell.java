@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -337,7 +338,7 @@ class NetCell
 		int piOffset = getPortInstOffset(pi);
 		if (drawns[piOffset] >= 0) return;
 		PortProto pp = pi.getPortProto();
-		if (pp.isIsolated()) return;
+		if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isIsolated()) return;
 		drawns[piOffset] = numDrawns;
 		if (NetworkTool.debug) System.out.println(numDrawns + ": " + pi);
 
@@ -390,9 +391,9 @@ class NetCell
 // 			addToDrawn1(ni.getPortInst(1));
 // 			return;
 // 		}
-		int topology = pp.getTopology();
+		int topology = ((PrimitivePort)pp).getTopology();
 		for (int i = 0; i < numPorts; i++) {
-			if (np.getPort(i).getTopology() != topology) continue;
+			if (((PrimitivePort)np.getPort(i)).getTopology() != topology) continue;
 			addToDrawn1(ni.getPortInst(i));
 		}
 	}
@@ -446,7 +447,7 @@ class NetCell
 					continue;
 				}
 				if (drawns[piOffset] >= 0) continue;
-				if (pi.getPortProto().isIsolated()) continue;
+				if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated()) continue;
 				if (np.getFunction() == PrimitiveNode.Function.PIN) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
