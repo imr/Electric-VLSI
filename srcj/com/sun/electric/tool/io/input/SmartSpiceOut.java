@@ -142,7 +142,6 @@ public class SmartSpiceOut extends Simulate
 					} else
 					{
 						Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
-						as.setCommonTimeUse(true);
 						int lastDotPos = name.lastIndexOf('.');
 						if (lastDotPos >= 0)
 						{

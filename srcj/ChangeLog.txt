@@ -2,9 +2,14 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+IMP/MAN: (9/22/04, SMR) Added ability to show sweeps and intervals to waveform window.
+
+IMP/MAN: (9/21/04, SMR) Added "Make Schematic" to convert layout to schematics.
+
 ************************* Version 8.01w: *********************************
-IMP: (9/22/04, GVG) Refactoring NodeInst/ArcInst makeInstance/newInstance methods. From now on, short/long definitions
-are available
+
+IMP: (9/22/04, GVG) Refactoring NodeInst/ArcInst makeInstance/newInstance methods.
+     From now on, short/long definitions are available
 
 IMP: (9/22/04, GVG) CrossLib dialog and scrollbars. Added syncronizer to keep 3 scrollbars aligned.
 

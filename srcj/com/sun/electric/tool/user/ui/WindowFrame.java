@@ -76,6 +76,7 @@ public class WindowFrame
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
 	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
 	/** the signal explorer part. */					public DefaultMutableTreeNode signalExplorerNode;
+	/** the signal/sweep explorer part. */				public DefaultMutableTreeNode sweepExplorerNode;
 	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
     /** true if this window is finished */              private boolean finished = false;
 
@@ -484,6 +485,7 @@ public class WindowFrame
 		rootNode.removeAllChildren();
 		if (libraryExplorerNode != null) rootNode.add(libraryExplorerNode);
 		if (signalExplorerNode != null) rootNode.add(signalExplorerNode);
+		if (sweepExplorerNode != null) rootNode.add(sweepExplorerNode);
 		rootNode.add(jobExplorerNode);
 		rootNode.add(errorExplorerNode);
 

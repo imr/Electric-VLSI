@@ -105,7 +105,6 @@ public class RawSpiceOut extends Simulate
 				for(int i=0; i<numSignals; i++)
 				{
 					signals[i] = new Simulation.SimAnalogSignal(sd);
-					signals[i].setCommonTimeUse(true);
 				}
 				continue;
 			}

@@ -115,7 +115,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class WaveformWindow implements WindowContent
 {
-
 	private static int panelSizeDigital = 25;
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
@@ -147,6 +146,7 @@ public class WaveformWindow implements WindowContent
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
 	/** a list of panels in this window */					private List wavePanels;
+	/** a list of sweep signals in this window */			private List sweepSignals;
 	/** the time panel at the top of the wave window. */	private TimeTickPanel mainTimePanel;
 	/** true to repaint the main time panel. */				private boolean mainTimePanelNeedsRepaint;
 	/** the VCR timer, when running */						private Timer vcrTimer;
@@ -854,18 +854,64 @@ public class WaveformWindow implements WindowContent
 				{
 					// draw analog trace
 					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
-					int lx = 0, ly = 0;
 					int numEvents = as.getNumEvents();
-					for(int i=0; i<numEvents; i++)
+					if (as.isBasic())
 					{
-						double time = ws.sSig.getTime(i);
-						int x = scaleTimeToX(time);
-						int y = scaleValueToY(as.getValue(i));
-						if (i != 0)
+						// basic signal
+						int lastX = 0, lastY = 0;
+						for(int i=0; i<numEvents; i++)
 						{
-							if (processALine(g, lx, ly, x, y, bounds, result, ws)) break;
+							double time = ws.sSig.getTime(i);
+							int x = scaleTimeToX(time);
+							int y = scaleValueToY(as.getValue(i));
+							if (i != 0)
+							{
+								if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+							}
+							lastX = x;   lastY = y;
 						}
-						lx = x;   ly = y;
+					} else if (as.isSweep())
+					{
+						// swept signal
+						List sweepSignals = waveWindow.sweepSignals;
+						for(int s=0; s<as.getNumSweeps(); s++)
+						{
+							SweepSignal ss = (SweepSignal)sweepSignals.get(s);
+							if (ss != null && !ss.included) continue;
+							int lastX = 0, lastY = 0;
+							for(int i=0; i<numEvents; i++)
+							{
+								double time = ws.sSig.getTime(i);
+								int x = scaleTimeToX(time);
+								int y = scaleValueToY(as.getSweepValue(s, i));
+								if (i != 0)
+								{
+									if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+								}
+								lastX = x;   lastY = y;
+							}
+						}
+					} else if (as.isInterval())
+					{
+						// interval signal
+						int lastX = 0, lastLY = 0, lastHY = 0;
+						for(int i=0; i<numEvents; i++)
+						{
+							double time = ws.sSig.getTime(i);
+							int x = scaleTimeToX(time);
+							int lowY = scaleValueToY(as.getIntervalLowValue(i));
+							int highY = scaleValueToY(as.getIntervalHighValue(i));
+							if (i != 0)
+							{
+								if (processALine(g, lastX, lastLY, x, lowY, bounds, result, ws)) break;
+								if (processALine(g, lastX, lastHY, x, highY, bounds, result, ws)) break;
+								if (processALine(g, lastX, lastHY, x, lowY, bounds, result, ws)) break;
+								if (processALine(g, lastX, lastLY, x, highY, bounds, result, ws)) break;
+							}
+							lastX = x;
+							lastLY = lowY;
+							lastHY = highY;
+						}
 					}
 					continue;
 				}
@@ -1735,16 +1781,9 @@ public class WaveformWindow implements WindowContent
 			if (isAnalog)
 			{
 				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
-				double lowValue = 0, highValue = 0;
-				for(int i=0; i<as.getNumEvents(); i++)
-				{
-					double val = as.getValue(i);
-					if (i == 0) lowValue = highValue = val; else
-					{
-						if (val < lowValue) lowValue = val;
-						if (val > highValue) highValue = val;
-					}
-				}
+				Point2D rangePt = as.getRangeOfValues();
+				double lowValue = rangePt.getX();
+				double highValue = rangePt.getY();
 				double range = highValue - lowValue;
 				if (range == 0) range = 2;
 				double rangeExtra = range / 10;
@@ -1965,6 +2004,43 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
+	public static class SweepSignal
+	{
+		private Object obj;
+		private WaveformWindow ww;
+		private boolean included;
+
+		public SweepSignal(Object obj, WaveformWindow ww)
+		{
+			this.obj = obj;
+			this.ww = ww;
+			this.included = true;
+			ww.sweepSignals.add(this);
+		}
+
+		public String toString()
+		{
+			String name = null;
+			if (obj instanceof Double) name = TextUtils.formatDouble(((Double)obj).doubleValue()); else
+				name = obj.toString();
+			name += (included ? " - INCLUDED" : " - EXCLUDED");
+			return name;
+		}
+
+		public void setIncluded(boolean included)
+		{
+			if (this.included == included) return;
+			this.included = included;
+			for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				wp.repaintWithTime();
+			}
+		}
+
+		public boolean isIncluded() { return included; }
+	}
+
 	// ************************************* CLASS TO ASSOCIATE WAVEFORM WINDOWS WITH EDIT WINDOWS *************************************
 
 	/**
@@ -2134,6 +2210,7 @@ public class WaveformWindow implements WindowContent
 		this.wf = wf;
 		this.sd = sd;
 		wavePanels = new ArrayList();
+		sweepSignals = new ArrayList();
 		this.timeLocked = true;
 
         highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
@@ -2586,6 +2663,8 @@ public class WaveformWindow implements WindowContent
 		overall.add(mainTimePanel, gbc);
 	}
 
+	public List getSweepSignals() { return sweepSignals; }
+
 	private void removeMainTimePanel()
 	{
 		overall.remove(mainTimePanel);
@@ -2843,7 +2922,9 @@ public class WaveformWindow implements WindowContent
 		wf.jobExplorerNode = Job.getExplorerTree();
 		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
 		wf.signalExplorerNode = getSignalsForExplorer();
+		wf.sweepExplorerNode = getSweepsForExplorer();
 		rootNode.add(wf.signalExplorerNode);
+		if (wf.sweepExplorerNode != null) rootNode.add(wf.sweepExplorerNode);
 		rootNode.add(wf.jobExplorerNode);
 		rootNode.add(wf.errorExplorerNode);
 	}
@@ -2892,6 +2973,20 @@ public class WaveformWindow implements WindowContent
 			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
+	}
+
+	private DefaultMutableTreeNode getSweepsForExplorer()
+	{
+		List sweeps = sd.getSweepList();
+		if (sweeps.size() <= 0) return null;
+		DefaultMutableTreeNode sweepsExplorerTree = new DefaultMutableTreeNode("SWEEPS");
+		for(Iterator it = sweeps.iterator(); it.hasNext(); )
+		{
+			Object obj = it.next();
+			SweepSignal ss = new SweepSignal(obj, this);
+			sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
+		}
+		return sweepsExplorerTree;
 	}
 
 	private Simulation.SimSignal findSignal(String name)
@@ -2975,16 +3070,9 @@ public class WaveformWindow implements WindowContent
 				if (isAnalog)
 				{
 					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
-					double lowValue = 0, highValue = 0;
-					for(int i=0; i<as.getNumEvents(); i++)
-					{
-						double val = as.getValue(i);
-						if (i == 0) lowValue = highValue = val; else
-						{
-							if (val < lowValue) lowValue = val;
-							if (val > highValue) highValue = val;
-						}
-					}
+					Point2D rangePt = as.getRangeOfValues();
+					double lowValue = rangePt.getX();
+					double highValue = rangePt.getY();
 					double range = highValue - lowValue;
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;

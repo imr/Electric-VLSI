@@ -93,7 +93,9 @@ public class DebugMenus {
 	    helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
+				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
+		helpMenu.addMenuItem("Make fake interval simulation window", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeIntervalWaveformCommand(); }});
 //		helpMenu.addMenuItem("Whit Diffie's design...", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
@@ -474,7 +476,6 @@ public class DebugMenus {
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			as.setSignalName("Signal"+(i+1));
-			as.setCommonTimeUse(true);
 			as.buildValues(100);
 			for(int k=0; k<100; k++)
 			{
@@ -503,7 +504,50 @@ public class DebugMenus {
 		}
 	}
 
-    // ---------------------- Gilda's Stuff MENU -----------------
+	private static void makeFakeIntervalWaveformCommand()
+	{
+		// make the interval waveform data
+		Simulation.SimData sd = new Simulation.SimData();
+		double timeStep = 0.0000000001;
+		sd.buildCommonTime(100);
+		for(int i=0; i<100; i++)
+			sd.setCommonTime(i, i * timeStep);
+		for(int i=0; i<6; i++)
+		{
+			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+			as.setSignalName("Signal"+(i+1));
+			as.buildIntervalValues(100);
+			for(int k=0; k<100; k++)
+			{
+				double lowValue = Math.sin((k+i*10) / (2.0+i*2)) * 4;
+				double increment = Math.sin((k+i*5) / (2.0+i));
+				as.setIntervalValue(k, lowValue, lowValue+increment);
+			}
+		}
+		sd.setCell(null);
+
+		// make the waveform window
+		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
+		WaveformWindow ww = (WaveformWindow)wf.getContent();
+		ww.setMainTimeCursor(timeStep*22);
+		ww.setExtensionTimeCursor(timeStep*77);
+		ww.setDefaultTimeRange(0, timeStep*100);
+
+		// make some waveform panels and put signals in them
+		int k = 0;
+		for(int i=0; i<3; i++)
+		{
+			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
+			wp.setValueRange(-5, 5);
+			for(int j=0; j<=i; j++)
+			{
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(k++);
+				WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, as);
+			}
+		}
+	}
+
+	// ---------------------- Gilda's Stuff MENU -----------------
 
 	/**
 	 * First attempt for coverage implant

@@ -329,7 +329,6 @@ public class VerilogOut extends Simulate
 			for(Iterator sIt = sig.tempList.iterator(); sIt.hasNext(); )
 			{
 				VerilogStimuli vs = (VerilogStimuli)sIt.next();
-				sig.setCommonTimeUse(false);
 				sig.setTime(i, vs.time);
 				sig.setState(i, vs.state);
 				i++;
@@ -342,7 +341,6 @@ public class VerilogOut extends Simulate
 					Simulation.SimDigitalSignal oSig = (Simulation.SimDigitalSignal)lIt.next();
 					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
 					if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
-					oSig.setCommonTimeUse(false);
 				}
 			}
 		}

@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,9 +54,15 @@ import java.util.List;
  */
 public class Simulation extends Tool
 {
+	/**
+	 * Class to define a set of simulation data.
+	 * This class encapsulates all of the simulation data that is displayed in a waveform window.
+	 * It includes the labels and values.
+	 * It can handle digital, analog, and many variations (intervals, sweeps).
+	 */
 	public static class SimData
 	{
-		// logic levels and signal strengths in the window
+		// logic levels and signal strengths for digital signals
 		public static final int LOGIC         =  03;
 		public static final int LOGIC_LOW     =   0;
 		public static final int LOGIC_X       =   1;
@@ -71,6 +78,7 @@ public class Simulation extends Tool
 		private OpenFile.Type type;
 		private URL fileURL;
 		private List signals;
+		private List sweeps;
 		private double [] commonTime;
 
 		/**
@@ -79,6 +87,7 @@ public class Simulation extends Tool
 		public SimData()
 		{
 			signals = new ArrayList();
+			sweeps = new ArrayList();
 		}
 
 		/**
@@ -112,16 +121,63 @@ public class Simulation extends Tool
 		 */
 		public void setCommonTime(int index, double time) { commonTime[index] = time; }
 
+		/**
+		 * Method to add information about another sweep in this simulation data.
+		 * @param obj sweep information (typically a Double).
+		 */
+		public void addSweep(Object obj) { sweeps.add(obj); }
+
+		/**
+		 * Method to return the list of sweep information in this simulation data.
+		 * @return a list of sweep information in this simulation data.
+		 * If there is no sweep information, the list is empty.
+		 */
+		public List getSweepList() { return sweeps; }
+
+		/**
+		 * Method to set the Cell associated with this simulation data.
+		 * The associated Cell is the top-level cell in the hierarchy,
+		 * and is usually the Cell that was used to generate the simulation input deck.
+		 * @param cell the Cell associated with this simulation data.
+		 */
 		public void setCell(Cell cell) { this.cell = cell; }
 
+		/**
+		 * Method to return the Cell associated with this simulation data.
+		 * The associated Cell is the top-level cell in the hierarchy,
+		 * and is usually the Cell that was used to generate the simulation input deck.
+		 * @return the Cell associated with this simulation data.
+		 */
 		public Cell getCell() { return cell; }
 
+		/**
+		 * Method to set the type of this simulation data.
+		 * Data types are file types, which are unique among the different simulation output formats.
+		 * For example, OpenFile.Type.HSPICEOUT is the output of HSpice, whereas
+		 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
+		 * @param type the type of this simulation data.
+		 */
 		public void setDataType(OpenFile.Type type) { this.type = type; }
 
+		/**
+		 * Method to return the type of this simulation data.
+		 * Data types are file types, which are unique among the different simulation output formats.
+		 * For example, OpenFile.Type.HSPICEOUT is the output of HSpice, whereas
+		 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
+		 * @return the type of this simulation data.
+		 */
 		public OpenFile.Type getDataType() { return type; }
 
+		/**
+		 * Method to set a URL to the file containing this simulation data.
+		 * @param fileURL a URL to the file containing this simulation data.
+		 */
 		public void setFileURL(URL fileURL) { this.fileURL = fileURL; }
 
+		/**
+		 * Method to return a URL to the file containing this simulation data.
+		 * @return a URL to the file containing this simulation data.
+		 */
 		public URL getFileURL() { return fileURL; }
 
 		/**
@@ -140,21 +196,69 @@ public class Simulation extends Tool
 				if (sig instanceof SimAnalogSignal)
 				{
 					SimAnalogSignal as = (SimAnalogSignal)sig;
-					for(int i=0; i<as.values.length; i++)
+					if (as.isBasic())
 					{
-						double time = 0;
-						time = as.getTime(i);
-						if (first)
+						for(int i=0; i<as.values.length; i++)
 						{
-							first = false;
-							lowTime = highTime = time;
-							lowValue = highValue = as.values[i];
-						} else
+							double time = 0;
+							time = as.getTime(i);
+							if (first)
+							{
+								first = false;
+								lowTime = highTime = time;
+								lowValue = highValue = as.values[i];
+							} else
+							{
+								if (time < lowTime) lowTime = time;
+								if (time > highTime) highTime = time;
+								if (as.values[i] < lowValue) lowValue = as.values[i];
+								if (as.values[i] > highValue) highValue = as.values[i];
+							}
+						}
+					} else if (as.isSweep())
+					{
+						for(int s=0; s<as.sweepValues.length; s++)
 						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-							if (as.values[i] < lowValue) lowValue = as.values[i];
-							if (as.values[i] > highValue) highValue = as.values[i];
+							for(int i=0; i<as.sweepValues[s].length; i++)
+							{
+								double time = 0;
+								time = as.getTime(i);
+								double value = as.sweepValues[s][i];
+								if (first)
+								{
+									first = false;
+									lowTime = highTime = time;
+									lowValue = highValue = value;
+								} else
+								{
+									if (time < lowTime) lowTime = time;
+									if (time > highTime) highTime = time;
+									if (value < lowValue) lowValue = value;
+									if (value > highValue) highValue = value;
+								}
+							}
+						}
+					} else if (as.isInterval())
+					{
+						for(int i=0; i<as.values.length; i++)
+						{
+							double time = 0;
+							time = as.getTime(i);
+							double lowVal = as.values[i];
+							double highVal = as.values[i];
+							if (first)
+							{
+								first = false;
+								lowTime = highTime = time;
+								lowValue = lowVal;
+								highValue = highVal;
+							} else
+							{
+								if (time < lowTime) lowTime = time;
+								if (time > highTime) highTime = time;
+								if (lowVal < lowValue) lowValue = lowVal;
+								if (highVal > highValue) highValue = highVal;
+							}
 						}
 					}
 				} else if (sig instanceof SimDigitalSignal)
@@ -180,6 +284,10 @@ public class Simulation extends Tool
 			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
 		}
 
+		/**
+		 * Method to tell whether this simulation data is analog or digital.
+		 * @return true if this simulation data is analog.
+		 */
 		public boolean isAnalog()
 		{
 			if (getSignals().size() > 0)
@@ -239,80 +347,366 @@ public class Simulation extends Tool
 		}
 	}
 
+	/**
+	 * Class to define a signal in the simulation waveform window.
+	 * This is a superclass for specific signal types: digital or analog.
+	 */
 	public static class SimSignal
 	{
-		public SimSignal(SimData sd)
-		{
-			this.sd = sd;
-			if (sd != null) sd.signals.add(this);
-		}
-
 		private String signalName;
 		private String signalContext;
 		private SimData sd;
 		private boolean useCommonTime;
 		private double [] time;
 		private List bussedSignals;
-		public List tempList;
+		public List tempList;		// used only in the Verilog reader
 
+		/**
+		 * Constructor for a simulation signal.
+		 * @param sd the Simulation Data object in which this signal will reside.
+		 */
+		private SimSignal(SimData sd)
+		{
+			this.sd = sd;
+			useCommonTime = true;
+			if (sd != null) sd.signals.add(this);
+		}
+
+		/**
+		 * Method to set the name of this simulation signal.
+		 * The name does not include any hierarchical path information: it is just a simple name.
+		 * @param signalName the name of this simulation signal.
+		 */
 		public void setSignalName(String signalName) { this.signalName = signalName; }
 
+		/**
+		 * Method to return the name of this simulation signal.
+		 * The name does not include any hierarchical path information: it is just a simple name.
+		 * @return the name of this simulation signal.
+		 */
 		public String getSignalName() { return signalName; }
 
+		/**
+		 * Method to return the context of this simulation signal.
+		 * The context is the hierarchical path to the signal, and it usually contains
+		 * instance names of cells farther up the hierarchy, all separated by dots.
+		 * @param signalContext the context of this simulation signal.
+		 */
 		public void setSignalContext(String signalContext) { this.signalContext = signalContext; }
 
+		/**
+		 * Method to return the context of this simulation signal.
+		 * The context is the hierarchical path to the signal, and it usually contains
+		 * instance names of cells farther up the hierarchy, all separated by dots.
+		 * @return the context of this simulation signal.
+		 * If there is no context, this returns null.
+		 */
 		public String getSignalContext() { return signalContext; }
 
+		/**
+		 * Method to return the full name of this simulation signal.
+		 * The full name includes the context, if any.
+		 * @return the full name of this simulation signal.
+		 */
 		public String getFullName()
 		{
 			if (signalContext != null) return signalContext + "." + signalName;
 			return signalName;
 		}
 
+		/**
+		 * Method to return the number of events in this signal.
+		 * This is the number of events along the horizontal axis, usually "time".
+		 * This superclass method must be overridden by a subclass that actually has data.
+		 * @return the number of events in this signal.
+		 */
 		public int getNumEvents() { return 0; }
 
+		/**
+		 * Method to request that this signal be a bus.
+		 * Builds the necessary data structures to hold bus information.
+		 */
 		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
 
+		/**
+		 * Method to return a List of signals on this bus signal.
+		 * Each entry in the List points to another simulation signal that is on this bus.
+		 * @return a List of signals on this bus signal.
+		 */
 		public List getBussedSignals() { return bussedSignals; }
 
+		/**
+		 * Method to add a signal to this bus signal.
+		 * @param ws a single-wire signal to be added to this bus signal.
+		 */
 		public void addToBussedSignalList(SimSignal ws) { bussedSignals.add(ws); }
 
-		public void setCommonTimeUse(boolean useCommonTime) { this.useCommonTime = useCommonTime; }
+		/**
+		 * Method to build a time vector for this signal.
+		 * Signals can have their own time information, or they can use a "common time" array
+		 * that is part of the simulation data.
+		 * If using common time, then each signal must have the same number of entries, and
+		 * each entry must be at the same time as the corresponding entries in other signals.
+		 * Using common time saves memory, because the time information does not have to be
+		 * stored with each signal.
+		 * This method requests that the signal have its own time array, and not use common time data.
+		 * @param numEvents the number of events on this signal (the length of the time array).
+		 */
+		public void buildTime(int numEvents) { useCommonTime = false;   time = new double[numEvents]; }
 
-		public void buildTime(int numEvents) { time = new double[numEvents]; }
-
+		/**
+		 * Method to return the value of time for a given event on this signal.
+		 * Depending on whether common time data is being used, the time information is
+		 * found on this signal or on the overall simulation data.
+		 * @param index the event being querried (0-based).
+		 * @return the value of time at that event.
+		 */
 		public double getTime(int index)
 		{
 			if (useCommonTime) return sd.commonTime[index];
 			return time[index];
 		}
 
+		/**
+		 * Method to return the time vector for this signal.
+		 * The vector is only valid if this signal is NOT using common time.
+		 * Signals can have their own time information, or they can use a "common time" array
+		 * that is part of the simulation data.
+		 * If using common time, then each signal must have the same number of entries, and
+		 * each entry must be at the same time as the corresponding entries in other signals.
+		 * @return the time array for this signal.
+		 * Returns null if this signal uses common time.
+		 */
 		public double [] getTimeVector() { return time; }
 
-		public void setTimeVector(double [] time) { this.time = time; }
+		/**
+		 * Method to set the time vector for this signal.
+		 * Overrides any previous time vector that may be on this signal.
+		 * Signals can have their own time information, or they can use a "common time" array
+		 * that is part of the simulation data.
+		 * If using common time, then each signal must have the same number of entries, and
+		 * each entry must be at the same time as the corresponding entries in other signals.
+		 * @param time a new time vector for this signal.
+		 */
+		public void setTimeVector(double [] time) { useCommonTime = false;   this.time = time; }
 
-		public void setTime(int index, double t) { time[index] = t; }
+		/**
+		 * Method to set an individual time entry for this signal.
+		 * Only applies if common time is NOT being used for this signal.
+		 * Signals can have their own time information, or they can use a "common time" array
+		 * that is part of the simulation data.
+		 * If using common time, then each signal must have the same number of entries, and
+		 * each entry must be at the same time as the corresponding entries in other signals.
+		 * @param entry the entry in the event array of this signal (0-based).
+		 * @param t the new value of time at this event.
+		 */
+		public void setTime(int entry, double t) { time[entry] = t; }
 	}
 
+	/**
+	 * Class to define an analog signal in the simulation waveform window.
+	 */
 	public static class SimAnalogSignal extends SimSignal
 	{
-		private double [] values;
+		/** a simple analog signal */			private static final int BASICSIGNAL = 0;
+		/** a swept analog analog signal */		private static final int SWEEPSIGNAL = 1;
+		/** an interval analog signal */		private static final int INTERVALSIGNAL = 2;
 
+		private double [] values;
+		private double [][] sweepValues;
+		private double [] highIntervalValues;
+		private int signalType;
+
+		/**
+		 * Constructor for an analog signal.
+		 * @param sd the Simulation Data object in which this signal will reside.
+		 */
 		public SimAnalogSignal(SimData sd) { super(sd); }
 
-		public void buildValues(int numEvents) { values = new double[numEvents]; }
+		public void buildValues(int numEvents)
+		{
+			signalType = BASICSIGNAL;
+			values = new double[numEvents];
+		}
 
-		public void setValue(int index, double value) { values[index] = value; }
+		public void buildSweepValues(int numSweeps, int numEvents)
+		{
+			signalType = SWEEPSIGNAL;
+			sweepValues = new double[numSweeps][];
+			for(int i=0; i<numSweeps; i++) sweepValues[i] = new double[numEvents];
+		}
 
-		public double getValue(int index) { return values[index]; }
+		public void buildIntervalValues(int numEvents)
+		{
+			signalType = INTERVALSIGNAL;
+			values = new double[numEvents];
+			highIntervalValues = new double[numEvents];
+		}
 
-		public int getNumEvents() { return values.length; }
+		public void setValue(int index, double value)
+		{
+			if (signalType != BASICSIGNAL)
+			{
+				System.out.println("Setting complex data into basic signal");
+				return;
+			}
+			values[index] = value;
+		}
+
+		public void setSweepValue(int sweep, int index, double value)
+		{
+			if (signalType != SWEEPSIGNAL)
+			{
+				System.out.println("Setting sweep data into non-sweep signal");
+				return;
+			}
+			sweepValues[sweep][index] = value;
+		}
+
+		public void setIntervalValue(int index, double lowValue, double highValue)
+		{
+			if (signalType != INTERVALSIGNAL)
+			{
+				System.out.println("Setting interval data into non-interval signal");
+				return;
+			}
+			values[index] = lowValue;
+			highIntervalValues[index] = highValue;
+		}
+
+		public double getValue(int index)
+		{
+			if (signalType != BASICSIGNAL)
+			{
+				System.out.println("Getting basic data from non-basic signal");
+				return 0;
+			}
+			return values[index];
+		}
+
+		public double getSweepValue(int sweep, int index)
+		{
+			if (signalType != SWEEPSIGNAL)
+			{
+				System.out.println("Getting sweep data from non-sweep signal");
+				return 0;
+			}
+			return sweepValues[sweep][index];
+		}
+
+		public double getIntervalLowValue(int index)
+		{
+			if (signalType != INTERVALSIGNAL)
+			{
+				System.out.println("Getting interval data from non-interval signal");
+				return 0;
+			}
+			return values[index];
+		}
+
+		public double getIntervalHighValue(int index)
+		{
+			if (signalType != INTERVALSIGNAL)
+			{
+				System.out.println("Getting interval data from non-interval signal");
+				return 0;
+			}
+			return highIntervalValues[index];
+		}
+
+		/**
+		 * Method to return the number of events in this signal.
+		 * This is the number of events along the horizontal axis, usually "time".
+		 * @return the number of events in this signal.
+		 */
+		public int getNumEvents()
+		{
+			switch (signalType)
+			{
+				case BASICSIGNAL:
+					return values.length;
+				case SWEEPSIGNAL:
+					return sweepValues[0].length;
+				case INTERVALSIGNAL:
+					return values.length;
+			}
+			return 0;
+		}
+
+		public int getNumSweeps()
+		{
+			if (signalType != SWEEPSIGNAL) return 0;
+			return sweepValues.length;
+		}
+
+		public boolean isBasic() { return signalType == BASICSIGNAL; }
+
+		public boolean isSweep() { return signalType == SWEEPSIGNAL; }
+
+		public boolean isInterval() { return signalType == INTERVALSIGNAL; }
+
+		public Point2D getRangeOfValues()
+		{
+			double lowValue = 0, highValue = 0;
+			switch (signalType)
+			{
+				case BASICSIGNAL:
+					for(int i=0; i<getNumEvents(); i++)
+					{
+						double val = getValue(i);
+						if (i == 0) lowValue = highValue = val; else
+						{
+							if (val < lowValue) lowValue = val;
+							if (val > highValue) highValue = val;
+						}
+					}
+					break;
+				case SWEEPSIGNAL:
+					for(int s=0; s<getNumSweeps(); s++)
+					{
+						for(int i=0; i<getNumEvents(); i++)
+						{
+							double val = getSweepValue(s, i);
+							if (s == 0 && i == 0) lowValue = highValue = val; else
+							{
+								if (val < lowValue) lowValue = val;
+								if (val > highValue) highValue = val;
+							}
+						}
+					}
+					break;
+				case INTERVALSIGNAL:
+					for(int i=0; i<getNumEvents(); i++)
+					{
+						double lowVal = getIntervalLowValue(i);
+						double highVal = getIntervalHighValue(i);
+						if (i == 0)
+						{
+							lowValue = lowVal;
+							highValue = highVal;
+						} else
+						{
+							if (lowVal < lowValue) lowValue = lowVal;
+							if (highVal > highValue) highValue = highVal;
+						}
+					}
+					break;
+			}
+			return new Point2D.Double(lowValue, highValue);
+		}
 	}
 
+	/**
+	 * Class to define a digital signal in the simulation waveform window.
+	 */
 	public static class SimDigitalSignal extends SimSignal
 	{
 		private int [] state;
 
+		/**
+		 * Constructor for a digital signal.
+		 * @param sd the Simulation Data object in which this signal will reside.
+		 */
 		public SimDigitalSignal(SimData sd) { super(sd); }
 
 		public void buildState(int numEvents) { state = new int[numEvents]; }
@@ -325,6 +719,11 @@ public class Simulation extends Tool
 
 		public void setStateVector(int [] state) { this.state = state; }
 
+		/**
+		 * Method to return the number of events in this signal.
+		 * This is the number of events along the horizontal axis, usually "time".
+		 * @return the number of events in this signal.
+		 */
 		public int getNumEvents() { return state.length; }
 	}
 

@@ -98,6 +98,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
     private static ImageIcon iconErrorMsg = null;
     private static ImageIcon iconWarnMsg = null;
 	private static ImageIcon iconSignals = null;
+	private static ImageIcon iconSweeps = null;
 	private static ImageIcon iconViewIcon = null;
 	private static ImageIcon iconViewOldIcon = null;
 	private static ImageIcon iconViewLayout = null;
@@ -573,6 +574,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (iconSignals == null)
 						iconSignals = Resources.getResource(getClass(), "IconSignals.gif");
 					setIcon(iconSignals);
+				} else if (theString.equalsIgnoreCase("sweeps"))
+				{
+					if (iconSweeps == null)
+						iconSweeps = Resources.getResource(getClass(), "IconSweeps.gif");
+					setIcon(iconSweeps);
 				}
 			}
             if (nodeInfo instanceof ErrorLogger.MessageLog)
@@ -600,7 +606,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			return this;
 		}
 	}
-
 
 	private static class TreeHandler implements MouseListener, MouseMotionListener
 	{
@@ -883,9 +888,39 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
+			if (currentSelectedObject instanceof WaveformWindow.SweepSignal)
+			{
+				JPopupMenu menu = new JPopupMenu("Sweep Signal");
+
+				JMenuItem menuItem = new JMenuItem("Include");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setSweepAction(true); } });
+
+				menuItem = new JMenuItem("Exclude");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setSweepAction(false); } });
+
+				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+				return;
+			}
 			if (currentSelectedObject instanceof String)
 			{
 				String msg = (String)currentSelectedObject;
+				if (msg.equalsIgnoreCase("sweeps"))
+				{
+					JPopupMenu menu = new JPopupMenu("All Sweeps");
+
+					JMenuItem menuItem = new JMenuItem("Include All");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setAllSweepsAction(true); } });
+
+					menuItem = new JMenuItem("Exclude All");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setAllSweepsAction(false); } });
+
+					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+					return;
+				}
 				if (msg.equalsIgnoreCase("libraries"))
 				{
 					JPopupMenu menu = new JPopupMenu("Libraries");
@@ -1021,6 +1056,29 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, true);
 			dialog.show();
+		}
+
+		private void setSweepAction(boolean include)
+		{
+			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+			if (ss == null) return;
+			ss.setIncluded(include);
+		}
+
+		private void setAllSweepsAction(boolean include)
+		{
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf == null) return;
+			if (wf.getContent() instanceof WaveformWindow)
+			{
+				WaveformWindow ww = (WaveformWindow)wf.getContent();
+				List sweeps = ww.getSweepSignals();
+				for(Iterator it = sweeps.iterator(); it.hasNext(); )
+				{
+					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)it.next();
+					ss.setIncluded(include);
+				}
+			}
 		}
 
 		private void newCellVersionAction()

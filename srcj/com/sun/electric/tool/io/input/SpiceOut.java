@@ -189,7 +189,6 @@ public class SpiceOut extends Simulate
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			as.setSignalName("Signal " + (j+1));
-			as.setCommonTimeUse(true);
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
 			{

@@ -79,16 +79,16 @@ public class ViewChanges
 		public boolean doIt()
 		{
 	        // create cell in new technology
-			Cell newCell = us_tran_linkage(oldCell.getName(), View.SCHEMATIC, oldCell);
+			Cell newCell = makeSchematicCell(oldCell.getName(), View.SCHEMATIC, oldCell);
 			if (newCell == null) return false;
 
 			// create the parts in this cell
 			HashMap newNodes = new HashMap();
-			us_tran_logmakenodes(oldCell, newCell, Schematics.tech, newNodes);
-			us_tran_logmakearcs(oldCell, newCell, newNodes);
+			buildSchematicNodes(oldCell, newCell, Schematics.tech, newNodes);
+			buildSchematicArcs(oldCell, newCell, newNodes);
 
 			// now make adjustments for manhattan-ness
-			us_tran_makemanhattan(newCell);
+			makeArcsManhattan(newCell);
 
 			// set "fixed-angle" if reasonable
 			for(Iterator it = newCell.getArcs(); it.hasNext(); )
@@ -112,7 +112,7 @@ public class ViewChanges
 	 * equivalent to an old cell in "cell".  The view type of the new cell is
 	 * in "newcellview" and the view type of the old cell is in "cellview"
 	 */
-	private static Cell us_tran_linkage(String newCellName, View newCellView, Cell cell)
+	private static Cell makeSchematicCell(String newCellName, View newCellView, Cell cell)
 	{
 		// create the new cell
 		String cellName = newCellName;
@@ -127,33 +127,33 @@ public class ViewChanges
 		return newCell;
 	}
 	
-	private static void us_tran_logmakenodes(Cell cell, Cell newCell, Technology newtech, HashMap newNodes)
+	private static void buildSchematicNodes(Cell cell, Cell newCell, Technology newtech, HashMap newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst mosNI = (NodeInst)it.next();
-			NodeProto.Function type = us_tranismos(mosNI);
+			NodeProto.Function type = getNodeType(mosNI);
 			NodeInst schemNI = null;
 			if (type == NodeProto.Function.UNKNOWN) continue;
 			if (type == NodeProto.Function.PIN)
 			{
 				// compute new x, y coordinates
 				NodeProto prim = Schematics.tech.wirePinNode;
-				schemNI = us_tran_logmakenode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), 0, 0, newCell);
+				schemNI = makeSchematicNode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), 0, 0, newCell);
 			} else if (type == null)
 			{
 				// a cell
 				Cell proto = (Cell)mosNI.getProto();
 				Cell equivCell = proto.getEquivalent();
-				schemNI = us_tran_logmakenode(equivCell, mosNI, equivCell.getDefWidth(), equivCell.getDefHeight(), mosNI.getAngle(), 0, newCell);
+				schemNI = makeSchematicNode(equivCell, mosNI, equivCell.getDefWidth(), equivCell.getDefHeight(), mosNI.getAngle(), 0, newCell);
 			} else
 			{
 				int rotate = mosNI.getAngle();
-				rotate = (rotate + 900) % 3600;
+				rotate = (rotate + 2700) % 3600;
 				NodeProto prim = Schematics.tech.transistorNode;
 				int bits = Schematics.getPrimitiveFunctionBits(mosNI.getFunction());
-				schemNI = us_tran_logmakenode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), rotate, bits, newCell);
+				schemNI = makeSchematicNode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), rotate, bits, newCell);
 
 				// add in the size
 				TransistorSize ts = mosNI.getTransistorSize(VarContext.globalContext);
@@ -195,7 +195,7 @@ public class ViewChanges
 				for(Iterator eIt = mosNI.getExports(); eIt.hasNext(); )
 				{
 					Export mosPP = (Export)eIt.next();
-					PortInst schemPI = us_tranconvpp(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
+					PortInst schemPI = convertPort(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
 					if (schemPI == null) continue;
 
 					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName());
@@ -210,7 +210,7 @@ public class ViewChanges
 		}
 	}
 
-	private static NodeInst us_tran_logmakenode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
+	private static NodeInst makeSchematicNode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
 	{
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
 		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
@@ -221,7 +221,7 @@ public class ViewChanges
 	 * for each arc in cell, find the ends in the new technology, and
 	 * make a new arc to connect them in the new cell.
 	 */
-	private static void us_tran_logmakearcs(Cell cell, Cell newcell, HashMap newNodes)
+	private static void buildSchematicArcs(Cell cell, Cell newcell, HashMap newNodes)
 	{
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
@@ -231,8 +231,8 @@ public class ViewChanges
 			NodeInst schemHeadNI = (NodeInst)newNodes.get(mosHeadNI);
 			NodeInst schemTailNI = (NodeInst)newNodes.get(mosTailNI);
 			if (schemHeadNI == null || schemTailNI == null) continue;
-			PortInst schemHeadPI = us_tranconvpp(mosHeadNI, mosAI.getHead().getPortInst().getPortProto(), schemHeadNI);
-			PortInst schemTailPI = us_tranconvpp(mosTailNI, mosAI.getTail().getPortInst().getPortProto(), schemTailNI);
+			PortInst schemHeadPI = convertPort(mosHeadNI, mosAI.getHead().getPortInst().getPortProto(), schemHeadNI);
+			PortInst schemTailPI = convertPort(mosTailNI, mosAI.getTail().getPortInst().getPortProto(), schemTailNI);
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
@@ -246,9 +246,9 @@ public class ViewChanges
 	/**
 	 * Method to find the logical portproto corresponding to the mos portproto of ni
 	 */
-	private static PortInst us_tranconvpp(NodeInst mosNI, PortProto mosPP, NodeInst schemNI)
+	private static PortInst convertPort(NodeInst mosNI, PortProto mosPP, NodeInst schemNI)
 	{
-		NodeProto.Function fun = us_tranismos(schemNI);
+		NodeProto.Function fun = getNodeType(schemNI);
 		if (fun == NodeProto.Function.PIN)
 		{
 			return schemNI.getOnlyPortInst();
@@ -282,7 +282,7 @@ public class ViewChanges
 
 	private static final int MAXADJUST = 5;
 
-	private static void us_tran_makemanhattan(Cell newCell)
+	private static void makeArcsManhattan(Cell newCell)
 	{
 		// adjust this cell
 		double [] x = new double[MAXADJUST];
@@ -335,7 +335,7 @@ public class ViewChanges
 	 * if it's a passive connector, return NodeProto.Function.PIN;
 	 * if it's a cell, return null; else return NodeProto.Function.UNKNOWN.
 	 */
-	private static NodeProto.Function us_tranismos(NodeInst ni)
+	private static NodeProto.Function getNodeType(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell) return null;
 		NodeProto.Function fun = ni.getFunction();
@@ -388,12 +388,12 @@ public class ViewChanges
 //	}
 //
 //	/* create the cell and fill it with parts */
-//	newcell = us_tran_linkage(newcellname, nview, oldcell);
+//	newcell = makeSchematicCell(newcellname, nview, oldcell);
 //	if (newcell == NONODEPROTO) return(NONODEPROTO);
 //	if (us_tran_makelayoutparts(oldcell, newcell, oldtech, newtech, nview))
 //	{
 //		/* adjust for maximum Manhattan-ness */
-//		us_tran_makemanhattan(newcell);
+//		makeArcsManhattan(newcell);
 //
 //		/* reset shrinkage values and constraints to defaults (is this needed? !!!) */
 //		for(ai = newcell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)

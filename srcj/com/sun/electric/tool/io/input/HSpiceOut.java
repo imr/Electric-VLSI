@@ -45,7 +45,7 @@ public class HSpiceOut extends Simulate
 	private boolean eofReached;
 	private byte [] binaryTR0Buffer;
 
-	// HSPICE name associations from the .pa0 file
+	// HSpice name associations from the .pa0 file
 	private static class PA0Line
 	{
 		int     number;
@@ -152,35 +152,27 @@ public class HSpiceOut extends Simulate
 		if (openBinaryInput(fileURL)) return null;
 
 		// get number of nodes
-		StringBuffer line = new StringBuffer();
-		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
-		int nodcnt = TextUtils.atoi(line.toString(), 0, 10);
+		int nodcnt = getHSpiceInt();
 
 		// get number of special items
-		line = new StringBuffer();
-		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
-		int numnoi = TextUtils.atoi(line.toString(), 0, 10);
+		int numnoi = getHSpiceInt();
 
 		// get number of conditions
-		line = new StringBuffer();
-		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
-		// cndcnt = atoi(line);
+		int cndcnt = getHSpiceInt();
 
 		/*
 		 * Although this isn't documented anywhere, it appears that the 4th
 		 * number in the file is a multiplier for the first, which allows
 		 * there to be more than 10000 nodes.
 		 */
-		line = new StringBuffer();
+		StringBuffer line = new StringBuffer();
 		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
 		int multiplier = TextUtils.atoi(line.toString(), 0, 10);
 		nodcnt += multiplier * 10000;
 		int numSignals = numnoi + nodcnt - 1;
 
 		// get version number (known to work with 9007, 9601)
-		line = new StringBuffer();
-		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
-		int version = TextUtils.atoi(line.toString(), 0, 10);
+		int version = getHSpiceInt();
 
 		// ignore the unused/title information (4+72 characters over line break)
 		for(int j=0; j<76; j++)
@@ -200,9 +192,8 @@ public class HSpiceOut extends Simulate
 		}
 
 		// get number of sweeps
-		line = new StringBuffer();
-		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
-		int sweepcnt = TextUtils.atoi(line.toString(), 0, 10);
+		int sweepcnt = getHSpiceInt();
+		if (cndcnt == 0) sweepcnt = 0;
 
 		// ignore the Monte Carlo information (76 characters over line break)
 		for(int j=0; j<76; j++)
@@ -212,7 +203,6 @@ public class HSpiceOut extends Simulate
 		}
 
 		// get the type of each signal
-		int important = numnoi;
 		String [] signalNames = new String[numSignals];
 		int [] signalTypes = new int[numSignals];
 		for(int k=0; k<=numSignals; k++)
@@ -229,6 +219,7 @@ public class HSpiceOut extends Simulate
 			if (k < nodcnt) l = k + numnoi - 1;
 			signalTypes[l] = TextUtils.atoi(line.toString(), 0, 10);
 		}
+		boolean pa0MissingWarned = false;
 		for(int k=0; k<=numSignals; k++)
 		{
 			int j = 0;
@@ -260,7 +251,12 @@ public class HSpiceOut extends Simulate
 			{
 				l = TextUtils.atoi(line.toString(), 0, 10);
 				PA0Line foundPA0Line = null;
-				if (pa0List != null)
+				if (pa0List == null)
+				{
+					if (!pa0MissingWarned)
+						System.out.println("ERROR: there should be a .pa0 file with extra signal names");
+					pa0MissingWarned = true;
+				} else
 				{
 					for(Iterator it = pa0List.iterator(); it.hasNext(); )
 					{
@@ -289,12 +285,35 @@ public class HSpiceOut extends Simulate
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
 			signalNames[l] = line.toString();
 		}
+
+		// read sweep information
+		if (cndcnt != 0)
+		{
+			int j = 0;
+			line = new StringBuffer();
+			for(;;)
+			{
+				int l = getByteFromFile();
+				if (l == '\n') continue;
+				if (l == ' ') break;
+				line.append((char)l);
+				j++;
+				if (j >= 16) break;
+			}
+			int l = (j+15) / 16 * 16 - 1;
+			for(; j<l; j++)
+			{
+				int i = getByteFromFile();
+				if (!isTR0Binary && i == '\n') { j--;   continue; }
+			}
+		}
 //		if (numnoi > 0)
 //		{
 //			for(int k=0; k<numnoi; k++)
 //				System.out.println("Special signal: "+signalNames[nodcnt-numnoi+k]);
 //		}
 
+		// read the end-of-header marker
 		line = new StringBuffer();
 		if (!isTR0Binary)
 		{
@@ -313,7 +332,7 @@ public class HSpiceOut extends Simulate
 		}
 		if (!line.toString().equals("$&%#"))
 		{
-			System.out.println("HSPICE header improperly terminated (got "+line.toString()+")");
+			System.out.println("HSpice header improperly terminated (got "+line.toString()+")");
 			closeInput();
 			return null;
 		}
@@ -325,7 +344,6 @@ public class HSpiceOut extends Simulate
 		for(int k=0; k<numSignals; k++)
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
-			as.setCommonTimeUse(true);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
@@ -337,45 +355,89 @@ public class HSpiceOut extends Simulate
 			}
 		}
 
-		// now read the data
-		List allTheData = new ArrayList();
-		eofReached = false;
+		List theSweeps = new ArrayList();
+		int sweepCounter = sweepcnt;
 		for(;;)
 		{
-			float [] oneSetOfData = new float[numSignals+1];
-
-			// get the first number, see if it terminates
-			float time = getHSpiceFloat();
-			if (eofReached) break;
-			oneSetOfData[0] = time;
-
-			// get a row of numbers
-			for(int k=0; k<numSignals; k++)
+			// ignore sweep info
+			if (sweepcnt > 0)
 			{
-				float value = getHSpiceFloat();
-				if (eofReached) break;
-				oneSetOfData[(k+numnoi)%numSignals+1] = value;
+				float sweepValue = getHSpiceFloat();
+				sd.addSweep(new Double(sweepValue));
 			}
-			if (eofReached) break;
-			allTheData.add(oneSetOfData);
+	
+			// now read the data
+			List allTheData = new ArrayList();
+			eofReached = false;
+			for(;;)
+			{
+				float [] oneSetOfData = new float[numSignals+1];
+	
+				// get the first number, see if it terminates
+				float time = getHSpiceFloat();
+				if (eofReached) break;
+				oneSetOfData[0] = time;
+	
+				// get a row of numbers
+				for(int k=0; k<numSignals; k++)
+				{
+					float value = getHSpiceFloat();
+					if (eofReached) break;
+					oneSetOfData[(k+numnoi)%numSignals+1] = value;
+				}
+				if (eofReached) break;
+				allTheData.add(oneSetOfData);
+			}
+			theSweeps.add(allTheData);
+			sweepCounter--;
+			if (sweepCounter <= 0) break;
 		}
 		closeInput();
 
 		// transpose the data to sit properly in the simulation information
-		int numEvents = allTheData.size();
-		sd.buildCommonTime(numEvents);
-		float [][] dataRows = new float[numEvents][];
-		for(int i=0; i<numEvents; i++)
+		if (sweepcnt > 0)
 		{
-			dataRows[i] = (float[])allTheData.get(i);
-			sd.setCommonTime(i, dataRows[i][0]);
-		}
-		for(int j=0; j<numSignals; j++)
-		{
-			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
-			as.buildValues(numEvents);
+			List allTheData = (List)theSweeps.get(0);
+			int numEvents = allTheData.size();
+//System.out.println("version="+version+" sweepcnt="+sweepcnt+" numSignals="+numSignals+" numEvents="+numEvents);
+			sd.buildCommonTime(numEvents);
 			for(int i=0; i<numEvents; i++)
-				as.setValue(i, dataRows[i][j+1]);
+			{
+				float [] dataRow = (float[])allTheData.get(i);
+				sd.setCommonTime(i, dataRow[0]);
+			}
+			for(int j=0; j<numSignals; j++)
+			{
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
+				as.buildSweepValues(sweepcnt, numEvents);
+				for(int k=0; k<sweepcnt; k++)
+				{
+					allTheData = (List)theSweeps.get(k);
+					for(int i=0; i<numEvents; i++)
+					{
+						float [] dataRow = (float[])allTheData.get(i);
+						as.setSweepValue(k, i, dataRow[j+1]);
+					}
+				}
+			}
+		} else
+		{
+			List allTheData = (List)theSweeps.get(0);
+			int numEvents = allTheData.size();
+			sd.buildCommonTime(numEvents);
+			float [][] dataRows = new float[numEvents][];
+			for(int i=0; i<numEvents; i++)
+			{
+				dataRows[i] = (float[])allTheData.get(i);
+				sd.setCommonTime(i, dataRows[i][0]);
+			}
+			for(int j=0; j<numSignals; j++)
+			{
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
+				as.buildValues(numEvents);
+				for(int i=0; i<numEvents; i++)
+					as.setValue(i, dataRows[i][j+1]);
+			}
 		}
 
 //		// postprocess and add exports in cells
@@ -484,7 +546,7 @@ public class HSpiceOut extends Simulate
 	{
 		if (byteCount == 0)
 		{
-			// start of HSPICE file: see if it is binary or ascii
+			// start of HSpice file: see if it is binary or ascii
 			int i = dataInputStream.read();
 			if (i == -1) return(i);
 			updateProgressDialog(1);
@@ -517,8 +579,16 @@ public class HSpiceOut extends Simulate
 		return i;
 	}
 
+	private int getHSpiceInt()
+		throws IOException
+	{
+		StringBuffer line = new StringBuffer();
+		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
+		return TextUtils.atoi(line.toString().trim(), 0, 10);
+	}
+
 	/*
-	 * Method to read the next floating point number from the HSPICE file into "val".
+	 * Method to read the next floating point number from the HSpice file into "val".
 	 * Returns positive on error, negative on EOF, zero if OK.
 	 */
 	private float getHSpiceFloat()
@@ -554,7 +624,11 @@ public class HSpiceOut extends Simulate
 		}
 		float f = Float.intBitsToFloat(fi);
 		
-		if (f > 1.00000000E30 && f < 1.00000002E30) { eofReached = true;   return 0; }
+		if (f > 1.00000000E30 && f < 1.00000002E30)
+		{
+			eofReached = true;
+			return 0;
+		}
 		return f;
 	}
 
