@@ -429,12 +429,25 @@ public class Library extends ElectricObject
 		return null;
 	}
 
+	static class LibCaseInsensitive implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Library l1 = (Library)o1;
+			Library l2 = (Library)o2;
+			String s1 = l1.getLibName();
+			String s2 = l2.getLibName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
 	/**
 	 * Return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
 	public static Iterator getLibraries()
 	{
+		Collections.sort(libraries, new LibCaseInsensitive());
 		return libraries.iterator();
 	}
 
@@ -513,19 +526,25 @@ public class Library extends ElectricObject
 		return null;
 	}
 
+	static class CellCaseInsensitive implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			String s1 = c1.describe();
+			String s2 = c2.describe();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
 	/**
 	 * Routine to return an Iterator over all Cells in this Library.
 	 * @return an Iterator over all Cells in this Library.
 	 */
 	public Iterator getCells()
 	{
-		Collections.sort(cells, new Comparator()
-		{
-			public int compare(Object o1, Object o2)
-			{
-				return ((Cell)o1).describe().compareTo(((Cell)o2).describe());
-			}
-		});
+		Collections.sort(cells, new CellCaseInsensitive());
 		return cells.iterator();
 	}
 

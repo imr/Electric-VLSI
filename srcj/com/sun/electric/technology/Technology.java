@@ -23,6 +23,16 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
@@ -33,16 +43,6 @@ import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -1104,8 +1104,8 @@ public class Technology extends ElectricObject
 			}
 		}
 
-		private static final double LEFTANGLE =  (Math.PI/2);
-		private static final double RIGHTANGLE =  (Math.PI/2*3);
+		private static final int LEFTANGLE =  900;
+		private static final int RIGHTANGLE =  2700;
 
 		/**
 		 * routine to describe a box of a serpentine transistor.
@@ -1138,32 +1138,32 @@ public class Technology extends ElectricObject
 			int thissg = segment;   int next = segment+1;
 			Point2D.Double thisPt = points[thissg];
 			Point2D.Double nextPt = points[next];
-			double angle = EMath.figureAngle(thisPt, nextPt);
+			int angle = EMath.figureAngle(thisPt, nextPt);
 
 			// push the points at the ends of the transistor
 			if (thissg == 0)
 			{
 				// extend "thissg" 180 degrees back
-				double ang = angle+Math.PI;
-				thisPt = EMath.addPoints(thisPt, Math.cos(ang) * extendt, Math.sin(ang) * extendt);
+				int ang = angle+1800;
+				thisPt = EMath.addPoints(thisPt, EMath.cos(ang) * extendt, EMath.sin(ang) * extendt);
 			}
 			if (next == numSegments)
 			{
 				// extend "next" 0 degrees forward
-				nextPt = EMath.addPoints(nextPt, Math.cos(angle) * extendb, Math.sin(angle) * extendb);
+				nextPt = EMath.addPoints(nextPt, EMath.cos(angle) * extendb, EMath.sin(angle) * extendb);
 			}
 
 			// compute endpoints of line parallel to and left of center line
-			double ang = angle+LEFTANGLE;
-			double sin = Math.sin(ang) * lwid;
-			double cos = Math.cos(ang) * lwid;
+			int ang = angle+LEFTANGLE;
+			double sin = EMath.sin(ang) * lwid;
+			double cos = EMath.cos(ang) * lwid;
 			Point2D.Double thisL = EMath.addPoints(thisPt, cos, sin);
 			Point2D.Double nextL = EMath.addPoints(nextPt, cos, sin);
 
 			// compute endpoints of line parallel to and right of center line
 			ang = angle+RIGHTANGLE;
-			sin = Math.sin(ang) * rwid;
-			cos = Math.cos(ang) * rwid;
+			sin = EMath.sin(ang) * rwid;
+			cos = EMath.cos(ang) * rwid;
 			Point2D.Double thisR = EMath.addPoints(thisPt, cos, sin);
 			Point2D.Double nextR = EMath.addPoints(nextPt, cos, sin);
 
@@ -1171,14 +1171,14 @@ public class Technology extends ElectricObject
 			if (thissg != 0)
 			{
 				Point2D.Double otherPt = points[thissg-1];
-				double otherang = EMath.figureAngle(otherPt, thisPt);
+				int otherang = EMath.figureAngle(otherPt, thisPt);
 				if (otherang != angle)
 				{
 					ang = otherang + LEFTANGLE;
-					thisL = EMath.intersect(EMath.addPoints(thisPt, Math.cos(ang)*lwid, Math.sin(ang)*lwid),
+					thisL = EMath.intersect(EMath.addPoints(thisPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid),
 						otherang, thisL,angle);
 					ang = otherang + RIGHTANGLE;
-					thisR = EMath.intersect(EMath.addPoints(thisPt, Math.cos(ang)*rwid, Math.sin(ang)*rwid),
+					thisR = EMath.intersect(EMath.addPoints(thisPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid),
 						otherang, thisR,angle);
 				}
 			}
@@ -1187,14 +1187,14 @@ public class Technology extends ElectricObject
 			if (next != numSegments)
 			{
 				Point2D.Double otherPt = points[next+1];
-				double otherang = EMath.figureAngle(nextPt, otherPt);
+				int otherang = EMath.figureAngle(nextPt, otherPt);
 				if (otherang != angle)
 				{
 					ang = otherang + LEFTANGLE;
-					Point2D.Double newPtL = EMath.addPoints(nextPt, Math.cos(ang)*lwid, Math.sin(ang)*lwid);
+					Point2D.Double newPtL = EMath.addPoints(nextPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid);
 					nextL = EMath.intersect(newPtL, otherang, nextL,angle);
 					ang = otherang + RIGHTANGLE;
-					Point2D.Double newPtR = EMath.addPoints(nextPt, Math.cos(ang)*rwid, Math.sin(ang)*rwid);
+					Point2D.Double newPtR = EMath.addPoints(nextPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid);
 					nextR = EMath.intersect(newPtR, otherang, nextR,angle);
 				}
 			}
@@ -1233,6 +1233,166 @@ public class Technology extends ElectricObject
 			retPoly.setLayer(primLayer.getLayer());
 			return retPoly;
 		}
+
+		/**
+		 * routine to describe a port in a transistor that may be part of a serpentine
+		 * path.  If the variable "trace" exists on the node, get that x/y/x/y
+		 * information as the centerline of the serpentine path.  The port path
+		 * is shrunk by "diffinset" in the length and is pushed "diffextend" from the centerline.
+		 * The default width of the transistor is "defwid".  The outline is placed
+		 * in the polygon "poly".
+		 * The assumptions about directions are:
+		 * Segments have port 1 to the left, and port 3 to the right of the gate
+		 * trace. Port 0, the "left-hand" end of the gate, appears at the starting
+		 * end of the first trace segment; port 2, the "right-hand" end of the gate,
+		 * appears at the end of the last trace segment.  Port 3 is drawn as a
+		 * reflection of port 1 around the trace.
+		 * The values "diffinset", "diffextend", "defwid", "polyinset", and "polyextend"
+		 * are used to determine the offsets of the ports:
+		 * The poly ports are extended "polyextend" beyond the appropriate end of the trace
+		 * and are inset by "polyinset" from the polysilicon edge.
+		 * The diffusion ports are extended "diffextend" from the polysilicon edge
+		 * and set in "diffinset" from the ends of the trace segment.
+		 */
+//		Poly fillTransPort(NodeInst ni, PortProto *pp, XARRAY trans,
+//			TECH_NODES *nodedata, int diffinset, int diffextend, int defwid,
+//			int polyinset, int polyextend)
+//		{
+//			/* see if the transistor has serpentine information */
+//			var = gettrace(ni);
+//			if (var != NOVARIABLE)
+//			{
+//				/* trace data is there: make sure there are enough points */
+//				total = getlength(var);
+//				if (total <= 2) var = NOVARIABLE;
+//			}
+//
+//			/* nonserpentine transtors fill in the normal way */
+//			lambda = lambdaofnode(ni);
+//			if (var == NOVARIABLE)
+//			{
+//				tech_fillportpoly(ni, pp, poly, trans, nodedata, -1, lambda);
+//				return;
+//			}
+//
+//			/* prepare to fill the serpentine transistor port */
+//			list = (INTBIG *)var->addr;
+//			poly->style = OPENED;
+//			xoff = (ni->highx+ni->lowx)/2;
+//			yoff = (ni->highy+ni->lowy)/2;
+//			total /= 2;
+//
+//			/* see if nonstandard width is specified */
+//			defwid = lambda * defwid / WHOLE;
+//			diffinset = lambda * diffinset / WHOLE;   diffextend = lambda * diffextend / WHOLE;
+//			polyinset = lambda * polyinset / WHOLE;   polyextend = lambda * polyextend / WHOLE;
+//			varw = getvalkey((INTBIG)ni, VNODEINST, VFRACT, el_transistor_width_key);
+//			if (varw != NOVARIABLE) defwid = lambda * varw->addr / WHOLE;
+//
+//			/* determine which port is being described */
+//			for(lpp = ni->proto->firstportproto, which=0; lpp != NOPORTPROTO;
+//				lpp = lpp->nextportproto, which++) if (lpp == pp) break;
+//
+//			/* ports 0 and 2 are poly (simple) */
+//			if (which == 0)
+//			{
+//				if (poly->limit < 2) (void)extendpolygon(poly, 2);
+//				thisx = list[0];   thisy = list[1];
+//				nextx = list[2];   nexty = list[3];
+//				angle = figureangle(thisx, thisy, nextx, nexty);
+//				ang = (angle+1800) % 3600;
+//				thisx += mult(cosine(ang), polyextend) + xoff;
+//				thisy += mult(sine(ang), polyextend) + yoff;
+//				ang = (angle+LEFTANGLE) % 3600;
+//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
+//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
+//				xform(nextx, nexty, &poly->xv[0], &poly->yv[0], trans);
+//				ang = (angle+RIGHTANGLE) % 3600;
+//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
+//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
+//				xform(nextx, nexty, &poly->xv[1], &poly->yv[1], trans);
+//				poly->count = 2;
+//				return;
+//			}
+//			if (which == 2)
+//			{
+//				if (poly->limit < 2) (void)extendpolygon(poly, 2);
+//				thisx = list[(total-1)*2];   thisy = list[(total-1)*2+1];
+//				nextx = list[(total-2)*2];   nexty = list[(total-2)*2+1];
+//				angle = figureangle(thisx, thisy, nextx, nexty);
+//				ang = (angle+1800) % 3600;
+//				thisx += mult(cosine(ang), polyextend) + xoff;
+//				thisy += mult(sine(ang), polyextend) + yoff;
+//				ang = (angle+LEFTANGLE) % 3600;
+//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
+//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
+//				xform(nextx, nexty, &poly->xv[0], &poly->yv[0], trans);
+//				ang = (angle+RIGHTANGLE) % 3600;
+//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
+//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
+//				xform(nextx, nexty, &poly->xv[1], &poly->yv[1], trans);
+//				poly->count = 2;
+//				return;
+//			}
+//
+//			/* THE ORIGINAL CODE TREATED PORT 1 AS THE NEGATED PORT ... SRP */
+//			/* port 3 is the negated path side of port 1 */
+//			if (which == 3)
+//			{
+//				diffextend = -diffextend;
+//				defwid = -defwid;
+//			}
+//
+//			/* extra port on some n-transistors */
+//			if (which == 4) diffextend = defwid = 0;
+//
+//			/* polygon will need total points */
+//			if (poly->limit < total) (void)extendpolygon(poly, total);
+//
+//			for(next=1; next<total; next++)
+//			{
+//				thissg = next-1;
+//				thisx = list[thissg*2];   thisy = list[thissg*2+1];
+//				nextx = list[next*2];   nexty = list[next*2+1];
+//				angle = figureangle(thisx, thisy, nextx, nexty);
+//
+//				/* determine the points */
+//				if (thissg == 0)
+//				{
+//					/* extend "thissg" 0 degrees forward */
+//					thisx += mult(cosine(angle), diffinset);
+//					thisy += mult(sine(angle), diffinset);
+//				}
+//				if (next == total-1)
+//				{
+//					/* extend "next" 180 degrees back */
+//					ang = (angle+1800) % 3600;
+//					nextx += mult(cosine(ang), diffinset);
+//					nexty += mult(sine(ang), diffinset);
+//				}
+//
+//				/* compute endpoints of line parallel to center line */
+//				ang = (angle+LEFTANGLE) % 3600;   sin = sine(ang);   cos = cosine(ang);
+//				thisx += mult(cos, defwid/2+diffextend);   thisy += mult(sin, defwid/2+diffextend);
+//				nextx += mult(cos, defwid/2+diffextend);   nexty += mult(sin, defwid/2+diffextend);
+//
+//				if (thissg != 0)
+//				{
+//					/* compute intersection of this and previous line */
+//
+//					/* LINTED "pthisx", "pthisy", and "pangle" used in proper order */
+//					(void)intersect(pthisx, pthisy, pangle, thisx, thisy, angle, &x, &y);
+//					thisx = x;   thisy = y;
+//					xform(thisx+xoff, thisy+yoff, &poly->xv[thissg], &poly->yv[thissg], trans);
+//				} else
+//					xform(thisx+xoff, thisy+yoff, &poly->xv[0], &poly->yv[0], trans);
+//				pthisx = thisx;   pthisy = thisy;
+//				pangle = angle;
+//			}
+//
+//			xform(nextx+xoff, nexty+yoff, &poly->xv[total-1], &poly->yv[total-1], trans);
+//			poly->count = total;
+//		}
 	}
 
 	/**
@@ -1446,8 +1606,27 @@ public class Technology extends ElectricObject
 	}
 
 	/**
+	 * Routine to determine the appropriate Technology to use for a Cell.
+	 * @param cell the Cell to examine.
+	 * @return the Technology for that cell.
+	 */
+	public static Technology whatTechnology(NodeProto cell)
+	{
+		return whatTechnology(cell, null, 0, 0, null, 0, 0);
+	}
+
+	/**
 	 * Routine to determine the appropriate technology to use for a cell.
-	 * I am not happy with this interface and will redo it soon.  No need to document the mess!!!
+	 * The contents of the cell can be defined by the lists of NodeInsts and ArcInsts, or
+	 * if they are null, then by the contents of the Cell.
+	 * @param cell the Cell to examine.
+	 * @param nodeProtoList the list of prototypes of NodeInsts in the Cell.
+	 * @param startNodeProto the starting point in the "nodeProtoList" array.
+	 * @param endNodeProto the ending point in the "nodeProtoList" array.
+	 * @param arcProtoList the list of prototypes of ArcInsts in the Cell.
+	 * @param startArcProto the starting point in the "arcProtoList" array.
+	 * @param endArcProto the ending point in the "arcProtoList" array.
+	 * @return the Technology for that cell.
 	 */
 	public static Technology whatTechnology(NodeProto cell, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
 		ArcProto [] arcProtoList, int startArcProto, int endArcProto)

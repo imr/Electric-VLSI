@@ -631,7 +631,7 @@ public class Cell extends NodeProto
 //		{
 //			System.out.println("PortProto with no name?");
 //			return null;
-//		}
+//		}JInternalFrame
 //		return newInst.findPortInst(portNm);
 //	}
 
@@ -679,18 +679,14 @@ public class Cell extends NodeProto
 	 */
 	public void getInfo()
 	{
-		System.out.println("--------- CELL: ---------");
-		System.out.println("  name= " + protoName);
-		System.out.println("  tech= " + tech);
-		System.out.println("  view= " + view);
-		System.out.println("  version= " + version);
+		System.out.println("--------- CELL " + describe() +  " ---------");
+		System.out.println("  technology= " + tech);
 		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
-		System.out.println("  creationDate= " + df.format(creationDate));
-		System.out.println("  revisionDate= " + df.format(revisionDate));
-		System.out.println("  newestVersion= " + getNewestVersion());
-//		System.out.println("  userBits= " + Integer.toHexString(userBits));
+		System.out.println("  creation date= " + df.format(creationDate));
+		System.out.println("  revision date= " + df.format(revisionDate));
+		System.out.println("  newestVersion= " + getNewestVersion().describe());
 		Rectangle2D rect = getBounds();
-		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), at: " + rect.getWidth() + "x" + rect.getHeight());
+		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
 		System.out.println("  nodes (" + nodes.size() + "):");
 		for (int i = 0; i < nodes.size(); i++)
 		{
@@ -779,25 +775,6 @@ public class Cell extends NodeProto
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
-
-//	/** Create an export for this Cell.
-//	 * @param name the name of the new Export
-//	 * @param role the Export's type 
-//	 * @param port the PortInst that will be exported */
-//	public Export newExport(String name, PortInst port)
-//	{
-//		/* RKao: Why do we care that export name has both '[' and '_' ?
-//		   if ((name.indexOf('[')>=0) && (name.indexOf('_')>=0)) {
-//		   System.out.println("Oops:  tried to create an export called "+
-//		   name);
-//		   return null;
-//		   }
-//		*/
-////		Export e = Electric.newPortProto(this.getAddr(), port.getNodeInst().getAddr(), port.getPortProto().getAddr(), name);
-////		e.setRole(role);
-////		return e;
-//		return null;
-//	}
 
 	/**
 	 * Routine to find a named Export on this Cell.

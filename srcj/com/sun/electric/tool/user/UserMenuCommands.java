@@ -178,10 +178,21 @@ public final class UserMenuCommands
 
 	public static void getInfoCommand()
 	{
-		for(Iterator it = UIEdit.getHighlights(); it.hasNext(); )
+//		double s = 19.7 - 18.3;
+//		System.out.println("19.7 - 18.3 ="+s);
+		if (UIEdit.getNumHighlights() == 0)
 		{
-			Geometric geom = (Geometric)it.next();
-			geom.getInfo();
+			// information about the cell
+			Cell c = Library.getCurrent().getCurCell();
+			c.getInfo();
+		} else
+		{
+			// information about the selected items
+			for(Iterator it = UIEdit.getHighlights(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				geom.getInfo();
+			}
 		}
 	}
 

@@ -23,14 +23,7 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
@@ -39,6 +32,14 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.SizeOffset;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -1344,18 +1345,18 @@ public class Schematics extends Technology
 //			}
 
 			// bus pins don't show wire pin in center if not tapped
-			double wireDiscSize = 0.25;
+			double wireDiscSize = 0.125;
 			if (nonBusCon == 0) wireDiscSize = 0;
 
 			double busDiscSize;
 			if (busCon+implicitCon > 2)
 			{
 				// larger pin because it is connected to 3 or more bus arcs
-				busDiscSize = 1.0;
+				busDiscSize = 0.5;
 			} else
 			{
 				// smaller pin because it has 0, 1, or 2 connections
-				busDiscSize = 0.5;
+				busDiscSize = 0.25;
 				if (busCon == 0)
 				{
 					if (nonBusCon+implicitCon > 2)
@@ -1507,10 +1508,10 @@ public class Schematics extends Technology
 		Point2D.Double tailLoc = ai.getTail().getLocation();
 		double headX = headLoc.getX();   double headY = headLoc.getY();
 		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-		double angle = ai.getAngle();
+		int angle = ai.getAngle();
 		double bubbleSize = 1.2;
-		double cosDist = Math.cos(angle) * bubbleSize;
-		double sinDist = Math.sin(angle) * bubbleSize;
+		double cosDist = EMath.cos(angle) * bubbleSize;
+		double sinDist = EMath.sin(angle) * bubbleSize;
 		double bubbleX, bubbleY;
 		Point2D.Double bubbleEdge;
 		if (ai.isReverseEnds())

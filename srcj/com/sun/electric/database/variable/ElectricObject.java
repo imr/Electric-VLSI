@@ -275,19 +275,18 @@ public class ElectricObject
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;
-				System.out.print("   " + key + "= (" + ary.length + ")[");
-				for (int i = 0; i < ary.length - 1; i++)
+				System.out.print("   " + key + "(" + ary.length + ") = [");
+				for (int i = 0; i < ary.length; i++)
 				{
-					System.out.print("\"" + ary[i] + "\", ");
-					if (i > 2 && ary.length != 4)
+					if (i > 4)
 					{
-						System.out.print("..., ");
+						System.out.print("...");
 						break;
 					}
-				}
-				if (ary.length > 0)
-				{
-					System.out.print("\"" + ary[ary.length - 1] + "\"");
+					if (ary[i] instanceof String) System.out.print("\"");
+					System.out.print(ary[i]);
+					if (ary[i] instanceof String) System.out.print("\"");
+					if (i < ary.length-1) System.out.print(", ");
 				}
 				System.out.println("]");
 			} else

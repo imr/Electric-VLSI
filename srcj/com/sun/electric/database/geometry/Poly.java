@@ -429,15 +429,15 @@ public class Poly implements Shape
 			double ang = 0;
 			Point2D.Double lastPoint = points[points.length-1];
 			if (pt.equals(lastPoint)) return true;
-			double lastp = EMath.figureAngle(pt, lastPoint) * 180.0 / Math.PI;
+			int lastp = EMath.figureAngle(pt, lastPoint);
 			for(int i=0; i<points.length; i++)
 			{
 				Point2D.Double thisPoint = points[i];
 				if (pt.equals(thisPoint)) return true;
-				double thisp = EMath.figureAngle(pt, thisPoint) * 180.0 / Math.PI;
-				double tang = lastp - thisp;
-				if (tang < -180) tang += 360;
-				if (tang > 180) tang -= 360;
+				int thisp = EMath.figureAngle(pt, thisPoint);
+				int tang = lastp - thisp;
+				if (tang < -1800) tang += 3600;
+				if (tang > 1800) tang -= 3600;
 				ang += tang;
 				lastp = thisp;
 			}
@@ -482,9 +482,9 @@ public class Poly implements Shape
 		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
 		{
 			/* first see if the point is at the proper angle from the center of the arc */
-			double ang = EMath.figureAngle(points[0], pt);
-			double endangle = EMath.figureAngle(points[0], points[1]);
-			double startangle = EMath.figureAngle(points[0], points[2]);
+			int ang = EMath.figureAngle(points[0], pt);
+			int endangle = EMath.figureAngle(points[0], points[1]);
+			int startangle = EMath.figureAngle(points[0], points[2]);
 			double angrange;
 			if (endangle > startangle)
 			{
@@ -493,7 +493,7 @@ public class Poly implements Shape
 			} else
 			{
 				if (ang < startangle && ang > endangle) return false;
-				angrange = (Math.PI*2) - startangle + endangle;
+				angrange = 3600 - startangle + endangle;
 			}
 
 			/* now see if the point is the proper distance from the center of the arc */

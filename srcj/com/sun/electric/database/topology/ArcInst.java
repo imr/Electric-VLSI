@@ -25,11 +25,13 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -115,7 +117,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.sX = len;
 		this.cX = (p1.x + p2.x) / 2;
 		this.cY = (p1.y + p2.y) / 2;
-		this.angle = Math.atan2(dy, dx);
+		this.angle = (int)(Math.atan2(dy, dx) * 1800.0 / Math.PI);
 
 		// compute the bounds
 		Poly poly = makePoly(len, arcWidth, Poly.Type.FILLED);
@@ -176,14 +178,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public void getInfo()
 	{
-		System.out.println("--------- ARC INSTANCE: ---------");
-		System.out.println(" ArcProto: " + protoType.describe());
+		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
 		Point2D loc = head.getLocation();
-		System.out.println(" Head on " + head.getPortInst().getNodeInst().getProto().describe() +
+		System.out.println(" Head on " + head.getPortInst().getNodeInst().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 
 		loc = tail.getLocation();
-		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().getProto().describe() +
+		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 		super.getInfo();
 	}
@@ -231,22 +232,22 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.parent = parent;
 
 		// make sure the arc can connect to these ports
-//		PortProto pa = a.getPortProto();
-//		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
-//		if (!ppa.connectsTo(protoType))
-//		{
-//			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-//				" because it cannot connect to port " + pa.getProtoName());
-//			return true;
-//		}
-//		PortProto pb = b.getPortProto();
-//		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
-//		if (!ppb.connectsTo(protoType))
-//		{
-//			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-//				" because it cannot connect to port " + pb.getProtoName());
-//			return true;
-//		}
+		PortProto headProto = headPort.getPortProto();
+		PrimitivePort headPrimPort = headProto.getBasePort();
+		if (!headPrimPort.connectsTo(protoType))
+		{
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + headProto.getProtoName());
+			return true;
+		}
+		PortProto tailProto = tailPort.getPortProto();
+		PrimitivePort tailPrimPort = tailProto.getBasePort();
+		if (!tailPrimPort.connectsTo(protoType))
+		{
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + tailProto.getProtoName());
+			return true;
+		}
 
 		// create node/arc connections and place them properly
 		head = new Connection(this, headPort, headX, headY);
@@ -751,7 +752,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return poly;
 	}
 
-	private Poly makeEndPointPoly(double len, double wid, double angle, Point2D.Double end1, double e1,
+	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D.Double end1, double e1,
 		Point2D.Double end2, double e2)
 	{
 		double w2 = wid / 2;
@@ -759,8 +760,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		double x2 = end2.getX();   double y2 = end2.getY();
 
 		/* somewhat simpler if rectangle is manhattan */
-		if (angle < 0) angle += Math.PI * 2;
-		if (angle == Math.PI/2 || angle == Math.PI/2*3)
+		if (angle == 900 || angle == 2700)
 		{
 			if (y1 > y2)
 			{
@@ -774,7 +774,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 				new Point2D.Double(x2 - w2, y2 + e2)});
 			return poly;
 		}
-		if (angle == 0 || angle == Math.PI)
+		if (angle == 0 || angle == 1800)
 		{
 			if (x1 > x2)
 			{
@@ -794,8 +794,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		double xextra, yextra, xe1, ye1, xe2, ye2;
 		if (len == 0)
 		{
-			double sa = Math.sin(angle);
-			double ca = Math.cos(angle);
+			double sa = EMath.sin(angle);
+			double ca = EMath.cos(angle);
 			xe1 = x1 - ca * e1;
 			ye1 = y1 - sa * e1;
 			xe2 = x2 + ca * e2;
@@ -828,7 +828,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public String describe()
 	{
-		return protoType.getProtoName();
+		String description = protoType.describe();
+		String name = getName();
+		if (name != null) description += "[" + name + "]";
+		return description;
 	}
 
 	/**

@@ -76,12 +76,12 @@ public class Generic extends Technology
 
 		/** Invisible layer */
 		Layer invisible_lay = Layer.newInstance("Invisible",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Unrouted layer */
 		Layer unrouted_lay = Layer.newInstance("Unrouted",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 100,100,100,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
@@ -91,12 +91,12 @@ public class Generic extends Technology
 
 		/** DRC layer */
 		Layer drc_lay = Layer.newInstance("DRC",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 255,190,6,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Simulation Probe layer */
 		Layer simprobe_lay = Layer.newInstance("Sim-Probe",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,255,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
@@ -140,7 +140,7 @@ public class Generic extends Technology
 
 		/** Universal pin */
 		univPinPort = PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
 		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
@@ -213,7 +213,7 @@ public class Generic extends Technology
 		drc_node = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(drc_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
 		drc_node.addPrimitivePorts(new PrimitivePort []
 			{

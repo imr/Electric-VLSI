@@ -70,8 +70,8 @@ public class UIMessages
 	// -------------------- private and protected methods ------------------------
 	public UIMessages(Dimension scrnSize)
 	{
-		jf = new JInternalFrame("Messages", true, true, true, true);
-//		jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);
+		jf = new JInternalFrame("Messages", true, false, true, true);
+		// jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);
 		bi = new Interpreter();
 		history = new ArrayList();
 		entry = new JTextField();

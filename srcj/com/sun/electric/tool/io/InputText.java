@@ -448,9 +448,8 @@ public class InputText extends Input
 				Point2D.Double center = new Point2D.Double(xoff / lambda, yoff / lambda);
 				double width = (highX - lowX) / lambda;
 				double height = (highY - lowY) / lambda;
-				double angle = nil.nodeInstRotation[j] * Math.PI / 1800;
 				if (nil.nodeInstTranspose[j]) width = -width;
-				ni.lowLevelPopulate(np, center, width, height, angle, cell);
+				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
 				ni.lowLevelLink();
 			}
 		}
@@ -471,9 +470,8 @@ public class InputText extends Input
 			Point2D.Double center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
-			double angle = nil.nodeInstRotation[j] * Math.PI / 1800;
 			if (nil.nodeInstTranspose[j]) width = -width;
-			ni.lowLevelPopulate(np, center, width, height, angle, cell);
+			ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
 			ni.lowLevelLink();
 
 			// convert outline information, if present

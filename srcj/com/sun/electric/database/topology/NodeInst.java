@@ -131,6 +131,16 @@ public class NodeInst extends Geometric
 				}
 			}
 
+			// special case for pins that become steiner points
+			if (protoType.isWipeOn1or2() && getNumExports() == 0)
+			{
+				if (pinUseCount())
+				{
+					visBounds.setRect(cX, cY, 0, 0);
+					return;
+				}
+			}
+
 			/* special case for polygonally-defined nodes: compute precise geometry */
 			if (protoType.isHoldsOutline())
 			{
@@ -186,11 +196,11 @@ public class NodeInst extends Geometric
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
 	 * @param height the height of this NodeInst.
-	 * @param angle the angle of this NodeInst (in radians).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return true on error.
 	 */
-	public boolean lowLevelPopulate(NodeProto protoType, Point2D.Double center, double width, double height, double angle,
+	public boolean lowLevelPopulate(NodeProto protoType, Point2D.Double center, double width, double height, int angle,
 		Cell parent)
 	{
 		setParent(parent);
@@ -240,12 +250,12 @@ public class NodeInst extends Geometric
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
 	 * @param height the height of this NodeInst.
-	 * @param angle the angle of this NodeInst (in radians).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D.Double center, double width, double height,
-		double angle, Cell parent)
+		int angle, Cell parent)
 	{
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
@@ -343,34 +353,34 @@ public class NodeInst extends Geometric
 	 */
 	public void getInfo()
 	{
-		System.out.println("--------- NODE INSTANCE: ---------");
-		System.out.println(" Prototype: " + protoType.describe());
+		System.out.println("-------------- NODE INSTANCE " + describe() + ": --------------");
 		super.getInfo();
 		System.out.println(" Ports:");
 		for(Iterator it = getPortInsts(); it.hasNext();)
 		{
 			PortInst pi = (PortInst) it.next();
 			Poly p = pi.getPoly();
-			System.out.println("     " + pi.getPortProto() + " at " + p.getCenterX() + "," + p.getCenterY());
+			System.out.println("     " + pi.getPortProto().getProtoName() + " at (" + p.getCenterX() + "," + p.getCenterY() + ")");
 		}
 		if (connections.size() != 0)
 		{
-			System.out.println(" Connections (" + connections.size() + ")");
+			System.out.println(" Connections:");
 			for (int i = 0; i < connections.size(); i++)
 			{
 				Connection c = (Connection) connections.get(i);
-				System.out.println("     " + c.getArc().getProto().getProtoName()
-					+ " on " + c.getPortInst().getPortProto().getProtoName());
+				System.out.println("     " + c.getArc().describe() +
+					" on port " + c.getPortInst().getPortProto().getProtoName());
 			}
 		}
 		if (exports.size() != 0)
 		{
-			System.out.println(" Exports (" + exports.size() + ")");
+			System.out.println(" Exports:");
 			for (int i = 0; i < exports.size(); i++)
 			{
 				Export ex = (Export) exports.get(i);
-				System.out.println("     " + ex + " characteristic " + ex.getCharacteristic());
-				System.out.println("     userbits: " + ex.lowLevelGetUserbits());
+				System.out.println("     " + ex.getProtoName() +
+					" on port " + ex.getOriginalPort().getPortProto().getProtoName() +
+					", " + ex.getCharacteristic());
 			}
 		}
 	}
@@ -919,6 +929,7 @@ public class NodeInst extends Geometric
 		connections.add(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
+		updateGeometric();
 	}
 
 	/**
@@ -930,6 +941,7 @@ public class NodeInst extends Geometric
 		connections.remove(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
+		updateGeometric();
 	}
 
 	/**
@@ -939,6 +951,7 @@ public class NodeInst extends Geometric
 	public void addExport(Export e)
 	{
 		exports.add(e);
+		updateGeometric();
 	}
 
 	/**
@@ -952,6 +965,7 @@ public class NodeInst extends Geometric
 			throw new RuntimeException("Tried to remove a non-existant export");
 		}
 		exports.remove(e);
+		updateGeometric();
 	}
 
 	/**
@@ -1038,7 +1052,10 @@ public class NodeInst extends Geometric
 	 */
 	public String describe()
 	{
-		return protoType.getProtoName();
+		String description = protoType.describe();
+		String name = getName();
+		if (name != null) description += "[" + name + "]";
+		return description;
 	}
 
 	/**

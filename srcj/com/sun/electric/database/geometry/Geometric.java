@@ -766,7 +766,7 @@ public class Geometric extends ElectricObject
 	/** bounds after transformation */						protected Rectangle2D.Double visBounds;
 	/** center coordinate of this geometric */				protected double cX, cY;
 	/** size of this geometric */							protected double sX, sY;
-	/** angle of this geometric */							protected double angle;
+	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** temporary integer value for the node or arc */		private int tempInt;
 
 	// ------------------------ private and protected methods--------------------
@@ -805,8 +805,8 @@ public class Geometric extends ElectricObject
 	 */
 	public void getInfo()
 	{
-		System.out.println(" Parent: " + parent.describe());
-		System.out.println(" Location: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle * 180.0 / Math.PI);
+		System.out.println(" Parent cell: " + parent.describe());
+		System.out.println(" Center: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle/10.0);
 		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: " +
 			visBounds.getWidth() + "x" + visBounds.getHeight());
 	}
@@ -815,20 +815,20 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * Routine to return a transformation that rotates an object about a point.
-	 * @param angle the amount to rotate (in radians).
+	 * @param angle the amount to rotate (in tenth-degrees).
 	 * @param transpose true if a transposition will be done after rotation.
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
 	 * @return a transformation that rotates about that point.
 	 */
-	public AffineTransform rotateAbout(double angle, boolean transpose, double cX, double cY)
+	public AffineTransform rotateAbout(int angle, boolean transpose, double cX, double cY)
 	{
 		AffineTransform transform = new AffineTransform();
 		if (transpose)
 		{
 			// must do transposition, so it is trickier
-			double cosine = Math.cos(angle);
-			double sine = Math.sin(angle);
+			double cosine = EMath.cos(angle);
+			double sine = EMath.sin(angle);
 			if (rotateTranspose == null) rotateTranspose = new AffineTransform();
 			rotateTranspose.setTransform(-sine, -cosine, -cosine, sine, 0.0, 0.0);
 			transform.setToTranslation(cX, cY);
@@ -836,39 +836,10 @@ public class Geometric extends ElectricObject
 			transform.translate(-cX, -cY);
 		} else
 		{
-			transform.setToRotation(angle, cX, cY);
+			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
 		}
 		return transform;
 	}
-
-//	/**
-//	 * Routine to compute the bounds of this Geometric.
-//	 */
-//	public void updateGeometricBounds()
-//	{
-//		if (sX == 0 && sY == 0)
-//		{
-//			visBounds.setRect(cX, cY, 0, 0);
-//		} else
-//		{
-//			// start with a unit polygon, centered at the origin
-//			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
-//
-//			// transform by the relevant amount
-//			AffineTransform scale = new AffineTransform();
-//			scale.setToScale(sX, sY);
-//			AffineTransform rotate = rotateAbout(angle, sX, sY, 0, 0);
-//			AffineTransform translate = new AffineTransform();
-//			translate.setToTranslation(cX, cY);
-//			rotate.concatenate(scale);
-//			translate.concatenate(rotate);
-//
-//			poly.transform(translate);
-//
-//			// return its bounds
-//			visBounds.setRect(poly.getBounds2DDouble());
-//		}
-//	}
 
 	// ------------------------ public methods -----------------------------
 
@@ -901,9 +872,9 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * Routine to return the rotation angle of this Geometric.
-	 * @return the rotation angle of this Geometric (in radians).
+	 * @return the rotation angle of this Geometric (in tenth-degrees).
 	 */
-	public double getAngle() { return angle; }
+	public int getAngle() { return angle; }
 
 	/**
 	 * Routine to return the X size of this Geometric.

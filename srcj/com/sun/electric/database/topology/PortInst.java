@@ -119,23 +119,4 @@ public class PortInst
 	{
 		return portProto.getPoly(nodeInst);
 	}
-
-	/** Can this PortInst be connected to a particular type of arc? */
-//	public boolean connectsTo(ArcProto arc)
-//	{
-//		return portProto.connectsTo(arc);
-//	}
-
-	/** Return a list of ArcInsts attached to this PortInst */
-//	public Iterator getArcs()
-//	{
-//		ArrayList arcs = new ArrayList();
-//		for (Iterator it = nodeInst.getConnections(); it.hasNext();)
-//		{
-//			Connection c = (Connection) it.next();
-//			if (c.getPortInst() == this)
-//				arcs.add(c.getArc());
-//		}
-//		return arcs.iterator();
-//	}
 }

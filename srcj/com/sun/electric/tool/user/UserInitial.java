@@ -57,7 +57,7 @@ public final class UserInitial
 		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
-		fileMenu.addMenuItem("Import", null,
+		fileMenu.addMenuItem("Import Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.importLibraryCommand(); } });
 		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveLibraryCommand(); } });
@@ -131,12 +131,12 @@ public final class UserInitial
 		Cell myCell = Cell.newInstance(mainLib, "test{lay}");
 		NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(30.0, 30.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, myCell);
 		cellCenter.setVisInside();
-		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0.0, myCell);
-		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0.0, myCell);
-		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0.0, myCell);
-		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0.0, myCell);
-		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0.0, myCell);
-		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), Math.PI/4, myCell);
+		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0, myCell);
+		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0, myCell);
+		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0, myCell);
+		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0, myCell);
+		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0, myCell);
+		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), 450, myCell);
 		rotTrans.setName("rotated");
 
 		// make arcs to connect them
@@ -172,22 +172,22 @@ public final class UserInitial
 			myCell.getDefWidth(), myCell.getDefHeight(), 0, higherCell);
 
 		NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 900, higherCell);
 		instance2Node.setExpanded();
 		NodeInst instance2UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 900, higherCell);
 
 		NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 1800, higherCell);
 		instance3Node.setExpanded();
 		NodeInst instance3UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 1800, higherCell);
 
 		NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 2700, higherCell);
 		instance4Node.setExpanded();
 		NodeInst instance4UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100),
-			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+			myCell.getDefWidth(), myCell.getDefHeight(), 2700, higherCell);
 
 		// transposed
 		NodeInst instance5Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 200),
@@ -197,22 +197,22 @@ public final class UserInitial
 			-myCell.getDefWidth(), myCell.getDefHeight(), 0, higherCell);
 
 		NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 200),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 900, higherCell);
 		instance6Node.setExpanded();
 		NodeInst instance6UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 900, higherCell);
 
 		NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 200),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 1800, higherCell);
 		instance7Node.setExpanded();
 		NodeInst instance7UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 1800, higherCell);
 
 		NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 200),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 2700, higherCell);
 		instance8Node.setExpanded();
 		NodeInst instance8UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300),
-			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+			-myCell.getDefWidth(), myCell.getDefHeight(), 2700, higherCell);
 
 		PortInst instance1Port = instance1Node.findPortInst("in");
 		PortInst instance2Port = instance1UNode.findPortInst("in");

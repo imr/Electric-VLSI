@@ -28,12 +28,13 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.user.ui.ProgressDialog;
 import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.ProgressMonitor;
+//import javax.swing.ProgressMonitor;
 
 /**
  * This class manages reading files in different formats.
@@ -48,7 +49,7 @@ public class Input
 	/** The raw input stream. */							protected FileInputStream fileInputStream;
 	/** The binary input stream. */							protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
-	/** The progress during input. */						protected static ProgressMonitor progress = null;
+	/** The progress during input. */						protected static ProgressDialog progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
@@ -194,13 +195,15 @@ public class Input
 		// show progress
 		if (topLevel && progress == null)
 		{
-			progress = new ProgressMonitor(null, "Reading library "+lib.getLibName()+"...", "", 0, 1001);
+			progress = new ProgressDialog("Reading library "+lib.getLibName()+"...");
 			progress.setProgress(0);
-			progress.setMillisToDecideToPopup(0);
-			progress.setMillisToPopup(0);
 		}
 		boolean error = in.readLib();
-		if (topLevel && progress != null) progress.close();
+		if (topLevel && progress != null)
+		{
+			progress.close();
+			progress = null;
+		}
 		try
 		{
 			in.fileInputStream.close();
