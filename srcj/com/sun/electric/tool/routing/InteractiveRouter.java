@@ -231,44 +231,35 @@ public abstract class InteractiveRouter extends Router {
             }
         }
 
-        // to make connecting to and from an ArcInst <-> PortInst a symmetric operation
-        Point2D endPoint = null;
-        if (endObj instanceof PortInst) {
-            PortInst endPort = (PortInst)endObj;
-			endPoint = new Point2D.Double(endPort.getBounds().getCenterX(),
-										  endPort.getBounds().getCenterY());
-            endPoint = getExistingPortEndPoint(endPort, clicked);
-        }
-        if (endObj instanceof NodeInst) {
-            // find closest portinst to start from
-            PortInst endPort = ((NodeInst)endObj).findClosestPortInst(clicked);
-            if (endPort != null) {
-                endPoint = getExistingPortEndPoint(endPort, clicked);
-            }
-        }
+        Poly startPoly = getConnectingSite(startObj, clicked);
+        Poly endPoly = getConnectingSite(endObj, clicked);
 
-        // contacts go at the end of the route: but we want contacts to go
-        // on the arc, if it the other connection is a node
+        Point2D startPoint = new Point2D.Double(0, 0);
+        Point2D endPoint = new Point2D.Double(0,0);
+        getConnectingPoints(startPoly, endPoly, clicked, startPoint, endPoint);
+
+        PortInst existingStartPort = null;
+        PortInst existingEndPort = null;
+
+        // favor contact cuts on arcs
         boolean reverseRoute = false;
 
         // plan start of route
         if (startObj instanceof PortInst) {
             // portinst: just wrap in RouteElement
-            Point2D point = getExistingPortEndPoint((PortInst)startObj, clicked);
-            startRE = RouteElement.existingPortInst((PortInst)startObj, point);
+            existingStartPort = (PortInst)startObj;
+            startRE = RouteElement.existingPortInst(existingStartPort, startPoint);
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            if (endPoint == null) endPoint = clicked;
-            startRE = findArcConnectingPoint(route, (ArcInst)startObj, endPoint);
+            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint);
             reverseRoute = true;
         }
         if (startObj instanceof NodeInst) {
             // find closest portinst to start from
-            PortInst pi = ((NodeInst)startObj).findClosestPortInst(clicked);
-            if (pi != null) {
-                Point2D point = getExistingPortEndPoint((PortInst)startObj, clicked);
-                startRE = RouteElement.existingPortInst(pi, point);
+            existingStartPort = ((NodeInst)startObj).findClosestPortInst(clicked);
+            if (existingStartPort != null) {
+                startRE = RouteElement.existingPortInst(existingStartPort, startPoint);
             }
         }
         if (startRE == null) {
@@ -283,16 +274,21 @@ public abstract class InteractiveRouter extends Router {
             // we have somewhere to route to
             if (endObj instanceof PortInst) {
                 // portinst: just wrap in RouteElement
-                Point2D point = getExistingPortEndPoint((PortInst)endObj, clicked);
-                endRE = RouteElement.existingPortInst((PortInst)endObj, point);
+                existingEndPort = (PortInst)endObj;
+                endRE = RouteElement.existingPortInst(existingEndPort, endPoint);
             }
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
-                Point2D startPoint = startRE.getLocation();
-                if (startPoint == null) startPoint = clicked;
-                endRE = findArcConnectingPoint(route, (ArcInst)endObj, startPoint);
+                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint);
                 reverseRoute = false;
+            }
+            if (endObj instanceof NodeInst) {
+                // find closest portinst to start from
+                existingEndPort = ((NodeInst)endObj).findClosestPortInst(clicked);
+                if (existingEndPort != null) {
+                    endRE = RouteElement.existingPortInst(existingEndPort, endPoint);
+                }
             }
             if (endRE == null) {
                 if (endObj != badEndObject)
@@ -324,10 +320,8 @@ public abstract class InteractiveRouter extends Router {
             }
             // make new pin to route to
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
-            Point2D location = getClosestOrthogonalPoint(startRE.getLocation(), clicked);
-            endRE = RouteElement.newNode(cell, pn, pn.getPort(0), location,
+            endRE = RouteElement.newNode(cell, pn, pn.getPort(0), endPoint,
                     pn.getDefWidth(), pn.getDefHeight());
-            reverseRoute = false;
         }
 
         // favors arcs for location of contact cuts
@@ -336,6 +330,9 @@ public abstract class InteractiveRouter extends Router {
             startRE = endRE;
             endRE = re;
         }
+
+        // special check: if both existing port insts and same port, do nothing
+        if ((existingEndPort != null) && (existingEndPort == existingStartPort)) return new Route();
 
         // add startRE and endRE to route
         route.add(startRE);
@@ -351,22 +348,6 @@ public abstract class InteractiveRouter extends Router {
     }
 
     // -------------------- Internal Router Utility Methods --------------------
-
-
-    /**
-     * For existing port insts that may be multi-site ports (Electric schematic
-     * gate primitives), find end point of a connecting arc based on 'clicked'
-     * @param pi the port inst to connect to
-     * @param clicked the point where the user clicked
-     * @return a point on the port to connect an arc to
-     */
-    protected static Point2D getExistingPortEndPoint(PortInst pi, Point2D clicked) {
-        NodeInst ni = pi.getNodeInst();
-        PortProto pp = pi.getPortProto();
-        Poly poly = ni.getShapeOfPort(pp, clicked);
-        Rectangle2D bounds = poly.getBounds2D();
-        return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-    }
 
     /**
      * If drawing to/from an ArcInst, we may connect to some
@@ -561,26 +542,6 @@ public abstract class InteractiveRouter extends Router {
         route.add(newHeadArcRE);
         route.add(newTailArcRE);
         return newPinRE;
-    }
-
-    /**
-     * Gets the closest orthogonal point from the startPoint to the clicked point.
-     * This is used when the user clicks in space and the router draws only a single
-     * arc towards the clicked point in one dimension.
-     * @param startPoint start point of the arc
-     * @param clicked where the user clicked
-     * @return an end point to draw to from start point to make a single arc segment.
-     */
-    protected Point2D getClosestOrthogonalPoint(Point2D startPoint, Point2D clicked) {
-        Point2D newPoint;
-        if (Math.abs(startPoint.getX() - clicked.getX()) < Math.abs(startPoint.getY() - clicked.getY())) {
-            // draw horizontally
-            newPoint = new Point2D.Double(startPoint.getX(), clicked.getY());
-        } else {
-            // draw vertically
-            newPoint = new Point2D.Double(clicked.getX(), startPoint.getY());
-        }
-        return newPoint;
     }
 
     // ----------------------------------------------------------------------
