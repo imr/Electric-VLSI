@@ -77,6 +77,7 @@ public class Highlighter implements DatabaseChangeListener {
     /** true if highlights have changed recently */             private boolean changed;
     /** List of HighlightListeners */                           private List highlightListeners;
     /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
+    /** what was the last level of "showNetwork" */             private int showNetworkLevel;
     private static final int EXACTSELECTDISTANCE = 5;
 
     /**
@@ -91,6 +92,7 @@ public class Highlighter implements DatabaseChangeListener {
         Undo.addDatabaseChangeListener(this);
         if (currentHighlighter == null) currentHighlighter = this;
         lastHighlightListEndObj = null;
+        showNetworkLevel = 0;
     }
 
     /**
@@ -209,6 +211,23 @@ public class Highlighter implements DatabaseChangeListener {
 	}
 
     /**
+     * Method to add a Poly to the list of highlighted objects
+     * @param poly the poly to add
+     * @param cell the cell in which to display the poly
+     * @param color the color to draw the poly with (if null, uses default)
+     * @return the newly created highlight object
+     */
+    public Highlight addPoly(Poly poly, Cell cell, Color color)
+    {
+        Highlight h = new Highlight(Highlight.Type.POLY, null, cell);
+        h.setPoly(poly);
+        h.setColor(color);
+
+        addHighlight(h);
+        return h;
+    }
+
+    /**
 	 * Method to add a network to the list of highlighted objects.
 	 * Many arcs may be highlighted as a result.
 	 * @param net the network to highlight.
@@ -217,56 +236,40 @@ public class Highlighter implements DatabaseChangeListener {
 	public void addNetwork(JNetwork net, Cell cell)
 	{
 		Netlist netlist = cell.getUserNetlist();
-        List nodesAdded = new ArrayList();
-
-		// show all arcs on the network
-		for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)aIt.next();
-			int width = netlist.getBusWidth(ai);
-			for(int i=0; i<width; i++)
-			{
-				JNetwork oNet = netlist.getNetwork(ai, i);
-				if (oNet == net)
-				{
-					addElectricObject(ai, cell, false);
-                    // also highlight end nodes of arc, if they are primitive nodes
-                    PortInst pi = ai.getHead().getPortInst();
-                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                        if (!nodesAdded.contains(pi)) {
-                            // prevent duplicates
-                            addElectricObject(pi, cell, false);
-                            nodesAdded.add(pi);
-                        }
-                    }
-                    pi = ai.getTail().getPortInst();
-                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
-                        if (!nodesAdded.contains(pi)) {
-                            // prevent duplicates
-                            addElectricObject(pi, cell, false);
-                            nodesAdded.add(pi);
-                        }
-					break;
-				}
-			}
-		}
-
-		// show all exports on the network
-		for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
-		{
-			Export pp = (Export)pIt.next();
-			int width = netlist.getBusWidth(pp);
-			for(int i=0; i<width; i++)
-			{
-				JNetwork oNet = netlist.getNetwork(pp, i);
-				if (oNet == net)
-				{
-					addText(pp, cell, null, null);
-					break;
-				}
-			}
-		}
+        List highlights = NetworkHighlighter.getHighlights(cell, netlist, net, 0, 0);
+        for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            addHighlight(h);
+        }
 	}
+
+    /**
+     * This is the show network command. It is similar to addNetwork, however
+     * each time it is used without first clearing
+     * the highlighter, it shows connections to the network another level down
+     * in the hierarchy.
+     * @param nets list of JNetworks in current cell to show
+     * @param cell the cell in which to create the highlights
+     */
+    public void showNetworks(Set nets, Cell cell) {
+        if (showNetworkLevel == 0) clear();
+        int count = 0;
+        for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
+            JNetwork net = (JNetwork)netIt.next();
+            if (showNetworkLevel == 0) System.out.println("Highlighting network "+net.describe());
+            List highlights = NetworkHighlighter.getHighlights(cell, cell.getNetlist(true), net,
+                    showNetworkLevel, showNetworkLevel);
+            for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+                addHighlight(h);
+                count++;
+            }
+        }
+        showNetworkLevel++;
+        if (count == 0) {
+            System.out.println("Nothing more in hierarchy on network(s) to show");
+        }
+    }
 
     /**
      * Add a Highlight
@@ -283,6 +286,7 @@ public class Highlighter implements DatabaseChangeListener {
 	public synchronized void clear()
 	{
         highOffX = highOffY = 0;
+        showNetworkLevel = 0;
 
         if (highlightList.size() == 0) return;
 

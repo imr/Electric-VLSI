@@ -345,17 +345,13 @@ public class ToolMenu {
     public static void showNetworkCommand()
     {
         EditWindow wnd = EditWindow.needCurrent();
+        Cell cell = wnd.getCell();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
         Set nets = highlighter.getHighlightedNetworks();
-        highlighter.clear();
-        for(Iterator it = nets.iterator(); it.hasNext(); )
-        {
-            JNetwork net = (JNetwork)it.next();
-            Cell cell = net.getParent();
-            highlighter.addNetwork(net, cell);
-        }
+        //highlighter.clear();
+        highlighter.showNetworks(nets, cell);
         highlighter.finished();
     }
 

@@ -119,6 +119,7 @@ public class Highlight
 		/** Describes a highlighted line. */					public static final Type LINE = new Type("line");
 		/** Describes a thick highlighted line. */				public static final Type THICKLINE = new Type("thick line");
 		/** Describes a non-database text. */					public static final Type MESSAGE = new Type("message");
+        /** Describes a Polygon */                              public static final Type POLY = new Type("poly");
 	}
 
 	/** The type of the highlighting. */						private Type type;
@@ -131,6 +132,8 @@ public class Highlight
 	/** The highlighted line. */								private Point2D pt1, pt2;
 	/** The center point about which thick lines revolve. */	private Point2D center;
 	/** The highlighted message. */								private String msg;
+    /** The highlighted polygon */                              private Poly polygon;
+    /** The color used when drawing polygons */                 private Color color;
     /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 
     /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
@@ -151,6 +154,8 @@ public class Highlight
 		this.pt1 = null;
 		this.pt2 = null;
 		this.msg = null;
+        this.polygon = null;
+        this.color = null;
         this.highlightConnected = true;
 	}
 
@@ -305,6 +310,33 @@ public class Highlight
      */
     public void setHighlightConnected(boolean b) { highlightConnected = b; }
 
+    /**
+     * Sets the polygon of this POLY type highlight.
+     * Has no effect if this is not a POLY type object.
+     * @param poly the poly to use
+     */
+    public void setPoly(Poly poly) { polygon = poly; }
+
+    /**
+     * Get the Poly of this POLY type highlight.
+     * Returns null for non-POLY type highlights.
+     * @return the poly
+     */
+    public Poly getPoly() { return polygon; }
+
+    /**
+     * Sets the color of the Highlight.
+     * Currently only used for Poly Types.
+     * @param color the color to use
+     */
+    public void setColor(Color color) { this.color = color; }
+
+    /**
+     * Get the color of the Highlight.
+     * Currently only valid for Poly Types.
+     * @return the color to use
+     */
+    public Color getColor() { return color; }
 
     /**
      * Returns true if the highlight is still valid. Highlights are no longer valid
@@ -318,7 +350,8 @@ public class Highlight
         if (type == Type.EOBJ) {
             return eobj.isLinked();
         }
-        if (type == Type.BBOX || type == Type.LINE || type == Type.MESSAGE || type == Type.THICKLINE) {
+        if (type == Type.BBOX || type == Type.LINE || type == Type.MESSAGE ||
+            type == Type.THICKLINE || type == Type.POLY) {
             return true;
         }
         if (type == Type.TEXT) {
@@ -405,6 +438,21 @@ public class Highlight
 			}
 			return;
 		}
+        if (type == Type.POLY) {
+            // switch colors if specified
+            Color oldColor = null;
+            if (color != null) {
+                oldColor = g.getColor();
+                g.setColor(color);
+            }
+            // draw outline of poly
+            boolean opened = (polygon.getStyle() == Poly.Type.OPENED);
+            drawOutlineFromPoints(wnd, g, polygon.getPoints(), highOffX, highOffY, opened, null);
+            // switch back to old color if switched
+            if (oldColor != null)
+                g.setColor(oldColor);
+            return;
+        }
 		if (type == Type.MESSAGE)
 		{
 			Point loc = wnd.databaseToScreen(pt1.getX(), pt1.getY());
@@ -459,6 +507,15 @@ public class Highlight
 			NodeInst ni = (NodeInst)realEObj;
 			NodeProto np = ni.getProto();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
+
+            // draw nodeInst outline
+            Poly niPoly = getNodeInstOutline(ni);
+            boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
+            drawOutlineFromPoints(wnd, g, niPoly.getPoints(), highOffX, highOffY, niOpened, null);
+
+            int offX = highOffX;
+            int offY = highOffY;
+/*
 			boolean drewOutline = false;
 			if (np instanceof PrimitiveNode)
 			{
@@ -483,8 +540,6 @@ public class Highlight
 			}
 
 			// setup outline of node with standard offset
-			int offX = highOffX;
-			int offY = highOffY;
 			if (!drewOutline)
 			{
 				SizeOffset so = ni.getSizeOffset();
@@ -512,6 +567,7 @@ public class Highlight
 					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false, null);
 				}
 			}
+*/
 
 			// draw the selected point
 			if (point >= 0)
@@ -734,6 +790,67 @@ public class Highlight
 	// ************************************* SUPPORT *************************************
 
     /**
+     * Gets a poly that describes the Highlight for the NodeInst.
+     * @param ni the nodeinst to get a poly that will be used to highlight it
+     * @return a poly outlining the nodeInst.
+     */
+    public static Poly getNodeInstOutline(NodeInst ni) {
+
+        AffineTransform trans = ni.rotateOutAboutTrueCenter();
+        NodeProto np = ni.getProto();
+
+        Poly poly = null;
+        if (np instanceof PrimitiveNode)
+        {
+            // special case for outline nodes
+            if (np.isHoldsOutline())
+            {
+                Point2D [] outline = ni.getTrace();
+                if (outline != null)
+                {
+                    int numPoints = outline.length;
+                    Point2D [] pointList = new Point2D.Double[numPoints];
+                    for(int i=0; i<numPoints; i++)
+                    {
+                        pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
+                            ni.getTrueCenterY() + outline[i].getY());
+                    }
+                    trans.transform(pointList, 0, pointList, 0, numPoints);
+                    //drawOutlineFromPoints(wnd, g, pointList, 0, 0, true, null);
+                    poly = new Poly(pointList);
+                    poly.setStyle(Poly.Type.OPENED);
+                }
+            }
+        }
+
+        // setup outline of node with standard offset
+        if (poly == null)
+        {
+            SizeOffset so = ni.getSizeOffset();
+            double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+            double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+            double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+            double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+            if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
+            {
+                float x = (float)nodeLowX;
+                float y = (float)nodeLowY;
+                Point2D [] outline = new Point2D[1];
+                outline[0] = new Point2D.Double(x, y);
+                poly = new Poly(outline);
+            } else
+            {
+                double nodeX = (nodeLowX + nodeHighX) / 2;
+                double nodeY = (nodeLowY + nodeHighY) / 2;
+                poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+                poly.transform(trans);
+            }
+        }
+
+        return poly;
+    }
+
+    /**
 	 * Method to draw an array of points as highlighting.
 	 * @param wnd the window in which drawing is happening.
 	 * @param g the Graphics for the window.
@@ -817,7 +934,7 @@ public class Highlight
 	public boolean sameThing(Highlight other)
 	{
 		if (type != other.getType()) return false;
-		if (type == Type.BBOX || type == Type.LINE || type == Type.THICKLINE) return false;
+		if (type == Type.BBOX || type == Type.LINE || type == Type.THICKLINE || type == Type.POLY) return false;
 
 		if (type == Type.EOBJ)
 		{
