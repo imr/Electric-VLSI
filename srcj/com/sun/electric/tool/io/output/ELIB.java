@@ -1101,7 +1101,7 @@ public class ELIB extends Output
 				type |= ELIBConstants.getVarType(varObj);
 			}
 			// Only string variables may have language code bits.
-			if ((type&ELIBConstants.VTYPE) != VSTRING && (type&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0)
+			if ((type&ELIBConstants.VTYPE) != ELIBConstants.VSTRING && (type&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0)
 			{
 				System.out.println("Variable " + key.getName() + " on " + obj + " is not a string. Language bits are cleared.");
 				type &= ~(ELIBConstants.VCODE1|ELIBConstants.VCODE2);
