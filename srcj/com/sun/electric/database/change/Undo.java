@@ -987,13 +987,13 @@ public class Undo
 		 */
 		public static boolean contains(Cell cell)
 		{
-			return changeCells.contains(cell);
-//			for(Iterator it = changeCells.iterator(); it.hasNext(); )
-//			{
-//				ChangeCell cc = (ChangeCell)it.next();
-//				if (cc.cell == cell) return true;
-//			}
-//			return false;
+			//return changeCells.contains(cell);
+			for(Iterator it = changeCells.iterator(); it.hasNext(); )
+			{
+				ChangeCell cc = (ChangeCell)it.next();
+				if (cc.cell == cell) return true;
+			}
+			return false;
 		}
 
 		/**
