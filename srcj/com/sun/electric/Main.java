@@ -67,6 +67,8 @@ import com.apple.eawt.ApplicationEvent;
  */
 public final class Main
 {
+    private static boolean DEBUG;   // global debug flag
+
 	private Main() {}
 
 	/**
@@ -238,6 +240,9 @@ public final class Main
 			if (hasCommandLineOption(argsList, "-m")) {
 				// set multiheaded option here
 			}
+            if (hasCommandLineOption(argsList, "-debug")) {
+                DEBUG = true;
+            }
 			String beanShellScript = getCommandLineOption(argsList, "-s");
 			if (!openCommandLineLibs(argsList)) {
 				// open default library (or maybe open none at all?)
@@ -261,6 +266,8 @@ public final class Main
             }
 		}
 	}
+
+    public static boolean getDebug() { return DEBUG; }
 
 	/**
 	 * Generic registration with the Mac OS X application menu.

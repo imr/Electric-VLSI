@@ -353,8 +353,17 @@ public class TextInfoPanel extends javax.swing.JPanel
         boolean newInvis = invisibleOutsideCell.isSelected();
         if (newInvis != initialInvisibleOutsideCell) changed = true;
 
-        // no changes, return false
-        if (!changed) return false;
+        if (futureVarName == null) {
+            // no changes on current td, return false
+            if (!changed) return false;
+        } else {
+            // because this is a new var, check if owner is a Cell
+            // if so, increment the Y-offset so that sequentially created
+            // new vars do not overlap on the schematic
+            if (owner instanceof Cell) {
+                currentYOffset -= 2.0;
+            }
+        }
 
         // changes made: generate job and update initial values
         ChangeText job = new ChangeText(

@@ -221,8 +221,10 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         boolean newInherits = inherited.isSelected();
         if (newInherits != initialInherits) changed = true;
 
-        // nothing changed, return
-        if (!changed) return false;
+        if (futureVarName == null) {
+            // nothing changed on current var/td, return
+            if (!changed) return false;
+        }
 
         ChangeText job = new ChangeText(
                 owner,

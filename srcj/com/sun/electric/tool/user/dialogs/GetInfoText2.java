@@ -71,7 +71,7 @@ public class GetInfoText2 extends javax.swing.JDialog
         if (theDialog == null)
         {
             JFrame jf = TopLevel.getCurrentJFrame();
-            theDialog = new GetInfoText2(jf, false);
+            theDialog = new GetInfoText2(null, false);
         }
         theDialog.show();
     }

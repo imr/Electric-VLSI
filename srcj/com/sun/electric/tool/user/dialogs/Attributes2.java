@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.Main;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -75,6 +76,8 @@ public class Attributes2 extends javax.swing.JDialog
     private TextAttributesPanel attrPanel;
     private TextInfoPanel textPanel;
 
+    private VariableCellRenderer cellRenderer;
+
     /**
      * Method to show the Attributes dialog.
      */
@@ -82,8 +85,12 @@ public class Attributes2 extends javax.swing.JDialog
     {
         if (theDialog == null)
         {
-            JFrame jf = TopLevel.getCurrentJFrame();
-            theDialog = new Attributes2(jf, false);
+            if (TopLevel.isMDIMode()) {
+                JFrame jf = TopLevel.getCurrentJFrame();
+                theDialog = new Attributes2(jf, false);
+            } else {
+                theDialog = new Attributes2(null, false);
+            }
         }
         theDialog.show();
     }
@@ -110,6 +117,8 @@ public class Attributes2 extends javax.swing.JDialog
         listModel = new DefaultListModel();
         list = new JList(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        cellRenderer = new VariableCellRenderer(!Main.getDebug());
+        list.setCellRenderer(cellRenderer);
         listPane.setViewportView(list);
         list.addMouseListener(new java.awt.event.MouseAdapter()
 		{
@@ -162,6 +171,15 @@ public class Attributes2 extends javax.swing.JDialog
     }
 
     /**
+     * Set whether Attributes dialog shows attributes only
+     * or all variables. Showing all variables is useful for debug.
+     * @param b true to show attributes only (default), false to show everything.
+     */
+    public void setShowAttrOnly(boolean b) {
+        cellRenderer.setShowAttrOnly(b);
+    }
+
+    /**
      * Method called when the user clicks on one of the top radio buttons.
      * Changes the object being examined for attributes.
      */
@@ -173,7 +191,8 @@ public class Attributes2 extends javax.swing.JDialog
         else if (currentButton == currentArc) selectedObject = selectedArc;
         else if (currentButton == currentExport) selectedObject = selectedExport;
         else if (currentButton == currentPort) selectedObject = selectedPort;
-        showAttributesOnSelectedObject(null);
+        updateList();
+        checkName();
     }
 
     /**
@@ -181,7 +200,7 @@ public class Attributes2 extends javax.swing.JDialog
      */
     private void listClick()
     {
-        showSelectedAttribute();
+        showSelectedAttribute(null);
     }
 
     /**
@@ -302,7 +321,12 @@ public class Attributes2 extends javax.swing.JDialog
         newButton.setEnabled(true);
 
         // show all attributes on the selected object
-        showAttributesOnSelectedObject(selectedVar);
+        updateList();
+        if (selectedVar != null)
+            showSelectedAttribute(selectedVar);
+        else
+            checkName();
+
     }
 
     /**
@@ -320,11 +344,45 @@ public class Attributes2 extends javax.swing.JDialog
         }
     }
 
+    private void checkName() {
+        // if name does not equal name of selected var, disable update button
+        String varName = name.getText().trim();
+
+        // can't create new variable of empty, no vars can be empty text
+        if (varName.equals("")) {
+            updateButton.setEnabled(false);
+            newButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            renameButton.setEnabled(false);
+            textPanel.setTextDescriptor(null, null, null);
+            attrPanel.setVariable(null, null, null, null);
+            return;
+        }
+
+        if (cellRenderer.getShowAttrOnly())
+            varName = "ATTR_" + varName;
+
+        // try to find variable
+        Variable var = selectedObject.getVar(varName);
+        if (var != null) {
+            // make sure var is selected
+            showSelectedAttribute(var);
+        } else {
+            // no such var, remove selection and enable new buttons
+            newButton.setEnabled(true);
+            updateButton.setEnabled(false);
+            renameButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            list.clearSelection();
+            textPanel.setTextDescriptor(null, varName, selectedObject);
+            attrPanel.setVariable(null, null, varName, selectedObject);
+        }
+    }
+
     /**
-     * Method to show all attributes on the selected object in the list.
-     * @param selectThis highlight this variable in the list (if not null).
+     * Updates List of attributes on selected object
      */
-    private void showAttributesOnSelectedObject(Variable selectThis)
+    private void updateList()
     {
         list.clearSelection();
         listModel.clear();
@@ -334,43 +392,27 @@ public class Attributes2 extends javax.swing.JDialog
         for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
-            if (!var.isDisplay()) continue;
+            if (cellRenderer.getShowAttrOnly()) {
+                if (!var.isDisplay()) continue;
+            }
             variables.add(var);
         }
         Collections.sort(variables, new VariableNameSort());
 
         // show the variables
-        int selectIndex = 0;
-        int count = 0;
         for(Iterator it = variables.iterator(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
-            if (var == selectThis) selectIndex = count;
             String varName = var.getKey().getName();
-            if (varName.startsWith("ATTR_"))
-            {
-                listModel.addElement(varName.substring(5));
-                count++;
+            if (cellRenderer.getShowAttrOnly()) {
+                // if only showing Attributes, only add if it is an attribute
+                if (varName.startsWith("ATTR_")) {
+                    listModel.addElement(var);
+                }
                 continue;
+            } else {
+                listModel.addElement(var);
             }
-
-            // see if any cell, node, or arc variables are available to the user
-            String betterName = Variable.betterVariableName(varName);
-            if (betterName != null)
-            {
-                listModel.addElement(betterName);
-                count++;
-                continue;
-            }
-        }
-        if (count != 0)
-        {
-            list.setSelectedIndex(selectIndex);
-            list.ensureIndexIsVisible(selectIndex);
-            showSelectedAttribute();
-        } else {
-            // this will set state of create new/update buttons
-            checkName();
         }
     }
 
@@ -382,23 +424,7 @@ public class Attributes2 extends javax.swing.JDialog
     {
         int i = list.getSelectedIndex();
         if (i < 0) return null;
-        String pt = (String)list.getSelectedValue();
-        for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
-        {
-            Variable var = (Variable)it.next();
-            String varName = var.getKey().getName();
-            if (!varName.startsWith("ATTR_")) continue;
-            if (varName.substring(5).equalsIgnoreCase(pt)) return var;
-        }
-
-        // didn't find name with "ATTR" prefix, look for name directly
-        for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
-        {
-            Variable var = (Variable)it.next();
-            String varName = var.getKey().getName();
-            if (varName.equalsIgnoreCase(pt)) return var;
-        }
-        return null;
+        return (Variable)list.getSelectedValue();
     }
 
     /**
@@ -421,37 +447,37 @@ public class Attributes2 extends javax.swing.JDialog
 
     /**
      * Method to display the aspects of the currently selected Variable in the dialog.
+     * @param selectThis if non-null, select this variable first, and then update dialog.
      */
-    void showSelectedAttribute()
+    void showSelectedAttribute(Variable selectThis)
     {
+        if (selectThis != null)
+            list.setSelectedValue(selectThis, true);
+
         Variable var = getSelectedVariable();
         if (var == null) return;
 
         // set the Name field
-        initialName = (String)list.getSelectedValue();
+        initialName = cellRenderer.getVariableText(var);
         String pt = initialName;
         name.setText(pt);
 
-        // get settings associated with "var" into the "initial*" field variables
-        grabAttributeInitialValues(var);
+        // get initial the Value field
+        initialValue = var.getPureValue(-1, 0);
 
         // set the Value field
         value.setText(initialValue);
-        if (var.getObject() instanceof Object [])
-        {
+        if (var.getObject() instanceof Object []) {
             value.setEditable(false);
-        } else
-        {
+        } else {
             value.setEditable(true);
         }
 
-        // set the Code field
-        if (var.isCode())
-        {
+        // set the evaluation field
+        if (var.isCode()) {
             Object eval = VarContext.globalContext.evalVar(var);
             evaluation.setText(eval.toString());
-        } else
-        {
+        } else {
             evaluation.setText("");
         }
 
@@ -459,21 +485,11 @@ public class Attributes2 extends javax.swing.JDialog
         textPanel.setTextDescriptor(var.getTextDescriptor(), null, selectedObject);
         attrPanel.setVariable(var, var.getTextDescriptor(), null, selectedObject);
 
-        // this will set state of create new/update buttons
-        checkName();
-    }
-
-    /**
-     * Method to save settings of a Variable in the field variables "initial*".
-     * @param var the Variable to save information about.
-     */
-    private void grabAttributeInitialValues(Variable var)
-    {
-        TextDescriptor td = var.getTextDescriptor();
-
-        // get initial the Value field
-        initialValue = var.getPureValue(-1, 0);
-
+        // disable create button because var name already exists, enable selected: buttons
+        newButton.setEnabled(false);
+        updateButton.setEnabled(true);
+        renameButton.setEnabled(true);
+        deleteButton.setEnabled(true);
     }
 
     /**
@@ -581,42 +597,66 @@ public class Attributes2 extends javax.swing.JDialog
         }
     }
 
-    private void checkName() {
-        // if name does not equal name of selected var, disable update button
-        String varName = name.getText().trim();
+    /**
+     * Used to display Variables in the JList
+     */
+    private static class VariableCellRenderer extends JLabel implements ListCellRenderer {
 
-        // can't create new variable of empty, no vars can be empty text
-        if (varName.equals("")) {
-            updateButton.setEnabled(false);
-            newButton.setEnabled(false);
-            deleteButton.setEnabled(false);
-            renameButton.setEnabled(false);
-            return;
+        private boolean showAttrOnly;
+
+        private VariableCellRenderer(boolean showAttrOnly) {
+            this.showAttrOnly = showAttrOnly;
         }
 
-        varName = "ATTR_" + varName;
+        private void setShowAttrOnly(boolean b) { showAttrOnly = b; }
 
-        // try to find variable
-        Variable var = selectedObject.getVar(varName);
-        if (var != null) {
-            // see if this is selected var
-            if (var == getSelectedVariable()) {
-                // enable buttons that affect selected var, disable new button
-                newButton.setEnabled(false);
-                updateButton.setEnabled(true);
-                renameButton.setEnabled(true);
-                deleteButton.setEnabled(true);
-            } else {
-                // switch to var
-                showAttributesOnSelectedObject(var); // this will call this method again
+        private boolean getShowAttrOnly() { return showAttrOnly; }
+
+        private String getVariableText(Variable var) {
+            String varName = var.getKey().getName();
+
+            // two modes: show attributes only, and show everything
+            if (showAttrOnly) {
+                if (varName.startsWith("ATTR_")) {
+                    return varName.substring(5);
+                }
             }
-        } else {
-            // no such var, remove selection and enable new buttons
-            newButton.setEnabled(true);
-            updateButton.setEnabled(false);
-            renameButton.setEnabled(false);
-            deleteButton.setEnabled(false);
-            list.clearSelection();
+            // else this is not an attribute
+            // see if any cell, node, or arc variables are available to the user
+            String betterName = Variable.betterVariableName(varName);
+            if (betterName != null)
+                return betterName;
+            else
+                return varName;
+        }
+
+        public Component getListCellRendererComponent(
+                JList list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus) {
+
+            if (!(value instanceof Variable)) {
+                // this is not a variable
+                setText(value.toString());
+            } else {
+                // this is a variable
+                Variable var = (Variable)value;
+                setText(getVariableText(var));
+            }
+
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            setEnabled(list.isEnabled());
+            setFont(list.getFont());
+            setOpaque(true);
+            return this;
         }
     }
 
@@ -924,10 +964,10 @@ public class Attributes2 extends javax.swing.JDialog
         CreateAttribute job = new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, set the futureVarName for the panel
-        textPanel.setTextDescriptor(null, varName, selectedObject);
+        //textPanel.setTextDescriptor(null, varName, selectedObject);
         textPanel.applyChanges();
         // same for text attributes panel
-        attrPanel.setVariable(null, null, varName, selectedObject);
+        //attrPanel.setVariable(null, null, varName, selectedObject);
         attrPanel.applyChanges();
         // generate Job to update this dialog when the changes have been processed
         //UpdateDialog job2 = new UpdateDialog();
@@ -952,7 +992,7 @@ public class Attributes2 extends javax.swing.JDialog
 
         // see if value changed
         String varValue = value.getText().trim();
-        if (varValue != initialValue) changed = true;
+        if (!varValue.equals(initialValue)) changed = true;
 
         if (changed) {
             // generate Job to update value

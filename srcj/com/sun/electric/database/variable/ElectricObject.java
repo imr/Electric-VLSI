@@ -400,7 +400,7 @@ public class ElectricObject
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been updated.
 	 */
-	public Variable updateVar(String name, Object value) { return updateVar(newKey(name), value); }
+	public Variable updateVar(String name, Object value) { return updateVar(findKey(name), value); }
 
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
