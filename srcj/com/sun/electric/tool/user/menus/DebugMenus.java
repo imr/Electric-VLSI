@@ -641,43 +641,6 @@ public class DebugMenus {
      */
     public static void bashTest()
     {
-String regressionname = "geoOnNet";
-String logname = "output/"+regressionname+Version.getVersion()+".log";
-boolean[] errorCounts = new boolean[2];
-double wireLength = 163.30159818105273;
-
-try {
-  TopLevel.getMessagesWindow().save(logname);
-  String techName = "tsmc90";
-  DebugMenus.makeFakeCircuitryCommand(techName, true);
-  Library rootLib = Library.findLibrary("noname");
-  Cell cell = rootLib.findNodeProto(techName+"test{lay}");
-  double calculatedValue = 0;
-
-  // Similar to ListGeomsAllNetworksJob
-  Netlist netlist = cell.getNetlist(true);
-  ArrayList networks = new ArrayList();
-  for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
-    networks.add(it.next());
-  }
-    // sort list of networks by name
-    Collections.sort(networks, new TextUtils.NetworksByName());
-    for (Iterator it = networks.iterator(); it.hasNext(); ) {
-        Network net = (Network)it.next();
-        HashSet nets = new HashSet();
-        nets.add(net);
-        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksInternal(cell, nets, false, GeometryHandler.ALGO_QTREE);
-        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
-        // Only 1 net gives non zero value
-        if (geoms.getTotalWireLength() != 0)
-            calculatedValue = geoms.getTotalWireLength();
-    }
-    errorCounts[0] = !DBMath.doublesEqual(calculatedValue, wireLength);
-} catch (Exception e) {
-  System.out.println("exception: "+e);
-  e.printStackTrace();
-  System.exit(1);
-}
     }
 
 	/**

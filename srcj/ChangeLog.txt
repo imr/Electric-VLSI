@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP: (02/03/05, GVG) Change dialog: node names in dialog sorted.
+
 IMP: (02/02/05, GVG) Changes in LayerCoverageJob to allow calls from regression test suite.
 Got rid of LayerCoverageJob.listGeometryOnNetworksNoJob and extended LayerCoverageJob.listGeometryOnNetworks.
 Added Extraction package in regression test suite (1 script for now).
