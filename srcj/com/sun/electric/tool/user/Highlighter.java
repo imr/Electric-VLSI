@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -1925,14 +1926,19 @@ public class Highlighter implements DatabaseChangeListener {
 		return poly.polyDistance(bounds);
 	}
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         // see if anything we care about changed
         finished();
     }
 
-    public void databaseChanged(Undo.Change evt) {}
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         // see if anything we care about changed
+//         finished();
+//     }
 
-    public boolean isGUIListener() {
-        return true;
-    }
+//     public void databaseChanged(Undo.Change evt) {}
+
+//     public boolean isGUIListener() {
+//         return true;
+//     }
 }

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.ElectricObject;
@@ -762,9 +763,16 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         ((VariableTableModel)getModel()).clearVariables();
     }
 
-    public void databaseChanged(Undo.Change evt) {}
-    public boolean isGUIListener() { return true; }
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//     public void databaseChanged(Undo.Change evt) {}
+//     public boolean isGUIListener() { return true; }
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         // reload vars
+//         ElectricObject eobj = owner;
+//         setElectricObject(null);
+//         setElectricObject(eobj);
+//     }
+
+    public void databaseChanged(DatabaseChangeEvent e) {
         // reload vars
         ElectricObject eobj = owner;
         setElectricObject(null);

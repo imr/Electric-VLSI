@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -120,15 +121,21 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 		finishInitialization();
     }
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
         // would take too long to search for change we care about, just reload it
         updateCellList();
     }
 
-    public void databaseChanged(Undo.Change evt) {}
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
+//         // would take too long to search for change we care about, just reload it
+//         updateCellList();
+//     }
 
-    public boolean isGUIListener() { return true; }    
+//     public void databaseChanged(Undo.Change evt) {}
+
+//     public boolean isGUIListener() { return true; }    
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 

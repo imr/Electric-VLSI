@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
@@ -928,7 +929,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
     }
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         // check if any errors need to be deleted
         boolean changed = false;
         for (Iterator it = getLogs(); it.hasNext(); ) {
@@ -942,11 +943,25 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             WindowFrame.wantToRedoErrorTree();
     }
 
-    public void databaseChanged(Undo.Change evt) {}
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         // check if any errors need to be deleted
+//         boolean changed = false;
+//         for (Iterator it = getLogs(); it.hasNext(); ) {
+//             MessageLog err = (MessageLog)it.next();
+//             if (!err.isValid()) {
+//                 deleteLog(err);
+//                 changed = true;
+//             }
+//         }
+//         if (changed)
+//             WindowFrame.wantToRedoErrorTree();
+//     }
 
-    public boolean isGUIListener() {
-        return true;
-    }
+//     public void databaseChanged(Undo.Change evt) {}
+
+//     public boolean isGUIListener() {
+//         return true;
+//     }
 
 
 }

@@ -1164,6 +1164,7 @@ public class DebugMenus {
 
 	private static int[] objs;
 	private static int[] vobjs;
+	private static int[] vobjs1;
 	private static int[] vcnt;
 	private static int subCells;
 	private static int namedArcs;
@@ -1175,6 +1176,7 @@ public class DebugMenus {
 	{
 		objs = new int[96];
 		vobjs = new int[96];
+		vobjs1 = new int[96];
 		vcnt = new int[96];
 		points = new HashSet();
 		subCells = 0;
@@ -1237,16 +1239,17 @@ public class DebugMenus {
 			}
 		}
 
-		int o = 0, v = 0, c = 0;
+		int o = 0, v = 0, v1 = 0, c = 0;
 		for (int i = 0; i < objs.length; i++)
 		{
 			if (objs[i] == 0) continue;
-			System.out.println(((char)i) + " " + objs[i] + " " + vobjs[i] + " " + vcnt[i]);
+			System.out.println(((char)i) + " " + objs[i] + " " + vobjs[i] + " " + vobjs1[i] + " " + vcnt[i]);
 			o += objs[i];
 			v += vobjs[i];
+			v1 += vobjs1[i];
 			c += vcnt[i];
 		}
-		System.out.println(o + " " + v + " " + c);
+		System.out.println(o + " " + v + " " + v1 + " " + c);
 		System.out.println(subCells + " subcells");
 		System.out.println(namedNodes + " named nodes " + nodeNames.size());
 		System.out.println(namedArcs + " named arcs " + arcNames.size());
@@ -1272,32 +1275,32 @@ public class DebugMenus {
 		System.out.println(doubles.size() + " doubles " + whole + " whole " + quarter + " quarter");
 /*
 loco
-A 192665 1657 1657
-C 2106 1872 3509
-E 37765 189 283
-H 43 42 47
-N 113337 4713 22715
-P 392542 0 0
-738458 8473 28211
+A 192665 1657 1657 1657
+C 2106 1872 1018 3509
+E 37765 189 130 283
+H 43 42 37 47
+N 113337 4713 2328 22715
+P 392542 0 0 0
+738458 8473 5170 28211
 16916 subcells
 468 named nodes 12604
 1496 named arcs 10925
 499519 points 136298
-14542 doubles
+14542 doubles 7299 whole 6728 quarter
 
 qFour
-A 336551 2504 2504
-C 3370 3161 4898
-E 112598 309 407
-H 49 47 51
-N 188496 8490 32189
-P 704883 0 0
-1345947 14511 40049
+A 336551 2504 2504 2504
+C 3370 3161 2155 4898
+E 112598 309 248 407
+H 49 47 43 51
+N 188496 8490 4847 32189
+P 704883 0 0 0
+1345947 14511 9797 40049
 25997 subcells
 910 named nodes 19655
 5527 named arcs 10363
 862879 points 230599
-18702 doubles
+18702 doubles 9531 whole 8486 quarter
 */
 	}
 
@@ -1308,6 +1311,7 @@ P 704883 0 0
 		int numVars = eObj.getNumVariables();
 		if (numVars == 0) return;
 		vobjs[c]++;
+		if (numVars == 1) vobjs1[c]++;
 		vcnt[c] += numVars;
 		for (Iterator it = eObj.getVariables(); it.hasNext(); )
 		{

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -131,27 +132,38 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
     /**
      * Reload if the database has changed in a way we care about
-     * @param batch a batch of changes
+     * @param e database change event
      */
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
 
-        boolean reload = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            if (obj == selectedObject) {
-                reload = true;
-                break;
-            }
-        }
-        if (reload) {
-            // update dialog
+		// update dialog
+		if (e.objectChanged(selectedObject))
             loadAttributesInfo(true);
-        }
     }
-    public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }
+//     /**
+//      * Reload if the database has changed in a way we care about
+//      * @param batch a batch of changes
+//      */
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
+
+//         boolean reload = false;
+//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+//             Undo.Change change = (Undo.Change)it.next();
+//             ElectricObject obj = change.getObject();
+//             if (obj == selectedObject) {
+//                 reload = true;
+//                 break;
+//             }
+//         }
+//         if (reload) {
+//             // update dialog
+//             loadAttributesInfo(true);
+//         }
+//     }
+//     public void databaseChanged(Undo.Change change) {}
+//     public boolean isGUIListener() { return true; }
 
     /**
      * Creates new form Attributes.

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -406,10 +407,14 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         Undo.removeDatabaseChangeListener(this);
     }
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         redoStatusBar();
     }
 
-    public void databaseChanged(Undo.Change evt) {}
-    public boolean isGUIListener() { return true; }
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         redoStatusBar();
+//     }
+
+//     public void databaseChanged(Undo.Change evt) {}
+//     public boolean isGUIListener() { return true; }
 }

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
@@ -109,30 +110,51 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
     /**
      * Respond to database changes we care about
-     * @param batch a batch of changes
+     * @param e database change event
      */
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
 
         boolean reload = false;
         // reload if any objects that changed are part of our list of highlighted objects
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            for (Iterator it2 = highlightList.iterator(); it2.hasNext(); ) {
-                Highlight h = (Highlight)it2.next();
-                if (obj == h.getElectricObject()) {
-                    reload = true; break;
-                }
-            }
-        }
+		for (Iterator it = highlightList.iterator(); it.hasNext(); ) {
+			Highlight h = (Highlight)it.next();
+			if (e.objectChanged(h.getElectricObject())) {
+				reload = true; break;
+			}
+		}
         if (reload) {
             // update dialog
             loadMultiInfo();
         }
     }
-    public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }
+
+//     /**
+//      * Respond to database changes we care about
+//      * @param batch a batch of changes
+//      */
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
+
+//         boolean reload = false;
+//         // reload if any objects that changed are part of our list of highlighted objects
+//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+//             Undo.Change change = (Undo.Change)it.next();
+//             ElectricObject obj = change.getObject();
+//             for (Iterator it2 = highlightList.iterator(); it2.hasNext(); ) {
+//                 Highlight h = (Highlight)it2.next();
+//                 if (obj == h.getElectricObject()) {
+//                     reload = true; break;
+//                 }
+//             }
+//         }
+//         if (reload) {
+//             // update dialog
+//             loadMultiInfo();
+//         }
+//     }
+//     public void databaseChanged(Undo.Change change) {}
+//     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1065,30 +1066,36 @@ public class WindowFrame
             }
         }
 
-        public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+        public void databaseChanged(DatabaseChangeEvent e)
         {
-            boolean changed = false;
-            for (Iterator it = batch.getChanges(); it.hasNext(); )
-            {
-                Undo.Change change = (Undo.Change)it.next();
-                if (change.getType() == Undo.Type.LIBRARYKILL ||
-                    change.getType() == Undo.Type.LIBRARYNEW ||
-                    change.getType() == Undo.Type.CELLKILL ||
-                    change.getType() == Undo.Type.CELLNEW ||
-                    change.getType() == Undo.Type.CELLGROUPMOD ||
-                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
-					(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
-                {
-                    changed = true;
-                    break;
-                }
-            }
-            if (changed)
+            if (e.cellTreeChanged())
                 updateLibraryTrees();
         }
 
-        public void databaseChanged(Undo.Change evt) {}
-        public boolean isGUIListener() { return true; }
+//         public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+//         {
+//             boolean changed = false;
+//             for (Iterator it = batch.getChanges(); it.hasNext(); )
+//             {
+//                 Undo.Change change = (Undo.Change)it.next();
+//                 if (change.getType() == Undo.Type.LIBRARYKILL ||
+//                     change.getType() == Undo.Type.LIBRARYNEW ||
+//                     change.getType() == Undo.Type.CELLKILL ||
+//                     change.getType() == Undo.Type.CELLNEW ||
+//                     change.getType() == Undo.Type.CELLGROUPMOD ||
+//                     (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
+// 					(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
+//                 {
+//                     changed = true;
+//                     break;
+//                 }
+//             }
+//             if (changed)
+//                 updateLibraryTrees();
+//         }
+
+//         public void databaseChanged(Undo.Change evt) {}
+//         public boolean isGUIListener() { return true; }
     }
 
 }

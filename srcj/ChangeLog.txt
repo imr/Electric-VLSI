@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+IMP: (01/30/05, DN) DatabaseChangeListener API changed to prepare for transactional database.
+
 IMP/MAN: (01/29/05, DN) JELIB is the default library format.
 
 BUG: (01/29/05, DN) Deleting exports invalidates database invariants (Bug #181).

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -138,32 +139,44 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
     /**
      * Respond to database changes
-     * @param batch a batch of changes completed
+     * @param e database change event
      */
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
 
-        // check if we care about the changes
-        boolean reload = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            if (obj == shownNode || obj == shownPort) {
-                reload = true;
-                break;
-            }
-        }
-        if (reload) {
-            // update dialog
+        // update dialog if we care about the changes
+		if (e.objectChanged(shownNode) || shownPort instanceof Export && e.objectChanged((Export)shownPort))
             loadInfo();
-        }
     }
 
-    /** Don't do anything on little database changes, only after all database changes */
-    public void databaseChanged(Undo.Change change) {}
+//     /**
+//      * Respond to database changes
+//      * @param batch a batch of changes completed
+//      */
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
 
-    /** This is a GUI listener */
-    public boolean isGUIListener() { return true; }
+//         // check if we care about the changes
+//         boolean reload = false;
+//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+//             Undo.Change change = (Undo.Change)it.next();
+//             ElectricObject obj = change.getObject();
+//             if (obj == shownNode || obj == shownPort) {
+//                 reload = true;
+//                 break;
+//             }
+//         }
+//         if (reload) {
+//             // update dialog
+//             loadInfo();
+//         }
+//     }
+
+//     /** Don't do anything on little database changes, only after all database changes */
+//     public void databaseChanged(Undo.Change change) {}
+
+//     /** This is a GUI listener */
+//     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(java.awt.Frame parent, boolean modal)

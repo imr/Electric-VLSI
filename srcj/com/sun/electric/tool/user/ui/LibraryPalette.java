@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -128,9 +129,12 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         }
     }
 
-    public void databaseChanged(Undo.Change evt) {}
-    public boolean isGUIListener() { return true; }
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//     public void databaseChanged(Undo.Change evt) {}
+//     public boolean isGUIListener() { return true; }
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         updateCellList();
+//     }
+    public void databaseChanged(DatabaseChangeEvent e) {
         updateCellList();
     }
 

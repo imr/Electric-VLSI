@@ -1136,7 +1136,7 @@ public class Undo
 	}
 
 	/** Add a DatabaseChangeListener. It will be notified when
-	 * objects in the database change.
+	 * state of the database changes.
 	 * @param l the listener
 	 */
 	public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l)
@@ -1150,31 +1150,33 @@ public class Undo
 		changeListeners.remove(l);
 	}
 
-	/** Fire a change event to all database change listeners */
-	private static synchronized void fireChangeEvent(Change change)
-	{
-		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
-		{
-			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-			if (l.isGUIListener())
-			{
-				//SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
-				// do nothing: if it's delayed by invoke later, it may as well come from
-				// databaseEndChangeBatch
-			} else
-				l.databaseChanged(change);
-		}
-	}
+// 	/** Fire a change event to all database change listeners */
+// 	private static synchronized void fireChangeEvent(Change change)
+// 	{
+// 		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
+// 		{
+// 			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+// 			if (l.isGUIListener())
+// 			{
+// 				//SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
+// 				// do nothing: if it's delayed by invoke later, it may as well come from
+// 				// databaseEndChangeBatch
+// 			} else
+// 				l.databaseChanged(change);
+// 		}
+// 	}
 
 	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
 	{
+		DatabaseChangeEvent event = new DatabaseChangeEvent(batch);
 		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
 		{
 			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-			if (l.isGUIListener())
-				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
-			else
-				l.databaseEndChangeBatch(batch);
+			SwingUtilities.invokeLater(new DatabaseChangeRun(l, event));
+// 			if (l.isGUIListener())
+// 				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
+// 			else
+// 				l.databaseEndChangeBatch(batch);
 		}
 	}
 
@@ -1231,20 +1233,20 @@ public class Undo
 		public void run() { l.propertyChange(e); }
 	}
 
-	private static class DatabaseChangeThread implements Runnable
-	{
-		private DatabaseChangeListener l;
-		private Change change;
-		private DatabaseChangeThread(DatabaseChangeListener l, Change c) { this.l = l; this.change = c; }
-		public void run() { l.databaseChanged(change); }
-	}
+// 	private static class DatabaseBatchThread implements Runnable
+// 	{
+// 		private DatabaseChangeListener l;
+// 		private ChangeBatch batch;
+// 		private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
+// 		public void run() { l.databaseEndChangeBatch(batch); }
+// 	}
 
-	private static class DatabaseBatchThread implements Runnable
+	private static class DatabaseChangeRun implements Runnable
 	{
 		private DatabaseChangeListener l;
-		private ChangeBatch batch;
-		private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
-		public void run() { l.databaseEndChangeBatch(batch); }
+		private DatabaseChangeEvent event;
+		private DatabaseChangeRun(DatabaseChangeListener l, DatabaseChangeEvent e) { this.l = l; this.event = e; }
+		public void run() { l.databaseChanged(event); }
 	}
 
 	/**
@@ -1331,7 +1333,7 @@ public class Undo
 		ch.i1 = oRot;
 		ni.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1352,7 +1354,7 @@ public class Undo
 		ch.a5 = oWid;
 		ai.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1369,7 +1371,7 @@ public class Undo
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyExport(pp, oldPi);
 	}
 
@@ -1390,7 +1392,7 @@ public class Undo
 		cell.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
 
@@ -1406,7 +1408,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <=1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1427,7 +1429,7 @@ public class Undo
 		ch.i3 = oldColorIndex;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		// tell constraint system about this TextDescriptor
 		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1, oldColorIndex);
 	}
@@ -1451,7 +1453,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().newObject(obj);
 	}
 
@@ -1474,7 +1476,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().killObject(obj);
 	}
 
@@ -1491,7 +1493,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().killExport(pp, oldPortInsts);
 	}
 
@@ -1508,7 +1510,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
@@ -1527,7 +1529,7 @@ public class Undo
 		ch.i1 = oldDuplicate;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
@@ -1545,7 +1547,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1561,7 +1563,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().newVariable(obj, var);
 	}
 
@@ -1578,7 +1580,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().killVariable(obj, var);
 	}
 
@@ -1597,7 +1599,7 @@ public class Undo
 		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
@@ -1617,7 +1619,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
 	}
 
@@ -1635,7 +1637,7 @@ public class Undo
 		ch.i1 = index;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().insertVariable(obj, var, index);
 	}
 
@@ -1655,7 +1657,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		fireChangeEvent(ch);
+//		fireChangeEvent(ch);
 		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
@@ -232,30 +233,38 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         loadTextInfo();        
     }
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
 
-        boolean reload = false;
-        if (cti != null)
-        {
-	        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-	            Undo.Change change = (Undo.Change)it.next();
-	            ElectricObject obj = change.getObject();
-	            if (obj == cti.owner) {
-	                reload = true;
-	                break;
-	            }
-	        }
-        }
-        if (reload) {
-            // update dialog
+		// update dialog
+        if (cti != null && e.objectChanged(cti.owner))
             loadTextInfo();
-        }
     }
 
-    public void databaseChanged(Undo.Change change) {}
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
 
-    public boolean isGUIListener() { return true; }
+//         boolean reload = false;
+//         if (cti != null)
+//         {
+// 	        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+// 	            Undo.Change change = (Undo.Change)it.next();
+// 	            ElectricObject obj = change.getObject();
+// 	            if (obj == cti.owner) {
+// 	                reload = true;
+// 	                break;
+// 	            }
+// 	        }
+//         }
+//         if (reload) {
+//             // update dialog
+//             loadTextInfo();
+//         }
+//     }
+
+//     public void databaseChanged(Undo.Change change) {}
+
+//     public boolean isGUIListener() { return true; }
 
     private void loadTextInfo() {
 		// update current window

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Export;
@@ -99,28 +100,40 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
     /**
      * Respond to database changes
-     * @param batch a batch of changes completed
+     * @param e database change event
      */
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         if (!isVisible()) return;
 
-        // check if we care about the changes
-        boolean reload = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            if (obj == shownExport) {
-                reload = true;
-                break;
-            }
-        }
-        if (reload) {
-            // update dialog
+        // update dialog if we care about the changes
+		if (e.objectChanged(shownExport))
             loadExportInfo();
-        }
     }
-    public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }
+
+//     /**
+//      * Respond to database changes
+//      * @param batch a batch of changes completed
+//      */
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         if (!isVisible()) return;
+
+//         // check if we care about the changes
+//         boolean reload = false;
+//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+//             Undo.Change change = (Undo.Change)it.next();
+//             ElectricObject obj = change.getObject();
+//             if (obj == shownExport) {
+//                 reload = true;
+//                 break;
+//             }
+//         }
+//         if (reload) {
+//             // update dialog
+//             loadExportInfo();
+//         }
+//     }
+//     public void databaseChanged(Undo.Change change) {}
+//     public boolean isGUIListener() { return true; }
 
 	private void loadExportInfo()
 	{

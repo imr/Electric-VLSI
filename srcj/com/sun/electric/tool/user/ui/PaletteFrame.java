@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
+//import com.sun.electric.database.change.DatabaseChangeListener;
+//import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -66,7 +66,7 @@ import javax.swing.JPanel;
 /**
  * This class defines a palette window for component selection.
  */
-public class PaletteFrame implements DatabaseChangeListener, MouseListener
+public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 {
 //	/** the palette window frame. */					private Container container;
 	/** the palette window panel. */					private JPanel topPanel;
@@ -137,7 +137,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 //			if (!Main.BATCHMODE) ((JFrame)palette.container).setVisible(true);
 //		}
 
-        Undo.addDatabaseChangeListener(palette);
+//        Undo.addDatabaseChangeListener(palette);
 		return palette;
 	}
 
@@ -386,26 +386,26 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
         }
     }
 
-    public void databaseChanged(Undo.Change evt) {}
-    public boolean isGUIListener() { return true; }
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-        boolean libChanged = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            if (change.getType() == Undo.Type.LIBRARYKILL ||
-                change.getType() == Undo.Type.LIBRARYNEW) {
-                libChanged = true;
-                break;
-            }
-            if ((change.getType() == Undo.Type.OBJECTRENAME) &&
-                (change.getObject() instanceof Library)) {
-                libChanged = true;
-                break;
-            }
-        }
-//        if (libChanged)
-//            updateLibrarySelector();
-    }
+//     public void databaseChanged(Undo.Change evt) {}
+//     public boolean isGUIListener() { return true; }
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         boolean libChanged = false;
+//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+//             Undo.Change change = (Undo.Change)it.next();
+//             if (change.getType() == Undo.Type.LIBRARYKILL ||
+//                 change.getType() == Undo.Type.LIBRARYNEW) {
+//                 libChanged = true;
+//                 break;
+//             }
+//             if ((change.getType() == Undo.Type.OBJECTRENAME) &&
+//                 (change.getObject() instanceof Library)) {
+//                 libChanged = true;
+//                 break;
+//             }
+//         }
+// //        if (libChanged)
+// //            updateLibrarySelector();
+//     }
 
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}

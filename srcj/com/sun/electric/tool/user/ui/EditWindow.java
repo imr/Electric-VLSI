@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -3202,7 +3203,7 @@ public class EditWindow extends JPanel
 		return gv;
 	}
 
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+    public void databaseChanged(DatabaseChangeEvent e) {
         // if cell was deleted, set cell to null
         if ((cell != null) && !cell.isLinked()) {
             setCell(null, VarContext.globalContext, false, true);
@@ -3210,9 +3211,17 @@ public class EditWindow extends JPanel
         }
     }
 
-    public void databaseChanged(Undo.Change evt) {}
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//         // if cell was deleted, set cell to null
+//         if ((cell != null) && !cell.isLinked()) {
+//             setCell(null, VarContext.globalContext, false, true);
+//             cellHistoryGoBack();
+//         }
+//     }
+
+//     public void databaseChanged(Undo.Change evt) {}
     
-    public boolean isGUIListener() { return true; }
+//     public boolean isGUIListener() { return true; }
 
 	/**
 	 * Method to print window using offscreen canvas

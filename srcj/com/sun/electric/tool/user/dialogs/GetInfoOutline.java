@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
@@ -225,32 +226,44 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 
     /**
      * Respond to database changes
-     * @param batch a batch of changes completed
+     * @param e database change event
      */
-    public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+    public void databaseChanged(DatabaseChangeEvent e)
     {
         if (!isVisible()) return;
 
         // check if we care about the changes
-        boolean reload = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); )
-        {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            if (obj == ni)
-            {
-                reload = true;
-                break;
-            }
-        }
-        if (reload) loadDialog();
+        if (e.objectChanged(ni)) loadDialog();
     }
 
-    /** Don't do anything on little database changes, only after all database changes */
-    public void databaseChanged(Undo.Change change) {}
+//     /**
+//      * Respond to database changes
+//      * @param batch a batch of changes completed
+//      */
+//     public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+//     {
+//         if (!isVisible()) return;
 
-    /** This is a GUI listener */
-    public boolean isGUIListener() { return true; }
+//         // check if we care about the changes
+//         boolean reload = false;
+//         for (Iterator it = batch.getChanges(); it.hasNext(); )
+//         {
+//             Undo.Change change = (Undo.Change)it.next();
+//             ElectricObject obj = change.getObject();
+//             if (obj == ni)
+//             {
+//                 reload = true;
+//                 break;
+//             }
+//         }
+//         if (reload) loadDialog();
+//     }
+
+//     /** Don't do anything on little database changes, only after all database changes */
+//     public void databaseChanged(Undo.Change change) {}
+
+//     /** This is a GUI listener */
+//     public boolean isGUIListener() { return true; }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
