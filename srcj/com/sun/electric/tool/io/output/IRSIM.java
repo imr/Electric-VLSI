@@ -109,6 +109,7 @@ public class IRSIM extends Output
 		IRSIMNetlister netlister = new IRSIMNetlister();
 		Netlist netlist = cell.getNetlist(true);
         this.context = context;
+        if (context == null) this.context = VarContext.globalContext;
         components = new ArrayList();
 		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		return components;
@@ -226,7 +227,7 @@ public class IRSIM extends Output
 				String extra = "";
 				if (valueVar != null)
 				{
-					extra = valueVar.describe(context, ni);
+					extra = valueVar.describe(info.getContext(), ni);
 					if (TextUtils.isANumber(extra))
 					{
 						double pureValue = TextUtils.atof(extra);
@@ -254,7 +255,7 @@ public class IRSIM extends Output
 
 	            ComponentInfo ci = new ComponentInfo();
 	            ci.ni = ni;
-	            if (fun == PrimitiveNode.Function.RESIST) ci.type = 'R'; else ci.type = 'C';
+	            if (fun == PrimitiveNode.Function.RESIST) ci.type = 'r'; else ci.type = 'C';
 	            ci.netName1 = iinfo.getUniqueNetName(net1, "/").substring(len);
 	            ci.netName2 = iinfo.getUniqueNetName(net2, "/").substring(len);
 	            ci.rcValue = TextUtils.atof(extra);
