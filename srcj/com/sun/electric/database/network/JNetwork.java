@@ -28,9 +28,10 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.ExportChanges;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 /** JNetworks represent connectivity.
  *
@@ -42,10 +43,20 @@ public class JNetwork
 	// ------------------------- private data ------------------------------
 	private Netlist netlist; // Cell that owns this JNetwork
 	private int netIndex; // Index of this JNetwork in Netlist.
-	private ArrayList names = new ArrayList(); // Sorted list of names. The
+	//private ArrayList names = new ArrayList(); // Sorted list of names. The
+    private ArrayList exportedNames = new ArrayList();
+    private ArrayList unexportedNames = new ArrayList();
 	// first name is the most
 	// appropriate.
-	private int exportedNamesCount;
+	//private int exportedNamesCount;
+
+    private static class NameComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            String s1 = (String)o1;
+            String s2 = (String)o2;
+            return TextUtils.nameSameNumeric(s1, s2);
+        }
+    }
 
 	// ----------------------- protected and private methods -----------------
 
@@ -79,12 +90,17 @@ public class JNetwork
 	public void addName(String nm, boolean exported)
 	{
 		if (nm != null) {
-			names.add(nm);
 			if (exported) {
-				if (exportedNamesCount != names.size() - 1)
-					throw new IllegalStateException("exported names should go first");
-				exportedNamesCount = names.size();
-			}
+                exportedNames.add(nm);
+                if (unexportedNames.contains(nm))
+                    unexportedNames.remove(nm);
+				//if (exportedNamesCount != names.size() - 1)
+				//	throw new IllegalStateException("exported names should go first");
+				//exportedNamesCount = names.size();
+			} else {
+                if (!exportedNames.contains(nm))
+                    unexportedNames.add(nm);
+            }
 		}
 	}
 
@@ -103,25 +119,31 @@ public class JNetwork
 	/** A net can have multiple names. Return alphabetized list of names. */
 	public Iterator getNames()
 	{
-		return names.iterator();
+        NameComparator nc = new NameComparator();
+        Collections.sort(exportedNames, nc);
+        Collections.sort(unexportedNames, nc);
+        ArrayList allNames = new ArrayList(exportedNames);
+        allNames.addAll(unexportedNames);
+		return allNames.iterator();
 	}
 
 	/** A net can have multiple names. Return alphabetized list of names. */
 	public Iterator getExportedNames()
 	{
-		return names.subList(0, exportedNamesCount).iterator();
+        Collections.sort(exportedNames, new NameComparator());
+		return exportedNames.iterator();
 	}
 
 	/** Returns true if JNetwork has names */
 	public boolean hasNames()
 	{
-		return names.size() > 0;
+		return (exportedNames.size() > 0 || unexportedNames.size() > 0);
 	}
 
 	/** Returns true if nm is one of JNetwork's names */
 	public boolean hasName(String nm)
 	{
-		return names.contains(nm);
+		return (exportedNames.contains(nm) || unexportedNames.contains(nm));
 	}
 
 //	public JNetwork getNetwork()
@@ -182,9 +204,9 @@ public class JNetwork
 	 */
 	public String describe()
 	{
-		if (names.size() > 0)
+		if (hasNames())
 		{
-			Iterator it = names.iterator();
+			Iterator it = getNames();
 			String name = (String)it.next();
 			while (it.hasNext())
 				name += "/" + (String)it.next();
