@@ -114,15 +114,14 @@ public class J3DAppearance extends Appearance
         if (color != null)
         {
             Color3f objColor = new Color3f(color);
-            // Emissive and specular are black
-            // Emissive is black and specular is white
-            Material mat = new Material(objColor, J3DUtils.black, objColor, J3DUtils.white, 30);
+            // Emissive is black and specular is plastic!
+            //Color3f specular = new Color3f(color.brighter());
+            Material mat = new Material(objColor, J3DUtils.black, objColor, J3DUtils.plastic/*J3DUtils.white*/, 17);
             mat.setLightingEnable(true);
             mat.setCapability(Material.ALLOW_COMPONENT_READ);
             mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
             mat.setCapability(Material.AMBIENT_AND_DIFFUSE);
             setMaterial(mat);
-            //set3DColor(mat, color);
         }
     }
 

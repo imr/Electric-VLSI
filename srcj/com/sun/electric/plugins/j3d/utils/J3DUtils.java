@@ -50,6 +50,7 @@ public final class J3DUtils
 {
     /** standard colors to be used by materials **/         public static final Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
     /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+    /** standard colors to be used by materials **/         public static final Color3f plastic = new Color3f(0.89f, 0.89f, 0.89f);
     /** Ambiental light color **/                 private static Color3fObservable ambientalColor;
     /** Directional light color **/               private static Color3fObservable directionalColor;
     /** Background color **/                      private static Color3fObservable backgroundColor;
