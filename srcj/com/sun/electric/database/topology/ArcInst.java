@@ -1432,7 +1432,7 @@ public class ArcInst extends Geometric
 				nPoly.transform(trans);
 				Rectangle2D nPolyBounds = nPoly.getBox();
 				if (nPolyBounds == null) continue;
-				int result = Poly.cropBoxComplete(polyBounds, nPolyBounds);
+				int result = Poly.cropBoxComplete(polyBounds, nPolyBounds, true);
 				if (result == 1)
 				{
 					// Empty polygon
