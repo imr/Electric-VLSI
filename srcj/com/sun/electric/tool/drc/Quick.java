@@ -2729,7 +2729,7 @@ public class Quick
 		// see how close they can get
 		double wideLimit = DRC.getWideLimit(tech);
 		boolean wide = false;
-		if (size1 >= wideLimit || size2 >= wideLimit) wide = true;
+		if (size1 > wideLimit || size2 > wideLimit) wide = true;
 
 		DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, wide, multi);
 		return rule;
