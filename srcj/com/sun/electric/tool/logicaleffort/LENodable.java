@@ -238,6 +238,7 @@ public class LENodable {
                 if (testCachebility) return -1f;
             }
             retVal = context.evalVar(var);
+            if (testCachebility && (retVal == null)) return -1f;
             float len = VarContext.objectToFloat(retVal, 0.0f);
 
             var = no.getVar(Schematics.ATTR_WIDTH);
@@ -246,6 +247,7 @@ public class LENodable {
                 if (testCachebility) return -1f;
             }
             retVal = context.evalVar(var);
+            if (testCachebility && (retVal == null)) return -1f;
             float width = VarContext.objectToFloat(retVal, 3.0f);
 
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*constants.wireRatio;  // equivalent lambda of gate
@@ -286,7 +288,7 @@ public class LENodable {
                 return -1f;
             }
             retVal = context.evalVar(var);
-            if (retVal == null) return -1f;
+            if (testCachebility && (retVal == null)) return -1f;
             float cap = VarContext.objectToFloat(retVal, (float)0.0);
             leX = (float)(cap/constants.gateCap/1e-15/9.0f);
         }
