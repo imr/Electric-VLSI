@@ -141,7 +141,6 @@ public class Input // extends IOTool
 			stopProgressDialog();
 			Cell.setAllowCircularLibraryDependences(false);
 			Undo.changesQuiet(false);
-			errorLogger.termLogging(true);
 		}
 
 		if (lib != null)
@@ -152,6 +151,7 @@ public class Input // extends IOTool
             Pref.reconcileMeaningVariables(lib.getName());
 		}
 
+		errorLogger.termLogging(true);
 
 		return lib;
 	}
