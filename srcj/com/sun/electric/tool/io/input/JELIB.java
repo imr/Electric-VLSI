@@ -450,6 +450,26 @@ public class JELIB extends LibraryFiles
 				", Unrecognized line: " + line, null, -1);
 		}
 
+		// sensibility check: shouldn't all cells with the same root name be in the same group?
+		HashMap cellGroups = new HashMap();
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			Cell.CellGroup group = cell.getCellGroup();
+			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(cell.getName());
+			if (groupOfName == null)
+			{
+				cellGroups.put(cell.getName(), group);
+			} else
+			{
+				if (groupOfName != group)
+				{
+					Input.errorLogger.logError(filePath + ", Library has multiple cells named " +
+						cell.getName() + " that are not in the same group", null, -1);
+				}
+			}
+		}
+
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
 		lib.setFromDisk();
@@ -974,8 +994,14 @@ public class JELIB extends LibraryFiles
 		for(int i=position; i<total; i++)
 		{
 			String piece = (String)pieces.get(i);
-			int openPos = piece.indexOf('(');
-			if (openPos < 0)
+			int openPos = 0;
+			for(; openPos < piece.length(); openPos++)
+			{
+				char chr = piece.charAt(openPos);
+				if (chr == '^') { openPos++;   continue; }
+				if (chr == '(') break;
+			}
+			if (openPos >= piece.length())
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
 					", Badly formed variable (no open parenthesis): " + piece, null, -1);

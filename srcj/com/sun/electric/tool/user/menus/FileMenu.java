@@ -396,12 +396,15 @@ public class FileMenu {
 
         public boolean doIt() {
             if (lib.kill())
+            {
                 System.out.println("Library " + lib.getName() + " closed");
-            WindowFrame.wantToRedoTitleNames();
-            //WindowFrame.wantToRedoLibraryTree();
-            EditWindow.repaintAll();
-            // Disable save icon if no more libraries are open
-            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+	            WindowFrame.wantToRedoTitleNames();
+	            //WindowFrame.wantToRedoLibraryTree();
+	            EditWindow.repaintAll();
+
+	            // Disable save icon if no more libraries are open
+	            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            }
             return true;
         }
     }
@@ -659,7 +662,8 @@ public class FileMenu {
 			pageFormat = pj.defaultPage();
 
  		javax.print.attribute.PrintRequestAttributeSet pset = new javax.print.attribute.HashPrintRequestAttributeSet();
- 		pset.add(new javax.print.attribute.standard.PrinterResolution(150, 150, javax.print.attribute.ResolutionSyntax.DPI));
+// 		pset.add(javax.print.attribute.standard.Fidelity.FIDELITY_FALSE);
+// 		pset.add(new javax.print.attribute.standard.PrinterResolution(300, 300, javax.print.attribute.ResolutionSyntax.DPI));
 
  		ElectricPrinter ep = new ElectricPrinter();
 		ep.setPrintWindow(wf);
@@ -690,6 +694,7 @@ public class FileMenu {
 
         if (pj.printDialog(pset))
         {
+//System.out.println("Page is "+pageFormat.getImageableWidth()+"x"+pageFormat.getImageableHeight());
 			// disable double-buffering so prints look better
 			JPanel overall = wf.getContent().getPanel();
 			RepaintManager currentManager = RepaintManager.currentManager(overall);

@@ -4,15 +4,28 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ab: *********************************
 
-IMP: Cross-shaped contacts in TSMC90.
+IMP: (10/21/04, SMR) JELIB reader checks that cells with the same name are in the same group.
+
+IMP: (10/21/04, SMR) Made cell groups have sensible names so that it is easier to rearrange them.
+
+IMP: (10/21/04, SMR) Closed bugs in JELIB format: handles "(" in variable names;
+     handles newline in strings.
+
+IMP: (10/21/04, SMR) Deleting a library (or re-reading it) checks to make sure that
+     none of the former library has cells that are in use elsewhere.
+
+IMP: (10/21/04, SMR) Selecting a signal in the schematic shows all equivalents in the waveform window.
+
+IMP: (10/21/04, GVG) Cross-shaped contacts in TSMC90.
 
 IMP/MAN: (10/21/04, SMR) Added "CIF" input.
 
 IMP: (10/20/04, DN) Deprectated those variables on Technology, Tool,
-View, PrimitiveNode/Arc/Part objects which are not meaningful preferences.
+     View, PrimitiveNode/Arc/Part objects which are not meaningful preferences.
 
 IMP: (10/20/04, SMR) Now preserving the "main schematic" for a cell group.
      Also saving and restoring it through "jelib" files.
+     Explorer tree has command for setting "main schematic".
 
 ************************* Version 8.01aa: *********************************
 

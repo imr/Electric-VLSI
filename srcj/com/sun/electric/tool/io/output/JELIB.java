@@ -706,7 +706,7 @@ public class JELIB extends Output
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
 			String tdString = describeDescriptor(var, var.getTextDescriptor());
-			printWriter.print("|" + convertString(var.getKey().getName()) + "(" + tdString + ")");
+			printWriter.print("|" + convertVariableName(var.getKey().getName()) + "(" + tdString + ")");
 
 			Object varObj = var.getObject();
 			String pt = makeString(varObj, curCell);
@@ -901,6 +901,7 @@ public class JELIB extends Output
 		for(int i=0; i<len; i++)
 		{
 			char ch = str.charAt(i);
+			if (ch == '\n') ch = ' ';
 			if (ch == '"' || ch == '^')
 				infstr.append('^');
 			infstr.append(ch);
@@ -922,8 +923,30 @@ public class JELIB extends Output
 		for(int i=0; i<len; i++)
 		{
 			char ch = str.charAt(i);
-			if (ch == '\n') continue;
+			if (ch == '\n') ch = ' ';
 			if (ch == '|' || ch == '^' || ch == '"')
+				infstr.append('^');
+			infstr.append(ch);
+		}
+		return infstr.toString();
+	}
+
+	/**
+	 * Method convert a string that is a variable name.
+	 * Inserts a quote character (^) before any separator (|), quotation character ("), open parenthesis, or quote character (^) in the string.
+	 * @param str the string to convert.
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private String convertVariableName(String str)
+	{
+		StringBuffer infstr = new StringBuffer();
+		int len = str.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '\n') ch = ' ';
+			if (ch == '|' || ch == '^' || ch == '"' || ch == '(')
 				infstr.append('^');
 			infstr.append(ch);
 		}

@@ -115,6 +115,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		// private data
 		private ArrayList cells;
 		private Cell mainSchematic;
+		private String groupName = null;
 
 		// ------------------------- public methods -----------------------------
 
@@ -137,6 +138,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
                 if (!cells.contains(cell))
 				    cells.add(cell);
 			}
+			groupName = null;
 			cell.cellGroup = this;
 		}
 
@@ -151,6 +153,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				cells.remove(f);
 				if (f == mainSchematic) mainSchematic = null;
 			}
+			groupName = null;
 		}
 
 		/**
@@ -230,23 +233,68 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
         /**
          * Returns a string representing the name of the cell group
-         */
-        public String getName() {
-            Set groupNames = new TreeSet();
-            for(Iterator it = getCells(); it.hasNext(); )
-            {
-                Cell cell = (Cell)it.next();
-                groupNames.add(cell.getName());
-            }
-            String groupName = null;
-            for(Iterator it = groupNames.iterator(); it.hasNext(); )
-            {
-                String oneName = (String)it.next();
-                if (groupName == null) groupName = oneName; else
-                    groupName += "," + oneName;
-            }
-            return groupName;
-        }
+		 */
+		public String getName()
+		{
+			// if the name is cached, return that
+			if (groupName != null) return groupName;
+
+			// first see if this is the only cell in the group (allowing for old versions)
+			Cell onlyCell = null;
+			for(Iterator it = getCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				if (onlyCell == null) onlyCell = cell.getNewestVersion(); else
+				{
+					if (cell.getNewestVersion() != onlyCell)
+					{
+						onlyCell = null;
+						break;
+					}
+				}
+			}
+			if (onlyCell != null) return groupName = onlyCell.describe();
+
+			// name the group according to all of the different base names
+			Set groupNames = new TreeSet();
+			int widestName = 0;
+			for(Iterator it = getCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				String cellName = cell.getName();
+				if (cellName.length() > widestName) widestName = cellName.length();
+				groupNames.add(cellName);
+			}
+
+			// if there is only 1 base name, use it
+			if (groupNames.size() == 1) return groupName = (String)groupNames.iterator().next();
+
+			// look for common root to the names
+			for(int i=widestName; i>widestName/2; i--)
+			{
+				String lastName = null;
+				boolean allSame = true;
+				for(Iterator it = groupNames.iterator(); it.hasNext(); )
+				{
+					String oneName = (String)it.next();
+					if (lastName != null)
+					{
+						if (!lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
+					}
+					lastName = oneName;
+				}
+				if (allSame) return groupName = lastName.substring(0, i) + "*";	
+			}
+
+			// just list all of the different base names
+			for(Iterator it = groupNames.iterator(); it.hasNext(); )
+			{
+				String oneName = (String)it.next();
+				if (groupName == null) groupName = oneName; else
+					groupName += "," + oneName;
+			}
+			return groupName;
+		}
 	}
 
 	private static class VersionGroup

@@ -45,6 +45,7 @@ import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
@@ -58,6 +59,8 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
+
+import javax.swing.JOptionPane;
 
 /**
  * This class manages reading files in different formats.
@@ -182,11 +185,18 @@ public class Input // extends IOTool
 			if (FileMenu.preventLoss(lib, 2)) return null;
 			WindowFrame.removeLibraryReferences(lib);
 
-			// delete this later (cannot delete last library)
-			deleteThis = lib;
+			// see if the former library can be deleted
+			if (Library.getNumLibraries() > 1)
+			{
+				if (!lib.kill()) return null;
+			} else
+			{
+				// cannot delete last library: must delete it later
+				deleteThis = lib;
 
-			// mangle the name so that the new one can be created
-			lib.setName(lib.getName()+lib.getName());
+				// mangle the name so that the new one can be created
+				lib.setName("FORMERVERSIONOF" + lib.getName());
+			}
 		}
 
 		// create a new library
@@ -303,11 +313,18 @@ public class Input // extends IOTool
 				if (FileMenu.preventLoss(lib, 2)) return null;
 				WindowFrame.removeLibraryReferences(lib);
 
-				// delete this later (cannot delete last library)
-				deleteThis = lib;
+				// see if the former library can be deleted
+				if (Library.getNumLibraries() > 1)
+				{
+					if (!lib.kill()) return null;
+				} else
+				{
+					// cannot delete last library: must delete it later
+					deleteThis = lib;
 
-				// mangle the name so that the new one can be created
-				lib.setName(lib.getName()+lib.getName());
+					// mangle the name so that the new one can be created
+					lib.setName("FORMERVERSIONOF" + lib.getName());
+				}
 			}
 
 			// create a new library

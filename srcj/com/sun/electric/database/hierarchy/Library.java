@@ -151,6 +151,7 @@ public class Library extends ElectricObject
 	/**
 	 * Method to delete this Library.
 	 * @return true if the library was deleted.
+	 * Returns false on error.
 	 */
 	public boolean kill()
 	{
@@ -170,8 +171,8 @@ public class Library extends ElectricObject
 			if (newCurLib == null)
 			{
 				System.out.println("Cannot delete the last library");
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete the last "+toString(),
-                        "Close library", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete the last "+toString(),
+					"Close library", JOptionPane.INFORMATION_MESSAGE);
 				return false;
 			}
 		}
@@ -180,10 +181,42 @@ public class Library extends ElectricObject
 		if (!libraries.contains(this))
 		{
 			System.out.println("Cannot delete library " + this);
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
-                    "Close library", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
+				"Close library", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
+
+		// make sure none of these cells are referenced by other libraries
+		boolean referenced = false;
+		for(Iterator it = getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib == this) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					if (ni.getProto() instanceof Cell)
+					{
+						Cell subCell = (Cell)ni.getProto();
+						if (subCell.getLibrary() == this)
+						{
+							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+								"Cannot delete library " + getName() + " because one of its cells (" +
+								subCell.describe() + ") is being used (by " + cell.libDescribe() + ")",
+								"Close library", JOptionPane.ERROR_MESSAGE);
+							 referenced = true;
+							 break;
+						}
+					}
+				}
+				if (referenced) break;
+			}
+			if (referenced) break;
+		}
+		if (referenced) return false;
 
 		// remove all cells in the library
 		erase();
@@ -196,11 +229,11 @@ public class Library extends ElectricObject
 
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
-        setLinked(false);
+		setLinked(false);
 
-        // always broadcast library changes
-        Undo.setNextChangeQuiet(false);
-        Undo.killObject(this);
+		// always broadcast library changes
+		Undo.setNextChangeQuiet(false);
+		Undo.killObject(this);
 		return true;
 	}
 

@@ -821,6 +821,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
                 menu.addSeparator();
 
+                menuItem = new JMenuItem("Make This the Main Schematic");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
+
                 menuItem = new JMenuItem("Change Cell Group...");
                 menu.add(menuItem);
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeCellGroupAction(); }});
@@ -1158,6 +1162,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell cell = (Cell)currentSelectedObject;
 				ViewChanges.changeCellView(cell, newView);
 			}
+		}
+
+		private void makeCellMainSchematic()
+		{
+            Cell cell = (Cell)currentSelectedObject;
+            if (cell == null) return;
+            cell.getCellGroup().setMainSchematics(cell);
 		}
 
         private void changeCellGroupAction() {

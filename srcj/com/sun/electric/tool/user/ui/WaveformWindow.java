@@ -2240,13 +2240,21 @@ public class WaveformWindow implements WindowContent
 					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null) return;
 	
-					Signal ws = ww.findDisplayedSignal(sSig);
-					if (ws != null)
+					boolean foundSignal = false;
+					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
 					{
-						ws.wavePanel.addHighlightedSignal(ws);
-						ww.repaint();
-						return;
+						Panel wp = (Panel)it.next();
+						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+						{
+							Signal ws = (Signal)sIt.next();
+							if (ws.sSig == sSig)
+							{
+								wp.addHighlightedSignal(ws);
+								foundSignal = true;
+							}
+						}
 					}
+					if (foundSignal) ww.repaint();
 				}
 			}
 		}
