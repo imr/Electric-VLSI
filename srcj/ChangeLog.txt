@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/29/05, SMR) Saving new JELIB files doesn't mark the library as "from disk", causing
+     subsequent saves to prompt for a file name (Bug #227).
+FIX: In output.JELIB.writeTheLibrary(), set "from disk" after saving library.
+
+IMP: (03/29/05, SMR) Explorer tree starts expanded to current library (Bug #223).
+
+IMP/MAN: (03/29/05, SMR) User Manual dialog has search built-in (Bug #225).
+
+IMP/MAN: (03/29/05, SMR) Added "length" to Arc Properties dialog (Bug #224).
+
 IMP/MAN: (03/29/05, GVG) Tabs on Mac are aligned on the left (Bug# 226)
 
 IMP/MAN: (03/29/05, GVG) Improvements in resistance/capacitance calculation in Parasitic Tool.

@@ -68,8 +68,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -101,6 +103,7 @@ public class ManualViewer extends EDialog
     private JScrollPane rightHalf;
     private JEditorPane editorPane;
 	private JSplitPane splitPane;
+	private JTextField searchField;
 	private JTree optionTree;
 	private DefaultMutableTreeNode rootNode;
 	private List pageSequence;
@@ -310,9 +313,9 @@ public class ManualViewer extends EDialog
 			menuMapCheck = null;
 		}
 		StringBuffer sb = new StringBuffer();
-		sb.append("<CENTER><H1>MENU BAR ENABLED</H1></CENTER>\n");
-		sb.append("The menu bar at the top of <I>this</I> window looks the same as the main menu bar in Electric.<BR>\n");
-		sb.append("Using any entry in this menu bar will take you to the manual page that explains the Electric operation.\n");
+		sb.append("<CENTER><H1>HELP MENU ENABLED</H1></CENTER>\n");
+		sb.append("The menu bar at the top of <I>this</I> window looks the same as the main menu bar in Electric.<BR><BR>\n");
+		sb.append("Use any entry in this menu bar to see the manual page that explains that menu entry.\n");
 		editorPane.setText(sb.toString());
 		editorPane.setCaretPosition(0);
 
@@ -516,9 +519,8 @@ public class ManualViewer extends EDialog
 
 	private void search()
 	{
-		String ret = (String)JOptionPane.showInputDialog(this, "Keyword to locate:",
-			"Manual Search", JOptionPane.QUESTION_MESSAGE, null, null, null);
-		if (ret == null) return;
+		String ret = searchField.getText().trim();
+		if (ret.length() == 0) return;
 		Pattern pattern = Pattern.compile(ret, Pattern.CASE_INSENSITIVE);
 
 		StringBuffer sbResult = new StringBuffer();
@@ -887,7 +889,7 @@ public class ManualViewer extends EDialog
 			}
 
 			/*
-			 * Because Eclipse keeps class files in a separate directory,
+			 * Because some IDEs keep class files in a separate directory,
 			 * the file that is being displayed is only a cache of the real one.
 			 * The real one is missing the "/bin/" part.
 			 */
@@ -966,7 +968,7 @@ public class ManualViewer extends EDialog
 		// set up dialog
 		GridBagConstraints gbc;
 		getContentPane().setLayout(new GridBagLayout());
-	
+
 		// setup tree pane for chapter selection (on the left)
 		rootNode = new DefaultMutableTreeNode("Manual");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -974,12 +976,12 @@ public class ManualViewer extends EDialog
 		TreeHandler handler = new TreeHandler(this);
 		optionTree.addMouseListener(handler);
 		JScrollPane scrolledTree = new JScrollPane(optionTree);
-	
+
 		// the left side of the options dialog: a tree
 		JPanel leftHalf = new JPanel();
 		leftHalf.setLayout(new GridBagLayout());
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 2;
+		gbc.gridx = 0;      gbc.gridy = 4;
 		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
@@ -990,7 +992,7 @@ public class ManualViewer extends EDialog
 		JButton backButton = new JButton("Back");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
-		gbc.gridwidth = 2;  gbc.gridheight = 1;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(backButton, gbc);
@@ -998,35 +1000,9 @@ public class ManualViewer extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { back(); }
 		});
-
-		// Previous and Next buttons
-		JButton prevButton = new JButton("Prev");
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 1;
-		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-		gbc.anchor = GridBagConstraints.CENTER;
-		leftHalf.add(prevButton, gbc);
-		prevButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { prev(); }
-		});
-		JButton nextButton = new JButton("Next");
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;      gbc.gridy = 1;
-		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-		gbc.anchor = GridBagConstraints.CENTER;
-		leftHalf.add(nextButton, gbc);
-		nextButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { next(); }
-		});
-
-		// forward and backward buttons at the bottom of the left side
 		JButton menuButton = new JButton("Menu Help");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 3;
+		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1035,24 +1011,68 @@ public class ManualViewer extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { loadMenuBar(); }
 		});
-		JButton searchButton = new JButton("Search...");
+
+		// Previous and Next buttons
+		JButton nextButton = new JButton("Next");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;      gbc.gridy = 0;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(nextButton, gbc);
+		nextButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { next(); }
+		});
+		JButton prevButton = new JButton("Prev");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;      gbc.gridy = 1;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(prevButton, gbc);
+		prevButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { prev(); }
+		});
+
+		JSeparator sep = new JSeparator();
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 2;
+		gbc.gridwidth = 2;  gbc.gridheight = 1;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		leftHalf.add(sep, gbc);
+
+		// forward and backward buttons at the bottom of the left side
+		searchField = new JTextField();
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 3;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.weightx = 0.5;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(searchField, gbc);
+		JButton searchButton = new JButton("Find");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;      gbc.gridy = 3;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(searchButton, gbc);
 		searchButton.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { search(); }
 		});
+        getRootPane().setDefaultButton(searchButton);
 
 		if (Main.getDebug())
 		{
 			// manual and edit buttons at the bottom of the left side
 			JButton manualButton = new JButton("1-Page Man");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 4;
+			gbc.gridx = 1;      gbc.gridy = 5;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.CENTER;
@@ -1065,7 +1085,7 @@ public class ManualViewer extends EDialog
 			// manual and edit buttons at the bottom of the left side
 			JButton manualMultiButton = new JButton("Many-Page Man");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 1;      gbc.gridy = 4;
+			gbc.gridx = 0;      gbc.gridy = 5;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.CENTER;
@@ -1077,7 +1097,7 @@ public class ManualViewer extends EDialog
 
 			JButton editButton = new JButton("Edit Page");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 5;
+			gbc.gridx = 0;      gbc.gridy = 6;
 			gbc.gridwidth = 2;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			leftHalf.add(editButton, gbc);
@@ -1096,7 +1116,7 @@ public class ManualViewer extends EDialog
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		rightHalf.setPreferredSize(new Dimension(screenSize.width/2, screenSize.height*3/4));
 		rightHalf.setMinimumSize(new Dimension(screenSize.width/4, screenSize.height/3));
-	
+
 		// build split pane with both halves
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setLeftComponent(leftHalf);
@@ -1108,13 +1128,13 @@ public class ManualViewer extends EDialog
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
-	
+
 		// close of dialog event
 		addWindowListener(new WindowAdapter()
 		{
 		    public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
-	
+
 		pack();
     }
 

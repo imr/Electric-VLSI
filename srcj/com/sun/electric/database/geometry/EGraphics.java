@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.Color;
 import java.util.HashMap;
@@ -546,8 +547,17 @@ public class EGraphics extends Observable
 		}
 
 		// handle transparent colors
-		Color [] colorMap = Technology.getCurrent().getColorMap();
-		if (colorMap == null) return null;
+		Technology curTech = Technology.getCurrent();
+		Color [] colorMap = curTech.getColorMap();
+		if (colorMap == null)
+		{
+			Technology altTech = Schematics.getDefaultSchematicTechnology();
+			if (altTech != curTech)
+			{
+				colorMap = altTech.getColorMap();
+			}
+			if (colorMap == null) return null;
+		}
 		int trueIndex = colorIndex >> 2;
 		if (trueIndex < colorMap.length) return colorMap[trueIndex];
 		return null;

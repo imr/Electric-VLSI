@@ -399,6 +399,7 @@ public class JELIB extends Output
 		// clean up and return
 		lib.clearChangedMinor();
 		lib.clearChangedMajor();
+		lib.setFromDisk();
 		System.out.println(filePath + " written");
 		return false;
 	}

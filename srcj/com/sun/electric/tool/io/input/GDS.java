@@ -244,7 +244,7 @@ public class GDS extends Input
 
 		private static void term() { allInstances = null; }
 
-		private static void makeCellsInsances(Cell cell)
+		private static void makeCellInstances(Cell cell)
 		{
 			List instancesInCell = (List)allInstances.get(cell);
 			if (instancesInCell == null) return;
@@ -253,7 +253,7 @@ public class GDS extends Input
 				MakeInstance mi = (MakeInstance)iIt.next();
 				if (mi.instantiated) continue;
 				Cell subCell = mi.subCell;
-				makeCellsInsances(subCell);
+				makeCellInstances(subCell);
 
 				// make the instance
 				Rectangle2D bounds = mi.subCell.getBounds();
@@ -283,7 +283,7 @@ public class GDS extends Input
 			for(Iterator it = allInstances.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				makeCellsInsances(cell);
+				makeCellInstances(cell);
 			}
 		}
 	}
