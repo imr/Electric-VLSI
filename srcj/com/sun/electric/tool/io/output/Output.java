@@ -44,10 +44,13 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import javax.swing.*;
 import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
@@ -113,6 +116,24 @@ public class Output extends IOTool
 	public static boolean writeLibrary(Library lib, OpenFile.Type type, boolean compatibleWith6)
 	{
 		Output out;
+
+        // scan for Dummy Cells, warn user that they still exist
+        List dummyCells = new ArrayList();
+        dummyCells.add("WARNING: Library "+lib.getName()+" contains the following Dummy cells:");
+        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+            Cell c = (Cell)it.next();
+            if (c.getVar(Input.IO_DUMMY_OBJECT) != null) {
+                dummyCells.add("   "+c.noLibDescribe());
+            }
+        }
+        if (dummyCells.size() > 1) {
+            dummyCells.add("Do you really want to write this library?");
+            Object [] options = {"Continue Writing", "Cancel" };
+            int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), dummyCells.toArray(),
+                    "Dummy Cells Found in "+lib.getName(), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                    options, options[1]);
+            if (val == 1) return true;
+        }
 
 		// make sure that all "meaning" options are attached to the database
 		Pref.installMeaningVariables();

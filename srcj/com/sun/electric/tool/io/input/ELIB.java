@@ -124,7 +124,6 @@ public class ELIB extends LibraryFiles
 	/** index of first Export in each cell of the library */				private int [] firstPortIndex;
 	/** X center each cell of the library */								private int [] cellXOff;
 	/** Y center each cell of the library */								private int [] cellYOff;
-    /** List of dummy cells we've created */                                private Map dummyCells;
 	/** true if this x-lib cell ref is satisfied */							private boolean [] xLibRefSatisfied;
 	/** mapping view indices to views */									private HashMap viewMapping;
 
@@ -343,7 +342,6 @@ public class ELIB extends LibraryFiles
 		cellXOff = new int[nodeProtoCount];
 		cellYOff = new int[nodeProtoCount];
 		xLibRefSatisfied = new boolean[nodeProtoCount];
-        dummyCells = new HashMap();
 
 		// allocate pointers for the NodeInsts
 		nodeInstList = new LibraryFiles.NodeInstList();
@@ -985,6 +983,14 @@ public class ELIB extends LibraryFiles
 			lib.setCurCell((Cell)currentCell);
 		}
 
+        // warn if any dummy cells were read in
+        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+            Cell c = (Cell)it.next();
+            if (c.getVar(IO_DUMMY_OBJECT) != null) {
+                System.out.println("WARNING: Library "+lib.getName()+" contains DUMMY cell "+c.noLibDescribe());
+            }
+        }
+
 		// library read successfully
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Binary: finished reading data for library " + lib.getName());
@@ -1205,7 +1211,7 @@ public class ELIB extends LibraryFiles
 			if (!(portProtoList[i] instanceof Export))
             {
                 // could be missing because this is a dummy cell
-                if (dummyCells.get(cell) != null)
+                if (cell.getVar(IO_DUMMY_OBJECT) != null)
                     continue;               // don't issue error message
                 // not on a dummy cell, issue error message
                 System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " is unresolved");
@@ -1678,7 +1684,9 @@ public class ELIB extends LibraryFiles
             }
 
             // if this was a dummy cell, create the export in cell
-            Cell c = (Cell)dummyCells.get(node.getProto());
+            Cell c = null;
+            if (node.getProto() != null)
+                if (node.getProto().getVar(IO_DUMMY_OBJECT) != null) c = (Cell)node.getProto();
             if (c != null) {
                 double anchorX = node.getAnchorCenterX();
                 double anchorY = node.getAnchorCenterY();
@@ -1989,7 +1997,8 @@ public class ELIB extends LibraryFiles
 		Cell c = elib.findNodeProto(fullCellName);
 
         // if can't find, look for dummy version
-        String dummyName = "DUMMY" + fullCellName;
+        //String dummyName = "DUMMY" + fullCellName;
+        String dummyName = fullCellName;
         if (c == null) {
             c = elib.findNodeProto(dummyName);
         }
@@ -2102,7 +2111,6 @@ public class ELIB extends LibraryFiles
 
             // note that exports get created in getArcEnd. If it tries to connect to a missing export
             // on a dummy cell, it creates the export site.
-            dummyCells.put(c, c);
 
             newCell = true;
             System.out.println("...Creating dummy cell '"+dummyName+"' in library " + elib.getName() +
