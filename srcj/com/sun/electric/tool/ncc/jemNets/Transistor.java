@@ -23,17 +23,15 @@
 */
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basic.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.Primes;
+import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** One or more MOS transistors in series. All gates have the same width
  * and length. */
@@ -213,7 +211,7 @@ public class Transistor extends Part {
     
     // ---------- private methods ----------
 	/** Stack of series transistors */
-	private Transistor(Type np, String name, double width, double length,
+	private Transistor(Type np, NccNameProxy name, double width, double length,
 					   Wire[] pins) {
 		super(name, pins);
 		type = np;
@@ -255,7 +253,7 @@ public class Transistor extends Part {
     // ---------- public methods ----------
 
 	/** The standard 3 terminal Transistor. */
-	public Transistor(Type np, String name, double width, double length,
+	public Transistor(Type np, NccNameProxy name, double width, double length,
 					  Wire src, Wire gate, Wire drn) {
 		this(np, name, width, length, new Wire[] {src, gate, drn});
 	}
@@ -274,8 +272,12 @@ public class Transistor extends Part {
 		return false;
 	}
 
-	public boolean touchesAtDiffusion(Wire w){
-		return w==pins[0] || w==pins[pins.length-1];
+//	public boolean touchesAtDiffusion(Wire w){
+//		return w==pins[0] || w==pins[pins.length-1];
+//	}
+	public boolean touchesOneDiffPinAndNoOtherPins(Wire w) {
+		return (w==pins[0] ^ w==pins[pins.length-1]) &&
+			   !touchesAtGate(w);
 	}
 
 	public boolean isCapacitor() {return pins[0]==pins[pins.length-1];}
@@ -305,7 +307,7 @@ public class Transistor extends Part {
 		if (!samePinsAs(t)) return false;
 		
 		width += t.width;
-		t.deleteMe();
+		t.setDeleted();
 		return true;		    	
 	}
 
@@ -382,34 +384,36 @@ public class Transistor extends Part {
 		return "W= " + width + " L= " + length;
 	}
 
-	/** 
-	 * Merge two series Transistors into a single Transistor.  
+	/** Merge two series Transistors into a single Transistor. 
+	 * Tricky: Parts on wire may be deleted or replicated. 
 	 * @param w wire joining diffusions of two transistors
-	 * @return true if merge has taken place
-	 */
-	public static boolean joinOnWire(Wire w){
+	 * @return true if merge has taken place */
+	public static boolean joinOnWire(Wire w) {
+		if (w.isDeleted()) return false;
+
 		// make sure there are no Ports on wire
 		if (w.getPort()!=null)  return false;
 		
 		// wires declared GLOBAL in Electric can't be internal nodes 
 		// of MOS stacks
-		if (w.isGlobal()) return false;
+		//if (w.isGlobal()) return false;
 		
-		if (w.numParts()!=2)  return false;
-		if (w.numPartPins()!=2)  return false;
-
-		Transistor ta= null;
-		Transistor tb= null;
+		// Use Set to remove duplicate Parts
+		Set trans = new HashSet();
 		for (Iterator it=w.getParts(); it.hasNext();) {
 			Part p = (Part) it.next();
+			if (p.isDeleted()) continue;
 			if (!(p instanceof Transistor)) return false;
 			Transistor t = (Transistor) p;
-			if (!t.touchesAtDiffusion(w)) return false;
-			if (t.touchesAtGate(w)) return false;
-			if (ta==null)  ta=t;  else  tb=t;
+			if (!t.touchesOneDiffPinAndNoOtherPins(w)) return false;
+			trans.add(t);
+			if (trans.size()>2) return false;
 		}
-		error(ta==null || tb==null, "can't happen");
-		error(ta==tb, "part should only occur once on wire");
+		if (trans.size()!=2) return false;
+
+		Iterator it = trans.iterator();
+		Transistor ta = (Transistor) it.next();
+		Transistor tb = (Transistor) it.next();
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if (!ta.isLike(tb))  return false;
 		if (ta.width!=tb.width)  return false;
@@ -427,19 +431,18 @@ public class Transistor extends Part {
 		for (int bNdx=1; bNdx<tb.pins.length; bNdx++){
 			mergedPins[aNdx++] = tb.pins[bNdx];
 		}
-		Transistor stack = new Transistor(ta.getType(), ta.getName(),  
+		Transistor stack = new Transistor(ta.getType(), ta.getNameProxy(),  
 										  ta.getWidth(), ta.getLength(), 
 										  mergedPins);
 
 		Circuit parent = (Circuit) tb.getParent();
 		parent.adopt(stack);
-		ta.deleteMe();
-		tb.deleteMe();
-		error(w.numParts()!=0, "wire not empty?");
-		w.killMe();
+		ta.setDeleted();
+		tb.setDeleted();
+		//error(w.numParts()!=0, "wire not empty?");
+		w.setDeleted();
 		return true;
 	}
-	// over ride the hash computation
 	public Integer computeHashCode(){
 		// the function is symmetric: ABCD = DCBA
 		int sumLo=0, sumHi=0;

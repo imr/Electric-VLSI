@@ -178,11 +178,22 @@ public class NccUtils {
 		return absWidErr<=opt.absoluteSizeTolerance || 
 		       relWidErr<=opt.relativeSizeTolerance;
 	}
-	public static String removePathPrefix(String path, String prefix) {
-		if (prefix.length()==0) return path;
-		LayoutLib.error(!path.startsWith(prefix), "path doesn't contain prefix");
-		// I add one to remove the leading '/' from returned path
-		return path.substring(prefix.length()+1);
-	}
+//	public static String removePathPrefix(String path, String prefix) {
+//		if (prefix.length()==0) return path;
+//		LayoutLib.error(!path.startsWith(prefix), "path doesn't contain prefix");
+//		// I add one to remove the leading '/' from returned path
+//		return path.substring(prefix.length()+1);
+//	}
+    /** Wait forever. This allows me to explore memory usage */
+    public static void hang(String msg) {
+//        final long YEAR = 1000*60*60*24*365;
+//        try {
+//            System.out.println(msg+" now going to sleep for 1 year");
+//            System.out.flush();
+//            Thread.sleep(1*YEAR);
+//        } catch (Exception e) {
+//            System.out.println("Huh? I woke up.");
+//        }
+    }
 }
 

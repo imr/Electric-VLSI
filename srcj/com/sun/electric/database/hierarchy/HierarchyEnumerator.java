@@ -60,6 +60,31 @@ import java.util.List;
  * visits two instances of Cell A and four instances of Cell B. 
  */
 public final class HierarchyEnumerator {
+	/** Stores the information necessary to generate an instance name for a Part 
+	  * It is sometimes important not to store the instance name as a String. 
+	  * When I stored instance names as strings in NCC profiles indicated that 
+	  * almost 50% of the storage space was used in these strings and 70% of the
+	  * execution time was spent generating these Strings!!! */
+	public static class NameProxy {
+		private VarContext context;
+		private String sep;
+		private String leafName;
+
+		private String makePath(VarContext context, String sep) {
+			String path = context.getInstPath(sep);
+			if (!path.equals(""))  path+=sep;
+			return path; 
+		}
+		public NameProxy(VarContext context, String sep, String leafName) {
+			this.context = context;
+			this.sep = sep;
+			this.leafName = leafName;
+		}
+
+		public String toString() {
+			return makePath(context, sep) + leafName;		
+		}
+	}
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
 	//private int nextNetID = 0; // first unassigned net number
@@ -403,11 +428,11 @@ public final class HierarchyEnumerator {
 			return a;
 		}
 
-		private String makePath(VarContext context, String sep) {
-			String path = context.getInstPath(sep);
-			if (!path.equals(""))  path+=sep;
-			return path; 
-		}
+//		private String makePath(VarContext context, String sep) {
+//			String path = context.getInstPath(sep);
+//			if (!path.equals(""))  path+=sep;
+//			return path; 
+//		}
 
 		/**
 		 * Temporary for testing the HierarchyEnumerator.
@@ -585,50 +610,54 @@ public final class HierarchyEnumerator {
          * name will contain the hierarchical context as returned by
          * VarContext.getInstPath() if it is not a top-level network.
          * @param sep the context separator to use if needed.
-         * @return a unique String identifier for the network
-         */
+         * @return a unique String identifier for the network */
         public final String getUniqueNetName(JNetwork net, String sep) {
         	return getUniqueNetName(net.getNetIndex(), sep);
         }
+        /** Same as getUniqueNetName except it returns a NameProxy instead of a
+         * String name */
+		public final NameProxy getUniqueNetNameProxy(JNetwork net, String sep) {
+			return getUniqueNetNameProxy(net.getNetIndex(), sep);
+		}
         
 		/** Get a unique, flat net name for the network.  The network 
 		 * name will contain the hierarchical context as returned by
 		 * VarContext.getInstPath() if it is not a top-level network.
 		 * @param sep the hierarchy separator to use if needed.
-		 * @return a unique String identifier for the network
-		 */
+		 * @return a unique String identifier for the network */
 		public final String getUniqueNetName(int netID, String sep) {
-            NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
-            if (ns == null ) {
-                System.out.println("ns is null");
-            }
-            if (ns.getCellInfo() == null ) {
-                System.out.println("cell info is null");
-            }
-            VarContext netContext = ns.getCellInfo().getContext();
-			String path = makePath(netContext, sep); 
-
-//            StringBuffer buf = new StringBuffer();
-//            buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any
-//            if (!buf.toString().equals("")) buf.append(sep);
-        	Iterator it = ns.getNet().getNames();
-            if (it.hasNext()) {
-    			path += (String) it.next();
-    		} else {
-        		path += "netID"+netID;
-            }
-            return path;
+  			NameProxy proxy = getUniqueNetNameProxy(netID, sep);
+  			return proxy.toString();
         }
+		/** Same as getUniqueNetName except it returns a NameProxy instead of a
+		 * String name */
+		public final NameProxy getUniqueNetNameProxy(int netID, String sep) {
+			NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
+			VarContext netContext = ns.getCellInfo().getContext();
+			String leafName;
+
+			Iterator it = ns.getNet().getNames();
+			if (it.hasNext()) {
+				leafName = (String) it.next();
+			} else {
+				leafName = "netID"+netID;
+			}
+			return new NameProxy(netContext, sep, leafName);
+		}
         
         /** Get a unique, flat instance name for the Nodable.
-         * 
          * @param no 
          * @param sep the hierarchy separator to use if needed
-         * @return a unique String identifer for the Nodable
-         */
+         * @return a unique String identifer for the Nodable */
         public final String getUniqueNodableName(Nodable no, String sep) {
-        	return makePath(getContext(), sep)+no.getName();
+        	return getUniqueNodableNameProxy(no, sep).toString();
         }
+
+		/** Same as getUniqueNodableName except that it returns a NameProxy 
+		 *  instead of a String name. */
+		public final NameProxy getUniqueNodableNameProxy(Nodable no, String sep) {
+			return new NameProxy(getContext(), sep, no.getName());
+		}
         
 		/** Get the JNetwork that is closest to the root in the design
 		 * hierarchy that corresponds to netID. */

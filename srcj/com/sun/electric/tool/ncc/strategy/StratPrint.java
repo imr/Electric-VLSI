@@ -28,6 +28,7 @@ import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
 
 import java.util.Iterator;
 import java.util.HashMap;

@@ -27,7 +27,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.trees.NetObject;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class Port extends NetObject {
     
     // ---------- public methods ----------
 	public Port(String name, Object type, Wire w) {
-		super("");
+		super(null);
 		wire = w;
 		names.add(name);
 		types.add(type);
@@ -128,6 +128,7 @@ public class Port extends NetObject {
 	}
 	public String nameString() {return "Port " + exportNamesString();}
 	public Iterator getExportNames() {return names.iterator();}
+	public boolean isDeleted() {return false;}
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}
 

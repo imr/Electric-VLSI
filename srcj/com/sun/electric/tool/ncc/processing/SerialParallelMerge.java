@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: MergeParallel.java
+ * File: MergeSerialParallel.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -22,61 +22,57 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.processing;
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
-import com.sun.electric.tool.ncc.strategy.Strategy;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-
-import java.util.List;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.Part;
+import com.sun.electric.tool.ncc.jemNets.Transistor;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
- * MergeParallel works by seeking a wire with many gates on it it then
- * sorts the transistors on that wire by hash of their names seeking
- * any that lie in the same hash bin it produces exactly one offspring
- * identical to its target
-*/
+ * Merge parallel Transistors into one.  Merge stacks of Transistors into
+ * one stacked Transistor. <p>
+ * 
+ * Tricky: The process of merging requires the deletion of Parts and 
+ * Wires. My first attempt to handle deletion efficiently was to use Sets to
+ * hold Parts and Wires. However, this was bad because it used too much 
+ * storage. My new approach is to mark Parts and Wires "deleted" and later
+ * in a single pass remove "deleted" objects from lists after all merging
+ * is complete. Note that "deleted" Parts and Wires should never exist before
+ * or after serial parallel merge.<p>
+ * 
+ * More Tricky:
+ * This phase gets executed before Wires get put in cannonical form. That 
+ * means we must be prepared for a Part to occur more than once on a Wire's
+ * parts list. We must also be prepared to enounter "deleted" parts. One 
+ * implication is that I can't check the number of parts on a wire by 
+ * simply calling Wire.getNumParts() because I need to add extra code to
+ * exclude deleted and duplicate Parts! 
+ */
 public class SerialParallelMerge {
     private NccGlobals globals;
 
     private SerialParallelMerge(NccGlobals globals) {this.globals=globals;}
 
-	private int processSerialMergeCandidates(List candidates) {
-		int numMerged = 0;
-		for (Iterator it=candidates.iterator(); it.hasNext();) {
-			Wire w = (Wire) it.next();
-			if (Transistor.joinOnWire(w)) numMerged++;
-		}
-		return numMerged;
-	}
-	
-	private void findSerialMergeCandidates(List candidates, Wire w){
-		// this a quick and dirty test for candidacy. 
-		// Transistor.joinOnWire does the complete test.
-		if (w.numParts()==2) candidates.add(w);
-	}
-
 	private boolean serialMerge() {
-		ArrayList candidates = new ArrayList();
-		
+		int numMerged = 0;
 		EquivRecord wires = globals.getWires();
 		for (Iterator it=wires.getCircuits(); it.hasNext();) {
 			Circuit ckt = (Circuit) it.next();
 			for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
 				Wire w = (Wire) ni.next();
-				findSerialMergeCandidates(candidates, w);
+				if (Transistor.joinOnWire(w)) numMerged++;
 			}
 		}
-		int numMerged = processSerialMergeCandidates(candidates);
-		globals.println("    Serial merged "+numMerged+" Parts");
+		globals.println("    Serial merged "+numMerged+" Transistors");
 
 		return numMerged>0;
 	}
@@ -87,9 +83,9 @@ public class SerialParallelMerge {
 	 * parallel merges are performed.
 	 * @param parts Collection of Parts to merge in parallel
 	 * @return the count of Parts actually merged */
-	private int parallelMergeAllCandidatesInList(Collection parts) {
+	private int parallelMergeAllCandidatesInSet(Collection parts) {
 		int numMerged = 0;
-		// Clone the list so we don't surprise the caller by changing it
+		// Linked list allows O(1) remove()
 		LinkedList pts = new LinkedList(parts);
 		while (true) {
 			Iterator it= pts.iterator();
@@ -107,30 +103,33 @@ public class SerialParallelMerge {
 		return numMerged;
 	}
 	
-	private int parallelMergeEachListInMap(Map map) {
+	private int parallelMergeEachSetInMap(Map map) {
 		int numMerged = 0;
 		for(Iterator it=map.keySet().iterator(); it.hasNext();){
-			ArrayList j= (ArrayList) map.get(it.next());
-			numMerged += parallelMergeAllCandidatesInList(j);
+			Set j= (Set) map.get(it.next());
+			numMerged += parallelMergeAllCandidatesInSet(j);
 		}
 		return numMerged;
 	}
 
     // process candidate transistors from one Wire
-    private int parallelMergePartsOnWire(Wire w){
+	// Tricky: Set removes duplicate Parts on Wire.parts list
+    private int parallelMergePartsOnWire(Wire w) {
+    	if (w.isDeleted()) return 0;
 		HashMap  map = new HashMap();
 		
-		for (Iterator wi=w.getParts(); wi.hasNext();) {
-			Part p = (Part)wi.next();
+		for (Iterator it=w.getParts(); it.hasNext();) {
+			Part p = (Part)it.next();
+			if (p.isDeleted()) continue;
 			Integer code = p.hashCodeForParallelMerge();
-			ArrayList list = (ArrayList) map.get(code);
-			if (list==null) {
-				list= new ArrayList();
-				map.put(code,list);
+			Set set = (Set) map.get(code);
+			if (set==null) {
+				set= new HashSet();
+				map.put(code,set);
 			}
-			list.add(p);
+			set.add(p);
 		}
-		return parallelMergeEachListInMap(map);
+		return parallelMergeEachSetInMap(map);
     }
 
 	private boolean parallelMerge() {
@@ -147,11 +146,11 @@ public class SerialParallelMerge {
 		return numMerged>0;
 	}
 	
-	private int countParts(EquivRecord parts) {
+	private int countUndeletedParts(EquivRecord parts) {
 		int numParts = 0;
 		for (Iterator it=parts.getCircuits(); it.hasNext();) {
 			Circuit ckt = (Circuit) it.next();
-			numParts += ckt.numNetObjs();
+			numParts += ckt.numUndeletedNetObjs();
 		}
 		return numParts;
 	}
@@ -162,7 +161,7 @@ public class SerialParallelMerge {
 
 		if (parts==null)  return; // No Cell has Parts
 
-		int numParts = countParts(parts);
+		int numParts = countUndeletedParts(parts);
 		globals.println("--- NCC starting merge process with " +
 						numParts + " Parts");
 		// Tricky: Don't give up if the first parallel merge attempt fails because 
@@ -176,15 +175,22 @@ public class SerialParallelMerge {
 			progress = serialMerge();
 			if (!progress) break;
 		}
-		numParts = countParts(parts);
+		numParts = countUndeletedParts(parts);
 		globals.println("--- NCC finishing merge process with " +
 						numParts + " Parts");
 		globals.println();
 	}
 
-	
+	private static void putInFinalForm(EquivRecord er) {
+		if (er==null) return;
+		for (Iterator it=er.getCircuits(); it.hasNext();) {
+			((Circuit)it.next()).putInFinalForm();
+		}
+	}
 	public static void doYourJob(NccGlobals globals){
 		SerialParallelMerge sp = new SerialParallelMerge(globals);
 		sp.serialParallelMerge();
+		putInFinalForm(globals.getParts());
+		putInFinalForm(globals.getWires());
 	}
 }

@@ -49,7 +49,7 @@ public class NccCellAnnotations {
 	/** I need a special Lexer for name patterns because spaces are
 	 * significant inside regular expressions. For example the 
 	 * pattern: "/foo bar/" contains an embedded space. */
-	private static class NamePatternLexer {
+	private class NamePatternLexer {
 		private final String s;
 		private int pos=0;
 
@@ -88,8 +88,8 @@ public class NccCellAnnotations {
 				startTok = pos;
 				endTok = findSlash();
 				if (endTok==-1) {
-					System.out.println("Regular Expression has no trailing '/'"+
-									   s.substring(startTok-1));
+					prErr("Regular Expression has no trailing '/'"+
+						  s.substring(startTok-1)+".");
 					endTok = s.length();
 				} else {
 					pos++; // skip the trailing '/'
@@ -107,6 +107,8 @@ public class NccCellAnnotations {
 		/** @return everything not parsed by nextPattern() */
 		public String restOfLine() {return s.substring(pos);}
 	}
+	/** used for error messages */
+	private String cellThatOwnsMe;
 	/** unprocessed annotation text */
 	private List annotText = new ArrayList();
 	/** NamePatterns matching Exports connected by parent cell */
@@ -141,32 +143,33 @@ public class NccCellAnnotations {
 		notSubcircuitReason = lex.restOfLine();
 	}
 
+	private void prErr(String s) {
+		String currAnnot = (String) annotText.get(annotText.size()-1);
+		System.out.println(s+"  cell= "+cellThatOwnsMe+" annotation= "+currAnnot);
+	}
 	private void processJoinGroupAnnotation(String note) {
 		StringTokenizer lex = new StringTokenizer(note);
 		lex.nextToken(); // skip keyword
 		if (!lex.hasMoreTokens()) {
-			System.out.println("Missing Library:Cell argument "+note);
+			prErr("joinGroup lacks Library:Cell argument.");
 			return;
 		}
 		String libCell = lex.nextToken();
 		int colon = libCell.indexOf(':');
 		if (colon==-1) {
-			System.out.println(
-				"group specification must be of form Library:Cell "+note);
+			prErr("Group specification must be of form Library:Cell{view}.");
 			return;
 		}
 		String libName = libCell.substring(0, colon);
 		String cellName = libCell.substring(colon+1);
 		Library lib = Library.findLibrary(libName);
 		if (lib==null) {
-			System.out.println("Can't find library "+libName+
-				" from annotation "+note);
+			prErr("Can't find library: "+libName+".");
 			return;
 		}
 		Cell cell = lib.findNodeProto(cellName);
 		if (cell==null) {
-			System.out.println("Can't find Cell "+cellName+
-				" from annotation "+note);
+			prErr("Can't find Cell "+cellName+".");
 			return;
 		}
 		groupToJoin = cell.getCellGroup();
@@ -187,8 +190,8 @@ public class NccCellAnnotations {
 	private void processBlackBox(NamePatternLexer lex) {
 	}
 
-	private void doAnnotation(String note, String cellName) {
-		annotText.add(note);
+	private void doAnnotation(String note) {
+		annotText.add(note); // for prErr()
 		NamePatternLexer lex = new NamePatternLexer(note);
 		NamePattern key = lex.nextPattern();
 		if (key==null) {
@@ -208,21 +211,19 @@ public class NccCellAnnotations {
 		} else if (key.stringEquals("blackBox")) {
 			processBlackBox(lex);
 		} else {
-			System.out.println("Unrecognized NCC annotation: "+note+
-			                   " on Cell: "+cellName);
+			prErr("Unrecognized NCC annotation.");
 		}
 	}
 
 	private NccCellAnnotations(Cell cell, Object annotation) {
-		String cellName = NccUtils.fullName(cell);
+		cellThatOwnsMe = NccUtils.fullName(cell); // for prErr()
 		if (annotation instanceof String) {
-			doAnnotation((String) annotation, cellName);
+			doAnnotation((String) annotation);
 		} else if (annotation instanceof String[]) {
 			String[] ss = (String[]) annotation;
-			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i], cellName);
+			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i]);
 		} else {
-			System.out.println("ignoring bad NCC annotation: "+annotation+
-							   " on Cell: "+cellName);
+			prErr(" ignoring bad NCC annotation: ");
 		}
 	}
 	

@@ -60,14 +60,14 @@ public class LocalPartitioning {
 		if (globals.getParts()==null) return pinTypes;
 		LeafList offspring = StratPartType.doYourJob(pinTypes, globals);
 		if (offspring.size()!=0) {
-			StratCheck.doYourJob(globals.getRoot(), globals);
-			StratCount.doYourJob(globals.getRoot(), globals);
+			//StratCheck.doYourJob(globals.getRoot(), globals);
+			//StratCount.doYourJob(globals.getRoot(), globals);
 		}
 		
 		offspring = StratPartPopularity.doYourJob(globals);
 		if (offspring.size()!=0) {
-			StratCheck.doYourJob(globals.getRoot(), globals);
-			StratCount.doYourJob(globals.getRoot(), globals);
+			//StratCheck.doYourJob(globals.getRoot(), globals);
+			//StratCount.doYourJob(globals.getRoot(), globals);
 		}
 		return pinTypes;
 	}

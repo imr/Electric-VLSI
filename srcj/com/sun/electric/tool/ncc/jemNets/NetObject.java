@@ -24,10 +24,12 @@
 //	Updated 10 October 2003
 //revised for jemTree interface 16 October 03
 
-package com.sun.electric.tool.ncc.trees;
+package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.trees.Circuit;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -51,51 +53,45 @@ public abstract class NetObject {
 	}
 
     // ---------- private data -------------
-    private String myName;
+    private NccNameProxy myName;	// null means name is empty string
     private Circuit myParent;
 	
-    /** 
-	 * Get an identifying String for this NewObject.
-	 * @return an identifying String.
-	 */
-    public abstract String nameString();	//type and name
+    /** Get String specifying type and name
+	 * @return an identifying String.*/
+    public abstract String nameString();
     
-    /**
-     * Distinguish Parts, Wires, and Ports.
-     * @return PART or WIRE or PORT
-     */
+    /** Distinguish Parts, Wires, and Ports.
+     * @return PART or WIRE or PORT */
     public abstract Type getNetObjType();
 
-    /** 
-	 * Get a String listing the connections for this NetObject.
+    /** Get a String listing the connections for this NetObject.
 	 * @param n the maximum number of connections to list
-	 * @return a String of connections.
-	 */
+	 * @return a String of connections. */
     public abstract String connectionString(int n);
 
     public abstract Iterator getConnected();
 
     // ---------- protected methods ----------
+	/** @param name NameProxy that can be called to obtain the instance name.
+	 * null means the name is the empty string. */
+    protected NetObject(NccNameProxy name){myName=name;}
 
-    protected NetObject(String name){myName=name;}
-
-    public static void error(boolean pred, String msg) {
+    protected static void error(boolean pred, String msg) {
     	LayoutLib.error(pred, msg);
     }
 
-    /** 
-	 * Make sure this object is OK.
-	 */
+    /** Make sure this object is OK. */
     public abstract void checkMe(Circuit parent);
 	
     // ---------- public methods ----------
 
-    public String getName(){return myName;} //name alone
+    public String getName(){
+    	return myName!=null ? myName.toString() : "";
+    }
+    public NccNameProxy getNameProxy() {return myName;}
 
-    /** 
-	 * getCode returns an integer hash code for this NetObject.
-	 * @return the integer hash code from this NetObjec's EquivRecord.
-	 */
+    /** Return an integer hash code for this NetObject.
+	 * @return the integer hash code from this NetObjec's EquivRecord. */
     public int getCode(){return myParent.getCode();} //get my group code
 
     /**	 @return the Circuit containing this NetObject */
@@ -103,16 +99,15 @@ public abstract class NetObject {
 
 	public void setParent(Circuit x){myParent=x;}
 
-    /** 
-	 * toString returns the name and connections of this NetObject as
+	public abstract boolean isDeleted(); 
+
+    /** Return the name and connections of this NetObject as
 	 * a String.
-	 * @return a String with name and connections
-	 */
+	 * @return a String with name and connections */
     public String toString(){
         return (nameString() + ": " + connectionString(100));
     }
 
     public abstract void printMe(int i, Messenger messenger); //i is the size limit
-
 }
 

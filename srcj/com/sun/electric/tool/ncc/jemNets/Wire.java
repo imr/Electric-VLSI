@@ -22,10 +22,9 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.NccGlobals;
 
@@ -39,35 +38,35 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 public class Wire extends NetObject{
+	private static final ArrayList DELETED = null;
+
     // ---------- private data -------------
-    private Set content = new HashSet();
+    private ArrayList parts = new ArrayList();
 	private Port port;  	  // usually null because most Wires have no Port
-	private boolean isGlobal; // in Electric this is a Global wire 	
+	//private boolean isGlobal; // in Electric this is a Global wire 	
 
     // ---------- public methods ----------
 
-	public Wire(String name, boolean isGlobal){
+	public Wire(NccNameProxy name/*, boolean isGlobal*/){
 		super(name);
-		this.isGlobal = isGlobal;
+		//this.isGlobal = isGlobal;
 	}
-	public Iterator getParts() {return content.iterator();}
+	public Iterator getParts() {return parts.iterator();}
 	public Iterator getConnected() {return getParts();}
-	public boolean isGlobal() {return isGlobal;}
+	//public boolean isGlobal() {return isGlobal;}
 
     /** 
 	 * disconnect the indicated Part from this Wire
 	 * @param p the Part to remove
 	 * @return true if it was properly removed.
 	 */
-    public boolean disconnect(Part p){return content.remove(p);}
+    //public boolean disconnect(Part p){return parts.remove(p);}
 
-    /** 
-	 * add a Part to this Wire
-	 * @param p the Part to add
-	 */
+    /** add a Part to this Wire
+	 * @param p the Part to add */
     public void add(Part p){
     	error(p==null, "Wires can't add null Part");
-		content.add(p);
+		parts.add(p);
     }
     
 	/** add a Port to this Wire
@@ -77,6 +76,18 @@ public class Wire extends NetObject{
 		else port.addExport(portName, type); 
 		return port;
     }
+    
+    /** Remove deleted Parts. Remove duplicate Parts. Minimize storage use. */
+    public void putInFinalForm() {
+    	Set goodParts = new HashSet();
+    	for (Iterator it=getParts(); it.hasNext();) {
+    		Part p = (Part) it.next();
+    		if (!p.isDeleted())  goodParts.add(p);
+    	}
+    	parts = new ArrayList();
+    	parts.addAll(goodParts);
+    	parts.trimToSize();
+    }
 	
 	/** @return the Port on this Wire. Return null if wire has no Export 
 	 * attached */
@@ -84,49 +95,46 @@ public class Wire extends NetObject{
 	
     public Type getNetObjType() {return Type.WIRE;}
 
-    /**
-     * remove Wire from its parent's list. This Wire must not be connected to 
-     * any Parts. 
-     */
-    public void killMe() {
-    	error(content.size()!=0, "Can't kill: wire connected to a Part");
-    	error(port!=null, "Can't kill: wire connected to a Port");
-    	error(isGlobal(), "Can't kill: wire declared GLOBAL in Electric");
-    	getParent().remove(this);
-    }
+    /** remove Wire from its parent's list. This Wire must not be connected to 
+     * any Parts. */
+//    public void killMe() {
+//    	error(parts.size()!=0, "Can't kill: wire connected to a Part");
+//    	error(port!=null, "Can't kill: wire connected to a Port");
+//    	//error(isGlobal(), "Can't kill: wire declared GLOBAL in Electric");
+//    	getParent().remove(this);
+//    }
+	/** Mark this wire deleted and release all storage */
+	public void setDeleted() {parts=DELETED;}
+	public boolean isDeleted() {return parts==DELETED;}
 
-	/**
-	 * @return the number of Parts with Gates attached
-	 */
-	public int numPartsWithGateAttached(){
-		int with = 0;
-		for (Iterator it=content.iterator(); it.hasNext();) {
-			Part p= (Part)it.next();
-			if(p.touchesAtGate(this)) with++;
-		}
-		return with;
-	}
+	/** @return the number of Parts with Gates attached */
+//	public int numPartsWithGateAttached(){
+//		int with = 0;
+//		for (Iterator it=parts.iterator(); it.hasNext();) {
+//			Part p= (Part)it.next();
+//			if(p.touchesAtGate(this)) with++;
+//		}
+//		return with;
+//	}
 
 	//calculates #gates - #diffusions
-	public int stepUp(){
-		int gates= 0;
-		int diffusion= 0;
-		for (Iterator it=content.iterator(); it.hasNext();) {
-			Object oo= it.next();
-			if(oo instanceof Transistor){
-				Transistor t= (Transistor)oo;
-				if(t.touchesAtGate(this))gates++;
-				if(t.touchesAtDiffusion(this))diffusion++;
-			}
-		}
-		return gates - diffusion;
-	}
+//	public int stepUp(){
+//		int gates= 0;
+//		int diffusion= 0;
+//		for (Iterator it=parts.iterator(); it.hasNext();) {
+//			Object oo= it.next();
+//			if(oo instanceof Transistor){
+//				Transistor t= (Transistor)oo;
+//				if(t.touchesAtGate(this))gates++;
+//				if(t.touchesAtDiffusion(this))diffusion++;
+//			}
+//		}
+//		return gates - diffusion;
+//	}
 	
-    /** 
-	 * check that this Wire is properly structured.  check each
+    /** check that this Wire is properly structured.  check each
 	 * connection to see if it points back
-	 * @param parent the wire's parent
-	 */
+	 * @param parent the wire's parent */
     public void checkMe(Circuit parent){
     	error(getParent()!=parent, "wrong parent");
         for (Iterator it=getParts(); it.hasNext();) {
@@ -143,7 +151,7 @@ public class Wire extends NetObject{
 	 * @param p the Part to test
 	 * @return true if it touches, false if not
 	 */
-    public boolean touches(Part p){return content.contains(p);}
+    public boolean touches(Part p){return parts.contains(p);}
     public boolean touches(Port p) {return port==p;}
     public Integer computeHashCode(){
         int sum= 0;
@@ -156,35 +164,29 @@ public class Wire extends NetObject{
 
     /** count the number of Parts connected to this wire.
 	 * @return an int with the number of connections */
-    public int numParts(){return content.size();}
+    public int numParts(){return parts.size();}
     
     /** count the number of Part Pins connected to this wire. */
-    public int numPartPins() {
-    	int numPins = 0;
-		for (Iterator it=getParts(); it.hasNext();) {
-			Part p = (Part) it.next();
-			numPins += p.numPinsConnected(this);
-		}
-		return numPins;
-     }
+//    public int numPartPins() {
+//    	int numPins = 0;
+//		for (Iterator it=getParts(); it.hasNext();) {
+//			Part p = (Part) it.next();
+//			numPins += p.numPinsConnected(this);
+//		}
+//		return numPins;
+//     }
 
-    /** 
-	 * Get an identifying String for this NewObject.
-	 * @return an identifying String.
-	 */
-    public String nameString(){
-        return ("Wire " + getName());
-    }
+    /** Get an identifying String for this NewObject.
+	 * @return an identifying String. */
+    public String nameString() {return ("Wire " + getName());}
 
-    /** 
-	 * Get a String indicating up to N connections for this NetObject.
+    /** Get a String indicating up to N connections for this NetObject.
 	 * @param n the maximum number of connections to list
-	 * @return a String of connections.
-	 */
+	 * @return a String of connections. */
     public String connectionString(int maxParts){
-        if (content.size()==0) return (" unconnected");
+        if (parts.size()==0) return (" unconnected");
         String s = " connected to";
-		if (numParts()>maxParts)  s+=" "+content.size() + " parts starting with";
+		if (numParts()>maxParts)  s+=" "+parts.size() + " parts starting with";
         s += ": ";
         
 		int i=0;

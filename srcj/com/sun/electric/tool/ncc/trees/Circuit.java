@@ -27,6 +27,7 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.jemNets.Port;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,13 +39,15 @@ import java.util.Set;
 
 public class Circuit {
     private EquivRecord myParent;
-    // Use HashSet for content in order to make remove() operation
-    // constant time. Otherwise we spend all our time parallel
-    // merge which removes Parts from huge globals.parts 
-    private Set content = new HashSet();
+    private ArrayList netObjs = new ArrayList();
 
     private Circuit(){}
 
+	private static void error(boolean pred, String msg) {
+		LayoutLib.error(pred, msg);
+	}
+
+	// ---------------------- public methods ------------------
 	public static Circuit please(List netObjs){
 		Circuit ckt = new Circuit();
 		for (Iterator it=netObjs.iterator(); it.hasNext();) {
@@ -52,18 +55,37 @@ public class Circuit {
 		}
 		return ckt;
 	}
+	/** Remove deleted NetObjects. Minimize storage used. */
+	public void putInFinalForm() {
+		Set goodObjs = new HashSet();
+		for (Iterator it=netObjs.iterator(); it.hasNext();) {
+			NetObject n = (NetObject) it.next();
+			if (n.isDeleted()) continue;
+			error(goodObjs.contains(n), "duplicate NetObj in Circuit!???");
+			goodObjs.add(n);
+			if (n instanceof Wire)  ((Wire)n).putInFinalForm();
+		}
+		netObjs = new ArrayList();
+		netObjs.addAll(goodObjs);
+		netObjs.trimToSize();
+	}
     
-	public Iterator getNetObjs() {return content.iterator();}
-	public int numNetObjs() {return content.size();}
+	public Iterator getNetObjs() {return netObjs.iterator();}
+	public int numNetObjs() {return netObjs.size();}
+	public int numUndeletedNetObjs() {
+		int count = 0;
+		for (Iterator it=getNetObjs(); it.hasNext();) {
+			NetObject n = (NetObject) it.next();
+			if (!n.isDeleted()) count++;
+		}
+		return count;
+	}
     public void adopt(NetObject n) {
-    	content.add(n);
+    	netObjs.add(n);
     	n.setParent(this);
     }
-    public void remove(NetObject n) {content.remove(n);}
+    //public void remove(NetObject n) {netObjs.remove(n);}
 
-	public static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
 	public void checkMe(EquivRecord parent) {
 		error(getParent()!=parent, "wrong parent"); 
 	}

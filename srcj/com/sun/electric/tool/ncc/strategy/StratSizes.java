@@ -27,7 +27,7 @@ import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.trees.NetObject;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.basic.Messenger;

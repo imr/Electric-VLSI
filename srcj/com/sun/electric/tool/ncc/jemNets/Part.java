@@ -22,9 +22,9 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
@@ -41,6 +41,8 @@ import java.util.Set;
  * sub-classes of Part include Transistor, Resistor, (Capacitor), but
  * NOT Port. */
 public abstract class Part extends NetObject {
+	private static final Wire[] DELETED = null;
+
 	protected static final int RESISTOR = 0;
 	protected static final int TRANSISTOR = 1;
 	protected static final int SUBCIRCUIT = 2;
@@ -55,7 +57,7 @@ public abstract class Part extends NetObject {
 	 * @param name the name of this Part
 	 * @param pins terminals of this Part
 	 */
-    protected Part(String name, Wire[] pins){
+    protected Part(NccNameProxy name, Wire[] pins){
 		super(name);
 		this.pins = pins;
 		for (int i=0; i<pins.length; i++)  pins[i].add(this);
@@ -108,31 +110,34 @@ public abstract class Part extends NetObject {
 	 * @return true if the Wire was disconnected, false if not
 	 * found on this Part
 	 */
-	public boolean disconnect(Wire w){
-		boolean found= false;
-		for(int i=0; i<pins.length; i++){
-			Wire ww= pins[i];
-			if(ww == w){
-				pins[i] = null;
-				found= true;
-			}
-		}
-		return found;
-    }
+//	public boolean disconnect(Wire w){
+//		boolean found= false;
+//		for(int i=0; i<pins.length; i++){
+//			Wire ww= pins[i];
+//			if(ww == w){
+//				pins[i] = null;
+//				found= true;
+//			}
+//		}
+//		return found;
+//    }
 	
 	/** 
 	 * deleteMe disconnects this Part from its wires and removes it
 	 * from its circuit.  The Part is garbage and gone from any
 	 * further consideration.
 	 */
-    public void deleteMe(){
-		for (int i=0; i<pins.length; i++) {
-			Wire w = pins[i];
-			w.disconnect(this);
-		}
-		Circuit parent= (Circuit)getParent();
-		parent.remove(this);
-    }
+//    public void deleteMe(){
+//		for (int i=0; i<pins.length; i++) {
+//			Wire w = pins[i];
+//			w.disconnect(this);
+//		}
+//		Circuit parent= (Circuit)getParent();
+//		parent.remove(this);
+//    }
+    /** Mark this Part deleted and release all storage */
+    public void setDeleted() {pins=DELETED;}
+    public boolean isDeleted() {return pins==DELETED;}
     
     public int numDistinctWires() {
     	Set wires = new HashSet();
@@ -151,7 +156,7 @@ public abstract class Part extends NetObject {
     	return typeString()+" "+getName();
     }
 	
-	/** A method to how many pins of this Part are connected to Wire.
+	/** How many pins of this Part are connected to Wire.
 	 * @param w the Wire to test
 	 * @return number of pins connected to Wire */
 	public int numPinsConnected(Wire w) {

@@ -75,19 +75,39 @@ public class NccJob extends Job {
 									" isn't schematic or layout");
 		return ok;
 	}
-	/** @return null if not schematic or layout Cells */ 
+
+	private boolean isSchem(CellContext cc) {
+		return cc.cell.getView()==View.SCHEMATIC;
+	}
+	private void prln(String s) {System.out.println(s);}
+
+	/** If one Cell is a schematic then put it first
+	 * @return null if not schematic or layout Cells */ 
 	private CellContext[] getTwoCellsFromTwoWindows() {
 		List cellCtxts = NccUtils.getCellContextsFromWindows();
 		if (cellCtxts.size()<2) {
 			System.out.println("Two Cells aren't open in two windows");
 			return null;
 		} 
+		if (cellCtxts.size()>2) {
+			prln("More than two Cells are open in windows. Could you please");
+			prln("close windows until only two Cells are open. (Sorry JonL.)");
+			return null;
+		}
 		CellContext[] cellContexts = new CellContext[2];
 		cellContexts[0] = (CellContext) cellCtxts.get(0);
 		cellContexts[1] = (CellContext) cellCtxts.get(1);
 	
 		if (!isSchemOrLay(cellContexts[0]) || 
 		    !isSchemOrLay(cellContexts[1])) return null;
+
+		// Try to put schematic first
+		if (!isSchem(cellContexts[0]) && isSchem(cellContexts[1])) {
+			CellContext cc = cellContexts[0];
+			cellContexts[0] = cellContexts[1];
+			cellContexts[1] = cc;
+		}
+
 	    return cellContexts;
 	}
 

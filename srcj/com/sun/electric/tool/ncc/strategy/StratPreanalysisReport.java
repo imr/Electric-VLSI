@@ -36,6 +36,7 @@ import java.util.ArrayList;
 public class StratPreanalysisReport extends Strategy {
 	private static final NetObject.Type PART = NetObject.Type.PART; 
 	private static final NetObject.Type PORT = NetObject.Type.PORT; 
+	private static final int MAX_PRINT = 500;
 
 	List mismatched = new ArrayList();
 
@@ -47,14 +48,18 @@ public class StratPreanalysisReport extends Strategy {
 		return mismatched.size()==0;
 	}
 	
-	private void prln(String s) {globals.println(s);}
+	private void prln(String s) {System.out.println(s);}
 	
 	private void printCircuitContents(Circuit ckt, int cktNdx, String t) {
 		String cktName = globals.getRootCellNames()[cktNdx];
 		int numNetObjs = ckt.numNetObjs();
-		prln("      In "+cktName+" "+numNetObjs+" "+t+
-             " have these characteristics: ");
-		for (Iterator it=ckt.getNetObjs(); it.hasNext();) {
+		prln("      "+cktName+" has "+numNetObjs+" of these "+t+":");
+		if (ckt.numNetObjs()>MAX_PRINT) {
+			prln("        Too many "+t+"! I'll only print the first "+MAX_PRINT);
+		}
+		int numPrint = 0;
+		for (Iterator it=ckt.getNetObjs(); it.hasNext(); numPrint++) {
+			if (numPrint>MAX_PRINT)  break;
 			NetObject o = (NetObject) it.next();
 			prln("        "+o.toString());
 		}
@@ -76,19 +81,13 @@ public class StratPreanalysisReport extends Strategy {
 	}
 
     private void summary() {
-    	NccOptions options = globals.getOptions();
-    	boolean savedVerbose = options.verbose;
-    	options.verbose = true;
-    	
     	if (mismatched.size()!=0) 
-    		globals.println("\n  Mismatches found during local partitioning:\n");
+    		prln("\n  Mismatches found during local partitioning:\n");
     		
     	for (Iterator it=mismatched.iterator(); it.hasNext();) {
     		EquivRecord r = (EquivRecord) it.next();
 			printMismatchedRecord(r);			
     	}
-    	
-    	options.verbose = savedVerbose;
     }
 
     public LeafList doFor(EquivRecord g){

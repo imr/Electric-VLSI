@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.tool.ncc.basic.*;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -56,7 +57,7 @@ public class Resistor extends Part {
     }
 
     // ---------- public methods ----------
-	public Resistor(String name, double resist, Wire w1, Wire w2) {
+	public Resistor(NccNameProxy name, double resist, Wire w1, Wire w2) {
 		super(name, new Wire[]{w1, w2});
 		resistance = (float) resist;
 	}
@@ -107,7 +108,7 @@ public class Resistor extends Part {
         float mm= resistance();
         if(pp != 0 && mm != 0)ff= (ff * mm)/(ff + mm);
         resistance= ff;
-        r.deleteMe();
+        r.setDeleted();
         return true; //return true if merged
     }
 

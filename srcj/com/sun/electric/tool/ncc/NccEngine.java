@@ -130,12 +130,12 @@ public class NccEngine {
 			//expCheck.printExportTypeWarnings();
 			
 			EquivRecord root = globals.getRoot();
-			StratCheck.doYourJob(root, globals);
-			StratCount.doYourJob(root, globals);
+			//StratCheck.doYourJob(root, globals);
+			//StratCount.doYourJob(root, globals);
 
 			SerialParallelMerge.doYourJob(globals);
-			StratCheck.doYourJob(root, globals);
-			StratCount.doYourJob(root, globals);
+			//StratCheck.doYourJob(root, globals);
+			//StratCount.doYourJob(root, globals);
 			
 			printWireComponentCounts();
 
@@ -186,7 +186,7 @@ public class NccEngine {
 
 		globals.setInitialNetlists(nccNetlists);
 		NccResult result = designsMatch(hierInfo, false);
-
+NccUtils.hang("NCC completed");
 		globals.println("****************************************"+					  		
 		                "****************************************");
 		return result;		              					  				

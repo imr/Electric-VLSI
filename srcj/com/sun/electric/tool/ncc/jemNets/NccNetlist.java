@@ -41,6 +41,8 @@ import java.util.Set;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -49,7 +51,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -67,6 +68,7 @@ import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
@@ -111,8 +113,7 @@ class Wires {
 	 * sets of net IDs that should point to the same Wire.
 	 * @param mergedNetIDs contains sets of net IDs that must be merged
 	 * into the same Wire. */
-	public Wires(TransitiveRelation mergedNetIDs, 
-	             HierarchyEnumerator.CellInfo info,
+	public Wires(TransitiveRelation mergedNetIDs, CellInfo info, 
 	             String pathPrefix) {
 		this.pathPrefix = pathPrefix;
 		for (Iterator it=mergedNetIDs.getSetsOfRelatives(); it.hasNext();) {
@@ -128,13 +129,15 @@ class Wires {
 			}
 		}
 	}
-	public Wire get(int netID, HierarchyEnumerator.CellInfo info) {
+	public Wire get(int netID, CellInfo info) {
 		growIfNeeded(netID);
 		Wire wire = (Wire) wires.get(netID);
 		if (wire==null) {
-			String wireNm = info.getUniqueNetName(netID, "/");
-			wireNm = NccUtils.removePathPrefix(wireNm, pathPrefix);
-			wire = new Wire(wireNm, info.isGlobalNet(netID));
+//			String wireNm = info.getUniqueNetName(netID, "/");
+//			wireNm = NccUtils.removePathPrefix(wireNm, pathPrefix);
+			NameProxy np = info.getUniqueNetNameProxy(netID, "/");
+			NccNameProxy wireNm = new NccNameProxy(np, pathPrefix);
+			wire = new Wire(wireNm/*, info.isGlobalNet(netID)*/);
 			wires.set(netID, wire);
 		}
 		return wire;
@@ -151,7 +154,7 @@ class Wires {
 	}
 }
 
-class NccCellInfo extends HierarchyEnumerator.CellInfo {
+class NccCellInfo extends CellInfo {
 	//private HashSet nodablesToDiscard = new HashSet();
 	//private HashMap nodableSizeMultipliers = new HashMap();
 	private NccGlobals globals;
@@ -284,7 +287,7 @@ class ExportGlobalIter {
 	private final int CHECK_BIT_IN_BUS = 2;
 	private final int CHECK_GLOBAL = 3;
 	private final int DONE = 4;
-	private HierarchyEnumerator.CellInfo info;
+	private CellInfo info;
 	private Iterator expIt;
 	private Export export;
 	private int[] expNetIDs;
@@ -333,7 +336,7 @@ class ExportGlobalIter {
 		  	LayoutLib.error(true, "no such state!");
 		}
 	}
-	public ExportGlobalIter(HierarchyEnumerator.CellInfo info) {
+	public ExportGlobalIter(CellInfo info) {
 		this.info = info;
 		expIt = info.getCell().getPorts();
 		advance();
@@ -375,22 +378,18 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private void spaces() {
 		for (int i=0; i<depth; i++)	 globals.print(" ");
 	}
-	private void addMatchingNetIDs(List netIDs, 
-	                               NccCellAnnotations.NamePattern pattern, 
-								   HierarchyEnumerator.CellInfo rootInfo) {
+	private void addMatchingNetIDs(List netIDs, NamePattern pattern, 
+	                               CellInfo rootInfo) {
 		for (ExportGlobalIter it=new ExportGlobalIter(rootInfo); it.hasNext();) {
 			ExportGlobal eg = it.next();
 			if (pattern.matches(eg.name)) netIDs.add(new Integer(eg.netID));			 								
 		}
 	}
 	private void doExportsConnAnnot(TransitiveRelation mergedNetIDs,
-	                                List connected, 
-	            			        NccCellInfo rootInfo) {
+	                                List connected, NccCellInfo rootInfo) {
 		List netIDs = new ArrayList();
 		for (Iterator it=connected.iterator(); it.hasNext();) {
-			addMatchingNetIDs(netIDs, 
-			                  (NccCellAnnotations.NamePattern) it.next(), 
-			                  rootInfo);
+			addMatchingNetIDs(netIDs, (NamePattern) it.next(), rootInfo);
 		}
 		for (int i=1; i<netIDs.size(); i++) {
 			mergedNetIDs.theseAreRelated(netIDs.get(0), netIDs.get(i));
@@ -410,7 +409,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		wires = new Wires(mergedNetIDs, rootInfo, pathPrefix);
 	}
 	
-	private void createPortsFromExports(HierarchyEnumerator.CellInfo rootInfo){
+	private void createPortsFromExports(CellInfo rootInfo){
 		HashSet portSet = new HashSet();
 		for (ExportGlobalIter it=new ExportGlobalIter(rootInfo); it.hasNext();) {
 			ExportGlobal eg = it.next();
@@ -448,8 +447,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** Get the Wire that's attached to port pi. The Nodable must be an instance
 	 * of a PrimitiveNode. 
 	 * @return the attached Wire. */
-	private Wire getWireForPortInst(PortInst pi, 
-					     		    HierarchyEnumerator.CellInfo info) {
+	private Wire getWireForPortInst(PortInst pi, CellInfo info) {
 		NodeInst ni = pi.getNodeInst();
 		NodeProto np = ni.getProto();
 		error(!(np instanceof PrimitiveNode), "not PrimitiveNode");
@@ -460,8 +458,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 
 	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
-		String name = info.getUniqueNodableName(ni, "/");
-		name = NccUtils.removePathPrefix(name, pathPrefix);
+//		String name = info.getUniqueNodableName(ni, "/");
+//		name = NccUtils.removePathPrefix(name, pathPrefix);
+		NameProxy np = info.getUniqueNodableNameProxy(ni, "/");
+		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
 //		int mul = info.getSizeMultiplier();
 //		if (mul!=1) {
 //			globals.println("mul="+mul+" for "+
@@ -534,8 +534,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("");
 		}
 	}
-	private void matchExports(HashMap wireToExports,
-							  NccCellAnnotations.NamePattern pattern,
+	private void matchExports(HashMap wireToExports, NamePattern pattern,
 							  NccCellInfo info) {
 		for (ExportGlobalIter it=new ExportGlobalIter(info); it.hasNext();) {
 			ExportGlobal eg = it.next();
@@ -553,8 +552,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		// map from Wire to Set of Export Names
 		HashMap wireToExports = new HashMap();
 		for (Iterator it=patterns.iterator(); it.hasNext();) {
-			matchExports(wireToExports, 
-						 (NccCellAnnotations.NamePattern) it.next(), info);
+			matchExports(wireToExports, (NamePattern) it.next(), info);
 		}
 		if (wireToExports.size()<=1) return true;
 		printExportAssertionFailure(wireToExports, info);
@@ -605,8 +603,13 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		for (int i=0; i<pins.length; i++) 
 			globals.error(pins[i]==null, "disconnected subcircuit pins!");
 
-		String instName = info.getParentInst().getName();
-		parts.add(new Subcircuit(instName, subcktInfo, pins));
+		CellInfo parentInfo = info.getParentInfo();
+		Nodable parentInst = info.getParentInst();
+		NameProxy np = parentInfo.getUniqueNodableNameProxy(parentInst, "/");
+		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
+
+//		String instName = info.getParentInst().getName();
+		parts.add(new Subcircuit(name, subcktInfo, pins));
 	}
 	/** Check to see if the parent of the current Cell instance says to
 	 * flatten the current Cell instance */
@@ -622,11 +625,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	// --------------------------- public methods -----------------------------
-	public HierarchyEnumerator.CellInfo newCellInfo() {
+	public CellInfo newCellInfo() {
 		return new NccCellInfo(globals);
 	}
 	
-	public boolean enterCell(HierarchyEnumerator.CellInfo ci) {
+	public boolean enterCell(CellInfo ci) {
 		NccCellInfo info = (NccCellInfo) ci;
 		if (debug) {
 			spaces();
@@ -667,7 +670,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return true;
 	}
 
-	public void exitCell(HierarchyEnumerator.CellInfo info) {
+	public void exitCell(CellInfo info) {
 		if (debug) {
 			depth--;
 			spaces();
@@ -675,7 +678,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	
-	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo ci) {
+	public boolean visitNodeInst(Nodable no, CellInfo ci) {
 		NccCellInfo info = (NccCellInfo) ci;
 		NodeProto np = no.getProto();
 		if (np instanceof PrimitiveNode) {
@@ -707,7 +710,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 }
 //abstract class ExportGlobalEnumerator {
-//public void enumerate(HierarchyEnumerator.CellInfo info) {
+//public void enumerate(CellInfo info) {
 //	  Cell rootCell = info.getCell();  								 
 //	  for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 //		  Export e = (Export) it.next();
@@ -733,8 +736,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 
 //class C extends ExportGlobalEnumerator {
 //	List netIDs;
-//	NccCellAnnotations.NamePattern pattern;
-//	C(List ids, NccCellAnnotations.NamePattern pat) {
+//	NamePattern pattern;
+//	C(List ids, NamePattern pat) {
 //		netIDs=ids;  pattern=pat;
 //	}
 //	void exportGlobal(String name, int netID) {

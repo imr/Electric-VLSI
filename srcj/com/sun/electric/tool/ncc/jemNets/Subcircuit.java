@@ -25,6 +25,7 @@ package com.sun.electric.tool.ncc.jemNets;
 import java.util.Set;
 import java.util.HashSet;
 
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
 /** A Cell instance that is being treated as a primitive circuit component
@@ -109,7 +110,7 @@ public class Subcircuit extends Part {
 		return msg;
 	}
 	
-	public Subcircuit(String instName, SubcircuitInfo subcircuitInfo,
+	public Subcircuit(NccNameProxy instName, SubcircuitInfo subcircuitInfo,
 	                  Wire[] pins) {
 		super(instName, pins);
 		this.subcircuitInfo = subcircuitInfo;
