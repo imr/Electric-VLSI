@@ -870,7 +870,7 @@ public class Change extends EDialog
 				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, ai.getHead().getLocation(),
 					pi1, ai.getTail().getLocation(), null);
 				if (newAi == null) return;
-				ai.copyVars(newAi);
+				newAi.copyVars(ai);
 				newAi.clearBit(marked);
 			}
 

@@ -508,8 +508,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					} else
 					{
 						ArcInst ai = (ArcInst)eobj;
-						if (selectEase == 1) ai.setHardSelect(); else
-							ai.clearHardSelect();
+                        ai.setHardSelect((selectEase == 1 ? true : false));
 					}
 				}
 			}

@@ -235,7 +235,7 @@ public class DebugMenus {
 			PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-right");
 			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port, null);
 			if (metal2Arc == null) return false;
-			metal2Arc.setRigid();
+			metal2Arc.setRigid(true);
 			ArcInst metal1Arc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port, null);
 			if (metal1Arc == null) return false;
 			ArcInst polyArc1 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB, null);

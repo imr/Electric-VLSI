@@ -742,32 +742,28 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();
 			if (currentEasyToSelect != dialog.initialEasyToSelect)
 			{
-				if (currentEasyToSelect) ai.clearHardSelect(); else
-					ai.setHardSelect();
+                ai.setHardSelect(!currentEasyToSelect);
 				dialog.initialEasyToSelect = currentEasyToSelect;
 			}
 
 			boolean currentRigid = dialog.rigid.isSelected();
 			if (currentRigid != dialog.initialRigid)
 			{
-				if (currentRigid) ai.setRigid(); else
-					ai.clearRigid();
+				ai.setRigid(currentRigid);
 				dialog.initialRigid = currentRigid;
 				changed = true;
 			}
 			boolean currentFixedAngle = dialog.fixedAngle.isSelected();
 			if (currentFixedAngle != dialog.initialFixedAngle)
 			{
-				if (currentFixedAngle) ai.setFixedAngle(); else
-					ai.clearFixedAngle();
+                ai.setFixedAngle(currentFixedAngle);
 				dialog.initialFixedAngle = currentFixedAngle;
 				changed = true;
 			}
 			boolean currentSlidable = dialog.slidable.isSelected();
 			if (currentSlidable != dialog.initialSlidable)
 			{
-				if (currentSlidable) ai.setSlidable(); else
-					ai.clearSlidable();
+                ai.setSlidable(currentSlidable);
 				dialog.initialSlidable = currentSlidable;
 				changed = true;
 			}
@@ -775,16 +771,14 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			boolean currentDirectional = dialog.directional.isSelected();
 			if (currentDirectional != dialog.initialDirectional)
 			{
-				if (currentDirectional) ai.setDirectional(); else
-					ai.clearDirectional();
+                ai.setDirectional(currentDirectional);
 				dialog.initialDirectional = currentDirectional;
 				changed = true;
 			}
 			boolean currentEndsExtend = dialog.endsExtend.isSelected();
 			if (currentEndsExtend != dialog.initialEndsExtend)
 			{
-				if (currentEndsExtend) ai.setExtended(); else
-					ai.clearExtended();
+                ai.setExtended(currentEndsExtend);
 				dialog.initialEndsExtend = currentEndsExtend;
 				changed = true;
 			}
@@ -792,24 +786,21 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			boolean currentSkipHead = dialog.skipHead.isSelected();
 			if (currentSkipHead != dialog.initialSkipHead)
 			{
-				if (currentSkipHead) ai.setSkipHead(); else
-					ai.clearSkipHead();
+                ai.setSkipHead(currentSkipHead);
 				dialog.initialSkipHead = currentSkipHead;
 				changed = true;
 			}
 			boolean currentSkipTail = dialog.skipTail.isSelected();
 			if (currentSkipTail != dialog.initialSkipTail)
 			{
-				if (currentSkipTail) ai.setSkipTail(); else
-					ai.clearSkipTail();
+                ai.setSkipTail(currentSkipTail);
 				dialog.initialSkipTail = currentSkipTail;
 				changed = true;
 			}
 			boolean currentReverseEnds = dialog.reverseEnds.isSelected();
 			if (currentReverseEnds != dialog.initialReverseEnds)
 			{
-				if (currentReverseEnds) ai.setReverseEnds(); else
-					ai.clearReverseEnds();
+                ai.setReverseEnds(currentReverseEnds);
 				dialog.initialReverseEnds = currentReverseEnds;
 				changed = true;
 			}

@@ -1281,7 +1281,7 @@ public class User extends Listener
 	 */
 	public static void setDupCopiesExports(boolean on) { cacheDupCopiesExports.setBoolean(on); }
 
-	private static Pref cacheExtractCopiesExports = Pref.makeBooleanPref("ExtractCopiesExports", User.tool.prefs, false);
+	private static Pref cacheExtractCopiesExports = Pref.makeBooleanPref("ExtractCopiesExports", User.tool.prefs, true);
 	/**
 	 * Method to tell whether Extract of NodeInst copies exports.
 	 * The default is "false".

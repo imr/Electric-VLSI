@@ -268,7 +268,7 @@ public class CircuitChanges
 				{
 					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi, null);
 					if (ai == null) break;
-					ai.setRigid();
+					ai.setRigid(true);
 					aiList.add(ai);
 					spreadRotateConnection(ni, markObj);
 				}
@@ -459,8 +459,8 @@ public class CircuitChanges
 						if (ai.isRigid()) constr |= 1;
 						if (ai.isFixedAngle()) constr |= 2;
 						constraints.put(ai, new Integer(constr));
-						ai.clearRigid();
-						ai.clearFixedAngle();
+						ai.setRigid(false);
+						ai.setFixedAngle(false);
 					}
 					ni.modifyInstance(bodyXOffset, bodyYOffset, 0, 0, 0);
 					adjustedNodes++;
@@ -472,8 +472,8 @@ public class CircuitChanges
 						ArcInst ai = con.getArc();
 						Integer constr = (Integer)constraints.get(ai);
 						if (constr == null) continue;
-						if ((constr.intValue() & 1) != 0) ai.setRigid();
-						if ((constr.intValue() & 2) != 0) ai.setFixedAngle();
+						if ((constr.intValue() & 1) != 0) ai.setRigid(true);
+						if ((constr.intValue() & 2) != 0) ai.setFixedAngle(true);
 					}
 				}
 			}
@@ -526,13 +526,13 @@ public class CircuitChanges
 					int constr = 0;
 					if (ai.isRigid()) constr |= 1;
 					if (ai.isFixedAngle()) constr |= 2;
-					ai.clearRigid();
-					ai.clearFixedAngle();
-	
+                    ai.setRigid(false);
+                    ai.setFixedAngle(false);
+
 					ai.modify(0, headXOff, headYOff, tailXOff, tailYOff);
 					adjustedArcs++;
-					if ((constr & 1) != 0) ai.setRigid();
-					if ((constr & 2) != 0) ai.setFixedAngle();
+					if ((constr & 1) != 0) ai.setRigid(true);
+					if ((constr & 2) != 0) ai.setFixedAngle(true);
 				}
 			}
 	
@@ -797,83 +797,83 @@ public class CircuitChanges
 						case 1:
 							if (!ai.isRigid())
 							{
-								ai.setRigid();
+								ai.setRigid(true);
 								numSet++;
 							}
 							break;
 						case 2:
 							if (ai.isRigid())
 							{
-								ai.clearRigid();
+								ai.setRigid(false);
 								numSet++;
 							}
 							break;
 						case 3:
 							if (!ai.isFixedAngle())
 							{
-								ai.setFixedAngle();
+								ai.setFixedAngle(true);
 								numSet++;
 							}
 							break;
 						case 4:
 							if (ai.isFixedAngle())
 							{
-								ai.clearFixedAngle();
+								ai.setFixedAngle(false);
 								numSet++;
 							}
 							break;
 						case 5:		// toggle directionality
 							if (ai.isDirectional())
 							{
-								ai.clearDirectional();
+								ai.setDirectional(false);
 								numUnset++;
 							} else
 							{
-								ai.setDirectional();
+								ai.setDirectional(true);
 								numSet++;
 							}
 							break;
 						case 6:		// end-extended
 							if (ai.isExtended())
 							{
-								ai.clearExtended();
+								ai.setExtended(false);
 								numUnset++;
 							} else
 							{
-								ai.setExtended();
+								ai.setExtended(true);
 								numSet++;
 							}
 							break;
 						case 7:		// reverse end
 							if (ai.isReverseEnds())
 							{
-								ai.clearReverseEnds();
+								ai.setReverseEnds(false);
 								numUnset++;
 							} else
 							{
-								ai.setReverseEnds();
+								ai.setReverseEnds(true);
 								numSet++;
 							}
 							break;
 						case 8:		// skip head
 							if (ai.isSkipHead())
 							{
-								ai.clearSkipHead();
+								ai.setSkipHead(false);
 								numUnset++;
 							} else
 							{
-								ai.setSkipHead();
+								ai.setSkipHead(true);
 								numSet++;
 							}
 							break;
 						case 9:		// skip tail
 							if (ai.isSkipTail())
 							{
-								ai.clearSkipTail();
+								ai.setSkipTail(false);
 								numUnset++;
 							} else
 							{
-								ai.setSkipTail();
+								ai.setSkipTail(true);
 								numSet++;
 							}
 							break;
@@ -1378,7 +1378,7 @@ public class CircuitChanges
 						ai.getTail().getPortInst(), ai.getTail().getLocation(),
 						ni.getOnlyPortInst(), tailPtAdj, ai.getName());
 					if (ai1 == null) continue;
-					ai.copyVars(ai1);
+					ai1.copyProperties(ai);
 				}
 				if (!headPt.equals(headPtAdj))
 				{
@@ -1390,7 +1390,7 @@ public class CircuitChanges
 					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), headPtAdj,
 						ai.getHead().getPortInst(), ai.getHead().getLocation(), ai.getName());
 					if (ai1 == null) continue;
-					ai.copyVars(ai1);
+					ai1.copyProperties(ai);
 				}
 				ai.kill();
 			}
@@ -2103,7 +2103,7 @@ public class CircuitChanges
 					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
 					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi, null);
 					if (ai == null) return false;
-					ai.setRigid();
+					ai.setRigid(true);
 
 					// set an invisible color on the arc
 					ai.newVar(Artwork.ART_COLOR, new Integer(0));
@@ -2150,8 +2150,8 @@ public class CircuitChanges
 						PortInst niBotPi = trueSubCgn.pin.getOnlyPortInst();
 						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi, null);
 						if (ai == null) return false;
-						ai.clearFixedAngle();
-						ai.clearRigid();
+                        ai.setRigid(false);
+                        ai.setFixedAngle(false);
 
 						// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
 						int color = EGraphics.BLUE;
@@ -2265,7 +2265,7 @@ public class CircuitChanges
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
-				ni.copyVars(newNi);
+				newNi.copyVars(ni);
 				newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 	
 				// make ports where this nodeinst has them
@@ -2278,7 +2278,7 @@ public class CircuitChanges
 					{
 						newPp.setCharacteristic(pp.getCharacteristic());
 						newPp.setTextDescriptor(pp.getTextDescriptor());
-						pp.copyVars(newPp);
+						newPp.copyVars(pp);
 					}
 				}
 			}
@@ -2298,7 +2298,7 @@ public class CircuitChanges
 				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
 					piTail, ai.getTail().getLocation(), ai.getName());
 				if (newAi == null) return false;
-				ai.copyVars(newAi);
+				newAi.copyProperties(ai);
 			}
 			System.out.println("Cell " + cell.describe() + " created");
 			return true;
@@ -2343,7 +2343,7 @@ public class CircuitChanges
 			}
 			if (!foundInstance)
 			{
-				System.out.println("Must selecte cell instances to extract");
+				System.out.println("Must select cell instances to extract");
 				return false;
 			}
 			return true;
@@ -2388,7 +2388,7 @@ public class CircuitChanges
 			newNodes.put(ni, newNi);
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
-			ni.copyVars(newNi);
+			newNi.copyVars(ni);
 		}
 
 		// make a list of arcs to extract
@@ -2432,7 +2432,7 @@ public class CircuitChanges
 
 			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, ai.getName());
 			if (newAi == null) return;
-			ai.copyVars(newAi);
+			newAi.copyProperties(ai);
 		}
 
 		// replace arcs to the cell
@@ -2467,9 +2467,7 @@ public class CircuitChanges
 			ai.kill();
 			ArcInst newAi = ArcInst.makeInstance(ap, wid, pis[0], pts[0], pis[1], pts[1], name);
 			if (newAi == null) return;
-
-			// copy variables
-			ai.copyVars(newAi);
+            newAi.copyProperties(ai);
 		}
 
 		// replace the exports
@@ -3589,7 +3587,7 @@ public class CircuitChanges
 					head, new Point2D.Double(xBBPos, yBBPos),
 					tail, new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
-					ai.clearExtended();
+                    ai.setExtended(false);
 			}
 		}
 		return true;
@@ -4352,18 +4350,17 @@ public class CircuitChanges
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.recon[0], ra.reconPi[1], ra.recon[1], null);
                 if (newAi == null) continue;
-                if (ra.directional) newAi.setDirectional();
-                if (ra.ignoreHead) newAi.setSkipHead();
-                if (ra.ignoreTail) newAi.setSkipTail();
-                if (ra.reverseEnd) newAi.setReverseEnds();
+                if (ra.directional) newAi.setDirectional(true);
+                if (ra.ignoreHead) newAi.setSkipHead(true);
+                if (ra.ignoreTail) newAi.setSkipTail(true);
+                if (ra.reverseEnd) newAi.setReverseEnds(true);
                 if (ra.arcName != null)
                 {
                     newAi.setName(ra.arcName);
                     newAi.setNameTextDescriptor(ra.arcNameTD);
                 }
-
-                ra.reconAr[0].copyVars(newAi);
-                ra.reconAr[1].copyVars(newAi);
+                newAi.copyVars(ra.reconAr[0]);
+                newAi.copyVars(ra.reconAr[1]);
                 newArcs.add(newAi);
             }
 			return newArcs;

@@ -1038,17 +1038,50 @@ public class ArcInst extends Geometric
 	 */
 	public ArcProto getProto() { return protoType; }
 
+    /**
+     * Copies all properties (variables, constraints, name, and textdescriptor)
+     * from 'fraomAi' to this arcinst. This is basically the same as calling
+     * copyVars(), copyConstraints(), and setTextDescriptor().
+     * @param fromAi the arc from which to copy all arc properties
+     */
+    public void copyProperties(ArcInst fromAi) {
+        copyVars(fromAi);
+        copyConstraints(fromAi);
+        setName(fromAi.getName());
+        setNameTextDescriptor(fromAi.getNameTextDescriptor());
+    }
+
+    /**
+     * Copies constraints (Rigid, Ends Extended, etc) from another arcinst to this arcinst
+     * @param fromAi the arcinst from which to copy constraints
+     */
+    public void copyConstraints(ArcInst fromAi) {
+        /*
+        setRigid(fromAi.isRigid());
+        setFixedAngle(fromAi.isFixedAngle());
+        setSlidable(fromAi.isSlidable());
+        setExtended(fromAi.isExtended());
+        setDirectional(fromAi.isDirectional());
+        setSkipHead(fromAi.isSkipHead());
+        setSkipTail(fromAi.isSkipTail());
+        setReverseEnds(fromAi.isReverseEnds());
+        setHardSelect(fromAi.isHardSelect());
+        */
+        // equivalent:
+        lowLevelSetUserbits(fromAi.lowLevelGetUserbits());
+    }
+
 	/**
 	 * Method to set this ArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 */
-	public void setRigid() { userBits |= FIXED; }
-
-	/**
-	 * Method to set this ArcInst to be not rigid.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 */
-	public void clearRigid() { userBits &= ~FIXED; }
+     * @param state
+     */
+	public void setRigid(boolean state) {
+        if (state)
+            userBits |= FIXED;
+        else
+            userBits &= ~FIXED;
+   }
 
 	/**
 	 * Method to tell whether this ArcInst is rigid.
@@ -1061,15 +1094,14 @@ public class ArcInst extends Geometric
 	 * Method to set this ArcInst to be fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
-	 */
-	public void setFixedAngle() { userBits |= FIXANG; }
-
-	/**
-	 * Method to set this ArcInst to be not fixed-angle.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-	 */
-	public void clearFixedAngle() { userBits &= ~FIXANG; }
+     * @param state
+     */
+	public void setFixedAngle(boolean state) {
+        if (state)
+            userBits |= FIXANG;
+        else
+            userBits &= ~FIXANG;
+    }
 
 	/**
 	 * Method to tell whether this ArcInst is fixed-angle.
@@ -1084,16 +1116,14 @@ public class ArcInst extends Geometric
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 */
-	public void setSlidable() { userBits &= ~CANTSLIDE; }
-
-	/**
-	 * Method to set this ArcInst to be not slidable.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 */
-	public void clearSlidable() { userBits |= CANTSLIDE; }
+     * @param state
+     */
+	public void setSlidable(boolean state) {
+        if (state)
+            userBits &= ~CANTSLIDE;
+        else
+            userBits |= CANTSLIDE;
+    }
 
 	/**
 	 * Method to tell whether this ArcInst is slidable.
@@ -1128,11 +1158,11 @@ public class ArcInst extends Geometric
 	 */
 	private void setDefaultConstraints()
 	{
-		if (protoType.isRigid()) setRigid(); else clearRigid();
-		if (protoType.isFixedAngle()) setFixedAngle(); else clearFixedAngle();
-		if (protoType.isSlidable()) setSlidable(); else clearSlidable();
-		if (protoType.isExtended()) setExtended(); else clearExtended();
-		if (protoType.isDirectional()) setDirectional(); else clearDirectional();
+        setRigid(protoType.isRigid());
+        setFixedAngle(protoType.isFixedAngle());
+        setSlidable(protoType.isSlidable());
+        setExtended(protoType.isExtended());
+        setDirectional(protoType.isDirectional());
 	}
 
 	/**
@@ -1158,21 +1188,14 @@ public class ArcInst extends Geometric
 	 * Method to set this ArcInst to have its ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 */
-	public void setExtended()
+     * @param state
+     */
+	public void setExtended(boolean state)
 	{
-		userBits &= ~NOEXTEND;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to set this ArcInst to have its ends not extended.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 */
-	public void clearExtended()
-	{
-		userBits |= NOEXTEND;
+		if (state)
+            userBits &= ~NOEXTEND;
+        else
+            userBits |= NOEXTEND;
 		updateGeometric(getAngle());
 	}
 
@@ -1190,17 +1213,14 @@ public class ArcInst extends Geometric
 	 * The arrow head is on the arc's head end, unless the arc is reversed.
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @see ArcInst#setReverseEnds
-	 */
-	public void setDirectional() { userBits |= ISDIRECTIONAL; }
-
-	/**
-	 * Method to set this ArcInst to be not directional.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * The arrow head is on the arc's head end, unless the arc is reversed.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @see ArcInst#setReverseEnds
-	 */
-	public void clearDirectional() { userBits &= ~ISDIRECTIONAL; }
+     * @param state
+     */
+	public void setDirectional(boolean state) {
+        if (state)
+            userBits |= ISDIRECTIONAL;
+        else
+            userBits &= ~ISDIRECTIONAL;
+    }
 
 	/**
 	 * Method to tell whether this ArcInst is directional.
@@ -1217,22 +1237,14 @@ public class ArcInst extends Geometric
 	 * Skipping the head causes any special actions that are normally applied to the
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
-	 */
-	public void setSkipHead()
+     * @param state
+     */
+	public void setSkipHead(boolean state)
 	{
-		userBits |= NOTEND0;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to set this ArcInst to have its head not skipped.
-	 * Skipping the head causes any special actions that are normally applied to the
-	 * head to be ignored.  For example, the directional arrow is on the arc head,
-	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
-	 */
-	public void clearSkipHead()
-	{
-		userBits &= ~NOTEND0;
+		if (state)
+            userBits |= NOTEND0;
+        else
+            userBits &= ~NOTEND0;
 		updateGeometric(getAngle());
 	}
 
@@ -1250,22 +1262,14 @@ public class ArcInst extends Geometric
 	 * Skipping the tail causes any special actions that are normally applied to the
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
-	 */
-	public void setSkipTail()
+     * @param state
+     */
+	public void setSkipTail(boolean state)
 	{
-		userBits |= NOTEND1;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to set this ArcInst to have its tail not skipped.
-	 * Skipping the tail causes any special actions that are normally applied to the
-	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
-	 * so skipping the tail will remove the bubble.
-	 */
-	public void clearSkipTail()
-	{
-		userBits &= ~NOTEND1;
+		if (state)
+            userBits |= NOTEND1;
+        else
+            userBits &= ~NOTEND1;
 		updateGeometric(getAngle());
 	}
 
@@ -1282,21 +1286,14 @@ public class ArcInst extends Geometric
 	 * Method to reverse the ends of this ArcInst.
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
-	 */
-	public void setReverseEnds()
+     * @param state
+     */
+	public void setReverseEnds(boolean state)
 	{
-		userBits |= REVERSEEND;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to restore the proper ends of this ArcInst.
-	 * A reversed arc switches its head and tail.
-	 * This is useful if the negating bubble appears on the wrong end.
-	 */
-	public void clearReverseEnds()
-	{
-		userBits &= ~REVERSEEND;
+		if (state)
+            userBits |= REVERSEEND;
+        else
+            userBits &= ~REVERSEEND;
 		updateGeometric(getAngle());
 	}
 
@@ -1312,15 +1309,14 @@ public class ArcInst extends Geometric
 	 * Method to set this ArcInst to be hard-to-select.
 	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
-	 */
-	public void setHardSelect() { userBits |= HARDSELECTA; }
-
-	/**
-	 * Method to set this ArcInst to be easy-to-select.
-	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
-	 * Instead, the "special select" command must be given.
-	 */
-	public void clearHardSelect() { userBits &= ~HARDSELECTA; }
+     * @param state
+     */
+	public void setHardSelect(boolean state) {
+        if (state)
+            userBits |= HARDSELECTA;
+        else
+            userBits &= ~HARDSELECTA;
+    }
 
 	/**
 	 * Method to tell whether this ArcInst is hard-to-select.

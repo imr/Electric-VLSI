@@ -44,6 +44,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -73,8 +74,8 @@ import javax.swing.ListSelectionModel;
 public class GetInfoNode extends EDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoNode theDialog = null;
-	private static NodeInst shownNode = null;
-	private static PortProto shownPort = null;
+	private NodeInst shownNode = null;
+	private PortProto shownPort = null;
 	private double initialXPos, initialYPos;
 	private double initialXSize, initialYSize;
 	private int initialRotation, initialPopupIndex;
@@ -316,30 +317,39 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-		initialXSize = ni.getXSizeWithMirror();
-		initialYSize = ni.getYSizeWithMirror();
-		initialRotation = ni.getAngle();
-		swapXY = false;
-		if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
+        initialXSize = ni.getXSizeWithMirror();
+        initialYSize = ni.getYSizeWithMirror();
+        initialRotation = ni.getAngle();
+        swapXY = false;
+        if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
-		type.setText(np.describe());
-		name.setText(initialName);
-		xPos.setText(TextUtils.formatDouble(initialXPos));
-		yPos.setText(TextUtils.formatDouble(initialYPos));
-		SizeOffset so = ni.getSizeOffset();
-		if (swapXY)
-		{
-			xSize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
-			ySize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
-		} else
-		{
-			xSize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
-			ySize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
-		}
+        type.setText(np.describe());
+        name.setText(initialName);
+        xPos.setText(TextUtils.formatDouble(initialXPos));
+        yPos.setText(TextUtils.formatDouble(initialYPos));
+        SizeOffset so = ni.getSizeOffset();
+        if (swapXY)
+        {
+            xSize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+            ySize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+        } else
+        {
+            xSize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+            ySize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+        }
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 		mirrorX.setSelected(initialXSize < 0);
 		mirrorY.setSelected(initialYSize < 0);
 
+        // special case for transistors
+/*
+        TransistorSize transSize = ni.getTransistorSize(VarContext.globalContext);
+        if (transSize != null) {
+
+        } else {
+
+        }
+*/
 		// in "more" version
 		easyToSelect.setEnabled(true);
 		invisibleOutsideCell.setEnabled(true);
@@ -410,6 +420,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			fun == NodeProto.Function.TRAPMOS) && holdsOutline)
 		{
 			/* serpentine transistor: show width, edit length */
+            /*
 			serpWidth = 0;
 			Dimension2D size = ni.getTransistorSize(null);
 			if (size.getWidth() > 0 && size.getHeight() > 0)
@@ -419,6 +430,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				serpWidth = size.getHeight();
 				textField.setEditable(true);
 			}
+            */
 		}
 
 		// set the expansion button
@@ -459,6 +471,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		locked.setSelected(initialLocked);
 
 		// load special node information
+/*
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
 			textField.setEditable(true);
@@ -477,6 +490,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			popupLabel.setText("Transistor type:");
 			popup.addItem(fun.getName());
 		}
+        */
 		scalableTrans = false;
 		if (np instanceof PrimitiveNode)
 		{
@@ -515,7 +529,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			popup.setSelectedIndex(initialPopupIndex);
 			popup.setEnabled(true);
 
-			
+
 			textFieldLabel.setText("Width:");
 			var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
@@ -630,7 +644,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setText(initialTextField);
 		}
 	}
-	
+
 	private void showProperList()
 	{
 		listModel.clear();
@@ -1548,7 +1562,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		int currentIndex = theDialog.list.getSelectedIndex();
 		ArcInst ai = (ArcInst)theDialog.portObjects.get(currentIndex);
 		if (ai == null) return;
-		NodeInst ni = GetInfoNode.shownNode;
+		NodeInst ni = shownNode;
 		Highlight.clear();
 		Highlight.addElectricObject(ni, ni.getParent());
 		Highlight.addElectricObject(ai, ai.getParent());

@@ -429,7 +429,7 @@ public class LayoutLib {
 		                                 head, new Point2D.Double(hX, hY),
 										 tail, new Point2D.Double(tX, tY), 
 										 null);
-		ai.setFixedAngle();									
+		ai.setFixedAngle(true);
 		error(ai==null, "newArcInst failed");
 		return ai;
 	}
@@ -466,10 +466,10 @@ public class LayoutLib {
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
 			ai = newArcInst(ap, width, head, pin);
-			ai.setFixedAngle();
+			ai.setFixedAngle(true);
 			ai = newArcInst(ap, width, pin, tail);
 		}
-		ai.setFixedAngle();
+		ai.setFixedAngle(true);
 		return ai;
 	}
 

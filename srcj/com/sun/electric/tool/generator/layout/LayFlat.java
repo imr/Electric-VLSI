@@ -71,7 +71,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 				ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					                pi0, p0,
 									pi1, p1, null);
-			if (ai.isExtended()) ai2.setExtended();
+			if (ai.isExtended()) ai2.setExtended(true);
 		}
 	}
 

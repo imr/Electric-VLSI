@@ -2498,6 +2498,12 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public Iterator getVersions()
 	{
+        // don't know why, but keep getting null pointer exceptions on version group
+        if (versionGroup == null) {
+            VersionGroup vg = new VersionGroup();
+            vg.add(this);
+            return vg.iterator();
+        }
 		return versionGroup.iterator();
 	}
 

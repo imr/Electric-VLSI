@@ -820,7 +820,7 @@ public class EditMenu {
 			} else
 			{
 				ArcInst ai = (ArcInst)geom;
-				ai.clearHardSelect();
+				ai.setHardSelect(false);
 			}
 		}
 	}
@@ -841,7 +841,7 @@ public class EditMenu {
 			} else
 			{
 				ArcInst ai = (ArcInst)geom;
-				ai.setHardSelect();
+				ai.setHardSelect(true);
 			}
 		}
 	}

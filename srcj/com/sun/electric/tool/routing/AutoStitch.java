@@ -93,7 +93,9 @@ public class AutoStitch
 		if (nodesToStitch.size() > 0)
 		{
 			AutoStitchJob job = new AutoStitchJob(nodesToStitch, forced);
-		}
+		} else {
+            if (forced) System.out.println("No ports or nodes selected to auto-route");
+        }
 	}
 
 	/**
@@ -335,6 +337,7 @@ public class AutoStitch
 						}
 
 						// stop now if already an arc on this port to other node
+                        /*
 						boolean found = false;
 						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 						{
@@ -345,6 +348,7 @@ public class AutoStitch
 								con.getArc().getTail().getPortInst().getNodeInst() == oNi) { found = true;   break; }
 						}
 						if (found) continue;
+                        */
 
 						// find the primitive node at the bottom of this port
 						AffineTransform trans = ni.rotateOut();
