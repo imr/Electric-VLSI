@@ -280,7 +280,7 @@ public class LETool extends Tool {
         /** netlist */                          private LENetlister netlister;
 
         protected AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd) {
-            super("Analyze Cell "+cell.describe(), tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
+            super("Analyze Cell "+cell.describe(), tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
             this.cell = cell;
@@ -322,11 +322,10 @@ public class LETool extends Tool {
             if (checkAbort(null)) return false;
 
             if (success) {
-                netlister.updateSizes();
+                UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
             }
-            wnd.repaintContents(null);
 			return true;
        }
 
@@ -361,6 +360,25 @@ public class LETool extends Tool {
         }
 
         protected LENetlister getNetlister() { return netlister; }
+    }
+
+    private static class UpdateSizes extends Job {
+
+        private LENetlister netlister;
+        private EditWindow wnd;
+
+        private UpdateSizes(LENetlister netlister, Cell cell, EditWindow wnd) {
+            super("Update LE Sizes", tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
+            this.netlister = netlister;
+            this.wnd = wnd;
+            startJob();
+        }
+
+        public boolean doIt() {
+            netlister.updateSizes();
+            wnd.repaintContents(null);
+            return true;
+        }
     }
 
     /**

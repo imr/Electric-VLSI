@@ -37,6 +37,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
+import java.util.List;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -64,6 +65,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * @author  gainsley
  */
 public abstract class Job implements ActionListener, Runnable {
+
+    private static final boolean DEBUG = true;
 
 	/**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
@@ -118,6 +121,11 @@ public abstract class Job implements ActionListener, Runnable {
 	 */
 	private static class DatabaseChangesThread extends Thread
 	{
+        // Job Management
+        /** all jobs */                             private static ArrayList allJobs = new ArrayList();
+        /** number of started jobs */               private static int numStarted = 0;
+        /** number of examine jobs */               private static int numExamine = 0;
+
 		DatabaseChangesThread() {
 			super("Database");
 			start();
@@ -138,6 +146,11 @@ public abstract class Job implements ActionListener, Runnable {
 				if (numStarted < allJobs.size())
 				{
 					Job job = (Job)allJobs.get(numStarted);
+                    if (job.scheduledToAbort || job.aborted) {
+                        // remove jobs that have been aborted
+                        removeJob(job);
+                        continue;
+                    }
 					if (job.jobType == Type.EXAMINE)
 					{
 						job.started = true;
@@ -211,12 +224,18 @@ public abstract class Job implements ActionListener, Runnable {
 			if (numExamine == 0)
 				notify();
 		}
+
+
+        /** get all jobs iterator */
+        public synchronized Iterator getAllJobs() {
+            List jobsList = new ArrayList();
+            for (Iterator it = allJobs.iterator(); it.hasNext() ;) {
+                jobsList.add(it.next());
+            }
+            return jobsList.iterator();
+        }
 	}
 
-	// Job Management
-    /** all jobs */                             private static ArrayList allJobs = new ArrayList();
-	/** number of started jobs */               private static int numStarted = 0;
-	/** number of examine jobs */               private static int numExamine = 0;
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
@@ -332,6 +351,7 @@ public abstract class Job implements ActionListener, Runnable {
     public void run() {
         startTime = System.currentTimeMillis();
 
+        if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 		try {
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell);
 			if (jobType != Type.EXAMINE) changingJob = this;
@@ -348,6 +368,7 @@ public abstract class Job implements ActionListener, Runnable {
 				Library.clearChangeLocks();
 			}
 		}
+        if (DEBUG) System.out.println(jobType+" Job: "+jobName +" finished");
 
 		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
@@ -404,7 +425,7 @@ public abstract class Job implements ActionListener, Runnable {
     public boolean getDeleteWhenDone() { return deleteWhenDone; }
 
     /** get all jobs iterator */
-    public static Iterator getAllJobs() { return allJobs.iterator(); }
+    public static Iterator getAllJobs() { return databaseChangesThread.getAllJobs(); }
     
     /** get status */
     public String getStatus() {

@@ -914,7 +914,7 @@ public class ClickZoomWireListener
     }
 
     public void keyTyped(KeyEvent evt) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
     }
 
     // ********************************* Moving Stuff ********************************
