@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -31,7 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -43,8 +44,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.SwingExamineTask;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -53,7 +52,6 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
-import com.sun.electric.Main;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -68,10 +66,6 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.image.ImageObserver;
-import java.awt.image.BufferedImage;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -90,17 +84,21 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.*;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollBar;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -2296,13 +2294,47 @@ public class EditWindow extends JPanel
 	    	inPlaceDisplay = true;
 	    }
 
+		// for stacked NodeInsts, must choose which one
+		Nodable desiredNO = null;
+		List possibleNodables = new ArrayList();
+		Netlist nl = ni.getParent().getUserNetlist();
+		for(Iterator it = nl.getNodables(); it.hasNext(); )
+		{
+			Nodable no = (Nodable)it.next();
+			if (no.getNodeInst() == ni)
+			{
+				possibleNodables.add(no);
+			}
+		}
+		if (possibleNodables.size() > 1)
+		{
+			String [] manyOptions = new String[possibleNodables.size()];
+			int i = 0;
+			for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+				manyOptions[i++] = ((Nodable)it.next()).getName();
+	        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
+	            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
+	        if (chosen == null) return;
+			for(Iterator it = possibleNodables.iterator(); it.hasNext(); )
+			{
+				Nodable no = (Nodable)it.next();
+				if (no.getName().equals(chosen)) { desiredNO = no;   break; }
+			}
+		}
+		
         // do the descent
         boolean redisplay = true;
         if (inPlaceDisplay) redisplay = false;
-        if (pi != null)
-            setCell(schCell, cellVarContext.push(pi), true, redisplay);
-        else
-            setCell(schCell, cellVarContext.push(ni), true, redisplay);
+        if (desiredNO != null)
+        {
+        	setCell(schCell, cellVarContext.push(desiredNO), true, redisplay);
+        } else
+        {
+	        if (pi != null)
+	            setCell(schCell, cellVarContext.push(pi), true, redisplay);
+	        else
+	            setCell(schCell, cellVarContext.push(ni), true, redisplay);
+        }
         if (!redisplay) fullRepaint();
 
         // if highlighted was a port inst, then highlight the corresponding export

@@ -4,8 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01au: *********************************
 
+IMP: (12/7/04, SMR) Descending into an arrayed node now prompts for the specific node to enter (Bug #53).
+
 ************************* Version 8.01at: *********************************
-IMP: (12/7/04, SMR) Spice files don't get read back properly
+
+IMP: (12/7/04, SMR) Spice files don't get read back properly.
 
 IMP: (12/7/04, GVG) DRC: more caching functionality (tested in debug mode and now making it public)
 
