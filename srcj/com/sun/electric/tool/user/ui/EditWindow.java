@@ -654,9 +654,9 @@ public class EditWindow extends JPanel
 		public boolean doIt()
 		{
 			// do the hard work of re-rendering the image
-            long start = System.currentTimeMillis();
+            //long start = System.currentTimeMillis();
 			offscreen.drawImage(bounds);
-            long end = System.currentTimeMillis();
+            //long end = System.currentTimeMillis();
             //System.out.println("Rerender time "+TextUtils.getElapsedTime(end-start));
 
 			// see if anything else is queued
@@ -1807,94 +1807,11 @@ public class EditWindow extends JPanel
 
 	public Rectangle2D getDisplayedBounds() { return databaseBounds; }
 
-	/**
-	 * Method called when the bottom scrollbar changes.
-	 */
-	public void bottomScrollChanged()
-	{
-		if (cell == null) return;
 
-		// get the bounds of the cell in database coordinates
-		Rectangle2D bounds = cell.getBounds();
-		double xWidth = bounds.getWidth();
-		double xCenter = bounds.getCenterX();
-
-		// get the current thumb position
-		int xThumbPos = bottomScrollBar.getValue();
-
-		// figure out what the thumb position SHOULD be
-		int scrollBarResolution = EditWindow.getScrollBarResolution();
-		double scaleFactor = scrollBarResolution / 4;
-		int computedXThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
-
-		// adjust the screen if there is change
-		if (computedXThumbPos != xThumbPos)
-		{
-			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
-			computeDatabaseBounds();
-			repaintContents(null);
-		}
-	}
-
-	/**
-	 * Method called when the right scrollbar changes.
-	 */
-	public void rightScrollChanged()
-	{
-		if (cell == null) return;
-
-		// get the bounds of the cell in database coordinates
-		Rectangle2D bounds = cell.getBounds();
-		double yHeight = bounds.getHeight();
-		double yCenter = bounds.getCenterY();
-
-		// get the current thumb position
-		int yThumbPos = rightScrollBar.getValue();
-        System.out.println("right.getValue() is "+rightScrollBar.getValue());
-
-		// figure out what the thumb position SHOULD be
-		int scrollBarResolution = EditWindow.getScrollBarResolution();
-		double scaleFactor = scrollBarResolution / 4;
-		int computedYThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
-
-		// adjust the screen if there is change
-		if (computedYThumbPos != yThumbPos)
-		{
-			offy = yCenter - (yThumbPos - scrollBarResolution/2) / scaleFactor * yHeight;
-			computeDatabaseBounds();
-			repaintContents(null);
-		}
-	}
-
-	/**
-	 * Method to update the scrollbars on the sides of the edit window
-	 * so they reflect the true offset of the circuit.
-	 */
-	private void setScrollPositionOLD()
-	{
-		rightScrollBar.setEnabled(cell != null);
-		bottomScrollBar.setEnabled(cell != null);
-		if (cell != null)
-		{
-			int scrollBarResolution = EditWindow.getScrollBarResolution();
-			double scaleFactor = scrollBarResolution / 4;
-
-			Rectangle2D bounds = cell.getBounds();
-			double xWidth = bounds.getWidth();
-			double xCenter = bounds.getCenterX();
-			int xThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
-			bottomScrollBar.setValue(xThumbPos);
-
-			double yHeight = bounds.getHeight();
-			double yCenter = bounds.getCenterY();
-			int yThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
-			rightScrollBar.setValue(yThumbPos);
-		}
-	}
-
-    private Rectangle2D lastOverallBounds = null;
-    private Point2D lastOffset = null;
     private static final double scrollPagePercent = 0.2;
+    // ignore programmatic scroll changes. Only respond to user scroll changes
+    private boolean ignoreScrollChange = false;
+    private static final int scrollRangeMult = 100; // when zoomed in, this prevents rounding from causing problems
     /**
      * New version of setScrollPosition.  Attempts to provides means of scrolling
      * out of cell bounds.
@@ -1912,62 +1829,55 @@ public class EditWindow extends JPanel
         // get bounds of cell including what is on-screen
         Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
 
-        if (lastOverallBounds != null && lastOffset != null) {
-            // special case, we don't need to redraw if everything the same
-            if (lastOverallBounds.equals(overallBounds) && lastOffset.equals(getOffset()))
-                return;
-        }
+        // scroll bar is being repositioned: ignore the change events it generates
+        ignoreScrollChange = true;
 
         // adjust scroll bars to reflect new bounds (only if not being adjusted now)
         // newValue, newThumbSize, newMin, newMax
-        if (!bottomScrollBar.getValueIsAdjusting()) {
-            bottomScrollBar.getModel().setRangeProperties(
-                    (int)(offx-0.5*viewBounds.getWidth()),
-                    (int)viewBounds.getWidth(),
-                    (int)(overallBounds.getX() - scrollPagePercent*overallBounds.getWidth()),
-                    (int)((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth()),
-                    false);
-            bottomScrollBar.setEnabled(false);
-            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()));
-            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()));
-            bottomScrollBar.setEnabled(true);
-        }
-        if (!rightScrollBar.getValueIsAdjusting()) {
-            //System.out.println("overallBounds="+overallBounds);
-            //System.out.println("cellBounds="+cellBounds);
-            //System.out.println("offy="+offy);
-            //System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
-            //System.out.print(" extent="+(int)(cellBounds.getHeight()));
-            //System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())));
-            //System.out.println(" max="+(int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())));
-            rightScrollBar.getModel().setRangeProperties(
-                    (int)(-offy-0.5*viewBounds.getHeight()),
-                    (int)(viewBounds.getHeight()),
-                    (int)(-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())),
-                    (int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())),
-                    false);
-            //System.out.println("model is "+rightScrollBar.getModel());
-            rightScrollBar.setEnabled(false);
-            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()));
-            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()));
-            rightScrollBar.setEnabled(true);
-        }
-        if (!bottomScrollBar.getValueIsAdjusting() && !rightScrollBar.getValueIsAdjusting()) {
-            lastOverallBounds = overallBounds;
-            lastOffset = getOffset();
-        }
+        bottomScrollBar.getModel().setRangeProperties(
+                (int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
+                (int)(viewBounds.getWidth()*scrollRangeMult),
+                (int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+                (int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+                false);
+        bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
+        bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
+/*
+        System.out.println("overallBounds="+overallBounds);
+        System.out.println("cellBounds="+cellBounds);
+        System.out.println("offy="+offy);
+        System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
+        System.out.print(" extent="+(int)(cellBounds.getHeight()));
+        System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())));
+        System.out.println(" max="+(int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())));
+*/
+        rightScrollBar.getModel().setRangeProperties(
+                (int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
+                (int)((viewBounds.getHeight())*scrollRangeMult),
+                (int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+                (int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+                false);
+        //System.out.println("model is "+rightScrollBar.getModel());
+        rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
+        rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+
+        ignoreScrollChange = false;
     }
 
     public void bottomScrollChanged(int value)
     {
+        if (cell == null) return;
+        if (ignoreScrollChange) return;
+
+        double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
-        double newoffx = value+0.5*viewBounds.getWidth();           // new offset
-        double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
-        double delta = newoffx - offx;
+        double newoffx = val+0.5*viewBounds.getWidth();           // new offset
+        //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
+        //double delta = newoffx - offx;
         //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
-        if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
+        //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(newoffx, offy);
         setOffset(offset);
         repaintContents(null);
@@ -1975,15 +1885,19 @@ public class EditWindow extends JPanel
 
     public void rightScrollChanged(int value)
     {
+        if (cell == null) return;
+        if (ignoreScrollChange) return;
+
+        double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
-        double newoffy = -(value+0.5*viewBounds.getHeight());
+        double newoffy = -(val+0.5*viewBounds.getHeight());
         // annoying cause +y is down in java
-        double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
-        double delta = newoffy - offy;
+        //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
+        //double delta = newoffy - offy;
         //System.out.println("Old offy="+offy+", new offy="+newoffy+", deltay="+(newoffy-offy));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
-        if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
+        //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(offx, newoffy);
         setOffset(offset);
         repaintContents(null);

@@ -206,7 +206,8 @@ public class ZoomAndPanListener
             Dimension dim = wnd.getSize();
 			double panningAmount = panningAmounts[User.getPanningDistance()];
             int mult = (int)((double)dim.width * panningAmount / wnd.getScale());
-	
+            if (mult == 0) mult = 1;
+
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
 	        wnd.setOffset(newOffset);
@@ -230,7 +231,8 @@ public class ZoomAndPanListener
 			Dimension dim = wnd.getSize();
 			double panningAmount = panningAmounts[User.getPanningDistance()];
 			int mult = (int)((double)dim.height * panningAmount / wnd.getScale());
-	
+            if (mult == 0) mult = 1;
+
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 	        wnd.setOffset(newOffset);
