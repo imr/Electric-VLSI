@@ -2185,7 +2185,7 @@ public class Quick
 					errorFound = true;
 					int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
 					reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-							new Poly(simplePn.getPoints()), ni, layer, null, null, null);
+							null/*new Poly(simplePn.getPoints())*/, ni, layer, null, null, null);
 				}
 			}
 		}
