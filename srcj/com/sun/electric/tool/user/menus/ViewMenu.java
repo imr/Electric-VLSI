@@ -72,7 +72,7 @@ public class ViewMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { editDocViewCommand(); } });
         viewMenu.addMenuItem("Edit Skeleton View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editSkeletonViewCommand(); } });
-        viewMenu.addMenuItem("Edit Other View", null,
+        viewMenu.addMenuItem("Edit Other View...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editOtherViewCommand(); } });
 
         viewMenu.addSeparator();

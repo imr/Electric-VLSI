@@ -1,16 +1,18 @@
 <!-- HEADER 3-1: Cells -->
 
-As the introductory examples showed, hierarchy is well supported in Electric.
 A collection of nodes and arcs is called a <I>cell</I>,
 and instances of cells can be placed in other cells.
-Thus, Electric still manipulates nodes and arcs,
-but the nodes come in two forms: <I>primitive</I> and <I>complex</I>.
-Primitive nodes are found in the component menu and are pre-defined by the technologies.
+When a cell instance is placed, that instance is also a node,
+and is treated just like the simpler transistor and contact nodes.
+Thus, nodes come in two forms: <I>primitive</I> and <I>complex</I>.
+Primitive nodes are found in the component menu and are pre-defined by the technologies
+(transistors, contacts, pins).
 Complex nodes are actually instances of other cells, and are found in libraries.
 <P>
-<TABLE><TR><TD>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-12.png" ALT="Figure 3.12"></CENTER></TD><TD>
 Besides organizing cells into a hierarchy,
-Electric also organizes cells according to their <I>view</I> and <I>version</I>.
+Electric also organizes cells into <I>cell groups</I>
+and gives each cell a <I>view</I> and a <I>version</I>.
 A cell's view describes its contents (for example "layout", "schematics", "netlist", etc.)
 A cell's version defines its design age.
 The full name of a cell is:
@@ -19,20 +21,26 @@ The full name of a cell is:
 <P>
 where CELLNAME is the name of the cell,
 VIEW is the abbreviated name of this cell's view,
-and VERSION is the version number of this cell's view.
+and VERSION is the version number of this view of the cell.
 When no version number is displayed,
 it implies that this cell is the most recent version (has the largest number).
 Thus, the cell "gate;2{lay}" is more recent than "gate;1{lay}" but less recent than "gate{lay}"
 (which must have a higher version number, probably 3).
-</TD><TD><CENTER><IMG SRC="fig03-12.png" ALT="Figure 3.12"></CENTER></TD></TR></TABLE>
+</TD></TR></TABLE>
 <P>
-In this example, there is a library with two cells: "gate" and "latch".
-In this library are cells called "latch",
-"latch;1{sch}", and "latch{lay}", all of which are cells of the cell called "latch".
-The cell "latch" has no view name and is therefore from the "unknown" view of the cell.
-The cell "latch{lay}" is the layout view of the cell.
+<TABLE><TR><TD>
+In this example, there is a library with two cell groups.
+One group has a set of cells called "gate" and the other has a set of cells called "latch".
+On the right is the explorer view of these cells.
+Notice the use of color-coding for the different view types,
+and also the use of the spider-web icon to indicate old views.
+See <A HREF="chap03-07-04.html#chap03-07-04">Section 3-7-4</A> for more on the cell explorer.
+</TD><TD><CENTER><IMG SRC="fig03-04.png" ALT="Figure 3.4"></CENTER></TD></TR></TABLE>
 <P>
-To rename a cell, use the <B>Edit Cell...</B> command of the <B>Cells</B> menu,
-which has a rename area at the bottom of the dialog.
+Although it is not necessary for cells in a group to all have the same name,
+the system presumes that common names will be grouped together.
+Once in a group, you can rename a cell to give it a different name than the others
+in its group.
+Use the <B>Rename Cell...</B> command of the <B>Cell</B> menu to do this.
 
 <!-- TRAILER -->

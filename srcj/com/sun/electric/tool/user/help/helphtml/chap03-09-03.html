@@ -7,14 +7,14 @@ If, however, you wish to write the library to a new file
 (thus preserving the original) then use the <B>Save Library As...</B> command.
 <P>
 <TABLE><TR><TD VALIGN=TOP>
-The <B>Library Options...</B> subcommand of the <B>IO Options</B> command of the <B>File</B>
-menu controls the writing of libraries to disk.
+The <B>Preferences...</B> command of the <B>File</B>
+,
+in the "Library" tab of the "I/O" section, offers options for writing libraries to disk.
 By default, saved libraries overwrite the previous libraries and no backup is created.
 If you choose "Backup of last library file",
 then the former library is renamed so that it has a "~" at the end.
 If you choose "Backup history of library files",
 then the former library is renamed so that it has its creation date as part of its name.
-You can also use this dialog to request that the database be checked when saves are done.
 </TD><TD><CENTER><IMG SRC="fig03-19.png" ALT="Figure 3.19"></CENTER></TD></TR></TABLE>
 <P>
 <!-- NEED 2in -->
@@ -23,53 +23,39 @@ These formats can be written:
 <UL>
 <LI><B>Caltech Intermediate Format (CIF)</B> is used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use the <B>CIF Options...</B> subcommand of the <B>IO Options</B> command to affect how CIF is written.
-<LI><B>Stream (GDS II)</B> is also used to describe integrated circuit layout.
+Use "CIF" tab of the "I/O" section of the <B>Preferences...</B> command to affect how CIF is written.
+See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.
+</LI>
+<LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use the <B>GDS Options...</B> subcommand of the <B>IO Options</B> command to affect how GDS is written.
-<LI><B>Electronic Design Interchange Format (EDIF)</B> can write either the Netlist or the Schematic view of the circuit.
-Use the <B>EDIF Options...</B> subcommand of the <B>IO Options</B> command to affect how EDIF is written.
-Electric writes EDIF version 2 0 0.
-<LI><B>Library Exchange Format (LEF)</B> is an interchange format that describes the exports on cells in a library.
-<LI><B>Circuit Design Language (CDL)</B> is a Cadence interchange format for netlists.
-<LI><B>Eagle</B> is an interface to the Eagle schematics design system (netlist format).
-Before writing Eagle files, you must give every node the "ref_des" attribute,
-and every port on these nodes the "pin" attribute.
-If you also place the "pkg_type" attribute on the node, it overrides the cell name.
-Use the <B>Define...</B> subcommand of the <B>Attributes</B> command of the <B>Info</B> menu to create these attributes
-(see <A HREF="chap06-08.html#chap06-08">Section 6-8</A> for more information).
-Also, every network must be named.
-<LI><B>ECAD</B> is an interface to the ECAD schematics design system (netlist format).
-<LI><B>Pads</B> is an interface to the Pads schematics design system (netlist format).
-<LI><B>AutoCAD DXF</B> is a solid-modeling interchange format.
-Use the <B>DXF Options...</B> subcommand of the <B>IO Options</B> command to affect how DXF is written.
-<LI><B>L</B> is the GDT language, still appearing in some commercial systems.
-The output file contains only the current cell and any circuitry below that in the hierarchy.
+Use "GDS" tab of the "I/O" section of the <B>Preferences...</B> command to affect how GDS is written.
+See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
 <LI><B>PostScript</B> is the Adobe printing language.
 The output file contains only a visual representation of the current cell
 (or part of that cell).
-PostScript options can be controlled with the <B>Print Options...</B> command of the <B>File</B> menu.
-<LI><B>HPGL</B> is the Hewlett-Packard printing language.
-The output file contains only a visual representation of the current cell
-(or part of that cell).
-HPGL options can be controlled with the <B>Print Options...</B> command of the <B>File</B> menu.
+PostScript options can be controlled with the
+"Printing" tab of the "General" section of the <B>Preferences...</B> command.</LI>
+<LI><B>Text Cell Contents</B> is used to write a text file from a text cell.
+The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)</LI>
 <LI><B>Readable Dump</B> is an Electric-specific format that captures the entire database,
 but in an editable text format.
 Because it is text, it takes up more space on disk.
 However, it can be transferred between machines more reliably and can be edited if necessary.
+</LI>
+<LI><B>Version 6 ELIB</B> writes old-format binary files.
+These files can be read by version 6 of Electric.
+</LI>
 </UL>
 <P>
 The exported files from Electric are often considered to be proprietary information, and must be marked appropriately.
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-13.png" ALT="Figure 3.13"></CENTER></TD><TD VALIGN=TOP>
-By using the <B>Copyright Options...</B> subcommand of the <B>IO Options</B> command of the <B>File</B> menu,
-a disk file with copyright information can be inserted into exported files.
-Since each export file has a different format for comments, the copyright file should not contain any such characters.
+"Copyright" tab of the "General" section of the <B>Preferences...</B> command,
+copyright information can be inserted into exported files.
+Since each export file has a different format for comments, the copyright text should not contain any such characters.
 Instead, the system will insert the proper comment characters for the particular export format.
 </TD></TR></TABLE>
 <P>
-The copyright file will be inserted into decks exported for CIF, LEF, and CDL, as well as in simulation netlists for
-Verilog, SPICE, FastHenry, IRSIM, and ESIM.
-See <A HREF="chap07-03.html#chap07-03">Section 7-3</A>
-for more information on external formats.
+The copyright file will be inserted into decks exported for CIF, as well as in simulation netlists for
+Verilog, SPICE, and IRSIM.
 
 <!-- TRAILER -->

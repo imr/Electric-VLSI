@@ -1,0 +1,52 @@
+<!-- HEADER 3-11-4: Automatic Icon Generation -->
+
+A particularly useful view type is icon.
+The icon cell is used for instances of an associated <I>contents</I> cell,
+which contains schematics.
+For example, you may have a cell called "adder{sch}" which contains a schematic.
+You may then create a cell called "adder{ic}" that contains a circle with a plus sign inside
+(these are nodes in the Artwork technology).
+This is then the icon for the layout cell "adder{sch}".
+Now, if you create an instance of the schematic cell,
+the icon cell will actually be placed, because it is the symbol that gets used for instances.
+<P>
+To generate an icon cell automatically, use the <B>Make Icon View</B> command of the <B>View</B> menu.
+Be sure to create all relevant exports before issuing this command,
+so that the proper icon can be constructed.
+Note that any export that has its "Body only" attribute checked will be omitted from the icon.
+<P>
+To control the look of the icons, use the <B>Preferences...</B> command of the <B>File</B> menu
+and select the "Icon" tab of the "Technology" section.
+The top part of the dialog lets you place each of the different export types on any of the four sides of the icon.
+<P>
+<TABLE><TR><TD>
+The middle section of the dialog controls the body and leads of the icon.
+You can choose whether or not to draw the body and leads.
+You can set the spacing and length of leads.
+You can choose the location of the exports (at the end of the leads,
+in the middle of the leads, or on the body).
+You can choose the style of the export text (whether it grows inward, outward).
+</TD><TD><CENTER><IMG SRC="fig03-18.png" ALT="Figure 3.18"></CENTER></TD></TR></TABLE>
+<P>
+The bottom part of the dialog has miscellaneous controls.
+You can choose the technology of the exports
+("Universal" uses nodes from the Generic technology which can connect to any arc;
+"Schematic" uses nodes from the Schematic technology and can connect only to other Schematic arcs).
+Exports are arranged alphabetically around the icon,
+and you can choose to reverse the alphabetical order.
+Finally, you can choose the location of the icon instance in the original schematic
+(when you use the <B>Make Icon View</B> command,
+it generates the icon and places an instance of that icon in the schematic).
+A button at the bottom requests that an icon be made now, and takes the place of the <B>Make Icon View</B>
+command.
+<P>
+The icon cell is correctly tied to its contents in most respects.
+If you descend into it (with the <B>Down Hierarchy</B> command of the <B>Cell</B> menu),
+then you actually find yourself editing the associated contents cell.
+The <B>Up Hierarchy</B> command properly returns you to the location of the icon instance.
+Also, the network consistency checker and the simulators correctly substitute the contents whenever an icon appears.
+In order for this to work, however,
+all exports in the contents cell must exist with the same name in the icon cell
+(with the exception of those that are marked "Body Only").
+
+<!-- TRAILER -->

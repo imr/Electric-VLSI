@@ -67,7 +67,7 @@ public class ExportMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsInArea(); } });
         exportMenu.addMenuItem("Move Export", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.moveExport(); } });
-        exportMenu.addMenuItem("Rename Export", null,
+        exportMenu.addMenuItem("Rename Export...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.renameExport(); } });
 
         exportMenu.addSeparator();

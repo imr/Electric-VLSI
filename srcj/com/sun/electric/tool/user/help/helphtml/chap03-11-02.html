@@ -13,37 +13,19 @@ there are a set of commands in the <B>View</B> menu that will switch to an alter
 <LI>Use <B>Edit Skeleton View</B> to switch to the Skeleton view.
 </UL>
 For all other view types, use <B>Edit Other View...</B> and select the desired view.
-Note that these commands are equivalent to the <B>Edit Cell...</B> command of the <B>Cells</B> menu with an appropriate selection.
+Note that these commands are equivalent to the <B>Edit Cell...</B> command of the <B>Cell</B> menu with an appropriate selection.
 <P>
 When editing cells with text-only views, the window becomes a text editor.
-You may then use the <B>Write Text Cell...</B> and <B>Read Text Cell...</B>
-commands of the <B>Cells</B> menu to save and restore this text to disk.
+You may then use the <B>Text Cell Context...</B> subcommand of the <B>Export</B> command
+and the <B>Text Cell Context...</B>
+ subcommand of the <B>Import</B> command (both from the <B>File</B> menu)
+save and restore this text to disk.
 See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
 <P>
 The commands to edit another view work only when that cell exists.
 To create a new cell of a particular type, use the <B>Make...</B> commands of the <B>View</B> menu.
 Thus, <B>Make Multi-Page Schematic View...</B> creates a new page in a multi-page schematic.
-<B>Make Documentation View</B> creates a blank documentation cell.
-<B>Make Other View...</B> prompts for any view type and creates a cell with that view.
-<P>
-<H3>Creating and Deleting Views</H3>
-<P>
-<TABLE><TR><TD>
-If the list of possible views is not sufficient to describe a cell,
-new views can be created with the <B>New View Type...</B> command of the <B>View</B> menu.
-This command requests a name and an abbreviation.
-</TD><TD><CENTER><IMG SRC="fig03-07.png" ALT="Figure 3.7"></CENTER></TD></TR></TABLE>
-<P>
-Generally, an abbreviation should be the first few letters of the full view name.
-This abbreviation will be used when describing cells with that view.
-For example, the view "fast-layout" might have the abbreviation "fast".
-<P>
-The "Textual View" checkbox indicates that this is a text-only view,
-like "Documentation", "Netlist", "Verilog", and "VHDL".
-<P>
-To delete a view, use the <B>Delete View Type...</B> command of the <B>View</B> menu.
-You can delete only the views that you have created, not the basic views that exist on startup
-(such as "layout", "schematic", etc).
-Also, there must be no cells with the view that is being deleted.
+<B>Make Icon View</B> creates an icon from a schematic
+(see <A HREF="chap03-11-04.html#chap03-11-04">Section 3-11-4</A> for more on this).
 
 <!-- TRAILER -->

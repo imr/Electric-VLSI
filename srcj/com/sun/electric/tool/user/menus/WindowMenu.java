@@ -137,7 +137,7 @@ public class WindowMenu {
 
         MenuBar.Menu messagesSubMenu = new MenuBar.Menu("Messages Window");
         windowMenu.add(messagesSubMenu);
-        messagesSubMenu.addMenuItem("Save Messages", null,
+        messagesSubMenu.addMenuItem("Save Messages...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
         messagesSubMenu.addMenuItem("Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});

@@ -1,15 +1,11 @@
 <!-- HEADER 3-7-1: Cell Lists -->
 
-The most basic cell information that you can get is a list of cells.
-This can be done with the <B>Edit Cell...</B> command of the <B>Cells</B> menu.
-The dialog will show the cell names (at which point you can cancel the dialog).
-<P>
 To get some basic information about the current cell
-(size, dates, etc) use the <B>Describe this Cell</B> command of the <B>Cells</B> menu.
+(size, dates, etc) use the <B>Describe this Cell</B> subcommand of the
+<B>Cell Info</B> command of the <B>Cell</B> menu.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-21.png" ALT="Figure 3.21"></CENTER></TD><TD>
-To get such information for a subset of cells, use the <B>General Cell Lists...</B> command.
-<P>
+To get information about more than one cell, use the <B>General Cell Lists...</B> subcommand.
 The dialog selects a subset of the cells in the current library.
 <P>
 The section labeled "Which cells:" selects the cells to be listed
@@ -31,23 +27,34 @@ formatted for spreadsheets (tab-separated).
 The last six columns show the usage and five state bits.
 The usage is the number of times that this cell appears as an instance in other cells.
 The state bits are:
-"L" (if the cell contents are locked),
-"I" (if instances of the cell are locked),
-"C" (if the cell is part of a cell library),
-"D" (if the cell has passed design-rule checking),
-and "N" (if the cell has passed network consistency checking).
+<UL>
+<LI>"L" if the cell contents are locked</LI>
+<LI>"I" if instances of the cell are locked</LI>
+<LI>"C" if the cell is part of a cell library</LI>
+<LI>"D" if the cell has passed design-rule checking</LI>
+<LI>"N" if the cell has passed network consistency checking</LI>
+</UL>
 <P>
 To see all exports in the current cell,
 use the <B>Export</B> menu commands <B>List Exports</B>
 (for a text listing) or <B>Show Exports</B> (for a graphical indication).
 To see a list of exports that are electrically connected to the current object,
 at multiple levels of hierarchy,
-use the <B>List Exports on Network</B> and <B>List Exports below Network</B> commands from the <B>Info</B> menu.
+use the <B>List Exports on Network</B> and <B>List Exports below Network</B> subcommands of the
+<B>Network</B> command the <B>Tool</B> menu.
 <P>
-For more cell information, use the subcommands of the <B>Special Cell Lists</B> submenu of the <B>Cells</B> menu.
+For more cell information, use the subcommands of the <B>Cell Info</B> submenu of the <B>Cell</B> menu.
 The <B>List Nodes in this Cell</B> subcommand shows all nonprimitive nodes in the current cell.
 The <B>List Cell Instances</B> subcommand shows all cell instances below the current cell.
 The <B>List Cell Usage...</B> subcommand looks up the hierarchy and finds cells that contain the
 a particular cell as an instance (you will be prompted for the particular cell).
+
+<P>
+The <B>Edit Documentation View</B> command of the <B>View</B> menu allows you to store arbitrary text with the cell.
+The text editing window that appears can contain any information.
+See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
+<P>
+The <B>List Layer Coverage</B> subcommand of the <B>Info</B> command of the <B>Edit</B> menu computes the percentage of the cell that is covered by each layer.
+This is useful information for certain fabrication processes which insist on a minimum amount of each layer in the die.
 
 <!-- TRAILER -->

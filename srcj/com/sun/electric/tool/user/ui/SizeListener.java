@@ -349,8 +349,8 @@ public class SizeListener
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
-		// "A" for abort
-		if (chr == KeyEvent.VK_A)
+		// ESCAPE for abort
+		if (chr == KeyEvent.VK_ESCAPE)
 		{
 			// restore the listener to the former state
 			WindowFrame.setListener(oldListener);
@@ -465,6 +465,21 @@ public class SizeListener
 			double growthRatioX = ptToCenterX / closestToCenterX;
 			double growthRatioY = ptToCenterY / closestToCenterY;
 			AffineTransform transIn = ni.pureRotateIn();
+			if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+			{
+				double grx = Math.abs(growthRatioX);
+				if (grx < 1)
+				{
+					if (grx == 0) grx = 9999; else grx = 1/grx;
+				}
+				double gry = Math.abs(growthRatioY);
+				if (gry < 1)
+				{
+					if (gry == 0) gry = 9999; else gry = 1/gry;
+				}
+				if (grx > gry) growthRatioY = 1; else
+					growthRatioX = 1;
+			}
 			Point2D delta = new Point2D.Double(growthRatioX, growthRatioY);
 			transIn.transform(delta, delta);
 

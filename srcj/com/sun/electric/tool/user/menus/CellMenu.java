@@ -119,7 +119,7 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); }});
         expandListSubMenu.addMenuItem("All the Way", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandFullCommand(); }});
-        expandListSubMenu.addMenuItem("Specified Amount", null,
+        expandListSubMenu.addMenuItem("Specified Amount...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
         MenuBar.Menu unExpandListSubMenu = new MenuBar.Menu("Unexpand Cell Instances");
         cellMenu.add(unExpandListSubMenu);
@@ -127,7 +127,7 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); }});
         unExpandListSubMenu.addMenuItem("All the Way", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandFullCommand(); }});
-        unExpandListSubMenu.addMenuItem("Specified Amount", null,
+        unExpandListSubMenu.addMenuItem("Specified Amount...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandSpecificCommand(); }});
         cellMenu.addMenuItem("Look Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.peekCommand(); }});
@@ -154,7 +154,7 @@ public class CellMenu {
      */
     public static void newCellCommand()
     {
-         NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
+		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
 
@@ -169,7 +169,7 @@ public class CellMenu {
      */
     public static void crossLibraryCopyCommand()
     {
-         CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
+		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
 

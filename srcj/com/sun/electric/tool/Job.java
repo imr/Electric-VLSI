@@ -395,7 +395,7 @@ public abstract class Job implements ActionListener, Runnable {
 			}
 			System.out.println(this.getInfo());
 		}
-        
+
         // delete
         if (deleteWhenDone) {
             databaseChangesThread.removeJob(this);

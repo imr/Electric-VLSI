@@ -5,18 +5,20 @@ use the "Cell" button in the component menu.
 After choosing a cell from the popup list, click in the edit window to place the instance.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-17.png" ALT="Figure 3.17"></CENTER></TD><TD>
-Another way to place an instance of a cell is to use the <B>New Cell Instance...</B> command of the <B>Edit</B> menu.
+Another way to place an instance of a cell is to use the <B>Place Cell Instance...</B> command of the <B>Cell</B> menu.
 You will be shown a list of cells that are available for creation.
 After selecting one, click to create an instance in the current cell.
 <P>
-Three checkboxes allow you to limit the list of cells.
-By checking "Show relevant cells only" only those cells that have the same view type as the current one will be shown.
-By unchecking "Show old versions" the list will remove old versions of cells.
-By unchecking "Show cells from Cell-Library" the list will remove cells that come from a cell library.
+The cell selection dialog has three controls at the top for viewing cells to create.
+The "Library" popup lets you choose which library to examine.
+You can choose "ALL" to see cells from all libraries.
+The "View" popup lets you see only those cells in the specified view.
+Again, you can choose "All" to see all views.
+The "Filter" field contains letters that must appear in a cell name in order to list it.
 <P>
 If you place an instance from a different library, that library will be linked to the current one.
 Linked libraries are read from disk together, and form a single hierarchy that spans multiple files.
-See <A HREF="chap03-09.html#chap03-09">Section 3-9</A> for
+See <A HREF="chap03-09-01.html#chap03-09-01">Section 3-9-1</A> for
 more on libraries.
 </TD></TR></TABLE>
 <P>
@@ -29,13 +31,9 @@ Note that this command copies all attributes of the original node including its 
 <TABLE><TR><TD>
 <BR><BR><BR><BR><BR>
 When a cell instance is being created,
-the cursor points to its <I>grab point</I>.
-Normally, the grab point is at the lower-left corner,
-but it can be modified by the placement of a <I>Facet-Center</I> node inside of the cell.
-To place this, use the <B>Cell Center</B> subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
-You must place it inside of the cell definition,
-and it affects the grab point for all subsequent creation of cell instances.
-<BR><BR><BR><BR><BR>
+the cursor points to its <I>anchor point</I>.
+The anchor point is that point inside of the cell where the coordinate space has its origin.
+This is often defined by the location of a <I>cell-center</I> node inside of the cell.
 </TD><TD><CENTER><IMG SRC="fig03-08.png" ALT="Figure 3.8"></CENTER></TD></TR></TABLE>
 
 <!-- TRAILER -->

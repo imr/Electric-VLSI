@@ -71,7 +71,7 @@ public class FileMenu {
 		MenuBar.Menu fileMenu = new MenuBar.Menu("File", 'F');
         menuBar.add(fileMenu);
 
-		fileMenu.addMenuItem("New Library", null,
+		fileMenu.addMenuItem("New Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
 		fileMenu.addMenuItem("Open Library", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });

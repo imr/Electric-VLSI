@@ -1,41 +1,24 @@
 <!-- HEADER 4-6-2: Editing Colors -->
 
-The first <B>Color Options</B> subcommand is <B>Edit Colors...</B>,
-which presents a color mixing dialog.
-The bottom half of the dialog shows a set of 16 colors that can be edited.
-A popup menu allows different sets of 16 to be selected.
-The choices are:
+The first color control of the <B>Preferences...</B> command is in the
+"Colors" tab of the "Display" section.
+The top half of the dialog lists all possible things that can have their color chaned:
 <UL>
-<LI>"All transparent layers" (the 5 transparent layers and all combinations of two)
-<LI>"Special colors" (used for borders, text, grid, and other parts of the display)
-<LI>The five transparent layers (in MOSIS CMOS,
-the default technology, these layers are Metal-1, Polysilicon-1, P-Active, Metal-2, and Metal-3)
-<LI>Banks of printable colors (these are used by the PostScript output system when "Color Merged" is selected in the
-<B>Print Options...</B> command of the <B>File</B> menu).
+<LI>The transparent colors (all layers associated with a transparent layer are listed).</LI>
+<LI>The opaque layers.</LI>
+<LI>Special colors such as the background, text, etc.</LI>
 </UL>
 <P>
 <CENTER><IMG SRC="fig04-06.png" ALT="Figure 4.6"></CENTER>
-<P>
-To edit a color, choose a particular color button and edit its value in using controls in the top half of the dialog.
-The mixing palette consists of a hue/saturation wheel and an intensity slider.
-You can also type numeric values for the Red, Green, and Blue.
-For printable colors, there is also an Opacity (1.0 if opaque, smaller values to control blending with other colors)
-and a Foreground factor ("On" if this layer can merge with others behind it).
 <P>
 When changing the background color,
 note that it must contrast with both the highlight color and the inverse of the highlight color
 (the inverse is black in the default settings).
 <P>
-The "Set Transparent layers" button helps with the tedious task of defining all combinations of transparent colors.
-Because there are 5 transparent layers,
-it is necessary to define 32 different combinations of these colors.
-Instead, you can simply select the 5 transparent colors and the background color and then use this button to compute the remaining 26 combinations.
-
-<P>
-
-The final color subcommands are <B>Restore Default Colors</B>,
-which resets all colors to the default set for the current technology,
-<B>Black Background Colors</B> which resets all colors to the default for the current technology but with a black background,
-and <B>White Background Colors</B> which resets all colors to the default for the current technology but with a white background.
+Electric has three different color schemes which have predefined colors.
+The subcommands of the <B>Color Schemes</B> command of the <B>Window</B> menu let you switch between them.
+With the <B>Black Background Colors</B> subcommand, the background becomes black;
+with the <B>White Background Colors</B> subcommand, the background becomes white;
+With the <B>Restore Default Colors</B> subcommand, the background becomes gray (the default).
 
 <!-- TRAILER -->

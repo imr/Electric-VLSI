@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
+import java.awt.Graphics;
 import java.awt.event.FocusListener;
 import java.awt.event.FocusEvent;
 import java.awt.geom.Point2D;
@@ -72,7 +73,7 @@ import javax.swing.text.BadLocationException;
 /**
  * This class defines a text window for displaying text cells.
  */
-public class TextWindow
+public class TextWindow extends JTextArea
 	implements WindowContent
 {
 	/** the cell that is in the window */					private Cell cell;
@@ -80,7 +81,7 @@ public class TextWindow
 	/** the overall panel with disp area and sliders */		private JPanel overall;
 	/** true if the text in the window changed. */			private boolean dirty;
 	/** true if the text in the window is closing. */		private boolean finishing;
-	private JTextArea textArea;
+//	private JTextArea textArea;
 	private JScrollPane scrollPane;
 
 	/**
@@ -94,8 +95,8 @@ public class TextWindow
 		this.wf = wf;
 		this.finishing = false;
 
-		textArea = new JTextArea();
-		scrollPane = new JScrollPane(textArea);
+//		textArea = new JTextArea();
+		scrollPane = new JScrollPane(this);
 		overall = new JPanel();
 		overall.setLayout(new BorderLayout());
 		overall.add(scrollPane, BorderLayout.CENTER);
@@ -103,12 +104,27 @@ public class TextWindow
 		setCell(cell, VarContext.globalContext);
 
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
-		textArea.getDocument().addDocumentListener(twDocumentListener);
-		textArea.addFocusListener(twDocumentListener);
+		this.getDocument().addDocumentListener(twDocumentListener);
+		this.addFocusListener(twDocumentListener);
 
 //		textArea.requestFocus();
 //		textArea.setSelectionStart(0);
 //		textArea.setSelectionEnd(0);
+	}
+
+	/**
+	 * Method to repaint this TextWindow.
+	 */
+	public void paint(Graphics g)
+	{
+		// to enable keys to be received
+		if (cell != null && cell == WindowFrame.getCurrentCell())
+			requestFocus();
+
+		// redo the explorer tree if it changed
+		wf.redoExplorerTreeIfRequested();
+//System.out.println("REPAINT");
+		super.paint(g);
 	}
 
 	/**
@@ -139,6 +155,7 @@ public class TextWindow
 
 	private void textWindowContentChanged()
 	{
+//System.out.println("DIRTY");
 		cell.getLibrary().setChangedMajor();
 		dirty = true;
 	}
@@ -255,12 +272,15 @@ public class TextWindow
 	public void setCell(Cell cell, VarContext context)
 	{
 		this.cell = cell;
+		String oneLine = "";
 		String [] lines = cell.getTextViewContents();
-		if (lines == null) return;
-		textArea.setText(makeOneString(lines));
-		textArea.setSelectionStart(0);
-		textArea.setSelectionEnd(0);
+		if (lines != null) oneLine = makeOneString(lines);
+//System.out.println("Setting text to "+oneLine);
+		this.setText(oneLine);
+		this.setSelectionStart(0);
+		this.setSelectionEnd(0);
 		dirty = false;
+//System.out.println("CLEAN");
 		setWindowTitle();
 	}
 
@@ -292,7 +312,7 @@ public class TextWindow
 				}
 
 				// clear the buffer
-				tw.textArea.setText("");
+				tw.setText("");
 
 				final int READ_BUFFER_SIZE = 65536;
 				char [] buf = new char[READ_BUFFER_SIZE];
@@ -305,7 +325,7 @@ public class TextWindow
 						int amtRead = is.read(buf, 0, READ_BUFFER_SIZE);
 						if (amtRead <= 0) break;
 						String addString = new String(buf, 0, amtRead);
-						tw.textArea.append(addString);
+						tw.append(addString);
 					}
 					stream.close();
 				} catch (IOException e)
@@ -333,7 +353,7 @@ public class TextWindow
 				try
 				{
 					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-					Document doc = tw.textArea.getDocument();
+					Document doc = tw.getDocument();
 					Element paragraph = doc.getDefaultRootElement();
 					int lines = paragraph.getElementCount();
 					for(int i=0; i<lines; i++)
@@ -343,7 +363,7 @@ public class TextWindow
 						int endPos = e.getEndOffset();
 						try
 						{
-							String line = tw.textArea.getText(startPos, endPos - startPos);
+							String line = tw.getText(startPos, endPos - startPos);
 							printWriter.print(line);
 						} catch (BadLocationException ex) {}
 					}
@@ -364,7 +384,7 @@ public class TextWindow
 	 */
 	public void goToLineNumber(int lineNumber)
 	{
-		Document doc = textArea.getDocument();
+		Document doc = this.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		if (lineNumber <= 0 || lineNumber > lines)
@@ -376,8 +396,8 @@ public class TextWindow
 		Element e = paragraph.getElement(lineNumber-1);
 		int startPos = e.getStartOffset();
 		int endPos = e.getEndOffset();
-		textArea.setSelectionStart(startPos);
-		textArea.setSelectionEnd(endPos);
+		this.setSelectionStart(startPos);
+		this.setSelectionEnd(endPos);
 	}
 
 	/**
@@ -428,7 +448,7 @@ public class TextWindow
 					TextWindow tw = (TextWindow)content;
 					if (!tw.finishing)
 					{
-						tw.textArea.setText(makeOneString(strings));
+						tw.setText(makeOneString(strings));
 						tw.dirty = false;
 					}
 				}
@@ -459,7 +479,7 @@ public class TextWindow
 	 */
 	private String [] convertToStrings()
 	{
-		Document doc = textArea.getDocument();
+		Document doc = this.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		String [] strings = new String[lines];
@@ -470,7 +490,7 @@ public class TextWindow
 			int endPos = e.getEndOffset();
 			try
 			{
-				strings[i] = textArea.getText(startPos, endPos - startPos - 1);
+				strings[i] = this.getText(startPos, endPos - startPos - 1);
 			} catch (BadLocationException ex) {}
 		}
 		return strings;
@@ -547,15 +567,15 @@ public class TextWindow
 	 */
 	public boolean findNextText(boolean reverse)
 	{
-		Document doc = textArea.getDocument();
+		Document doc = this.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		int lineNo = 0;
-		int searchPoint = textArea.getSelectionEnd();
-		if (reverse) searchPoint = textArea.getSelectionStart();
+		int searchPoint = this.getSelectionEnd();
+		if (reverse) searchPoint = this.getSelectionStart();
 		try
 		{
-			lineNo = textArea.getLineOfOffset(searchPoint);
+			lineNo = this.getLineOfOffset(searchPoint);
 		} catch (BadLocationException e)
 		{
 			return false;
@@ -577,7 +597,7 @@ public class TextWindow
 			String theLine = null;
 			try
 			{
-				theLine = textArea.getText(startPos, endPos - startPos - 1);
+				theLine = this.getText(startPos, endPos - startPos - 1);
 			} catch (BadLocationException ex)
 			{
 				return false;
@@ -585,8 +605,8 @@ public class TextWindow
 			int foundPos = TextUtils.findStringInString(theLine, searchString, 0, searchCaseSensitive, reverse);
 			if (foundPos >= 0)
 			{
-				textArea.setSelectionStart(startPos + foundPos);
-				textArea.setSelectionEnd(startPos + foundPos + searchString.length());
+				this.setSelectionStart(startPos + foundPos);
+				this.setSelectionEnd(startPos + foundPos + searchString.length());
 				return true;
 			}
 		}
@@ -599,9 +619,9 @@ public class TextWindow
 	 */
 	public void replaceText(String replace)
 	{
-		int startSelection = textArea.getSelectionStart();
-		int endSelection = textArea.getSelectionEnd();
-		textArea.replaceRange(replace, startSelection, endSelection);
+		int startSelection = this.getSelectionStart();
+		int endSelection = this.getSelectionEnd();
+		this.replaceRange(replace, startSelection, endSelection);
 	}
 
 	/**
@@ -610,7 +630,7 @@ public class TextWindow
 	 */
 	public void replaceAllText(String replace)
 	{
-		Document doc = textArea.getDocument();
+		Document doc = this.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		for(int i=0; i<lines; i++)
@@ -621,7 +641,7 @@ public class TextWindow
 			String theLine = null;
 			try
 			{
-				theLine = textArea.getText(startPos, endPos - startPos);
+				theLine = this.getText(startPos, endPos - startPos);
 			} catch (BadLocationException ex)
 			{
 				return;
@@ -636,7 +656,7 @@ public class TextWindow
 				scanPos = foundPos + replace.length();
 				found = true;
 			}
-			if (found) textArea.replaceRange(theLine, startPos, endPos);
+			if (found) this.replaceRange(theLine, startPos, endPos);
 		}
 	}
 }

@@ -61,19 +61,19 @@ Hierarchy
  Cell Information
   Cell Lists                         =chap03-07-01
   Cell Graphing                      =chap03-07-02
-  Cell Preferences                   =chap03-07-03
+  Cell Properties                    =chap03-07-03
   The Cell Explorer                  =chap03-07-04
  Rearranging Cell Hierarchy          =chap03-08
  Libraries
   Introduction to Libraries          =chap03-09-01
   Reading Libraries                  =chap03-09-02
   Writing Libraries                  =chap03-09-03
-  Standard-Cell Libraries            =chap03-09-04
  Copying Cells Between Libraries     =chap03-10
  Views
   Setting a Cell's View              =chap03-11-01
   Switching between Views of a Cell  =chap03-11-02
-  Automatic Icon Generation          =chap03-11-03
+  Creating and Deleting Views        =chap03-11-03
+  Automatic Icon Generation          =chap03-11-04
 
 Display
  Introduction to The Display         =chap04-01

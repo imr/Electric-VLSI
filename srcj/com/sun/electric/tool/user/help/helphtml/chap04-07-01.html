@@ -1,16 +1,17 @@
 <!-- HEADER 4-7-1: Drawing a Grid -->
 
-The <B>Toggle Grid</B> command of the <B>Windows</B> menu turns the grid display on and off.
+The <B>Toggle Grid</B> command of the <B>Window</B> menu turns the grid display on and off.
 The grid consists of dots at every grid unit, and bolder dots every 10 units,
 but both of these distances are settable.
 <P>
-Initially, the grid dots are spaced 1 lambda unit apart.
-The term <I>lambda</I> indicates a generic spacing unit that can be scaled independently of the actual layout.
-For example, in the MOSIS CMOS technology, the value of lambda is 0.2 microns,
-as shown in the status area under the heading "LAMBDA".
+Initially, the grid dots are spaced 1 unit apart.
+The size of a grid unit can be related to real-world distance by considering the <I>scale</I> of the
+technology.
+For example, in the MOSIS CMOS technology, the scale is 0.2 microns,
+as shown in the status area.
 When the grid is displayed, the dots are therefore 0.2 microns apart.
-For more information on lambda,
-<A HREF="chap07-02.html#chap07-02">Section 7-2</A>.
+For more information on scaling,
+<A HREF="chap07-02-01.html#chap07-02-01">Section 7-2-1</A>.
 <P>
 Note that the grid display changes as you zoom in and out.
 When zoomed too far out to show all of the dots, only the bolder dots are shown.
@@ -18,26 +19,18 @@ When zoomed too far out to show even the bolder dots, the grid is not displayed.
 However, the fact that the grid should be on is remembered,
 so it reappears when you zoom back in.
 <P>
-The location of the grid dots is always aligned with the "grab point" of the cell.
-Because this is normally the lower-left corner, the dots will always pass through that point.
-If, however, a Cell-Center node (named "Facet-Center" for historical reasons) is placed in the cell
-(with the <B>Cell Center</B> subcommand of the <B>New Special Object</B>
-command of the <B>Edit</B> menu) then the grid dots will always pass through that point.
-<P>
 <TABLE><TR><TD>
-The <B>Grid Options...</B> command presents a dialog in which grid spacing may be set.
+The <B>Preferences...</B> command of the <B>File</B> menu,
+in the "Grid" tab of the "Display" section,
+presents a dialog in which grid spacing may be set.
 You can change the grid spacing for the current window,
 and also set a default grid spacing to be used in new windows.
 </TD><TD><CENTER><IMG SRC="fig04-03.png" ALT="Figure 4.3"></CENTER></TD></TR></TABLE>
 <P>
 It is possible to change the horizontal and vertical grid dot spacings.
 You can also change number of grid dots between bold ones.
-Finally, you can choose whether or not to align the grid with the circuitry.
-When aligned, the dots are drawn so that they always fall on the "grab point"
-(normally the lower-left corner of the circuitry).
-When not aligned, the dots are drawn in the same location, regardless of the circuitry.
 <P>
 The grid spacing is used by arrow keys when they move objects
-(see <A HREF="chap02-04.html#chap02-04">Section 2-4</A> for more on arrow key motion).
+(see <A HREF="chap02-04-01html#chap02-04-01">Section 2-4-1</A> for more on arrow key motion).
 
 <!-- TRAILER -->
