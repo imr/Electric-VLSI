@@ -639,6 +639,7 @@ public class Spice extends Topology
 
 				// get the ports on this node (in proper order)
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
+				if (subCni == null) continue;
 
 				String modelChar = "X";
 				if (no.getName() != null) modelChar += getSafeNetName(no.getName());

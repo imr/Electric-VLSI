@@ -298,9 +298,13 @@ public class ToolMenu {
 		routingSubMenu.addSeparator();
 
 		routingSubMenu.addMenuItem("Unroute", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.unrouteCurrent(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.unrouteCurrent(); }});
 		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
+		routingSubMenu.addMenuItem("Copy Routing Topology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.copyRoutingTopology(); }});
+		routingSubMenu.addMenuItem("Paste Routing Topology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.pasteRoutingTopology(); }});
 
 		//------------------- Generation
 

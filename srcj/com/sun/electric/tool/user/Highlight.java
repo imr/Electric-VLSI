@@ -638,7 +638,8 @@ public class Highlight
             // draw nodeInst outline
             Poly niPoly = getNodeInstOutline(ni);
             boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
-            drawOutlineFromPoints(wnd, g, niPoly.getPoints(), highOffX, highOffY, niOpened, null);
+            if (highOffX == 0 && highOffY == 0 || point < 0)
+            	drawOutlineFromPoints(wnd, g, niPoly.getPoints(), highOffX, highOffY, niOpened, null);
 
             int offX = highOffX;
             int offY = highOffY;
@@ -993,7 +994,13 @@ public class Highlight
                     trans.transform(pointList, 0, pointList, 0, numPoints);
                     //drawOutlineFromPoints(wnd, g, pointList, 0, 0, true, null);
                     poly = new Poly(pointList);
-                    poly.setStyle(Poly.Type.OPENED);
+    				if (ni.getFunction() == PrimitiveNode.Function.NODE)
+    				{
+    					poly.setStyle(Poly.Type.FILLED);
+    				} else
+    				{
+    					poly.setStyle(Poly.Type.OPENED);
+    				}
                 }
             }
         }

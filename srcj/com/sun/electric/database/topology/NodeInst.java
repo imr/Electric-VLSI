@@ -948,34 +948,151 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isYMirrored() { return sY < 0 || sY == 0 && 1/sY < 0; }
 
 	/**
-	 * Method to return the old (C) style rotation/transpose for this NodeInst.
-	 * In the C version of Electric, transformation was represented as an angle
-	 * (just like this: in tenths of a degree) and a "transpose" factor.  The
-	 * transpose is either 0 or 1.  If 1, the object is transposed about the diagonal
-	 * after rotation.
-	 * @return a Point with the rotation in the X coordinate and the transpose in the Y coordinate.
+	 * Class to convert between Java transformations and C transformations.
+	 * The C code used an angle (in tenth-degrees) and a "transpose" factor
+	 * which would flip the object along the major diagonal after rotation.
+	 * The Java code uses the same angle (in tenth-degrees) but has two mirror
+	 * options: Mirror X and Mirror Y.
 	 */
-	public Point getOldStyleRotationAndTranspose()
+	public static class OldStyleTransform
 	{
-		int rotation = getAngle();
-		int transpose = 0;
-		if (isXMirrored())
+		private int cAngle;
+		private boolean cTranspose;
+		private int jAngle;
+		private boolean jMirrorX;
+		private boolean jMirrorY;
+
+		/**
+		 * Constructor gives the old C style parameters.
+		 * The Java conversion can be obtained from the "get" methods.
+		 * @param cAngle the angle of rotation (in tenth-degrees)
+		 * @param cTranspose if true, object is flipped over the major diagonal after rotation.
+		 */
+		public OldStyleTransform(int cAngle, boolean cTranspose)
 		{
-			if (isYMirrored())
+			// store C information
+			this.cAngle = cAngle;
+			this.cTranspose = cTranspose;
+
+			// compute Java information
+			jAngle = cAngle;
+			jMirrorX = jMirrorY = false;
+			if (cTranspose)
 			{
-				rotation = (rotation + 1800) % 3600;
-			} else
-			{
-				rotation = (rotation + 900) % 3600;
-				transpose = 1;
+				jMirrorY = true;
+				jAngle = (jAngle + 900) % 3600;
 			}
-		} else if (isYMirrored())
-		{
-			rotation = (rotation + 2700) % 3600;
-			transpose = 1;
 		}
-		return new Point(rotation, transpose);
+
+		/**
+		 * Constructor gives the new Java style parameters.
+		 * The C conversion can be obtained from the "get" methods.
+		 * @param jAngle the angle of rotation (in tenth-degrees)
+		 * @param jMirrorX if true, object is flipped over the vertical (mirror in X).
+		 * @param jMirrorY if true, object is flipped over the horizontal (mirror in Y).
+		 */
+		public OldStyleTransform(NodeInst ni)
+		{
+			buildFromJava(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
+		}
+
+		/**
+		 * Constructor gives the new Java style parameters.
+		 * The C conversion can be obtained from the "get" methods.
+		 * @param jAngle the angle of rotation (in tenth-degrees)
+		 * @param jMirrorX if true, object is flipped over the vertical (mirror in X).
+		 * @param jMirrorY if true, object is flipped over the horizontal (mirror in Y).
+		 */
+		public OldStyleTransform(int jAngle, boolean jMirrorX, boolean jMirrorY)
+		{
+			buildFromJava(jAngle, jMirrorX, jMirrorY);
+		}
+
+		private void buildFromJava(int jAngle, boolean jMirrorX, boolean jMirrorY)
+		{
+
+			// store Java information
+			this.jAngle = jAngle;
+			this.jMirrorX = jMirrorX;
+			this.jMirrorY = jMirrorY;
+
+			// compute C information
+			cAngle = jAngle;
+			cTranspose = false;
+			if (jMirrorX)
+			{
+				if (jMirrorY)
+				{
+					cAngle = (cAngle + 1800) % 3600;
+				} else
+				{
+					cAngle = (cAngle + 900) % 3600;
+					cTranspose = true;
+				}
+			} else if (jMirrorY)
+			{
+				cAngle = (cAngle + 2700) % 3600;
+				cTranspose = true;
+			}
+		}
+
+		/**
+		 * Method to return the old C style angle value.
+		 * @return the old C style angle value, in tenth-degrees.
+		 */
+		public int getCAngle() { return cAngle; }
+		/**
+		 * Method to return the old C style transpose factor.
+		 * @return the old C style transpose factor: true to flip over the major diagonal after rotation.
+		 */
+		public boolean isCTranspose() { return cTranspose; }
+
+		/**
+		 * Method to return the new Java style angle value.
+		 * @return the new Java style angle value, in tenth-degrees.
+		 */
+		public int getJAngle() { return jAngle; }
+		/**
+		 * Method to return the new Java style Mirror X factor.
+		 * @return true to flip over the vertical axis (mirror in X).
+		 */
+		public boolean isJMirrorX() { return jMirrorX; }
+		/**
+		 * Method to return the new Java style Mirror Y factor.
+		 * @return true to flip over the horizontal axis (mirror in Y).
+		 */
+		public boolean isJMirrorY() { return jMirrorY; }
+		
 	}
+//	/**
+//	 * Method to return the old (C) style rotation/transpose for this NodeInst.
+//	 * In the C version of Electric, transformation was represented as an angle
+//	 * (just like this: in tenths of a degree) and a "transpose" factor.  The
+//	 * transpose is either 0 or 1.  If 1, the object is transposed about the diagonal
+//	 * after rotation.
+//	 * @return a Point with the rotation in the X coordinate and the transpose in the Y coordinate.
+//	 */
+//	public Point getOldStyleRotationAndTransposeX()
+//	{
+//		int rotation = getAngle();
+//		int transpose = 0;
+//		if (isXMirrored())
+//		{
+//			if (isYMirrored())
+//			{
+//				rotation = (rotation + 1800) % 3600;
+//			} else
+//			{
+//				rotation = (rotation + 900) % 3600;
+//				transpose = 1;
+//			}
+//		} else if (isYMirrored())
+//		{
+//			rotation = (rotation + 2700) % 3600;
+//			transpose = 1;
+//		}
+//		return new Point(rotation, transpose);
+//	}
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.tool.compaction.Compaction;
 import javax.swing.JPanel;
 
 
@@ -31,6 +32,8 @@ import javax.swing.JPanel;
  */
 public class CompactionTab extends PreferencePanel
 {
+	private boolean initialAllowSpreading;
+
 	/** Creates new form CompactionTab */
 	public CompactionTab(java.awt.Frame parent, boolean modal)
 	{
@@ -47,8 +50,8 @@ public class CompactionTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		compAllowSpreading.setEnabled(false);
-		compVerbose.setEnabled(false);
+		initialAllowSpreading = Compaction.isAllowsSpreading();
+		compAllowSpreading.setSelected(initialAllowSpreading);
 	}
 
 	/**
@@ -57,6 +60,9 @@ public class CompactionTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean currentAllowSpreading = compAllowSpreading.isSelected();
+		if (currentAllowSpreading != initialAllowSpreading)
+			Compaction.setAllowsSpreading(currentAllowSpreading);
 	}
 
 	/** This method is called from within the constructor to
@@ -70,8 +76,6 @@ public class CompactionTab extends PreferencePanel
 
         compaction = new javax.swing.JPanel();
         compAllowSpreading = new javax.swing.JCheckBox();
-        compVerbose = new javax.swing.JCheckBox();
-        jLabel78 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -95,21 +99,6 @@ public class CompactionTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         compaction.add(compAllowSpreading, gridBagConstraints);
 
-        compVerbose.setText("Verbose");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        compaction.add(compVerbose, gridBagConstraints);
-
-        jLabel78.setText("COMPACTION IS NOT YET SUPPORTED");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        compaction.add(jLabel78, gridBagConstraints);
-
         getContentPane().add(compaction, new java.awt.GridBagConstraints());
 
         pack();
@@ -124,9 +113,7 @@ public class CompactionTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox compAllowSpreading;
-    private javax.swing.JCheckBox compVerbose;
     private javax.swing.JPanel compaction;
-    private javax.swing.JLabel jLabel78;
     // End of variables declaration//GEN-END:variables
 	
 }

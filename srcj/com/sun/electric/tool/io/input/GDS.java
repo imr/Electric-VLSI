@@ -581,14 +581,17 @@ public class GDS extends Input
 						(ir == (nRows-1) && ic == (nCols-1)))
 				{
 					Point2D loc = new Point2D.Double(ptX, ptY);
-					boolean mY = false;
-					if (trans)
-					{
-						mY = true;
-						angle = (angle + 900) % 3600;
-					}
+					NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(angle, trans);
+					angle = ost.getJAngle();
+					boolean mX = ost.isJMirrorX();
+					boolean mY = ost.isJMirrorY();
+//					if (trans)
+//					{
+//						mY = true;
+//						angle = (angle + 900) % 3600;
+//					}
 
-					new MakeInstance(theCell, (Cell)theNodeProto, loc, false, mY, angle);
+					new MakeInstance(theCell, (Cell)theNodeProto, loc, mX, mY, angle);
 				}
 
 				// add the row displacement

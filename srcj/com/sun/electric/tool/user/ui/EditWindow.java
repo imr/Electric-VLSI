@@ -675,33 +675,33 @@ public class EditWindow extends JPanel
 			showCrossProbeLevels(g);
 
             if (Main.getDebug()) {
-			// add in highlighting
-            if (Job.acquireExamineLock(false)) {
-                try {
-                    // add in the frame if present
-                    drawCellFrame(g);
-
-                    //long start = System.currentTimeMillis();
-                    mouseOverHighlighter.showHighlights(this, g);
-                    highlighter.showHighlights(this, g);
-                    //WindowFrame.show3DHighlight(this);
-                    //long end = System.currentTimeMillis();
-                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-                    Job.releaseExamineLock();
-                } catch (Error e) {
-                    Job.releaseExamineLock();
-                    throw e;
-                }
-            } else {
-                // repaint
+				// add in highlighting
+	            if (Job.acquireExamineLock(false)) {
+	                try {
+	                    // add in the frame if present
+	                    drawCellFrame(g);
+	
+	                    //long start = System.currentTimeMillis();
+	                    mouseOverHighlighter.showHighlights(this, g);
+	                    highlighter.showHighlights(this, g);
+	                    //WindowFrame.show3DHighlight(this);
+	                    //long end = System.currentTimeMillis();
+	                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+	                    Job.releaseExamineLock();
+	                } catch (Error e) {
+	                    Job.releaseExamineLock();
+	                    throw e;
+	                }
+	            } else {
+	            	// repaint
 /*
-                TimerTask redrawTask = new TimerTask() {
-                    public void run() { repaint(); }
-                };
-                Timer timer = new Timer();
-                timer.schedule(redrawTask, 1000);
+	                TimerTask redrawTask = new TimerTask() {
+	                    public void run() { repaint(); }
+	                };
+	                Timer timer = new Timer();
+	                timer.schedule(redrawTask, 1000);
 */
-            }
+	            }
             } else {
                 // unsafe
                 try {

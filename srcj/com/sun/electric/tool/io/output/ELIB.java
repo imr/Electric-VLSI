@@ -867,9 +867,13 @@ public class ELIB extends Output
 		int rotation = ni.getAngle();
 		if (compatibleWith6)
 		{
-			Point oldStyle = ni.getOldStyleRotationAndTranspose();
-			rotation = oldStyle.x;
-			transpose = oldStyle.y;
+			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(ni);
+			rotation = ost.getCAngle();
+			transpose = ost.isCTranspose() ? 1 : 0;
+
+//			Point oldStyle = ni.getOldStyleRotationAndTranspose();
+//			rotation = oldStyle.x;
+//			transpose = oldStyle.y;
 		} else
 		{
 			if (ni.isXMirrored()) transpose |= 2;

@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01al: *********************************
 IMP: (11/6/04, GVG) New width for metal1 arcs. New well rectangular contact to avoid min area/width problems.
-New primitive nodes are available from Tech Palette via menu.
+     New primitive nodes are available from Tech Palette via menu.
 
 IMP: (11/5/04, GVG) Min area only for top cell because its hierarchically done.
 BUG: (11/5/04, GVG) Fixing error introduced in 8.01ai and PolyBase.halfCropBox/PolyBase.cropBox.
@@ -31,11 +31,17 @@ IMP: (11/3/04, RK) Changes for NCC and Gate Layout Generator regressions
 
 IMP: (11/4/04, GVG) PolyBase: not applying transformation if matrix is identity
 
-BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation otherwise merged area won't be
-a simple polygon. FIX: poly.roundPoints();
+BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation otherwise merged area
+     won't be a simple polygon. FIX: poly.roundPoints();
 
 BUG: (11/4/04, GVG) DRC and PolySelect rule, ignoring case when remaining area after second substract was empty.
 FIX: call Area.isEmpty()
+
+IMP: (11/7/04, SMR) Added copy/paste topology (for routers).
+
+IMP: (11/7/04, SMR) Cleaned-up outline-edit mode.
+
+IMP: (11/5/04, SMR) Added EDIF input.
 
 IMP: (11/4/04, SMR) GDS output produces better cell names.
 
@@ -60,15 +66,15 @@ IMP; (11/2/04, GVG) CO.S.1, VIAx.S.1 and VIAn.S.1 rules for vias (meta1 and acti
 ************************* Version 8.01ai: *********************************
 
 BUG: (11/2/04, DN) Library.findNodeProto should find the newest
-    version of the cell, when no version number is specified.
+     version of the cell, when no version number is specified.
 FIX: Add test to "Library.findNodeProto.
 
 BUG: (11/2/04, DN) When view of a cell is changed from layout to
-    schematic, its technology (and TechPallette) remains layout.
+     schematic, its technology (and TechPallette) remains layout.
 FIX: Clear technology in ViewChanges.ChangeCellView
 
 BUG: (11/2/04, DN) When parsing routines will meet with non-Latin
-    unicode digits, they may retuin strange numbers.
+     unicode digits, they may return strange numbers.
 FIX: Use TextUtils.isDigit and TextUtils.isLetterOrDigit.
 
 IMP: (11/2/04, DN) TextUtils.nameSameNumeric is made case-insensitive.

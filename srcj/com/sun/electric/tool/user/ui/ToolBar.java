@@ -46,6 +46,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
@@ -457,11 +458,11 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
     public static void clickZoomWireCommand()
     {
+    	checkLeavingOutlineMode();
         WindowFrame.setListener(ClickZoomWireListener.theOne);
         TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         curMode = CursorMode.CLICKZOOMWIRE;
     }
-
 //	/**
 //	 * Method called when the "select" button is pressed.
 //	 */
@@ -529,6 +530,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             setCursorMode(CursorMode.CLICKZOOMWIRE);
             return;
         }
+        checkLeavingOutlineMode();
 		WindowFrame.setListener(ZoomAndPanListener.theOne);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
@@ -554,7 +556,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 		if (ni == null)
 		{
-			System.out.println("Must first select a node with outline capabilities");
 			if (oldMode == CursorMode.OUTLINE) clickZoomWireCommand(); else
                 setCursorMode(oldMode);
 			return;
@@ -562,7 +563,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		NodeProto np = ni.getProto();
 		if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isHoldsOutline()))
 		{
-			System.out.println("Cannot edit outline information on " + np.describe() + " nodes");
+			System.out.println("Sorry, " + np.describe() + " nodes do not hold outline information");
             if (oldMode == CursorMode.OUTLINE) clickZoomWireCommand(); else
                 setCursorMode(oldMode);
 			return;
@@ -575,6 +576,29 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		curMode = CursorMode.OUTLINE;
 	}
 
+    private static void checkLeavingOutlineMode()
+    {
+    	// if exiting outline-edit mode, turn off special display
+        if (WindowFrame.getListener() == OutlineListener.theOne && curMode == CursorMode.OUTLINE)
+    	{
+            EditWindow wnd = EditWindow.needCurrent();
+            if (wnd != null)
+            {
+            	Highlighter highlighter = wnd.getHighlighter();
+            	NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
+        		if (ni != null)
+        		{
+        			Highlight high = highlighter.getOneHighlight();
+        			if (high != null)
+        			{
+        				high.setPoint(-1);
+        				wnd.repaint();
+        			}
+        		}
+            }
+    	}
+    }
+
 	/**
 	 * Method called when the "measure" button is pressed.
 	 */
@@ -585,6 +609,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             setCursorMode(CursorMode.CLICKZOOMWIRE);
             return;
         }
+        checkLeavingOutlineMode();
         MeasureListener.theOne.reset();
 		WindowFrame.setListener(MeasureListener.theOne);
 		TopLevel.setCurrentCursor(measureCursor);

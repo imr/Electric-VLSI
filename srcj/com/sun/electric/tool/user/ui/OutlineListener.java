@@ -229,8 +229,11 @@ class OutlineListener
 				if (origPoints != null)
 				{
 					doingMotionDrag = true;
-					oldX = outlineNode.getAnchorCenterX() + origPoints[point].getX();
-					oldY = outlineNode.getAnchorCenterY() + origPoints[point].getY();
+//					oldX = outlineNode.getAnchorCenterX() + origPoints[point].getX();
+//					oldY = outlineNode.getAnchorCenterY() + origPoints[point].getY();
+					EditWindow.gridAlign(pt);
+					oldX = pt.getX();
+					oldY = pt.getY();
 				}
 			}
 		}
@@ -296,7 +299,6 @@ class OutlineListener
 	public void mouseWheelMoved(MouseWheelEvent evt)
 	{
 		int clicks = evt.getWheelRotation();
-		System.out.println("Mouse wheel rolled by " + clicks);
 	}
 
 	public void keyPressed(KeyEvent evt)

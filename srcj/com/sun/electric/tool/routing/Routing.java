@@ -25,16 +25,19 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -45,6 +48,9 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -214,10 +220,10 @@ public class Routing extends Listener
 	 */
 	public void mimicSelected()
 	{
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return;
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return;
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		Highlighter highlighter = wf.getContent().getHighlighter();
+		if (highlighter == null) return;
 
 		ArcInst ai = (ArcInst)highlighter.getOneElectricObject(ArcInst.class);
 		if (ai == null) return;
@@ -245,10 +251,10 @@ public class Routing extends Listener
 		public boolean doIt()
 		{
 			// see what is highlighted
-	        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-	        if (wf == null) return false;
-	        Highlighter highlighter = wf.getContent().getHighlighter();
-	        if (highlighter == null) return false;
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf == null) return false;
+			Highlighter highlighter = wf.getContent().getHighlighter();
+			if (highlighter == null) return false;
 			Set nets = highlighter.getHighlightedNetworks();
 			if (nets.size() == 0)
 			{
@@ -327,7 +333,7 @@ public class Routing extends Listener
 							if (covered[i] + covered[j] != 1) continue;
 						}
 						double dist = points[i].distance(points[j]);
-	
+
 						if (!found && dist >= bestdist) continue;
 						found = false;
 						bestdist = dist;
@@ -442,6 +448,355 @@ public class Routing extends Listener
 		{
 			setMimicStitchOn(false);
 			System.out.println("Mimic-stitching disabled");
+		}
+	}
+
+	/****************************** COPY / PASTE ROUTING TOPOLOGY ******************************/
+
+	private static Cell copiedTopologyCell;
+
+	/**
+	 * Method called when the "Copy Routing Topology" command is issued.
+	 * It remembers the topology in the current cell.
+	 */
+	public static void copyRoutingTopology()
+	{
+		Cell np = WindowFrame.needCurCell();
+		if (np == null) return;
+		copiedTopologyCell = np;
+		System.out.println("Cell " + np.describe() + " will have its connectivity remembered");
+	}
+
+	/**
+	 * Method called when the "Paste Routing Topology" command is issued.
+	 * It applies the topology of the "copied" cell to the current cell.
+	 */
+	public static void pasteRoutingTopology()
+	{
+		if (copiedTopologyCell == null)
+		{
+			System.out.println("Must copy topology before pasting it");
+			return;
+		}
+
+		// first validate the source cell
+		if (!copiedTopologyCell.isActuallyLinked())
+		{
+			System.out.println("Copied cell is no longer valid");
+			return;
+		}
+
+		// get the destination cell
+		Cell toCell = WindowFrame.needCurCell();
+		if (toCell == null) return;
+
+		// make sure copy goes to a different cell
+		if (copiedTopologyCell == toCell)
+		{
+			System.out.println("Topology must be copied to a different cell");
+			return;
+		}
+
+		// do the copy
+		CopyRoutingTopology job = new CopyRoutingTopology(copiedTopologyCell, toCell);
+	}
+
+	/**
+	 * Class to delete a cell in a new thread.
+	 */
+	private static class CopyRoutingTopology extends Job
+	{
+		Cell fromCell, toCell;
+
+		protected CopyRoutingTopology(Cell fromCell, Cell toCell)
+		{
+			super("Copy Routing Topology", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fromCell = fromCell;
+			this.toCell = toCell;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			System.out.println("Copying topology of cell " + fromCell.describe() + " to cell " + toCell.describe());
+			int wiresMade = 0;
+
+			// reset association pointers in the destination cell
+			HashMap nodesAssoc = new HashMap();
+
+			// look for associations
+			for(Iterator it = toCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() == Generic.tech.cellCenterNode || ni.getProto() == Generic.tech.essentialBoundsNode) continue;
+				if (nodesAssoc.get(ni) != null) continue;
+
+				// ignore connecting nodes
+				PrimitiveNode.Function fun = null;
+				if (ni.getProto() instanceof PrimitiveNode)
+				{
+					fun = ni.getFunction();
+					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE)
+					{
+						if (ni.getNumExports() > 0)
+						{
+							// an export on a simple node: find the equivalent
+							for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+							{
+								Export e = (Export)eIt.next();
+								Export fromE = fromCell.findExport(e.getName());
+								if (fromE != null)
+								{
+									nodesAssoc.put(ni, fromE.getOriginalPort().getNodeInst());
+									break;
+								}
+							}
+						}
+						continue;
+					}
+				}
+
+				// count the number of this type of node in the two cells
+				List fromList = new ArrayList();
+				for(Iterator nIt = fromCell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst oNi = (NodeInst)nIt.next();
+					if (ni.getProto() instanceof Cell)
+					{
+						if (((Cell)oNi.getProto()).getCellGroup() == ((Cell)ni.getProto()).getCellGroup()) fromList.add(oNi);
+					} else
+					{
+						PrimitiveNode.Function oFun = oNi.getFunction();
+						if (oFun == fun) fromList.add(oNi);
+					}
+				}
+				List toList = new ArrayList();
+				for(Iterator nIt = toCell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst oNi = (NodeInst)nIt.next();
+					if (ni.getProto() instanceof Cell)
+					{
+						if (oNi.getProto() == ni.getProto()) toList.add(oNi);
+					} else
+					{
+						PrimitiveNode.Function oFun = oNi.getFunction();
+						if (oFun == fun) toList.add(oNi);
+					}
+				}
+
+				// problem if the numbers don't match
+				if (toList.size() != fromList.size())
+				{
+					if (fromList.size() == 0) continue;
+					System.out.println("Warning: " + fromCell.describe() + " has " + fromList.size() + " of " + ni.getProto().describe() +
+						" but cell " + toCell.describe() + " has " + toList.size());
+					return false;
+				}
+
+				// look for name matches
+				List copyList = new ArrayList();
+				for(Iterator fIt = fromList.iterator(); fIt.hasNext(); ) copyList.add(fIt.next());
+				for(Iterator fIt = copyList.iterator(); fIt.hasNext(); )
+				{
+					NodeInst fNi = (NodeInst)fIt.next();
+					String fName = fNi.getName();
+					NodeInst matchedNode = null;
+					for(Iterator tIt = toList.iterator(); tIt.hasNext();  )
+					{
+						NodeInst tNi = (NodeInst)tIt.next();
+						String tName = tNi.getName();
+						if (fName.equals(tName)) { matchedNode = tNi;   break; }
+					}
+					if (matchedNode != null)
+					{
+						// name match found: set the association
+						nodesAssoc.put(matchedNode, fNi);
+						fromList.remove(fNi);
+					}
+				}
+
+				if (toList.size() != fromList.size())
+				{
+					System.out.println("Error: after name match, there are " + fromList.size() +
+						" instances of " + ni.getProto().describe() + " in source and " + toList.size() + " in destination");
+					return false;
+				}
+
+				// sort the rest by position and force matches based on that
+				if (fromList.size() == 0) continue;
+				Collections.sort(fromList, new InstacesSpatially());
+				Collections.sort(toList, new InstacesSpatially());
+				for(int i=0; i<Math.min(toList.size(), fromList.size()); i++)
+				{
+					NodeInst tNi = (NodeInst)toList.get(i);
+					NodeInst fNi = (NodeInst)fromList.get(i);
+					nodesAssoc.put(tNi, fNi);
+				}
+			}
+
+			// association made, now copy the topology
+			Netlist fNl = fromCell.getUserNetlist();
+			for(Iterator tIt = toCell.getNodes(); tIt.hasNext(); )
+			{
+				NodeInst tNi = (NodeInst)tIt.next();
+				NodeInst fNi = (NodeInst)nodesAssoc.get(tNi);
+				if (fNi == null) continue;
+
+				// look for another node that may match
+				for(Iterator oTIt = toCell.getNodes(); oTIt.hasNext(); )
+				{
+					NodeInst oTNi = (NodeInst)oTIt.next();
+					if (tNi == oTNi) continue;
+					NodeInst oFNi = (NodeInst)nodesAssoc.get(oTNi);
+					if (oFNi == null) continue;
+
+					// see if they share a connection in the original
+					PortInst fPi = null;
+					PortInst oFPi = null;
+					for(Iterator fPIt = fNi.getPortInsts(); fPIt.hasNext(); )
+					{
+						PortInst pi = (PortInst)fPIt.next();
+						Network net = fNl.getNetwork(pi);
+						for(Iterator oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
+						{
+							PortInst oPi = (PortInst)oFPIt.next();
+							Network oNet = fNl.getNetwork(oPi);
+							if (net == oNet) { fPi = pi;   oFPi = oPi;   break; }
+						}
+						if (fPi != null) break;
+					}
+					if (fPi == null) continue;
+
+					// this connection should be repeated in the other cell
+					PortProto tPp = tNi.getProto().findPortProto(fPi.getPortProto().getName());
+					PortInst tPi = null;
+					if (tPp != null) tPi = tNi.findPortInstFromProto(tPp);
+					if (tPi == null) continue;
+
+					PortProto oTPp = oTNi.getProto().findPortProto(oFPi.getPortProto().getName());
+					PortInst oTPi = null;
+					if (oTPp != null) oTPi = oTNi.findPortInstFromProto(oTPp);
+					if (oTPi == null) continue;
+					// make the connection from "tni", port "tpp" to "otni" port "otpp"
+					int result = makeUnroutedConnection(tPi, oTPi, toCell);
+					if (result < 0) return false;
+					wiresMade += result;
+				}
+			}
+
+			// add in any exported but unconnected pins
+			for(Iterator tIt = toCell.getNodes(); tIt.hasNext(); )
+			{
+				NodeInst tNi = (NodeInst)tIt.next();
+				if (nodesAssoc.get(tNi) != null) continue;
+				if (tNi.getProto() instanceof Cell) continue;
+				if (tNi.getNumExports() == 0) continue;
+				PrimitiveNode.Function fun = tNi.getFunction();
+				if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;
+
+				// find that export in the source cell
+				PortProto tPp = tNi.getProto().getPort(0);
+				String matchName = ((Export)tNi.getExports().next()).getName();
+				Network net = null;
+				for(Iterator fIt = fromCell.getPorts(); fIt.hasNext(); )
+				{
+					Export fPp = (Export)fIt.next();
+					int width = fNl.getBusWidth(fPp);
+					for(int i=0; i<width; i++)
+					{
+						Network aNet = fNl.getNetwork(fPp, i);
+						if (aNet == null) continue;
+						if (aNet.toString().equalsIgnoreCase(matchName)) { net = aNet;   break; }
+					}
+					if (net != null) break;
+				}
+				if (net == null) continue;
+
+				// check to see if this is connected elsewhere in the "to" cell
+				PortInst oFPi = null;
+				NodeInst oTNi = null;
+				for(Iterator oTIt = toCell.getNodes(); oTIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)oTIt.next();
+					NodeInst oFNi = (NodeInst)nodesAssoc.get(ni);
+					if (oFNi == null) continue;
+
+					// see if they share a connection in the original
+					for(Iterator oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
+					{
+						PortInst pi = (PortInst)oFPIt.next();
+						Network oNet = fNl.getNetwork(pi);
+						if (oNet == null) continue;
+						if (oNet == net) { oFPi = pi;   break; }
+					}
+					if (oFPi != null) { oTNi = ni;   break; }
+				}
+				if (oTNi != null)
+				{
+					// find the proper port in this cell
+					PortProto oTPp = oTNi.getProto().findPortProto(oFPi.getPortProto().getName());
+					PortInst oPi = oTNi.findPortInstFromProto(oTPp);
+					if (oPi == null) continue;
+
+					// make the connection from "tni", port "tpp" to "otni" port "otpp"
+					int result = makeUnroutedConnection(tNi.getPortInst(0), oPi, toCell);
+					if (result < 0) return false;
+					wiresMade += result;
+				}
+			}
+			if (wiresMade == 0) System.out.println("No topology was copied"); else
+				System.out.println("Created " + wiresMade + " arcs to copy the topology");
+			return true;
+		}
+	}
+
+	/**
+	 * Helper method to run an unrouted wire between node "fni", port "fpp" and node "tni", port
+	 * "tpp".  If the connection is already there, the routine doesn't make another.
+	 * @return number of arcs created (-1 on error).
+	 */
+	private static int makeUnroutedConnection(PortInst fPi, PortInst tPi, Cell cell)
+	{
+		// see if they are already connected
+		if (fPi != null && tPi != null)
+		{
+			Netlist nl = cell.getUserNetlist();
+			Network fNet = nl.getNetwork(fPi);
+			Network tNet = nl.getNetwork(tPi);
+			if (fNet == tNet) return 0;
+		}
+
+		// make the connection from "tni", port "tpp" to "otni" port "otpp"
+		Poly fPoly = fPi.getPoly();
+		Poly tPoly = tPi.getPoly();
+		Point2D fPt = new Point2D.Double(fPoly.getCenterX(), fPoly.getCenterY());
+		Point2D tPt = new Point2D.Double(tPoly.getCenterX(), tPoly.getCenterY());
+		double wid = Generic.tech.unrouted_arc.getDefaultWidth();
+		ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, wid, fPi, tPi, fPt, tPt, null);
+		if (ai == null) return -1;
+		return 1;
+	}
+
+	public static class InstacesSpatially implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			NodeInst n1 = (NodeInst)o1;
+			NodeInst n2 = (NodeInst)o2;
+			double x1 = n1.getAnchorCenterX();
+			double y1 = n1.getAnchorCenterY();
+			double x2 = n2.getAnchorCenterX();
+			double y2 = n2.getAnchorCenterY();
+			if (y1 == y2)
+			{
+				if (x1 == x2) return 0;
+				if (x1 > x2) return 1;
+				return -1;
+			}
+			if (y1 == y2) return 0;
+			if (y1 > y2) return 1;
+			return -1;
 		}
 	}
 

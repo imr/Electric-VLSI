@@ -58,9 +58,6 @@ public class LibraryTab extends PreferencePanel
 			case 1: backupOneLevel.setSelected(true);  break;
 			case 2: backupAll.setSelected(true);       break;
 		}
-
-		// not yet
-		checkAfterWrite.setEnabled(false);
 	}
 
 	/**
@@ -91,7 +88,6 @@ public class LibraryTab extends PreferencePanel
         noBackup = new javax.swing.JRadioButton();
         backupOneLevel = new javax.swing.JRadioButton();
         backupAll = new javax.swing.JRadioButton();
-        checkAfterWrite = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -112,8 +108,8 @@ public class LibraryTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         library.add(noBackup, gridBagConstraints);
 
         backupOneLevel.setText("Backup of last library file");
@@ -121,8 +117,8 @@ public class LibraryTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         library.add(backupOneLevel, gridBagConstraints);
 
         backupAll.setText("Backup history of library files");
@@ -130,17 +126,9 @@ public class LibraryTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         library.add(backupAll, gridBagConstraints);
-
-        checkAfterWrite.setText("Check database after write");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        library.add(checkAfterWrite, gridBagConstraints);
 
         getContentPane().add(library, new java.awt.GridBagConstraints());
 
@@ -158,7 +146,6 @@ public class LibraryTab extends PreferencePanel
     private javax.swing.JRadioButton backupAll;
     private javax.swing.ButtonGroup backupGroup;
     private javax.swing.JRadioButton backupOneLevel;
-    private javax.swing.JCheckBox checkAfterWrite;
     private javax.swing.JPanel library;
     private javax.swing.JRadioButton noBackup;
     // End of variables declaration//GEN-END:variables

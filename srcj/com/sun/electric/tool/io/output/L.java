@@ -230,9 +230,13 @@ public class L extends Output
 			}
 
 			// write rotation
-			Point oldStyle = ni.getOldStyleRotationAndTranspose();
-			int oldRotation = oldStyle.x;
-			int oldTranspose = oldStyle.y;
+			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(ni);
+			int oldRotation = ost.getCAngle();
+			int oldTranspose = ost.isCTranspose() ? 1 : 0;
+
+//			Point oldStyle = ni.getOldStyleRotationAndTranspose();
+//			int oldRotation = oldStyle.x;
+//			int oldTranspose = oldStyle.y;
 			if (oldRotation != 0 || oldTranspose != 0)
 			{
 				if (oldTranspose != 0)
