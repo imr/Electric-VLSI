@@ -632,16 +632,16 @@ public class Verilog extends Topology
 							PortInst pi = (PortInst)pIt.next();
 							JNetwork net = netList.getNetwork(pi);
 
-							// see if it connects to an earlier portinst
-							boolean connected = false;
-							for(Iterator ePIt = ni.getPortInsts(); ePIt.hasNext(); )
-							{
-								PortInst ePi = (PortInst)ePIt.next();
-								if (ePi == pi) break;
-								JNetwork eNet = netList.getNetwork(ePi);
-								if (eNet == net) { connected = true;   break; }
-							}
-							if (connected) continue;
+//							// see if it connects to an earlier portinst
+//							boolean connected = false;
+//							for(Iterator ePIt = ni.getPortInsts(); ePIt.hasNext(); )
+//							{
+//								PortInst ePi = (PortInst)ePIt.next();
+//								if (ePi == pi) break;
+//								JNetwork eNet = netList.getNetwork(ePi);
+//								if (eNet == net) { connected = true;   break; }
+//							}
+//							if (connected) continue;
 							if (dropBias && pi.getPortProto().getName().equals("b")) continue;
 							if (i == 0)
 							{
@@ -998,6 +998,9 @@ public class Verilog extends Topology
     /** Abstract method to decide whether export names take precedence over
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return true; }
+
+	/** Abstract method to decide whether library names are always prepended to cell names. */
+	protected boolean isLibraryNameAlwaysAddedToCellName() { return true; }
 
 	/*
 	 * Method to adjust a network name to be safe for Verilog output.

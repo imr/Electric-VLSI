@@ -851,7 +851,7 @@ public class WindowFrame
 
 		if (cell != null)
 		{
-			title.append(prefix + cell.describe());
+			title.append(prefix + cell.libDescribe());
 
 			if (cell.getLibrary() != Library.getCurrent())
 				title.append(" - Current library: " + Library.getCurrent().getName());

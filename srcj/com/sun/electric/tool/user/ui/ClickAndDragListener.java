@@ -69,7 +69,7 @@ class ClickAndDragListener
 		{
 			if (highlighter.getNumHighlights() >= 1)
 			{
-				EditMenu.getInfoCommand();
+				EditMenu.getInfoCommand(true);
 				return;
 			}
 		}

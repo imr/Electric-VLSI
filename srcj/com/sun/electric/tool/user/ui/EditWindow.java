@@ -23,58 +23,75 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 
-import java.awt.*;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.AdjustmentEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
-import java.awt.font.LineMetrics;
 import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JPopupMenu;
+import java.util.regex.Pattern;
+
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollBar;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -172,6 +189,8 @@ public class EditWindow extends JPanel
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = gbc.weighty = 1;
 		overall.add(this, gbc);
+		setOpaque(false);
+		setLayout(null);
 
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()
@@ -607,6 +626,9 @@ public class EditWindow extends JPanel
 			// add in popup cloud
 			if (showPopupCloud) drawPopupCloud((Graphics2D)g);
 		}
+
+		// draw any components that are on top (such as in-line text edits)
+		super.paint(g);
 	}
 
 	public void fullRepaint() { repaintContents(null); }

@@ -121,9 +121,12 @@ public abstract class Topology extends Output
 	/** Abstract method to return the proper name of a Global signal */
 	protected abstract String getGlobalName(Global glob);
 
-    /** Abstract method to decide whether export names take precedence over
-     * arc names when determining the name of the network. */
-    protected abstract boolean isNetworksUseExportedNames();
+	/** Abstract method to decide whether export names take precedence over
+	 * arc names when determining the name of the network. */
+	protected abstract boolean isNetworksUseExportedNames();
+
+	/** Abstract method to decide whether library names are always prepended to cell names. */
+	protected abstract boolean isLibraryNameAlwaysAddedToCellName();
 
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method. */
@@ -353,13 +356,13 @@ public abstract class Topology extends Output
 			{
 				if (net.hasNames())
                 {
-                    String name = null;
-                    if (useExportedName && net.getExportedNames().hasNext()) {
-                        name = (String)net.getExportedNames().next();
+                    if (useExportedName && net.getExportedNames().hasNext())
+					{
+						cs.name = (String)net.getExportedNames().next();
                     } else
-                        name = (String)net.getNames().next();
-                    cs.name = name;
-                    //cs.name = (String)net.getNames().next();
+                    {
+						cs.name = (String)net.getNames().next();
+                    }
                 } else
 				{
 					cs.name = net.describe();
@@ -384,7 +387,29 @@ public abstract class Topology extends Output
 			{
 				JNetwork net = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(net);
+				if (cs == null) continue;
 				cs.pp = pp;
+				if (useExportedName)
+				{
+					String rootName = pp.getName();
+					int openPos = rootName.indexOf('[');
+					if (openPos > 0)
+					{
+						rootName = rootName.substring(0, openPos);
+						for(Iterator nIt = net.getExportedNames(); nIt.hasNext(); )
+						{
+							String exportNetName = (String)nIt.next();
+							String exportRootName = exportNetName;
+							openPos = exportRootName.indexOf('[');
+							if (openPos > 0)
+							{
+								exportRootName = exportRootName.substring(0, openPos);
+								if (rootName.equals(exportRootName))
+									cs.name = rootName + exportNetName.substring(openPos);
+							}
+						}
+					}
+				}
                 cs.ppIndex = i;
 			}
 
@@ -394,6 +419,7 @@ public abstract class Topology extends Output
 			for(int i=0; i<portWidth; i++)
 			{
 				JNetwork subNet = cni.netList.getNetwork(pp, i);
+				if (subNet == null) continue;
 				if (!subNet.hasNames()) break;
 				String firstName = (String)subNet.getNames().next();
 				int openSquare = firstName.indexOf('[');
@@ -531,7 +557,7 @@ public abstract class Topology extends Output
 			if (cs.pp == null) continue;
 
 			// find the widest export that touches this network
-			int widestFound = -1;
+			int widestFound = cni.netList.getBusWidth(cs.pp);
 			Export widestPp = null;
 			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 			{
@@ -644,7 +670,7 @@ public abstract class Topology extends Output
 				for(int j=0; j<i; j++)
 				{
 					CellAggregateSignal oCas = (CellAggregateSignal)cni.cellAggretateSignals.get(j);
-					if (!ninName.equals(oCas.name)) { found = true;   break; }
+					if (ninName.equals(oCas.name)) { found = true;   break; }
 				}
 				if (!found)
 				{
@@ -796,6 +822,14 @@ public abstract class Topology extends Output
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
+				if (isLibraryNameAlwaysAddedToCellName())
+				{
+					// always prepend library name: just do it
+					cellNameMap.put(cell, lib.getName() + "__" + cell.getName());
+					continue;
+				}
+
+				// only prepend library name when there is a conflict of cell names
 				boolean duplicate = false;
 				for(Iterator oLIt = Library.getLibraries(); oLIt.hasNext(); )
 				{
@@ -814,7 +848,7 @@ public abstract class Topology extends Output
 					if (duplicate) break;
 				}
 
-				if (duplicate) cellNameMap.put(cell, cell.getLibrary().getName() + "__" + cell.getName()); else
+				if (duplicate) cellNameMap.put(cell, lib.getName() + "__" + cell.getName()); else
 					cellNameMap.put(cell, cell.getName());
 			}
 		}

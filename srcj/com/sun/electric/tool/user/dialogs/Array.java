@@ -366,13 +366,15 @@ public class Array extends EDialog
 			}
 
 			// check for nonsense
-			if (lastXRepeat <= 1 && lastYRepeat <= 1)
+			int xRepeat = Math.abs(lastXRepeat);
+			int yRepeat = Math.abs(lastYRepeat);
+			if (xRepeat <= 1 && yRepeat <= 1)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"One dimension of the array must be greater than 1");
 				return false;
 			}
-			if (lastLinearDiagonal && lastXRepeat != 1 && lastYRepeat != 1)
+			if (lastLinearDiagonal && xRepeat != 1 && yRepeat != 1)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Diagonal arrays need one dimension to be 1");
@@ -393,12 +395,12 @@ public class Array extends EDialog
 			Collections.sort(arcList, new GeometricsByName());
 
 			// determine the distance between arrayed entries
-			double xOverlap = Array.lastXDistance;
-			double yOverlap = Array.lastYDistance;
-			if (Array.lastSpacingType == SPACING_EDGE)
+			double xOverlap = lastXDistance;
+			double yOverlap = lastYDistance;
+			if (lastSpacingType == SPACING_EDGE)
 			{
-				xOverlap = dialog.bounds.getWidth() - Array.lastXDistance;
-				yOverlap = dialog.bounds.getHeight() - Array.lastYDistance;
+				xOverlap = dialog.bounds.getWidth() - lastXDistance;
+				yOverlap = dialog.bounds.getHeight() - lastYDistance;
 			}
 			double cX = dialog.bounds.getCenterX();
 			double cY = dialog.bounds.getCenterY();
@@ -409,28 +411,30 @@ public class Array extends EDialog
 			int checkNodeCount = 0;
 			if (lastDRCGood)
 			{
-				geomsToCheck = new NodeInst[lastXRepeat * lastYRepeat];
-				validity = new boolean[lastXRepeat * lastYRepeat];
+				geomsToCheck = new NodeInst[xRepeat * yRepeat];
+				validity = new boolean[xRepeat * yRepeat];
 				if (nodeList.size() == 1)
 					geomsToCheck[checkNodeCount++] = (NodeInst)nodeList.get(0);
 			}
 
 			// create the array
 			int originalX = 0, originalY = 0;
-			int total = lastYRepeat * lastXRepeat;
+			int total = yRepeat * xRepeat;
 			for(int index = 0; index < total; index++)
 			{
-				int x = index % lastXRepeat;
-				int y = index / lastXRepeat;
+				int x = index % xRepeat;
+				int y = index / xRepeat;
 				if (lastTranspose)
 				{
-					y = index % lastYRepeat;
-					x = index / lastYRepeat;
+					y = index % yRepeat;
+					x = index / yRepeat;
 				}
 				int xIndex = x;
 				int yIndex = y;
-				if (lastXCenter) xIndex = x - (lastXRepeat-1)/2;
-				if (lastYCenter) yIndex = y - (lastYRepeat-1)/2;
+				if (lastXCenter) xIndex = x - (xRepeat-1)/2;
+				if (lastYCenter) yIndex = y - (yRepeat-1)/2;
+				if (lastXRepeat < 0) xIndex = -xIndex;
+				if (lastYRepeat < 0) yIndex = -yIndex;
 				if (xIndex == 0 && yIndex == 0)
 				{
 					originalX = x;
@@ -444,22 +448,22 @@ public class Array extends EDialog
 				{
 					NodeInst ni = (NodeInst)it.next();
 					double xPos = cX + xOverlap * xIndex;
-					if (Array.lastLinearDiagonal && Array.lastXRepeat == 1) xPos = cX + xOverlap * yIndex;
+					if (lastLinearDiagonal && xRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
-					if (Array.lastLinearDiagonal && Array.lastYRepeat == 1) yPos = cY + yOverlap * xIndex;
+					if (lastLinearDiagonal && yRepeat == 1) yPos = cY + yOverlap * xIndex;
 					double xOff = ni.getAnchorCenterX() - cX;
 					double yOff = ni.getAnchorCenterY() - cY;
-					if ((xIndex&1) != 0 && Array.lastXStagger) yPos += yOverlap/2;
-					if ((yIndex&1) != 0 && Array.lastYStagger) xPos += xOverlap/2;
+					if ((xIndex&1) != 0 && lastXStagger) yPos += yOverlap/2;
+					if ((yIndex&1) != 0 && lastYStagger) xPos += xOverlap/2;
 					int ro = ni.getAngle();
 					double sx = ni.getXSizeWithMirror();
 					double sy = ni.getYSizeWithMirror();
-					if ((xIndex&1) != 0 && Array.lastXFlip)
+					if ((xIndex&1) != 0 && lastXFlip)
 					{
 						sx = -sx;
 						xOff = -xOff;
 					}
-					if ((yIndex&1) != 0 && Array.lastYFlip)
+					if ((yIndex&1) != 0 && lastYFlip)
 					{
 						sy = -sy;
 						yOff = -yOff;
@@ -609,7 +613,7 @@ public class Array extends EDialog
 					objName = geomName.toString();
 			}
 			String totalName = objName + x + "-" + y;
-			if (Array.lastXRepeat <= 1 || Array.lastYRepeat <= 1)
+			if (Math.abs(lastXRepeat) <= 1 || Math.abs(lastYRepeat) <= 1)
 				totalName = objName + (x+y);
 			geom.setName(totalName);
 

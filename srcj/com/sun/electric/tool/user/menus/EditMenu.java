@@ -174,7 +174,7 @@ public class EditMenu {
 		MenuBar.Menu editPropertiesSubMenu = new MenuBar.Menu("Properties", 'V');
 		editMenu.add(editPropertiesSubMenu);
 		editPropertiesSubMenu.addMenuItem("Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(false); } });
 		editPropertiesSubMenu.addMenuItem("Attribute Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
 		editPropertiesSubMenu.addSeparator();
@@ -417,7 +417,7 @@ public class EditMenu {
 	/**
 	 * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
 	 */
-	public static void getInfoCommand()
+	public static void getInfoCommand(boolean doubleClick)
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
@@ -463,8 +463,26 @@ public class EditMenu {
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport.showDialog();
-				if (textCount == 1) GetInfoText.showDialog();
+				if (exportCount == 1)
+				{
+					if (doubleClick)
+					{
+						GetInfoText.editTextInPlace();
+					} else
+					{
+						GetInfoExport.showDialog();
+					}
+				}
+				if (textCount == 1)
+				{
+					if (doubleClick)
+					{
+						GetInfoText.editTextInPlace();
+					} else
+					{
+						GetInfoText.showDialog();
+					}
+				}
 			} else
 			{
 				GetInfoMulti.showDialog();

@@ -5,25 +5,37 @@
 
 ************************* Version 8.01j: *********************************
 
+IMP/MAN: (8/25/04, SMR) "Array" dialog allows negative array amounts to create
+     arrays in the other direction.
+
+BUG: (8/24/04, SMR) Verilog output sometimes writes 2 connections for a transistor instead of 3.
+FIX: Do not remove ports that are electrically connected.
+
+BUG: (8/24/04, SMR) Verilog output scrambles bus signals, failing to aggregate them properly.
+FIX: In "tool.io.output.Topology.doGetNetworks()" assigned export names properly.
+
+IMP: (8/24/04, SMR) Verilog output now prepends library name to all module names.
+
 BUG: (8.24/04, GVG) MoCMOS via4 spacing rule was found as wide rule. NOTE: Also found in C-Electric
 FIX: Transformed into standard spacing rule
 
-BUG: (8/23/04, GVG) DRC and wide rules in MoCMOS not properly translated to new data structure (Metal2-Metal3 wide
-distance setup calling wrong constructor)
+BUG: (8/23/04, GVG) DRC and wide rules in MoCMOS not properly translated to new data structure
+     (Metal2-Metal3 wide distance setup calling wrong constructor)
 FIX: Adding missing argument (WIDELIMIT)
 
-IMP: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
-    ClickZoomWireListener.useMouseOverHighlighter to false. 
+IMP/MAN: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
+     ClickZoomWireListener.useMouseOverHighlighter to false.
+     Controlled with "Selection" and "Color" tabs of Preferences.
 
 BUG: (8/22/04, JKG) From Justin: double clicking in library explorer
-    changes cell in another window
+     changes cell in another window
 FIX: Current window frame was not strictly deterministic
-    with respect to window focus. Instead of setting the current window
-    frame, request focus, which will in turn set the current window frame.
+     with respect to window focus. Instead of setting the current window
+     frame, request focus, which will in turn set the current window frame.
 
 IMP: (8/22/04, JKG) Created ActivityLogger to log user's activities. Also
-    added EventProcesser to catch Swing exceptions. Hopefully all user
-    actions and exceptions can be logged and analyzed later.
+     added EventProcesser to catch Swing exceptions. Hopefully all user
+     actions and exceptions can be logged and analyzed later.
 
 FIX: (8/22/04, JKG) fixes to some GUI classes to try to make them Swing-thread safer
 

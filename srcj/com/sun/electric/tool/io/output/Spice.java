@@ -1078,6 +1078,9 @@ public class Spice extends Topology
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return false; }
 
+	/** Abstract method to decide whether library names are always prepended to cell names. */
+	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }
+
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method.
      * If this cell has a spice template, skip it

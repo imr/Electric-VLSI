@@ -686,7 +686,7 @@ public class Cell extends NodeProto implements Comparable
         for (Iterator it = getLibrary().getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             if (newName.equals(c.getName()) && (getView() == c.getView())) {
-                System.out.println("Already a Cell named "+noLibDescribe()+" in Library "+getLibrary().getName());
+                System.out.println("Already a Cell named " + noLibDescribe() + " in Library " + getLibrary().getName());
                 return;
             }
         }
@@ -1321,15 +1321,13 @@ public class Cell extends NodeProto implements Comparable
                 if (libDep != null) {
                     // addition would create circular dependency
                     if (disallowCirDep) {
-                        System.out.println("ERROR: "+ getLibrary().getName()+":"+noLibDescribe() + " cannot instantiate " +
-                                instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
-                                " because it would create a circular library dependence: ");
+                        System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
+                             instProto.libDescribe() + " because it would create a circular library dependence: ");
                         System.out.println(libDep.toString());
                         return null;
                     } else {
-                        System.out.println("WARNING: "+ getLibrary().getName()+":"+noLibDescribe() + " instantiates " +
-                                instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
-                                " which causes a circular library dependence: ");
+                        System.out.println("WARNING: "+ libDescribe() + " instantiates " +
+                            instProto.libDescribe() + " which causes a circular library dependence: ");
                         System.out.println(libDep.toString());
                     }
                 }
@@ -1545,8 +1543,8 @@ public class Cell extends NodeProto implements Comparable
 	public String describe()
 	{
 		String name = "";
-		//if (lib != Library.getCurrent())
-		name += lib.getName() + ":";
+		if (lib != Library.getCurrent())
+			name += lib.getName() + ":";
 		name += noLibDescribe();
 		return name;
 	}

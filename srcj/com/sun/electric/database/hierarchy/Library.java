@@ -377,12 +377,11 @@ public class Library extends ElectricObject
 
         public String toString() {
             StringBuffer buf = new StringBuffer();
-            buf.append("Library "+ startLib.getName() + " depends on Library "+finalRefLib.getName()+" through the following references:\n");
+            buf.append("Library " + startLib.getName() + " depends on Library " + finalRefLib.getName() + " through the following references:\n");
             for (Iterator it = dependencies.iterator(); it.hasNext(); ) {
                 Cell libCell = (Cell)it.next();
                 Cell instance = (Cell)it.next();
-                buf.append("   "+libCell.getLibrary().getName()+":"+libCell.noLibDescribe()+ " instantiates "
-                                + instance.getLibrary().getName()+":"+instance.noLibDescribe()+"\n");
+                buf.append("   " + libCell.libDescribe() + " instantiates " + instance.libDescribe() + "\n");
             }
             return buf.toString();
         }

@@ -4835,7 +4835,7 @@ public class CircuitChanges
 					String msg = "";
 					if (move) msg += "Moved "; else
 						 msg += "Copied ";
-					msg += subDescript + Library.getCurrent().getName() + ":" + newFromCell.noLibDescribe() +
+					msg += subDescript + newFromCell.libDescribe() +
 						" to library " + toLib.getName();
 					System.out.println(msg);
 				} else

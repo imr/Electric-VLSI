@@ -301,7 +301,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell cell = (Cell)eit.next();
 				if (cell.getNewestVersion() != cell) continue;
 				Cell.CellGroup group = cell.getCellGroup();
-				if (group.getNumCells() == 1)
+				int numNewCells = 0;
+				for(Iterator gIt = group.getCells(); gIt.hasNext(); )
+				{
+					Cell cellInGroup = (Cell)gIt.next();
+					if (cellInGroup.getNewestVersion() == cellInGroup) numNewCells++;
+				}
+				if (numNewCells == 1)
 				{
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
 					libTree.add(cellTree);

@@ -391,7 +391,7 @@ public class ClickZoomWireListener
 	                /* if no modifiers, do "get info" */
 	                if (!another && !invertSelection) {
 	                    if (highlighter.getNumHighlights() >= 1) {
-	                        EditMenu.getInfoCommand();
+	                        EditMenu.getInfoCommand(true);
 	                        return;
 	                    }
 	                }
