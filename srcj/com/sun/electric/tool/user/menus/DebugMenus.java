@@ -166,6 +166,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { timeMethodCalls(); }});
         jongMenu.addMenuItem("Delete layout cells in current library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCells(View.LAYOUT); }});
+        jongMenu.addMenuItem("fill generator 90nm test", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { com.sun.electric.tool.generator.layout.fill90nm.FillGenerator90.test(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 

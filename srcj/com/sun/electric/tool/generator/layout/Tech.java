@@ -91,7 +91,7 @@ public class Tech {
 	private static final String[] MOCMOS_LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
 	private static final String[] TSMC90_LAYER_NAMES = {"Polysilicon", "Metal-1", 
-		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
+		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6", "Metal-7", "Metal-8", "Metal-9"};
 	private static String[] layerNms;
 	private static int nbLay;
 	private static PrimitiveArc[] layers;
@@ -114,7 +114,7 @@ public class Tech {
 	 * at adjacent heights can connect using vias.
 	 *
 	 * For now, well and diffusion don't have heights. */
-	public static PrimitiveArc pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6;
+	public static PrimitiveArc pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9;
 	/** layer pins */
 	public static PrimitiveNode ndpin,
 		pdpin,
@@ -124,10 +124,15 @@ public class Tech {
 		m3pin,
 		m4pin,
 		m5pin,
-		m6pin;
+        m6pin,
+        m7pin,
+        m8pin,
+		m9pin;
 	/** vias */
 	public static PrimitiveNode nwm1,
 		pwm1,
+        nwm1Y,
+        pwm1Y,
 		ndm1,
 		pdm1,
 		p1m1,
@@ -135,7 +140,10 @@ public class Tech {
 		m2m3,
 		m3m4,
 		m4m5,
-		m5m6;
+		m5m6,
+        m6m7,
+        m7m8,
+        m8m9;
 	/** Transistors */
 	public static PrimitiveNode nmos, pmos;
 	/** Well */
@@ -147,6 +155,9 @@ public class Tech {
 		m4Node,
 		m5Node,
 		m6Node,
+        m7Node,
+        m8Node,
+        m9Node,
 		p1Node,
 		pdNode,
 		ndNode,
@@ -204,6 +215,9 @@ public class Tech {
 		m4 = layers[4];
 		m5 = layers[5];
 		m6 = layers[6];
+        m7 = layers[7];
+        m8 = layers[8];
+        m9 = layers[9];
 		pdiff = tech.findArcProto("P-Active");
 		ndiff = tech.findArcProto("N-Active");
 
@@ -216,6 +230,9 @@ public class Tech {
 		m4pin = m4.findOverridablePinProto();
 		m5pin = m5.findOverridablePinProto();
 		m6pin = m6.findOverridablePinProto();
+        m7pin = m7.findOverridablePinProto();
+        m8pin = m8.findOverridablePinProto();
+        m9pin = m9.findOverridablePinProto();
 
 		// initialize vias
 		for (int i = 0; i < nbLay - 1; i++) {
@@ -230,10 +247,15 @@ public class Tech {
 		m3m4 = vias[3];
 		m4m5 = vias[4];
 		m5m6 = vias[5];
+        m6m7 = vias[6];
+        m7m8 = vias[7];
+        m8m9 = vias[8];
 		ndm1 = tech.findNodeProto("Metal-1-N-Active-Con");
 		pdm1 = tech.findNodeProto("Metal-1-P-Active-Con");
 		nwm1 = tech.findNodeProto("Metal-1-N-Well-Con");
 		pwm1 = tech.findNodeProto("Metal-1-P-Well-Con");
+        nwm1Y = tech.findNodeProto("Y-Metal-1-N-Well-Con");
+        pwm1Y = tech.findNodeProto("Y-Metal-1-P-Well-Con");
 
 		// initialize transistors
 		nmos = tech.findNodeProto("N-Transistor");
@@ -256,6 +278,9 @@ public class Tech {
 		m4Node = tech.findNodeProto("Metal-4-Node");
 		m5Node = tech.findNodeProto("Metal-5-Node");
 		m6Node = tech.findNodeProto("Metal-6-Node");
+        m7Node = tech.findNodeProto("Metal-7-Node");
+        m8Node = tech.findNodeProto("Metal-8-Node");
+        m9Node = tech.findNodeProto("Metal-9-Node");
 		p1Node = tech.findNodeProto("Polysilicon-1-Node");
 		pdNode = tech.findNodeProto("P-Active-Node");
 		ndNode = tech.findNodeProto("N-Active-Node");
@@ -275,6 +300,9 @@ public class Tech {
 		viaMap.put(new Integer(m3.hashCode() * m4.hashCode()), m3m4);
 		viaMap.put(new Integer(m4.hashCode() * m5.hashCode()), m4m5);
 		viaMap.put(new Integer(m5.hashCode() * m6.hashCode()), m5m6);
+        viaMap.put(new Integer(m6.hashCode() * m7.hashCode()), m6m7);
+        viaMap.put(new Integer(m7.hashCode() * m8.hashCode()), m7m8);
+        viaMap.put(new Integer(m8.hashCode() * m9.hashCode()), m8m9);
 
 		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
