@@ -21,7 +21,7 @@ FIX: NodeInst.isIconOfParent() uses NodeUsage.isIconOfParent() to.
 
 IMP: (12/8/04, GVG) DRC good dates work with min area and coverage bits (Bug #17)
 
-IMP: (12/8/04, GVG) Save Library in ExplorerTree to avoid the setup as current library previous to the saving action.
+IMP/MAN: (12/8/04, GVG) Save Library in ExplorerTree to avoid the setup as current library previous to the saving action.
 
 IMP: (12/8/04, GVG) Layer visibilty stored in technology preferences (Bug #76)
 
