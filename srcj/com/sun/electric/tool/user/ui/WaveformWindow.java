@@ -1793,7 +1793,10 @@ public class WaveformWindow implements WindowContent
 				dtde.acceptDrop(DnDConstants.ACTION_LINK);
 				data = dtde.getTransferable().getTransferData(DataFlavor.stringFlavor);
 				if (data == null)
-					throw new NullPointerException();
+				{
+					dtde.dropComplete(false);
+					return;
+				}
 			} catch (Throwable t)
 			{
                 ActivityLogger.logException(t);

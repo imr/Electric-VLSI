@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.menus.CellMenu;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
@@ -462,9 +463,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	// *********************************** DRAG AND DROP ***********************************
 
-	// general: http://www.javaworld.com/javaworld/jw-03-1999/jw-03-dragndrop.html
-	// JTree:   http://www.javaworld.com/javatips/jw-javatip97.html
-
 	/** Variables needed for DnD */
 	private DragSource dragSource = null;
 	private DefaultMutableTreeNode selectedNode;
@@ -496,16 +494,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
 		}
 
-		// TODO: enable this code to do dragging of cell names
-//		if (selectedNode.getUserObject() instanceof Cell)
-//		{
-//			// Get the Transferable Object
-//			Cell cell = (Cell)selectedNode.getUserObject();
-//			Transferable transferable = new StringSelection(cell.describe());
-//
-//			// begin the drag
-//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
-//		}
+		// Drag cell name to edit window
+		if (selectedNode.getUserObject() instanceof Cell)
+		{
+			// make a Transferable Object
+			Cell cell = (Cell)selectedNode.getUserObject();
+			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
+
+			// begin the drag
+			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		}
 	}
 
 	public void dragEnter(DragSourceDragEvent e) {}

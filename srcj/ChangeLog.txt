@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+BUG: (12/10/04, SMR) Not all parent cells are listed when "Up Hierarchy" is done (Bug #88).
+FIX: In EditWindow.upHierarchy() use HashSet, not TreeSet.
+
+IMP: (12/10/04, SMR) Added drag-and-drop from both the Explorer Tree (for cell instances)
+     and from the palette (for technology primitives).
+
 BUG: (12/10/04, SMR) Selecting a bus pin does not grab all nets on that pin (Bug #77).
 FIX: In Highlighter.getHighlightedNetworks(), look at all arcs connected to a pin.
 

@@ -602,10 +602,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 		private Object toDraw;
 		private EventListener oldListener;
 		private Cursor oldCursor;
-		private boolean isDrawn;
 		private String textNode;
-		//private JPanel window;
-		private int defAngle;
 		private boolean makePort;
         private PlaceNodeEventListener palette;
 
@@ -624,24 +621,9 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			this.toDraw = toDraw;
 			this.oldListener = oldListener;
 			this.oldCursor = oldCursor;
-			this.isDrawn = false;
 			this.textNode = null;
 			this.makePort = false;
             this.palette = palette;
-
-			// get default creation angle
-// 			NodeProto np = null;
-			defAngle = 0;
-			if (toDraw instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)toDraw;
-// 				np = (NodeProto)ni.getProto();
-				defAngle = ni.getAngle();
-			}
-			if (toDraw instanceof PrimitiveNode)
-			{
- 				defAngle = ((PrimitiveNode)toDraw).getDefPlacementAngle();
-			}
 
             //if (window != null) {
                 //window.addKeyListener(this);
@@ -653,68 +635,6 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
 
 		public void setTextNode(String varName) { textNode = varName; }
-
-		private void updateBox(Object source, int oldx, int oldy)
-		{
-			if (!(source instanceof EditWindow)) return;
-			EditWindow wnd = (EditWindow)source;
-            Highlighter highlighter = wnd.getHighlighter();
-			if (isDrawn)
-			{
-				// undraw it
-				highlighter.clear();
-			}
-
-			// draw it
-			drawnLoc = wnd.screenToDatabase(oldx, oldy);
-			EditWindow.gridAlign(drawnLoc);
-			NodeProto np = null;
-			if (toDraw instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)toDraw;
-				np = ni.getProto();
-			}
-			if (toDraw instanceof NodeProto)
-			{
-				np = (NodeProto)toDraw;
-			}
-			if (np != null)
-			{
-				Poly poly = null;
-				if (np instanceof Cell)
-				{
-					Cell placeCell = (Cell)np;
-					Rectangle2D cellBounds = placeCell.getBounds();
-					SizeOffset so = np.getProtoSizeOffset();
-					poly = new Poly(cellBounds);
-					AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
-						(defAngle >= 3600 ? true : false), false);
-					AffineTransform translate = new AffineTransform();
-					translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
-					rotate.concatenate(translate);
-					poly.transform(rotate);
-				} else
-				{
-					SizeOffset so = np.getProtoSizeOffset();
-					double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-					double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-					poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
-					AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
-						(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
-					poly.transform(trans);
-				}
-				Point2D [] points = poly.getPoints();
-				for(int i=0; i<points.length; i++)
-				{
-					int last = i-1;
-					if (i == 0) last = points.length - 1;
-					highlighter.addLine(points[last], points[i], wnd.getCell());
-				}
-				isDrawn = true;
-				wnd.repaint();
-			}
-			highlighter.finished();
-		}
 
 		public void mouseReleased(MouseEvent evt)
 		{
@@ -776,12 +696,20 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseMoved(MouseEvent evt)
 		{
-			updateBox(evt.getSource(), evt.getX(), evt.getY());
+			if (evt.getSource() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)evt.getSource();
+				wnd.showDraggedBox(toDraw, evt.getX(), evt.getY());
+			}
 		}
 
 		public void mouseDragged(MouseEvent evt)
 		{
-			updateBox(evt.getSource(), evt.getX(), evt.getY());
+			if (evt.getSource() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)evt.getSource();
+				wnd.showDraggedBox(toDraw, evt.getX(), evt.getY());
+			}
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent evt) {}
@@ -801,7 +729,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 	}
 
 	/** class that creates the node selected from the component menu */
-	private static class PlaceNewNode extends Job
+	public static class PlaceNewNode extends Job
 	{
 		Object toDraw;
 		Point2D where;
@@ -809,7 +737,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 		String varName;
 		boolean export;
 
-		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
+		public PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
@@ -835,6 +763,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				ni = (NodeInst)toDraw;
 				np = ni.getProto();
 			}
+			if (np == null) return false;
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
 			if (varName != null) width = height = 0;

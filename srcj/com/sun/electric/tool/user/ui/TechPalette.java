@@ -52,6 +52,19 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.Main;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragGestureRecognizer;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
 import java.awt.event.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -70,7 +83,7 @@ import java.net.URL;
  * To change this template use File | Settings | File Templates.
  */
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
-        KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener {
+        KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
 
     /** the number of palette entries. */				private int menuX = -1, menuY = -1;
     /** the size of a palette entry. */					private int entrySize;
@@ -80,6 +93,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /** cached palette image */                         private Image paletteImage;
     /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
 	/** Temporary variable for holding names */         private static final Variable.Key TECH_TMPVAR= ElectricObject.newKey("TECH_TMPVAR");
+	/** Variables needed for drag-and-drop */			private DragSource dragSource = null;
 
     TechPalette()
     {
@@ -90,6 +104,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         addComponentListener(this);
         paletteImage = null;
         paletteImageStale = true;
+
+        // initialize drag-and-drop from this palette
+        dragSource = DragSource.getDefaultDragSource();
+		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
     }
 
     /**
@@ -557,14 +575,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         return ("");
     }
 
+    public void mousePressed(MouseEvent e) {}
+
     /**
      * Method called when the user clicks over an entry in the component menu.
      */
-    public void mousePressed(MouseEvent e)
+    public void mouseReleased(MouseEvent e)
     {
         TechPalette panel = (TechPalette)e.getSource();
         panel.requestFocus();
-        Object obj = getObjectUnderCursor(e);
+        Object obj = getObjectUnderCursor(e.getX(), e.getY());
         JMenuItem menuItem;
 
         if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof List)
@@ -597,7 +617,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 						}
                         else
 						{
-							menu.add(menuItem = new JMenuItem(getItemName(item, false)));
+							menu.add(menuItem = new JMenuItem(getItemName(item, true)));
                             menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, item, list, null));
 						}
 					}
@@ -765,6 +785,30 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         repaint();
     }
 
+    
+    // ************************************************ DRAG-AND-DROP CODE ************************************************
+
+    public void dragGestureRecognized(DragGestureEvent e)
+	{
+	    Object obj = getObjectUnderCursor(e.getDragOrigin().x, e.getDragOrigin().y);
+
+		// make a Transferable Object
+		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(obj);
+	
+		// begin the drag
+		dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+	}
+
+	public void dragEnter(DragSourceDragEvent e) {}
+
+	public void dragOver(DragSourceDragEvent e) {}
+
+	public void dragExit(DragSourceEvent e) {}
+
+	public void dragDropEnd(DragSourceDropEvent e) {}
+
+	public void dropActionChanged (DragSourceDragEvent e) {}
+
     /**
      * Class to read a Spice library in a new thread.
      */
@@ -846,7 +890,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
-    public void mouseReleased(MouseEvent e) {}
     public void keyPressed(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
     public void keyTyped(KeyEvent e) {}
@@ -856,10 +899,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      * Method to figure out which palette entry the cursor is over.
      * @return an Object that is in the selected palette entry.
      */
-    private Object getObjectUnderCursor(MouseEvent e)
+    private Object getObjectUnderCursor(int xp, int yp)
     {
-        int x = e.getX() / (entrySize+1);
-        int y = menuY - (e.getY() / (entrySize+1)) - 1;
+        int x = xp / (entrySize+1);
+        int y = menuY - (yp / (entrySize+1)) - 1;
         if (y < 0) y = 0;
         int index = x * menuY + y;
         if (index < 0 || index >= inPalette.size()) return null;
@@ -888,7 +931,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      */
     public void mouseMoved(MouseEvent e)
     {
-        Object obj = getObjectUnderCursor(e);
+        Object obj = getObjectUnderCursor(e.getX(), e.getY());
         if (obj instanceof List)
         {
             obj = ((List)obj).get(0);

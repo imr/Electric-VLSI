@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -43,6 +44,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.simulation.Simulation;
@@ -53,10 +56,12 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
+import com.sun.electric.tool.user.ui.PaletteFrame.PlaceNewNode;
 import com.sun.electric.tool.user.ui.WaveformWindow.Panel;
 import com.sun.electric.tool.user.ui.WaveformWindow.Signal;
 
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
@@ -102,7 +107,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -397,82 +402,211 @@ public class EditWindow extends JPanel
 
 	// ************************************* WHEN DROPPING A CELL NAME FROM THE EXPLORER TREE *************************************
 
+	/**
+	 * Method to set the highlight to show the outline of a node that will be placed in this EditWindow.
+	 * @param toDraw the object to draw (a NodeInst or a NodeProto).
+	 * @param oldx the X position (on the screen) of the outline.
+	 * @param oldy the Y position (on the screen) of the outline.
+	 */
+	public void showDraggedBox(Object toDraw, int oldx, int oldy)
+	{
+		// undraw it
+        Highlighter highlighter = getHighlighter();
+		highlighter.clear();
+
+		// draw it
+		Point2D drawnLoc = screenToDatabase(oldx, oldy);
+		EditWindow.gridAlign(drawnLoc);
+		NodeProto np = null;
+		if (toDraw instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)toDraw;
+			np = ni.getProto();
+		}
+		if (toDraw instanceof NodeProto)
+		{
+			np = (NodeProto)toDraw;
+		}
+		int defAngle = 0;
+		if (toDraw instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)toDraw;
+			defAngle = ni.getAngle();
+		}
+		if (toDraw instanceof PrimitiveNode)
+		{
+			defAngle = ((PrimitiveNode)toDraw).getDefPlacementAngle();
+		}
+		if (np != null)
+		{
+			Poly poly = null;
+			if (np instanceof Cell)
+			{
+				Cell placeCell = (Cell)np;
+				Rectangle2D cellBounds = placeCell.getBounds();
+				SizeOffset so = np.getProtoSizeOffset();
+				poly = new Poly(cellBounds);
+				AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
+					(defAngle >= 3600 ? true : false), false);
+				AffineTransform translate = new AffineTransform();
+				translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
+				rotate.concatenate(translate);
+				poly.transform(rotate);
+			} else
+			{
+				SizeOffset so = np.getProtoSizeOffset();
+				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+				poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
+				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
+					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
+				poly.transform(trans);
+			}
+			Point2D [] points = poly.getPoints();
+			for(int i=0; i<points.length; i++)
+			{
+				int last = i-1;
+				if (i == 0) last = points.length - 1;
+				highlighter.addLine(points[last], points[i], getCell());
+			}
+			repaint();
+		}
+		highlighter.finished();
+	}
+
+	/**
+	 * Class to define a custom data flavor that packages a NodeProto to create.
+	 */
+	public static class NodeProtoDataFlavor extends DataFlavor
+	{
+		private Object obj;
+
+		NodeProtoDataFlavor(Object obj)
+			throws ClassNotFoundException
+		{
+			super("electric/instance");
+			this.obj = obj;
+		}
+
+		public Object getFlavorObject() { return obj; }
+	}
+
+	/**
+	 * Class to define a custom transferable that packages a NodeProto to create.
+	 */
+	public static class NodeProtoTransferable implements Transferable
+	{
+		private Object obj;
+		private NodeProtoDataFlavor df;
+
+		public NodeProtoTransferable(Object obj)
+		{
+			this.obj = obj;
+			try
+			{
+				df = new NodeProtoDataFlavor(obj);
+			} catch (ClassNotFoundException e)
+			{
+				System.out.println("ERROR: Cannot make Electric DataFlavor");
+			}
+		}
+
+		public DataFlavor[] getTransferDataFlavors()
+		{
+			DataFlavor [] it = new DataFlavor[1];
+			it[0] = df;
+			return it;
+		}
+		public boolean isDataFlavorSupported(DataFlavor flavor)
+		{
+			if (flavor == df) return true;
+			return false;
+		}
+		public Object getTransferData(DataFlavor flavor)
+		{
+			if (flavor == df) return obj;
+			return null;
+		}
+	}
+
+	/**
+	 * Class for catching drags into the edit window.
+	 * These drags come from the Explorer tree (when a cell name is dragged to place an instance).
+	 */
 	private static class EditWindowDropTarget implements DropTargetListener
 	{
 		public void dragEnter(DropTargetDragEvent e)
 		{
-			e.acceptDrag(e.getDropAction());
-			Cell cell = getDroppedCell(e);
-			System.out.println("Entered dragging cell "+cell);
+			dragAction(e);
 		}
-	
+
 		public void dragOver(DropTargetDragEvent e)
 		{
-			e.acceptDrag(e.getDropAction());
+			dragAction(e);
 		}
-	
+
+		private Object getDraggedObject(DataFlavor [] flavors)
+		{
+			if (flavors.length > 0)
+			{
+				if (flavors[0] instanceof NodeProtoDataFlavor)
+				{
+					NodeProtoDataFlavor npdf = (NodeProtoDataFlavor)flavors[0];
+					Object obj = npdf.getFlavorObject();
+					if (obj instanceof List) obj = ((List)obj).get(0);
+					return obj;
+				}
+			}
+			return null;
+		}
+
+		private void dragAction(DropTargetDragEvent e)
+		{
+			Object obj = getDraggedObject(e.getCurrentDataFlavors());
+			if (obj != null)
+			{
+				e.acceptDrag(e.getDropAction());
+
+				// determine the window
+				DropTarget dt = (DropTarget)e.getSource();
+				if (dt.getComponent() instanceof JPanel)
+				{
+					EditWindow wnd = (EditWindow)dt.getComponent();
+					wnd.showDraggedBox(obj, e.getLocation().x, e.getLocation().y);
+				}
+				return;
+			}
+		}
+
 		public void dropActionChanged(DropTargetDragEvent e)
 		{
 			e.acceptDrag(e.getDropAction());
 		}
 
 		public void dragExit(DropTargetEvent e) {}
-	
+
 		public void drop(DropTargetDropEvent dtde)
 		{
-			Cell cell = getDroppedCell(dtde);
-			System.out.println("Dropped cell "+cell);
-		}
+			dtde.acceptDrop(DnDConstants.ACTION_LINK);
+			Object obj = getDraggedObject(dtde.getCurrentDataFlavors());
+			if (obj == null)
+			{
+				dtde.dropComplete(false);
+				return;
+			}
 
-		public Cell getDroppedCell(DropTargetEvent dte)
-		{
-			Object data = null;
-			DropTargetDropEvent dropE = null;
-			DropTargetDragEvent dragE = null;
-			if (dte instanceof DropTargetDropEvent) dropE = (DropTargetDropEvent)dte;
-			if (dte instanceof DropTargetDragEvent) dragE = (DropTargetDragEvent)dte;
-			try
-			{
-				if (dte instanceof DropTargetDropEvent)
-				{
-					dropE.acceptDrop(DnDConstants.ACTION_LINK);
-					data = dropE.getTransferable().getTransferData(DataFlavor.stringFlavor);
-					if (data == null)
-						throw new NullPointerException();
-				} else if (dte instanceof DropTargetDragEvent)
-				{
-					dragE.acceptDrag(DnDConstants.ACTION_LINK);
-					DataFlavor [] flavors = dragE.getCurrentDataFlavors();
-					System.out.print("Source="+dragE.getSource()+" Got "+flavors.length+" flavors:");
-					for(int i=0; i<flavors.length; i++) System.out.print(" "+flavors[i].getParameter("humanPresentableName"));
-					System.out.println();
-//					data = dragE.getDropTargetContext().getTransferable().getTransferData(DataFlavor.stringFlavor);
-//					if (data == null)
-//						throw new NullPointerException();
-				}
-			} catch (Throwable t)
-			{
-                ActivityLogger.logException(t);
-				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
-				return null;
-			}
-			if (!(data instanceof String))
-			{
-				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
-				return null;
-			}
-			String cellName = (String)data;
-			DropTarget dt = null;
-			if (dte instanceof DropTargetDropEvent) dt = (DropTarget)dropE.getSource();
+			// determine the window
+			DropTarget dt = (DropTarget)dtde.getSource();
 			if (!(dt.getComponent() instanceof JPanel))
 			{
-				if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
-				return null;
+				dtde.dropComplete(false); 
+				return;
 			}
-			EditWindow op = (EditWindow)dt.getComponent();
-
-			if (dte instanceof DropTargetDropEvent) dropE.dropComplete(false); 
-			return (Cell)Cell.findNodeProto(cellName);
+			EditWindow wnd = (EditWindow)dt.getComponent();
+			Point2D where = wnd.screenToDatabase(dtde.getLocation().x, dtde.getLocation().y);
+			EditWindow.gridAlign(where);
+            wnd.getHighlighter().clear();
+			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", obj, where, wnd.getCell(), null, false);
 		}
 	}
 
@@ -2574,7 +2708,7 @@ public class EditWindow extends JPanel
 			}            
 
 			// find all possible parents in all libraries
-			Set found = new TreeSet();
+			Set found = new HashSet();
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -2633,7 +2767,7 @@ public class EditWindow extends JPanel
 				for(Iterator it = found.iterator(); it.hasNext(); )
 				{
                     Cell parent = (Cell)it.next();
-					String cellName = parent.describe();
+                    String cellName = parent.describe();
 					JMenuItem menuItem = new JMenuItem(cellName);
 					menuItem.addActionListener(this);
 					parents.add(menuItem);
