@@ -38,6 +38,7 @@ import com.sun.electric.technology.*;
 
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.NccResult;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at
@@ -838,9 +839,9 @@ public class StdCellParams {
 //		options.verboseText = false;
 //		options.verboseGraphics = false;
 
-		boolean match =
+		NccResult result =
 			NccEngine.compare(schem, null, layout, null, null, options);
-		error(!match, "layout not topologically identical to schematic!");
+		error(!result.match(), "layout not topologically identical to schematic!");
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {

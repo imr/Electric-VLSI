@@ -45,6 +45,7 @@ import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
+import com.sun.electric.tool.ncc.jemNets.Port;
 import com.sun.electric.tool.ncc.basic.*;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
@@ -53,6 +54,7 @@ import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
 import com.sun.electric.tool.ncc.processing.LocalPartitioning;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
+import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
 import com.sun.electric.tool.ncc.strategy.StratDebug;
 import com.sun.electric.tool.ncc.strategy.StratResult;
 import com.sun.electric.tool.ncc.strategy.StratCount;
@@ -84,15 +86,48 @@ public class NccEngine {
 		return nccLists;
 	}
 	
-	private boolean designsMatch(HierarchyInfo hierInfo) {
+	private int[] getNetObjCounts(EquivRecord rec, int numCells) {
+		int[] counts = new int[numCells];
+		if (rec==null) return counts;
+		int i=0;
+		for (Iterator it=rec.getCircuits(); it.hasNext(); i++) {
+			Circuit ckt = (Circuit) it.next();
+			counts[i] = ckt.numNetObjs();
+		}
+		return counts;
+	}
+	
+	/** Ivan wants this print out. */
+	private void printWireComponentCounts() {
+		int numCells = globals.getNumNetlistsBeingCompared();
+		int[] partCounts = getNetObjCounts(globals.getParts(), numCells);
+		int[] wireCounts = getNetObjCounts(globals.getWires(), numCells);
+		String[] cellNames = globals.getRootCellNames();
+		for (int i=0; i<cellNames.length; i++) {
+			System.out.println(
+				"    Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
+				partCounts[i]+" parts, after series/parallel combination"
+			);
+		}
+	}
+	
+	private NccResult designsMatch(HierarchyInfo hierInfo) {
 		if (globals.getRoot()==null) {
 			globals.println("empty cell");
-			return true;
+			return new NccResult(true, true, true);
 		} else {
 			ExportChecker expCheck =  new ExportChecker(globals);
+			expCheck.markPortsForRenaming();
+			
 			boolean expNamesOK = expCheck.matchByName();
 
-			expCheck.saveInfoNeededToMakeMeASubcircuit(hierInfo);
+			if (expNamesOK) {
+				expCheck.saveInfoNeededToMakeMeASubcircuit(hierInfo);
+			} else { 
+				if (hierInfo!=null) hierInfo.exportNameMismatchInCellGroup();
+			}
+			// Useless so far
+			//expCheck.printExportTypeWarnings();
 			
 			EquivRecord root = globals.getRoot();
 			StratCheck.doYourJob(root, globals);
@@ -101,28 +136,31 @@ public class NccEngine {
 			SerialParallelMerge.doYourJob(globals);
 			StratCheck.doYourJob(root, globals);
 			StratCount.doYourJob(root, globals);
+			
+			printWireComponentCounts();
 
 			boolean localOK = LocalPartitioning.doYourJob(globals); 
-			if (!localOK) return false;
-			
-			boolean topoOK = HashCodePartitioning.doYourJob(globals);
+			if (!localOK) return new NccResult(expNamesOK, false, false);
 
-			expCheck.suggestMatchForPortsThatDontMatchByName();
+			boolean topoOK = HashCodePartitioning.doYourJob(globals);
+			expCheck.suggestPortMatchesBasedOnTopology();
 
 			boolean expTopoOK = 
 				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
             
             boolean sizesOK = StratCheckSizes.doYourJob(globals);
 			
-			boolean OK = localOK && expNamesOK && topoOK && expTopoOK && sizesOK; 
-			if (!topoOK) StratDebug.doYourJob(globals);
-			return OK;
+			if (!topoOK) ReportHashCodeFailure.reportHashCodeFailure(globals);
+
+			boolean exportsOK = expNamesOK && expTopoOK;
+			boolean topologyOK = localOK && topoOK;
+			return new NccResult(exportsOK, topologyOK, sizesOK);
 		}
 	}
 	
-	private boolean areEquivalent(List cells, List contexts, 
-					  		      List netlists, HierarchyInfo hierInfo, 
-					  		      NccOptions options) {
+	private NccResult areEquivalent(List cells, List contexts, 
+					  		        List netlists, HierarchyInfo hierInfo, 
+					  		        NccOptions options) {
 		globals = new NccGlobals(options);
 		
 		globals.println("****************************************"+					  		
@@ -131,11 +169,11 @@ public class NccEngine {
 		List nccNetlists = 
 			buildNccNetlists(cells, contexts, netlists, hierInfo);
 		globals.setInitialNetlists(nccNetlists);
-		boolean match = designsMatch(hierInfo);
+		NccResult result = designsMatch(hierInfo);
 
 		globals.println("****************************************"+					  		
 		                "****************************************");
-		return match;		              					  				
+		return result;		              					  				
 	}
 
 	// -------------------------- public methods ------------------------------
@@ -154,18 +192,18 @@ public class NccEngine {
 	 * use the Cell's current netlist. 
 	 * @param options NCC options
 	 */
-	public static boolean compare(List cells, List contexts, List netlists,
-	                              HierarchyInfo hierCompInfo, 
-	                              NccOptions options) {
+	public static NccResult compare(List cells, List contexts, List netlists,
+	                                HierarchyInfo hierCompInfo, 
+	                                NccOptions options) {
 		NccEngine ncc = new NccEngine();
 		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
 		                         options);
 	}
 	/** compare two Cells starting at their roots */
-	public static boolean compare(Cell cell1, VarContext context1, 
-	    						  Cell cell2, VarContext context2, 
-	    						  HierarchyInfo hierInfo,
-	    						  NccOptions options) {
+	public static NccResult compare(Cell cell1, VarContext context1, 
+	    						    Cell cell2, VarContext context2, 
+	    						    HierarchyInfo hierInfo,
+	    						    NccOptions options) {
 		ArrayList cells = new ArrayList();
 		cells.add(cell1);
 		cells.add(cell2);

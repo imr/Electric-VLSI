@@ -81,7 +81,7 @@ public class StratPreanalysisReport extends Strategy {
     	options.verbose = true;
     	
     	if (mismatched.size()!=0) 
-    		globals.println("\nMismatches found during local processing:\n");
+    		globals.println("\nMismatches found during local partitioning:\n");
     		
     	for (Iterator it=mismatched.iterator(); it.hasNext();) {
     		EquivRecord r = (EquivRecord) it.next();

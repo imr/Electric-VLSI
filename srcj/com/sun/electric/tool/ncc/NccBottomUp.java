@@ -92,25 +92,14 @@ public class NccBottomUp {
 		return visitor;
 	}
 
-	private boolean compareTwo(Cell schematic, Cell layout, 
+	private NccResult compareTwo(Cell schematic, Cell layout, 
 	                           HierarchyInfo hierInfo,
 	                           NccOptions options) {
-	    if (NccUtils.hasSkipAnnotation(schematic)) return true;
-		if (NccUtils.hasSkipAnnotation(layout)) return true;
-		System.out.print("Comparing: "+NccUtils.fullName(schematic)+
-                         " with: "+NccUtils.fullName(layout)+"   ...   ");
-		System.out.flush();
-		Date before = new Date();
-		boolean match = NccEngine.compare(schematic, null, layout, null,  
-		                                  hierInfo, options);
-		Date after = new Date();
-
-		System.out.print(match ? "Matched " : "Mismatched ");
-		double elapsed = (after.getTime()-before.getTime())/1000.0;
-		System.out.println("in "+elapsed+" seconds.");
-		System.out.flush();
-
-		return match;
+	    if (NccUtils.hasSkipAnnotation(schematic) ||
+		    NccUtils.hasSkipAnnotation(layout)) 
+		    return new NccResult(true, true, true);
+		return NccUtils.compareAndPrintStatus(schematic, null, layout, null, 
+		                                      hierInfo, options);
 	}
 
 	/** Prefer a schematic reference cell because mismatch diagnostics
@@ -129,23 +118,23 @@ public class NccBottomUp {
 		return refCell;
 	}
 
-	private boolean compareCellsInGroup(List cellsInGroup, String groupName,
-							   			HierarchyInfo hierInfo, 
-							   			NccOptions options) {
+	private NccResult compareCellsInGroup(List cellsInGroup, String groupName,
+							   			  HierarchyInfo hierInfo, 
+							   			  NccOptions options) {
+		NccResult result = new NccResult(true, true, true);
 		// make sure there's work to do
 		// Subtle: empty Cell list may occur when a Cell joins a different 
 		// group. In that case avoid blowing up.
-		if (cellsInGroup.size()<2) return true;
+		if (cellsInGroup.size()<2) return result;
 		
 		Cell refCell = selectAndRemoveReferenceCell(cellsInGroup);
 
-		if (hierInfo!=null)  hierInfo.nextSubcircuit(groupName);
-		boolean match = true;
+		if (hierInfo!=null)  hierInfo.beginNextCellGroup(groupName);
 		for (Iterator it=cellsInGroup.iterator(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
-			match &= compareTwo(refCell, cell, hierInfo, options);
+			result.and(compareTwo(refCell, cell, hierInfo, options));
 		}
-		return match;
+		return result;
 	}
 	
 	/** For each cell in use1 collect all the Cells in its CellGroup. 
@@ -210,10 +199,10 @@ public class NccBottomUp {
 		return false;
 	}
 	
-	private boolean compareCellGroups(CellUsage use1, CellUsage use2,
-	                                  boolean hierarchical, 
-	                                  NccOptions options) {
-		boolean match = true;
+	private NccResult compareCellGroups(CellUsage use1, CellUsage use2,
+	                                    boolean hierarchical, 
+	                                    NccOptions options) {
+		NccResult result = new NccResult(true, true, true);
 		HierarchyInfo hierInfo = hierarchical ? new HierarchyInfo() : null;
 		for (Iterator it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
@@ -222,35 +211,28 @@ public class NccBottomUp {
 
 			if (hierarchical && dontTreatAsSubcircuit(cellsInGroup))  continue;
 
-			match &= compareCellsInGroup(cellsInGroup, grpNm, hierInfo,options);
+			result.and(compareCellsInGroup(cellsInGroup, grpNm, hierInfo,options));
 
-			// TODO: I've got to debug this stupid thing later. Hierarchical 
-			// fails but flat succeeds!!!
-//			String cellNm = cell.getName(); 
-//			if (cellNm.equals("mem_core_36") || cellNm.equals("mem_core_45")) {
-//				match = true;				
-//			}
-
-			if (!match && options.haltAfterFirstMismatch) {
+			if (!result.match() && options.haltAfterFirstMismatch) {
 				System.out.println( 
 					"Halting multiple cell NCC after finding first mismatch"
 				);
-				return false;
+				return result;
 			}
 		}
-		return match;
+		return result;
 	}
 
-	private boolean compareCells(Cell c1, Cell c2, boolean hierarchical, 
-	                             NccOptions options) {
+	private NccResult compareCells(Cell c1, Cell c2, boolean hierarchical, 
+	                               NccOptions options) {
 		// find all Cells in both hierarchies
 		CellUsage use1 = getCellUsage(c1);
 		CellUsage use2 = getCellUsage(c2);
 		return compareCellGroups(use1, use2, hierarchical, options); 
 	}
 	
-	public static boolean compare(Cell c1, Cell c2, boolean hierarchical, 
-	                              NccOptions options) {
+	public static NccResult compare(Cell c1, Cell c2, boolean hierarchical, 
+	                                NccOptions options) {
 		// size checking not useful when we're doing all cells
 		options.checkSizes = false;
 		NccBottomUp ncch = new NccBottomUp();

@@ -42,4 +42,12 @@ public class NccOptions {
 	/** for hierarchical comparisons try to continue comparing
 	 * higher up in the hierarchy even if this Cell doesn't match */
 	public boolean haltAfterFirstMismatch = true;
+	
+	/** If hash code partitioning detects a mismatch, how many mismatched 
+	 * Part or Wire Equivalence Classes should I print? */
+	public int numMismatchedEquivClassesToPrint = 1000;
+	
+	/** If hash code partitioning detects a mismatch, how many matched
+	 * Part or Wire Equivalence Classes should I print? */
+	public int numMatchedEquivClassesToPrint = 1000;
 }

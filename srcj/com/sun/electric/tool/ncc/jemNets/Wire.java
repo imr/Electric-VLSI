@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
@@ -69,17 +70,16 @@ public class Wire extends NetObject{
 		content.add(p);
     }
     
-	/** 
-	 * add a Port to this Wire
-	 * @param p the Port to add
-	 */
-    public Port addExportName(String portName) {
-		if (port==null)  port = new Port(portName, this);
-		else port.addExportName(portName); 
+	/** add a Port to this Wire
+	 * @param p the Port to add */
+    public Port addExport(String portName, PortProto.Characteristic type) {
+		if (port==null)  port = new Port(portName, type, this);
+		else port.addExport(portName, type); 
 		return port;
     }
 	
-	//return the Ports on this Wire
+	/** @return the Port on this Wire. Return null if wire has no Export 
+	 * attached */
 	public Port getPort() {return port;}
 	
     public Type getNetObjType() {return Type.WIRE;}

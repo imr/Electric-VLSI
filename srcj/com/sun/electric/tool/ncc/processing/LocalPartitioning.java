@@ -79,10 +79,10 @@ public class LocalPartitioning {
 			PinType pinType = (PinType) it.next();
 			LeafList offspring = 
 				StratCountPartPinsOnWires.doYourJob(globals, pinType);
-			if (offspring.size()!=0) {
-				StratCheck.doYourJob(root, globals);
-				StratCount.doYourJob(root, globals);
-			}
+//			if (offspring.size()!=0) {
+//				StratCheck.doYourJob(root, globals);
+//				StratCount.doYourJob(root, globals);
+//			}
 		}
 	}
 	

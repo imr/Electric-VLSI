@@ -1,5 +1,15 @@
 			Java Electric change log
 
+IMP: (8/13/04, RK) "Better" NCC error reporting for Hash Code parition failures
+
+IMP: (8/13/04, RK) NCC reports Part and Wire counts
+
+IMP: (8/13/04, RK) NCC summarizes Export, topology, and size mismatches separately for each Cell and then for all Cells
+
+IMP: (8/13/04, RK) NCC prints execution time per Cell and for the entire command
+
+FIX: (8/13/04, RK) When NCCing hierarchically and continuing after errors, flatten subcircuits with Export name mismatches.
+
 ************************* Version 8.01e: *********************************
 
 IMP/MAN: (8/12/04, JKG) Added preference in General Tab as to how Electric chooses the working dir.

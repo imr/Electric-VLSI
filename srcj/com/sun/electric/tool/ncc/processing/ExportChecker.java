@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.ncc.basic.Messenger; 
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.NccGlobals; 
 import com.sun.electric.tool.ncc.NccOptions; 
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -89,7 +91,8 @@ public class ExportChecker {
 	/** List of ports that can't be matched by name. This list is used to 
 	 * suggest possible repairs to the design. */ 
 	private NoPortNameMatches noPortNameMatches = new NoPortNameMatches();
-	 	
+
+	
 	private Circuit[] getCircuitsHoldingPorts() {
 		EquivRecord ports = globals.getPorts();
 		globals.error(!ports.isLeaf(), "globals ports must hold circuits");
@@ -253,9 +256,68 @@ public class ExportChecker {
 				   ((Port)portOrWire).exportNamesString();
 		}
 	}
-  
+
+	private void markPortForRenaming(Port p, NccCellAnnotations ann) {
+		for (Iterator it=p.getExportNames(); it.hasNext();) {
+			String name = (String) it.next();
+			if (ann.renameExport(name)) {p.setToBeRenamed();  return;}
+		}
+	}
+	
+	private void markPortsForRenaming(Cell cell, Circuit ckt) {
+		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
+		if (ann==null) return;
+		for (Iterator it=ckt.getNetObjs(); it.hasNext();) 
+			markPortForRenaming((Port) it.next(), ann);
+	}
+	
+	private void warnIfAnyPortHasMoreThanOneExportType () {
+		int numCkts = globals.getNumNetlistsBeingCompared();
+		String[] rootCellNames = globals.getRootCellNames();
+		Circuit[] portCkts = getCircuitsHoldingPorts();
+		for (int i=0; i<numCkts; i++) {
+			String rootCellName = rootCellNames[i];
+			Circuit portCkt = portCkts[i];
+			for (Iterator it=portCkt.getNetObjs(); it.hasNext();) {
+				Port p = (Port) it.next();
+				p.warnIfExportTypesDiffer(rootCellName);
+			}
+		}
+	}
+
+	private void warnIfExportsWithMatchingNamesHaveDifferentTypes() {
+		String[] rootCellNames = globals.getRootCellNames();
+		for (int i=1; i<equivPortMaps.length; i++) {
+			HashMap portToPort = equivPortMaps[i];
+			for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
+				Port p0 = (Port) it.next();
+				Port pn = (Port) portToPort.get(p0);
+				// skip Ports that the user wants us to rename
+				if (p0.getToBeRenamed() || pn.getToBeRenamed()) continue;
+				if (p0.getType()!=pn.getType()) {
+					pr("Exports that match by name don't have the same Characteristic\n"+
+					   "  Cell1: "+rootCellNames[0]+"\n"+
+					   "  Exports1: "+p0.exportNamesString()+"\n"+
+					   "  Characteristic1: "+p0.getType().toString()+"\n"+
+					   "  Cell2: "+rootCellNames[i]+"\n"+
+					   "  Exports2: "+pn.exportNamesString()+"\n"+
+					   "  Characteristic2: "+pn.getType().toString()+"\n");
+				}
+			}
+		}
+	}
+
+	// -------------------------- public methods ------------------------------    
+
 	public ExportChecker(NccGlobals globals) {this.globals=globals;}
 	
+	public void markPortsForRenaming() {
+		Cell[] rootCells = globals.getRootCells();
+		Circuit[] portCkts = getCircuitsHoldingPorts();
+		for (int i=0; i<portCkts.length; i++) 
+			markPortsForRenaming(rootCells[i], portCkts[i]);
+	}
+  
 	/** match Exports by name. Run this before Gemini algorithm in order to 
 	 * give user early warning about Export name inconsistencies. */
 	public boolean matchByName() {
@@ -271,6 +333,11 @@ public class ExportChecker {
 			equivPortMaps[i] = p0ToPi;
 		}
 		return match;
+	}
+	
+	public void printExportTypeWarnings() {
+		warnIfAnyPortHasMoreThanOneExportType();
+		warnIfExportsWithMatchingNamesHaveDifferentTypes();
 	}
 
 	/** Gather information that will allow hierarchical netlist comparison 
@@ -302,6 +369,8 @@ public class ExportChecker {
     		for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
     			Port p0 = (Port) it.next();
     			Port pn = (Port) portToPort.get(p0);
+    			// skip Ports that the user wants us to rename
+    			if (p0.getToBeRenamed() || pn.getToBeRenamed()) continue;
     			Wire w0 = p0.getWire();
     			Wire wn = pn.getWire();
 				EquivRecord er0 = w0.getParent().getParent();
@@ -324,13 +393,40 @@ public class ExportChecker {
     	}
     	return match;
     }
+    
+    private void printNewPortNames(Circuit ports, Cell rootCell, int cktIndex) {
+    	boolean printedHeader = false;
+    	int otherCktIndex = cktIndex==0 ? 1 : 0;
+    	for (Iterator it=ports.getNetObjs(); it.hasNext();) {
+    		Port p = (Port) it.next();
+    		if (p.getToBeRenamed()) {
+    			if (!printedHeader) {
+    				System.out.println("Attempting to find better names for Exports in Cell: "+
+    				                   NccUtils.fullName(rootCell)); 
+    				printedHeader = true;
+    			}
+				Object o = findMatchingPortOrWire(p, otherCktIndex);
+    			System.out.println("    "+ p.exportNamesString()+" -> "+
+				                   getDescription(o));
+    		}
+    	}
+    }
+    
+    private void printNewNamesForPortsThatTheUserWantsUsToRename() {
+    	Cell[] rootCells = globals.getRootCells();
+    	Circuit[] portCkts = getCircuitsHoldingPorts();
+    	for (int i=0; i<portCkts.length; i++)  
+    		printNewPortNames(portCkts[i], rootCells[i], i);
+    }
 
 	/** For each port not matched by name, suggest a possible match */
-    public void suggestMatchForPortsThatDontMatchByName() {
+    private void suggestMatchForPortsThatDontMatchByName() {
 		String[] rootCellNames = globals.getRootCellNames();
 		boolean printedHeader = false;
 		for (NoPortNameMatch no=noPortNameMatches.removeFirst(); no!=null; 
 		     no=noPortNameMatches.removeFirst()) {
+			// skip Ports for which the user has already requested a new name
+			if (no.port.getToBeRenamed()) continue;
 			Object o = findMatchingPortOrWire(no.port, no.circuitNoMatchingPort);
 			if (o==null) continue;
 			if (!printedHeader) {
@@ -349,5 +445,9 @@ public class ExportChecker {
 			}
 		}
 		if (printedHeader) prln("");
+    }
+    public void suggestPortMatchesBasedOnTopology() {
+    	printNewNamesForPortsThatTheUserWantsUsToRename();
+    	suggestMatchForPortsThatDontMatchByName();
     }
 }

@@ -68,30 +68,6 @@ public class Circuit {
 		error(getParent()!=parent, "wrong parent"); 
 	}
 
-	/** 
-	 * getExportMap produces a map of String export names to Wires.
-	 * @return a map of Strings to Wires
-	 */
-	public Map getExportMap(){
-		Map out = new HashMap();
-		for (Iterator it=getNetObjs(); it.hasNext();) {
-			NetObject n= (NetObject)it.next();
-			error(!(n instanceof Wire), "getExportMap expects only Wires");
-			Wire w= (Wire)n;
-			Port p = w.getPort();
-			if (p!=null) {
-				for (Iterator ni=p.getExportNames(); ni.hasNext();) {
-					String exportNm = (String) ni.next();
-					error(out.containsKey(exportNm),
-						  "different wires have the same export name?");
-					out.put(exportNm, w);
-				}
-			}
-		}
-//		printTheMap(out);
-		return out;
-	}
-	
     public String nameString(){
     	return "Circuit code=" + getCode() +
 			   " size=" + numNetObjs();
@@ -121,21 +97,5 @@ public class Circuit {
 			ns.add(no);
 		}
 		return codeToNetObjs;
-	}
-	
-	public static void printTheMap(Map m, NccGlobals globals){
-		globals.println("printing a Circuit map of size= " + m.size());
-		if(m.size() == 0)return;
-		Iterator it= m.keySet().iterator();
-		while(it.hasNext()){
-			String s= (String)it.next();
-			Object oo= m.get(s);
-			if(oo == null){
-				globals.println(s + " maps to null");
-			} else {
-				Wire w= (Wire)oo;
-				globals.println(s + " maps to " + w.nameString());
-			}
-		}
 	}
 }

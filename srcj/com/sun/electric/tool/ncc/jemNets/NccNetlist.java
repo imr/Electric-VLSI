@@ -313,11 +313,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Cell rootCell = rootInfo.getCell();
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
+			PortProto.Characteristic type = e.getCharacteristic();
 			int[] expNetIDs = rootInfo.getExportNetIDs(e);
 			for (int i=0; i<expNetIDs.length; i++) {
 				Wire wire = wires.get(expNetIDs[i], rootInfo);
 				String expName = e.getNameKey().subname(i).toString();
-				portSet.add(wire.addExportName(expName));
+				portSet.add(wire.addExport(expName, type));
 			}
 		}
 		// create exports for global schematic signals
@@ -325,11 +326,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Global.Set globals = rootNetlist.getGlobals();
 		for (int i=0; i<globals.size(); i++) {
 			Global global = globals.get(i);
+			PortProto.Characteristic type = globals.getCharacteristic(global);
 			String globName = global.getName();
 			int netIndex = rootNetlist.getNetIndex(global);
 			int netID = rootInfo.getNetID(netIndex);
 			Wire wire = wires.get(netID, rootInfo);
-			portSet.add(wire.addExportName(globName));
+			portSet.add(wire.addExport(globName, type));
 		}
 		
 		for (Iterator it=portSet.iterator(); it.hasNext();) 

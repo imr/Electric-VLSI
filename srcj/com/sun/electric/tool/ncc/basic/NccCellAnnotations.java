@@ -116,6 +116,8 @@ public class NccCellAnnotations {
 	private Cell.CellGroup groupToJoin;
 	/** NamePatterns matching instance names to flatten */
 	private List flattenInstances = new ArrayList();
+	/** NamePatterns matching Export names that need renaming */
+	private List exportsToRename = new ArrayList();
 	
 	private void processExportsConnAnnot(String note) {
 		List connected = new ArrayList();
@@ -179,6 +181,14 @@ public class NccCellAnnotations {
 		}
 	}
 
+	private void processExportsToRenameAnnotation(String note) {
+		NamePatternLexer lex = new NamePatternLexer(note);
+		lex.nextPattern();	// skip the keyword
+		for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
+			exportsToRename.add(np);
+		}
+	}
+
 	private void doAnnotation(String note) {
 		annotText.add(note);
 		if (note.startsWith("exportsConnectedByParent")) {
@@ -191,6 +201,8 @@ public class NccCellAnnotations {
 			processJoinGroupAnnotation(note);
 		} else if (note.startsWith("flattenInstances")) {
 			processFlattenInstancesAnnotation(note);
+		} else if (note.startsWith("exportsToRename")) {
+			processExportsToRenameAnnotation(note);
 		} else {
 			System.out.println("Unrecognized NCC annotation: "+note);
 		}
@@ -236,6 +248,13 @@ public class NccCellAnnotations {
 		for (Iterator it=flattenInstances.iterator(); it.hasNext();) {
 			NamePattern pattern = (NamePattern) it.next();
 			if (pattern.matches(instName)) return true;
+		}
+		return false;
+	}
+	public boolean renameExport(String exportName) {
+		for (Iterator it=exportsToRename.iterator(); it.hasNext();) {
+			NamePattern pattern = (NamePattern) it.next();
+			if (pattern.matches(exportName)) return true;
 		}
 		return false;
 	}

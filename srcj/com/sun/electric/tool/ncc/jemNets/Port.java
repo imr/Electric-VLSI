@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.Circuit;
@@ -38,19 +40,70 @@ import java.util.HashSet;
  * Wire. */ 
 public class Port extends NetObject {
     // ---------- private data -------------
-	private Wire wire;    
-	private HashSet names = new HashSet();
+	private Wire wire;
+	/** name of each Export attached to Wire */    
+	private List names = new ArrayList();
+	/** type of each Export attached to Wire */
+	private List types = new ArrayList();
+	/** true if user indicates he wants NCC to choose the correct name based 
+	 * upon topological equivalence */
+	private boolean toBeRenamed = false;
     
     // ---------- public methods ----------
-	public Port(String name, Wire w) {
+	public Port(String name, Object type, Wire w) {
 		super("");
 		wire = w;
 		names.add(name);
+		types.add(type);
 	}
 	public Type getNetObjType() {return Type.PORT;}
 	public Iterator getConnected() {return (new ArrayList()).iterator();}
 	
-	public void addExportName(String nm) {names.add(nm);}
+	public void addExport(String nm, PortProto.Characteristic type) {
+		names.add(nm);
+		types.add(type);
+	}
+	/** @return the type of Export. If a Wire has multiple Exports of
+	 * different types then return the most common type. */
+	public PortProto.Characteristic getType() {
+		Map typeToCount = new HashMap();
+		for (Iterator it=types.iterator(); it.hasNext();) {
+			PortProto.Characteristic t = (PortProto.Characteristic) it.next();
+			Integer count = (Integer) typeToCount.get(t);
+			int c = count!=null ? count.intValue() : 0;
+			typeToCount.put(t, new Integer(c+1));
+		}
+		int popularCount = 0;
+		PortProto.Characteristic popularType = null;
+		for (Iterator it=typeToCount.keySet().iterator(); it.hasNext();) {
+			PortProto.Characteristic t = (PortProto.Characteristic) it.next();
+			int count = ((Integer) typeToCount.get(t)).intValue();
+			if (count>popularCount ||
+			    (count==popularCount && t!=PortProto.Characteristic.UNKNOWN)) {
+				popularCount = count;
+				popularType = t;
+			}
+		}
+		return popularType;
+	}
+	
+	/** Warn user if all Exports on a single wire don't have the same type */
+	public void warnIfExportTypesDiffer(String cellName) {
+		PortProto.Characteristic popularType = getType();
+		for (int i=0; i<names.size(); i++) {
+			String nm = (String) names.get(i);
+			PortProto.Characteristic t = (PortProto.Characteristic)types.get(i);
+			if (t!=popularType) {
+				System.out.println("In Cell: "+cellName+
+                                   " the export: "+nm+
+                                   " has Characteristic: "+t.toString()+
+                                   " which differs from the most common Characteristic: "+
+                                   popularType.toString()+
+                                   " of the exports: "+
+                                   exportNamesString());
+			}
+		}
+	}
 
 	public Wire getWire(){return wire;}
 
@@ -75,6 +128,8 @@ public class Port extends NetObject {
 	}
 	public String nameString() {return "Port " + exportNamesString();}
 	public Iterator getExportNames() {return names.iterator();}
+	public void setToBeRenamed() {toBeRenamed = true;}
+	public boolean getToBeRenamed() {return toBeRenamed;}
 
 	public void printMe(int maxCon, Messenger messenger){
 		messenger.print("Port on wire: " + wire.getName() +

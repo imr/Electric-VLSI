@@ -98,7 +98,25 @@ public class StratPortName extends Strategy {
 			}
 		}
 	}
-	
+	private Map getMapFromExportNamesToWires(Circuit wires){
+		Map out = new HashMap();
+		for (Iterator it=wires.getNetObjs(); it.hasNext();) {
+			NetObject n= (NetObject)it.next();
+			error(!(n instanceof Wire), "getExportMap expects only Wires");
+			Wire w= (Wire)n;
+			Port p = w.getPort();
+			if (p!=null && !p.getToBeRenamed()) {
+				for (Iterator ni=p.getExportNames(); ni.hasNext();) {
+					String exportNm = (String) ni.next();
+					error(out.containsKey(exportNm),
+						  "different wires have the same export name?");
+					out.put(exportNm, w);
+				}
+			}
+		}
+		return out;
+	}
+
 	/** 
 	 * getWireExportMap produces a map of Wires to arbitrary Integers
 	 * based on matching export names.
@@ -109,10 +127,9 @@ public class StratPortName extends Strategy {
 		List mapPerCkt = new ArrayList(); //to hold the circuit's maps
 		Set keys = new HashSet();
 		for (Iterator ci=er.getCircuits(); ci.hasNext();) {
-			Circuit jc= (Circuit)ci.next();
-			Map map= jc.getExportMap();
-			mapPerCkt.add(map);
-			keys.addAll(map.keySet());
+			Map exportToWire = getMapFromExportNamesToWires((Circuit)ci.next());
+			mapPerCkt.add(exportToWire);
+			keys.addAll(exportToWire.keySet());
 		}
 		//keys now holds all possible Strings that are names
 		if (keys.size()==0)  return new HashMap(); //no ports
@@ -121,7 +138,7 @@ public class StratPortName extends Strategy {
 		for (Iterator ki=keys.iterator(); ki.hasNext();) {
 			String key = (String)ki.next();
 			//check that all maps have this key
-			List wires = new ArrayList(2);
+			List wires = new ArrayList();
 			for (Iterator hi=mapPerCkt.iterator(); hi.hasNext();) {
 				Map map = (Map)hi.next();
 				if(map.containsKey(key)){
@@ -161,8 +178,8 @@ public class StratPortName extends Strategy {
 			
 			out = super.doFor(g);
 			globals.println(" processed "+g.nameString()+
-								" with map size= "+theMap.size()+" yields " 
-								+out.size()+" offspring ");
+							" with map size= "+theMap.size()+" yields " 
+							+out.size()+" offspring ");
 		} else {
 			out = super.doFor(g);
 		}

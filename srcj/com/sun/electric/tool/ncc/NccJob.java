@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -106,35 +107,37 @@ public class NccJob extends Job {
 		return options;
 	}
 
-	private boolean nccTwoCells(CellContext[] cellCtxts, NccOptions options) {
+	private NccResult nccTwoCells(CellContext[] cellCtxts, NccOptions options) {
 		Cell cell0 = cellCtxts[0].cell;
 		VarContext context0 = cellCtxts[0].context;
 		Cell cell1 = cellCtxts[1].cell;
 		VarContext context1 = cellCtxts[0].context;
-		System.out.println("Comparing: "+NccUtils.fullName(cell0)+
-						   " with: "+NccUtils.fullName(cell1));
-		return NccEngine.compare(cell0, context0, cell1, context1, null, options);
+		return NccUtils.compareAndPrintStatus(cell0, context0, cell1, context1, 
+										      null, options);
 	}
 
     public boolean doIt() {
+    	Date before = new Date();
 		System.out.println((hierarchical ? "Hierarchical" : "Flat")+
                            " NCC starting");
 		NccOptions options = getOptionsFromNccConfigDialog();
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
 
-		boolean ok;
+		NccResult result;
 		if (cellCtxts==null) {
-			ok = false; 
+			result = new NccResult(false, false, false); 
 		} else if (bottomUpFlat || hierarchical) {
-			ok = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
-			                         hierarchical, options);
+			result = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
+			                             hierarchical, options);
 		} else {
-			ok = nccTwoCells(cellCtxts, options);
+			result = nccTwoCells(cellCtxts, options);
 		}
 		
-		if (ok) System.out.println("Ncc done: no mismatches");
-		else  System.out.println("Ncc done: comparison failed");
-		return ok;
+		System.out.println("Summary for all cells "+result.summary(options.checkSizes));
+		Date after = new Date();
+		System.out.println("NCC command completed in: "+
+		                   NccUtils.hourMinSec(before, after)+".");
+		return result.match();
     }
 
 	// ------------------------- public method --------------------------------

@@ -44,6 +44,8 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.NccResult;
+import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 
@@ -118,4 +120,42 @@ public class NccUtils {
 		}
 		return false;
 	}
+	/** print hours minutes seconds */
+	public static String hourMinSec(Date start, Date stop) {
+		final int msecPerHour = 1000*60*60;
+		final int msecPerMin = 1000*60;
+		long elapsedMsec = stop.getTime() - start.getTime();
+		long hours = elapsedMsec / msecPerHour;
+		elapsedMsec = elapsedMsec % msecPerHour;
+		long mins = elapsedMsec / msecPerMin;
+		elapsedMsec = elapsedMsec % msecPerMin;
+		double secs = elapsedMsec / 1000.0;
+		String time = "";
+		if (hours!=0) time += hours + " hours ";
+		if (mins!=0) time += mins + " minutes ";
+		time += secs + " seconds";
+		return time; 
+	}
+	
+	public static NccResult compareAndPrintStatus(Cell cell1, 
+				                                  VarContext context1,
+												  Cell cell2, 
+												  VarContext context2, 
+							   	                  HierarchyInfo hierInfo,
+							                      NccOptions options) {
+		System.out.println("Comparing: "+NccUtils.fullName(cell1)+
+						   " with: "+NccUtils.fullName(cell2));
+		System.out.flush();
+		Date before = new Date();
+		NccResult result = NccEngine.compare(cell1, context1, cell2, context2,  
+										     hierInfo, options);
+		Date after = new Date();
+
+		String timeStr = hourMinSec(before, after);
+		System.out.println(result.summary(options.checkSizes)+" in "+timeStr+".");
+		System.out.flush();
+
+		return result;
+	}
+
 }
