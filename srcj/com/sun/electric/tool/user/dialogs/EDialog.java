@@ -122,7 +122,8 @@ public class EDialog extends JDialog
         public synchronized void windowGainedFocus(WindowEvent e) {
             for (int i=0; i<dialogs.size(); i++) {
                 EDialog dialog = (EDialog)dialogs.get(i);
-                dialog.toFront();
+                // this seems to be causing problems on windows platforms
+                //dialog.toFront();
             }
         }
 
