@@ -159,6 +159,7 @@ public class CellProperties extends EDialog
 		useTechEditor.setEnabled(false);
 		setUseTechEditor.setEnabled(false);
 		clearUseTechEditor.setEnabled(false);
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

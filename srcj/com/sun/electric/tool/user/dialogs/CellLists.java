@@ -124,6 +124,7 @@ public class CellLists extends EDialog
 			case 0: displayInMessages.setSelected(true);          break;
 			case 1: saveToDisk.setSelected(true);                 break;
 		}
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

@@ -270,6 +270,7 @@ public class Array extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
 		});
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

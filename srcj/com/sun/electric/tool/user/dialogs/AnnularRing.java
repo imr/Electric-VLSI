@@ -100,7 +100,8 @@ public class AnnularRing extends EDialog
 		outerRadius.setText(TextUtils.formatDouble(lastOuter));
 		numSegments.setText(Integer.toString(lastSegments));
 		numDegrees.setText(Integer.toString(lastDegrees));
-    }
+		finishInitialization();
+   }
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 

@@ -181,6 +181,7 @@ public class ChangeText extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { findSelectedText(false); }
 		});
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

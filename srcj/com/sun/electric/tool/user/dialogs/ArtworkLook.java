@@ -115,6 +115,7 @@ public class ArtworkLook extends EDialog
 		}
 		li = new ColorPatternPanel.Info(graphics);
 		colorPatternPanel.setColorPattern(li);
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

@@ -33,7 +33,8 @@ public class FillGen extends EDialog {
     public FillGen(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-    }
+		finishInitialization();
+   }
     
     /** This method is called from within the constructor to
      * initialize the form.

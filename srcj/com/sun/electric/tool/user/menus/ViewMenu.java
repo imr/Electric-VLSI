@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.dialogs.ViewControl;
@@ -79,8 +80,10 @@ public class ViewMenu {
 
         viewMenu.addMenuItem("Make Icon View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
+		viewMenu.addMenuItem("Make Schematic View", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
 		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Make Skeleton View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeSkeletonViewCommand(); } });
 

@@ -95,6 +95,7 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         initComponents();
         exec = null;
         finishedListenersToAdd = new ArrayList();
+		finishInitialization();
     }
 
     /** Do this before calling startProcess(). Listeners are only added before

@@ -147,6 +147,7 @@ public class About extends EDialog
 		{
 			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(evt); }
 		});
+		finishInitialization();
 	}
 
 	protected void escapePressed() { ok(null); }

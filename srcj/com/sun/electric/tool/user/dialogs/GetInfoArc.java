@@ -147,6 +147,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             String str = EGraphics.getColorIndexName(colorIndices[i]);
             arcColorComboBox.addItem(str);
         }
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

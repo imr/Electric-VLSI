@@ -252,6 +252,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         pack();
 
 		loadExportInfo();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

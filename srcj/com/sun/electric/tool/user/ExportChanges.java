@@ -440,8 +440,10 @@ public final class ExportChanges
 
         // find all ports in highlighted area
         List queuedExports = new ArrayList();
-        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+        for (Iterator it = cell.getNodes(); it.hasNext(); )
+        {
             NodeInst ni = (NodeInst)it.next();
+            if (!(ni.getProto() instanceof Cell)) continue;
             for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
             {
                 PortInst pi = (PortInst)pIt.next();
@@ -453,6 +455,14 @@ public final class ExportChanges
                 }
                 queuedExports.add(pi);
             }
+        }
+
+        // remove already-exported ports
+        for(Iterator it = cell.getPorts(); it.hasNext(); )
+        {
+        	Export pp = (Export)it.next();
+        	PortInst pi = pp.getOriginalPort();
+        	queuedExports.remove(pi);
         }
 
         // no ports to export

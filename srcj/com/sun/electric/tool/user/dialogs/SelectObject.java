@@ -117,6 +117,7 @@ public class SelectObject extends EDialog
 			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
 		});
 		buttonClicked();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { closeDialog(null); }

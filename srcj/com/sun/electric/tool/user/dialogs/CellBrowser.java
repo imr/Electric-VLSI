@@ -116,6 +116,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         pack();
 
         Undo.addDatabaseChangeListener(this);
+		finishInitialization();
     }
 
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {

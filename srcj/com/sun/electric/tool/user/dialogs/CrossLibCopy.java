@@ -111,6 +111,7 @@ public class CrossLibCopy extends EDialog
 		copyRelatedViews.setSelected(lastCopyRelated);
 		copySubcells.setSelected(lastCopySubcells);
 		useExistingSubcells.setSelected(lastUseExisting);
+		finishInitialization();
 	}
 
 	private void leftListClick(java.awt.event.MouseEvent evt)

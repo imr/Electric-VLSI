@@ -128,8 +128,10 @@ public class FindText extends EDialog
 		searchTempNames.setSelected(prefSearchTempNames.getBoolean());
 
 		getRootPane().setDefaultButton(find);
+		finishInitialization();
 	}
-    private boolean badRegExpSyntax() {
+
+	private boolean badRegExpSyntax() {
         if (!regExp.isSelected()) return false;
         try {
             Pattern.compile(findString.getText());

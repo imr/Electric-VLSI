@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01q: *********************************
 
+IMP: (9/17/04, SMR) Dialogs remember their last size; "change" dialog grows sensibly.
+
 FIX: (9/16/04, JKG) Can now set Serpentine transistor length from GetInfoNode dialog
 
 BUG: (9/16/04, SMR) Arcs that run from a node to itself are not constrained right.

@@ -109,6 +109,7 @@ public class LayoutText extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { updateMessageField(); }
 		});
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

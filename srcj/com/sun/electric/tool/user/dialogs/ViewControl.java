@@ -61,6 +61,7 @@ public class ViewControl extends EDialog
 
 		// load all of the Views
 		loadViews();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { done(null); }

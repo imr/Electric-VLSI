@@ -212,6 +212,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		    attributes.setSelected(true);
 
 		loadInfo();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

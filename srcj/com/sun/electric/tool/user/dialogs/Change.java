@@ -175,6 +175,7 @@ public class Change extends EDialog implements HighlightListener
 			case CHANGE_LIBRARY:    changeInLibrary.setSelected(true);    break;
 			case CHANGE_EVERYWHERE: changeEverywhere.setSelected(true);   break;
 		}
+		finishInitialization();
 	}
 
 	/**
@@ -1171,7 +1172,6 @@ public class Change extends EDialog implements HighlightListener
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(done, gridBagConstraints);
 
@@ -1187,7 +1187,6 @@ public class Change extends EDialog implements HighlightListener
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 

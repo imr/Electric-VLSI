@@ -94,6 +94,7 @@ public class NewCell extends EDialog
 		if (curIndex >= 0) library.setSelectedIndex(curIndex);
 
 		cellName.grabFocus();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

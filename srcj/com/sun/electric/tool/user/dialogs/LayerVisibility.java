@@ -95,6 +95,7 @@ public class LayerVisibility extends EDialog
 			technology.addItem(tech.getTechName());
 		}
 		technology.setSelectedItem(Technology.getCurrent().getTechName());
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

@@ -158,6 +158,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		selection.addItem("Make all Hard-to-select");
 		selection.addItem("Make all Easy-to-select");
 		loadMultiInfo();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

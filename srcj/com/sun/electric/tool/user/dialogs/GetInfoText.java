@@ -368,6 +368,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         Undo.addDatabaseChangeListener(this);
 
         loadTextInfo();
+		finishInitialization();
     }
 
 	protected void escapePressed() { cancelActionPerformed(null); }

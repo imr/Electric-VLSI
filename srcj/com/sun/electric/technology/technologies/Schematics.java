@@ -2028,6 +2028,61 @@ public class Schematics extends Technology
 	}
 
 	/**
+	 * Method to return the technology-specific function bits for a given Nodeproto.Function.
+	 * @param function the universal function description
+	 * @return the technology-specific bits to use for that function in this technology.
+	 */
+	public static int getPrimitiveFunctionBits(NodeProto.Function function)
+	{
+		if (function == NodeProto.Function.ECAPAC) return CAPACELEC;
+		if (function == NodeProto.Function.CAPAC) return CAPACNORM;
+
+		if (function == NodeProto.Function.DIODEZ) return DIODEZENER;
+		if (function == NodeProto.Function.DIODE) return DIODENORM;
+
+		if (function == NodeProto.Function.TRANMOS)  return TRANNMOS;
+		if (function == NodeProto.Function.TRADMOS)  return TRANDMOS;
+		if (function == NodeProto.Function.TRAPMOS)  return TRANPMOS;
+		if (function == NodeProto.Function.TRANPN)   return TRANNPN;
+		if (function == NodeProto.Function.TRAPNP)   return TRANPNP;
+		if (function == NodeProto.Function.TRANJFET) return TRANNJFET;
+		if (function == NodeProto.Function.TRAPJFET) return TRANPJFET;
+		if (function == NodeProto.Function.TRADMES)  return TRANDMES;
+		if (function == NodeProto.Function.TRAEMES)  return TRANEMES;
+
+		if (function == NodeProto.Function.TRA4NMOS)  return TRANNMOS;
+		if (function == NodeProto.Function.TRA4DMOS)  return TRANDMOS;
+		if (function == NodeProto.Function.TRA4PMOS)  return TRANPMOS;
+		if (function == NodeProto.Function.TRA4NPN)   return TRANNPN;
+		if (function == NodeProto.Function.TRA4PNP)   return TRANPNP;
+		if (function == NodeProto.Function.TRA4NJFET) return TRANNJFET;
+		if (function == NodeProto.Function.TRA4PJFET) return TRANPJFET;
+		if (function == NodeProto.Function.TRA4DMES)  return TRANDMES;
+		if (function == NodeProto.Function.TRA4EMES)  return TRANEMES;
+
+		if (function == NodeProto.Function.FLIPFLOPRSMS) return FFTYPERS | FFCLOCKMS;
+		if (function == NodeProto.Function.FLIPFLOPRSP)  return FFTYPERS | FFCLOCKP;
+		if (function == NodeProto.Function.FLIPFLOPRSN)  return FFTYPERS | FFCLOCKN;
+		if (function == NodeProto.Function.FLIPFLOPJKMS) return FFTYPEJK | FFCLOCKMS;
+		if (function == NodeProto.Function.FLIPFLOPJKP)  return FFTYPEJK | FFCLOCKP;
+		if (function == NodeProto.Function.FLIPFLOPJKN)  return FFTYPEJK | FFCLOCKN;
+		if (function == NodeProto.Function.FLIPFLOPDMS)  return FFTYPED  | FFCLOCKMS;
+		if (function == NodeProto.Function.FLIPFLOPDP)   return FFTYPED  | FFCLOCKP;
+		if (function == NodeProto.Function.FLIPFLOPDN)   return FFTYPED  | FFCLOCKN;
+		if (function == NodeProto.Function.FLIPFLOPTMS)  return FFTYPET  | FFCLOCKMS;
+		if (function == NodeProto.Function.FLIPFLOPTP)   return FFTYPET  | FFCLOCKP;
+		if (function == NodeProto.Function.FLIPFLOPTN)   return FFTYPET  | FFCLOCKN;
+
+		if (function == NodeProto.Function.VCCS) return TWOPVCCS;
+		if (function == NodeProto.Function.CCVS) return TWOPCCVS;
+		if (function == NodeProto.Function.VCVS) return TWOPVCVS;
+		if (function == NodeProto.Function.CCCS) return TWOPCCCS;
+		if (function == NodeProto.Function.TLINE) return TWOPTLINE;
+
+		return 0;
+	}
+
+	/**
 	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.
@@ -2035,64 +2090,8 @@ public class Schematics extends Technology
 	 */
 	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function)
 	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np == capacitorNode)
-		{
-			if (function == NodeProto.Function.ECAPAC) ni.setTechSpecific(CAPACELEC); else
-				ni.setTechSpecific(CAPACNORM);
-		}
-		if (np == diodeNode)
-		{
-			if (function == NodeProto.Function.DIODEZ) ni.setTechSpecific(DIODEZENER); else
-				ni.setTechSpecific(DIODENORM);
-		}
-		if (np == transistorNode)
-		{
-			if (function == NodeProto.Function.TRANMOS)  ni.setTechSpecific(TRANNMOS); else
-			if (function == NodeProto.Function.TRADMOS)  ni.setTechSpecific(TRANDMOS); else
-			if (function == NodeProto.Function.TRAPMOS)  ni.setTechSpecific(TRANPMOS); else
-			if (function == NodeProto.Function.TRANPN)   ni.setTechSpecific(TRANNPN); else
-			if (function == NodeProto.Function.TRAPNP)   ni.setTechSpecific(TRANPNP); else
-			if (function == NodeProto.Function.TRANJFET) ni.setTechSpecific(TRANNJFET); else
-			if (function == NodeProto.Function.TRAPJFET) ni.setTechSpecific(TRANPJFET); else
-			if (function == NodeProto.Function.TRADMES)  ni.setTechSpecific(TRANDMES); else
-			if (function == NodeProto.Function.TRAEMES)  ni.setTechSpecific(TRANEMES);
-		}
-		if (np == transistor4Node)
-		{
-			if (function == NodeProto.Function.TRA4NMOS)  ni.setTechSpecific(TRANNMOS); else
-			if (function == NodeProto.Function.TRA4DMOS)  ni.setTechSpecific(TRANDMOS); else
-			if (function == NodeProto.Function.TRA4PMOS)  ni.setTechSpecific(TRANPMOS); else
-			if (function == NodeProto.Function.TRA4NPN)   ni.setTechSpecific(TRANNPN); else
-			if (function == NodeProto.Function.TRA4PNP)   ni.setTechSpecific(TRANPNP); else
-			if (function == NodeProto.Function.TRA4NJFET) ni.setTechSpecific(TRANNJFET); else
-			if (function == NodeProto.Function.TRA4PJFET) ni.setTechSpecific(TRANPJFET); else
-			if (function == NodeProto.Function.TRA4DMES)  ni.setTechSpecific(TRANDMES); else
-			if (function == NodeProto.Function.TRA4EMES)  ni.setTechSpecific(TRANEMES);
-		}
-		if (np == flipflopNode)
-		{
-			if (function == NodeProto.Function.FLIPFLOPRSMS) ni.setTechSpecific(FFTYPERS | FFCLOCKMS); else
-			if (function == NodeProto.Function.FLIPFLOPRSP)  ni.setTechSpecific(FFTYPERS | FFCLOCKP); else
-			if (function == NodeProto.Function.FLIPFLOPRSN)  ni.setTechSpecific(FFTYPERS | FFCLOCKN); else
-			if (function == NodeProto.Function.FLIPFLOPJKMS) ni.setTechSpecific(FFTYPEJK | FFCLOCKMS); else
-			if (function == NodeProto.Function.FLIPFLOPJKP)  ni.setTechSpecific(FFTYPEJK | FFCLOCKP); else
-			if (function == NodeProto.Function.FLIPFLOPJKN)  ni.setTechSpecific(FFTYPEJK | FFCLOCKN); else
-			if (function == NodeProto.Function.FLIPFLOPDMS)  ni.setTechSpecific(FFTYPED  | FFCLOCKMS); else
-			if (function == NodeProto.Function.FLIPFLOPDP)   ni.setTechSpecific(FFTYPED  | FFCLOCKP); else
-			if (function == NodeProto.Function.FLIPFLOPDN)   ni.setTechSpecific(FFTYPED  | FFCLOCKN); else
-			if (function == NodeProto.Function.FLIPFLOPTMS)  ni.setTechSpecific(FFTYPET  | FFCLOCKMS); else
-			if (function == NodeProto.Function.FLIPFLOPTP)   ni.setTechSpecific(FFTYPET  | FFCLOCKP); else
-			if (function == NodeProto.Function.FLIPFLOPTN)   ni.setTechSpecific(FFTYPET  | FFCLOCKN);
-		}
-		if (np == twoportNode)
-		{
-			if (function == NodeProto.Function.VCCS) ni.setTechSpecific(TWOPVCCS); else
-			if (function == NodeProto.Function.CCVS) ni.setTechSpecific(TWOPCCVS); else
-			if (function == NodeProto.Function.VCVS) ni.setTechSpecific(TWOPVCVS); else
-			if (function == NodeProto.Function.CCCS) ni.setTechSpecific(TWOPCCCS); else
-				ni.setTechSpecific(TWOPTLINE);
-		}
+		ni.setTechSpecific(getPrimitiveFunctionBits(function));
+
 	}
     
 	/**

@@ -335,6 +335,7 @@ public class PreferencesFrame extends EDialog
 		getContentPane().add(splitPane, gbc);
 
 		pack();
+		finishInitialization();
 	}
 
 	private void cancelActionPerformed(ActionEvent evt)

@@ -56,6 +56,7 @@ public class MoveBy extends EDialog
         double movey = prefs.getDouble(MOVEY, 0);
         dX.setText(String.valueOf(movex));
         dY.setText(String.valueOf(movey));
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }

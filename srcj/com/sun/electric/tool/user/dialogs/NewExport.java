@@ -70,6 +70,7 @@ public class NewExport extends EDialog
 			exportCharacteristics.setSelectedItem(last);
 		referenceExport.setEditable(false);
 		exportName.grabFocus();
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

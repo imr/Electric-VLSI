@@ -101,6 +101,7 @@ public class ChangeCurrentLib extends EDialog
 				if (e.getClickCount() == 2) okActionPerformed(null);
 			}
 		});
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }

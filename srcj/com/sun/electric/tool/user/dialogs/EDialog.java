@@ -23,19 +23,30 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JList;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
 /**
@@ -44,11 +55,12 @@ import javax.swing.text.JTextComponent;
 public class EDialog extends JDialog
 {
 	private static HashMap locations = new HashMap();
+	private static HashMap sizes = new HashMap();
 	private Class thisClass;
     public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
     public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
 
-	/** Creates new form Search and Replace */
+	/** Creates new form */
 	protected EDialog(Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -57,6 +69,7 @@ public class EDialog extends JDialog
 		Point pt = (Point)locations.get(thisClass);
 		if (pt == null) pt = new Point(100, 50);
 		setLocation(pt.x, pt.y);
+
 		addComponentListener(new MoveComponentListener());
 
 		final String CANCEL_DIALOG = "cancel-dialog";
@@ -73,7 +86,20 @@ public class EDialog extends JDialog
         }
 	}
 
-    /** used to cancel the dialog */
+	/**
+	 * Method to complete initialization of a dialog.
+	 * Restores the size from last time.
+	 */
+	protected void finishInitialization()
+	{
+		Point sz = (Point)sizes.get(thisClass);
+		if (sz != null)
+		{
+			this.setSize(sz.x, sz.y);
+		}
+	}
+
+	/** used to cancel the dialog */
 	protected void escapePressed() {}
 
     protected void focusClearOnTextField(JTextComponent textComponent) {
@@ -138,7 +164,16 @@ public class EDialog extends JDialog
 	{
 		public void componentHidden(ComponentEvent e) {}
 		public void componentShown(ComponentEvent e) {}
-		public void componentResized(ComponentEvent e) {}
+
+		public void componentResized(ComponentEvent e)
+		{
+			Class cls = e.getSource().getClass();
+			Rectangle bound = ((JDialog)e.getSource()).getBounds();
+			int x = bound.width;
+			int y = bound.height;
+			sizes.put(cls, new Point(x, y));
+		}
+
 		public void componentMoved(ComponentEvent e)
 		{
 			Class cls = e.getSource().getClass();

@@ -227,6 +227,7 @@ public class OptionReconcile extends EDialog
 
         optionHeader.setText("Library \""+libname+"\" wants to use the following options which differ from the current options");        
         pack();
+		finishInitialization();
 	}
 
 	private void termDialog()

@@ -217,6 +217,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         pack();
 
         loadAttributesInfo();
+		finishInitialization();
     }
 
 	protected void escapePressed() { ok(null); }

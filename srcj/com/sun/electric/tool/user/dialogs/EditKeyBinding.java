@@ -61,6 +61,7 @@ public class EditKeyBinding extends EDialog {
         key2 = null;
         initComponents();                   // prebuilt by netbeans
         initDialog();
+		finishInitialization();
     }
     
     /** This method is called from within the constructor to

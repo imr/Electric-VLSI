@@ -52,6 +52,7 @@ public class ChangeCellGroup extends EDialog {
         }
 
         pack();
+		finishInitialization();
     }
 
     private void populateCellGroupsComboBox(Cell cell, Library lib) {

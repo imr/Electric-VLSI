@@ -80,6 +80,7 @@ public class Spread extends EDialog
 		initComponents();
         getRootPane().setDefaultButton(ok);
 		spreadUp.setSelected(true);
+		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }
