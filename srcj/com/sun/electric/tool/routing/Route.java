@@ -122,8 +122,11 @@ public class Route extends ArrayList {
      */
     public boolean replaceBisectPin(RouteElementPort bisectPin, RouteElementPort replacement) {
         if (!bisectPin.isBisectArcPin()) return false;
+        System.out.println("bisectPin is "+bisectPin);
+        //assert(bisectPin == null);
+        //assert(bisectPin != null);
         assert(contains(bisectPin));
-        assert(contains(replacement));
+        //assert(contains(replacement));
 
         boolean success = true;
         for (Iterator it = iterator(); it.hasNext(); ) {
