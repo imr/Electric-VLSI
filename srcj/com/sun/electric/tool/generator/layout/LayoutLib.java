@@ -429,6 +429,7 @@ public class LayoutLib {
 		                                 head, new Point2D.Double(hX, hY),
 										 tail, new Point2D.Double(tX, tY), 
 										 null);
+		ai.setFixedAngle();									
 		error(ai==null, "newArcInst failed");
 		return ai;
 	}
@@ -455,17 +456,21 @@ public class LayoutLib {
 		double hY = head.getBounds().getCenterY();
 		double tX = tail.getBounds().getCenterX();
 		double tY = tail.getBounds().getCenterY();
+		ArcInst ai;
 		if (hX==tX || hY==tY) {
 			// no jog necessary						         	
-			return newArcInst(ap, width, head, hX, hY, tail, tX, tY);
+			ai = newArcInst(ap, width, head, hX, hY, tail, tX, tY);
 		} else {
 			Cell parent = head.getNodeInst().getParent();
 			NodeProto pinProto = ((PrimitiveArc)ap).findOverridablePinProto();
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
-			newArcInst(ap, width, head, pin);
-			return newArcInst(ap, width, pin, tail);
+			ai = newArcInst(ap, width, head, pin);
+			ai.setFixedAngle();
+			ai = newArcInst(ap, width, pin, tail);
 		}
+		ai.setFixedAngle();
+		return ai;
 	}
 
 	/**

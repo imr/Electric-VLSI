@@ -32,22 +32,11 @@ import com.sun.electric.database.topology.PortInst;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/** Jose uses JNetworks to represent connectivity.
+/** JNetworks represent connectivity.
  *
  * <p> For a Cell, each JNetwork represents a collection of PortInsts
- * that are electrically connected.  The JNetworks for a Cell and all
- * its descendents are created when the user calls
- * Cell.rebuildNetworks().
- *
- * <p> A Cell's JNetworks are <i>not</i> kept up to date when Cells
- * are modified.  If you modify Cells and wish to get an updated view
- * of the connectivity you <i>must</i> call Cell.rebuildNetworks() after all
- * modifications are complete.
- *
- * <p> The JNetwork is a pure-java data structure. It does *not*
- * reference a c-side Electric Network object.
- *
- * <p> TODO: I need to generalize this to handle busses. */
+ * that are electrically connected.
+ */
 public class JNetwork
 {
 	// ------------------------- private data ------------------------------
@@ -83,18 +72,6 @@ public class JNetwork
 			names.add(nm);
 	}
 
-	/** Remove this JNetwork.  Actually, we just let the garbage collector
-	 * take care of it. */
-// 	void remove()
-// 	{
-// 	}
-
-	/** Create a JNetwork based on this one, but attached to a new Cell */
-// 	JNetwork copy(Cell f)
-// 	{
-// 		return new JNetwork(names, f);
-// 	}
-
 	// --------------------------- public methods ------------------------------
 	public Cell getParent()
 	{
@@ -122,11 +99,10 @@ public class JNetwork
 		return names.contains(nm);
 	}
 
-	/** TODO: write getNetwork() in JNetwork */
-	public JNetwork getNetwork()
-	{
-		return this;
-	}
+//	public JNetwork getNetwork()
+//	{
+//		return this;
+//	}
 
 	/** Get iterator over all PortInsts on JNetwork.  Note that the
 	 * PortFilter class is useful for filtering out frequently excluded

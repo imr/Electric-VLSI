@@ -824,7 +824,7 @@ public class WaveformWindow implements WindowContent
 			}
 			return foundList;
 		}
-
+		
 		private void clearHighlightedSignals()
 		{
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
@@ -834,7 +834,7 @@ public class WaveformWindow implements WindowContent
 				ws.highlighted = false;
 				ws.sigButton.setBackground(background);
 			}
-			repaint();
+			this.repaint();
 		}
 
 		private void addHighlightedSignal(Signal ws)
@@ -842,14 +842,14 @@ public class WaveformWindow implements WindowContent
 			if (background == null) background = ws.sigButton.getBackground();
 			ws.highlighted = true;
 			ws.sigButton.setBackground(Color.BLACK);
-			repaint();
+			this.repaint();
 		}
 
 		private void removeHighlightedSignal(Signal ws)
 		{
 			ws.highlighted = false;
 			ws.sigButton.setBackground(background);
-			repaint();
+			this.repaint();
 		}
 
 		// the MouseListener events
@@ -868,7 +868,7 @@ public class WaveformWindow implements WindowContent
 			if (!selected)
 			{
 				selected = true;
-				repaint();
+				this.repaint();
 			}
 	
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
@@ -977,7 +977,7 @@ public class WaveformWindow implements WindowContent
 					// just leave this highlight and show dimensions
 				}
 			}
-			repaint();
+			this.repaint();
 		}
 	
 		/**
@@ -999,7 +999,7 @@ public class WaveformWindow implements WindowContent
 			{
 				dragEndX = evt.getX();
 				dragEndY = evt.getY();
-				repaint();
+				this.repaint();
 			}
 		}
 
@@ -1075,7 +1075,7 @@ public class WaveformWindow implements WindowContent
 			{
 				dragEndX = evt.getX();
 				dragEndY = evt.getY();
-				repaint();
+				this.repaint();
 			}
 		}
 

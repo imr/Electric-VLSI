@@ -114,20 +114,23 @@ class MetalFloorplan extends Floorplan {
 			       double space, boolean horiz) {
 		super(cellWidth, cellHeight, horiz);
 		mergedVdd = vddReserve==0;
+		boolean mergedGnd = gndReserve==0;
 		double cellSpace = horiz ? cellHeight : cellWidth;
+		double metalSpace = cellSpace - 2*space - vddReserve - gndReserve;
+
+		// gnd is always in two pieces
+		gndWidth = roundDownOneLambda(metalSpace / 4);
+		gndCenter = cellSpace/2 - gndReserve/2 - gndWidth/2; 
+
+		// vdd may be one or two pieces
 		if (mergedVdd) {		
-			double w = cellSpace/2 - space - vddReserve;
-			vddWidth =  roundDownOneLambda(w);
+			vddWidth =  gndWidth*2;
 			vddCenter = 0;
 		} else {
-			double w = (cellSpace/2 - space - vddReserve) / 2;
-			vddWidth = roundDownOneLambda(w);
+			vddWidth = gndWidth;
 			vddCenter = vddReserve/2 + vddWidth/2;
 		}
 		double vddEdge = vddCenter + vddWidth/2;
-		double w = cellSpace/2 - vddEdge - space - gndReserve/2;
-		gndWidth = roundDownOneLambda(w);
-		gndCenter = vddEdge + space + gndWidth/2;
 		
 		// compute coverage statistics
 		double cellArea = cellWidth * cellHeight;
@@ -136,6 +139,35 @@ class MetalFloorplan extends Floorplan {
 		double gndArea = 2 * gndWidth * strapLength;
 		coverage = (vddArea + gndArea)/cellArea;
 	}
+
+// Save this code in case I need to replicate LoCo FillCell exactly
+//	MetalFloorplan(double cellWidth, double cellHeight,
+//				   double vddReserve, double gndReserve, 
+//				   double space, boolean horiz) {
+//		super(cellWidth, cellHeight, horiz);
+//		mergedVdd = vddReserve==0;
+//		double cellSpace = horiz ? cellHeight : cellWidth;
+//		if (mergedVdd) {		
+//			double w = cellSpace/2 - space - vddReserve;
+//			vddWidth =  roundDownOneLambda(w);
+//			vddCenter = 0;
+//		} else {
+//			double w = (cellSpace/2 - space - vddReserve) / 2;
+//			vddWidth = roundDownOneLambda(w);
+//			vddCenter = vddReserve/2 + vddWidth/2;
+//		}
+//		double vddEdge = vddCenter + vddWidth/2;
+//		double w = cellSpace/2 - vddEdge - space - gndReserve/2;
+//		gndWidth = roundDownOneLambda(w);
+//		gndCenter = vddEdge + space + gndWidth/2;
+//		
+//		// compute coverage statistics
+//		double cellArea = cellWidth * cellHeight;
+//		double strapLength = horiz ? cellWidth : cellHeight;
+//		double vddArea = (mergedVdd ? 1 : 2) * vddWidth * strapLength;  
+//		double gndArea = 2 * gndWidth * strapLength;
+//		coverage = (vddArea + gndArea)/cellArea;
+//	}
 }
 
 /** Give access to the metal straps inside a MetalLayer or CapLayer */
@@ -983,14 +1015,13 @@ class TiledCell {
 		LayoutLib.error(bounds==null, "missing Essential Bounds");
 		double cellW = bounds.getWidth();
 		double cellH = bounds.getHeight();
-		double w = cellW * numX;
-		double h = cellH * numY;
-		// assume that cell is centered about its Facet-Center 
-		double y = -h/2 + cellH/2;
+
+		// put bottom left cell at (0, 0)
+		double y = 0;
 		
 		NodeInst[][] rows = newRows(numX, numY); 
 		for (int row=0; row<numY; row++) {
-			double x = -w/2 + cellW/2;
+			double x = 0;
 			for (int col=0; col<numX; col++) {
 				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE, 
 													   G.DEF_SIZE, 0, tiled);
@@ -1051,12 +1082,12 @@ public class FillLibGen extends Job {
 	};
 	private static final Floorplan[] noGapPlans = {
 		null,
-		new CapFloorplan(width, height, 		   !topHori),	// cap
-		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
-		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
-		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
-		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
-		new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
+		new CapFloorplan(width, height, 		            !topHori),//cap
+		new MetalFloorplan(width, height, 0, 2*m1Res, m1SP,  topHori),//metal 2
+		new MetalFloorplan(width, height, 0, 2*m1Res, m1SP, !topHori),//metal 3
+		new MetalFloorplan(width, height, 0, 2*m1Res, m1SP,  topHori),//metal 4
+		new MetalFloorplan(width, height, 0, 2*m1Res, m1SP, !topHori),//metal 5
+		new MetalFloorplan(width, height, 0, 2*m6Res, m6SP,  topHori) //metal 6
 	};
 	
 	private void printCoverage(Floorplan[] plans) {
@@ -1068,7 +1099,7 @@ public class FillLibGen extends Job {
 
 	private void fillCellTest() {
 		genFillCellFamily("fillLib", plans);
-		//genFillCellFamily("noGapFillLib", noGapPlans);
+		genFillCellFamily("noGapFillLib", noGapPlans);
 	}
 
 	private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,

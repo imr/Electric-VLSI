@@ -2,6 +2,18 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/4/04, RK) Change fill cell generator so that all reserved
+space may be allocated between ground only or between power only.
+
+IMP: (6/4/04, RK) Change fill cell generator to place bottom left fill
+cell at (0,0) when building tiled fill cells.
+
+BUG: (6/4/04, RK) Change LayoutLib.newArcInst to create only fixed-angle arcs
+
+BUG: (6/4/04, RK) Fix compile errors reported by Eclipse in WaveformWindow.java
+
+BUG: (6/4/04, RK) Fix obsolete comments in JNetwork
+
 IMP: (6/4/04, SMR) Outline listener uses right button to create points, not "a".
 
 IMP: (6/4/04, SMR) Implemented Measure-Distance mode.
