@@ -351,6 +351,17 @@ public class Highlight
             return true;
         }
         if (type == Type.TEXT) {
+            if (name != null) {
+                // name on an arc or node: check if name is still valid
+                if (eobj instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)eobj;
+                    return (ni.getNameKey() == name);
+                }
+                if (eobj instanceof ArcInst) {
+                    ArcInst ai = (ArcInst)eobj;
+                    return (ai.getNameKey() == name);
+                }
+            }
             if (var != null) return var.isLinked();
             if (eobj != null) return eobj.isLinked();
             return false;
