@@ -260,7 +260,7 @@ public class AutoStitch
                 Route route = (Route)it.next();
                 RouteElement re = (RouteElement)route.get(0);
                 Cell c = re.getCell();
-                Router.createRouteNoJob(route, c, false);            
+                Router.createRouteNoJob(route, c, false, false);            
             }
 
 			return true;

@@ -413,6 +413,7 @@ public class Highlight
 	public static void addNetwork(JNetwork net, Cell cell)
 	{
 		Netlist netlist = cell.getUserNetlist();
+        List nodesAdded = new ArrayList();
 
 		// show all arcs on the network
 		for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
@@ -427,11 +428,20 @@ public class Highlight
 					Highlight.addElectricObject(ai, cell);
                     // also highlight end nodes of arc, if they are primitive nodes
                     PortInst pi = ai.getHead().getPortInst();
-                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
-                        Highlight.addElectricObject(pi, cell);
+                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
+                        if (!nodesAdded.contains(pi)) {
+                            // prevent duplicates
+                            Highlight.addElectricObject(pi, cell);
+                            nodesAdded.add(pi);
+                        }
+                    }
                     pi = ai.getTail().getPortInst();
                     if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
-                        Highlight.addElectricObject(pi, cell);
+                        if (!nodesAdded.contains(pi)) {
+                            // prevent duplicates
+                            Highlight.addElectricObject(pi, cell);
+                            nodesAdded.add(pi);
+                        }
 					break;
 				}
 			}

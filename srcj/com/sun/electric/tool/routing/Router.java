@@ -107,9 +107,11 @@ public abstract class Router {
      * @param route the route to create
      * @param cell the cell in which to create the route
      * @param verbose if true, prints objects created
+     * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
+     * highlights alone.
      * @return
      */
-    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose) {
+    public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose, boolean highlightRouteEnd) {
 
         Job.checkChanging();
 
@@ -139,6 +141,7 @@ public abstract class Router {
                 arcsCreated++;
             }
         }
+
         if (verbose) {
             if (arcsCreated == 1)
                 System.out.print("1 arc, ");
@@ -149,13 +152,16 @@ public abstract class Router {
             else
                 System.out.println(nodesCreated+" nodes created");
         }
-        RouteElementPort finalRE = route.getEnd();
-        if (finalRE != null) {
-            Highlight.clear();
-            PortInst pi = finalRE.getPortInst();
-            if (pi != null) {
-                Highlight.addElectricObject(pi, cell);
-                Highlight.finished();
+
+        if (highlightRouteEnd) {
+            RouteElementPort finalRE = route.getEnd();
+            if (finalRE != null) {
+                Highlight.clear();
+                PortInst pi = finalRE.getPortInst();
+                if (pi != null) {
+                    Highlight.addElectricObject(pi, cell);
+                    Highlight.finished();
+                }
             }
         }
         return true;
@@ -186,7 +192,7 @@ public abstract class Router {
         public boolean doIt() {
             if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
-            return createRouteNoJob(route, cell, verbose);
+            return createRouteNoJob(route, cell, verbose, true);
        }
     }
 

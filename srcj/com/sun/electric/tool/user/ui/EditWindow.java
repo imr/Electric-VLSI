@@ -210,7 +210,20 @@ public class EditWindow extends JPanel
 		// extract library and cell from string
 		Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
 		if (cell == null) return;
+        Cell currentCell = getCell();
 		setCell(cell, VarContext.globalContext);
+        // Highlight an instance of cell we came from in current cell
+        Highlight.clear();
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (ni.getProto() instanceof Cell) {
+                if ((ni.getProto() == currentCell) || (ni.getProto() == currentCell.iconView())) {
+                    Highlight.addElectricObject(ni, cell);
+                    Highlight.finished();
+                    break;
+                }
+            }
+        }
 	}
 
 	// the MouseListener events
@@ -1662,7 +1675,7 @@ public class EditWindow extends JPanel
 				{
 					// export name
 					Export pp = (Export)sic.object;
-					pp.setProtoName(newString);
+					pp.rename(newString);
 					Undo.redrawObject(pp.getOriginalPort().getNodeInst());					
 				} else
 				{

@@ -250,7 +250,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		public boolean doIt()
 		{
 		    // change the name
-			pp.setProtoName(newName);
+			pp.rename(newName);
 
 			// change the body-only
 			if (newBodyOnly) pp.setBodyOnly(); else

@@ -268,6 +268,7 @@ public class MimicStitch
 		private double prefX, prefY;
 		private boolean forced;
 		FlagSet portMark;
+        private List allRoutes;                         // all routes to be created
 
 		static class PossibleArc
 		{
@@ -332,6 +333,7 @@ public class MimicStitch
 			this.prefX = prefX;
 			this.prefY = prefY;
 			this.forced = forced;
+            allRoutes = new ArrayList();
 			startJob();
 		}
 
@@ -739,6 +741,7 @@ public class MimicStitch
 				}
 
 				// make the wires
+                allRoutes.clear();
 				for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 				{
 					PossibleArc pa = (PossibleArc)it.next();
@@ -755,12 +758,21 @@ public class MimicStitch
                     if (route.size() == 0)
 					{
 						System.out.println("Problem creating arc");
-						return count;
+						continue;
 					}
-                    Router.createRouteNoJob(route, pa.ni1.getParent(), false);
+                    allRoutes.add(route);
+                    //Router.createRouteNoJob(route, pa.ni1.getParent(), false);
 					flushStructureChanges = true;
 					count++;
 				}
+
+                // create the routes
+                for (Iterator it = allRoutes.iterator(); it.hasNext(); ) {
+                    Route route = (Route)it.next();
+                    RouteElement re = (RouteElement)route.get(0);
+                    Cell c = re.getCell();
+                    Router.createRouteNoJob(route, c, false, false);
+                }
 
 				// stop now if requested
 				if (stopWhenDone) break;

@@ -52,6 +52,8 @@ public class ExportMenu {
 
         exportMenu.addMenuItem("Re-Export Everything", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportAll(); } });
+        exportMenu.addMenuItem("Re-Export Selected", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelected(); } });
         exportMenu.addMenuItem("Re-Export Highlighted Area", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(); } });
         exportMenu.addMenuItem("Re-Export Power and Ground", null,
@@ -62,7 +64,7 @@ public class ExportMenu {
         exportMenu.addMenuItem("Delete Export", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExport(); } });
         exportMenu.addMenuItem("Delete Exports on Selected", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsOnHighlighted(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsOnSelected(); } });
         exportMenu.addMenuItem("Delete Exports in Highlighted Area", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsInArea(); } });
         exportMenu.addMenuItem("Move Export", null,

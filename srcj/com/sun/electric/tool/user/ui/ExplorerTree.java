@@ -208,6 +208,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
 	{
+        HashMap addedCells = new HashMap();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
@@ -228,8 +229,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (insts.hasNext()) continue;
 
 					// no children: add this as root node
+                    if (addedCells.get(cellVersion) != null) continue;          // prevent duplicate entries
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellVersion);
 					libTree.add(cellTree);
+                    addedCells.put(cellVersion, cellVersion);
 					createHierarchicalExplorerTree(cellVersion, cellTree);
 				}
 			}
@@ -320,6 +323,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				for(Iterator gIt = cellsInGroup.iterator(); gIt.hasNext(); )
 				{
 					Cell cellInGroup = (Cell)gIt.next();
+                    if ((cellInGroup.getNumVersions() > 1) && (cellInGroup.getNewestVersion() != cellInGroup)) continue;
 					if (cellInGroup.isBit(cellFlag)) continue;
 					if (groupTree == null)
 					{

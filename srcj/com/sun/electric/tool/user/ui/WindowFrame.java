@@ -494,8 +494,14 @@ public class WindowFrame
      */
     public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
         synchronized(windowList) {
-            if ((curWindowFrame == null) && makeNewFrame)
-                curWindowFrame = createEditWindow(null);
+            if ((curWindowFrame == null) && makeNewFrame) {
+                for (Iterator it = windowList.iterator(); it.hasNext(); ) {
+                    // get last in list
+                    curWindowFrame = (WindowFrame)it.next();
+                }
+                if (curWindowFrame == null)
+                    curWindowFrame = createEditWindow(null);
+            }
             return curWindowFrame;
         }
     }
@@ -575,8 +581,10 @@ public class WindowFrame
 	public static void setCurrentWindowFrame(WindowFrame wf)
 	{
         synchronized(windowList) {
-            //if (curWindowFrame == wf) return;
-		    curWindowFrame = wf;
+            curWindowFrame = wf;
+            // set this to be last in list
+            windowList.remove(wf);
+            windowList.add(wf);
         }
 		if (wf != null)
 		{

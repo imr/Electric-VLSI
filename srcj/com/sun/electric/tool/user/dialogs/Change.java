@@ -737,6 +737,7 @@ public class Change extends EDialog
 				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 			}
             }
+            WindowFrame.wantToRedoLibraryTree();
 			return true;
 		}
 

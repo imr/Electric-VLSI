@@ -418,12 +418,66 @@ public final class ExportChanges
 		if (bounds == null)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Must select something before re-exporting the highlighted objects",
+				"Must select area before re-exporting the highlighted objects",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		ReExport job = new ReExport(cell, bounds, false);
 	}
+
+    public static void reExportSelected()
+    {
+        // make sure there is a current cell
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+
+        List portsToExport = new ArrayList();
+        List highs = Highlight.getHighlighted(true, false);
+        for(Iterator it = highs.iterator(); it.hasNext(); )
+        {
+            NodeInst ni = (NodeInst)it.next();
+            for(Iterator eIt = ni.getPortInsts(); eIt.hasNext(); )
+            {
+                portsToExport.add(eIt.next());
+            }
+        }
+        if (portsToExport.size() > 0) {
+            ExportPorts job = new ExportPorts(cell, portsToExport);
+        } else {
+            System.out.println("No ports on selected objects to export");
+        }
+    }
+
+    private static class ExportPorts extends Job
+    {
+        Cell cell;
+        List portsToExport;
+
+        protected ExportPorts(Cell cell, List portsToExport) {
+            super("Export ports on Selected", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.portsToExport = portsToExport;
+            startJob();
+        }
+
+        public boolean doIt() {
+            // disallow port action if lock is on
+            if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
+            int exported = 0;
+            for (Iterator it = portsToExport.iterator(); it.hasNext(); ) {
+                PortInst pi = (PortInst)it.next();
+                Export ex = Export.newInstance(cell, pi, pi.getPortProto().getName());
+                if (ex == null) {
+                    System.out.println("ERROR trying to export "+pi.describe());
+                } else {
+                    exported++;
+                }
+            }
+            System.out.println(exported+" exports created");
+            return true;
+        }
+    }
 
 	/**
 	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
@@ -580,13 +634,13 @@ public final class ExportChanges
 			System.out.println("There are no selected exports to delete");
 			return;
 		}
-		DeleteExports job = new DeleteExports(exportsToDelete);
+		DeleteExports job = new DeleteExports(cell, exportsToDelete);
 	}
 
 	/**
 	 * Method to delete all exports on the highlighted objects.
 	 */
-	public static void deleteExportsOnHighlighted()
+	public static void deleteExportsOnSelected()
 	{
 		// make sure there is a current cell
 		Cell cell = WindowFrame.needCurCell();
@@ -612,7 +666,7 @@ public final class ExportChanges
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		DeleteExports job = new DeleteExports(exportsToDelete);
+		DeleteExports job = new DeleteExports(cell, exportsToDelete);
 	}
 
 	/**
@@ -655,7 +709,7 @@ public final class ExportChanges
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		DeleteExports job = new DeleteExports(exportsToDelete);
+		DeleteExports job = new DeleteExports(cell, exportsToDelete);
 	}
 
 	/**
@@ -723,20 +777,26 @@ public final class ExportChanges
 
 	private static class DeleteExports extends Job
 	{
+        Cell cell;
 		List exportsToDelete;
 
-		protected DeleteExports(List exportsToDelete)
+		protected DeleteExports(Cell cell, List exportsToDelete)
 		{
 			super("Delete exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
 			this.exportsToDelete = exportsToDelete;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
+            // retain objects selected
+            List objects = new ArrayList();
+            for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+                objects.add(it.next());
+            }
 			// clear the highlighting
 			Highlight.clear();
-			Highlight.finished();
 
 			int total = 0;
 			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
@@ -747,6 +807,14 @@ public final class ExportChanges
 			}
 			if (total == 0) System.out.println("No exports deleted"); else
 				System.out.println(total + " exports deleted");
+
+            for (Iterator it = objects.iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+                ElectricObject eobj = h.getElectricObject();
+                if ((eobj == null) || (eobj instanceof Export)) continue;
+                Highlight.addElectricObject(eobj, cell);
+            }
+            Highlight.finished();
 			return true;
 		}
 	}

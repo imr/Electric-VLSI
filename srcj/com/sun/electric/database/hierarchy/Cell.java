@@ -2122,7 +2122,10 @@ public class Cell extends NodeProto implements Comparable
 		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell cellInGroup = (Cell)it.next();
-			if (cellInGroup.getView() == view) return cellInGroup;
+			if (cellInGroup.getView() == view) {
+                // get latest version
+                return cellInGroup.getNewestVersion();
+            }
 		}
 
 		return null;

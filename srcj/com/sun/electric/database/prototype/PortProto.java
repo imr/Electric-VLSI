@@ -271,6 +271,7 @@ public abstract class PortProto extends ElectricObject
 
 	/**
 	 * Method to set the name of this PortProto.
+     * If this is an Export, you should most likely be using rename() instead.
 	 * @param protoName string with new name of this PortProto.
 	 */
 	public void setProtoName(String protoName)
