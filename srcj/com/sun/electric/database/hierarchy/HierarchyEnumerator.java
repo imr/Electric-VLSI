@@ -76,9 +76,8 @@ public final class HierarchyEnumerator {
 
 	private Integer[] getNetIDs(PortInst pi, Map netToNetID) {
 		JNetwork net = pi.getNetwork();
-		error(
-			net == null,
-			"Network=null! Did you call Cell.rebuildNetworks()?");
+		error(net == null,
+			  "Network=null! Did you call Cell.rebuildNetworks()?");
 		Integer netID = (Integer) netToNetID.get(net);
 		error(netID == null, "no netID for net");
 
@@ -98,31 +97,20 @@ public final class HierarchyEnumerator {
 
 	// portNmToNetIDs is a map from an Export name to an array of
 	// NetIDs.
-	private void enumerateCell(
-		NodeInst parentInst,
-		Cell cell,
-		VarContext context,
-		Map portNmToNetIDs,
-		AffineTransform xformToRoot,
-		CellInfo parent) {
+	private void enumerateCell(NodeInst parentInst,	Cell cell,
+	                           VarContext context, Map portNmToNetIDs,
+		                       AffineTransform xformToRoot,
+		                       CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 		int firstNetID = nextNetID;
 		Map netToNetID = numberNets(cell, portNmToNetIDs, info);
 		int lastNetIDPlusOne = nextNetID;
 		cellCnt++;
-		info.init(
-			parentInst,
-			cell,
-			context,
-			netToNetID,
-			portNmToNetIDs,
-			xformToRoot,
-			netIdToNetDesc,
-			parent);
+		info.init(parentInst, cell,	context, netToNetID, portNmToNetIDs,
+			      xformToRoot, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
-		if (!enumInsts)
-			return;
+		if (!enumInsts) return;
 
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst) it.next();
@@ -139,8 +127,7 @@ public final class HierarchyEnumerator {
 					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
 					AffineTransform xformToRoot2 =
 						new AffineTransform(xformToRoot);
-					// RKao debug temporary patch
-					//xformToRoot2.concatenate(ni.getAffineTransform());
+					xformToRoot2.concatenate(ni.rkTransformOut());
 					enumerateCell(
 						ni,
 						eq,
@@ -165,13 +152,8 @@ public final class HierarchyEnumerator {
 		this.visitor = visitor;
 		if (context == null)
 			context = VarContext.globalContext;
-		enumerateCell(
-			null,
-			root,
-			context,
-			new HashMap(),
-			new AffineTransform(),
-			null);
+		enumerateCell(null,	root, context, new HashMap(),
+		              new AffineTransform(), null);
 
 		System.out.println("A total of: " + nextNetID + " nets were numbered");
 		System.out.println("A total of: " + cellCnt + " Cells were visited");
@@ -380,8 +362,7 @@ public final class HierarchyEnumerator {
 		 * for flattening layout. */
 		public final AffineTransform getPositionInRoot(NodeInst ni) {
 			AffineTransform x = new AffineTransform(xformToRoot);
-			// RKao debug temporary patch
-			//x.concatenate(ni.getAffineTransform());
+			x.concatenate(ni.getPositionAsTransform());
 			return x;
 		}
 

@@ -591,6 +591,28 @@ public class NodeInst extends Geometric
 	}
 
 	/**
+	 * RKao: temporary Hack to help me debug my HierarchyEnumerator.
+	 */
+	public AffineTransform rkTransformOut()
+	{
+		Cell lowerCell = (Cell)protoType;
+		Rectangle2D bounds = lowerCell.getBounds();
+		double dx = cX - bounds.getCenterX();
+		double dy = cY - bounds.getCenterY();
+		AffineTransform transform = new AffineTransform();
+		transform.translate(dx, dy);
+		transform.rotate(angle, bounds.getCenterX(), bounds.getCenterY());
+		System.out.println("rkTransformOut: {\n"
+		                   + "    lowerCellBounds: " + bounds + "\n"
+						   + "    (cX, cY): " + cX + " " + cY + "\n"
+						   + "    angle: " + (angle*180/Math.PI) + "\n"
+						   + "    (sX, sY): " + sX + " " + sY + "\n"
+						   + "    xform: " + transform + "\n"
+						   + "}\n");
+		return transform;
+	}
+
+	/**
 	 * Routine to return a transformation that moves up the hierarchy, combined with a previous transformation.
 	 * Presuming that this NodeInst is a Cell instance, the transformation goes
 	 * from the space of that Cell to the space of this NodeInst's parent Cell.
@@ -1314,5 +1336,131 @@ public class NodeInst extends Geometric
 //
 //		return Electric.newNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.transpose, ep.angle, parent.getAddr());
 //	}
+	/**
+	 * <p>Temporary for testing the HierarchyEnumerator
+	 * 
+	 * <p>Return an AffineTransform that encodes the size, rotation, and 
+	 * center of this NodeInst.
+	 *  
+	 * <p>The returned AffineTransform has the property that when
+	 * it is applied to a unit square centered at the origin the
+	 * result is the bounding box of the NodeInst.
+	 * This transform is useful because it can be used to 
+	 * map the position of a NodeInst through levels of the design 
+	 * hierarchy.
+	 *  
+	 * <p>Note that the user can set the position of a NodeInst 
+	 * using NodeInst.setPositionFromTransform(). For example, the 
+	 * following operations make no change to a NodeInst's position:
+	 * 
+	 * <code>
+	 * ni.setPositionFromTransform(ni.getPositionFromTransform());
+	 * </code>
+	 */
+	public AffineTransform getPositionAsTransform() 
+	{
+		AffineTransform at = new AffineTransform();
+		at.setToTranslation(cX, cY);
+		at.rotate(angle);
+		at.scale(sX, sY);
+		return at;
+	}
 
+	private double angleFromXY(double x, double y) {
+		double ans = Math.atan2(y, x) * 180/Math.PI;
+		//System.out.println("(x, y): ("+x+", "+y+")  angle: "+ans);
+		return ans;
+	}
+
+	private double angle0To360(double a) {
+		while (a > 360) a -= 360;
+		while (a < 0)	a += 360;
+		return a;
+	}
+
+	/**
+	 * <p>Temporary for testing the HierarchyEnumerator
+	 * 
+	 * <p>Set the size, angle, and center of this NodeInst based upon an
+	 * affine transformation. 
+	 * 
+	 * <p>The AffineTransform must map a unit square centered at the 
+	 * origin to the desired bounding box for the NodeInst. 
+	 *
+	 * <p>Note that this operation cannot succeed for all affine
+	 * transformations.  The reason is that Electric's transformations
+	 * always preserve right angles whereas, in general, affine
+	 * transformations do not.  If the given affine transformation does
+	 * not preserve right angles this routine will print a warning
+	 * displaying the angle that results when a right angle is
+	 * transformed.
+	 * 
+	 * <p>Warning: this code is experimental
+	 * @param xForm the affine transformation. xForm must yield the 
+	 * bounding box of the NodeInst when applied to a unit square 
+	 * centered at the origin. 
+	 */
+	public void setPositionFromTransform(AffineTransform xForm) {
+		double sizeX, sizeY, newAngle, centX, centY;
+		boolean debug = true;
+
+		if (debug) System.out.println(xForm);
+
+		Point2D a = new Point2D.Double(0, 1); // along Y axis
+		Point2D b = new Point2D.Double(0, 0); // origin
+		Point2D c = new Point2D.Double(1, 0); // along X axis
+
+		Point2D aP = new Point2D.Double();
+		Point2D bP = new Point2D.Double();
+		Point2D cP = new Point2D.Double();
+
+		xForm.transform(a, aP);
+		xForm.transform(b, bP);
+		xForm.transform(c, cP);
+
+		if (debug) {
+			System.out.println("aP: " + aP);
+			System.out.println("bP: " + bP);
+			System.out.println("cP: " + cP);
+		}
+
+		sizeX = bP.distance(cP);
+		sizeY = bP.distance(aP);
+		centX = bP.getX();
+		centY = bP.getY();
+		
+		double angleA = angleFromXY(aP.getX() - bP.getX(), aP.getY() - bP.getY());
+		double angleC = angleFromXY(cP.getX() - bP.getX(), cP.getY() - bP.getY());
+		double angleAC = angle0To360(angleA - angleC);
+
+		if (debug) {
+			System.out.println("angleC: " + angleC);
+			System.out.println("angleA: " + angleA);
+			System.out.println("angleAC: " + angleAC);
+		}
+		// round to 1/10 degrees
+		angleAC = Math.rint(angleAC * 10) / 10;
+		if (angleAC == 90) {
+			newAngle = angleC;
+		} else if (angleAC == 270) {
+			// mirror in X
+			sizeX = -sizeX;
+			newAngle = angle0To360(angleC + 180);
+		} else {
+			System.out.println("error in NodeInst.setPositionFromTransform: "+
+							   "angle not 90 or 270: " + angleAC);
+		    newAngle = angleC;
+		}
+
+		if (debug) System.out.println(
+						"setPositionFromTransform: new position {\n"
+							+ "    sizeX: " + sizeX + "\n"
+							+ "    sizeY: " + sizeY + "\n"
+							+ "    angle: "  + newAngle + "\n"
+							+ "    dx: " + centX + "\n"
+							+ "    dy: " + centY + "\n"
+							+ "}\n");
+
+		modifyInstance(centX-cX, centY-cY, sizeX-sX, sizeY-sY, newAngle*180/Math.PI-angle);
+	}
 }

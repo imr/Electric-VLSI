@@ -54,7 +54,7 @@ public final class UserInitial
 		UITopLevel.Initialize();
 
 		// setup the File menu
-		UIMenu fileMenu = UIMenu.CreateUIMenu("File");
+		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
 		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
@@ -66,22 +66,19 @@ public final class UserInitial
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.quitCommand(); } });
 
 		// setup Steve's test menu
-		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve");
+		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve", 'S');
 		steveMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
 		steveMenu.addMenuItem("Full Display", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
 
 		// setup Russell's test menu
-		UIMenu russMenu = UIMenu.CreateUIMenu("Russell");
-		russMenu.addMenuItem("ivanFlat", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
-			new com.sun.electric.rkao.IvanFlat());
-		/*russMenu.addMenuItem("Full Display", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
-		*/
+		UIMenu russMenu = UIMenu.CreateUIMenu("Russell", 'R');
+		russMenu.addMenuItem("ivanFlat", new com.sun.electric.rkao.IvanFlat());
+		russMenu.addMenuItem("layout flat", new com.sun.electric.rkao.LayFlat());
 
 		// setup Dima's test menu
-		UIMenu dimaMenu = UIMenu.CreateUIMenu("Dima");
+		UIMenu dimaMenu = UIMenu.CreateUIMenu("Dima", 'D');
 		dimaMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoNetworkNumberingCommand(); } });
 
