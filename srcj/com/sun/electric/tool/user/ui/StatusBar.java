@@ -137,7 +137,6 @@ public class StatusBar extends JPanel implements HighlightListener
     public void highlightChanged()
     {
         updateSelectedText();
-        redoStatusBar();
     }
 
 	/**
@@ -163,6 +162,8 @@ public class StatusBar extends JPanel implements HighlightListener
 	
 	private void redoStatusBar()
 	{
+        updateSelectedText();
+        
 		Cell cell = null;
 		if (frame == null)
 		{
