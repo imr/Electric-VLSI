@@ -197,11 +197,13 @@ public class Menu extends JMenu implements ActionListener
     {
         menuItem.setAccelerator(accelerator);
         // set all other same menu items
-        ArrayList list = (ArrayList)menuItems.get(menuItem.getText());
-        // list == null should not happen, catch NullPointerException here if it does
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
-            JMenuItem m = (JMenuItem)it.next();
-            m.setAccelerator(accelerator);
+        synchronized(menuItems) {
+            ArrayList list = (ArrayList)menuItems.get(menuItem.getText());
+            // list == null should not happen, catch NullPointerException here if it does
+            for (Iterator it = list.iterator(); it.hasNext(); ) {
+                JMenuItem m = (JMenuItem)it.next();
+                m.setAccelerator(accelerator);
+            }
         }
         // save to prefs
         String keyBinding = "MenuKeyBinding-"+menuItem.getText();
@@ -215,11 +217,13 @@ public class Menu extends JMenu implements ActionListener
     {
         menuItem.setAccelerator(getDefaultKeyStroke(menuItem));
         // set all other same menu items
-        ArrayList list = (ArrayList)menuItems.get(menuItem.getText());
-        // list == null should not happen, catch NullPointerException here if it does
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
-            JMenuItem m = (JMenuItem)it.next();
-            m.setAccelerator(getDefaultKeyStroke(menuItem));
+        synchronized(menuItems) {
+            ArrayList list = (ArrayList)menuItems.get(menuItem.getText());
+            // list == null should not happen, catch NullPointerException here if it does
+            for (Iterator it = list.iterator(); it.hasNext(); ) {
+                JMenuItem m = (JMenuItem)it.next();
+                m.setAccelerator(getDefaultKeyStroke(menuItem));
+            }
         }
         // erase pref
         String keyBinding = "MenuKeyBinding-"+menuItem.getText();
@@ -247,17 +251,19 @@ public class Menu extends JMenu implements ActionListener
         if (source instanceof ToolBarButton) name = ((ToolBarButton)source).getName(); else
             name = source.getText();
         //System.out.println("ActionPerformed on Menu "+name+", state is "+source.isSelected());
-        ArrayList list = (ArrayList)menuItems.get(name);
-        if (list == null) return;
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
-            AbstractButton b = (AbstractButton)it.next();
-            if (b == source) continue;
-            String name2;
-            if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
-                name2 = source.getText();
-            //System.out.println("   - SubactionPerformed on Menu "+name2+", state set to "+source.isSelected());
-            // update state on other menus to match state on activated menu
-            b.setSelected(source.isSelected());
+        synchronized(menuItems) {
+            ArrayList list = (ArrayList)menuItems.get(name);
+            if (list == null) return;
+            for (Iterator it = list.iterator(); it.hasNext(); ) {
+                AbstractButton b = (AbstractButton)it.next();
+                if (b == source) continue;
+                String name2;
+                if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
+                    name2 = source.getText();
+                //System.out.println("   - SubactionPerformed on Menu "+name2+", state set to "+source.isSelected());
+                // update state on other menus to match state on activated menu
+                b.setSelected(source.isSelected());
+            }
         }
     }
 
@@ -269,23 +275,44 @@ public class Menu extends JMenu implements ActionListener
      */
     public static void disposeOf(JMenuBar menuBar) 
     {
-        // remove all menu items from hash table
         // all menus
         for (int i=0; i<menuBar.getMenuCount(); i++) {
             JMenu menu = menuBar.getMenu(i);
             if (menu == null) continue;
-            // all menu items
-            for (int j=0; j<menu.getItemCount(); j++) {
-                JMenuItem item = menu.getItem(j);
-                if (item == null) continue;
-                ArrayList list = (ArrayList)menuItems.get(item.getText());
-                if (list == null) continue;
-                // remove reference to item
-                list.remove(item);
+            disposeofMenu(menu);
+        }
+    }
+
+    public static void disposeofMenu(JMenu menu)
+    {
+        for (int j=0; j<menu.getItemCount(); j++) {
+            JMenuItem item = menu.getItem(j);
+            if (item == null) continue;
+            if (item instanceof JMenu) {
+                disposeofMenu((JMenu)item);
+            } else {
+                disposeofMenuItem(item);
             }
         }
     }
-    
+
+    public static void disposeofMenuItem(JMenuItem item)
+    {
+        // remove all listeners (which contain references to item)
+        ActionListener [] listeners = item.getActionListeners();
+        for (int k = 0; k < listeners.length; k++) {
+            ActionListener listener = listeners[k];
+            item.removeActionListener(listener);
+        }
+        synchronized(menuItems) {
+            ArrayList list = (ArrayList)menuItems.get(item.getText());
+            if (list == null) return;
+            // remove reference to item
+            list.remove(item);
+        }
+        //System.out.println("  removing menu item "+item);
+    }
+
     //------------------------------PRIVATE METHODS--------------------------------------
     
     /** Add JMenuItem to Menu */
@@ -304,12 +331,14 @@ public class Menu extends JMenu implements ActionListener
         item.addActionListener(ToolBarButton.updater);
 		this.add(item);
         // add to hash map
-        ArrayList list = (ArrayList)menuItems.get(item.getText());
-        if (list == null) {
-            list = new ArrayList();
-            menuItems.put(item.getText(), list);
+        synchronized(menuItems) {
+            ArrayList list = (ArrayList)menuItems.get(item.getText());
+            if (list == null) {
+                list = new ArrayList();
+                menuItems.put(item.getText(), list);
+            }
+            list.add(item);
         }
-        list.add(item);
     }
     
     /**

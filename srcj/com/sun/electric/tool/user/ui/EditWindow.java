@@ -23,40 +23,20 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.PixelDrawing;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -66,9 +46,7 @@ import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -78,36 +56,21 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Arc2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferInt;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Stack;
 import java.util.EventListener;
-import javax.swing.KeyStroke;
-import javax.swing.AbstractAction;
 import javax.swing.JPanel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
 
 /*
  * This class defines an editing window for displaying circuitry.
@@ -163,6 +126,7 @@ public class EditWindow extends JPanel
 		databaseBounds = new Rectangle2D.Double();
 
 		//setAutoscrolls(true);
+        // add listeners --> BE SURE to remove listeners in close()
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -281,16 +245,21 @@ public class EditWindow extends JPanel
      * Method to get rid of this EditWindow.  Called by WindowFrame when
      * that windowFrame gets closed.
      */
-    public void close() 
+    public void finished()
     {
-        wf = null;                          // clear reference
-        offscreen = null;                   // need to clear this ref, because it points to this
+        //wf = null;                          // clear reference
+        //offscreen = null;                   // need to clear this ref, because it points to this
         synchronized(redrawThese)
         {
             if (redrawThese.contains(this)) redrawThese.remove(this);
         }
+        // remove myself from listener list
+		removeKeyListener(this);
+		removeMouseListener(this);
+		removeMouseMotionListener(this);
+		removeMouseWheelListener(this);
     }
-    
+
 	// ************************************* RENDERING A WINDOW *************************************
 
 	/**
@@ -1147,7 +1116,7 @@ public class EditWindow extends JPanel
 		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
 		{
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
-			wnd.gridAlign(pt);
+			EditWindow.gridAlign(pt);
 			StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
 		}
 	}

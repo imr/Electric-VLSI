@@ -23,20 +23,12 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
-import com.sun.electric.tool.user.ui.PaletteFrame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.AdjustmentListener;
@@ -45,14 +37,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JInternalFrame;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JDesktopPane;
-import javax.swing.JComponent;
-import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
@@ -60,8 +48,8 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.lang.ref.WeakReference;
 
-import java.awt.*;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -111,22 +99,8 @@ public class WindowFrame
 		final WindowFrame frame = new WindowFrame();
 
 		// initialize the frame
-		Dimension scrnSize = TopLevel.getScreenSize();
-		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
-		String cellDescription = (cell == null) ? "no cell" : cell.describe();
-		if (TopLevel.isMDIMode())
-		{
-			frame.jif = new JInternalFrame(cellDescription, true, true, true, true);
-			frame.jif.setSize(frameSize);
-			frame.jif.setLocation(windowOffset+150, windowOffset);
-			frame.jif.setAutoscrolls(true);
-			frame.jif.setFrameIcon(new ImageIcon(frame.getClass().getResource("IconElectric.gif")));
-		} else
-		{
-			frame.jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), frame, gc);
-			frame.jf.setSize(frameSize);
-			frame.jf.setLocation(windowOffset+150, windowOffset);
-		}
+        frame.createJFrame(cell, gc);
+        
 		curWindowFrame = frame;
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
@@ -177,34 +151,18 @@ public class WindowFrame
 		rootNode.add(Job.getExplorerTree());
 		rootNode.add(ErrorLog.getExplorerTree());
 		treeModel = new DefaultTreeModel(rootNode);
-		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel, frame.wnd);
+		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
 		ExplorerTree.explorerTreeChanged();
 		JScrollPane scrolledTree = new JScrollPane(frame.tree);
 
-		// put them together into the frame
+		// put them together into the split pane
 		frame.js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		frame.js.setRightComponent(frame.circuitPanel);
 		frame.js.setLeftComponent(scrolledTree);
 		frame.js.setDividerLocation(0.2);
-		if (TopLevel.isMDIMode())
-		{
-			frame.jif.getContentPane().add(frame.js);
-			frame.jif.addInternalFrameListener(new InternalWindowsEvents(frame));
-			frame.jif.show();
-			TopLevel.addToDesktop(frame.jif);
-//			frame.jif.moveToFront();
-			try
-			{
-				frame.jif.setSelected(true);
-			} catch (java.beans.PropertyVetoException e) {}
-		} else
-		{
-			frame.jf.getContentPane().add(frame.js);
-			frame.jf.addWindowListener(new WindowsEvents(frame));
-			frame.jf.addWindowFocusListener(new WindowsEvents(frame));
-			frame.jf.setEditWindow(frame.wnd);
-			frame.jf.show();
-		}
+
+        // Put everything into the frame
+        frame.populateJFrame();
 //		js.requestFocusInWindow();
 
 		frame.wnd.setCell(cell, VarContext.globalContext);
@@ -217,6 +175,57 @@ public class WindowFrame
 		return frame;
 	}
 
+    
+    /**
+     * Create the JFrame that will hold all the Components in 
+     * this WindowFrame.
+     */
+    private void createJFrame(Cell cell, GraphicsConfiguration gc)
+    {
+		Dimension scrnSize = TopLevel.getScreenSize();
+		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
+		String cellDescription = (cell == null) ? "no cell" : cell.describe();
+		if (TopLevel.isMDIMode())
+		{
+			jif = new JInternalFrame(cellDescription, true, true, true, true);
+			jif.setSize(frameSize);
+			jif.setLocation(windowOffset+150, windowOffset);
+			jif.setAutoscrolls(true);
+			jif.setFrameIcon(new ImageIcon(WindowFrame.class.getResource("IconElectric.gif")));
+		} else
+		{
+			jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), this, gc);
+			jf.setSize(frameSize);
+			jf.setLocation(windowOffset+150, windowOffset);
+		}
+    }        
+    
+    /**
+     * Populate the JFrame with the Components
+     */
+    private void populateJFrame()
+    {
+		if (TopLevel.isMDIMode())
+		{
+			jif.getContentPane().add(js);
+			jif.addInternalFrameListener(new InternalWindowsEvents(this));
+			jif.show();
+			TopLevel.addToDesktop(jif);
+//			frame.jif.moveToFront();
+			try
+			{
+				jif.setSelected(true);
+			} catch (java.beans.PropertyVetoException e) {}
+		} else
+		{
+			jf.getContentPane().add(js);
+			jf.addWindowListener(new WindowsEvents(this));
+			jf.addWindowFocusListener(new WindowsEvents(this));
+			jf.setEditWindow(wnd);
+			jf.show();
+		}
+    }
+    
 	/**
 	 * Method to get the current WindowFrame.
 	 * @return the current WindowFrame.
@@ -264,18 +273,44 @@ public class WindowFrame
 	 * Method to record that this WindowFrame has been closed.
 	 * This method is called from the event handlers on the windows.
 	 */
-	private void windowClosed()
+	private void finished()
 	{
+        //System.out.println(this.getClass()+" being disposed of");
         // remove references to this
         windowList.remove(this);
 		if (curWindowFrame == this) curWindowFrame = null;
-        
-        if (!TopLevel.isMDIMode()) {
-            // TopLevel frame is closing, tell it to remove persistent references
-            ((TopLevel)jf).disposeOfMenuAndToolBar();
-        }
-	}
 
+        // tell EditWindow it's finished
+        wnd.finished();
+
+        if (!TopLevel.isMDIMode()) {
+            // if SDI mode, TopLevel enclosing frame is closing, dispose of it
+            ((TopLevel)jf).finished();
+        }
+    }
+
+    
+    /*
+     * Do Not use this method.  It causes bad things to happen.
+     *
+     * Moves this WindowFrame to another display defined by <code>gc</code>
+     * @param gc the GraphicsConfiguration that specifies the screen to move to
+     *
+    public void moveToDisplay(GraphicsConfiguration gc)
+    {
+        // only valid in SDI mode
+        if (TopLevel.isMDIMode()) return;
+        
+        // get rid of old frame
+        jf.dispose();
+        jf.disposeOfMenuAndToolBar();
+        jf = null;
+        
+        // create new frame on new screen, and populate it
+        createJFrame(wnd.getCell(), gc);
+        populateJFrame();
+    } */
+    
 	/**
 	 * Method to return the scroll bar resolution.
 	 * This is the extent of the JScrollBar.
@@ -375,21 +410,23 @@ public class WindowFrame
 	 */
 	static class ScrollAdjustmentListener implements AdjustmentListener
 	{
-		WindowFrame wf;
+        /** A weak reference to the WindowFrame */
+		WeakReference wf;               
 
 		ScrollAdjustmentListener(WindowFrame wf)
 		{
 			super();
-			this.wf = wf;
+			this.wf = new WeakReference(wf);
 		}
 
 		public void adjustmentValueChanged(AdjustmentEvent e)
 		{
-			EditWindow wnd = wf.getEditWindow();
+            WindowFrame frame = (WindowFrame)wf.get();
+			EditWindow wnd = frame.getEditWindow();
 			if (wnd == null) return;
-			if (e.getSource() == wf.getBottomScrollBar())
+			if (e.getSource() == frame.getBottomScrollBar())
 				wnd.bottomScrollChanged();
-			if (e.getSource() == wf.getRightScrollBar())
+			if (e.getSource() == frame.getRightScrollBar())
 				wnd.rightScrollChanged();
 		}
 	}
@@ -399,28 +436,28 @@ public class WindowFrame
 	 */
 	static class WindowsEvents extends WindowAdapter
 	{
-		WindowFrame wf;
+        /** A weak reference to the WindowFrame */
+		WeakReference wf;               
 
 		WindowsEvents(WindowFrame wf)
 		{
 			super();
-			this.wf = wf;
+			this.wf = new WeakReference(wf);
 		}
 
-		public void windowActivated(WindowEvent evt) { WindowFrame.setCurrentWindowFrame(wf); }
+		public void windowActivated(WindowEvent evt) { WindowFrame.setCurrentWindowFrame((WindowFrame)wf.get()); }
 
 		public void windowClosing(WindowEvent evt)
 		{
+            System.out.println("window closing");
+
 			if (windowList.size() <= 1)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Cannot close the last window");
 				return;
 			}
-			if (!TopLevel.isMDIMode()) {
-				wf.getFrame().dispose();
-            }
-			wf.windowClosed();
+			((WindowFrame)wf.get()).finished();
 		}
 	}
 
@@ -429,17 +466,18 @@ public class WindowFrame
 	 */
 	static class InternalWindowsEvents extends InternalFrameAdapter
 	{
-		WindowFrame wf;
+        /** A weak reference to the WindowFrame */
+		WeakReference wf;               
 
 		InternalWindowsEvents(WindowFrame wf)
 		{
 			super();
-			this.wf = wf;
+			this.wf = new WeakReference(wf);
 		}
 
-		public void internalFrameClosing(InternalFrameEvent evt) { wf.windowClosed(); }
+		public void internalFrameClosing(InternalFrameEvent evt) { ((WindowFrame)wf.get()).finished(); }
 
-		public void internalFrameActivated(InternalFrameEvent evt) { WindowFrame.setCurrentWindowFrame(wf); }
+		public void internalFrameActivated(InternalFrameEvent evt) { WindowFrame.setCurrentWindowFrame((WindowFrame)wf.get()); }
 	}
 
 }

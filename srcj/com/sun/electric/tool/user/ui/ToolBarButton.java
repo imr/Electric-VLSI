@@ -195,23 +195,22 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
 
     /**
      * Called when a TopLevel (in SDI mode) is disposed. This gets rid
-     * of references to freed tool bar buttons, so that memory allocated to them
+     * of references to the tool bar button, so that memory allocated to them
      * can be reclaimed.
-     * @param menuBar the ToolBar being disposed of.
      */
-    public static void disposeOf(ToolBar toolBar) 
+    public void finished()
     {
-        // find ToolBarButtons
-        Component [] components = toolBar.getComponents();
-        for (int i=0; i<components.length; i++) {
-            if (components[i] instanceof ToolBarButton) {
-                ToolBarButton b = (ToolBarButton)components[i];
-                ArrayList list = (ArrayList)allButtons.get(b.getName());
-                if (list == null) continue;
-                list.remove(b);
-            }
+        // remove all listeners
+        ActionListener [] actionListeners = getActionListeners();
+        for (int j = 0; j < actionListeners.length; j++) {
+            ActionListener actionListener = actionListeners[j];
+            removeActionListener(actionListener);
         }
-    }    
+        // remove hash table reference
+        ArrayList list = (ArrayList)allButtons.get(getName());
+        if (list == null) return;
+        list.remove(this);
+    }
     
     // ---------------------------------- UI ---------------------------------
     
@@ -219,7 +218,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * Resets the UI property to a value from the current look and
      * feel.
      *
-     * @see JComponent#updateUI
+     * @see javax.swing.JComponent#updateUI
      */
     public void updateUI() {
         setUI((ButtonUI)UIManager.getUI(this));
@@ -231,8 +230,8 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * that renders this component.
      *
      * @return the string "ButtonUI"
-     * @see JComponent#getUIClassID
-     * @see UIDefaults#getUI
+     * @see javax.swing.JComponent#getUIClassID
+     * @see javax.swing.UIDefaults#getUI
      * @beaninfo
      *        expert: true
      *   description: A string that specifies the name of the L&F class.

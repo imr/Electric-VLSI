@@ -111,13 +111,12 @@ public class ExplorerTree extends JTree
 	/**
 	 * Method to create a new ExplorerTree.
 	 * @param treeModel the tree to display.
-	 * @param wnd the window associated with this tree.
 	 * @return the newly created ExplorerTree.
 	 */
-	public static ExplorerTree CreateExplorerTree(DefaultMutableTreeNode rootNode, DefaultTreeModel treeModel, EditWindow wnd)
+	public static ExplorerTree CreateExplorerTree(DefaultMutableTreeNode rootNode, DefaultTreeModel treeModel)
 	{
 		ExplorerTree tree = new ExplorerTree(rootNode, treeModel);
-		tree.handler = new TreeHandler(tree, wnd);
+		tree.handler = new TreeHandler(tree);
 		tree.addMouseListener(tree.handler);
 		return tree;
 	}
@@ -584,7 +583,6 @@ public class ExplorerTree extends JTree
 	static class TreeHandler implements MouseListener, MouseMotionListener
 	{
 		private ExplorerTree tree;
-		private EditWindow wnd;
 		private Object currentSelectedObject;
 		private Cell originalCell;
 		private boolean draggingCell;
@@ -592,7 +590,7 @@ public class ExplorerTree extends JTree
 		private TreePath currentPath;
 		private TreePath originalPath;
 
-		TreeHandler(ExplorerTree tree, EditWindow wnd) { this.tree = tree;   this.wnd = wnd; }
+		TreeHandler(ExplorerTree tree) { this.tree = tree;}
 
 		public void mouseClicked(MouseEvent e) {}
 
@@ -613,6 +611,8 @@ public class ExplorerTree extends JTree
 				doContextMenu();
 				return;
 			}
+
+            EditWindow wnd = EditWindow.getCurrent();
 
 			// double click
 			if (e.getClickCount() == 2)
@@ -950,6 +950,7 @@ public class ExplorerTree extends JTree
 		private void editCellAction(boolean newWindow)
 		{
 			Cell cell = (Cell)currentSelectedObject;
+            EditWindow wnd = EditWindow.getCurrent();
 			if (newWindow)
 			{
 				WindowFrame wf = WindowFrame.createEditWindow(cell);

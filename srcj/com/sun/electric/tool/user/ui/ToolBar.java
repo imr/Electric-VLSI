@@ -24,24 +24,12 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.Highlight;
 
-import java.awt.BorderLayout;
-import java.awt.Insets;
-import java.awt.Cursor;
-import java.awt.Toolkit;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.JToolBar;
 import javax.swing.ImageIcon;
@@ -118,7 +106,7 @@ public class ToolBar extends JToolBar
 	private static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
 	private static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
 	private static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
-	private static ToolBar toolbar = null;
+	//private static ToolBar toolbar = null;
 
     public static final ImageIcon selectSpecialIconOn = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOn.gif"));
     public static final ImageIcon selectSpecialIconOff = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOff.gif"));
@@ -131,7 +119,7 @@ public class ToolBar extends JToolBar
 	public static ToolBar createToolBar()
 	{
 		// create the toolbar
-		toolbar = new ToolBar();
+		ToolBar toolbar = new ToolBar();
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
         
@@ -527,4 +515,21 @@ public class ToolBar extends JToolBar
      * @return true if select special button selected, false otherwise
      */
     public static boolean getSelectSpecial() { return ToolBarButton.getButtonState(MenuCommands.specialSelectName); }
+
+    /**
+     * Call when done with this toolBar to release its resources
+     */
+    public void finished()
+    {
+        // find ToolBarButtons
+        Component [] components = getComponents();
+        for (int i=0; i<components.length; i++) {
+            Component component = components[i];
+            if (component instanceof ToolBarButton) {
+                ToolBarButton b = (ToolBarButton)component;
+                b.finished();
+            }
+        }
+    }
+
 }

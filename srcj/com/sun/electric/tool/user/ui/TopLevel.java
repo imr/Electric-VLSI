@@ -38,10 +38,7 @@ import java.awt.Cursor;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.GraphicsConfiguration;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -85,10 +82,10 @@ public class TopLevel extends JFrame
 	}
 
 	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
-	/** The desktop pane (if MDI). */						private static JDesktopPane desktop;
-	/** The main frame (if MDI). */							private static TopLevel topLevel;
-	/** The only status bar (if MDI). */					private StatusBar sb;
-	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
+	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
+	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
+	/** The only status bar (if MDI). */					private StatusBar sb = null;
+	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
 	/** The palette object. */								private static PaletteFrame palette;
@@ -131,7 +128,8 @@ public class TopLevel extends JFrame
 			addComponentListener(new ReshapeComponentAdapter());
  		} else
 		{
-			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			//setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -243,7 +241,11 @@ public class TopLevel extends JFrame
 	 * This applies only in MDI mode.
 	 * @return the only TopLevel frame.
 	 */
-	public static TopLevel getTopLevel() { return topLevel; }
+	public static TopLevel getTopLevel()
+    {
+        printError(!isMDIMode(), "TopLevel.getTopLevel() should not be called in SDI mode");
+        return topLevel;
+    }
 
 	/**
 	 * Method to return status bar associated with this TopLevel.
@@ -325,23 +327,55 @@ public class TopLevel extends JFrame
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
 
     /**
-     * Method called when disposing of this Frame.  Both the menuBar
+     * Method called when done with this Frame.  Both the menuBar
      * and toolBar have persistent state in static hash tables to maintain
      * consistency across different menu bars and tool bars in SDI mode.
      * Those references must be nullified for garbage collection to reclaim
      * that memory.  This is really for SDI mode, because in MDI mode the 
      * TopLevel is only closed on exit, and all the application memory will be freed.
+     * <p>
+     * NOTE: JFrame does not get garbage collected after dispose() until
+     * some arbitrary point later in time when the garbage collector decides
+     * to free it.
      */
-    public void disposeOfMenuAndToolBar()
+    public void finished()
     {
-        Menu.disposeOf(menuBar);
-        ToolBarButton.disposeOf(toolBar);
+        //System.out.println(this.getClass()+" being disposed of");
+        // clean up menubar
+        setJMenuBar(null);
+        Menu.disposeOf(menuBar); menuBar = null;
+        // clean up toolbar
+        getContentPane().remove(toolBar);
+        toolBar.finished(); toolBar = null;
+        // clean up scroll bar
+        getContentPane().remove(sb); sb = null;
+        /* Note that this gets called from WindowFrame, and
+            WindowFrame has a reference to EditWindow, so
+            WindowFrame will call wnd.finished(). */
+        wnd = null;
+        // dispose of myself
+        super.dispose();
     }
-    
+
+    /**
+     * Print error message <code>msg</code> and stack trace
+     * if <code>print</code> is true.
+     * @param print print error message and stack trace if true
+     * @param msg error message to print
+     */
+    public static void printError(boolean print, String msg)
+    {
+        if (print) {
+            Throwable t = new Throwable(msg);
+            System.out.println(t.toString());
+            t.printStackTrace(System.out);
+        }
+    }
+
 	static class ReshapeComponentAdapter extends ComponentAdapter
 	{
-		public void componentMoved (ComponentEvent e) { saveLocation(e); } 
-		public void componentResized (ComponentEvent e) { saveLocation(e); } 
+		public void componentMoved (ComponentEvent e) { saveLocation(e); }
+		public void componentResized (ComponentEvent e) { saveLocation(e); }
 
 		private void saveLocation(ComponentEvent e)
 		{
@@ -361,5 +395,5 @@ public class TopLevel extends JFrame
 
 		public void windowClosing(WindowEvent evt) { MenuCommands.quitCommand(); }
 	}
-	
+
 }

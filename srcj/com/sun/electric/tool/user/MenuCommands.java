@@ -24,16 +24,11 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -42,15 +37,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.PadGenerator;
@@ -63,10 +54,6 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.ErrorLog;
-import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.Attributes;
@@ -85,7 +72,6 @@ import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.LayerVisibility;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
@@ -104,12 +90,10 @@ import java.awt.Toolkit;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -122,17 +106,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Comparator;
-import java.util.Collections;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.ButtonGroup;
-import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.JOptionPane;
-
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -697,6 +677,7 @@ public final class MenuCommands
 		// return the menu bar
 		return menuBar;
 	}
+
 
 	// ---------------------- THE FILE MENU -----------------
 
@@ -2025,6 +2006,11 @@ public final class MenuCommands
             WindowListener listener = listeners[j];
             listener.windowClosing(e);
         }
+        // move WindowFrame
+        /*
+         * Don't use the curWF.moveToDisplay code...it causes bad things to happen 
+         curWF.moveToDisplay(gs[i].getDefaultConfiguration());
+         */
     }
     
 	// ---------------------- THE TOOLS MENU -----------------
