@@ -24,6 +24,7 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -186,6 +187,53 @@ public class Simulation extends Tool
 				if (sSig instanceof SimAnalogSignal) return true;
 			}
 			return false;
+		}
+
+		/**
+		 * Method to return the signal that corresponds to a given JNetwork.
+		 * @param net the JNetwork to find.
+		 * @return the SimSignal that corresponds with the JNetwork.
+		 * Returns null if none can be found.
+		 */
+		public SimSignal findSignalForNetwork(JNetwork net)
+		{
+			String netName = net.describe();
+	
+			// look at all signal names in the cell
+			for(Iterator it = getSignals().iterator(); it.hasNext(); )
+			{
+				SimSignal sSig = (SimSignal)it.next();
+
+				String signalName = sSig.getSignalName();
+				if (netName.equals(signalName)) return sSig;
+
+				// if the signal name has underscores, see if all alphabetic characters match
+				if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
+				{
+					signalName += "_";
+				}
+				if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
+				{
+					boolean matches = true;
+					for(int i=0; i<signalName.length(); i++)
+					{
+						char sigChar = signalName.charAt(i);
+						char netChar = netName.charAt(i);
+						if (Character.isLetterOrDigit(sigChar) != Character.isLetterOrDigit(netChar))
+						{
+							  matches = false;
+							  break;
+						}
+						if (Character.isLetterOrDigit(sigChar) && sigChar != netChar)
+						{
+							  matches = false;
+							  break;
+						}
+					}
+					if (matches) return sSig;
+				}
+			}
+			return null;
 		}
 	}
 

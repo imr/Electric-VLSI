@@ -219,6 +219,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** the button to delete selected signal (analog). */	private JButton deleteSignal;
 		/** the button to delete all signals (analog). */		private JButton deleteAllSignals;
 		/** the button to toggle bus display (digital). */		private JButton toggleBusSignals;
+		/** the signal name button (digital). */				private JButton digitalSignalButton;
 		/** displayed range along horozintal axis */			private double minTime, maxTime;
 		/** low vertical axis for this trace (analog) */		private double analogLowValue;
 		/** high vertical axis for this trace (analog) */		private double analogHighValue;
@@ -289,15 +290,34 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			leftHalf.add(sep, gbc);
 
 			// the name of this panel
-			JLabel label = new JLabel(Integer.toString(panelNumber));
-			label.setToolTipText("Identification number of this waveform panel");
-			gbc.gridx = 0;       gbc.gridy = 1;
-			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0.2;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.NORTHWEST;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			leftHalf.add(label, gbc);
+			if (isAnalog)
+			{
+				JLabel label = new JLabel(Integer.toString(panelNumber));
+				label.setToolTipText("Identification number of this waveform panel");
+				gbc.gridx = 0;       gbc.gridy = 1;
+				gbc.gridwidth = 1;   gbc.gridheight = 1;
+				gbc.weightx = 0.2;  gbc.weighty = 0;
+				gbc.anchor = GridBagConstraints.NORTHWEST;
+				gbc.fill = GridBagConstraints.NONE;
+				gbc.insets = new Insets(4, 4, 4, 4);
+				leftHalf.add(label, gbc);
+			} else
+			{
+				digitalSignalButton = new JButton(Integer.toString(panelNumber));
+				digitalSignalButton.setBorderPainted(false);
+				digitalSignalButton.setToolTipText("Name of this waveform panel");
+				gbc.gridx = 0;       gbc.gridy = 1;
+				gbc.gridwidth = 1;   gbc.gridheight = 1;
+				gbc.weightx = 1;     gbc.weighty = 1;
+				gbc.anchor = GridBagConstraints.CENTER;
+				gbc.fill = GridBagConstraints.NONE;
+				gbc.insets = new Insets(0, 4, 0, 4);
+				leftHalf.add(digitalSignalButton, gbc);
+				digitalSignalButton.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { digitalSignalNameClicked(evt); }
+				});
+			}
 
 			// the close button for this panel
 			close = new JButton(iconClosePanel);
@@ -310,7 +330,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			gbc.gridx = 1;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.NORTH;
+			if (isAnalog) gbc.anchor = GridBagConstraints.NORTH; else
+				gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.NONE;
 			leftHalf.add(close, gbc);
 			close.addActionListener(new ActionListener()
@@ -329,7 +350,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			gbc.gridx = 2;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.NORTH;
+			if (isAnalog) gbc.anchor = GridBagConstraints.NORTH; else
+				gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.NONE;
 			leftHalf.add(hide, gbc);
 			hide.addActionListener(new ActionListener()
@@ -389,7 +411,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				gbc.gridx = 3;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
 				gbc.weightx = 0.2;  gbc.weighty = 0;
-				gbc.anchor = GridBagConstraints.NORTH;
+				gbc.anchor = GridBagConstraints.CENTER;
 				gbc.fill = GridBagConstraints.NONE;
 				leftHalf.add(toggleBusSignals, gbc);
 				toggleBusSignals.addActionListener(new ActionListener()
@@ -398,11 +420,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				});
 			}
 
-			// the list of signals in this panel
-			signalButtons = new JPanel();
-			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
+			// the list of signals in this panel (analog only)
 			if (isAnalog)
 			{
+				signalButtons = new JPanel();
+				signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
 				signalButtonsPane = new JScrollPane(signalButtons);
 				signalButtonsPane.setPreferredSize(new Dimension(100, height));
 				gbc.gridx = 0;       gbc.gridy = 2;
@@ -412,17 +434,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				gbc.fill = GridBagConstraints.BOTH;
 				gbc.insets = new Insets(0, 0, 0, 0);
 				leftHalf.add(signalButtonsPane, gbc);
-			} else
-			{
-				signalButtonsPane = null;
-				signalButtons.setPreferredSize(new Dimension(100, height));
-				gbc.gridx = 0;       gbc.gridy = 2;
-				gbc.gridwidth = 5;   gbc.gridheight = 1;
-				gbc.weightx = 1;     gbc.weighty = 1;
-				gbc.anchor = GridBagConstraints.CENTER;
-				gbc.fill = GridBagConstraints.BOTH;
-				gbc.insets = new Insets(0, 0, 0, 0);
-				leftHalf.add(signalButtons, gbc);
 			}
 
 			// the right side with signal traces
@@ -474,6 +485,34 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			// rebuild list of panels
 			waveWindow.rebuildPanelList();
 			waveWindow.redrawAllPanels();
+		}
+
+		private void digitalSignalNameClicked(ActionEvent evt)
+		{
+			Set set = waveSignals.keySet();
+			if (set.size() == 0) return;
+			JButton but = (JButton)set.iterator().next();
+			Signal ws = (Signal)waveSignals.get(but);
+
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
+			{
+				// standard click: add this as the only trace
+				for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+				{
+					Panel wp = (Panel)it.next();
+					wp.clearHighlightedSignals();
+				}
+				addHighlightedSignal(ws);
+				makeSelectedPanel();
+			} else
+			{
+				// shift click: add or remove to list of highlighted traces
+				if (ws.highlighted) removeHighlightedSignal(ws); else
+					addHighlightedSignal(ws);
+			}
+
+			// show it in the schematic
+			waveWindow.showSelectedNetworksInSchematic();
 		}
 
 		private void addTimePanel()
@@ -571,23 +610,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 			{
 				Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
-
-				// find the signal in another panel
-				for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+				Signal subWs = waveWindow.findDisplayedSignal(subDS);
+				if (subWs != null)
 				{
-					Panel wp = (Panel)it.next();
-					for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
-					{
-						Signal subWs = (Signal)sIt.next();
-						if (subWs.sSig == subDS)
-						{
-							opened = true;
-							break;
-						}
-					}
-					if (opened) break;
+					opened = true;
+					break;
 				}
-				if (opened) break;
 			}
 
 			// now open or close the bus
@@ -601,25 +629,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
 					Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
-					for(Iterator it = allPanels.iterator(); it.hasNext(); )
+					Signal subWs = waveWindow.findDisplayedSignal(subDS);
+					if (subWs != null)
 					{
-						Panel wp = (Panel)it.next();
-						boolean panelHasEntry = false;
-						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
-						{
-							Signal subWs = (Signal)sIt.next();
-							if (subWs.sSig == subDS)
-							{
-								panelHasEntry = true;
-								break;
-							}
-						}
-						if (panelHasEntry)
-						{
-							waveWindow.closePanel(wp);
-							allPanels.remove(wp);
-							break;
-						}
+						Panel wp = subWs.wavePanel;
+						waveWindow.closePanel(wp);
+						allPanels.remove(wp);
 					}
 				}
 			} else
@@ -1151,23 +1166,28 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				Signal ws = (Signal)it.next();
 				if (!ws.highlighted) continue;
 				ws.highlighted = false;
-				ws.sigButton.setBackground(background);
+				if (ws.sigButton != null)
+					ws.sigButton.setBackground(background);
 			}
 			this.repaint();
 		}
 
 		private void addHighlightedSignal(Signal ws)
 		{
-			if (background == null) background = ws.sigButton.getBackground();
+			if (ws.sigButton != null)
+			{
+				if (background == null) background = ws.sigButton.getBackground();
+				ws.sigButton.setBackground(Color.BLACK);
+			}
 			ws.highlighted = true;
-			ws.sigButton.setBackground(Color.BLACK);
 			this.repaint();
 		}
 
 		private void removeHighlightedSignal(Signal ws)
 		{
 			ws.highlighted = false;
-			ws.sigButton.setBackground(background);
+			if (ws.sigButton != null)
+				ws.sigButton.setBackground(background);
 			this.repaint();
 		}
 
@@ -1195,6 +1215,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
+			waveWindow.vcrClickStop();
+
 			// set this to be the selected panel
 			makeSelectedPanel();
 
@@ -1236,7 +1258,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		public void mouseWheelMoved(MouseWheelEvent evt) {}
 
 		// the KeyListener events
-		public void keyPressed(KeyEvent evt) {}
+		public void keyPressed(KeyEvent evt)
+		{
+			waveWindow.vcrClickStop();
+		}
 		public void keyReleased(KeyEvent evt) {}
 		public void keyTyped(KeyEvent evt) {}
 
@@ -1284,16 +1309,18 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 					{
 						// standard click: add this as the only trace
-						clearHighlightedSignals();
+						if (wp.isAnalog) clearHighlightedSignals(); else
+						{
+							for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+							{
+								Panel oWp = (Panel)it.next();
+								oWp.clearHighlightedSignals();
+							}
+						}
 						for(Iterator it = foundList.iterator(); it.hasNext(); )
 						{
 							Signal ws = (Signal)it.next();
 							wp.addHighlightedSignal(ws);
-						}
-						if (foundList.size() == 1)
-						{
-							// a single signal: show it in the schematic
-							Signal sig = (Signal)foundList.iterator().next();
 						}
 					} else
 					{
@@ -1305,6 +1332,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 								wp.addHighlightedSignal(ws);
 						}
 					}
+
+					// show it in the schematic
 					wp.waveWindow.showSelectedNetworksInSchematic();
 				} else
 				{
@@ -1622,16 +1651,20 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				// this is the main time panel for all panels
 				Point screenLoc = getLocationOnScreen();
 				offX = waveWindow.screenLowX - screenLoc.x;
-				wid = waveWindow.screenHighX - waveWindow.screenLowX;
+				int newWid = waveWindow.screenHighX - waveWindow.screenLowX;
 
 				// because the main time panel needs a Panel (won't work if there aren't any)
 				// have to do complex things to request a repaint after adding the first Panel
-				if (wid == 0 || waveWindow.wavePanels.size() == 0)
+				if (newWid == 0 || waveWindow.wavePanels.size() == 0)
 				{
 					if (waveWindow.mainTimePanelNeedsRepaint)
 						repaint();
 					return;
 				}
+
+				if (offX + newWid > wid) newWid = wid - offX;
+				wid = newWid;
+
 				drawHere = (Panel)waveWindow.wavePanels.get(0);
 				waveWindow.mainTimePanelNeedsRepaint = false;
 				g.setClip(offX, 0, wid, hei);
@@ -1687,7 +1720,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 			public void mouseClicked(MouseEvent e)
 			{
-				if((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0)
+				if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0)
 				{
 					if (!signal.highlighted)
 					{
@@ -1741,17 +1774,24 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			this.highlighted = false;
 			String sigName = sSig.getSignalName();
 			if (sSig.getSignalContext() != null) sigName = sSig.getSignalContext() + "." + sigName;
-			sigButton = new JButton(sigName);
-			sigButton.setBorderPainted(false);
-			sigButton.setDefaultCapable(false);
-			sigButton.setForeground(sSig.getSignalColor());
-			wavePanel.signalButtons.add(sigButton);
-			wavePanel.waveSignals.put(sigButton, this);
-			sigButton.addActionListener(new ActionListener()
+			if (wavePanel.isAnalog)
 			{
-				public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
-			});
-			sigButton.addMouseListener(new SignalButton(this));
+				sigButton = new JButton(sigName);
+				sigButton.setBorderPainted(false);
+				sigButton.setDefaultCapable(false);
+				sigButton.setForeground(sSig.getSignalColor());
+				wavePanel.signalButtons.add(sigButton);
+				wavePanel.waveSignals.put(sigButton, this);
+				sigButton.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
+				});
+				sigButton.addMouseListener(new SignalButton(this));
+			} else
+			{
+				wavePanel.digitalSignalButton.setText(sigName);
+				wavePanel.waveSignals.put(wavePanel.digitalSignalButton, this);
+			}
 		}
 
 		private void signalNameClicked(ActionEvent evt)
@@ -1771,7 +1811,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					ws.wavePanel.addHighlightedSignal(ws);
 			}
 
-			// a single signal: show it in the schematic
+			// show it in the schematic
 			ws.wavePanel.waveWindow.showSelectedNetworksInSchematic();
 		}
 	}
@@ -2331,7 +2371,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	public void setSimData(Simulation.SimData sd)
 	{
 		this.sd = sd;
+		List panelList = new ArrayList();
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			panelList.add(it.next());
+		for(Iterator it = panelList.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			boolean redoPanel = false;
@@ -2375,9 +2418,19 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					}
 				}		
 			}
-			wp.signalButtons.validate();
-			wp.signalButtons.repaint();
-			wp.repaint();
+			if (wp.waveSignals.size() == 0)
+			{
+				// removed all signals: delete the panel
+				wp.waveWindow.closePanel(wp);
+			} else
+			{
+				if (wp.signalButtons != null)
+				{
+					wp.signalButtons.validate();
+					wp.signalButtons.repaint();
+				}
+				wp.repaint();
+			}
 		}
 		wf.wantToRedoSignalTree();
 		System.out.println("Simulation data refreshed from disk");
@@ -2499,6 +2552,93 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	}
 
 	/**
+	 * Method to add a set of JNetworks to the waveform display.
+	 * @param nets the Set of JNetworks to add.
+	 * @param newPanel true to create new panels for each signal.
+	 */
+	public void showSignals(Set nets, boolean newPanel)
+	{
+		// determine the current panel
+		Panel wp = null;
+		for(Iterator pIt = wavePanels.iterator(); pIt.hasNext(); )
+		{
+			Panel oWp = (Panel)pIt.next();
+			if (oWp.selected)
+			{
+				wp = oWp;
+				break;
+			}
+		}
+		if (!sd.isAnalog()) newPanel = true;
+		if (!newPanel && wp == null)
+		{
+			System.out.println("No current waveform panel to add signals");
+			return;
+		}
+
+		boolean added = false;
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			Simulation.SimSignal sSig = sd.findSignalForNetwork(net);
+			if (sSig == null) continue;
+			Signal subWs = findDisplayedSignal(sSig);
+			if (subWs == null)
+			{
+				// add the signal
+				if (newPanel)
+				{
+					boolean isAnalog = false;
+					if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
+					wp = new Panel(this, isAnalog);
+					if (isAnalog)
+					{
+						Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
+						double lowValue = 0, highValue = 0;
+						for(int i=0; i<as.getNumEvents(); i++)
+						{
+							double val = as.getValue(i);
+							if (i == 0) lowValue = highValue = val; else
+							{
+								if (val < lowValue) lowValue = val;
+								if (val > highValue) highValue = val;
+							}
+						}
+						double range = highValue - lowValue;
+						if (range == 0) range = 2;
+						double rangeExtra = range / 10;
+						wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+					}
+				}
+				Signal wsig = new Signal(wp, sSig);
+				added = true;
+				wp.repaint();
+			}
+		}
+		if (added) overall.validate();
+	}
+
+	/**
+	 * Method to locate a simulation signal in the waveform.
+	 * @param sSig the Simulation.SimSignal to locate.
+	 * @return the displayed Signal where it is in the waveform window.
+	 * Returns null if the signal is not being displayed.
+	 */
+	public Signal findDisplayedSignal(Simulation.SimSignal sSig)
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+				if (ws.sSig == sSig) return ws;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.
 	 */
 	public void highlightChanged()
@@ -2517,56 +2657,15 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		{
 			JNetwork net = (JNetwork)highSet.iterator().next();
 			String netName = net.describe();
-//System.out.println("Looking for waveform signal "+netName);
-			// look at all signal names in the cell
-			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			Simulation.SimSignal sSig = sd.findSignalForNetwork(net);
+			if (sSig == null) return;
+
+			Signal ws = findDisplayedSignal(sSig);
+			if (ws != null)
 			{
-				Panel wp = (Panel)it.next();
-
-				// look at all traces in this panel
-				// Should use code from "network.cpp:net_parsenetwork()" on the names of highlighted signals
-				for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
-				{
-					Signal ws = (Signal)sIt.next();
-					String signalName = ws.sSig.getSignalName();
-					if (netName.equals(signalName))
-					{
-						wp.addHighlightedSignal(ws);
-						repaint();
-						return;
-					}
-
-					// if the signal name has underscores, see if all alphabetic characters match
-					if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
-					{
-						signalName += "_";
-					}
-					if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
-					{
-						boolean matches = true;
-						for(int i=0; i<signalName.length(); i++)
-						{
-							char sigChar = signalName.charAt(i);
-							char netChar = netName.charAt(i);
-							if (Character.isLetterOrDigit(sigChar) != Character.isLetterOrDigit(netChar))
-							{
-								matches = false;
-								break;
-							}
-							if (Character.isLetterOrDigit(sigChar) && sigChar != netChar)
-							{
-								matches = false;
-								break;
-							}
-						}
-						if (matches)
-						{
-							wp.addHighlightedSignal(ws);
-							repaint();
-							return;
-						}
-					}
-				}
+				ws.wavePanel.addHighlightedSignal(ws);
+				repaint();
+				return;
 			}
 		}
 	}
@@ -3044,6 +3143,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			Dimension sz = wp.getSize();
 			sz.height = (int)(sz.height * scale);
 			wp.setSize(sz.width, sz.height);
+			wp.setMinimumSize(sz);
 			wp.setPreferredSize(sz);
 
 			if (wp.signalButtonsPane != null)
@@ -3054,10 +3154,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				wp.signalButtonsPane.setSize(sz.width, sz.height);
 			} else
 			{
-				sz = wp.signalButtons.getSize();
+				sz = wp.leftHalf.getSize();
 				sz.height = (int)(sz.height * scale);
-				wp.signalButtons.setPreferredSize(sz);
-				wp.signalButtons.setSize(sz.width, sz.height);
+				wp.leftHalf.setPreferredSize(sz);
+				wp.leftHalf.setMinimumSize(sz);
+				wp.leftHalf.setSize(sz.width, sz.height);
 			}
 		}
 		overall.validate();

@@ -797,7 +797,16 @@ public class EditMenu {
 	 */
 	public static void addToWaveformNewCommand()
 	{
-		System.out.println("NOT YET");
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (!(wf.getContent() instanceof EditWindow)) return;
+		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
+		if (ww == null)
+		{
+			System.out.println("Cannot add selected signals to the waveform window: this cell has no waveform window");
+			return;
+		}
+		Set nets = Highlight.getHighlightedNetworks();
+		ww.showSignals(nets, true);
 	}
 
 	/**
@@ -806,7 +815,16 @@ public class EditMenu {
 	 */
 	public static void addToWaveformCurrentCommand()
 	{
-		System.out.println("NOT YET");
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (!(wf.getContent() instanceof EditWindow)) return;
+		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
+		if (ww == null)
+		{
+			System.out.println("Cannot overlay selected signals to the waveform window: this cell has no waveform window");
+			return;
+		}
+		Set nets = Highlight.getHighlightedNetworks();
+		ww.showSignals(nets, false);
 	}
 
     /**
