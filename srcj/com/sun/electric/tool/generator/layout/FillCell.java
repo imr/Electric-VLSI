@@ -382,12 +382,12 @@ public class FillCell extends Job {
 									 	
 		Floorplan[] plans = {
 			null,
-			new Floorplan(width, height, 0, 0, 6, !topHori),	// metal 1
-			new Floorplan(width, height, 0, 0, 6,  topHori),	// metal 2
+			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 1
+			new Floorplan(width, height, 6, 6, 6,  topHori),	// metal 2
 			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 3
-			new Floorplan(width, height, 0, 0, 6,  topHori),	// metal 4
-			new Floorplan(width, height, 0, 0, 6, !topHori),	// metal 5
-			new Floorplan(width, height, 0, 0, 8,  topHori)		// metal 6
+			new Floorplan(width, height, 6, 6, 6,  topHori),	// metal 4
+			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 5
+			new Floorplan(width, height, 8, 8, 8,  topHori)		// metal 6
 		};
 		//genFillCell(lib, plans, 5, 5, true);
 		for (int i=1; i<=6; i++) {
