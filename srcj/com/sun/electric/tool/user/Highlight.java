@@ -46,13 +46,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -131,9 +125,10 @@ public class Highlight
     /** The color used when drawing polygons */                 private Color color;
     /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 
-    /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
-    /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
-    /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
+    /** for drawing solid lines */		public static final BasicStroke solidLine = new BasicStroke(0);
+    /** for drawing dotted lines */		public static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
+    /** for drawing dashed lines */		public static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
+    /** for drawing dashed lines */		public static final BasicStroke boldLine = new BasicStroke(3);
     private static final int CROSSSIZE = 3;
 
     /** You should be using factory methods from Highlighter instead of this */
@@ -445,11 +440,14 @@ public class Highlight
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean showArcConstraints, Color mainColor)
+	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean showArcConstraints,
+                              Color mainColor, Stroke primaryStroke)
 	{
         if (!isValid()) return;
 
 		g.setColor(mainColor);
+        Graphics2D g2 = (Graphics2D)g;
+        g2.setStroke(primaryStroke);
 		if (type == Type.BBOX)
 		{
 			Point2D [] points = new Point2D.Double[5];
@@ -788,7 +786,7 @@ public class Highlight
                     }
 
                     // draw lines along all of the arcs on the network
-                    Graphics2D g2 = (Graphics2D)g;
+                    Stroke origStroke = g2.getStroke();
                     g2.setStroke(dashedLine);
                     for(Iterator it = cell.getArcs(); it.hasNext(); )
                     {
@@ -828,7 +826,7 @@ public class Highlight
                             }
                         }
                     }
-                    g2.setStroke(solidLine);
+                    g2.setStroke(origStroke);
                     markObj.freeFlagSet();
                 }
 			}

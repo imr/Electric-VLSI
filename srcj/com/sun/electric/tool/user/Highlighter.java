@@ -438,11 +438,13 @@ public class Highlighter implements DatabaseChangeListener {
             // only show highlights for the current cell
             if (h.getCell() == wnd.getCell()) {
                 Color color = new Color(User.getColorHighlight());
+                Stroke stroke = Highlight.solidLine;
                 if (type == MOUSEOVER_HIGHLIGHTER) {
                     color = new Color(51, 255, 255);
+                    stroke = Highlight.solidLine;
                     h.setHighlightConnected(false);
                 }
-                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color);
+                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke);
             }
         }
     }
