@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01an: *********************************
 
+IMP: (11/12/04, SMR) Resizing a node lets you make it smaller without jumping corners.
+
 IMP/MAN (11/12/04, JKG) Added command Tool->Network->List Total Wire Lengths on All Networks
 
 IMP/MAN (11/12/04, JKG) Added command Tool->Logical Effort->Back Annotate Wire Lengths

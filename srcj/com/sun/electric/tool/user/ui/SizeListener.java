@@ -71,6 +71,7 @@ public class SizeListener
 	private Geometric stretchGeom;
 	private EventListener oldListener;
 	private Cursor oldCursor;
+	private Point2D farthestPoint;
 	private static Cursor sizeCursor = ToolBar.readCursor("CursorSize.gif", 14, 14);
 
 	private SizeListener() {}
@@ -333,12 +334,15 @@ public class SizeListener
 
 	public void mousePressed(MouseEvent evt)
 	{
+		farthestPoint = null;
 		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
 	public void mouseMoved(MouseEvent evt)
 	{
+		farthestPoint = null;
 		showHighlight(evt, (EditWindow)evt.getSource());
+		farthestPoint = null;
 	}
 
 	public void mouseDragged(MouseEvent evt)
@@ -473,19 +477,35 @@ public class SizeListener
 
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
-		double closestDist = Double.MAX_VALUE;
 		Point2D closest = null;
 		Point2D farthest = null;
-		for(int i=0; i<points.length; i++)
+		if (farthestPoint != null)
 		{
-			double dist = pt.distance(points[i]);
-			if (dist < closestDist)
+			for(int i=0; i<points.length; i++)
 			{
-				closestDist = dist;
-				closest = points[i];
-				farthest = points[(i + points.length/2) % points.length];
+				if (points[i].equals(farthestPoint))
+				{
+					closest = points[(i + points.length/2) % points.length];
+					farthest = farthestPoint;
+					break;
+				}
 			}
 		}
+		if (farthest == null || closest == null)
+		{
+			double closestDist = Double.MAX_VALUE;
+			for(int i=0; i<points.length; i++)
+			{
+				double dist = pt.distance(points[i]);
+				if (dist < closestDist)
+				{
+					closestDist = dist;
+					closest = points[i];
+					farthest = points[(i + points.length/2) % points.length];
+				}
+			}
+		}
+		farthestPoint = farthest;
 
 		// if Shift is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
@@ -494,8 +514,8 @@ public class SizeListener
 		AffineTransform transIn = ni.rotateIn();
 		double closestX = closest.getX();
 		double closestY = closest.getY();
-		double farthestX = farthest.getX();
-		double farthestY = farthest.getY();
+		double farthestX = farthestPoint.getX();
+		double farthestY = farthestPoint.getY();
 		transIn.transform(pt, pt);
 		transIn.transform(closest, closest);
 		transIn.transform(farthest, farthest);
