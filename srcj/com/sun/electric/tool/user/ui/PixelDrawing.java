@@ -721,7 +721,7 @@ public class PixelDrawing
             dbBounds = new Rectangle2D.Double(dbBounds.getX(), dbBounds.getY(),
                     dbBounds.getWidth() + 0.001, dbBounds.getHeight() + 0.001);
         }
-        if (!drawBounds.intersects(dbBounds)) {
+        if ((drawBounds != null) && (!drawBounds.intersects(dbBounds))) {
             return;
         }
 /*
