@@ -52,6 +52,7 @@ import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DAlpha;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.utils.J3DSerialization;
+import com.sun.electric.plugins.j3d.utils.J3DCanvas3D;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -106,7 +107,7 @@ public class View3DWindow extends JPanel
     /** bounding of scene graph */                      public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
 	private SimpleUniverse u;
-	private Canvas3D canvas;
+	private J3DCanvas3D canvas;
 	protected TransformGroup objTrans;
     private BranchGroup axes;
 	private JMouseRotate rotateB;
@@ -188,7 +189,7 @@ public class View3DWindow extends JPanel
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 
-		canvas = new Canvas3D(config);
+		canvas = new J3DCanvas3D(config); //Canvas3D(config);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
 
@@ -442,6 +443,12 @@ public class View3DWindow extends JPanel
         createAxis(axes, J3DUtils.axisY, center, "Y");
         createAxis(axes, J3DUtils.axisZ, center, "Z");
         objRoot.addChild(axes);
+
+        // new arrow
+//        BranchGroup axesq = new BranchGroup();
+//        TransformGroup hola = J3DArrow.createArrow(1, new Vector3f(0, 10, 10), new Vector3f(0, 0, 10));
+//        axesq.addChild(hola);
+//        objRoot.addChild(axesq);
 
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
@@ -991,30 +998,35 @@ public class View3DWindow extends JPanel
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
 		{
-			// Create the off-screen Canvas3D object
-			if (offScreenCanvas3D == null)
-			{
-				offScreenCanvas3D = new J3DUtils.OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
-				// attach the offscreen canvas to the view
-				u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
-				// Set the off-screen size based on a scale3D factor times the
-				// on-screen size
-				Screen3D sOn = canvas.getScreen3D();
-				Screen3D sOff = offScreenCanvas3D.getScreen3D();
-				Dimension dim = sOn.getSize();
-				dim.width *= OFF_SCREEN_SCALE;
-				dim.height *= OFF_SCREEN_SCALE;
-				sOff.setSize(dim);
-				sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * OFF_SCREEN_SCALE);
-				sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * OFF_SCREEN_SCALE);
-				bImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-				ImageComponent2D buffer = new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
+            //Forcint the repaint
+            canvas.writeJPEG_ = true;
+            canvas.repaint();
+            bImage = canvas.img;
 
-				offScreenCanvas3D.setOffScreenBuffer(buffer);
-			}
-			offScreenCanvas3D.renderOffScreenBuffer();
-			offScreenCanvas3D.waitForOffScreenRendering();
-			bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
+//			// Create the off-screen Canvas3D object
+//			if (offScreenCanvas3D == null)
+//			{
+//				offScreenCanvas3D = new J3DUtils.OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
+//				// attach the offscreen canvas to the view
+//				u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
+//				// Set the off-screen size based on a scale3D factor times the
+//				// on-screen size
+//				Screen3D sOn = canvas.getScreen3D();
+//				Screen3D sOff = offScreenCanvas3D.getScreen3D();
+//				Dimension dim = sOn.getSize();
+//				dim.width *= OFF_SCREEN_SCALE;
+//				dim.height *= OFF_SCREEN_SCALE;
+//				sOff.setSize(dim);
+//				sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * OFF_SCREEN_SCALE);
+//				sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * OFF_SCREEN_SCALE);
+//				bImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
+//				ImageComponent2D buffer = new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
+//
+//				offScreenCanvas3D.setOffScreenBuffer(buffer);
+//			}
+//			offScreenCanvas3D.renderOffScreenBuffer();
+//			offScreenCanvas3D.waitForOffScreenRendering();
+//			bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
 			ep.setBufferedImage(bImage);
 			//Need to remove offscreen after that
 			//u.getViewer().getView().removeCanvas3D(offScreenCanvas3D);

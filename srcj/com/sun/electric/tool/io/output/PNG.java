@@ -27,7 +27,7 @@ package com.sun.electric.tool.io.output;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.util.Iterator;
-import java.awt.image.RenderedImage;
+import java.awt.image.BufferedImage;
 
 /**
  * Format to write PNG (Portable Network Graphics) output
@@ -39,12 +39,13 @@ public class PNG extends Output
 	 * @param img image to export
 	 * @param filePath the name of the file to create.
 	 */
-	public static void writeImage(RenderedImage img, String filePath)
+	public static void writeImage(BufferedImage img, String filePath)
 	{
 		// just do this file
 		//writeCellToFile(cell, context, filePath);
 		File tmp = new File(filePath);
-        boolean b = canWriteFormat("PNG");
+//        TIFFDecodeParam des = new TIFFDecodeParam();
+//        JAI.create("filestore", img, filePath+"mio", "PNG");
 
 		if (!canWriteFormat("PNG"))
 		{
@@ -54,6 +55,15 @@ public class PNG extends Output
 
         try {
             ImageIO.write(img, "PNG", tmp);
+//            	FileOutputStream out = new FileOutputStream("Capture"+".jpg");
+//		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
+//            PNGImageEncoder enc = new PNGImageEncoder(out, null);
+//            PNGEncodeParam p = new PNGEncodeParam();
+//		JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
+//		param.setQuality(0.9f,false); // 90% qualith JPEG
+//		encoder.setJPEGEncodeParam(param);
+//		encoder.encode(img);
+//		out.close();
         }
         catch (Exception e)
         {
