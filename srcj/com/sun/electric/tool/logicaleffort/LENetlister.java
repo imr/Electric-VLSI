@@ -74,7 +74,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
     /** True if we got aborted */               private boolean aborted;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** Creates a new instance of LENetlister */
     public LENetlister(LESizer.Alg algorithm, Job job) {
@@ -124,7 +124,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
      */
     public boolean size() {
         //lesizer.printDesign();
-        boolean verbose = true;
+        boolean verbose = false;
         // create a new sizer
         sizer = new LESizer(algorithm, this, job);
         boolean success = sizer.optimizeLoops(epsilon, maxIterations, verbose, alpha, keeperRatio);
@@ -448,6 +448,10 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
 
     // =============================== Statistics ==================================
+
+    public void printStatistics() {
+        System.out.println("Total size of all instances (sized and loads): "+ getTotalSize());
+    }
 
     /**
      * return total size of all sized gates

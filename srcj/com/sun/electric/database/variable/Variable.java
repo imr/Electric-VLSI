@@ -103,8 +103,8 @@ public class Variable
         public static Iterator getCodes() { return allCodes.iterator(); }
 
         public static final Code JAVA = new Code("Java");
-        public static final Code LISP = new Code("Lisp");
-        public static final Code TCL = new Code("TCL");
+        public static final Code LISP = new Code("Lisp (not avail.)");
+        public static final Code TCL = new Code("TCL (not avail.)");
         public static final Code NONE = new Code("Not Code");
     }
 

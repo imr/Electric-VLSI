@@ -357,7 +357,7 @@ public class ErrorLogger implements ActionListener {
      * @param persistent if true, this error tree cannot be deleted
      * @return a new ErrorLogger for logging errors
      */
-    public static synchronized ErrorLogger newInstance(String system, boolean persistent)
+    public static ErrorLogger newInstance(String system, boolean persistent)
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList();
@@ -368,8 +368,10 @@ public class ErrorLogger implements ActionListener {
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
         logger.persistent = persistent;
-        if (currentLogger == null) currentLogger = logger;
-        allLoggers.add(logger);
+        synchronized(allLoggers) {
+            if (currentLogger == null) currentLogger = logger;
+            allLoggers.add(logger);
+        }
         return logger;
     }
 
@@ -415,9 +417,11 @@ public class ErrorLogger implements ActionListener {
     }
 
     /** Get the current logger */
-    public static synchronized ErrorLogger getCurrent() {
-        if (currentLogger == null) return newInstance("Unknown");
-        return currentLogger;
+    public synchronized static ErrorLogger getCurrent() {
+        synchronized(allLoggers) {
+            if (currentLogger == null) return newInstance("Unknown");
+            return currentLogger;
+        }
     }
 
     /** Delete this logger */
@@ -432,16 +436,20 @@ public class ErrorLogger implements ActionListener {
             return;
         }
 
-        allLoggers.remove(this);
-        if (currentLogger == this) {
-            if (allLoggers.size() > 0) currentLogger = (ErrorLogger)allLoggers.get(0);
-            else currentLogger = null;
+        synchronized(allLoggers) {
+            allLoggers.remove(this);
+            if (currentLogger == this) {
+                if (allLoggers.size() > 0) currentLogger = (ErrorLogger)allLoggers.get(0);
+                else currentLogger = null;
+            }
         }
         WindowFrame.wantToRedoErrorTree();
     }
 
-    public synchronized String describe() {
-        if (currentLogger == this) return errorSystem + " [Current]";
+    public String describe() {
+        synchronized(allLoggers) {
+            if (currentLogger == this) return errorSystem + " [Current]";
+        }
         return errorSystem;
     }
 
@@ -460,6 +468,7 @@ public class ErrorLogger implements ActionListener {
 
         if (errs == 0) {
             delete();
+            return;
         }
 
 //		if (db_errorchangedroutine != 0) (*db_errorchangedroutine)();
@@ -470,7 +479,9 @@ public class ErrorLogger implements ActionListener {
             System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
         }
         WindowFrame.wantToRedoErrorTree();
-        currentLogger = this;
+        synchronized(allLoggers) {
+            currentLogger = this;
+        }
 
         terminated = true;
     }
@@ -514,10 +525,14 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method to advance to the next error and report it.
      */
-    public synchronized static String reportNextError(boolean showhigh, Geometric [] gPair)
+    public static String reportNextError(boolean showhigh, Geometric [] gPair)
     {
-        if (currentLogger == null) return "No errors to report";
-        return currentLogger.reportNextError_(showhigh, gPair);
+        ErrorLogger logger;
+        synchronized(allLoggers) {
+            if (currentLogger == null) return "No errors to report";
+            logger = currentLogger;
+        }
+        return logger.reportNextError_(showhigh, gPair);
     }
 
     private synchronized String reportNextError_(boolean showHigh, Geometric [] gPair) {
@@ -535,10 +550,14 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method to back up to the previous error and report it.
      */
-    public synchronized static String reportPrevError()
+    public static String reportPrevError()
     {
-        if (currentLogger == null) return "No errors to report";
-        return currentLogger.reportPrevError_();
+        ErrorLogger logger;
+        synchronized(allLoggers) {
+            if (currentLogger == null) return "No errors to report";
+            logger = currentLogger;
+        }
+        return logger.reportPrevError_();
     }
 
     private synchronized String reportPrevError_() {
@@ -605,20 +624,22 @@ public class ErrorLogger implements ActionListener {
      */
     private static String errorNode = "ERRORS";
 
-    public static synchronized DefaultMutableTreeNode getExplorerTree()
+    public static DefaultMutableTreeNode getExplorerTree()
     {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
-        for (Iterator eit = allLoggers.iterator(); eit.hasNext(); ) {
-            ErrorLogger logger = (ErrorLogger)eit.next();
-            if (logger.getNumErrors() == 0) continue;
-            DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
-            for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
-            {
-                ErrorLog el = (ErrorLog)it.next();
-                DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
-                loggerNode.add(node);
+        synchronized(allLoggers) {
+            for (Iterator eit = allLoggers.iterator(); eit.hasNext(); ) {
+                ErrorLogger logger = (ErrorLogger)eit.next();
+                if (logger.getNumErrors() == 0) continue;
+                DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
+                for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
+                {
+                    ErrorLog el = (ErrorLog)it.next();
+                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
+                    loggerNode.add(node);
+                }
+                explorerTree.add(loggerNode);
             }
-            explorerTree.add(loggerNode);
         }
         return explorerTree;
     }
@@ -636,7 +657,7 @@ public class ErrorLogger implements ActionListener {
             JMenuItem m = (JMenuItem)e.getSource();
             if (m.getText().equals("Delete")) delete();
             if (m.getText().equals("Set Current")) {
-                currentLogger = this;
+                synchronized(allLoggers) { currentLogger = this; }
                 WindowFrame.wantToRedoErrorTree();
             }
         }

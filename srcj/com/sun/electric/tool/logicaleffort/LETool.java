@@ -323,6 +323,7 @@ public class LETool extends Tool {
 
             if (success) {
                 UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
+                netlister.printStatistics();
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
             }

@@ -1467,10 +1467,10 @@ public class ELIB extends LibraryFiles
 					if (!EMath.doublesClose(scaleX, scaleY))
 					{
                         // don't scale, most likely the size changed, and this is not a lambda problem
-                        scaledCellName = null;
+                        //scaledCellName = null;
 						// nonuniform scaling: library inconsistency detected
-						//scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
-						//	"{" + subCell.getView().getAbbreviation() + "}";
+						scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
+							"{" + subCell.getView().getAbbreviation() + "}";
 					} else {
 					Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
 					if (scaledCell == null)
