@@ -682,6 +682,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
 		/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
+
 		/**
 		 * Method to repaint this Panel.
 		 */
@@ -3668,6 +3669,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		}
 		if (mainTimePanel != null)
 			mainTimePanel.repaint();
+		// redo the explorer tree if it changed
+		wf.redoExplorerTreeIfRequested();
 	}
 
 	public void fireCellHistoryStatus()
