@@ -61,7 +61,7 @@ public class Simulation extends Tool
 
 	private static boolean irsimChecked = false;
 	private static Class irsimClass = null;
-	private static Method irsimSimulateMethod, irsimSetLevelMethod, irsimClearStimuliMethod;
+	private static Method irsimSimulateMethod, irsimDoCommand;
 
 	/**
 	 * Method to tell whether the IRSIM simulator is available.
@@ -89,9 +89,7 @@ public class Simulation extends Tool
 			try
 			{
 				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class});
-				irsimSetLevelMethod = irsimClass.getMethod("setCurrentSignalLevel", new Class[] {Integer.class});
-				irsimClearStimuliMethod = irsimClass.getMethod("clearCurrentSignalStimuli", new Class[] {});
-				
+				irsimDoCommand = irsimClass.getMethod("doIRSIMCommand", new Class[] {String.class});				
 			} catch (NoSuchMethodException e)
 			{
 				irsimClass = null;
@@ -122,31 +120,14 @@ public class Simulation extends Tool
 	}
 
 	/**
-	 * Method to set a stimuli on the currently selected signal in IRSIM.
-	 * @param value the level to set.
-	 */
-	public static void setIRSIMSignal(int value)
-	{
-		if (!hasIRSIM()) return;
-		try
-		{
-			irsimSetLevelMethod.invoke(irsimClass, new Object[] {new Integer(value)});
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the IRSIM simulator");
-            e.printStackTrace(System.out);
-		}
-	}
-
-	/**
 	 * Method to clear all stimuli on the currently selected signal in IRSIM.
 	 */
-	public static void clearIRSIMStimuli()
+	public static void doIRSIMCommand(String command)
 	{
 		if (!hasIRSIM()) return;
 		try
 		{
-			irsimClearStimuliMethod.invoke(irsimClass, new Object[] {});
+			irsimDoCommand.invoke(irsimClass, new Object[] {command});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the IRSIM simulator");
@@ -179,6 +160,7 @@ public class Simulation extends Tool
 		private URL fileURL;
 		private List signals;
 		private List sweeps;
+		private char separatorChar;
 		private double [] commonTime;
 		private List sweepCommonTime;
 		private WaveformWindow ww;
@@ -191,6 +173,7 @@ public class Simulation extends Tool
 			signals = new ArrayList();
 			sweeps = new ArrayList();
 			sweepCommonTime = new ArrayList();
+			separatorChar = '.';
 		}
 
 		/**
@@ -280,6 +263,20 @@ public class Simulation extends Tool
 		 * @return the Cell associated with this simulation data.
 		 */
 		public Cell getCell() { return cell; }
+
+		/**
+		 * Method to return the separator character for names in this simulation.
+		 * The separator character separates levels of hierarchy.  It is usually a "."
+		 * @return the separator character for names in this simulation.
+		 */
+		public char getSeparatorChar() { return separatorChar; }
+
+		/**
+		 * Method to set the separator character for names in this simulation.
+		 * The separator character separates levels of hierarchy.  It is usually a "."
+		 * @param sep the separator character for names in this simulation.
+		 */
+		public void setSeparatorChar(char sep) { separatorChar = sep; }
 
 		/**
 		 * Method to set the type of this simulation data.
@@ -1498,6 +1495,72 @@ public class Simulation extends Tool
 	 * @param c true if CDL converts square bracket characters.
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
+
+	/****************************** IRSIM OPTIONS ******************************/
+
+	private static Pref cacheIRSIMResimulateEach = Pref.makeBooleanPref("IRSIMResimulateEach", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether IRSIM resimulates after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @return true if IRSIM resimulates after each change to the display.
+	 */
+	public static boolean isIRSIMResimulateEach() { return cacheIRSIMResimulateEach.getBoolean(); }
+	/**
+	 * Method to set if IRSIM resimulates after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @param r true if IRSIM resimulates after each change to the display.
+	 */
+	public static void setIRSIMResimulateEach(boolean r) { cacheIRSIMResimulateEach.setBoolean(r); }
+
+	private static Pref cacheIRSIMAutoAdvance = Pref.makeBooleanPref("IRSIMAutoAdvance", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether IRSIM automatically advances the time cursor when stimuli are added.
+	 * @return true if IRSIM automatically advances the time cursor when stimuli are added.
+	 */
+	public static boolean isIRSIMAutoAdvance() { return cacheIRSIMAutoAdvance.getBoolean(); }
+	/**
+	 * Method to set if IRSIM automatically advances the time cursor when stimuli are added.
+	 * @param r true if IRSIM automatically advances the time cursor when stimuli are added.
+	 */
+	public static void setIRSIMAutoAdvance(boolean r) { cacheIRSIMAutoAdvance.setBoolean(r); }
+
+	private static Pref cacheIRSIMShowsCommands = Pref.makeBooleanPref("IRSIMShowsCommands", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether IRSIM shows commands that are issued (for debugging).
+	 * @return true if IRSIM shows commands that are issued (for debugging).
+	 */
+	public static boolean isIRSIMShowsCommands() { return cacheIRSIMShowsCommands.getBoolean(); }
+	/**
+	 * Method to set if IRSIM shows commands that are issued (for debugging).
+	 * @param r true if IRSIM shows commands that are issued (for debugging).
+	 */
+	public static void setIRSIMShowsCommands(boolean r) { cacheIRSIMShowsCommands.setBoolean(r); }
+
+	private static Pref cacheIRSIMParasiticLevel = Pref.makeIntPref("IRSIMParasiticLevel", Simulation.tool.prefs, 0);
+	/**
+	 * Method to tell the parasitic level for IRSIM extraction.
+	 * Values are 0: quick, 1: local, 2: full (hierarchical).
+	 * @return the parasitic level for IRSIM extraction.
+	 */
+	public static int getIRSIMParasiticLevel() { return cacheIRSIMParasiticLevel.getInt(); }
+	/**
+	 * Method to set the parasitic level for IRSIM extraction.
+	 * Values are 0: quick, 1: local, 2: full (hierarchical).
+	 * @param p the parasitic level for IRSIM extraction.
+	 */
+	public static void setIRSIMParasiticLevel(int p) { cacheIRSIMParasiticLevel.setInt(p); }
+
+	private static Pref cacheIRSIMParameterFile = Pref.makeStringPref("IRSIMParameterFile", Simulation.tool.prefs, "scmos0.3.prm");
+	/**
+	 * Method to tell the parameter file to use for IRSIM.
+	 * @return the parameter file to use for IRSIM.
+	 */
+	public static String getIRSIMParameterFile() { return cacheIRSIMParameterFile.getString(); }
+	/**
+	 * Method to set the parameter file to use for IRSIM.
+	 * @param p the parameter file to use for IRSIM.
+	 */
+	public static void setIRSIMParameterFile(String p) { cacheIRSIMParameterFile.setString(p); }
 
 	/****************************** SPICE OPTIONS ******************************/
 

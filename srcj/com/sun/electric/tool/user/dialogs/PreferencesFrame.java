@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
@@ -44,6 +45,7 @@ import com.sun.electric.tool.user.dialogs.options.GDSTab;
 import com.sun.electric.tool.user.dialogs.options.GeneralTab;
 import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
 import com.sun.electric.tool.user.dialogs.options.IconTab;
+import com.sun.electric.tool.user.dialogs.options.IRSIMTab;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.electric.tool.user.dialogs.options.LibraryTab;
 import com.sun.electric.tool.user.dialogs.options.LogicalEffortTab;
@@ -272,6 +274,13 @@ public class PreferencesFrame extends EDialog
 		FastHenryTab fht = new FastHenryTab(parent, modal);
 		optionPanes.add(fht);
 		toolSet.add(new DefaultMutableTreeNode(fht.getName()));
+
+		if (Simulation.hasIRSIM())
+		{
+			IRSIMTab irt = new IRSIMTab(parent, modal);
+			optionPanes.add(irt);
+			toolSet.add(new DefaultMutableTreeNode(irt.getName()));
+		}
 
 		LogicalEffortTab let = new LogicalEffortTab(parent, modal);
 		optionPanes.add(let);

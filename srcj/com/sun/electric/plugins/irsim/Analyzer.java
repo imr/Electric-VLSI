@@ -20,6 +20,8 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.lib.LibFile;
@@ -33,8 +35,17 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,8 +71,8 @@ public class Analyzer
 	
 	static class SimVector
 	{
-		int   command;
-		String []   parameters;
+		int       command;
+		String [] parameters;
 		SimVector nextsimvector;
 	};
 	
@@ -79,7 +90,6 @@ public class Analyzer
 
 	static class Traces
 	{
-		int      disp;		/* number of traces displayed */
 		TraceEnt    first;		/* ptr. to last trace displayed */
 		TraceEnt    last;		/* list of traces */
 	};
@@ -93,17 +103,17 @@ public class Analyzer
 	
 	static class TraceEnt
 	{
-		TraceEnt    next;		/* doubly linked list of traces */
-		TraceEnt    prev;
+		TraceEnt   next;		/* doubly linked list of traces */
+		TraceEnt   prev;
 		String     name;		/* name stripped of path */
 		Sim.Node   waveformdata;
-		int      len;		/* length of name string */
-		int    top, bot;	/* position of the trace */
-		short    bdigit;	/* # of bits per digit for displaying */
-		boolean    vector;	/* 1 if bit vector, 0 if node */
+		int        len;			/* length of name string */
+		int        top, bot;	/* position of the trace */
+		short      bdigit;		/* # of bits per digit for displaying */
+		boolean    vector;		/* 1 if bit vector, 0 if node */
 //		union {
-			Sim.Node    nd;		/* what makes up this trace */
-			Sim.Bits    vec;
+		Sim.Node   nd;			/* what makes up this trace */
+		Sim.Bits   vec;
 //		} n;
 		Cache    [] cache;
 
@@ -116,25 +126,18 @@ public class Analyzer
 	};
 	
 	
-	static final int DEF_STEPS      = 4;	/* default simulation steps per screen */
-	static final double DEFIRSIMTIMERANGE  = 10.0E-9f;			/* initial size of simulation window: 10ns */
+	static final int    DEF_STEPS         = 4;			/* default simulation steps per screen */
+	static final double DEFIRSIMTIMERANGE = 10.0E-9f;	/* initial size of simulation window: 10ns */
 
 	static int      irsim_numAdded;
 	static Traces   irsim_traces = new Traces();
 	static Times    irsim_tims = new Times();
-	static long irsim_lastStart;		/* last redisplay starting time */
+	static long     irsim_lastStart;		/* last redisplay starting time */
 	static WaveformWindow ww;
 	
-	static double  [] irsim_tracetime;
+	static double [] irsim_tracetime;
 	static short  [] irsim_tracestate;
-	static int   irsim_tracetotal = 0;
-	
-//	static CHAR     irsim_level_prefix[200];
-//	static INTBIG   irsim_instnetnumber;
-//	
-//	/* working memory for "irsim_loadvectorfile()" */
-//	static INTBIG   irsim_inputparametertotal = 0;
-//	static CHAR   **irsim_inputparameters;
+	static int       irsim_tracetotal = 0;
 	
 	/*
 	 * Routine to free all memory allocated in this module.
@@ -145,11 +148,6 @@ public class Analyzer
 //		TraceEnt t;
 //		INTBIG i;
 //	
-//		for(i=0; i<irsim_inputparametertotal; i++)
-//			efree((CHAR *)irsim_inputparameters[i]);
-//		if (irsim_inputparametertotal > 0)
-//			efree((CHAR *)irsim_inputparameters);
-//		irsim_inputparametertotal = 0;
 //		if (irsim_tracetotal > 0)
 //		{
 //			efree((CHAR *)irsim_tracetime);
@@ -238,7 +236,6 @@ public class Analyzer
 			irsim_FlushTraceCache();
 		} else
 		{
-//			irsim_traces.disp = sim_window_getnumframes();
 			irsim_DrawTraces(irsim_tims.start, irsim_tims.end);
 		}
 	}
@@ -284,14 +281,6 @@ public class Analyzer
 			else
 				irsim_traces.last = t.prev;
 		}
-	}
-
-	static void irsim_ClearTraces()
-	{
-		while (irsim_traces.first != null)
-			RemoveTrace(irsim_traces.first);
-	
-		irsim_DrawTraces(irsim_tims.start, irsim_tims.end);
 	}
 
 	static void UpdateWinRemove()
@@ -505,8 +494,7 @@ public class Analyzer
 		{
 			long startT = irsim_tims.start;
 			boolean begin = (startT < irsim_lastStart);
-			int n = irsim_traces.disp;
-			for(TraceEnt t = irsim_traces.first; t != null; n--, t = t.next)
+			for(TraceEnt t = irsim_traces.first; t != null; t = t.next)
 			{
 				if (t == null) break;
 				if (t.vector)
@@ -539,6 +527,7 @@ public class Analyzer
 	
 		for(TraceEnt t = irsim_traces.first; t != null; t = t.next)
 		{
+			if (t.waveformdata.sig == null) continue;
 			if (!t.vector || t.vec.nbits <= 1)
 			{
 				if (t1 >= irsim_tims.last) continue;
@@ -607,8 +596,8 @@ public class Analyzer
 			}
 		}
 		ww.repaint();
-//		sim_window_redraw();
 	}
+
 	static void UpdateTraces(long start, long end)
 	{
 		irsim_DrawTraces(start, end);
@@ -671,72 +660,6 @@ public class Analyzer
 		new StartIRSIM(cell);
 	}
 
-	/**
-	 * Main entry point to set a value on a signal.
-	 * @param level set current signal high (1), low (0), or undefined (-1).
-	 */
-	public static void setCurrentSignalLevel(Integer level)
-	{
-		int veccmd = VECTORL;
-		switch (level.intValue())
-		{
-			case 0:		// low
-				veccmd = VECTORL;
-				break;
-			case 1:		// high
-				veccmd = VECTORH;
-				break;
-			case -1:		// undefined
-				veccmd = VECTORX;
-				break;
-		}
-		List signals = ww.getHighlightedNetworkNames();
-		String [] parameters = new String[1];
-		for(Iterator it = signals.iterator(); it.hasNext(); )
-		{
-			Simulation.SimSignal sig = (Simulation.SimSignal)it.next();
-			parameters[0] = sig.getFullName();
-			irsim_newvector(veccmd, parameters, ww.getMainTimeCursor());
-		}
-		irsim_playvectors();
-	}
-
-	/**
-	 * Main entry point to clear all stimuli on a signal.
-	 */
-	public static void clearCurrentSignalStimuli()
-	{
-		List signals = ww.getHighlightedNetworkNames();
-		if (signals.size() != 1)
-		{
-			System.out.println("Must select a single signal on which to clear stimuli");
-			return;
-		}
-		Simulation.SimSignal sig = (Simulation.SimSignal)signals.get(0);
-		String highsigname = sig.getFullName();
-
-		SimVector lastsv = null;
-		SimVector nextsv = null;
-		for(SimVector sv = irsim_firstvector; sv != null; sv = nextsv)
-		{
-			nextsv = sv.nextsimvector;
-			if (sv.command == VECTORL || sv.command == VECTORH || sv.command == VECTORX ||
-				sv.command == VECTORASSERT || sv.command == VECTORSET)
-			{
-				if (sv.parameters[0].equals(highsigname))
-				{
-					if (lastsv == null)
-						irsim_firstvector = sv.nextsimvector; else
-							lastsv.nextsimvector = sv.nextsimvector;
-					continue;
-				}
-			}
-			lastsv = sv;
-		}
-		irsim_lastvector = lastsv;
-		irsim_playvectors();
-	}
-
 	private static class StartIRSIM extends Job
     {
         Cell cell;
@@ -764,12 +687,16 @@ public class Analyzer
     		URL fileURL = TextUtils.makeURLToFile("Electric.XXXXXX");
 
     		// read the configuration file
-//    		infstr = initinfstr();
-//    		var = getval((INTBIG)sim_tool, VTOOL, VSTRING, x_("SIM_irsim_parameter_file"));
-//    		if (var == NOVARIABLE)
-//    			formatinfstr(infstr, x_("%s%s"), el_libdir, DEFIRSIMPARAMFILE); else
-//    				addstringtoinfstr(infstr, (CHAR *)var.addr);
-    		URL url = LibFile.getLibFile("scmos0.3.prm");
+    		String parameterFile = Simulation.getIRSIMParameterFile();
+    		File pf = new File(parameterFile);
+    		URL url;
+    		if (pf != null && pf.exists())
+    		{
+    			url = TextUtils.makeURLToFile(parameterFile);
+    		} else
+    		{
+        		url = LibFile.getLibFile(parameterFile);
+    		}
     		if (Config.irsim_config(url) != 0) return true;
     	
     		// Read network (.sim file)
@@ -784,32 +711,31 @@ public class Analyzer
     			RSim.irsim_init_commands();	// set up command table
     		Sched.irsim_init_event();
     		first = false;
-// display network
-//System.out.println("XXXXXXXXXXXXXXXXXXXX THE NETWORK XXXXXXXXXXXXXXXXXXXXXXX");
-//for(Iterator it = NSubrs.irsim_GetNodeList().iterator(); it.hasNext(); )
-//{
-//	Sim.Node n = (Sim.Node)it.next();
-//	System.out.println("Node "+n.nname);
-//	for(Sim.Tlist l = n.nterm; l != null; l = l.next)
-//	{
-//		Sim.Trans t = l.xtor;
-//		System.out.println("   Has Transistor ("+t.x.pos+","+t.y.pos+")");
-//		System.out.println("      Source: "+t.source.nname);
-//		System.out.println("      Drain: "+t.drain.nname);
-//		if (t.gate instanceof Sim.Node) System.out.println("      Gate: "+((Sim.Node)t.gate).nname); else
-//			System.out.println("      Gate?: "+t.gate);
-//	}
-//}
+
+    		// sort the signal names
+			Collections.sort(Sim.Node.irsim_GetNodeList(), new NodesByName());
 
     		// convert the stimuli
     		Simulation.SimData sd = new Simulation.SimData();
+    		sd.setSeparatorChar('/');
     		sd.setCell(cell);
     		for(Iterator it = Sim.Node.irsim_GetNodeList().iterator(); it.hasNext(); )
     		{
     			Sim.Node n = (Sim.Node)it.next();
+    			if (n.nname.equalsIgnoreCase("vdd") || n.nname.equalsIgnoreCase("gnd")) continue;
+
+    			// make a signal for it
 				Simulation.SimDigitalSignal sig = new Simulation.SimDigitalSignal(null);
 				n.sig = sig;
-				sig.setSignalName(n.nname);
+				int slashPos = n.nname.lastIndexOf('/');
+				if (slashPos >= 0)
+				{
+					sig.setSignalName(n.nname.substring(slashPos+1));
+					sig.setSignalContext(n.nname.substring(0, slashPos));
+				} else
+				{
+					sig.setSignalName(n.nname);
+				}
 				sd.addSignal(sig);
 
 				sig.buildTime(2);
@@ -822,44 +748,6 @@ public class Analyzer
 			Simulation.showSimulationData(sd, null);
     		ww = sd.getWaveformWindow();
 
-//    		// sort the signal names
-//    		esort(sim_irsimnets, sim_irsimnetnumber, sizeof (IRSIMNETWORK), irsim_sortnetascending);
-//    	
-//    		// count the number of top-level signal names
-//    		sigvalid = 0;
-//    		for(i=0; i<sim_irsimnetnumber; i++)
-//    		{
-//    			if ((sim_irsimnets[i].flags&IRSIMNETVALID) == 0) continue;
-//    			for(pt = sim_irsimnets[i].name; *pt != 0; pt++)
-//    				if (*pt == '/') break;
-//    			if (*pt != 0) continue;
-//    			sigvalid++;
-//    		}
-//    		irsim_level_prefix[0] = 0;
-//    	
-//    		// show the waveform window
-//    		irsim_firstvector = irsim_lastvector = null;
-//    		oldsigcount = 0;
-//    		i = sim_window_isactive(&np);
-//    		if ((i&SIMWINDOWWAVEFORM) == 0)
-//    		{
-//    			if (i != 0 && np != cell)
-//    			{
-//    				// stop simulation of cell "np"
-//    				sim_window_stopsimulation();
-//    			}
-//    	
-//    			// remember signals that were last used with this cell
-//    			sim_window_grabcachedsignalsoncell(cell);
-//    	
-//    			// show the simulation window
-//    			if (sim_window_create(sigvalid, cell,
-//    				((sim_window_state&SHOWWAVEFORM) != 0 ? irsim_charhandlerwave : 0),
-//    					irsim_charhandlerschem, IRSIM)) return(TRUE);
-//    			sim_window_state = (sim_window_state & ~SIMENGINECUR) | SIMENGINECURIRSIM;
-//    			sim_window_killalltraces(TRUE);
-    			irsim_showcurrentlevel(cell);
-//    		}
     		ww.clearHighlighting();
     		
     		ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
@@ -882,255 +770,87 @@ public class Analyzer
     		irsim_DisplayTraces(RSim.irsim_analyzerON);		// pass 0 first time
     		RSim.irsim_analyzerON = true;
     	
-    		// disable automatic display
-    		boolean showcommand = false;
-//    		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_irsim_statekey);
-//    		if (var != NOVARIABLE && (var.addr&IRSIMSHOWCOMMANDS) != 0) showcommand = true;
-    		RSim.irsim_issuecommand("display -automatic", showcommand);
-    	
     		// read signal values
     		irsim_UpdateWindow(Sched.irsim_cur_delta);
             return true;
         }
     }
 
-	static void irsim_showcurrentlevel(Cell cell)
+	public static class NodesByName implements Comparator
 	{
-//		INTBIG i, j, k, l, len, buscount, oldsigcount;
-//		CHAR *pt, *opt, *start, save, *name, *subname;
-//		CHAR **oldsignames, **bussigname;
-//		void *infstr;
-//		VARIABLE *var;
-//		INTBIG *bussignals;
-//		INTSML inistate[1];
-//		double initime[1], lowtime, hightime;
-//		Q_UNUSED( cell );
-//	
-//		// remember the previous time range
-//		sim_window_getaveragetimerange(&lowtime, &hightime);
-	
-		// show the waveform window
-		irsim_ClearTraces();
-//		ww.clearHighlighting();
-//		sim_window_killalltraces(FALSE);
-//		for(i=0; i<sim_irsimnetnumber; i++)
-//		{
-//			sim_irsimnets[i].flags &= ~IRSIMNETSHOWN;
-//			sim_irsimnets[i].signal = 0;
-//		}
-//		infstr = initinfstr();
-//		if (irsim_level_prefix[0] == 0)
-//			addstringtoinfstr(infstr, _("Top level")); else
-//		{
-//			len = estrlen(irsim_level_prefix);
-//			irsim_level_prefix[len-1] = 0;
-//			formatinfstr(infstr, _("level=%s"), irsim_level_prefix);
-//			irsim_level_prefix[len-1] = '/';
-//		}
-//		sim_window_titleinfo(returninfstr(infstr));
-//		sim_window_supresstraceprefix(irsim_level_prefix);
-//	
-//		initime[0] = 0.0;   inistate[0] = (LOGIC_X << 8) | GATE_STRENGTH;
-//	
-//		// get signals saved from last time
-//		oldsigcount = sim_window_getcachedsignals(&oldsignames);
-//	
-//		// if the cell was from a different point in the hierarchy, ignore saved signals
-//		var = getvalkey((INTBIG)cell, VNODEPROTO, VSTRING, sim_window_hierpos_key);
-//		if (var != NOVARIABLE)
-//		{
-//			if (namesame((CHAR *)var.addr, irsim_level_prefix) != 0)
-//			{
-//				if (getvalkey((INTBIG)cell, VNODEPROTO, VSTRING|VISARRAY,
-//					sim_window_signalorder_key) != NOVARIABLE)
-//						delvalkey((INTBIG)cell, VNODEPROTO, sim_window_signalorder_key);
-//				oldsigcount = 0;
-//			}
-//		}
-//	
-//		// remember this position in the hierarchy
-//		setvalkey((INTBIG)cell, VNODEPROTO, sim_window_hierpos_key, (INTBIG)irsim_level_prefix, VSTRING);
-//	
-//		// show the signals saved from last time
-//		for(j=0; j<oldsigcount; j++)
-//		{
-//			// see if the name is a bus
-//			for(pt = oldsignames[j]; *pt != 0; pt++) if (*pt == '\t') break;
-//			if (*pt == '\t')
-//			{
-//				// a bus
-//				pt++;
-//				sim_initbussignals();
-//				for(;;)
-//				{
-//					for(start = pt; *pt != 0; pt++) if (*pt == '\t') break;
-//					save = *pt;
-//					*pt = 0;
-//					opt = start;
-//					if (*opt == '-') opt++;
-//					for( ; *opt != 0; opt++)
-//						if (!isdigit(*opt) || *opt == ':') break;
-//					if (*opt == ':') start = opt+1;
-//					for(i=0; i<sim_irsimnetnumber; i++)
-//					{
-//						if ((sim_irsimnets[i].flags&IRSIMNETVALID) == 0) continue;
-//						if ((sim_irsimnets[i].flags&IRSIMNETSHOWN) != 0) continue;
-//						name = sim_irsimnets[i].name;
-//						if (namesame(name, start) != 0) continue;
-//						sim_irsimnets[i].signal = sim_window_newtrace(-1, name, 0);
-//						sim_window_loaddigtrace(sim_irsimnets[i].signal, 1, initime, inistate);
-//						sim_irsimnets[i].flags |= IRSIMNETSHOWN;
-//						sim_addbussignal(sim_irsimnets[i].signal);
-//						break;
-//					}
-//					*pt++ = save;
-//					if (save == 0) break;
-//				}
-//	
-//				// create the bus in the waveform window
-//				infstr = initinfstr();
-//				for(pt = oldsignames[j]; *pt != 0; pt++)
-//				{
-//					if (*pt == '\t') break;
-//					addtoinfstr(infstr, *pt);
-//				}
-//				pt = returninfstr(infstr);
-//				buscount = sim_getbussignals(&bussignals);
-//				(void)sim_window_makebus(buscount, bussignals, pt);
-//	
-//				// make the bus in IRSIM
-//				bussigname = (CHAR **)emalloc((buscount+1) * (sizeof (CHAR *)), sim_tool.cluster);
-//				if (bussigname == 0) return;
-//				for(i=0; i<buscount; i++) bussigname[i+1] = sim_window_gettracename(bussignals[i]);
-//				bussigname[0] = pt;
-//				irsim_newvector(VECTORVECTOR, buscount+1, bussigname, 0.0);
-//				efree((CHAR *)bussigname);
-//			} else
-//			{
-//				// a single signal
-//				pt = oldsignames[j];
-//				if (*pt == '-') pt++;
-//				for( ; *pt != 0; pt++)
-//					if (!isdigit(*pt) || *pt == ':') break;
-//				if (*pt == ':') pt++; else pt = oldsignames[j];
-//				for(i=0; i<sim_irsimnetnumber; i++)
-//				{
-//					if ((sim_irsimnets[i].flags&IRSIMNETVALID) == 0) continue;
-//					if ((sim_irsimnets[i].flags&IRSIMNETSHOWN) != 0) continue;
-//					name = sim_irsimnets[i].name;
-//					if (namesame(name, pt) != 0) continue;
-//	
-//					sim_irsimnets[i].signal = sim_window_newtrace(-1, name, (INTBIG)0);
-//					sim_window_loaddigtrace(sim_irsimnets[i].signal, 1, initime, inistate);
-//					sim_irsimnets[i].flags |= IRSIMNETSHOWN;
-//					break;
-//				}
-//			}
-//		}
-//	
-//		// show default signals if none cached
-//		if (oldsigcount == 0)
-//		{
-//			len = estrlen(irsim_level_prefix);
-//			for(i=0; i<sim_irsimnetnumber; i++)
-//			{
-//				if ((sim_irsimnets[i].flags&IRSIMNETVALID) == 0) continue;
-//				if ((sim_irsimnets[i].flags&IRSIMNETSHOWN) != 0) continue;
-//				name = sim_irsimnets[i].name;
-//				if (len != 0)
-//				{
-//					// down a level: the prefix must match
-//					if (namesamen(name, irsim_level_prefix, len) != 0) continue;
-//				}
-//	
-//				// there must be no further hierarchy in the name
-//				for(l=len; name[l] != 0; l++) if (name[l] == '/') break;
-//				if (name[l] != 0) continue;
-//	
-//				// see if the signal is arrayed
-//				for(l=0; name[l] != 0; l++) if (name[l] == '[') break;
-//				if (name[l] == '[')
-//				{
-//					// found an arrayed signal: gather it into a bus
-//					sim_initbussignals();
-//					for(j=0; j<sim_irsimnetnumber; j++)
-//					{
-//						if ((sim_irsimnets[j].flags&IRSIMNETVALID) == 0) continue;
-//						if ((sim_irsimnets[j].flags&IRSIMNETSHOWN) != 0) continue;
-//						subname = sim_irsimnets[j].name;
-//						if (namesamen(subname, name, l) != 0) continue;
-//						if (subname[l] != 0 && subname[l] != '[') continue;
-//						sim_addbussignal(j);
-//					}
-//					buscount = sim_getbussignals(&bussignals);
-//					bussigname = (CHAR **)emalloc((buscount+1) * (sizeof (CHAR *)), sim_tool.cluster);
-//					if (bussigname == 0) return;
-//					esort(bussignals, buscount, SIZEOFINTBIG, irsim_sortbusnames);
-//					for(j=0; j<buscount; j++)
-//					{
-//						k = bussignals[j];
-//						subname = sim_irsimnets[k].name;
-//						bussignals[j] = sim_window_newtrace(-1, subname, 0);
-//						bussigname[j+1] = subname;
-//						sim_window_loaddigtrace(bussignals[j], 1, initime, inistate);
-//						sim_irsimnets[k].signal = bussignals[j];
-//						sim_irsimnets[k].flags |= IRSIMNETSHOWN;
-//					}
-//	
-//					// create the bus
-//					if (buscount > 1)
-//					{
-//						name[l] = 0;
-//						infstr = initinfstr();
-//						addstringtoinfstr(infstr, name);
-//						bussigname[0] = returninfstr(infstr);
-//						name[l] = '[';
-//						(void)sim_window_makebus(buscount, bussignals, bussigname[0]);
-//						irsim_newvector(VECTORVECTOR, buscount+1, bussigname, 0.0);
-//					}
-//					efree((CHAR *)bussigname);
-//				} else
-//				{
-//					sim_irsimnets[i].signal = sim_window_newtrace(-1, name, 0);
-//					sim_irsimnets[i].flags |= IRSIMNETSHOWN;
-//					sim_window_loaddigtrace(sim_irsimnets[i].signal, 1, initime, inistate);
-//				}
-//			}
-//		}
-//	
-//		// now set the time range to the previous state
-//		ww.setDefaultTimeRange(lowtime, hightime);
-//		sim_window_redraw();
+		public int compare(Object o1, Object o2)
+		{
+			Sim.Node n1 = (Sim.Node)o1;
+			Sim.Node n2 = (Sim.Node)o2;
+			return n1.nname.compareToIgnoreCase(n2.nname);
+		}
 	}
 
-//	/*
-//	 * Helper routine for "esort" that makes bus signals be numerically ordered
-//	 */
-//	int irsim_sortbusnames(const void *e1, const void *e2)
-//	{
-//		CHAR *n1, *n2;
-//		INTBIG i1, i2;
-//	
-//		i1 = *((INTBIG *)e1);
-//		i2 = *((INTBIG *)e2);
-//		n1 = sim_irsimnets[i1].name;
-//		n2 = sim_irsimnets[i2].name;
-//		if ((net_options&NETDEFBUSBASEDESC) != 0)
-//			return(namesamenumeric(n2, n1));
-//		return(namesamenumeric(n1, n2));
-//	}
+	/**
+	 * Main entry point to run an arbitrary IRSIM command.
+	 */
+	public static void doIRSIMCommand(String command)
+	{
+		if (command.equals("l") || command.equals("h") || command.equals("x"))
+		{
+			int veccmd = VECTORL;
+			if (command.equals("h")) veccmd = VECTORH; else
+				if (command.equals("x")) veccmd = VECTORX;
+			List signals = ww.getHighlightedNetworkNames();
+			String [] parameters = new String[1];
+			for(Iterator it = signals.iterator(); it.hasNext(); )
+			{
+				Simulation.SimSignal sig = (Simulation.SimSignal)it.next();
+				parameters[0] = sig.getFullName();
+				irsim_newvector(veccmd, parameters, ww.getMainTimeCursor());
+			}
+			irsim_playvectors();
+			return;
+		}
+		if (command.equals("clear"))
+		{
+			List signals = ww.getHighlightedNetworkNames();
+			if (signals.size() != 1)
+			{
+				System.out.println("Must select a single signal on which to clear stimuli");
+				return;
+			}
+			Simulation.SimSignal sig = (Simulation.SimSignal)signals.get(0);
+			String highsigname = sig.getFullName();
 
-//	/*
-//	 * Helper routine for "esort" that makes IRSIM network objects go in ascending name order.
-//	 */
-//	int irsim_sortnetascending(const void *e1, const void *e2)
-//	{
-//		IRSIMNETWORK *in1, *in2;
-//	
-//		in1 = (IRSIMNETWORK *)e1;
-//		in2 = (IRSIMNETWORK *)e2;
-//		return(namesame(in1.name, in2.name));
-//	}
+			SimVector lastsv = null;
+			SimVector nextsv = null;
+			for(SimVector sv = irsim_firstvector; sv != null; sv = nextsv)
+			{
+				nextsv = sv.nextsimvector;
+				if (sv.command == VECTORL || sv.command == VECTORH || sv.command == VECTORX ||
+					sv.command == VECTORASSERT || sv.command == VECTORSET)
+				{
+					if (sv.parameters[0].equals(highsigname))
+					{
+						if (lastsv == null)
+							irsim_firstvector = sv.nextsimvector; else
+								lastsv.nextsimvector = sv.nextsimvector;
+						continue;
+					}
+				}
+				lastsv = sv;
+			}
+			irsim_lastvector = lastsv;
+			irsim_playvectors();
+			return;
+		}
+		if (command.equals("save"))
+		{
+			irsim_savevectorfile();
+			return;
+		}
+		if (command.equals("restore"))
+		{
+			irsim_loadvectorfile();
+			return;
+		}
+	}
 
 //	/*
 //	 * The character handler for the waveform window of ALS simulation
@@ -1260,16 +980,12 @@ public class Analyzer
 //	
 //		if (chr == 'i')		// print signal info
 //		{
-//			showcommand = FALSE;
-//			var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_irsim_statekey);
-//			if (var != NOVARIABLE && (var.addr&IRSIMSHOWCOMMANDS) != 0) showcommand = TRUE;
-//	
 //			infstr = initinfstr();
 //			formatinfstr(infstr, x_("! %s"), sim_window_gettracename(highsig));
-//			RSim.irsim_issuecommand(returninfstr(infstr), showcommand);
+//			RSim.irsim_issuecommand(returninfstr(infstr));
 //			infstr = initinfstr();
 //			formatinfstr(infstr, x_("? %s"), sim_window_gettracename(highsig));
-//			RSim.irsim_issuecommand(returninfstr(infstr), showcommand);
+//			RSim.irsim_issuecommand(returninfstr(infstr));
 //			return(FALSE);
 //		}
 //		if (chr == 'e')		// clear signal vectors
@@ -1492,13 +1208,8 @@ public class Analyzer
 	 */
 	static void irsim_playvectors()
 	{
-		// get IRSIM state
-		boolean showcommand = false;
-//		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_irsim_statekey);
-//		if (var != NOVARIABLE && (var.addr&IRSIMSHOWCOMMANDS) != 0) showcommand = true;
-	
-		RSim.irsim_issuecommand("back 0", showcommand);
-		RSim.irsim_issuecommand("flush", showcommand);
+		RSim.irsim_issuecommand("back 0");
+		RSim.irsim_issuecommand("flush");
 	
 		double curtime = 0;
 		RSim.irsim_analyzerON = false;
@@ -1508,15 +1219,15 @@ public class Analyzer
 			String infstr = irsim_commandname(sv.command);
 			for(int i=0; i<sv.parameters.length; i++)
 				infstr += " " + sv.parameters[i];
-			RSim.irsim_issuecommand(infstr, showcommand);
+			RSim.irsim_issuecommand(infstr);
 		}
-		RSim.irsim_issuecommand("s", showcommand);
+		RSim.irsim_issuecommand("s");
 		RSim.irsim_analyzerON = true;
 		irsim_UpdateWindow(Sched.irsim_cur_delta);
 	
 		// update main cursor location if requested
-//		if ((sim_window_state&ADVANCETIME) != 0)
-//			ww.setMainTimeCursor(curtime + 10.0/1000000000.0);
+		if (Simulation.isIRSIMAutoAdvance())
+			ww.setMainTimeCursor(curtime + 10.0/1000000000.0);
 	}
 
 	static String irsim_commandname(int command)
@@ -1554,301 +1265,174 @@ public class Analyzer
 		irsim_playvectors();
 	}
 
-//	/*
-//	 * Routine to read simulation vectors from file "filename" (if zero, prompt for file).
-//	 */
-//	void irsim_loadvectorfile(String filename)
-//	{
-//		CHAR *truename, buf[200], *pt, *keyword, *par[1], **newparamlist;
-//		FILE *vin;
-//		SimVector *sv;
-//		double min, max;
-//		INTBIG lineno, command, count, newtotal, i, j, *bussignals, *highsiglist;
-//		INTBIG highsigcount;
-//	
-//		if (filename == 0)
-//		{
-//			filename = fileselect(_("IRSIM vector file"), sim_filetypeirsimcmd, x_(""));
-//			if (filename == 0) return;
-//		}
-//		vin = xopen(filename, sim_filetypeirsimcmd, x_(""), &truename);
-//		if (! vin)
-//		{
-//			System.out.println("ERROR: Can't open %s"), truename);
-//			return;
-//		}
-//	
-//		// remove all vectors
-//		while (irsim_firstvector != null)
-//		{
-//			sv = irsim_firstvector;
-//			irsim_firstvector = sv.nextsimvector;
-//		}
-//		irsim_lastvector = null;
-//		System.out.println("Reading %s"), truename);
-//		lineno = 0;
-//		for(;;)
-//		{
-//			if (xfgets(buf, 200, vin)) break;
-//			lineno++;
-//	
-//			// ignore comments
-//			if (buf[0] == '|')
-//			{
-//				par[0] = buf;
-//				irsim_newvector(VECTORCOMMENT, 1, par, -1.0);
-//				continue;
-//			}
-//	
-//			// get the first keyword
-//			pt = buf;
-//			keyword = getkeyword(&pt, x_(" "));
-//			if (keyword == NOSTRING || *keyword == 0)
-//			{
-//				par[0] = buf;
-//				irsim_newvector(VECTORCOMMENT, 1, par, -1.0);
-//				continue;
-//			}
-//	
-//			// ignore the "w" command
-//			if (namesame(keyword, x_("w")) == 0)
-//			{
-//				par[0] = buf;
-//				irsim_newvector(VECTORCOMMENT, 1, par, -1.0);
-//				continue;
-//			}
-//	
-//			// save the "print" command
-//			if (namesame(keyword, x_("print")) == 0)
-//			{
-//				while (*pt == ' ') pt++;
-//				par[0] = pt;
-//				irsim_newvector(VECTORPRINT, 1, par, -1.0);
-//				continue;
-//			}
-//	
-//			// allow interruption
-//			if (stopping(STOPREASONCOMFILE)) break;
-//	
-//			// handle level setting on signals
-//			if (namesame(keyword, x_("l")) == 0 || namesame(keyword, x_("h")) == 0 ||
-//				namesame(keyword, x_("x")) == 0)
-//			{
-//				if (namesame(keyword, x_("l")) == 0) command = VECTORL; else
-//					if (namesame(keyword, x_("h")) == 0) command = VECTORH; else
-//						command = VECTORX;
-//				for(;;)
-//				{
-//					keyword = getkeyword(&pt, x_(" "));
-//					if (keyword == NOSTRING || *keyword == 0) break;
-//					par[0] = keyword;
-//					irsim_newvector(command, 1, par, -1.0);
-//				}
-//				continue;
-//			}
-//	
-//			// handle commands
-//			if (namesame(keyword, x_("clock")) == 0) command = VECTORCLOCK; else
-//			if (namesame(keyword, x_("vector")) == 0) command = VECTORVECTOR; else
-//			if (namesame(keyword, x_("c")) == 0) command = VECTORC; else
-//			if (namesame(keyword, x_("assert")) == 0) command = VECTORASSERT; else
-//			if (namesame(keyword, x_("stepsize")) == 0) command = VECTORSTEPSIZE; else
-//			if (namesame(keyword, x_("s")) == 0) command = VECTORS; else
-//			if (namesame(keyword, x_("!")) == 0) command = VECTOREXCL; else
-//			if (namesame(keyword, x_("?")) == 0) command = VECTORQUESTION; else
-//			if (namesame(keyword, x_("set")) == 0) command = VECTORSET; else
-//			{
-//				System.out.println("Unknown IRSIM command on line %ld: %s"), lineno, buf);
-//				continue;
-//			}
-//			count = 0;
-//			for(;;)
-//			{
-//				keyword = getkeyword(&pt, x_(" "));
-//				if (keyword == NOSTRING || *keyword == 0) break;
-//				if (count >= irsim_inputparametertotal)
-//				{
-//					newtotal = irsim_inputparametertotal * 2;
-//					if (count >= irsim_inputparametertotal)
-//						newtotal = count + 5;
-//					newparamlist = (CHAR **)emalloc(newtotal * (sizeof (CHAR *)), sim_tool.cluster);
-//					if (newparamlist == 0) return;
-//					for(i=0; i<irsim_inputparametertotal; i++)
-//						newparamlist[i] = irsim_inputparameters[i];
-//					for(i=irsim_inputparametertotal; i<newtotal; i++)
-//						newparamlist[i] = 0;
-//					if (irsim_inputparametertotal > 0) efree((CHAR *)irsim_inputparameters);
-//					irsim_inputparameters = newparamlist;
-//					irsim_inputparametertotal = newtotal;
-//				}
-//				if (irsim_inputparameters[count] != 0) efree((CHAR *)irsim_inputparameters[count]);
-//				(void)allocstring(&irsim_inputparameters[count], keyword, sim_tool.cluster);
-//				count++;
-//			}
-//			irsim_newvector(command, count, irsim_inputparameters, -1.0);
-//	
-//			// update the display if this is a "vector" command
-//			if (command == VECTORVECTOR)
-//			{
-//				// make the bus
-//				bussignals = (INTBIG *)emalloc((count-1) * SIZEOFINTBIG, el_tempcluster);
-//				if (bussignals == 0) return;
-//	
-//				// if the bus name already exists, delete it
-//				highsiglist = sim_window_findtrace(irsim_inputparameters[0], &highsigcount);
-//				for(i=0; i<highsigcount; i++)
-//					sim_window_killtrace(highsiglist[i]);
-//	
-//				j = 0;
-//				for(i=1; i<count; i++)
-//				{
-//					highsiglist = sim_window_findtrace(irsim_inputparameters[i], &highsigcount);
-//					if (highsigcount == 0)
-//					{
-//						System.out.println("Vector %s: cannot find signal '%s'"),
-//							irsim_inputparameters[0], irsim_inputparameters[i]);
-//					} else
-//					{
-//						bussignals[j++] = highsiglist[0];
-//					}
-//				}
-//				if (j > 0)
-//					(void)sim_window_makebus(j, bussignals, irsim_inputparameters[0]);
-//				efree((CHAR *)bussignals);
-//			}
-//		}
-//		irsim_playvectors();
-//	
-//		sim_window_gettimeextents(&min, &max);
-//		ww.setDefaultTimeRange(min, max);
-//		ww.setMainTimeCursor((max-min)/5.0*2.0+min);
-//		ww.setExtensionTimeCursor((max-min)/5.0*3.0+min);
-//		irsim_UpdateWindow(Sched.irsim_cur_delta);
-//	
-//		xclose(vin);
-//	}
+	/*
+	 * Routine to read simulation vectors from a file.
+	 */
+	static void irsim_loadvectorfile()
+	{
+        String fileName = OpenFile.chooseInputFile(FileType.IRSIMSTIM, null);
+        if (fileName == null) return;
 
-//	/*
-//	 * Routine to save simulation vectors to file "filename" (if zero, prompt for file).
-//	 */
-//	void irsim_savevectorfile(String filename)
-//	{
-//		CHAR *truename;
-//		INTBIG i;
-//		FILE *vout;
-//		SimVector *sv;
-//		void *infstr;
-//	
-//		if (filename == 0)
-//		{
-//			infstr = initinfstr();
-//			formatinfstr(infstr, x_("%s.cmd"), el_curlib.libname);
-//			filename = fileselect(_("IRSIM vector file"), sim_filetypeirsimcmd|FILETYPEWRITE,
-//				returninfstr(infstr));
-//			if (filename == 0) return;
-//		}
-//		vout = xcreate(filename, sim_filetypeirsimcmd, 0, &truename);
-//		if (vout == 0)
-//		{
-//			if (truename != 0) System.out.println("ERROR: Can't create %s"), truename);
-//			return;
-//		}
-//	
-//		for(sv = irsim_firstvector; sv != null; sv = sv.nextsimvector)
-//		{
-//			if (sv.command == VECTORCOMMENT)
-//			{
-//				efprintf(vout, x_("%s\n"), sv.parameters[0]);
-//				continue;
-//			}
-//			efprintf(vout, x_("%s"), irsim_commandname(sv.command));
-//			for(i=0; i<sv.parcount; i++)
-//				efprintf(vout, x_(" %s"), sv.parameters[i]);
-//			efprintf(vout, x_("\n"));
-//		}
-//	
-//		xclose(vout);
-//		System.out.println("Wrote %s"), truename);
-//	}
+        URL url = TextUtils.makeURLToFile(fileName);
+        try
+        {
+			URLConnection urlCon = url.openConnection();
+			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+			LineNumberReader lineReader = new LineNumberReader(is);
 
-//	/*
-//	 * Routine to move down the hierarchy into instance "level" and show
-//	 * signals at that level.
-//	 */
-//	void irsim_level_set(String level, Cell cell)
-//	{
-//		if (level != 0)
-//		{
-//			estrcat(irsim_level_prefix, level);
-//			estrcat(irsim_level_prefix, x_("/"));
-//		}
-//	
-//		// remember saved signals in this cell
-//		sim_window_grabcachedsignalsoncell(cell);
-//	
-//		// ready to add: remove highlighting
-//		ww.clearHighlighting();
-//	
-//		// setup signals for this cell
-//		irsim_showcurrentlevel(cell);
-//		irsim_UpdateWindow(Sched.irsim_cur_delta);
-//		irsim_playvectors();
-//	}
-
-//	/*
-//	 * Routine to move up one level of hierarchy in the display of signal names.
-//	 */
-//	void irsim_level_up(Cell cell)
-//	{
-//		INTBIG len, i;
-//	
-//		len = estrlen(irsim_level_prefix) - 2;
-//		if (len > 0)
-//		{
-//			for(i=len; i>=0; i--)
-//				if (irsim_level_prefix[i] == '/') break;
-//			irsim_level_prefix[i+1] = 0;
-//		}
-//	
-//		// remember saved signals in this cell
-//		sim_window_grabcachedsignalsoncell(cell);
-//	
-//		// ready to add: remove highlighting
-//		ww.clearHighlighting();
-//	
-//		// setup signals for this cell
-//		irsim_showcurrentlevel(cell);
-//		irsim_UpdateWindow(Sched.irsim_cur_delta);
-//		irsim_playvectors();
-//	}
-
-//	void irsim_adddisplayedsignal(String sig)
-//	{
-//		INTBIG i;
-//		INTSML inistate[1];
-//		double initime[1];
-//	
-//		// find the signal
-//		for(i=0; i<sim_irsimnetnumber; i++)
-//		{
-//			if ((sim_irsimnets[i].flags&IRSIMNETSHOWN) != 0) continue;
-//			if ((sim_irsimnets[i].flags&IRSIMNETVALID) == 0) continue;
-//			if (namesame(sig, sim_irsimnets[i].name) == 0) break;
-//		}
-//		if (i >= sim_irsimnetnumber) return;
-//	
-//		// ready to add: remove highlighting
-//		ww.clearHighlighting();
-//	
-//		// create a new trace in the last slot
-//		sim_irsimnets[i].signal = sim_window_newtrace(-1, sim_irsimnets[i].name, 0);
-//		sim_window_addhighlighttrace(sim_irsimnets[i].signal);
-//		initime[0] = 0.0;   inistate[0] = (LOGIC_X << 8) | GATE_STRENGTH;
-//		sim_window_setnumframes(sim_window_getnumframes()+1);
-//		sim_window_loaddigtrace(sim_irsimnets[i].signal, 1, initime, inistate);
+			// remove all vectors
+			while (irsim_firstvector != null)
+			{
+				SimVector sv = irsim_firstvector;
+				irsim_firstvector = sv.nextsimvector;
+			}
+			irsim_lastvector = null;
+			System.out.println("Reading " + fileName);
+			for(;;)
+			{
+				String buf = lineReader.readLine();
+				if (buf == null) break;
+		
+				// ignore comments
+				if (buf.startsWith("|"))
+				{
+					String [] par = new String[1];
+					par[0] = buf;
+					irsim_newvector(VECTORCOMMENT, par, -1.0);
+					continue;
+				}
+		
+				// get the first keyword
+				String [] targ = Sim.parse_line(buf, false);
+		
+				// ignore the "w" command
+				if (targ[0].equals("w"))
+				{
+					String [] par = new String[1];
+					par[0] = buf;
+					irsim_newvector(VECTORCOMMENT, par, -1.0);
+					continue;
+				}
+		
+				// save the "print" command
+				if (targ[0].equals("print"))
+				{
+					String [] par = new String[1];
+					par[0] = buf;
+					irsim_newvector(VECTORPRINT, par, -1.0);
+					continue;
+				}
+		
+				// handle level setting on signals
+				if (targ[0].equals("l") || targ[0].equals("h") || targ[0].equals("x"))
+				{
+					int command = VECTORX;
+					if (targ[0].equals("l")) command = VECTORL; else
+						if (targ[0].equals("h")) command = VECTORH;
+					String [] par = new String[1];
+					for(int i=1; i<targ.length; i++)
+					{
+						par[0] = targ[i];
+						irsim_newvector(command, par, -1.0);
+					}
+					continue;
+				}
+		
+				// handle commands
+				int command;
+				if (targ[0].equals("clock")) command = VECTORCLOCK; else
+				if (targ[0].equals("vector")) command = VECTORVECTOR; else
+				if (targ[0].equals("c")) command = VECTORC; else
+				if (targ[0].equals("assert")) command = VECTORASSERT; else
+				if (targ[0].equals("stepsize")) command = VECTORSTEPSIZE; else
+				if (targ[0].equals("s")) command = VECTORS; else
+				if (targ[0].equals("!")) command = VECTOREXCL; else
+				if (targ[0].equals("?")) command = VECTORQUESTION; else
+				if (targ[0].equals("set")) command = VECTORSET; else
+				{
+					System.out.println("Unknown IRSIM command on line " + lineReader.getLineNumber() + ": " + buf);
+					continue;
+				}
+				String [] justParams = new String[targ.length-1];
+				for(int i=1; i<targ.length; i++) justParams[i-1] = targ[i];
+				irsim_newvector(command, justParams, -1.0);
+		
+				// update the display if this is a "vector" command
+				if (command == VECTORVECTOR)
+				{
+//					// make the bus
+//					bussignals = (INTBIG *)emalloc((count-1) * SIZEOFINTBIG, el_tempcluster);
+//					if (bussignals == 0) return;
 //		
-//		irsim_UpdateWindow(Sched.irsim_cur_delta);
-//		sim_window_redraw();
-//	}
+//					// if the bus name already exists, delete it
+//					highsiglist = sim_window_findtrace(irsim_inputparameters[0], &highsigcount);
+//					for(i=0; i<highsigcount; i++)
+//						sim_window_killtrace(highsiglist[i]);
+//		
+//					j = 0;
+//					for(i=1; i<count; i++)
+//					{
+//						highsiglist = sim_window_findtrace(irsim_inputparameters[i], &highsigcount);
+//						if (highsigcount == 0)
+//						{
+//							System.out.println("Vector %s: cannot find signal '%s'"),
+//								irsim_inputparameters[0], irsim_inputparameters[i]);
+//						} else
+//						{
+//							bussignals[j++] = highsiglist[0];
+//						}
+//					}
+//					if (j > 0)
+//						(void)sim_window_makebus(j, bussignals, irsim_inputparameters[0]);
+//					efree((CHAR *)bussignals);
+				}
+			}
+			irsim_playvectors();
+		
+//			sim_window_gettimeextents(&min, &max);
+//			ww.setDefaultTimeRange(min, max);
+//			ww.setMainTimeCursor((max-min)/5.0*2.0+min);
+//			ww.setExtensionTimeCursor((max-min)/5.0*3.0+min);
+			irsim_UpdateWindow(Sched.irsim_cur_delta);
+
+			lineReader.close();
+		} catch (IOException e)
+        {
+        	System.out.println("Error reading " + fileName);
+        	return;
+        }
+	}
+
+	/*
+	 * Routine to save simulation vectors to file "filename" (if zero, prompt for file).
+	 */
+	static void irsim_savevectorfile()
+	{
+        String fileName = OpenFile.chooseOutputFile(FileType.IRSIMSTIM, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
+        try
+		{
+        	PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+        	
+    		for(SimVector sv = irsim_firstvector; sv != null; sv = sv.nextsimvector)
+    		{
+    			if (sv.command == VECTORCOMMENT)
+    			{
+    				printWriter.println(sv.parameters[0]);
+    				continue;
+    			}
+    			printWriter.print(irsim_commandname(sv.command));
+    			for(int i=0; i<sv.parameters.length; i++)
+    				printWriter.print(" " + sv.parameters[i]);
+    			printWriter.println();
+    		}
+
+    		printWriter.close();
+    		System.out.println("Wrote " + fileName);
+        } catch (IOException e)
+		{
+            System.out.println("Error writing " + fileName);
+            return;
+        }
+	}
 
 }

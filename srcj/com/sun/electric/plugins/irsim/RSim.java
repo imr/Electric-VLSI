@@ -20,6 +20,7 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -109,9 +110,9 @@ public class RSim
 		irsim_listTbl[Sim.INPUT_NUM(Sim.X_INPUT)] = irsim_xinputs;
 	}
 
-	static void irsim_issuecommand(String command, boolean showcommand)
+	static void irsim_issuecommand(String command)
 	{
-		if (showcommand) System.out.println("> " + command);
+		if (Simulation.isIRSIMShowsCommands()) System.out.println("> " + command);
 		String [] strings = Sim.parse_line(command, true);
 		if (strings.length > 0) exec_cmd(strings);
 	}
@@ -1122,7 +1123,6 @@ public class RSim
 		{
 			name = f.node.nname;
 			f.node = UnAlias(f.node);
-//			targc = 1;
 			Sim.Node [] nodeList = new Sim.Node[1];
 			nodeList[0] = f.node;
 			int cnt = 0;
@@ -1137,7 +1137,6 @@ public class RSim
 		}
 		else if (f.vec != null)
 		{
-//			targc = 1;
 			int cnt = 0;
 			while ((cnt <= ccount) && (comp = CompareVector(f.vec.nodes, f.vec.name, f.vec.nbits, mask,
 				value.toString())) != 0)
@@ -1840,7 +1839,6 @@ public class RSim
 	 */
 	static int setreport(String [] args)
 	{
-	
 		Eval.irsim_treport = do_flags(args, Eval.irsim_treport, "report", "none", rep);
 		return(0);
 	}

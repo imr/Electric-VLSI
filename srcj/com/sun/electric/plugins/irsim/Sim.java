@@ -853,7 +853,8 @@ public class Sim
 			gate = Node.irsim_GetNode(targ[1]);
 			src = Node.irsim_GetNode(targ[2]);
 			drn = Node.irsim_GetNode(targ[3]);
-	
+
+			width = length = 2 * Config.irsim_LAMBDACM;
 			if (targ.length > 5)
 			{
 				length = (long)(TextUtils.atof(targ[4]) * Config.irsim_LAMBDACM);
@@ -869,8 +870,7 @@ public class Sim
 					x = TextUtils.atoi(targ[6]);
 					y = TextUtils.atoi(targ[7]);
 				}
-			} else
-				width = length = 2 * Config.irsim_LAMBDACM;
+			}
 	
 			cap = length * width * Config.irsim_CTGA;
 		}
