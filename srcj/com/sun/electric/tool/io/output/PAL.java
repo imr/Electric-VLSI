@@ -131,13 +131,13 @@ public class PAL extends Output
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
-//System.out.println("ENTERING CELL "+info.getCell().describe());
+System.out.println("ENTERING CELL "+info.getCell().describe());
 			return true;
 		}
 
 		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
-//System.out.println("EXITING CELL "+info.getCell().describe());
+System.out.println("EXITING CELL "+info.getCell().describe());
 		}   
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
@@ -153,14 +153,14 @@ public class PAL extends Output
 			NodeProto.Function fun = ni.getFunction();
 			if (fun != NodeProto.Function.GATEAND && fun != NodeProto.Function.GATEOR &&
 				fun != NodeProto.Function.GATEXOR && fun != NodeProto.Function.BUFFER) return false;
-//Netlist nl = info.getNetlist();
-//System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
-//for(Iterator it = nl.getNetworks(); it.hasNext(); )
-//{
-//	JNetwork net = (JNetwork)it.next();
-//	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
-//}
-//if (fun != NodeProto.Function.PIN) return false;
+Netlist nl = info.getNetlist();
+System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
+for(Iterator it = nl.getNetworks(); it.hasNext(); )
+{
+	JNetwork net = (JNetwork)it.next();
+	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
+}
+if (fun != NodeProto.Function.PIN) return false;
 
 			String funName = "";
 			if (fun == NodeProto.Function.GATEAND) funName = "&"; else
