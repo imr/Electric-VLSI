@@ -272,18 +272,42 @@ public class WindowMenu {
     public static void tileHorizontallyCommand()
     {
         // get the overall area in which to work
-        Rectangle tileArea = getWindowArea();
+        Rectangle [] areas = getWindowAreas();
 
-        // tile the windows in this area
-        int numWindows = WindowFrame.getNumWindows();
-        int windowHeight = tileArea.height / numWindows;
-        int i=0;
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        // tile the windows in each area
+        for(int j=0; j<areas.length; j++)
         {
-            WindowFrame wf = (WindowFrame)it.next();
-            Rectangle windowArea = new Rectangle(tileArea.x, tileArea.y + i*windowHeight, tileArea.width, windowHeight);
-            i++;
-            wf.setWindowSize(windowArea);
+        	Rectangle area = areas[j];
+
+        	// see how many windows are on this screen
+        	int count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height) count++;
+			}
+			if (count == 0) continue;
+
+			int windowHeight = area.height / count;
+			count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height)
+				{
+					Rectangle windowArea = new Rectangle(area.x, area.y + count*windowHeight, area.width, windowHeight);
+					count++;
+					wf.setWindowSize(windowArea);
+				}
+			}
         }
     }
 
@@ -292,20 +316,44 @@ public class WindowMenu {
      */
     public static void tileVerticallyCommand()
     {
-        // get the overall area in which to work
-        Rectangle tileArea = getWindowArea();
+		// get the overall area in which to work
+		Rectangle [] areas = getWindowAreas();
 
-        // tile the windows in this area
-        int numWindows = WindowFrame.getNumWindows();
-        int windowWidth = tileArea.width / numWindows;
-        int i=0;
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-            WindowFrame wf = (WindowFrame)it.next();
-            Rectangle windowArea = new Rectangle(tileArea.x + i*windowWidth, tileArea.y, windowWidth, tileArea.height);
-            i++;
-            wf.setWindowSize(windowArea);
-        }
+		// tile the windows in each area
+		for(int j=0; j<areas.length; j++)
+		{
+			Rectangle area = areas[j];
+
+			// see how many windows are on this screen
+			int count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height) count++;
+			}
+			if (count == 0) continue;
+
+			int windowWidth = area.width / count;
+			count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height)
+				{
+					Rectangle windowArea = new Rectangle(area.x + count*windowWidth, area.y, windowWidth, area.height);
+					count++;
+					wf.setWindowSize(windowArea);
+				}
+			}
+		}
     }
 
     /**
@@ -313,90 +361,129 @@ public class WindowMenu {
      */
     public static void cascadeWindowsCommand()
     {
-        // cascade the windows in this area
-        int numWindows = WindowFrame.getNumWindows();
-        if (numWindows <= 1)
-        {
-            tileVerticallyCommand();
-            return;
-        }
+		// get the overall area in which to work
+		Rectangle [] areas = getWindowAreas();
 
-        // get the overall area in which to work
-        Rectangle tileArea = getWindowArea();
-        int windowWidth = tileArea.width * 3 / 4;
-        int windowHeight = tileArea.height * 3 / 4;
-        int windowSpacing = Math.min(tileArea.width - windowWidth, tileArea.height - windowHeight) / (numWindows-1);
-        int numRuns = 1;
-        if (windowSpacing < 70)
-        {
-            numRuns = 70 / windowSpacing;
-            if (70 % windowSpacing != 0) numRuns++;
-            windowSpacing *= numRuns;
-        }
-        int windowXSpacing = (tileArea.width - windowWidth) / (numWindows-1) * numRuns;
-        int windowYSpacing = (tileArea.height - windowHeight) / (numWindows-1) * numRuns;
-        int i=0;
-        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-            WindowFrame wf = (WindowFrame)it.next();
-            int index = i / numRuns;
-            Rectangle windowArea = new Rectangle(tileArea.x + index*windowXSpacing,
-                tileArea.y + index*windowYSpacing, windowWidth, windowHeight);
-            i++;
-            wf.setWindowSize(windowArea);
-        }
+		// tile the windows in each area
+		for(int j=0; j<areas.length; j++)
+		{
+			Rectangle area = areas[j];
+
+			// see how many windows are on this screen
+			int count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height) count++;
+			}
+			if (count == 0) continue;
+			int numRuns = 1;
+			int windowXSpacing = 0, windowYSpacing = 0;
+			int windowWidth = area.width;
+			int windowHeight = area.height;
+			if (count > 1)
+			{
+				windowWidth = area.width * 3 / 4;
+				windowHeight = area.height * 3 / 4;
+				int windowSpacing = Math.min(area.width - windowWidth, area.height - windowHeight) / (count-1);
+				if (windowSpacing < 70)
+				{
+					numRuns = 70 / windowSpacing;
+					if (70 % windowSpacing != 0) numRuns++;
+					windowSpacing *= numRuns;
+				}
+				windowXSpacing = (area.width - windowWidth) / (count-1) * numRuns;
+				windowYSpacing = (area.height - windowHeight) / (count-1) * numRuns;
+			}
+
+			count = 0;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				Rectangle wfBounds = wf.getFrame().getBounds();
+				int locX = (int)wfBounds.getCenterX();
+				int locY = (int)wfBounds.getCenterY();
+				if (locX >= area.x && locX < area.x+area.width &&
+					locY >= area.y && locY < area.y+area.height)
+				{
+					int index = count / numRuns;
+					Rectangle windowArea = new Rectangle(area.x + index*windowXSpacing,
+						area.y + index*windowYSpacing, windowWidth, windowHeight);
+					count++;
+					wf.setWindowSize(windowArea);
+				}
+			}
+		}
     }
 
-    private static Rectangle getWindowArea()
+    private static Rectangle [] getWindowAreas()
     {
-        // get the overall area in which to work
-        Dimension sz = TopLevel.getScreenSize();
-        Rectangle tileArea = new Rectangle(sz);
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice [] gs = ge.getScreenDevices();
+		Rectangle [] areas = new Rectangle[gs.length];
+		for (int j = 0; j < gs.length; j++)
+		{
+			GraphicsDevice gd = gs[j];
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			areas[j] = gc.getBounds();
+		}
 
         // remove the tool palette
         PaletteFrame pf = TopLevel.getPaletteFrame();
         Rectangle pb = pf.getPaletteLocation();
-        removeOccludingRectangle(tileArea, pb);
+        removeOccludingRectangle(areas, pb);
 
         // remove the messages window
         MessagesWindow mw = TopLevel.getMessagesWindow();
         Rectangle mb = mw.getMessagesLocation();
-        removeOccludingRectangle(tileArea, mb);
-        return tileArea;
+        removeOccludingRectangle(areas, mb);
+        return areas;
     }
 
-    private static void removeOccludingRectangle(Rectangle screen, Rectangle occluding)
+    private static void removeOccludingRectangle(Rectangle [] areas, Rectangle occluding)
     {
-        int lX = (int)screen.getMinX();
-        int hX = (int)screen.getMaxX();
-        int lY = (int)screen.getMinY();
-        int hY = (int)screen.getMaxY();
-        if (occluding.width > occluding.height)
-        {
-            // horizontally occluding window
-            if (occluding.getMaxY() - lY < hY - occluding.getMinY())
-            {
-                // occluding window on top
-                lY = (int)occluding.getMaxY();
-            } else
-            {
-                // occluding window on bottom
-                hY = (int)occluding.getMinY();
-            }
-        } else
-        {
-            if (occluding.getMaxX() - lX < hX - occluding.getMinX())
-            {
-                // occluding window on left
-                lX = (int)occluding.getMaxX();
-            } else
-            {
-                // occluding window on right
-                hX = (int)occluding.getMinX();
-            }
-        }
-        screen.width = hX - lX;   screen.height = hY - lY;
-        screen.x = lX;            screen.y = lY;
+		int cX = occluding.x + occluding.width/2;
+		int cY = occluding.y + occluding.height/2;
+    	for(int i=0; i<areas.length; i++)
+    	{
+			int lX = (int)areas[i].getMinX();
+			int hX = (int)areas[i].getMaxX();
+			int lY = (int)areas[i].getMinY();
+			int hY = (int)areas[i].getMaxY();
+			if (cX > lX && cX < hX && cY > lY && cY < hY)
+			{
+		        if (occluding.width > occluding.height)
+		        {
+		            // horizontally occluding window
+		            if (occluding.getMaxY() - lY < hY - occluding.getMinY())
+		            {
+		                // occluding window on top
+		                lY = (int)occluding.getMaxY();
+		            } else
+		            {
+		                // occluding window on bottom
+		                hY = (int)occluding.getMinY();
+		            }
+		        } else
+		        {
+		            if (occluding.getMaxX() - lX < hX - occluding.getMinX())
+		            {
+		                // occluding window on left
+		                lX = (int)occluding.getMaxX();
+		            } else
+		            {
+		                // occluding window on right
+		                hX = (int)occluding.getMinX();
+		            }
+		        }
+				areas[i].x = lX;   areas[i].width = hX - lX;
+				areas[i].y = lY;   areas[i].height = hY - lY;
+			}
+    	}
     }
 
     /**
@@ -404,8 +491,8 @@ public class WindowMenu {
      */
     public static void layerVisibilityCommand()
     {
-         LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
-        dialog.setVisible(true);
+		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
+		dialog.setVisible(true);
     }
 
     /**

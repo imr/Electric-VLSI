@@ -171,7 +171,8 @@ public class TopLevel extends JFrame
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
-				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+//				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.BasicLookAndFeel");
 			}
 		} catch(Exception e) {}
 

@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/12/04, SMR) Made window adjustment handle multiscreen configurations.
+
 IMP: (7/12/04, SMR) Made requests for the highlighted object ignore text, lines, areas,
      and other non-object highlights.
 

@@ -958,16 +958,17 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					int lastState = 0;
 					if (ds.getStateVector() == null) continue;
 					int numEvents = ds.getNumEvents();
+					int lastLowy = 0, lastHighy = 0;
 					for(int i=0; i<numEvents; i++)
 					{
 						double time = ds.getTime(i);
 						int x = scaleTimeToX(time);
-						int lowy = 0, highy = 0;
 						int state = ds.getState(i) & Simulation.SimData.LOGIC;
+						int lowy = 0, highy = 0;
 						switch (state)
 						{
-							case Simulation.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
-							case Simulation.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
+							case Simulation.SimData.LOGIC_HIGH: lowy = highy = 5;            break;
+							case Simulation.SimData.LOGIC_LOW:  lowy = highy = hei-5;        break;
 							case Simulation.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
 							case Simulation.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
 						}
@@ -978,14 +979,26 @@ public class WaveformWindow implements WindowContent, HighlightListener
 								if (processALine(g, x, 5, x, hei-5, bounds, result, ws)) return result;
 							}
 						}
-						if (lowy == highy)
+						if (lastLowy == lastHighy)
 						{
-							if (processALine(g, lastx, lowy, x, lowy, bounds, result, ws)) return result;
+							if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, result, ws)) return result;
 						} else
 						{
-							if (processABox(g, lastx, lowy, x, highy, bounds, result, ws)) return result;
+							if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, result, ws)) return result;
+						}
+						if (i >= numEvents-1)
+						{
+							if (lowy == highy)
+							{
+								if (processALine(g, x, lowy, wid-1, lowy, bounds, result, ws)) return result;
+							} else
+							{
+								if (processABox(g, x, lowy, wid-1, highy, bounds, result, ws)) return result;
+							}
 						}
 						lastx = x;
+						lastLowy = lowy;
+						lastHighy = highy;
 						lastState = state;
 					}
 				}

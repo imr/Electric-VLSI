@@ -161,7 +161,7 @@ public class DebugMenus {
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, true); } });
         gildaMenu.addMenuItem("3D View", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { ViewMenu.create3DViewCommand(); } });
+                new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
 
     }
 
