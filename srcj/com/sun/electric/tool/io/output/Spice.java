@@ -692,8 +692,8 @@ public class Spice extends Topology
 						if (!paramVar.getTextDescriptor().isParam()) continue;
 						Variable instVar = no.getVar(paramVar.getKey());
 						String paramStr = "??";
-						if (instVar != null) paramStr = instVar.describe(-1, -1);
-						infstr.append(" " + paramStr);
+						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
+						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
 				}
                 // Writing MFactor if available.
