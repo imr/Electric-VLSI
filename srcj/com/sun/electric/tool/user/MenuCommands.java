@@ -130,6 +130,8 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.text.DecimalFormat;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -144,6 +146,20 @@ public final class MenuCommands
 
     // It is never useful for anyone to create an instance of this class
 	private MenuCommands() {}
+
+    /** Used to enable/disable menus based on a property change */
+    public static class MenuEnabler implements PropertyChangeListener {
+        private MenuItem item;
+        private MenuEnabler(MenuItem item) {
+            this.item = item;
+        }
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getNewValue() instanceof Boolean) {
+                boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
+                item.setEnabled(enabled);
+            }
+        }
+    }
 
 	/**
 	 * Method to create the pulldown menus.
@@ -240,10 +256,14 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
+		MenuItem undo = editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
-		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
+        Undo.addPropertyChangeListener(new MenuEnabler(undo));
+        // TODO: figure out how to remove this property change listener for correct garbage collection
+		MenuItem redo = editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
+        Undo.addPropertyChangeListener(new MenuEnabler(redo));
+        // TODO: figure out how to remove this property change listener for correct garbage collection
 
 		editMenu.addSeparator();
 

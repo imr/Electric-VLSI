@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
@@ -67,18 +68,20 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String moveHalfName = "Half";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String moveQuarterName = "Quarter";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorClickZoomWireName = "Click/Zoom/Wire";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorSelectName = "Select";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorWiringName = "Wiring";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorPanName = "Pan";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorZoomName = "Zoom";
-	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Outline Edit";
-	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorMeasureName = "Measure Distance";
+    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorSelectName = "Toggle Select";
+    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorWiringName = "Toggle Wiring";
+    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorPanName = "Toggle Pan";
+    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorZoomName = "Toggle Zoom";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Toggle Outline Edit";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorMeasureName = "Toggle Measure Distance";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String specialSelectName = "Special Select";
 	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String OpenLibraryName = "Open Library";
 	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String SaveLibraryName = "Save Library";
 
     /** Go back button */           private JButton goBackButton;
     /** Go forward button */        private JButton goForwardButton;
+    /** Undo button */              private JButton undoButton;
+    /** Redo button */              private JButton redoButton;
 	/** Save button */              private ToolBarButton saveLibraryButton;
 
     public static final boolean secondaryInputModes = false;
@@ -154,7 +157,9 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     public static final ImageIcon selectSpecialIconOn = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOn.gif"));
     public static final ImageIcon selectSpecialIconOff = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOff.gif"));
     
-	private ToolBar() {}
+	private ToolBar() {
+        Undo.addPropertyChangeListener(this);
+    }
 
 	/**
 	 * Method to create the toolbar.
@@ -355,22 +360,27 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
         toolbar.addSeparator();
 
-        JButton undo = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonUndo.gif")));
-        undo.addActionListener(
+        // the Undo button
+        toolbar.undoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonUndo.gif")));
+        toolbar.undoButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.undoCommand(); } });
-        undo.setToolTipText("Undo");
-        undo.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.add(undo);
+        toolbar.undoButton.setToolTipText("Undo");
+        toolbar.undoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.undoButton.setEnabled(false);
+        toolbar.add(toolbar.undoButton);
 
-        JButton redo = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonRedo.gif")));
-        redo.addActionListener(
+        // the Redo button
+        toolbar.redoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonRedo.gif")));
+        toolbar.redoButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.redoCommand(); } });
-        redo.setToolTipText("Redo");
-        redo.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.add(redo);
+        toolbar.redoButton.setToolTipText("Redo");
+        toolbar.redoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.redoButton.setEnabled(false);
+        toolbar.add(toolbar.redoButton);
 
         toolbar.addSeparator();
 
+        // the Cell History button
         toolbar.goBackButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonGoBack.gif")));
         toolbar.goBackButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { goBackButtonCommand(); } });
@@ -470,6 +480,11 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void wiringCommand()
 	{
+        if (WindowFrame.getListener() == WiringListener.theOne) {
+            // switch back to click zoom wire listener
+            setCursorMode(CursorMode.CLICKZOOMWIRE);
+            return;
+        }
 		WindowFrame.setListener(WiringListener.theOne);
 		//makeCursors();
 		TopLevel.setCurrentCursor(wiringCursor);
@@ -496,6 +511,11 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void panCommand()
 	{
+        if (WindowFrame.getListener() == ZoomAndPanListener.theOne) {
+            // switch back to click zoom wire listener
+            setCursorMode(CursorMode.CLICKZOOMWIRE);
+            return;
+        }
 		WindowFrame.setListener(ZoomAndPanListener.theOne);
 		//makeCursors();
 		TopLevel.setCurrentCursor(panCursor);
@@ -507,6 +527,11 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void zoomCommand()
 	{
+        if (WindowFrame.getListener() == ZoomAndPanListener.theOne) {
+            // switch back to click zoom wire listener
+            setCursorMode(CursorMode.CLICKZOOMWIRE);
+            return;
+        }
 		WindowFrame.setListener(ZoomAndPanListener.theOne);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
@@ -517,6 +542,12 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void outlineEditCommand()
 	{
+        if (WindowFrame.getListener() == OutlineListener.theOne) {
+            // switch back to click zoom wire listener
+            setCursorMode(CursorMode.CLICKZOOMWIRE);
+            return;
+        }
+
         CursorMode oldMode = curMode;
 		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
 		if (ni == null)
@@ -546,6 +577,12 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void measureCommand()
 	{
+        if (WindowFrame.getListener() == MeasureListener.theOne) {
+            // switch back to click zoom wire listener
+            setCursorMode(CursorMode.CLICKZOOMWIRE);
+            return;
+        }
+        MeasureListener.theOne.reset();
 		WindowFrame.setListener(MeasureListener.theOne);
 		TopLevel.setCurrentCursor(measureCursor);
 		curMode = CursorMode.MEASURE;
@@ -672,17 +709,23 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
      * Listen for property change events.  Currently this supports
      * events generated by an EditWindow when the ability to traverse
      * backwards or forwards through it's cell history changes.
+     * <p>It also now supports when the Undo/Redo buttons change enabled state.
      * @param evt The property change event
      */
     public void propertyChange(PropertyChangeEvent evt) {
         String name = evt.getPropertyName();
+        boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
         if (name.equals(EditWindow.propGoBackEnabled)) {
-            boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
             goBackButton.setEnabled(enabled);
         }
         else if (name.equals(EditWindow.propGoForwardEnabled)) {
-            boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
             goForwardButton.setEnabled(enabled);
+        }
+        else if (name.equals(Undo.propUndoEnabled)) {
+            undoButton.setEnabled(enabled);
+        }
+        else if (name.equals(Undo.propRedoEnabled)) {
+            redoButton.setEnabled(enabled);
         }
     }
 
