@@ -228,8 +228,8 @@ public class PolyQTree {
 					if (!(obj instanceof PolyEdge)) return (false);
 					PolyEdge edge = (PolyEdge)obj;
 
-					return ((p1.equals(edge.p1) && p2.equals(p2)) ||
-					        (p1.equals(edge.p2) && p2.equals(p1)));
+					return ((p1.equals(edge.p1) && p2.equals(edge.p2)) ||
+					        (p1.equals(edge.p2) && p2.equals(edge.p1)));
 				}
 			}
 			HashMap edges = new HashMap();
@@ -272,10 +272,10 @@ public class PolyQTree {
 								if (p1.equals(p2))
 									continue;
 								PolyEdge edge = new PolyEdge(p1, p2);
-								if (edges.containsKey(edge))
+
+                                if (edges.containsKey(edge))
 									return (true);
-								// Temporary solution until keys work! @TODO GVG get keys working
-								if (edges.containsValue(edge))
+								if (edges.get(edge) != null)
 									return (true);
 								edges.put(edge, edge);
 							}
