@@ -485,6 +485,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         float totalsize = 0f;
         float instsize = 0f;
         int numLEGates = 0;
+        int numLEWires = 0;
         for (Iterator it = instances.iterator(); it.hasNext();) {
             Instance inst = (Instance)it.next();
             totalsize += inst.getLeX();
@@ -492,8 +493,11 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
                 numLEGates++;
                 instsize += inst.getLeX();
             }
+            if (inst.getType() == Instance.Type.WIRE)
+                numLEWires++;
         }
         System.out.println("Number of LEGATEs: "+numLEGates);
+        System.out.println("Number of Wires: "+numLEWires);
         System.out.println("Total size of all LEGATEs: "+instsize);
         System.out.println("Total size of all instances (sized and loads): "+totalsize);
     }

@@ -213,7 +213,7 @@ public class LESizer {
                             NodeInst ni = instance.getNodable().getNodeInst();
                             if (ni != null) {
                                 ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 0);
-                                log.addGeom(ni, true, ni.getParent(), VarContext.globalContext);
+                                log.addGeom(ni, true, ni.getParent(), instance.getContext());
                             }
                         }
 
@@ -246,7 +246,7 @@ public class LESizer {
                             NodeInst ni = instance.getNodable().getNodeInst();
                             if (ni != null) {
                                 ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 1);
-                                log.addGeom(ni, true, ni.getParent(), VarContext.globalContext);
+                                log.addGeom(ni, true, ni.getParent(), instance.getContext());
                             }
                         }
                         // ignore if no loads, on all iterations
