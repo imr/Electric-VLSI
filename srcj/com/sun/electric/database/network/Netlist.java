@@ -413,6 +413,7 @@ public class Netlist
 	 */
 	public boolean sameNetwork(ArcInst ai1, ArcInst ai2)
 	{
+		if (ai1 == null || ai2 == null) return false;
 		int busWidth1 = netCell.getBusWidth(ai1);
 		int busWidth2 = netCell.getBusWidth(ai2);
 		if (busWidth1 != busWidth2) return false;
@@ -434,6 +435,7 @@ public class Netlist
 	 */
 	public boolean sameNetwork(Nodable no, PortProto pp, ArcInst ai)
 	{
+		if (no == null || pp == null || ai == null) return false;
 		int busWidth1 = pp.getNameKey().busWidth();
 		int busWidth2 = netCell.getBusWidth(ai);
 		if (busWidth1 != busWidth2) return false;
@@ -456,6 +458,7 @@ public class Netlist
 	 */
 	public boolean sameNetwork(Nodable no1, PortProto pp1, Nodable no2, PortProto pp2)
 	{
+		if (no1 == null || pp1 == null || no2 == null || pp2 == null) return false;
 		int busWidth1 = pp1.getNameKey().busWidth();
 		int busWidth2 = pp2.getNameKey().busWidth();
 		if (busWidth1 != busWidth2) return false;
