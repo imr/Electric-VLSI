@@ -80,6 +80,23 @@ instead of absolute size information.</LI>
 Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
 </UL>
 <P>
+<B>Running Spice:</B> Electric can create an exteral process as specified by the user to
+run spice on the generated netlist.  If the pull-down box is set to "Don't Run", nothing is done.
+If the pull-down box is set to "Run, Ignore Output", the external process is run, and the user is
+notified when it is finished.  If set to "Run, Report Output", a dialog box is opened to show
+the user the output produced by the process.  Please note that this is a *process*, and not a
+command line command.
+<P>
+There are several options for the process:
+<UL>
+<LI>Use Dir: if specified, this is the working directory of the process
+<LI>Overwrite existing file: this will overwrite the existing netlist without prompting the user
+<LI>Run probe: this will run the waveform viewer on the output of the spice run
+<LI>Help: tells which environment variables are exported to be used by the process
+<LI>Run program: the name of the executable to run
+<LI>with arg: the arguments passed to the executable
+</UL>
+<P>
 The middle section of the Spice Options dialog controls technology-specific information.
 Each layer of the technology can have a different resistance, capacitance, and edge-capacitance.
 You can also set the minimum resistance and capacitance for the entire technology.

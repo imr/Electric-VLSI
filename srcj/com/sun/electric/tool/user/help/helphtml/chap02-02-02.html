@@ -43,6 +43,7 @@ If the cursor is to one side of the components,
 the connection will make a "U" bend through the cursor location.
 Finally, if the cursor is in a corner outside of the components,
 the connection will make an "L" bend towards the cursor.
+<p>Please Note: Only "L" shaped connections are implemented at this time.
 </TD><TD><CENTER><IMG SRC="fig02-04.png" ALT="Figure 2.4"></CENTER></TD></TR></TABLE>
 The nature of the connection can also be affected by the directionality of the ports,
 which, if it exists, will override cursor location to obtain a sensible connection.
@@ -58,6 +59,15 @@ the creation command actually uses one of the nodes on an end of the selected ar
 However, if the connection falls inside the arc,
 it is split and a new node is created to make a "T" connection.
 </TD></TR></TABLE>
+<P>
+Electric will allow you to connect two nodes or arcs as long as there is some way in the current
+technology for those objects to be connected.  For example, if connecting between metal-1-pin and
+a metal-3-pin in the MOSIS CMOS technology, Electric will place metal-1-metal-2 and metal-2-metal-3
+contact cuts down, and wire between all four nodes.
+<P>
+As mentioned in the <I><A HREF="chap01-08.html#chap01-08">Mouse Interface</A></I> page, pressing
+the number keys for a valid layer switches to that layer.  If a node is highlighted, it will
+route to that layer from the node, creating contacts as necessary.
 <P>
 Whenever an arc is created, the system makes a clicking sound.
 The sound is a single click for one arc, a double-click for two arcs, and a triple-click for three or more arcs.
