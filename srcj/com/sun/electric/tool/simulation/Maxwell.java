@@ -163,14 +163,14 @@ public class Maxwell
 				sim_maxwell_boxnumber =1;
 				sim_maxwell_netnumber =0;
 				
-				//Cell.rebuildAllNetworks(null);
-				Iterator it = ((Cell)np).getNetworks();
+// 				Cell.rebuildAllNetworks(null);
+// 				Iterator it = ((Cell)np).getNetworks();
 				
-				while(it.hasNext())
-				{
-					net=(JNetwork)it.next();
-					//net.temp1=sim_maxwell_netnumber++;
-				}
+// 				while(it.hasNext())
+// 				{
+// 					net=(JNetwork)it.next();
+// 					//net.temp1=sim_maxwell_netnumber++;
+// 				}
 				
 				sim_maxwell_firstmaxnet=null;
 				SimWriteMaxCell(np,writeLine,null/*el_matid??*/ );
@@ -238,15 +238,15 @@ public class Maxwell
 					subrot = ni.translateOut(temptrans);
 					subrot = ni.rotateOut(subrot);
 					
-					//Cell.rebuildAllNetworks(null);		
-					Iterator it = ((Cell)ni.getProto()).getNetworks();
+// 					Cell.rebuildAllNetworks(null);		
+// 					Iterator it = ((Cell)ni.getProto()).getUserNetlist().getNetworks();
 				
-					while(it.hasNext())
-					{
-						net=(JNetwork)it.next();
-						//net.temp1=-1;
-					}
-					it = ni.getConnections();
+// 					while(it.hasNext())
+// 					{
+// 						net=(JNetwork)it.next();
+// 						//net.temp1=-1;
+// 					}
+					Iterator it = ni.getConnections();
 					while(it.hasNext())
 					{
 						pi=(Connection)it.next();
@@ -258,16 +258,16 @@ public class Maxwell
 						pe = (Export)it.next();
 						//pe->proto->network->temp1 = pe->exportproto->network->temp1;
 					}
-					//Cell.rebuildAllNetworks(null);
-					it = ((Cell)ni.getProto()).getNetworks();
-					while(it.hasNext())
-					{
-						net=(JNetwork)it.next();
-	//					if(net->temp1==-1)
-	//					{
-	//						net->temp1=sim_maxwell_netnumber++;
-	//					}
-					}
+// 					Cell.rebuildAllNetworks(null);
+// 					it = ((Cell)ni.getProto()).getUserNetlist().getNetworks();
+// 					while(it.hasNext())
+// 					{
+// 						net=(JNetwork)it.next();
+// 	//					if(net->temp1==-1)
+// 	//					{
+// 	//						net->temp1=sim_maxwell_netnumber++;
+// 	//					}
+// 					}
 					SimWriteMaxCell(ni.getProto(), io, subrot);
 				}
 				else

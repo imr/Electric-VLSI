@@ -860,11 +860,11 @@ public class SchemToLay {
 		HashMap combTrkAsgn = mergeTrackAssign(schem, exportTrackAssign, stdCell);
 		
 		// create routing segments that will each require a track to route
-		schem.rebuildNetworks(null, true);
+		Netlist netlist = schem.getNetlist(true);
 		ArrayList stkSegs = new ArrayList();
 		ArrayList noStkSegs = new ArrayList();
 		ArrayList vertTracks = new ArrayList();
-		buildRouteSegs(stkSegs, noStkSegs, vertTracks, schem.getNetworks(),
+		buildRouteSegs(stkSegs, noStkSegs, vertTracks, netlist.getNetworks(),
 					   iconToLay, combTrkAsgn, stdCell, gasp);
 		// Append parts containing space for vertical routing tracks
 		// needed to connect NMOS stacks and PMOS stacks.

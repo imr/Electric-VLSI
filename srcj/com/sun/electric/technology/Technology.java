@@ -964,7 +964,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-//     public PortInst getTransistorGatePort(NodeInst ni) { return ni.findPortInst("g"); }
+	public PortInst getTransistorGatePort(NodeInst ni) { return ni.getPortInst(0); }
     
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
@@ -975,7 +975,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-//     public PortInst getTransistorSourcePort(NodeInst ni) { return ni.findPortInst("s"); }
+	public PortInst getTransistorSourcePort(NodeInst ni) { return ni.getPortInst(1); }
 
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
@@ -986,7 +986,7 @@ public class Technology extends ElectricObject
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
-//     public PortInst getTransistorDrainPort(NodeInst ni) { return ni.findPortInst("d"); }
+	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(3); }
 
     /**
 	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.

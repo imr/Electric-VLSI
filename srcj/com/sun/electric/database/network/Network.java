@@ -26,12 +26,10 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -130,25 +128,15 @@ public class Network extends Tool
 
 	/****************************** PUBLIC METHODS ******************************/
 
-	/** Recompute the network structure for this Cell.
-	 *
-	 * @param connectedPorts this argument allows the user to tell the
-	 * network builder to treat certain PortProtos of a NodeProto as a
-	 * short circuit. For example, it is sometimes useful to build the
-	 * net list as if the PortProtos of a resistor where shorted
-	 * together.
-	 *
-	 * <p> <code>connectedPorts</code> must be either null or an
-	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
-	 * an ArrayList are treated as if they are connected.  All of the
-	 * PortProtos in a single ArrayList must belong to the same
-	 * NodeProto.
-     *
+	public static Netlist getUserNetlist(Cell cell) { return getNetCell(cell).getUserNetlist(); }
+
+	/** Recompute the Netlist structure for given Cell.
+	 * @param cell cell to recompute Netlist structure.
      * <p>Because shorting resistors is a fairly common request, it is 
      * implemented in the method if @param shortResistors is set to true.
+	 * @return the Netlist structure for Cell.
      */
-	public static void rebuildNetworks(Cell cell, boolean shortResistors)
-	{
+	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
 		if (Network.shortResistors != shortResistors)
 		{
 			for (int i = 0; i < cells.length; i++)
@@ -159,99 +147,7 @@ public class Network extends Tool
 			Network.shortResistors = shortResistors;
 			System.out.println("shortResistors="+shortResistors);
 		}
-		getNetCell(cell).redoNetworks();
-	}
-
-	/**
-	 * Get an iterator over all of the Nodables of this Cell.
-	 * <p> Warning: before getNodables() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks()
-	 */
-	public static Iterator getNodables(Cell cell) { return getNetCell(cell).getNodables(); }
-
-	/**
-	 * Get an iterator over all of the JNetworks of this Cell.
-	 * <p> Warning: before getNetworks() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks()
-	 */
-	public static Iterator getNetworks(Cell cell) { return getNetCell(cell).getNetworks(); }
-
-	/*
-	 * Get network by index in networks maps.
-	 */
-	public static JNetwork getNetwork(Nodable no, int arrayIndex, PortProto portProto, int busIndex) {
-		if (portProto.getParent() != no.getProto())
-		{
-			System.out.println("Nodable.getNetwork: invalid argument portProto");
-			return null;
-		}
-		if (arrayIndex < 0 || arrayIndex >= no.getNameKey().busWidth())
-		{
-			System.out.println("Nodable.getNetwork: invalid arguments arrayIndex="+arrayIndex+" node="+no.getName());
-			return null;
-		}
-// 		if (busIndex < 0 || busIndex >= portProto.getProtoNameKey().busWidth())
-// 		{
-// 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
-// 			return null;
-// 		}
-		NetCell netCell = getNetCell(no.getParent());
-		if (no.getParent() != netCell.cell)
-			return null;
-		return netCell.getNetwork(no, arrayIndex, portProto, busIndex);
-	}
-
-	/*
-	 * Get network of export.
-	 */
-	public static JNetwork getNetwork(Export export, int busIndex) {
-		NetCell netCell = getNetCell((Cell)export.getParent());
-		if (busIndex < 0 || busIndex >= export.getProtoNameKey().busWidth())
-		{
-			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" export="+export);
-			return null;
-		}
-		return netCell.getNetwork(export, busIndex);
-	}
-
-	/*
-	 * Get network of arc.
-	 */
-	public static JNetwork getNetwork(ArcInst ai, int busIndex) {
-		NetCell netCell = getNetCell(ai.getParent());
-		return netCell.getNetwork(ai, busIndex);
-	}
-
-	/**
-	 * Method to return either the network name or the bus name on this ArcInst.
-	 * @return the either the network name or the bus name on this ArcInst.
-	 */
-	public static String getNetworkName(ArcInst ai)
-	{
-		NetCell netCell = getNetCell(ai.getParent());
-		return netCell.getNetworkName(ai);
-	}
-
-	/**
-	 * Method to return the bus width on an ArcInst.
-	 * @param ai the ArcInst to examine.
-	 * @return the bus width on the ArcInst.
-	 */
-	public static int getBusWidth(ArcInst ai)
-	{
-		NetCell netCell = getNetCell(ai.getParent());
-		return netCell.getBusWidth(ai);
-	}
-
-	/**
-	 * Method to return the bus width on an Export.
-	 * @param e the Export to examine.
-	 * @return the bus width of the Export.
-	 */
-	public static int getBusWidth(Export e)
-	{
-		Name protoName = e.getProtoNameKey();
-		return protoName.busWidth();
+		return getNetCell(cell).getUserNetlist();
 	}
 
 	/****************************** CHANGE LISTENER ******************************/

@@ -312,20 +312,6 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Method to return the Network object associated with this Export.
-	 * @return the Network object associated with this Export.
-	 */
-	public JNetwork getNetwork()
-	{
-		if (getProtoNameKey().isBus())
-		{
-			System.out.println("Export.getNetwork() was called for instance of bus port "+getProtoName());
-			return null;
-		}
-		return Network.getNetwork(this, 0);
-	}
-
-	/**
 	 * Method to set a Change object on this Export.
 	 * This is used during constraint propagation to tell whether this object has already been changed and how.
 	 * @param change the Change object to be set on this Export.

@@ -70,13 +70,6 @@ public interface Nodable
 	public Variable getVar(String name);
 
 	/**
-	 * Method to get network by PortProto and bus index.
-	 * @param portProto PortProto in protoType.
-	 * @param busIndex index in bus.
-	 */
-	public JNetwork getNetwork(PortProto portProto, int busIndex);
-
-	/**
 	 * Returns a printable version of this Nodable.
 	 * @return a printable version of this Nodable.
 	 */

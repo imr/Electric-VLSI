@@ -13,6 +13,7 @@ import java.util.Properties;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.Variable;
@@ -65,7 +66,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		Cell rootCell = info.getCell();
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			JNetwork net = e.getNetwork();
+			JNetwork net = info.getNetlist().getNetwork(e, 0);
 			Integer netId = info.getNetID(net);
 			String netNm = generateNetName(netId, info);
 			writeln("EXPORT "+e.getProtoName()+" "+netNm);
@@ -111,7 +112,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 							HierarchyEnumerator.CellInfo info) {
 		PortInst port = ni.findPortInst(portNm);
 		error(port == null, "can't find port: " + portNm);
-		JNetwork net = port.getNetwork();
+		JNetwork net = info.getNetlist().getNetwork(port);
 		error(net == null, "missing JNetwork for port: " + portNm);
 		Integer id = info.getNetID(net);
 		error(id == null, "missing net ID for port: " + portNm);
@@ -281,14 +282,14 @@ public class IvanFlat extends Job {
 		System.out.println("processing: "+cellDesc.libName+" : "
 						   +cellDesc.cellName);
 		Cell cell = openCell(libDir, cellDesc.libName, cellDesc.cellName);
-				cell.rebuildNetworks(null, false);
+		Netlist netlist = cell.getNetlist(false);
 		String cellNm = cell.getProtoName();
 
 		String outFileNm = outFileDir + outFileName(cellNm); 
 		IvanFlater flattener = new IvanFlater(outFileNm);
 		long startTime = System.currentTimeMillis();
 		HierarchyEnumerator.enumerateCell(cell,	VarContext.globalContext,
-										  flattener);
+										  netlist, flattener);
 		long endTime = System.currentTimeMillis();
 		double deltaTime = (endTime - startTime) / 1000.0;
 		System.out.println("Flattening took " + deltaTime + " seconds");

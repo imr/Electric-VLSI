@@ -268,7 +268,6 @@ public class LayFlat implements ActionListener {
 	void doIt(String[] args) {
 		System.out.println("Begin flat");
 		Cell cell = getTestCell();
-		cell.rebuildNetworks(null, false);
 		Library scratch = 
 			openLibForAppend("scratch", 
 		                     getHomeDir()+"work/async/scratch.elib");
@@ -277,7 +276,7 @@ public class LayFlat implements ActionListener {
 		Flattener flattener = new Flattener(flatCell);
 		long startTime = System.currentTimeMillis();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext,
-										  flattener);
+										  null, flattener);
 		long endTime = System.currentTimeMillis();
 		double deltaTime = (endTime - startTime) / 1000.0;
 		System.out.println("Flattening took " + deltaTime + " seconds");

@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -59,6 +60,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Date;
 
 /*
@@ -133,7 +135,9 @@ public class DRCQuick
 		/** number of instances of this cell in a particular parent */	int totalPerCell;
 		/** true if this cell has been checked */						boolean cellChecked;
 		/** true if this cell has parameters */							boolean cellParameterized;
+		/** true if this cell or subcell has parameters */				boolean treeParameterized;
 		/** list of instances in a particular parent */					List nodesInCell;
+		/** netlist of this cell */										Netlist netlist;
 	};
 	private static HashMap checkProtos = null;
 	private static HashMap networkLists = null;
@@ -248,55 +252,12 @@ public class DRCQuick
 		// initialize all cells for hierarchical network numbering
 		checkProtos = new HashMap();
 		checkInsts = new HashMap();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell libCell = (Cell)cIt.next();
-				try
-				{
-					libCell.rebuildNetworks(null, false);
-				} catch (ArrayIndexOutOfBoundsException e)
-				{
-					System.out.println("!!! rebuildNetworks() failed");
-				}
-				CheckProto cp = new CheckProto();
-				cp.instanceCount = 0;
-				cp.timeStamp = 0;
-				cp.hierInstanceCount = 0;
-				cp.totalPerCell = 0;
-				cp.cellChecked = false;
-				cp.cellParameterized = false;
-				for(Iterator vIt = libCell.getVariables(); vIt.hasNext(); )
-				{
-					Variable var = (Variable)vIt.next();
-					if (var.getTextDescriptor().isParam())
-					{
-						cp.cellParameterized = true;
-						break;
-					}
-				}
-				checkProtos.put(libCell, cp);
-
-				for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)nIt.next();
-					if (!(ni.getProto() instanceof Cell)) continue;
-					Cell subCell = (Cell)ni.getProto();
-
-					// ignore documentation icons
-					if (subCell.isIconOf(libCell)) continue;
-
-					CheckInst ci = new CheckInst();
-					checkInsts.put(ni, ci);
-				}
-			}
-		}
+		// initialize cells in tree for hierarchical network numbering
+		Netlist netlist = cell.getNetlist(false);
+		CheckProto cp = checkEnumerateProtos(cell, netlist);
 
 		// see if any parameters are used below this cell
-		if (findParameters(cell))
+		if (cp.treeParameterized)
 		{
 			// parameters found: cannot use multiple processors
 			System.out.println("Parameterized layout being used: multiprocessor decomposition disabled");
@@ -304,7 +265,6 @@ public class DRCQuick
 		}
 
 		// now recursively examine, setting information on all instances
-		CheckProto cp = (CheckProto)checkProtos.get(cell);
 		cp.hierInstanceCount = 1;
 		checkTimeStamp = 0;
 		checkEnumerateInstances(cell);
@@ -312,56 +272,52 @@ public class DRCQuick
 		// now allocate space for hierarchical network arrays
 		int totalNetworks = 0;
 		networkLists = new HashMap();
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
-			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			Map.Entry e = (Map.Entry)it.next();
+			Cell libCell = (Cell)e.getKey();
+			CheckProto subCP = (CheckProto)e.getValue();
+			if (subCP.hierInstanceCount > 0)
 			{
-				Cell libCell = (Cell)cIt.next();
-				CheckProto subCP = (CheckProto)checkProtos.get(libCell);
-				if (subCP.hierInstanceCount > 0)
+				// allocate net number lists for every net in the cell
+				for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 				{
-					// allocate net number lists for every net in the cell
-					for(Iterator nIt = libCell.getNetworks(); nIt.hasNext(); )
-					{
-						JNetwork net = (JNetwork)nIt.next();
-						Integer [] netNumbers = new Integer[subCP.hierInstanceCount];
-						for(int i=0; i<subCP.hierInstanceCount; i++) netNumbers[i] = new Integer(0);
-						networkLists.put(net, netNumbers);
-						totalNetworks += subCP.hierInstanceCount;
-					}
+					JNetwork net = (JNetwork)nIt.next();
+					Integer [] netNumbers = new Integer[subCP.hierInstanceCount];
+					for(int i=0; i<subCP.hierInstanceCount; i++) netNumbers[i] = new Integer(0);
+					networkLists.put(net, netNumbers);
+					totalNetworks += subCP.hierInstanceCount;
 				}
-				for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
+			}
+			for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				NodeProto np = ni.getProto();
+				if (!(np instanceof Cell)) continue;
+
+				// ignore documentation icons
+				if (ni.isIconOfParent()) continue;
+
+				CheckInst ci = (CheckInst)checkInsts.get(ni);
+				CheckProto ocp = getCheckProto((Cell)np);
+				ci.offset = ocp.totalPerCell;
+			}
+			checkTimeStamp++;
+			for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				NodeProto np = ni.getProto();
+				if (!(np instanceof Cell)) continue;
+
+				// ignore documentation icons
+				if (ni.isIconOfParent()) continue;
+
+				CheckProto ocp = getCheckProto((Cell)np);
+				if (ocp.timeStamp != checkTimeStamp)
 				{
-					NodeInst ni = (NodeInst)nIt.next();
-					NodeProto np = ni.getProto();
-					if (!(np instanceof Cell)) continue;
-
-					// ignore documentation icons
-					if (ni.isIconOfParent()) continue;
-
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
-					CheckProto ocp = (CheckProto)checkProtos.get(np);
-					ci.offset = ocp.totalPerCell;
-				}
-				checkTimeStamp++;
-				for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)nIt.next();
-					NodeProto np = ni.getProto();
-					if (!(np instanceof Cell)) continue;
-
-					// ignore documentation icons
-					if (ni.isIconOfParent()) continue;
-
-					CheckProto ocp = (CheckProto)checkProtos.get(np);
-					if (ocp.timeStamp != checkTimeStamp)
-					{
-						CheckInst ci = (CheckInst)checkInsts.get(ni);
-						ocp.timeStamp = checkTimeStamp;
-						ocp.totalPerCell += subCP.hierInstanceCount * ci.multiplier;
-					}
+					ocp.timeStamp = checkTimeStamp;
+					ocp.totalPerCell += subCP.hierInstanceCount * ci.multiplier;
 				}
 			}
 		}
@@ -371,13 +327,13 @@ public class DRCQuick
 		checkNetNumber = 1;
 
 		HashMap enumeratedNets = new HashMap();
-		for(Iterator nIt = cell.getNetworks(); nIt.hasNext(); )
+		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
 			enumeratedNets.put(net, new Integer(checkNetNumber));
 			checkNetNumber++;
 		}
-		checkEnumerateNetworks(cell, 0, enumeratedNets);
+		checkEnumerateNetworks(cell, cp, 0, enumeratedNets);
 
 		if (count <= 0)
 			System.out.println("Found " + checkNetNumber + " networks");
@@ -479,7 +435,7 @@ public class DRCQuick
 				EMath.transformRect(subBounds, trans);
 			}
 
-			CheckProto cp = (CheckProto)checkProtos.get(np);
+			CheckProto cp = getCheckProto((Cell)np);
 			if (cp.cellChecked && !cp.cellParameterized) continue;
 
 			// recursively check the subcell
@@ -493,7 +449,7 @@ public class DRCQuick
 		}
 
 		// prepare to check cell
-		CheckProto cp = (CheckProto)checkProtos.get(cell);
+		CheckProto cp = getCheckProto(cell);
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
@@ -537,7 +493,7 @@ public class DRCQuick
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			if (checkArcInst(ai, globalIndex))
+			if (checkArcInst(cp, ai, globalIndex))
 			{
 				totalErrorsFound++;
 				if (onlyFirstError) break;
@@ -569,6 +525,7 @@ public class DRCQuick
 	private static boolean checkNodeInst(NodeInst ni, int globalIndex)
 	{
 		Cell cell = ni.getParent();
+		Netlist netlist = getCheckProto(cell).netlist;
 		NodeProto np = ni.getProto();
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
@@ -590,7 +547,7 @@ public class DRCQuick
 			poly.transform(trans);
 
 			// determine network for this polygon
-			int netNumber = getDRCNetNumber(poly.getPort(), ni, globalIndex);
+			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 			boolean ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
@@ -657,10 +614,10 @@ public class DRCQuick
 	 * Method to check the design rules about arcinst "ai".
 	 * Returns true if errors were found.
 	 */
-	private static boolean checkArcInst(ArcInst ai, int globalIndex)
+	private static boolean checkArcInst(CheckProto cp, ArcInst ai, int globalIndex)
 	{
 		// ignore arcs with no topology
-		JNetwork net = ai.getNetwork(0);
+		JNetwork net = cp.netlist.getNetwork(ai, 0);
 		if (net == null) return false;
 		Integer [] netNumbers = (Integer [])networkLists.get(net);
 
@@ -775,6 +732,7 @@ public class DRCQuick
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
 		boolean errorsFound = false;
+		Netlist netlist = getCheckProto(cell).netlist;
 		Geometric.Search subsearch = new Geometric.Search(bounds, cell);
 		for(;;)
 		{
@@ -826,7 +784,7 @@ public class DRCQuick
 						poly.transform(rTrans);
 
 						// determine network for this polygon
-						int net = getDRCNetNumber(poly.getPort(), ni, globalIndex);
+						int net = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 						boolean ret = badSubBox(poly, layer, net, tech, ni, rTrans,
 							globalIndex, cell, oNi, topGlobalIndex);
 						if (ret)
@@ -851,7 +809,7 @@ public class DRCQuick
 					Layer layer = poly.getLayer();
 					if (layer == null) continue;
 					if (layer.isNonElectrical()) continue;
-					JNetwork jNet = ai.getNetwork(0);
+					JNetwork jNet = netlist.getNetwork(ai, 0);
 					int net = -1;
 					if (jNet != null)
 					{
@@ -978,6 +936,7 @@ public class DRCQuick
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
 		EMath.transformRect(rBound, topTrans);
+		Netlist netlist = getCheckProto(cell).netlist;
 		Geometric.Search sea = new Geometric.Search(bounds, cell);
 		int count = 0;
 		for(;;)
@@ -1058,7 +1017,7 @@ public class DRCQuick
 							nPolyRect.getMaxY() < rBound.getMinY()) continue;
 
 						// determine network for this polygon
-						int nNet = getDRCNetNumber(npoly.getPort(), ni, cellGlobalIndex);
+						int nNet = getDRCNetNumber(netlist, npoly.getPort(), ni, cellGlobalIndex);
 
 						// see whether the two objects are electrically connected
 						boolean con = false;
@@ -1109,7 +1068,7 @@ public class DRCQuick
 				boolean touch = objectsTouch(nGeom, geom);
 
 				// see whether the two objects are electrically connected
-				JNetwork jNet = ai.getNetwork(0);
+				JNetwork jNet = netlist.getNetwork(ai, 0);
 				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
 				int nNet = netNumbers[cellGlobalIndex].intValue();
 				boolean con = false;
@@ -1449,6 +1408,7 @@ public class DRCQuick
 	private static void checkTheseInstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
 	{
 		int globalIndex = 0;
+		Netlist netlist = getCheckProto(cell).netlist;
 
 		// loop through all of the instances to be checked
 		for(int i=0; i<count; i++)
@@ -1470,7 +1430,7 @@ public class DRCQuick
 				if (geom == null) break;
 				if (geom instanceof ArcInst)
 				{
-					if (checkGeomAgainstInstance(geom, ni))
+					if (checkGeomAgainstInstance(netlist, geom, ni))
 					{
 						validity[i] = false;
 						break;
@@ -1481,7 +1441,7 @@ public class DRCQuick
 				if (oNi.getProto() instanceof PrimitiveNode)
 				{
 					// found a primitive node: check it against the instance contents
-					if (checkGeomAgainstInstance(geom, ni))
+					if (checkGeomAgainstInstance(netlist, geom, ni))
 					{
 						validity[i] = false;
 						break;
@@ -1532,7 +1492,7 @@ public class DRCQuick
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
-	private static boolean checkGeomAgainstInstance(Geometric geom, NodeInst ni)
+	private static boolean checkGeomAgainstInstance(Netlist netlist, Geometric geom, NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
 		int globalIndex = 0;
@@ -1576,11 +1536,11 @@ public class DRCQuick
 			int net;
 			if (geom instanceof NodeInst)
 			{
-				net = getDRCNetNumber(poly.getPort(), (NodeInst)geom, globalIndex);
+				net = getDRCNetNumber(netlist, poly.getPort(), (NodeInst)geom, globalIndex);
 			} else
 			{
 				ArcInst oAi = (ArcInst)geom;
-				JNetwork jNet = oAi.getNetwork(0);
+				JNetwork jNet = netlist.getNetwork(oAi, 0);
 				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
 				net = netNumbers[globalIndex].intValue();
 			}
@@ -1620,9 +1580,9 @@ public class DRCQuick
 	private static boolean checkInteraction(NodeInst ni1, NodeInst ni2)
 	{
 		// must recheck parameterized instances always
-		CheckProto cp = (CheckProto)checkProtos.get(ni1.getProto());
+		CheckProto cp = getCheckProto((Cell)ni1.getProto());
 		if (cp.cellParameterized) return false;
-		cp = (CheckProto)checkProtos.get(ni2.getProto());
+		cp = getCheckProto((Cell)ni2.getProto());
 		if (cp.cellParameterized) return false;
 
 		// keep the instances in proper numeric order
@@ -1696,6 +1656,64 @@ public class DRCQuick
 	/************************* QUICK DRC HIERARCHICAL NETWORK BUILDING *************************/
 
 	/*
+	 * Method to recursively examine the hierarchy below cell "cell" and create
+	 * CheckProto and CheckInst objects on every cell instance.
+	 */
+	private static CheckProto checkEnumerateProtos(Cell cell, Netlist netlist)
+	{
+		CheckProto cp = getCheckProto(cell);
+		if (cp != null) return cp;
+
+		cp = new CheckProto();
+		cp.instanceCount = 0;
+		cp.timeStamp = 0;
+		cp.hierInstanceCount = 0;
+		cp.totalPerCell = 0;
+		cp.cellChecked = false;
+		cp.cellParameterized = false;
+		cp.treeParameterized = false;
+		cp.netlist = netlist;
+		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+		{
+			Variable var = (Variable)vIt.next();
+			if (var.getTextDescriptor().isParam())
+			{
+				cp.cellParameterized = true;
+				cp.treeParameterized = true;
+				break;
+			}
+		}
+		checkProtos.put(cell, cp);
+
+		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)nIt.next();
+			if (!(ni.getProto() instanceof Cell)) continue;
+			// ignore documentation icons
+			if (ni.isIconOfParent()) continue;
+			Cell subCell = (Cell)ni.getProto();
+
+			CheckInst ci = new CheckInst();
+			checkInsts.put(ni, ci);
+
+			CheckProto subCP = checkEnumerateProtos(subCell, netlist.getNetlist(ni));
+			if (subCP.treeParameterized)
+				cp.treeParameterized = true;
+		}
+		return cp;
+	}
+
+	/*
+	 * Method to return CheckProto of a Cell.
+	 * @param cell Cell to get its CheckProto.
+	 * @return CheckProto of a Cell.
+	 */
+	private static final CheckProto getCheckProto(Cell cell)
+	{
+		return (CheckProto) checkProtos.get(cell);
+	}
+
+	/*
 	 * Method to recursively examine the hierarchy below cell "cell" and fill in the
 	 * CheckInst objects on every cell instance.  Uses the CheckProto objects
 	 * to keep track of cell usage.
@@ -1714,7 +1732,7 @@ public class DRCQuick
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
 
-			CheckProto cp = (CheckProto)checkProtos.get(np);
+			CheckProto cp = getCheckProto((Cell)np);
 			if (cp.timeStamp != checkTimeStamp)
 			{
 				cp.timeStamp = checkTimeStamp;
@@ -1754,10 +1772,10 @@ public class DRCQuick
 		}
 	}
 
-	private static void checkEnumerateNetworks(Cell cell, int globalIndex, HashMap enumeratedNets)
+	private static void checkEnumerateNetworks(Cell cell, CheckProto cp, int globalIndex, HashMap enumeratedNets)
 	{
 		// store all network information in the appropriate place
-		for(Iterator nIt = cell.getNetworks(); nIt.hasNext(); )
+		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
 			Integer netNumber = (Integer)enumeratedNets.get(net);
@@ -1780,24 +1798,26 @@ public class DRCQuick
 
 			// propagate down the hierarchy
 			Cell subCell = (Cell)np;
+			CheckProto subCP = getCheckProto(subCell);
 
 			HashMap subEnumeratedNets = new HashMap();
 			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
-				JNetwork net = pi.getNetwork();
+				Export subPP = (Export)pi.getPortProto();
+				JNetwork net = cp.netlist.getNetwork(ni, subPP, 0);
 				if (net == null) continue;
 				Integer netNumber = (Integer)enumeratedNets.get(net);
-				Export subPP = (Export)pi.getPortProto();
-				subEnumeratedNets.put(subPP.getNetwork(), netNumber);
+				JNetwork subNet = subCP.netlist.getNetwork(subPP, 0);
+				subEnumeratedNets.put(subNet, netNumber);
 			}
-			for(Iterator nIt = subCell.getNetworks(); nIt.hasNext(); )
+			for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 			{
 				JNetwork net = (JNetwork)nIt.next();
 				if (subEnumeratedNets.get(net) == null)
 					subEnumeratedNets.put(net, new Integer(checkNetNumber++));
 			}
-			checkEnumerateNetworks(subCell, localIndex, subEnumeratedNets);
+			checkEnumerateNetworks(subCell, subCP, localIndex, subEnumeratedNets);
 		}
 	}
 
@@ -1935,25 +1955,6 @@ public class DRCQuick
 					return true;
 				}
 			}
-		}
-		return false;
-	}
-
-	/*
-	 * Method to examine the hierarchy below cell "cell" and return TRUE if any of it is
-	 * parameterized.
-	 */
-	private static boolean findParameters(Cell cell)
-	{
-		CheckProto cp = (CheckProto)checkProtos.get(cell);
-		if (cp.cellParameterized) return true;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			NodeProto np = ni.getProto();
-			if (!(np instanceof Cell)) continue;
-			if (ni.isIconOfParent()) continue;
-			if (findParameters((Cell)np)) return true;
 		}
 		return false;
 	}
@@ -2254,6 +2255,7 @@ public class DRCQuick
 	private static boolean activeOnTransistorRecurse(Rectangle2D bounds,
 		int net1, int net2, Cell cell, int globalIndex, AffineTransform trans)
 	{
+		Netlist netlist = getCheckProto(cell).netlist;
 		Geometric.Search sea = new Geometric.Search(bounds, cell);
 		for(;;)
 		{
@@ -2296,7 +2298,7 @@ public class DRCQuick
 
 			// determine the poly port  (MUST BE BETTER WAY!!!!)
 			PortProto badport = np.getPort(0);
-			JNetwork badNet = ni.getNetwork(badport, 0);
+			JNetwork badNet = netlist.getNetwork(ni, badport, 0);
 
 			boolean on1 = false, on2 = false;
 			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
@@ -2304,7 +2306,7 @@ public class DRCQuick
 				PortInst pi = (PortInst)it.next();
 
 				// ignore connections on poly/gate
-				JNetwork piNet = pi.getNetwork();
+				JNetwork piNet = netlist.getNetwork(pi);
 				if (piNet == badNet) continue;
 
 				Integer [] netNumbers = (Integer [])networkLists.get(piNet);
@@ -2464,6 +2466,7 @@ public class DRCQuick
 		for(int j=0; j<tot; j++)
 			cropNodePolyList[j].transform(trans);
 		boolean isConnected = false;
+		Netlist netlist = getCheckProto(ni.getParent()).netlist;
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = cropNodePolyList[j];
@@ -2473,7 +2476,7 @@ public class DRCQuick
 				if (poly.getPort() == null) continue;
 
 				// determine network for this polygon
-				int net = getDRCNetNumber(poly.getPort(), ni, globalIndex);
+				int net = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 				if (net >= 0 && net != nNet) continue;
 			}
 			isConnected = true;
@@ -2730,13 +2733,13 @@ public class DRCQuick
 	 * Method to return the network number for port "pp" on node "ni", given that the node is
 	 * in a cell with global index "globalIndex".
 	 */
-	private static int getDRCNetNumber(PortProto pp, NodeInst ni, int globalIndex)
+	private static int getDRCNetNumber(Netlist netlist, PortProto pp, NodeInst ni, int globalIndex)
 	{
 		if (pp == null) return -1;
 
 		// see if there is an arc connected
 		PortInst pi = ni.findPortInstFromProto(pp);
-		JNetwork net = pi.getNetwork();
+		JNetwork net = netlist.getNetwork(pi);
 		Integer [] nets = (Integer [])networkLists.get(net);
 		return nets[globalIndex].intValue();
 	}

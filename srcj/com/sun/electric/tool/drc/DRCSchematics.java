@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -102,15 +103,16 @@ public class DRCSchematics
 	{
 		if (justThis) ErrorLog.initLogging("Schematic DRC");
 		int initialErrorCount = ErrorLog.numErrors();
+		Netlist netlist = Network.getUserNetlist(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			schematicDoCheck(ni);
+			schematicDoCheck(netlist, ni);
 		}
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			schematicDoCheck(ai);
+			schematicDoCheck(netlist, ai);
 		}
 		int errorCount = ErrorLog.numErrors();
 		int thisErrors = errorCount - initialErrorCount;
@@ -124,7 +126,7 @@ public class DRCSchematics
 	/*
 	 * Method to check schematic object "geom".
 	 */
-	private static void schematicDoCheck(Geometric geom)
+	private static void schematicDoCheck(Netlist netlist, Geometric geom)
 	{
 		Cell cell = geom.getParent();
 		if (geom instanceof NodeInst)
@@ -324,7 +326,7 @@ public class DRCSchematics
 			}
 
 			// check to see if its width is sensible
-			int signals = ai.getBusWidth();
+			int signals = netlist.getBusWidth(ai);
 			if (signals < 1) signals = 1;
 			for(int i=0; i<2; i++)
 			{
@@ -346,7 +348,7 @@ public class DRCSchematics
 					err.addGeom(ni, true, 0, null);
 					continue;
 				}
-				int portWidth = Network.getBusWidth((Export)pp);
+				int portWidth = netlist.getBusWidth((Export)pp);
 				if (portWidth < 1) portWidth = 1;
 				int nodeSize = ni.getNameKey().busWidth();
 				if (nodeSize <= 0) nodeSize = 1;
@@ -362,13 +364,13 @@ public class DRCSchematics
 		}
 
 		// check for overlap
-		checkObjectVicinity(geom, geom, EMath.MATID);
+		checkObjectVicinity(netlist, geom, geom, EMath.MATID);
 	}
 
 	/*
 	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
 	 */
-	private static void checkObjectVicinity(Geometric topGeom, Geometric geom, AffineTransform trans)
+	private static void checkObjectVicinity(Netlist netlist, Geometric topGeom, Geometric geom, AffineTransform trans)
 	{
 		if (geom instanceof NodeInst)
 		{
@@ -389,12 +391,12 @@ public class DRCSchematics
 					for(Iterator it = subCell.getNodes(); it.hasNext(); )
 					{
 						NodeInst subNi = (NodeInst)it.next();
-						checkObjectVicinity(topGeom, subNi, subRot); 
+						checkObjectVicinity(netlist, topGeom, subNi, subRot); 
 					}
 					for(Iterator it = subCell.getArcs(); it.hasNext(); )
 					{
 						ArcInst subAi = (ArcInst)it.next();
-						checkObjectVicinity(topGeom, subAi, subRot); 
+						checkObjectVicinity(netlist, topGeom, subAi, subRot); 
 					}
 				}
 			} else
@@ -407,7 +409,7 @@ public class DRCSchematics
 				{
 					Poly poly = polyList[i];
 					poly.transform(localTrans);
-					checkPolygonVicinity(topGeom, poly);
+					checkPolygonVicinity(netlist, topGeom, poly);
 				}
 			}
 		} else
@@ -420,7 +422,7 @@ public class DRCSchematics
 			{
 				Poly poly = polyList[i];
 				poly.transform(trans);
-				checkPolygonVicinity(topGeom, poly);
+				checkPolygonVicinity(netlist, topGeom, poly);
 			}
 		}
 	}
@@ -429,7 +431,7 @@ public class DRCSchematics
 	 * Method to check whether polygon "poly" from object "geom" has a DRC violation
 	 * with a neighboring object.  Returns TRUE if an error was found.
 	 */
-	private static boolean checkPolygonVicinity(Geometric geom, Poly poly)
+	private static boolean checkPolygonVicinity(Netlist netlist, Geometric geom, Poly poly)
 	{
 		// don't check text
 		Poly.Type style = poly.getStyle();
@@ -466,11 +468,11 @@ public class DRCSchematics
 					for(Iterator it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
-						JNetwork net = con.getArc().getNetwork(0);
+						JNetwork net = netlist.getNetwork(con.getArc(), 0);
 						for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
 						{
 							Connection oCon = (Connection)oIt.next();
-							JNetwork oNet = oCon.getArc().getNetwork(0);
+							JNetwork oNet = netlist.getNetwork(oCon.getArc(), 0);
 							if (net == oNet) { found = true;   break; }
 						}
 						if (found) break;
@@ -479,12 +481,12 @@ public class DRCSchematics
 				} else
 				{			
 					// this is arc, nearby is node: see if electrically connected
-					JNetwork net = ai.getNetwork(0);
+					JNetwork net = netlist.getNetwork(ai, 0);
 					boolean found = false;
 					for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
 					{
 						Connection oCon = (Connection)oIt.next();
-						JNetwork oNet = oCon.getArc().getNetwork(0);
+						JNetwork oNet = netlist.getNetwork(oCon.getArc(), 0);
 						if (net == oNet) { found = true;   break; }
 					}
 					if (found) continue;
@@ -502,12 +504,12 @@ public class DRCSchematics
 				if (geom instanceof NodeInst)
 				{
 					// this is node, nearby is arc: see if electrically connected
-					JNetwork oNet = oAi.getNetwork(0);
+					JNetwork oNet = netlist.getNetwork(oAi, 0);
 					boolean found = false;
 					for(Iterator it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
-						JNetwork net = con.getArc().getNetwork(0);
+						JNetwork net = netlist.getNetwork(con.getArc(), 0);
 						if (net == oNet) { found = true;   break; }
 					}
 					if (found) continue;
@@ -526,23 +528,23 @@ public class DRCSchematics
 
 					// if not connected, check to see if they touch
 					boolean connected = false;
-					JNetwork net = ai.getNetwork(0);
-					JNetwork oNet = oAi.getNetwork(0);
+					JNetwork net = netlist.getNetwork(ai, 0);
+					JNetwork oNet = netlist.getNetwork(oAi, 0);
 					if (net == oNet) connected = true; else
 					{
-						int aiBusWidth = ai.getBusWidth();
-						int oAiBusWidth = oAi.getBusWidth();
+						int aiBusWidth = netlist.getBusWidth(ai);
+						int oAiBusWidth = netlist.getBusWidth(oAi);
 						if (aiBusWidth > 1 && oAiBusWidth <= 1)
 						{
 							for(int i=0; i<aiBusWidth; i++)
 							{
-								if (ai.getNetwork(i) == oAi.getNetwork(0)) { connected = true;   break; }
+								if (netlist.getNetwork(ai, i) == netlist.getNetwork(oAi, 0)) { connected = true;   break; }
 							}
 						} else if (oAiBusWidth > 1 && aiBusWidth <= 1)
 						{
 							for(int i=0; i<oAiBusWidth; i++)
 							{
-								if (oAi.getNetwork(i) == ai.getNetwork(0)) { connected = true;   break; }
+								if (netlist.getNetwork(oAi, i) == netlist.getNetwork(ai, 0)) { connected = true;   break; }
 							}
 						}
 					}

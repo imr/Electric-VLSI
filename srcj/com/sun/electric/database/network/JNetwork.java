@@ -59,7 +59,7 @@ import java.util.prefs.BackingStoreException;
 public class JNetwork
 {
 	// ------------------------- private data ------------------------------
-	private Cell parent; // Cell that owns this JNetwork
+	private Netlist netlist; // Cell that owns this JNetwork
 	private ArrayList names = new ArrayList(); // Sorted list of names. The
 	// first name is the most
 	// appropriate.
@@ -77,9 +77,9 @@ public class JNetwork
 // 	}
 
 	// used to build Cell networks
-	public JNetwork(Cell cell)
+	public JNetwork(Netlist netlist)
 	{
-		this.parent = cell;
+		this.netlist = netlist;
 		//		this(new ArrayList(), cell);
 	}
 
@@ -102,9 +102,9 @@ public class JNetwork
 // 	}
 
 	// --------------------------- public methods ------------------------------
-	public NodeProto getParent()
+	public Cell getParent()
 	{
-		return parent;
+		return netlist.netCell.cell;
 	}
 
 	/** A net can have multiple names. Return alphabetized list of names. */
@@ -137,13 +137,13 @@ public class JNetwork
 	public Iterator getPorts()
 	{
 		ArrayList ports = new ArrayList();
-		for (Iterator it = parent.getNodes(); it.hasNext(); )
+		for (Iterator it = getParent().getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
-				if (pi.getNetwork() == this)
+				if (netlist.getNetwork(pi) == this)
 					ports.add(pi);
 			}
 		}
@@ -154,10 +154,10 @@ public class JNetwork
 	public Iterator getExports()
 	{
 		ArrayList exports = new ArrayList();
-		for (Iterator it = parent.getPorts(); it.hasNext();)
+		for (Iterator it = getParent().getPorts(); it.hasNext();)
 		{
 			Export e = (Export) it.next();
-			if (e.getNetwork() == this)
+			if (netlist.getNetwork(e, 0) == this)
 				exports.add(e);
 		}
 		return exports.iterator();
@@ -167,11 +167,10 @@ public class JNetwork
 	public Iterator getArcs()
 	{
 		ArrayList arcs = new ArrayList();
-		for (Iterator it = ((Cell) parent).getArcs(); it.hasNext();)
+		for (Iterator it = getParent().getArcs(); it.hasNext();)
 		{
 			ArcInst ai = (ArcInst) it.next();
-			if (ai.getHead().getPortInst().getNetwork() == this
-				|| ai.getTail().getPortInst().getNetwork() == this)
+			if (netlist.getNetwork(ai, 0) == this)
 			{
 				arcs.add(ai);
 			}
@@ -194,11 +193,10 @@ public class JNetwork
 			return name;
 		}
 		/* Unnamed net */
-		for (Iterator it = ((Cell) parent).getArcs(); it.hasNext();)
+		for (Iterator it = getParent().getArcs(); it.hasNext();)
 		{
 			ArcInst ai = (ArcInst) it.next();
-			if (ai.getHead().getPortInst().getNetwork() == this
-				|| ai.getTail().getPortInst().getNetwork() == this)
+			if (netlist.getNetwork(ai, 0) == this)
 			{
 				return ai.getName();
 			}

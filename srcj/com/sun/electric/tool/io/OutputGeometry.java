@@ -70,9 +70,8 @@ public abstract class OutputGeometry extends Output {
         cellGeoms = new HashMap();
         
         // write out cells
-        cell.rebuildNetworks(null, false);
         start();
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, new Visitor(this, getMaxHierDepth(cell)));
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, new Visitor(this, getMaxHierDepth(cell)));
         done();
         return false;
     }

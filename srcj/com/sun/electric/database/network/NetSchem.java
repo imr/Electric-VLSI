@@ -86,6 +86,10 @@ class NetSchem extends NetCell {
 				return;
 			}
 
+			if (userNetlist == null) userNetlist = new Netlist(this);
+			userNetlist.initNetMap(0);
+			userNetlist.initNetworks();
+
 			if (updateInterface())
 				super.invalidateUsagesOf(true);
 			flags |= (LOCALVALID|VALID);
@@ -117,63 +121,29 @@ class NetSchem extends NetCell {
 		/**
 		 * Get an iterator over all of the Nodables of this Cell.
 		 */
-		Iterator getNodables()
-		{
-			if ((flags & VALID) == 0) redoNetworks();
-			return (new ArrayList()).iterator();
-		}
-
-		/**
-		 * Get an iterator over all of the JNetworks of this Cell.
-		 */
-		Iterator getNetworks()
-		{
-			if ((flags & VALID) == 0) redoNetworks();
-			return (new ArrayList()).iterator();
-		}
+		Iterator getNodables() { return (new ArrayList()).iterator(); }
 
 		/*
-		 * Get network by index in networks maps.
+		 * Get offset in networks map for given port instance.
 		 */
-		JNetwork getNetwork(Nodable no, int arrayIndex, PortProto portProto, int busIndex) {
-			if ((flags & VALID) == 0) redoNetworks();
-			return null;
-		}
+		int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) { return -1; }
 
 		/*
-		 * Get network of export.
+		 * Get offset in networks map for given Export.
 		 */
-		JNetwork getNetwork(Export export, int busIndex) {
-			if ((flags & VALID) == 0) redoNetworks();
-			return null;
-		}
+		int getNetMapOffset(Export export, int busIndex) { return -1; }
 
 		/*
-		 * Get network of arc.
+		 * Get offset in networks map for given ArcInst.
 		 */
-		JNetwork getNetwork(ArcInst ai, int busIndex) {
-			if ((flags & VALID) == 0) redoNetworks();
-			return null;
-		}
+		int getNetMapOffset(ArcInst ai, int busIndex) { return -1; }
 
 		/**
-		 * Method to return either the network name or the bus name on this ArcInst.
-		 * @return the either the network name or the bus name on this ArcInst.
+		 * Method to return the bus width on an ArcInst.
+		 * @param ai the ArcInst to examine.
+		 * @return the the bus width on the ArcInst.
 		 */
-		String getNetworkName(ArcInst ai) {
-			if ((flags & VALID) == 0) redoNetworks();
-			return null;
-		}
-
-		/**
-		 * Method to return the bus width on this ArcInst.
-		 * @return the either the bus width on this ArcInst.
-		 */
-		public int getBusWidth(ArcInst ai)
-		{
-			if ((flags & VALID) == 0) redoNetworks();
-			return 0;
-		}
+		public int getBusWidth(ArcInst ai) { return 0; }
 	}
 
 	static void updateCellGroup(Cell.CellGroup cellGroup) {
@@ -240,15 +210,6 @@ class NetSchem extends NetCell {
 		 * @return the Variable with that name, or null if there is no such Variable.
 		 */
 		public Variable getVar(String name) { return nodeInst.getVar(name); }
-
-		/**
-		 * Method to get network by PortProto and bus index.
-		 * @param portProto PortProto in protoType.
-		 * @param busIndex index in bus.
-		 */
-		public JNetwork getNetwork(PortProto portProto, int busIndex) {
-			return Network.getNetwork(this, 0, portProto, busIndex);
-		}
 
 		/**
 		 * Returns a printable version of this Nodable.
@@ -318,7 +279,6 @@ class NetSchem extends NetCell {
 	 */
 	Iterator getNodables()
 	{
-		if ((flags & VALID) == 0) redoNetworks();
 		ArrayList nodables = new ArrayList();
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
@@ -333,10 +293,9 @@ class NetSchem extends NetCell {
 	}
 
 	/*
-	 * Get network by index in networks maps.
+	 * Get offset in networks map for given port instance.
 	 */
-	JNetwork getNetwork(Nodable no, int arrayIndex, PortProto portProto, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
+	int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) {
 		Proxy proxy;
 		if (no instanceof NodeInst) {
 			NodeInst ni = (NodeInst)no;
@@ -344,58 +303,50 @@ class NetSchem extends NetCell {
 			int proxyOffset = nodeOffsets[nodeIndex];
 			if (proxyOffset >= 0) {
 				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
-				if (drawn < 0) return null;
-				if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return null;
-				return networks[netMap[drawnOffsets[drawn] + busIndex]];
+				if (drawn < 0) return -1;
+				if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return 01;
+				return drawnOffsets[drawn] + busIndex;
+			} else {
+				return -1;
 			}
-			proxy = nodeProxies[~proxyOffset + arrayIndex];
-			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
+// 			proxy = nodeProxies[~proxyOffset + arrayIndex];
+// 			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
 		} else {
 			proxy = (Proxy)no;
 		}
-		if (proxy == null) return null;
+		if (proxy == null) return 01;
 		int portOffset = NetSchem.getPortOffset(portProto, busIndex);
-		if (portOffset < 0) return null;
-		return networks[netMap[proxy.nodeOffset + portOffset]];
+		if (portOffset < 0) return -1;
+		return proxy.nodeOffset + portOffset;
 	}
 
 	/*
-	 * Get network of export.
+	 * Get offset in networks map for given export.
 	 */
-	JNetwork getNetwork(Export export, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
+	int getNetMapOffset(Export export, int busIndex) {
 		int drawn = drawns[export.getPortIndex()];
-		if (drawn < 0) return null;
-		if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return null;
-		return networks[netMap[drawnOffsets[drawn] + busIndex]];
+		if (drawn < 0) return -1;
+		if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return -1;
+		return drawnOffsets[drawn] + busIndex;
 	}
 
 	/*
-	 * Get network of arc.
+	 * Get offset in networks map for given arc.
 	 */
-	JNetwork getNetwork(ArcInst ai, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
+	int getNetMapOffset(ArcInst ai, int busIndex) {
 		int drawn = drawns[arcsOffset + ai.getArcIndex()];
-		if (drawn < 0) return null;
-		if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return null;
-		return networks[netMap[drawnOffsets[drawn] + busIndex]];
+		if (drawn < 0) return -1;
+		if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return -1;
+		return drawnOffsets[drawn] + busIndex;
 	}
 
 	/**
 	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus n1ame on this ArcInst.
 	 */
-	String getNetworkName(ArcInst ai) {
-		if ((flags & VALID) == 0) redoNetworks();
+	Name getBusName(ArcInst ai) {
 		int drawn = drawns[arcsOffset + ai.getArcIndex()];
-		if (drawn < 0) return null;
-		if (drawnWidths[drawn] == 1) {
-			JNetwork network = networks[netMap[drawnOffsets[drawn]]];
-			if (network == null) return null;
-			return network.describe();
-		}
-		if (drawnNames[drawn] == null) return null;
-		return drawnNames[drawn].toString();
+		return drawnNames[drawn];
 	}
 
 	/**
@@ -629,9 +580,9 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			if (busWidth != drawnWidths[drawn]) continue;
 			for (int i = 0; i < busWidth; i++) {
-				connectMap(portOffset + i, drawnOffset + i);
+				userNetlist.connectMap(portOffset + i, drawnOffset + i);
 				NetName nn = (NetName)netNames.get(expNm.subname(i));
-				connectMap(portOffset + i, netNamesOffset + nn.index);
+				userNetlist.connectMap(portOffset + i, netNamesOffset + nn.index);
 			}
 		}
 
@@ -645,7 +596,7 @@ class NetSchem extends NetCell {
 				Global g = globalInst(ni);
 				if (g != null) {
 					int drawn = drawns[ni_pi[k]];
-					connectMap(globals.indexOf(g), drawnOffsets[drawn]);
+					userNetlist.connectMap(globals.indexOf(g), drawnOffsets[drawn]);
 				}
 				if (np == Schematics.tech.wireConNode)
 					connectWireCon(ni);
@@ -677,7 +628,7 @@ class NetSchem extends NetCell {
 					int busOffset = drawnOffsets[drawn];
 					if (width != busWidth) busOffset += busWidth*i;
 					for (int j = 0; j < busWidth; j++)
-						connectMap(busOffset + j, nodeOffset + j);
+						userNetlist.connectMap(busOffset + j, nodeOffset + j);
 				}
 			}
 		}
@@ -695,7 +646,7 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
 				NetName nn = (NetName)netNames.get(arcNm.subname(i));
-				connectMap(drawnOffset + i, netNamesOffset + nn.index);
+				userNetlist.connectMap(drawnOffset + i, netNamesOffset + nn.index);
 			}
 		}
 	}
@@ -726,7 +677,7 @@ class NetSchem extends NetCell {
 			large = temp;
 		}
 		for (int i = 0; i < drawnWidths[large]; i++)
-			connectMap(drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
+			userNetlist.connectMap(drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
 	}
 
 	private void internalConnections()
@@ -738,7 +689,7 @@ class NetSchem extends NetCell {
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode) {
 				if (np == Schematics.tech.resistorNode && Network.shortResistors)
-					connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
+					userNetlist.connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
 				continue;
 			}
 			NetCell netCell = Network.getNetCell((Cell)np);
@@ -750,7 +701,7 @@ class NetSchem extends NetCell {
 				int di = drawns[nodeOffset + i];
 				int dj = drawns[nodeOffset + j];
 				if (di < 0 || dj < 0) continue;
-				connectMap(di, dj);
+				userNetlist.connectMap(di, dj);
 			}
 		}
 		for (int k = 0; k < nodeProxies.length; k++) {
@@ -766,27 +717,22 @@ class NetSchem extends NetCell {
 				if (i == j) continue;
 				int io = (i >= numGlobals ? nodeOffset + i : this.globals.indexOf(schem.globals.get(i)));
 				int jo = (j >= numGlobals ? nodeOffset + j : this.globals.indexOf(schem.globals.get(j)));
-				connectMap(io, jo);
+				userNetlist.connectMap(io, jo);
 			}
 		}
 	}
 
 	private void buildNetworkList()
 	{
-		if (networks == null || networks.length != netMap.length)
-			networks = new JNetwork[netMap.length];
-		for (int i = 0; i < netMap.length; i++)
-		{
-			networks[i] = (netMap[i] == i ? new JNetwork(cell) : null);
-		}
+		userNetlist.initNetworks();
 		for (int i = 0; i < globals.size(); i++) {
-			networks[netMap[i]].addName(globals.get(i).getName());
+			userNetlist.getNetworkByMap(i).addName(globals.get(i).getName());
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < 0) continue;
-			networks[netMap[netNamesOffset + nn.index]].addName(nn.name.toString());
+			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString());
 		}
 		
 		/*
@@ -839,9 +785,9 @@ class NetSchem extends NetCell {
 	private boolean updateInterface() {
 		boolean changed = false;
 		for (int i = 0; i < equivPorts.length; i++) {
-			if (equivPorts[i] != netMap[i]) {
+			if (equivPorts[i] != userNetlist.netMap[i]) {
 				changed = true;
-				equivPorts[i] = netMap[i];
+				equivPorts[i] = userNetlist.netMap[i];
 			}
 		}
 		return changed;
@@ -864,14 +810,10 @@ class NetSchem extends NetCell {
 		boolean changed = initNodables();
 		// Gather port and arc names
 		int mapSize = netNamesOffset + netNames.size();
-
-		if (netMap == null || netMap.length != mapSize)
-			netMap = new int[mapSize];
-		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
+		userNetlist.initNetMap(mapSize);
 
 		localConnections();
 		internalConnections();
-		closureMap();
 		buildNetworkList();
 		if (updateInterface()) changed = true;
 		return changed;

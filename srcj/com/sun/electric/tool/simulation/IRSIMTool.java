@@ -39,6 +39,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.EditWindow;
 //import com.sun.electric.technology.technologies.;
@@ -104,8 +105,8 @@ public class IRSIMTool extends Tool {
         
         public void doIt() {
             netlister = new IRSIMNetlister();
-            cell.rebuildNetworks(null, true);
-            HierarchyEnumerator.enumerateCell(cell, context, netlister);
+			Netlist netlist = cell.getNetlist(true);
+            HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
         }        
     }        
     
@@ -145,9 +146,10 @@ public class IRSIMTool extends Tool {
                 System.out.println("  PortInst for "+ni+" null!");
                 return false;
             }
-            JNetwork gnet = g.getNetwork();
-            JNetwork dnet = d.getNetwork();
-            JNetwork snet = s.getNetwork();
+			Netlist netlist = info.getNetlist();
+            JNetwork gnet = netlist.getNetwork(g);
+            JNetwork dnet = netlist.getNetwork(d);
+            JNetwork snet = netlist.getNetwork(s);
             if (gnet == null || dnet == null || snet == null) {
                 System.out.println("  Warning, ignoring unconnected transistor "+ni+" in cell "+iinfo.getCell());
                 return false;

@@ -30,6 +30,7 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.tool.logicaleffort.*;
 import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
@@ -97,7 +98,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
-        cell.rebuildNetworks(null, true);
+        Netlist netlist = cell.getNetlist(true);
         
         // read schematic-specific sizing options
         for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
@@ -108,7 +109,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             }
         }
 
-        HierarchyEnumerator.enumerateCell(cell, context, this);
+        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
     }
     
     public void size() {
@@ -168,6 +169,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         //out.println("------------------------------------");
         ArrayList pins = new ArrayList();
         //Cell schCell = ni.getProtoEquivalent();
+		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getParent().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
 //      for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
@@ -176,7 +178,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Variable var = pp.getVar("ATTR_le");
             // Note default 'le' value should be one
             float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
-            String netName = info.getUniqueNetName(ni.getNetwork(pp,0), ".");
+            String netName = info.getUniqueNetName(netlist.getNetwork(ni,pp,0), ".");
 //            String netName = info.getUniqueNetName(pi.getNetwork(), ".");
             Pin.Dir dir = Pin.Dir.INPUT;
             //if (pp.getCharacteristic() == PortProto.Characteristic.IN) dir = Pin.Dir.INPUT;

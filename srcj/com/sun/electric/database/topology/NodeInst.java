@@ -1544,29 +1544,6 @@ public class NodeInst extends Geometric implements Nodable
     }
 
 	/**
-	 * Method to get network by PortProto and bus index.
-	 * @param portProto PortProto in protoType.
-	 * @param busIndex index in bus.
-	 */
-	public JNetwork getNetwork(PortProto portProto, int busIndex)
-	{
-		if (getNameKey().isBus())
-		{
-			System.out.println("NodeInst.getNetwork() was called for arrayed instance "+describe());
-			return null;
-		}
-		return Network.getNetwork(this, 0, portProto, busIndex);
-	}
-
-	/**
-	 * Method to get network by PortProto and bus index.
-	 * @param arrayIndex PortProto in protoType.
-	 * @param portProto PortProto in protoType.
-	 * @param busIndex index in bus.
-	 */
-	public JNetwork getNetwork(int arrayIndex, PortProto portProto, int busIndex) { return Network.getNetwork(this, arrayIndex, portProto, busIndex); }
-
-	/**
 	 * Method to add an Export to this NodeInst.
 	 * @param e the Export to add.
 	 */
@@ -2119,9 +2096,8 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorGatePort()
     {
-		return getPortInst(0);
-// 		PrimitiveNode np = (PrimitiveNode)protoType;
-// 		return np.getTechnology().getTransistorGatePort(this);
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorGatePort(this);
     }
     
     /**
@@ -2133,9 +2109,8 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorSourcePort()
     {
-		return getPortInst(1);
-// 		PrimitiveNode np = (PrimitiveNode)protoType;
-// 		return np.getTechnology().getTransistorSourcePort(this);
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorSourcePort(this);
     }
     
     /**
@@ -2147,9 +2122,8 @@ public class NodeInst extends Geometric implements Nodable
      */
     public PortInst getTransistorDrainPort()
     {
-		return getPortInst(2);
-// 		PrimitiveNode np = (PrimitiveNode)protoType;
-// 		return np.getTechnology().getTransistorDrainPort(this);
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorDrainPort(this);
     }
 
 	/**

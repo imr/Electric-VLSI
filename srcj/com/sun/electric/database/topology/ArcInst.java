@@ -768,34 +768,6 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Method to return the network of this ArcInst.
-	 * @param busIndex index of subnetwork for busses.
-	 * @return the network on this ArcInst.
-	 */
-	public JNetwork getNetwork(int busIndex)
-	{
-		return Network.getNetwork(this, busIndex);
-	}
-
-	/**
-	 * Method to return the bus name on this ArcInst.
-	 * @return the either the bus name on this ArcInst.
-	 */
-	public String getBusName()
-	{
-		return Network.getNetworkName(this);
-	}
-
-	/**
-	 * Method to return the bus width on this ArcInst.
-	 * @return the either the bus width on this ArcInst.
-	 */
-	public int getBusWidth()
-	{
-		return Network.getBusWidth(this);
-	}
-
-	/**
 	 * Method to tell whether a connection on this ArcInst contains a point.
 	 * @param con the connection on this ArcInst.
 	 * @param pt the point in question.

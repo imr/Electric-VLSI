@@ -67,6 +67,18 @@ class NetCell
 
 	/** Cell from database. */										final Cell cell;
 	/** Flags of this NetCell. */									int flags;
+    /** The number of times this NetCell has been <i>structurally modified</i>.
+     * Structural modifications are those that change the number of networks in
+	 * its netlists, or otherwise perturb them in such a fashion that iterations in
+     * progress may yield incorrect results.<p>
+     *
+     * This field is used by the netlist implementation returned by the
+	 * <tt>getNetlist</tt> methods. If the value of this field changes unexpectedly,
+	 * the netlist will throw a <tt>ConcurrentModificationException</tt> in
+     * response to the <tt>getNetwork</tt> and other operations.  This provides
+     * <i>fail-fast</i> behavior, rather than non-deterministic behavior in
+     * the face of concurrent modification during netlist examination.<p>
+     */																int modCount = 0;
 
 	/**
      * Equivalence of ports. equivPorts.size == ports.size.
@@ -82,8 +94,7 @@ class NetCell
 	/** A map from Name to NetName. */								Map netNames = new HashMap();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	
-	/** An equivalence map of PortInsts and NetNames. */			int[] netMap;
-	/** An array of JNetworks in this Cell. */						JNetwork[] networks;
+	/** Netlist for current user options. */						Netlist userNetlist;
 
 	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
@@ -104,29 +115,15 @@ class NetCell
 			setInvalid(true);
 	}
 
-	/**
-	 * Get an iterator over all of the Nodables of this Cell.
-	 */
-	Iterator getNodables()
-	{
+	Netlist getUserNetlist() {
 		if ((flags & VALID) == 0) redoNetworks();
-		return cell.getNodes();
+		return userNetlist;
 	}
 
 	/**
-	 * Get an iterator over all of the JNetworks of this Cell.
+	 * Get an iterator over all of the Nodables of this Cell.
 	 */
-	Iterator getNetworks()
-	{
-		if ((flags & VALID) == 0) redoNetworks();
-		ArrayList nets = new ArrayList();
-		for (int i = 0; i < networks.length; i++)
-		{
-			if (networks[i] != null)
-				nets.add(networks[i]);
-		}
-		return nets.iterator();
-	}
+	Iterator getNodables() { return cell.getNodes(); }
 
 	void setInvalid(boolean strong)
 	{
@@ -166,46 +163,32 @@ class NetCell
 // 	}
 
 	/*
-	 * Get network by index in networks maps.
+	 * Get offset in networks map for given port instance.
 	 */
-	JNetwork getNetwork(Nodable no, int arrayIndex, PortProto portProto, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
+	int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) {
 		NodeInst ni = (NodeInst)no;
-		int drawn = drawns[ni_pi[ni.getNodeIndex()] + portProto.getPortIndex()];
-		if (drawn < 0) return null;
-		return networks[netMap[drawn]];
+		return drawns[ni_pi[ni.getNodeIndex()] + portProto.getPortIndex()];
 	}
 
 	/*
-	 * Get network of export.
+	 * Get offset in networks map for given export..
 	 */
-	JNetwork getNetwork(Export export, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
-		int drawn = drawns[export.getPortIndex()];
-		if (drawn < 0) return null;
-		return networks[netMap[drawn]];
+	int getNetMapOffset(Export export, int busIndex) {
+		return drawns[export.getPortIndex()];
 	}
 
 	/*
-	 * Get network of arc.
+	 * Get offset in networks map for given arc.
 	 */
-	JNetwork getNetwork(ArcInst ai, int busIndex) {
-		if ((flags & VALID) == 0) redoNetworks();
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
-		if (drawn < 0) return null;
-		return networks[netMap[drawn]];
+	int getNetMapOffset(ArcInst ai, int busIndex) {
+		return drawns[arcsOffset + ai.getArcIndex()];
 	}
 
 	/**
 	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */
-	String getNetworkName(ArcInst ai) {
-		if ((flags & VALID) == 0) redoNetworks();
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
-		if (drawn < 0) return null;
-		return networks[netMap[drawn]].describe();
-	}
+	Name getBusName(ArcInst ai) { return null; }
 
 	/**
 	 * Method to return the bus width on this ArcInst.
@@ -213,7 +196,6 @@ class NetCell
 	 */
 	public int getBusWidth(ArcInst ai)
 	{
-		if ((flags & VALID) == 0) redoNetworks();
 		int drawn = drawns[arcsOffset + ai.getArcIndex()];
 		if (drawn < 0) return 0;
 		return 1;
@@ -507,7 +489,6 @@ class NetCell
 
 	private void internalConnections()
 	{
-		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
@@ -519,7 +500,7 @@ class NetCell
 			for (int i = 0; i < eq.length; i++)
 			{
 				if (eq[i] == i) continue;
-				connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
+				userNetlist.connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
 			}
 		}
 	}
@@ -534,15 +515,7 @@ class NetCell
 
 	private void buildNetworkList()
 	{
-		if (networks == null || networks.length != netMap.length)
-			networks = new JNetwork[netMap.length];
-		int k = 0;
-		for (int i = 0; i < netMap.length; i++) {
-			if (netMap[i] == i)
-				networks[i] = new JNetwork(cell);
-			else 
-				networks[i] = null;
-		}
+		userNetlist.initNetworks();
 		JNetwork[] netNameToNet = new JNetwork[netNames.size()];
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
@@ -553,15 +526,15 @@ class NetCell
 		for (int i = 0; i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);
 			if (!ai.isUsernamed()) continue;
-			int ind = drawns[arcsOffset + i];
-			if (ind < 0) continue;
-			setNetName(netNameToNet, ind, ai.getNameKey());
+			int drawn = drawns[arcsOffset + i];
+			if (drawn < 0) continue;
+			setNetName(netNameToNet, drawn, ai.getNameKey());
 		}
 		for (int i = 0; i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);
-			int ind = drawns[arcsOffset + i];
-			if (ind < 0) continue;
-			JNetwork network = networks[netMap[ind]];
+			int drawn = drawns[arcsOffset + i];
+			if (drawn < 0) continue;
+			JNetwork network = userNetlist.getNetworkByMap(drawn);
 			if (network.hasNames()) continue;
 			network.addName(ai.getName());
 		}
@@ -589,8 +562,8 @@ class NetCell
 		*/
 	}
 
-	private void setNetName(JNetwork[] netNamesToNet, int netIndex, Name name) {
-		JNetwork network = networks[netMap[netIndex]];
+	private void setNetName(JNetwork[] netNamesToNet, int drawn, Name name) {
+		JNetwork network = userNetlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
 		if (netNamesToNet[nn.index] != null)
 			System.out.println("Network: Layout cell " + cell.describe() + " has nets with same name " + name);
@@ -615,7 +588,7 @@ class NetCell
 		int[] netToPort = new int[numPorts];
 		Arrays.fill(netToPort, -1);
 		for (int i = 0; i < numPorts; i++) {
-			int net = netMap[drawns[i]];
+			int net = userNetlist.netMap[drawns[i]];
 			if (netToPort[net] < 0)
 				netToPort[net] = i;
 			if (equivPorts[i] != netToPort[net]) {
@@ -686,6 +659,7 @@ class NetCell
 		makeDrawns();
 		// Gather port and arc names
 		initNetnames();
+		if (userNetlist == null) userNetlist = new Netlist(this);
 
 		if (redoNetworks1())
 			invalidateUsagesOf(true);
@@ -695,77 +669,11 @@ class NetCell
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-		if (netMap == null || netMap.length != numDrawns) {
-			netMap = new int[numDrawns];
-		}
+		userNetlist.initNetMap(numDrawns);
 
 		internalConnections();
-		closureMap();
 		buildNetworkList();
 		return updateInterface();
 	}
 
-	/**
-	 * Merge classes of equivalence map to which elements a1 and a2 belong.
-	 */
-	final void connectMap(int a1, int a2) {
-		//System.out.println("connectMap "+a1+" "+a2);
-		NetCell.connectMap(netMap, a1, a2);
-	}
-
-	/**
-	 * Obtain canonical representation of equivalence map.
-	 */
-	final void closureMap() { NetCell.closureMap(netMap); }
-
-	/**
-	 * Merge classes of equivalence map to which elements a1 and a2 belong.
-	 */
-	private static void connectMap(int[] map, int a1, int a2)
-	{
-		int m1, m2, m;
-
-		for (m1 = a1; map[m1] != m1; m1 = map[m1]);
-		for (m2 = a2; map[m2] != m2; m2 = map[m2]);
-		m = m1 < m2 ? m1 : m2;
-
-		for (;;)
-		{
-			int k = map[a1];
-			map[a1] = m;
-			if (a1 == k) break;
-			a1 = k;
-		}
-		for (;;)
-		{
-			int k = map[a2];
-			map[a2] = m;
-			if (a2 == k) break;
-			a2 = k;
-		}
-	}
-
-	/**
-	 * Obtain canonical representation of equivalence map.
-	 */
-	private static void closureMap(int[] map)
-	{
-		for (int i = 0; i < map.length; i++)
-		{
-			map[i] = map[map[i]];
-		}
-	}
-
-	/**
-	 * Obtain canonical representation of equivalence map.
-	 */
-	private static boolean equalMaps(int[] map1, int[] map2)
-	{
-		if (map1.length != map2.length) return false;
-		for (int i = 0; i < map1.length; i++)
-		{
-			if (map1[i] != map2[i]) return false;
-		}
-		return true;
-	}
 }

@@ -36,7 +36,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -1912,71 +1912,17 @@ public class Cell extends NodeProto
 
 	/****************************** NETWORKS ******************************/
 
-	/**
-	 * Get an iterator over all of the JNetworks of this Cell.
-	 * <p> Warning: before getNetworks() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks()
-	 */
-	public Iterator getNetworks() { return Network.getNetworks(this); }
-
-	/** Recompute the network structure for this Cell.
-	 *
-	 * @param connectedPorts this argument allows the user to tell the
-	 * network builder to treat certain PortProtos of a NodeProto as a
-	 * short circuit. For example, it is sometimes useful to build the
-	 * net list as if the PortProtos of a resistor were shorted
-	 * together.
-	 *
-	 * <p> <code>connectedPorts</code> must be either null or an
-	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
-	 * an ArrayList are treated as if they are connected.  All of the
-	 * PortProtos in a single ArrayList must belong to the same
-	 * NodeProto.
-     *
+	/** Recompute the Netlist structure for this Cell.
      * <p>Because shorting resistors is a fairly common request, it is 
      * implemented in the method if @param shortResistors is set to true.
+	 * @return the Netlist structure for this cell.
      */
-	public void rebuildNetworks(ArrayList connectedPorts, boolean shortResistors) { Network.rebuildNetworks(this, shortResistors); }
+	public Netlist getNetlist(boolean shortResistors) { return Network.getNetlist(this, shortResistors); }
 
-// 	private static HashMap buildConnPortsTable(ArrayList connPortsLists)
-// 	{
-// 		HashMap connPorts = new HashMap();
-// 		if (connPortsLists == null)
-// 			return connPorts;
-
-// 		// iterate over all lists
-// 		for (int i = 0; i < connPortsLists.size(); i++)
-// 		{
-// 			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
-
-// 			// all these PortProtos are shorted together
-// 			JNetwork dummyNet = new JNetwork(null);
-// 			NodeProto parent = null;
-// 			for (int j = 0; j < connPortsList.size(); j++)
-// 			{
-// 				PortProto pp = (PortProto) connPortsList.get(j);
-
-// 				// make sure all connected ports have the same parent
-// 				if (j == 0)
-// 					parent = pp.getParent();
-// 				if (pp.getParent() != parent)
-// 				{
-// 					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
-// 					return null;
-// 				}
-
-// 				// make sure it's not already present
-// 				if (connPorts.containsKey(pp))
-// 				{
-// 					System.out.println("PortProto occurs more than once in the connected Ports lists");
-// 					return null;
-// 				}
-
-// 				connPorts.put(pp, dummyNet);
-// 			}
-// 		}
-// 		return connPorts;
-// 	}
+	/** Recompute the Netlist structure for this Cell, using current network options.
+	 * @return the Netlist structure for this cell.
+     */
+	public Netlist getUserNetlist() { return Network.getUserNetlist(this); }
 
 	/****************************** DATES ******************************/
 
@@ -2191,6 +2137,11 @@ public class Cell extends NodeProto
 	 * @return the index of this Cell.
 	 */
 	public final int getCellIndex() { return cellIndex; }
+
+	/**
+	 * Method to get counter for enumerating cells.
+	 * @return counter for enumerating cells. */
+	public static int getCellNumber() { return cellNumber; }
 
 	/**
 	 * Method to clear change lock of this cell.

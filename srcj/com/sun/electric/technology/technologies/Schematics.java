@@ -1761,6 +1761,17 @@ public class Schematics extends Technology
         return dim;
     }
     
+    /**
+     * Method to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorDrainPort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(2); }
+
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {
 //	x_(""), x_(""), x_(""),										/* pins */
 //	x_("buffer/inverter"), x_("and%ld/nand%ld"), x_("or%ld/nor%ld"), x_("xor%ld/xnor%ld"),	/* gates */

@@ -1428,7 +1428,7 @@ public final class UserMenuCommands
 			{
 				Cell cell = (Cell)cit.next();
 				ncell++;
-				cell.rebuildNetworks(null, false);
+				cell.getNetlist(false);
 			}
 		}
 		long endTime = System.currentTimeMillis();

@@ -92,20 +92,6 @@ public class PortInst extends ElectricObject
     }
     
 	/**
-	 * Method to return the JNetwork connected to this PortInst.
-	 * @return the JNetwork connected to this PortInst.
-	 */
-	public JNetwork getNetwork()
-	{
-		if (portProto.getProtoNameKey().isBus())
-		{
-			System.out.println("PortInst.getNetwork() was called for instance of bus port "+portProto.getProtoName());
-			return null;
-		}
-		return nodeInst.getNetwork(portProto, 0);
-	}
-
-	/**
 	 * Method to return the bounds of this PortInst.
 	 * The bounds are determined by getting the Poly and bounding it.
 	 * @return the bounds of this PortInst.

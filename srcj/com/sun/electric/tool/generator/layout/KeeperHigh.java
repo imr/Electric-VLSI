@@ -43,7 +43,7 @@ public class KeeperHigh {
 
 	public static Cell makePart(Cell schem, VarContext context,
 								StdCellParams stdCell) {
-		schem.rebuildNetworks(null, false);
+		Netlist netlist = schem.getNetlist(false);
 
 		Iterator nodes = schem.getNodes();
 
@@ -57,7 +57,7 @@ public class KeeperHigh {
 			} else if (nm.equals("invK{ic}")) {
 				szK = stdCell.getSize(ni, context);
 			} else if (nm.equals("inv{ic}")) {
-				JNetwork net = ni.findPortInst("in").getNetwork();
+				JNetwork net = netlist.getNetwork(ni.findPortInst("in"));
 				if (net.hasName("mc")) {
 					szMc = stdCell.getSize(ni, context);
 				} else if (net.hasName("d")) {

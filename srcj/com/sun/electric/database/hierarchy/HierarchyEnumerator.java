@@ -28,6 +28,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -82,9 +83,9 @@ public final class HierarchyEnumerator {
 		return null;
 	}
 
-	private Map numberNets(Cell cell, Map portNmToNetIDs, CellInfo info) {
+	private Map numberNets(Netlist netlist, Map portNmToNetIDs, CellInfo info) {
 		Map netToNetID = new HashMap();
-		for (Iterator netIt = cell.getNetworks(); netIt.hasNext();) {
+		for (Iterator netIt = netlist.getNetworks(); netIt.hasNext();) {
 			JNetwork net = (JNetwork) netIt.next();
 
 			Integer netID = netIDFromExports(net, portNmToNetIDs);
@@ -100,8 +101,8 @@ public final class HierarchyEnumerator {
 		return netToNetID;
 	}
 
-	private Integer[] getNetIDs(Nodable ni, PortProto pp, Map netToNetID) {
-		JNetwork net = ni.getNetwork(pp, 0);
+	private Integer[] getNetIDs(Netlist netlist, Nodable ni, PortProto pp, Map netToNetID) {
+		JNetwork net = netlist.getNetwork(ni, pp, 0);
 		error(net == null,
 			  "Network=null! Did you call Cell.rebuildNetworks()?");
 		Integer netID = (Integer) netToNetID.get(net);
@@ -111,11 +112,11 @@ public final class HierarchyEnumerator {
 		return new Integer[] { netID };
 	}
 
-	private Map buildPortMap(Nodable ni, Map netToNetID) {
+	private Map buildPortMap(Netlist netlist, Nodable ni, Map netToNetID) {
 		Map portNmToNetIDs = new HashMap();
 		for (Iterator it = ni.getProto().getPorts(); it.hasNext();) {
 			PortProto pp = (PortProto) it.next();
-			Integer[] netIDs = getNetIDs(ni, pp, netToNetID);
+			Integer[] netIDs = getNetIDs(netlist, ni, pp, netToNetID);
 			portNmToNetIDs.put(pp.getProtoName(), netIDs);
 		}
 		return portNmToNetIDs;
@@ -145,34 +146,34 @@ public final class HierarchyEnumerator {
 	// portNmToNetIDs is a map from an Export name to an array of
 	// NetIDs.
 	private void enumerateCell(Nodable parentInst,	Cell cell,
-	                           VarContext context, Map portNmToNetIDs,
+	                           VarContext context, Netlist netlist, Map portNmToNetIDs,
 		                       AffineTransform xformToRoot,
 		                       CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 		int firstNetID = nextNetID;
-		Map netToNetID = numberNets(cell, portNmToNetIDs, info);
+		Map netToNetID = numberNets(netlist, portNmToNetIDs, info);
 		int lastNetIDPlusOne = nextNetID;
 		cellCnt++;
-		info.init(parentInst, cell,	context, netToNetID, portNmToNetIDs,
+		info.init(parentInst, cell,	context, netlist, netToNetID, portNmToNetIDs,
 			      xformToRoot, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
 
-		for (Iterator it = Network.getNodables(cell); it.hasNext();) {
+		for (Iterator it = netlist.getNodables(); it.hasNext();) {
 			Nodable ni = (Nodable)it.next();
 
 			instCnt++;
 			boolean descend = visitor.visitNodeInst(ni, info);
 			NodeProto np = ni.getProto();
 			if (descend && np instanceof Cell && !np.isIcon()) {
-				Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
+				Map portNmToNetIDs2 = buildPortMap(netlist, ni, netToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
 				if (ni instanceof NodeInst) {
 					xformToRoot2 = new AffineTransform(xformToRoot);
 					xformToRoot2.concatenate(((NodeInst)ni).rkTransformOut());
 				}
-				enumerateCell(ni, (Cell)np, context.push(ni), portNmToNetIDs2,
+				enumerateCell(ni, (Cell)np, context.push(ni), netlist.getNetlist(ni), portNmToNetIDs2,
 					xformToRoot2, info);
 			}
 		}
@@ -209,10 +210,10 @@ public final class HierarchyEnumerator {
 
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
-	private void doIt(Cell root, VarContext context, Visitor visitor) {
+	private void doIt(Cell root, VarContext context, Netlist netlist, Visitor visitor) {
 		this.visitor = visitor;
 		if (context == null) context = VarContext.globalContext;
-		enumerateCell(null,	root, context, new HashMap(),
+		enumerateCell(null,	root, context, netlist, new HashMap(),
 		              new AffineTransform(), null);
 
 		System.out.println("A total of: " + nextNetID + " nets were numbered");
@@ -329,6 +330,7 @@ public final class HierarchyEnumerator {
 	public static class CellInfo {
 		private Cell cell;
 		private VarContext context;
+		private Netlist netlist;
 		private Map netToNetID;
 		private Map exportNmToNetIDs;
 		private AffineTransform xformToRoot;
@@ -337,13 +339,15 @@ public final class HierarchyEnumerator {
 		private Map netIdToNetDesc;
 
 		// package private
-		void init(Nodable parentInst, Cell cell, VarContext context, 
+		void init(Nodable parentInst, Cell cell, VarContext context,
+			      Netlist netlist,
 		          Map netToNetID, Map exportNmToNetIDs, 
 				  AffineTransform xformToRoot, Map netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
 			this.context = context;
+			this.netlist = netlist;
 			this.netToNetID = netToNetID;
 			this.exportNmToNetIDs = exportNmToNetIDs;
 			this.xformToRoot = xformToRoot;
@@ -360,6 +364,9 @@ public final class HierarchyEnumerator {
 		/** The VarContext to use for evaluating all variables in the
 		 * current Cell. */
 		public final VarContext getContext() {return context;}
+
+		/** The Netlist of the current Cell. */
+		public final Netlist getNetlist() {return netlist;}
 
 		/** Get the CellInfo for the current Cell's parent.  If the
 		 * current Cell is the root then return null. */
@@ -494,8 +501,10 @@ public final class HierarchyEnumerator {
 	public static void enumerateCell(
 		Cell root,
 		VarContext context,
+		Netlist netlist,
 		Visitor visitor) {
-		(new HierarchyEnumerator()).doIt(root, context, visitor);
+		if (netlist == null) netlist = Network.getUserNetlist(root);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor);
 	}
 
     /**
