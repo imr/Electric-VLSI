@@ -778,14 +778,15 @@ try {
             String libName = lib.getName();
             if (lib.getLibFile() == null) continue; // Clipboard
             String fullName = lib.getLibFile().getFile();
-            String oldName = "../../data/"+testpath+"/"+libName;
-            String newName = "tmp/sport/"+libName;
+            String oldName = "../../data/"+testpath+"/"+libName+".jelib";
+            String newName = "tmp/sport/"+libName+".jelib";
             FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
     job.performTask();
-            Exec e = new Exec("diff " + oldName + " " + newName, null, dir, outputStream, errStream);
+            Exec e = new Exec("cmd . /usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
             e.start();
     outputStream.flush();
             errStream.flush();
+            //Runtime.getRuntime().exec("cmd /c /usr/bin/diff " + oldName + " " + newName + " >> gilda.log" );
         }
             outputStream.close();
     errStream.close();
