@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aq: *********************************
 
+IMP: (11/22/04, GVG) Ports for pure primitive nodes will grown in size as the nodes.
+
 BUG: (11/22/04, GVG) Extending search area in DRC for notch checking otherwise it doesn't find points along edges.
 FIX: In Quick.lookForCrossPolygons(), bounding box has been extended.
 
