@@ -52,7 +52,7 @@ public class Version implements Comparable
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.01aj";
+	private static final String CURRENT = "8.01ak";
     private static final String ROOTARNAME = "electric";
 
 	private final String version;
