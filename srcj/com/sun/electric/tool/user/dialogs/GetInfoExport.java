@@ -197,7 +197,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		{
 			Variable var = pp.getVar(Export.EXPORT_REFERENCE_NAME);
 			if (var != null)
-				initialRefName = var.describe(-1, -1);
+				initialRefName = var.describe(-1);
 			refName.setEditable(true);
 		} else
 		{

@@ -2920,7 +2920,7 @@ public class MoCMOS extends Technology
 		var = ni.getVar(Schematics.ATTR_WIDTH);
 		if (var != null)
 		{
-			double requestedWid = TextUtils.atof(var.getPureValue(-1, -1));
+			double requestedWid = TextUtils.atof(var.getPureValue(-1));
 			if (requestedWid > activeWid)
 			{
 				System.out.println("Warning: cell " + ni.getParent().describe() + ", node " +

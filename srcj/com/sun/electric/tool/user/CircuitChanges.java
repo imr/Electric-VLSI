@@ -1801,7 +1801,20 @@ public class CircuitChanges
 
 	public static void renameCellInJob(Cell cell, String newName)
 	{
-		RenameCell job = new RenameCell(cell, newName);
+		// see if the rename should also regroup
+		Cell.CellGroup newGroup = null;
+		for(Iterator it = cell.getLibrary().getCells(); it.hasNext(); )
+		{
+			Cell oCell = (Cell)it.next();
+			if (oCell.getName().equalsIgnoreCase(newName) && oCell.getCellGroup() != cell.getCellGroup())
+			{
+				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+					"Also place the cell into the " + oCell.getCellGroup().getName() + " group?");
+				if (response == JOptionPane.YES_OPTION) newGroup = oCell.getCellGroup();
+				break;
+			}
+		}
+		RenameCell job = new RenameCell(cell, newName, newGroup);
 	}
 
 	/**
@@ -1809,20 +1822,26 @@ public class CircuitChanges
 	 */
 	private static class RenameCell extends Job
 	{
-		Cell cell;
-		String newName;
+		private Cell cell;
+		private String newName;
+		private Cell.CellGroup newGroup;
 
-		protected RenameCell(Cell cell, String newName)
+		protected RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
 		{
 			super("Rename Cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
+			this.newGroup = newGroup;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			cell.rename(newName);
+			if (newGroup != null)
+			{
+				cell.setCellGroup(newGroup);
+			}
 			return true;
 		}
 	}
@@ -4847,7 +4866,7 @@ public class CircuitChanges
 				// parameter not normally visible: make it invisible if it has the default value
 				if (newVar.isDisplay())
 				{
-					if (var.describe(-1, -1).equals(newVar.describe(-1, -1)))
+					if (var.describe(-1).equals(newVar.describe(-1)))
 					{
 						newVar.setDisplay(false);
 					}

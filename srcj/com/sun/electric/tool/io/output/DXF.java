@@ -206,7 +206,7 @@ public class DXF extends Output
 			// determine layer name for this node
 			String layerName = "UNKNOWN";
 			Variable var = ni.getVar(DXF_LAYER_KEY);
-			if (var != null) layerName = var.getPureValue(-1, -1); else
+			if (var != null) layerName = var.getPureValue(-1); else
 			{
 				// examine technology for proper layer name
 				if (ni.getProto() instanceof PrimitiveNode)

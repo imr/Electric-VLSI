@@ -137,7 +137,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 					}
 				} else
 				{
-					initialText = var.getPureValue(-1, -1);
+					initialText = var.getPureValue(-1);
 				}
 				description = var.getFullDescription(owner);
 			} else
@@ -331,7 +331,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         evaluation.setText(" ");
         if (cti.var != null) {
             if (cti.var.isCode()) {
-                evaluation.setText("Evaluation: " + cti.var.describe(-1, -1));
+                evaluation.setText("Evaluation: " + cti.var.describe(-1));
             }
         }
 
@@ -428,7 +428,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				if (pt.y > highY) highY = pt.y;
 			}
 		}
-		if (cti.td.getDispPart() != TextDescriptor.DispPos.VALUE)
+		if (cti.td.getDispPart() != TextDescriptor.DispPos.VALUE && (cti.var == null || cti.var.getLength() == 1))
 		{
 			GlyphVector gv = curWnd.getGlyphs(cti.initialText, theFont);
 			Rectangle2D glyphBounds = gv.getVisualBounds();
@@ -484,7 +484,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			this.wnd = wnd;
 
 			// make the field bigger
-			if (cti.isMultiLineCapable())
+			if (cti.isMultiLineCapable() || (cti.var != null && cti.var.getLength() > 1))
 			{
 				EIPEditorPane ep = new EIPEditorPane(cti.initialText);
 				tc = ep;

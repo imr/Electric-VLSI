@@ -1471,6 +1471,7 @@ public class JELIB extends LibraryFiles
 						rot = TextDescriptor.Rotation.ROT270;
 						j++;
 					}
+					td.setRotation(rot);
 					break;
 				case 'H':		// inheritable
 					td.setInherit(true);

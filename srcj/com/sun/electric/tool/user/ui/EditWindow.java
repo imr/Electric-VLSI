@@ -1375,7 +1375,7 @@ public class EditWindow extends JPanel
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
-				findAllMatches(null, var, -1, null, var.getPureValue(-1, -1), 
+				findAllMatches(null, var, -1, null, var.getPureValue(-1), 
 							   foundInCell, search, caseSensitive, regExp, 
 							   whatVar);
 			}

@@ -124,7 +124,7 @@ public class MOSSIM extends Topology
 			Variable var = ai.getVar(MOSSIM_STRENGTH_KEY);
 			if (var == null) continue;
 			Network net = netList.getNetwork(ai, 0);
-			strengthMap.put(net, var.getPureValue(-1,-1));
+			strengthMap.put(net, var.getPureValue(-1));
 		}
 
 		// mark all ports that are equivalent
@@ -213,7 +213,7 @@ public class MOSSIM extends Topology
 				Variable var = ni.getVar(MOSSIM_STRENGTH_KEY);
 				if (var != null)
 				{
-					infstr.append(" " + var.getPureValue(-1, -1));
+					infstr.append(" " + var.getPureValue(-1));
 				} else
 				{
 					infstr.append(" 2");

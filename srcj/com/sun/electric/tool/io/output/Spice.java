@@ -540,7 +540,7 @@ public class Spice extends Topology
 				{
 					Variable paramVar = (Variable)it.next();
 					if (!paramVar.getTextDescriptor().isParam()) continue;
-					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1, -1));
+					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 				}
 			}
             // Writing M factor

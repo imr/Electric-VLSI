@@ -112,7 +112,7 @@ public class FastHenryArc extends EDialog
 			ArcInst oAi = (ArcInst)it.next();
 			Variable var = oAi.getVar(FastHenry.GROUP_NAME_KEY);
 			if (var == null) continue;
-			groupNames.add(var.getPureValue(-1, -1));
+			groupNames.add(var.getPureValue(-1));
 		}
 		groupsList = new ArrayList();
 		for(Iterator it = groupNames.iterator(); it.hasNext(); )

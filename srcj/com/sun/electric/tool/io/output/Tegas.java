@@ -548,11 +548,11 @@ public class Tegas extends Topology
 
 		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
 		String str1 = "/1,";
-		if (var != null) str1 = "/" + var.getPureValue(-1, -1) + ",";
+		if (var != null) str1 = "/" + var.getPureValue(-1) + ",";
 	
 		var = ni.getVar(Simulation.FALL_DELAY_KEY);
 		String str2 = "/1,";
-		if (var != null) str2 = "/" + var.getPureValue(-1, -1) + ",";
+		if (var != null) str2 = "/" + var.getPureValue(-1) + ",";
 		return str1 + str2;
 	}
 

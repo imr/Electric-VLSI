@@ -180,10 +180,10 @@ public class Pads extends Output
 			Nodable pNo = info.getParentInst();
 			HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
 			if (parentInfo != null && pNo != null) context = parentInfo.getUniqueNodableName(pNo, ".") + ".";
-			String nodeName = context + var.getPureValue(-1, -1);
+			String nodeName = context + var.getPureValue(-1);
 			String pkgType = no.getProto().getName();
 			Variable pkgName = no.getVar(PKG_TYPE_KEY);
-			if (pkgName != null) pkgType = pkgName.getPureValue(-1, -1);
+			if (pkgName != null) pkgType = pkgName.getPureValue(-1);
 			printWriter.println(nodeName + "  " + pkgType + "@" + pkgType);
 
 			// save all networks on this node for later
@@ -193,10 +193,10 @@ public class Pads extends Output
 				String pName = null;
 				PortInst pi = no.getNodeInst().findPortInstFromProto(pp);
 				Variable pVar = pi.getVar(PIN_KEY);
-				if (pVar != null) pName = pVar.getPureValue(-1, -1); else
+				if (pVar != null) pName = pVar.getPureValue(-1); else
 				{
 					pVar = pp.getVar(PIN_KEY);
-					if (pVar != null) pName = pVar.getPureValue(-1, -1);
+					if (pVar != null) pName = pVar.getPureValue(-1);
 				}
 				if (pName == null) continue;
 				int [] ids = info.getPortNetIDs(no, pp);

@@ -361,7 +361,7 @@ public class Variable
 	 */
 	public static String betterVariableName(String name)
 	{
-		/* handle standard variable names */
+		// handle standard variable names
 		if (name.equals("ARC_name")) return "Arc Name";
 		if (name.equals("ARC_radius")) return "Arc Radius";
 		if (name.equals("ART_color")) return "Color";
@@ -412,40 +412,33 @@ public class Variable
 	 */
 	public String describe(VarContext context, ElectricObject eobj)
 	{
-		return describe(-1, -1, context, eobj);
+		return describe(-1, context, eobj);
 	}
 
     /** 
      * Return a description of this Variable without any context
      * or helper object info
      */
-    public String describe(int aindex, int purpose)
+    public String describe(int aindex)
     {
-        return describe(aindex, purpose, VarContext.globalContext, null);
+        return describe(aindex, VarContext.globalContext, null);
     }
 
 	/**
 	 * Method to return a String describing this Variable.
 	 * @param aindex if negative, print the entire array.
-	 * @param purpose if zero, the conversion is for human reading and should be easy to understand.
-	 * If positive, the conversion is for machine reading and should be easy to parse.
-	 * If negative, the conversion is for parameter substitution and should be easy to understand
-	 * but not hard to parse (a combination of the two).
 	 * @param context the VarContext for this Variable.
 	 * @param eobj the ElectricObject on which this Variable resides.
 	 * @return a String desribing this Variable.
 	 */
-	public String describe(int aindex, int purpose, VarContext context, ElectricObject eobj)
+	public String describe(int aindex, VarContext context, ElectricObject eobj)
 	{
 		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
 		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
-		String whichIndex = "";
-
         if (isCode())
 		{
-			/* special case for code: it is a string, the type applies to the result */
-			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
+			// special case for code: it is a string, the type applies to the result
             if (context == null) context = VarContext.globalContext;
             Object val = null;
             try {
@@ -454,19 +447,14 @@ public class Variable
                 val = e.getMessage();
             }
             if (val == null) val = "?";
-            returnVal.append(makeStringVar(val, purpose, units));
+            returnVal.append(makeStringVar(val, units));
         } else
 		{
-			returnVal.append(getPureValue(aindex, purpose));
-			if (getObject() instanceof Object[] && aindex >= 0)
-			{
-				/* normal array indexing */
-				whichIndex = "[" + aindex + "]";
-			}
+			returnVal.append(getPureValue(aindex));
 		}
-        if (dispPos == TextDescriptor.DispPos.NAMEVALUE)
+        if (dispPos == TextDescriptor.DispPos.NAMEVALUE && aindex < 0)
 		{
-			return this.getTrueName() + whichIndex + "=" + returnVal.toString();
+			return this.getTrueName() + "=" + returnVal.toString();
 		}
 		return returnVal.toString();
 	}
@@ -474,53 +462,48 @@ public class Variable
 	/**
 	 * Method to convert this Variable to a String without any evaluation of code.
 	 * @param aindex if negative, print the entire array.
-	 * @param purpose if zero, the conversion is for human reading and should be easy to understand.
-	 * If positive, the conversion is for machine reading and should be easy to parse.
-	 * If negative, the conversion is for parameter substitution and should be easy to understand
-	 * but not hard to parse (a combination of the two).
 	 * @return a String desribing this Variable.
 	 */
-	public String getPureValue(int aindex, int purpose)
+	public String getPureValue(int aindex)
 	{
 		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
         Object thisAddr = getObject();
 		if (thisAddr instanceof Object[])
 		{
-			/* compute the array length */
+			// compute the array length
 			Object [] addrArray = (Object [])thisAddr;
 			int len = addrArray.length;
 
-			/* if asking for a single entry, get it */
+			// if asking for a single entry, get it
 			if (aindex >= 0)
 			{
-				/* normal array indexing */
+				// normal array indexing
 				if (aindex < len)
-					returnVal.append(makeStringVar(addrArray[aindex], purpose, units));
+					returnVal.append(makeStringVar(addrArray[aindex], units));
 			} else
 			{
-				/* in an array, quote strings */
-				if (purpose < 0) purpose = 0;
+				// in an array, quote strings
 				if (len > 1) returnVal.append("[");
 				for(int i=0; i<len; i++)
 				{
 					if (i != 0) returnVal.append(",");
-					returnVal.append(makeStringVar(addrArray[i], purpose, units));
+					returnVal.append(makeStringVar(addrArray[i], units));
 				}
 				if (len > 1) returnVal.append("]");
 			}
 		} else
 		{
-			returnVal.append(makeStringVar(thisAddr, purpose, units));
+			returnVal.append(makeStringVar(thisAddr, units));
 		}
 		return returnVal.toString();
 	}
 
 	/**
-	 * Method to convert object "addr" to a string, given a purpose and a set of units.
+	 * Method to convert object "addr" to a string, given a set of units.
 	 * For completion of the method, the units should be treated as in "makeStringVar()".
 	 */
-	private String makeStringVar(Object addr, int purpose, TextDescriptor.Unit units)
+	private String makeStringVar(Object addr, TextDescriptor.Unit units)
 	{
 		if (addr instanceof Integer)
 		{

@@ -952,7 +952,7 @@ public class Highlight
         else if (type == Type.TEXT) {
             if (var != null) {
                 desc.append(", var: ");
-                desc.append(var.describe(-1, -1));
+                desc.append(var.describe(-1));
             }
             if (name != null) {
                 desc.append(", name: ");

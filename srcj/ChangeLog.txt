@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01af: *********************************
 
+IMP: (10/28/04, SMR) Added SUE input.
+
+BUG: (10/28/04, SMR) Rotated text is not read back from JELIB files.
+FIX: Rotation amounts are now set properly.
+
+IMP: (10/28/04, SMR) When a cell is renamed and it appears to fall into an existing cell group,
+     the user is asked if it should also be re-grouped.
+
+IMP: (10/28/04, SMR) In-place text editing can now handle multi-line parameters.
+
 BUG: (10/27/04, SMR) Variables on cell instances are not offset properly.
 FIX: Use untransformed node bounds when computing text location.
 

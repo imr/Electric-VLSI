@@ -245,7 +245,7 @@ public class Sim extends Output
 				{
 					Network net = netList.getNetwork(ai, 0);
 					int globalNetNum = ci.getNetID(net);
-					printWriter.println("A " + makeNodeName(globalNetNum, format) + " Sim:" + var.getPureValue(-1, -1));
+					printWriter.println("A " + makeNodeName(globalNetNum, format) + " Sim:" + var.getPureValue(-1));
 				}
 			}
 		}
@@ -284,7 +284,7 @@ public class Sim extends Output
 					// see if there is an attribute mentioned on this node
 					String extra = "";
 					Variable var = ni.getVar(COSMOS_ATTRIBUTE_KEY);
-					if (var != null) extra = " g=Sim:" + var.getPureValue(-1, -1);
+					if (var != null) extra = " g=Sim:" + var.getPureValue(-1);
 					extra += " " + TextUtils.formatDouble(ni.getAnchorCenterX()) + " " + TextUtils.formatDouble(ni.getAnchorCenterY());
 
 					printWriter.println(tType + " " + makeNodeName(gate, format) + " " + makeNodeName(source, format) +

@@ -112,7 +112,7 @@ public abstract class Geometric extends ElectricObject
 					if (nodeBounds.getMinY() > searchBounds.getMaxY()) continue;
 					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
 
-					/* look down the hierarchy */
+					// look down the hierarchy
 					if (depth >= MAXDEPTH-1)
 					{
 						System.out.println("R-trees: search too deep");
@@ -123,7 +123,7 @@ public abstract class Geometric extends ElectricObject
 					position[depth] = 0;
 				} else
 				{
-					/* pop up the hierarchy */
+					// pop up the hierarchy
 					if (depth == 0) break;
 					depth--;
 				}

@@ -619,7 +619,7 @@ public class Silos extends Topology
 	private String getNodeInstName(NodeInst ni)
 	{
 		Variable var = ni.getVar(SILOS_NODE_NAME_KEY);
-		if (var != null) return var.describe(-1, -1);
+		if (var != null) return var.describe(-1);
 
 		String name = ni.getName();
 		if (name.length() > 0)
@@ -704,7 +704,7 @@ public class Silos extends Topology
 	private String getRiseTime(NodeInst ni)
 	{
 		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
-		if (var != null) return var.describe(-1, -1);
+		if (var != null) return var.describe(-1);
 		return "";
 	}
 
@@ -720,7 +720,7 @@ public class Silos extends Topology
 	private String getFallTime(NodeInst ni)
 	{
 		Variable var = ni.getVar(Simulation.FALL_DELAY_KEY);
-		if (var != null) return var.describe(-1, -1);
+		if (var != null) return var.describe(-1);
 		return "";
 	}
 

@@ -83,7 +83,7 @@ public class FastHenry extends Output
 			// get the group membership
 			groupName = null;
 			Variable var = ai.getVar(GROUP_NAME_KEY);
-			if (var != null) groupName = var.getPureValue(-1, -1);
+			if (var != null) groupName = var.getPureValue(-1);
 
 			// get the arc thickness
 			thickness = -1;
@@ -91,18 +91,18 @@ public class FastHenry extends Output
 			if (var != null)
 			{
 				if (var.getObject() instanceof Integer) thickness = ((Integer)var.getObject()).intValue() / tech.getScale(); else
-					thickness = TextUtils.atof(var.getPureValue(-1, -1));
+					thickness = TextUtils.atof(var.getPureValue(-1));
 			}
 
 			// get the width subdivisions
 			widthSubdivisions = -1;
 			var = ai.getVar(WIDTH_SUBDIVS_KEY);
-			if (var != null) widthSubdivisions = TextUtils.atoi(var.getPureValue(-1, -1));
+			if (var != null) widthSubdivisions = TextUtils.atoi(var.getPureValue(-1));
 
 			// get the height subdivisions
 			heightSubdivisions = -1;
 			var = ai.getVar(HEIGHT_SUBDIVS_KEY);
-			if (var != null) heightSubdivisions = TextUtils.atoi(var.getPureValue(-1, -1));
+			if (var != null) heightSubdivisions = TextUtils.atoi(var.getPureValue(-1));
 
 			// get the Z height at the head of the arc
 			zHead = -1;
@@ -110,7 +110,7 @@ public class FastHenry extends Output
 			if (var != null)
 			{
 				if (var.getObject() instanceof Integer) zHead = ((Integer)var.getObject()).intValue() / tech.getScale(); else
-					zHead = TextUtils.atof(var.getPureValue(-1, -1));
+					zHead = TextUtils.atof(var.getPureValue(-1));
 			}
 
 			// get the Z height at the tail of the arc
@@ -119,7 +119,7 @@ public class FastHenry extends Output
 			if (var != null)
 			{
 				if (var.getObject() instanceof Integer) zTail = ((Integer)var.getObject()).intValue() / tech.getScale(); else
-					zTail = TextUtils.atof(var.getPureValue(-1, -1));
+					zTail = TextUtils.atof(var.getPureValue(-1));
 			}
 
 			// get the default Z height

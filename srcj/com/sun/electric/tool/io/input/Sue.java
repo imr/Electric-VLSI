@@ -25,54 +25,44 @@
 */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Layer;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.LineNumberReader;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.io.InputStream;
 import java.awt.geom.Rectangle2D;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class reads files in Sue files.
@@ -83,15 +73,15 @@ public class Sue extends Input
 
 	private static class SueExtraWire
 	{
-		String   portname;
-		double  xoffset;
-		double  yoffset;
+		private String  portName;
+		private double  xOffset;
+		private double  yOffset;
 
-		private SueExtraWire(String portname, double xoffset, double yoffset)
+		private SueExtraWire(String portName, double xOffset, double yOffset)
 		{
-			this.portname = portname;
-			this.xoffset = xoffset;
-			this.yoffset = yoffset;
+			this.portName = portName;
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
 		}
 	};
 
@@ -138,28 +128,28 @@ public class Sue extends Input
 
 	private static class SueEquiv
 	{
-		String                 suename;
-		NodeProto              intproto;
-		boolean                netateoutput;
-		int                    rotation;
-		boolean                transpose;
-		double                 xoffset;
-		double                 yoffset;
-		PrimitiveNode.Function detailbits;
-		SueExtraWire        [] extrawires;
+		private String                 sueName;
+		private NodeProto              intProto;
+		private boolean                netateOutput;
+		private int                    rotation;
+		private boolean                transpose;
+		private double                 xOffset;
+		private double                 yOffset;
+		private PrimitiveNode.Function detailFunct;
+		private SueExtraWire        [] extraWires;
 
-		private SueEquiv(String suename, NodeProto intproto, boolean netateoutput, int rotation, boolean transpose,
-			double xoffset, double yoffset, PrimitiveNode.Function detailbits, SueExtraWire [] extrawires)
+		private SueEquiv(String sueName, NodeProto intProto, boolean netateOutput, int rotation, boolean transpose,
+			double xOffset, double yOffset, PrimitiveNode.Function detailFunct, SueExtraWire [] extraWires)
 		{
-			this.suename = suename;
-			this.intproto = intproto;
-			this.netateoutput = netateoutput;
+			this.sueName = sueName;
+			this.intProto = intProto;
+			this.netateOutput = netateOutput;
 			this.rotation = rotation;
 			this.transpose = transpose;
-			this.xoffset = xoffset;
-			this.yoffset = yoffset;
-			this.detailbits = detailbits;
-			this.extrawires = extrawires;
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
+			this.detailFunct = detailFunct;
+			this.extraWires = extraWires;
 		}
 	};
 
@@ -203,9 +193,9 @@ public class Sue extends Input
 
 	private static class SueWire
 	{
-		Point2D  [] pt;
-		PortInst [] pi;
-		ArcProto    proto;
+		private Point2D  [] pt;
+		private PortInst [] pi;
+		private ArcProto    proto;
 
 		private SueWire()
 		{
@@ -218,8 +208,8 @@ public class Sue extends Input
 
 	private static class SueNet
 	{
-		Point2D  pt;
-		String   label;
+		private Point2D  pt;
+		private String   label;
 	};
 
 	private String io_suelastline;
@@ -240,34 +230,34 @@ public class Sue extends Input
 		io_suedirectories = new ArrayList();
 
 		// determine the current directory
-		String topdirname = TextUtils.getFilePath(lib.getLibFile());
-		io_suedirectories.add(topdirname);
+		String topDirName = TextUtils.getFilePath(lib.getLibFile());
+		io_suedirectories.add(topDirName);
 
 		// find all subdirectories that start with "suelib_" and include them in the search
-		File topDir = new File(topdirname);
+		File topDir = new File(topDirName);
 		String [] fileList = topDir.list();
 		for(int i=0; i<fileList.length; i++)
 		{
 			if (!fileList[i].startsWith("suelib_")) continue;
-			String dirname = topdirname + fileList[i];
-			if (!dirname.endsWith("/")) dirname += "/";
-			File subDir = new File(dirname);
-			if (subDir.isDirectory()) io_suedirectories.add(dirname);
+			String dirName = topDirName + fileList[i];
+			if (!dirName.endsWith("/")) dirName += "/";
+			File subDir = new File(dirName);
+			if (subDir.isDirectory()) io_suedirectories.add(dirName);
 		}
 
 		// see if the current directory is inside of a SUELIB
-		int lastSep = topdirname.lastIndexOf('/');
-		if (lastSep >= 0 && topdirname.substring(lastSep+1).startsWith("suelib_"))
+		int lastSep = topDirName.lastIndexOf('/');
+		if (lastSep >= 0 && topDirName.substring(lastSep+1).startsWith("suelib_"))
 		{
-			String upDirName = topdirname.substring(0, lastSep);
+			String upDirName = topDirName.substring(0, lastSep);
 			File upperDir = new File(upDirName);
 			String [] upFileList = upperDir.list();
 			for(int i=0; i<upFileList.length; i++)
 			{
 				if (!upFileList[i].startsWith("suelib_")) continue;
-				String dirname = upDirName + upFileList[i];
-				File subDir = new File(dirname);
-				if (subDir.isDirectory()) io_suedirectories.add(dirname);
+				String dirName = upDirName + upFileList[i];
+				File subDir = new File(dirName);
+				if (subDir.isDirectory()) io_suedirectories.add(dirName);
 			}
 		}
 
@@ -399,21 +389,21 @@ public class Sue extends Input
 
 				// first check for special names
 				NodeProto proto = null;
-				double xoff = 0, yoff = 0;
+				double xOff = 0, yOff = 0;
 				PortCharacteristic type = PortCharacteristic.UNKNOWN;
-				double xshrink = 0, yshrink = 0;
-				boolean invertoutput = false;
+				double xShrink = 0, yShrink = 0;
+				boolean invertOutput = false;
 				int rotation = 0;
 				boolean transpose = false;
-				PrimitiveNode.Function detailbits = null;
-				SueExtraWire [] extrawires = null;
+				PrimitiveNode.Function detailFunct = null;
+				SueExtraWire [] extraWires = null;
 				if (keyword1.equalsIgnoreCase("inout"))
 				{
 					proto = Schematics.tech.offpageNode;
 					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
-					xoff = offPt.getX();   yoff = offPt.getY();
+					xOff = offPt.getX();   yOff = offPt.getY();
 					type = PortCharacteristic.BIDIR;
 				} else if (keyword1.equalsIgnoreCase("input"))
 				{
@@ -421,7 +411,7 @@ public class Sue extends Input
 					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(-2, 0);
 					trans.transform(offPt, offPt);
-					xoff = offPt.getX();   yoff = offPt.getY();
+					xOff = offPt.getX();   yOff = offPt.getY();
 					type = PortCharacteristic.IN;
 				} else if (keyword1.equalsIgnoreCase("output"))
 				{
@@ -429,7 +419,7 @@ public class Sue extends Input
 					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
-					xoff = offPt.getX();   yoff = offPt.getY();
+					xOff = offPt.getX();   yOff = offPt.getY();
 					type = PortCharacteristic.OUT;
 				} else if (keyword1.equalsIgnoreCase("rename_net"))
 				{
@@ -446,7 +436,7 @@ public class Sue extends Input
 							AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 							Point2D offPt = new Point2D.Double(0, -2);
 							trans.transform(offPt, offPt);
-							xoff = offPt.getX();   yoff = offPt.getY();
+							xOff = offPt.getX();   yOff = offPt.getY();
 							proto = Schematics.tech.groundNode;
 							type = PortCharacteristic.GND;
 						}
@@ -459,31 +449,31 @@ public class Sue extends Input
 				} else if (keyword1.equalsIgnoreCase("join_net"))
 				{
 					proto = Schematics.tech.wireConNode;
-					xshrink = -2;
+					xShrink = -2;
 					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(1.25, 0);
 					trans.transform(offPt, offPt);
-					xoff = offPt.getX();   yoff = offPt.getY();
+					xOff = offPt.getX();   yOff = offPt.getY();
 				}
 
 				// now check for internal associations to known primitives
 				if (proto == null)
 				{
-					SueEquiv [] curequivs = io_sueequivs;
-					if (IOTool.isSueUses4PortTransistors()) curequivs = io_sueequivs4;
+					SueEquiv [] curEquivs = io_sueequivs;
+					if (IOTool.isSueUses4PortTransistors()) curEquivs = io_sueequivs4;
 					int i = 0;
-					for( ; i < curequivs.length; i++)
-						if (keyword1.equalsIgnoreCase(curequivs[i].suename)) break;
-					if (i < curequivs.length)
+					for( ; i < curEquivs.length; i++)
+						if (keyword1.equalsIgnoreCase(curEquivs[i].sueName)) break;
+					if (i < curEquivs.length)
 					{
-						proto = curequivs[i].intproto;
-						invertoutput = curequivs[i].netateoutput;
-						rotation = curequivs[i].rotation;
-						transpose = curequivs[i].transpose;
+						proto = curEquivs[i].intProto;
+						invertOutput = curEquivs[i].netateOutput;
+						rotation = curEquivs[i].rotation;
+						transpose = curEquivs[i].transpose;
 						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
-						Point2D offPt = new Point2D.Double(curequivs[i].xoffset, curequivs[i].yoffset);
+						Point2D offPt = new Point2D.Double(curEquivs[i].xOffset, curEquivs[i].yOffset);
 						trans.transform(offPt, offPt);
-						xoff = offPt.getX();   yoff = offPt.getY();
+						xOff = offPt.getX();   yOff = offPt.getY();
 
 						if (transpose)
 						{
@@ -495,8 +485,8 @@ public class Sue extends Input
 							parP.rot += rotation;
 							if (parP.rot >= 3600) parP.rot -= 3600;
 						}
-						detailbits = curequivs[i].detailbits;
-						extrawires = curequivs[i].extrawires;
+						detailFunct = curEquivs[i].detailFunct;
+						extraWires = curEquivs[i].extraWires;
 					}
 				}
 
@@ -513,12 +503,11 @@ public class Sue extends Input
 					{
 						Cell np = ((Cell)proto).iconView();
 						if (np != null) proto = np;
-						Rectangle2D bounds = ((Cell)proto).getBounds();
-						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
-						Point2D offPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-						trans.transform(offPt, offPt);
-//						xoff = offPt.getX();   yoff = offPt.getY();
-//System.out.println("Instance of "+proto.describe()+" is offset ("+xoff+","+yoff+")");
+//						Rectangle2D bounds = ((Cell)proto).getBounds();
+//						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
+//						Point2D offPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+//						trans.transform(offPt, offPt);
+//						xOff = offPt.getX();   yOff = offPt.getY();
 					}
 				}
 
@@ -542,47 +531,42 @@ public class Sue extends Input
 					wid = bounds.getWidth();
 					hei = bounds.getHeight();
 				}
-				wid -= xshrink;
-				hei -= yshrink;
+				wid -= xShrink;
+				hei -= yShrink;
 				if (parP.trn)
 				{
 					parP.rot = (parP.rot + 900) % 3600;
 					hei = -hei;
 				}
-				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xoff, parP.pt.getY() + yoff), wid, hei, cell,
-					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailbits));
+				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
+					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct));
 				if (ni == null) continue;
-				if (invertoutput) invertNodeOutput.add(ni);
+				if (invertOutput) invertNodeOutput.add(ni);
 				if (proto instanceof Cell && ((Cell)proto).isIcon())
 					ni.setExpanded();
 
 				// add any extra wires to the node
-				if (extrawires != null)
+				if (extraWires != null)
 				{
-					for(int i=0; i<extrawires.length; i++)
+					for(int i=0; i<extraWires.length; i++)
 					{
-						PortProto pp = proto.findPortProto(extrawires[i].portname);
+						PortProto pp = proto.findPortProto(extraWires[i].portName);
 						if (pp == null) continue;
 						PortInst pi = ni.findPortInstFromProto(pp);
 						Poly portPoly = pi.getPoly();
 						double x = portPoly.getCenterX();
 						double y = portPoly.getCenterY();
-						AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
-						double px = extrawires[i].xoffset;
-						double py = extrawires[i].yoffset;
-						Point2D dPt = new Point2D.Double(px, py);
+						AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutYAxis(), ni.isMirroredAboutXAxis());
+						Point2D dPt = new Point2D.Double(extraWires[i].xOffset, extraWires[i].yOffset);
 						trans.transform(dPt, dPt);
-						double dx = dPt.getX();
-						double dy = dPt.getY();
 						PrimitiveNode wirePin = Schematics.tech.wirePinNode;
-						px = wirePin.getDefWidth();
-						py = wirePin.getDefHeight();
-						double pinx = x + dx;
-						double piny = y + dy;
+						double pinx = x + dPt.getX();
+						double piny = y + dPt.getY();
 						PortInst ppi = io_suefindpinnode(pinx, piny, cell);
 						if (ppi == null)
 						{
-							NodeInst nni = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(pinx, piny), px, py, cell);
+							NodeInst nni = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(pinx, piny),
+								wirePin.getDefWidth(), wirePin.getDefHeight(), cell);
 							if (nni == null) continue;
 							ppi = nni.getOnlyPortInst();
 						}
@@ -623,7 +607,7 @@ public class Sue extends Input
 				}
 
 				// count the variables
-				int varcount = 0;
+				int varCount = 0;
 				for(int i=2; i<count; i += 2)
 				{
 					String keyword = (String)keywords.get(i);
@@ -632,12 +616,12 @@ public class Sue extends Input
 						keyword.equalsIgnoreCase("-orient") ||
 						keyword.equalsIgnoreCase("-type") ||
 						keyword.equalsIgnoreCase("-name")) continue;
-					varcount++;
+					varCount++;
 				}
 
 				// add variables
-				int varindex = 1;
-				double varoffset = ni.getYSize() / (varcount+1);
+				int varIndex = 1;
+				double varOffset = ni.getYSize() / (varCount+1);
 				for(int i=2; i<count; i += 2)
 				{
 					String keyword = (String)keywords.get(i);
@@ -647,24 +631,21 @@ public class Sue extends Input
 						keyword.equalsIgnoreCase("-type") ||
 						keyword.equalsIgnoreCase("-name")) continue;
 
-					boolean varissize = false;
-					boolean halvesize = false;
-					boolean isparam = false;
+					boolean halveSize = false;
+					boolean isParam = false;
 					double xpos = 0, ypos = 0;
 					String sueVarName = null;
 					if (keyword.charAt(1) == 'w')
 					{
 						sueVarName = "ATTR_width";
-						varissize = true;
 						xpos = 2;
 						ypos = -4;
 					} else if (keyword.charAt(1) == 'l')
 					{
 						sueVarName = "ATTR_length";
-						varissize = true;
 						xpos = -2;
 						ypos = -4;
-						halvesize = true;
+						halveSize = true;
 					} else
 					{
 						sueVarName = "ATTR_" + keyword.substring(1);
@@ -675,14 +656,14 @@ public class Sue extends Input
 							break;
 						}
 						xpos = 0;
-						ypos = ni.getYSize() / 2 - varindex * varoffset;
-						isparam = true;
+						ypos = ni.getYSize() / 2 - varIndex * varOffset;
+						isParam = true;
 					}
-					Object newaddr = null;
+					Object newObject = null;
 					String pt = (String)keywords.get(i+1);
 					if (keyword.charAt(1) == 'W' && keyword.length() > 2)
 					{
-						newaddr = keyword.substring(2) + ":" + io_sueparseexpression(pt);
+						newObject = keyword.substring(2) + ":" + io_sueparseexpression(pt);
 					} else
 					{
 						int len = pt.length() - 1;
@@ -691,46 +672,46 @@ public class Sue extends Input
 							pt = pt.substring(0, len-1);
 							if (TextUtils.isANumber(pt))
 							{
-								newaddr = new Double(TextUtils.convertFromDistance(TextUtils.atof(pt), Technology.getCurrent(), TextUtils.UnitScale.MICRO));
+								newObject = new Double(TextUtils.convertFromDistance(TextUtils.atof(pt), Technology.getCurrent(), TextUtils.UnitScale.MICRO));
 							}
 							pt += "u";
 						}
-						if (newaddr == null && TextUtils.isANumber(pt))
+						if (newObject == null && TextUtils.isANumber(pt))
 						{
-							newaddr = new Integer(TextUtils.atoi(pt));
+							newObject = new Integer(TextUtils.atoi(pt));
 							if (pt.indexOf('.') >= 0 || pt.toLowerCase().indexOf('e') >= 0)
 							{
-								newaddr = new Double(TextUtils.atof(pt));
+								newObject = new Double(TextUtils.atof(pt));
 							}
 						}
-						if (newaddr == null)
+						if (newObject == null)
 						{
-							newaddr = io_sueparseexpression(pt);
+							newObject = io_sueparseexpression(pt);
 						}
 					}
 
 					// see if the string should be Java code
 					boolean makeJava = false;
-					if (newaddr instanceof String)
+					if (newObject instanceof String)
 					{
-						if (((String)newaddr).indexOf('@') >= 0 ||
-							((String)newaddr).indexOf("p(") >= 0) makeJava = true;
+						if (((String)newObject).indexOf('@') >= 0 ||
+							((String)newObject).indexOf("p(") >= 0) makeJava = true;
 					}
-					Variable var = ni.newVar(sueVarName, newaddr);
+					Variable var = ni.newVar(sueVarName, newObject);
 					if (var != null)
 					{
 						var.setDisplay(true);
 						if (makeJava) var.setCode(Variable.Code.JAVA);
-						varindex++;
+						varIndex++;
 						TextDescriptor td = var.getTextDescriptor();
 						td.setOff(xpos, ypos);
-						if (halvesize)
+						if (halveSize)
 						{
 							if (td.getSize().isAbsolute())
 								td.setAbsSize((int)(td.getSize().getSize() / 2)); else
 									td.setRelSize(td.getSize().getSize() / 2);
 						}
-						if (isparam)
+						if (isParam)
 						{
 							td.setParam(true);
 							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
@@ -744,7 +725,7 @@ public class Sue extends Input
 								var = cnp.getVar(sueVarName);
 								if (var == null)
 								{
-									var = cnp.newVar(sueVarName, newaddr);
+									var = cnp.newVar(sueVarName, newObject);
 									if (var != null)
 									{
 										td = var.getTextDescriptor();
@@ -778,9 +759,9 @@ public class Sue extends Input
 			{
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				NodeProto proto = Schematics.tech.busPinNode;
-				double px = proto.getDefWidth();
-				double py = proto.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(proto, parP.pt, px, py, cell);
+				double pX = proto.getDefWidth();
+				double pY = proto.getDefHeight();
+				NodeInst ni = NodeInst.makeInstance(proto, parP.pt, pX, pY, cell);
 				if (ni == null) continue;
 
 				PortInst pi = ni.getOnlyPortInst();
@@ -806,16 +787,16 @@ public class Sue extends Input
 					continue;
 				}
 				int start = 0;   int extent = 359;
-				double p1x = io_suemakex(TextUtils.atof((String)keywords.get(1)));
-				double p1y = io_suemakey(TextUtils.atof((String)keywords.get(2)));
-				double p2x = io_suemakex(TextUtils.atof((String)keywords.get(3)));
-				double p2y = io_suemakey(TextUtils.atof((String)keywords.get(4)));
+				double p1X = io_suemakex(TextUtils.atof((String)keywords.get(1)));
+				double p1Y = io_suemakey(TextUtils.atof((String)keywords.get(2)));
+				double p2X = io_suemakex(TextUtils.atof((String)keywords.get(3)));
+				double p2Y = io_suemakey(TextUtils.atof((String)keywords.get(4)));
 				if (((String)keywords.get(5)).equals("-start")) start = TextUtils.atoi((String)keywords.get(6));
 				if (((String)keywords.get(7)).equals("-extent")) extent = TextUtils.atoi((String)keywords.get(8));
 
-				double sX = Math.abs(p1x - p2x);
-				double sY = Math.abs(p1y - p2y);
-				Point2D ctr = new Point2D.Double((p1x+p2x)/2, (p1y+p2y)/2);
+				double sX = Math.abs(p1X - p2X);
+				double sY = Math.abs(p1Y - p2Y);
+				Point2D ctr = new Point2D.Double((p1X+p2X)/2, (p1Y+p2Y)/2);
 
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, ctr, sX, sY, cell);
 				if (ni == null) continue;
@@ -826,10 +807,10 @@ public class Sue extends Input
 						start += extent;
 						extent = -extent;
 					}
-					double rextent = extent+1;
-					rextent = rextent * Math.PI / 180.0;
+					double rExtent = extent+1;
+					rExtent = rExtent * Math.PI / 180.0;
 					double rstart = start * Math.PI / 180.0;
-					ni.setArcDegrees(rstart, rextent);
+					ni.setArcDegrees(rstart, rExtent);
 				}
 				continue;
 			}
@@ -856,28 +837,28 @@ public class Sue extends Input
 
 				// determine bounds of icon
 				Point2D firstPt = (Point2D)pointList.get(0);
-				double lx = firstPt.getX();
-				double hx = lx;
-				double ly = firstPt.getY();
-				double hy = ly;
+				double lX = firstPt.getX();
+				double hX = lX;
+				double lY = firstPt.getY();
+				double hY = lY;
 				for(int i=1; i<keyCount; i++)
 				{
 					Point2D nextPt = (Point2D)pointList.get(i);
-					if (nextPt.getX() < lx) lx = nextPt.getX();
-					if (nextPt.getX() > hx) hx = nextPt.getX();
-					if (nextPt.getY() < ly) ly = nextPt.getY();
-					if (nextPt.getY() > hy) hy = nextPt.getY();
+					if (nextPt.getX() < lX) lX = nextPt.getX();
+					if (nextPt.getX() > hX) hX = nextPt.getX();
+					if (nextPt.getY() < lY) lY = nextPt.getY();
+					if (nextPt.getY() > hY) hY = nextPt.getY();
 				}
-				double cx = (lx + hx) / 2;
-				double cy = (ly + hy) / 2;
-				Point2D ctr = new Point2D.Double(cx, cy);
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hx-lx, hy-ly, cell);
+				double cX = (lX + hX) / 2;
+				double cY = (lY + hY) / 2;
+				Point2D ctr = new Point2D.Double(cX, cY);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hX-lX, hY-lY, cell);
 				if (ni == null) return null;
 				Point2D [] points = new Point2D[keyCount];
 				for(int i=0; i<keyCount; i++)
 				{
 					Point2D pt = (Point2D)pointList.get(i);
-					points[i] = new Point2D.Double(pt.getX() - cx, pt.getY() - cy);
+					points[i] = new Point2D.Double(pt.getX() - cX, pt.getY() - cY);
 				}
 				ni.newVar(NodeInst.TRACE, points);
 				continue;
@@ -992,6 +973,7 @@ public class Sue extends Input
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				Variable var = ni.newVar(Artwork.ART_MESSAGE, parP.theText);
+				if (var != null) var.setDisplay(true);
 				continue;
 			}
 
@@ -1801,28 +1783,35 @@ public class Sue extends Input
 	 */
 	private String io_sueparseexpression(String expression)
 	{
-//		StringBuffer infstr = new StringBuffer();
-//		while (*expression != 0)
-//		{
-//			keyword = getkeyword(&expression, x_(" \t,+-*/()"));
-//			if (keyword == NOSTRING) break;
-//			if (*keyword != 0)
-//			{
-//				if (isdigit(keyword[0]))
-//				{
-//					addstringtoinfstr(infstr, keyword);
-//				} else
-//				{
-//					if (*expression != '(')
-//						addtoinfstr(infstr, '@');
-//					addstringtoinfstr(infstr, keyword);
-//				}
-//				if (*expression != 0)
-//					addtoinfstr(infstr, *expression++);
-//			}
-//		}
-//		return(returninfstr(infstr));
-		return expression;
+		StringBuffer infstr = new StringBuffer();
+		for(int i=0; i<expression.length(); i++)
+		{
+			int startKey = i;
+			while (i < expression.length())
+			{
+				char chr = expression.charAt(i);
+				if (chr == ' ' || chr == '\t' || chr == ',' || chr == '+' ||
+					chr == '-' || chr == '*' || chr == '/' || chr == '(' || chr == ')')
+						break;
+				i++;
+			}
+			if (i > startKey)
+			{
+				String keyword = expression.substring(startKey, i);
+				if (!TextUtils.isANumber(keyword))
+				{
+					if (i >= expression.length() || expression.charAt(i) != '(')
+						infstr.append('@');
+				}
+				infstr.append(keyword);
+			}
+			if (i < expression.length())
+			{
+				infstr.append(expression.charAt(i));
+				i++;
+			}
+		}
+		return infstr.toString();
 	}
 
 	/**

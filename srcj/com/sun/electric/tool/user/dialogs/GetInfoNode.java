@@ -566,7 +566,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textFieldLabel.setText("Width:");
 			var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			if (var != null) width = TextUtils.atof(var.getPureValue(-1, -1));
+			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
 			initialTextField = Double.toString(width);
 			textField.setEditable(true);
 			textField.setText(initialTextField);
@@ -785,7 +785,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				initialListPopupEntry = Variable.Code.JAVA;
 				listEvalLabel.setText("Evaluation:");
 				Variable var = shownNode.getVar(avp.key);
-				listEval.setText(var.describe(-1, -1, VarContext.globalContext, shownNode));
+				listEval.setText(var.describe(-1, VarContext.globalContext, shownNode));
 			} else
 			{
 				initialListPopupEntry = Variable.Code.NONE;

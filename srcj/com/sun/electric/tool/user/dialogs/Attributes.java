@@ -511,7 +511,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         name.setText(pt);
 
         // get initial the Value field
-        initialValue = var.getPureValue(-1, 0);
+        initialValue = var.getPureValue(-1);
 
         // set the Value field
         value.setText(initialValue);

@@ -268,6 +268,7 @@ public abstract class ElectricObject
 			if (var.isDisplay())
 			{
 				int len = var.getLength();
+				if (len > 1 && var.getTextDescriptor().getDispPart() == TextDescriptor.DispPos.NAMEVALUE) len++;
 				if (!multipleStrings) len = 1;
 				numVars += len;
 			}
@@ -453,6 +454,7 @@ public abstract class ElectricObject
 		int varLength = var.getLength();
 		double height = 0;
 		Poly.Type style = td.getPos().getPolyType();
+		boolean headerString = false;
 		if (varLength > 1)
 		{
 			// compute text height
@@ -460,6 +462,11 @@ public abstract class ElectricObject
 			if (font == null) varLength = 0; else
 			{
 				height = font.getSize2D() / wnd.getScale();
+				if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
+				{
+					headerString = true;
+					varLength++;
+				}
 				if (multipleStrings)
 				{
 					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
@@ -477,6 +484,7 @@ public abstract class ElectricObject
 					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
 						cY -= height * (varLength-1);
 					varLength = 1;
+					headerString = false;
 				}
 			}
 		}
@@ -496,12 +504,27 @@ public abstract class ElectricObject
 			}
 			polys[i] = new Poly(pointList);
 			polys[i].setStyle(style);
-			VarContext context = null;
-			if (wnd != null) context = wnd.getVarContext();
-			polys[i].setString(var.describe(i, -1, context, this));
 			polys[i].setTextDescriptor(td);
 			polys[i].setLayer(null);
 			polys[i].setVariable(var);
+			VarContext context = null;
+			if (wnd != null) context = wnd.getVarContext();
+			if (varLength > 1 && headerString)
+			{
+				if (i == 0)
+				{
+					polys[i].setString(var.getTrueName()+ "[" + (varLength-1) + "]:");
+					TextDescriptor newTD = new TextDescriptor(null, td);
+					newTD.setUnderline(true);
+					polys[i].setTextDescriptor(newTD);
+				} else
+				{
+					polys[i].setString(var.describe(i-1, context, this));
+				}
+			} else
+			{
+				polys[i].setString(var.describe(i, context, this));
+			}
 			cY -= height;
 		}
 		return polys;
