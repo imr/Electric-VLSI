@@ -87,7 +87,7 @@ class NetSchem extends NetCell {
 			}
 
 			if (updateInterface())
-				invalidateUsagesOf(true);
+				super.invalidateUsagesOf(true);
 			flags |= (LOCALVALID|VALID);
 		}
 
