@@ -946,9 +946,10 @@ public class ClickZoomWireListener
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
-		int scale = User.getDefGridXBoldFrequency();
-		if (scaleMove) { dX *= scale;   dY *= scale; }
-		if (scaleMove2) { dX *= scale;   dY *= scale; }
+		int scaleX = User.getDefGridXBoldFrequency();
+        int scaleY = User.getDefGridYBoldFrequency();
+		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
+		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
 		Highlight.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents(null);

@@ -600,6 +600,8 @@ public class ElectricObject
 			{
 				newVar.copyFlags(var);
 				newVar.setTextDescriptor(td);
+                newVar.setCode(var.getCode());
+                newVar.setDisplay(var.isDisplay());
 			}
 		}
 

@@ -5095,8 +5095,8 @@ public class CircuitChanges
 			}
 		} else {
             newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
+            updateInheritedVar(newVar, ni, np, icon);
         }
-        updateInheritedVar(newVar, ni, np, icon);
     }
 
 

@@ -422,7 +422,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
 				if (allowMissingPorts) continue;
-				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getName());
+				System.out.println("No port on new node has same name and location as old node port: " + con.getPortInst().getPortProto().getName());
 				newNi.kill();
 				return null;
 			}

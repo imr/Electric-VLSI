@@ -38,6 +38,8 @@ import com.sun.electric.technology.PrimitivePort;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the
