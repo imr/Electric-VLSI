@@ -4713,6 +4713,8 @@ public class CircuitChanges
 				if (icon.getProto() == cell) break;
 				icon = null;
 			}
+            // if icon is this, ignore it: can't inherit from ourselves!
+            if (icon == ni) icon = null;
 
 			for(Iterator it = cNp.getVariables(); it.hasNext(); )
 			{
