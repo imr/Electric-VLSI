@@ -68,7 +68,7 @@ public class SimpleWirer extends InteractiveRouter {
         Point2D cornerLoc = null;
 
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() ||
-                (useArc.getAngleIncrement() == 0)) {
+                (useArc != null && (useArc.getAngleIncrement() == 0))) {
             // single arc
             if (contactsOnEndObj)
                 cornerLoc = endLoc;
