@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/20/05, GVG) Setting default colors for Artwork Arcs and Text Properties (in TextDescriptor.DescriptorPref)
+(Bug #152)
+
 BUG: (01/20/05, DN) Can't rename cell groups (Bug #167).
 FIX: CircuitChanges.RenameCellGroup.doIt stores cells from group in
      array before renaming.

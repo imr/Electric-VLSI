@@ -316,9 +316,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             Variable var = ai.getVar(Artwork.ART_COLOR);
             if (var != null) {
                 Integer integer = (Integer)var.getObject();
-                String color = EGraphics.getColorIndexName(integer.intValue());
-                initialColor = color;
+                initialColor = EGraphics.getColorIndexName(integer.intValue());
             }
+            else // default if nothing is defined in the arc
+                initialColor = EGraphics.getColorIndexName(EGraphics.BLACK);
             arcColorComboBox.setSelectedItem(initialColor);
             if (ai.getProto().getTechnology() == Artwork.tech) {
                 arcColorComboBox.setEnabled(true);

@@ -46,6 +46,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
+import java.util.Arrays;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -136,7 +137,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialRotation = TextDescriptor.Rotation.ROT0;
         rotation.setSelectedItem(initialRotation);
         // color
-        initialColorIndex = 0;
+        initialColorIndex = EGraphics.BLACK; // // Is BLACK the default? or should it be retrieved from TextDescriptor.DescriptorPref?
 
         setTextDescriptor(null, null);
 
@@ -379,10 +380,23 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // set the color
         initialColorIndex = td.getColorIndex();
-        int colorComboIndex = 0;
+        if (initialColorIndex ==0) // nothing assigned
+           initialColorIndex = EGraphics.BLACK;   // Is BLACK the default? or should it be retrieved from TextDescriptor.DescriptorPref
         int [] colorIndices = EGraphics.getColorIndices();
-		for(int i=0; i<colorIndices.length; i++)
-			if (colorIndices[i] == initialColorIndex) colorComboIndex = i+1;
+        int colorComboIndex = Arrays.binarySearch(colorIndices, initialColorIndex);
+//      int colorComboIndex = 0;
+//		for(int i=0; i<colorIndices.length; i++)
+//        {
+//			if (colorIndices[i] == initialColorIndex)
+//            {
+//                colorComboIndex = i+1;
+//                break; // No need of checking the rest of the array
+//            }
+//        }
+//        if (newValue != -1) newValue += 1;
+//        if (newValue != colorComboIndex)
+//            System.out.println("Wrong calculation");
+        colorComboIndex = (colorComboIndex != -1) ? colorComboIndex + 1 : 0;
         textColorComboBox.setSelectedIndex(colorComboIndex);
 
         // report the global text scale
