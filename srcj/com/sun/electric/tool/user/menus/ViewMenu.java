@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.Job;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
@@ -81,7 +82,21 @@ public class ViewMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
         viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
+        /** 3D view */
+	    viewMenu.addMenuItem("Make 3D View", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(); } });
 
+    }
+
+	/**
+	 * This method creates 3D view of current cell
+	 */
+	public static void create3DViewCommand()
+    {
+	    Cell curCell = WindowFrame.needCurCell();
+
+	    if (curCell == null) return;
+	    WindowFrame.create3DViewtWindow(curCell);
     }
 
     /**
