@@ -27,12 +27,18 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.util.prefs.Preferences;
+
 
 /**
  * Class to handle the "Move By" dialog.
  */
 public class MoveBy extends EDialog
 {
+    private Preferences prefs;
+    private static final String MOVEX = "movex";
+    private static final String MOVEY = "movey";
+
 	public static void showMoveByDialog()
 	{
 		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame(), true);
@@ -45,6 +51,11 @@ public class MoveBy extends EDialog
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+        prefs = Preferences.userNodeForPackage(MoveBy.class);
+        double movex = prefs.getDouble(MOVEX, 0);
+        double movey = prefs.getDouble(MOVEY, 0);
+        dX.setText(String.valueOf(movex));
+        dY.setText(String.valueOf(movey));
 	}
 
 	protected void escapePressed() { cancel(null); }
@@ -160,6 +171,8 @@ public class MoveBy extends EDialog
 
 		double dx = TextUtils.atof(dX.getText());
 		double dy = TextUtils.atof(dY.getText());
+        prefs.putDouble(MOVEX, dx);
+        prefs.putDouble(MOVEY, dy);
 		CircuitChanges.manyMove(dx, dy);
 
 		closeDialog(null);
