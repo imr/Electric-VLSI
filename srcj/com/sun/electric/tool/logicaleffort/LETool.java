@@ -394,6 +394,7 @@ public class LETool extends Tool {
             }
 
             if (success) {
+                System.out.println("Sizing finished, updating sizes...");
                 UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
@@ -449,6 +450,7 @@ public class LETool extends Tool {
         public boolean doIt() {
             netlister.updateSizes();
             wnd.repaintContents(null);
+            System.out.println("Sizes updated. Sizing Finished.");
             return true;
         }
     }
