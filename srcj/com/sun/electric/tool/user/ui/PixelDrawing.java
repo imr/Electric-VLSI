@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -938,6 +939,7 @@ public class PixelDrawing
 		if (renderedCell == null)
 		{
 			renderedCell = EditWindow.CreateElectricDoc(subCell, null);
+            Undo.removeDatabaseChangeListener(renderedCell);
 			expandedCellCount.wnd = renderedCell;
 			renderedCell.setScreenSize(new Dimension(screenBounds.width, screenBounds.height));
 			renderedCell.setScale(wnd.getScale());
