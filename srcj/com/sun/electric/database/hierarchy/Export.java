@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -87,7 +88,7 @@ public class Export extends PortProto
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;
 		if (pp.lowLevelPopulate(portInst)) return null;
-		if (pp.lowLevelLink()) return null;
+		if (pp.lowLevelLink(null)) return null;
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(pp);
@@ -99,10 +100,10 @@ public class Export extends PortProto
 	 */
 	public void kill()
 	{
-		lowLevelUnlink();
+		Collection oldPortInsts = lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		Undo.killObject(this);
+		Undo.killExport(this, oldPortInsts);
 	}
 
 	/**
@@ -183,25 +184,26 @@ public class Export extends PortProto
 
 	/**
 	 * Low-level access method to link this Export into its cell.
+	 * @param oldPortInsts collection which contains portInsts of this Export for Undo or null.
 	 * @return true on error.
 	 */
-	public boolean lowLevelLink()
+	public boolean lowLevelLink(Collection oldPortInsts)
 	{
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.addExport(this);
-		getParent().addPort(this);
+		getParent().addPort(this, oldPortInsts);
 		return false;
 	}
 
 	/**
 	 * Low-level access method to unlink this Export from its cell.
-	 * @return true on error.
+	 * @return collection of deleted PortInsts of this Export.
 	 */
-	public void lowLevelUnlink()
+	public Collection lowLevelUnlink()
 	{
 		NodeInst originalNode = originalPort.getNodeInst();
 		originalNode.removeExport(this);
-		getParent().removePort(this);
+		return getParent().removePort(this);
 	}
 
 	/**

@@ -202,10 +202,10 @@ public class Netlist
 		return Network.getUserNetlist((Cell)np);
 	}
 
-// 	public Global.Set getGlobals() {
-// 		checkForModification();
-// 		return netCell.getGlobals();
-// 	}
+	public Global.Set getGlobals() {
+		checkForModification();
+		return netCell.getGlobals();
+	}
 
 	/**
 	 * Get number of networks in this Netlist.
@@ -232,6 +232,16 @@ public class Netlist
 	public Iterator getNetworks() {
 		checkForModification();
 		return Arrays.asList(networks).iterator();
+	}
+
+	/*
+	 * Get network of global signal.
+	 */
+	public int getNetIndex(Global global) {
+		checkForModification();
+		int netMapIndex = netCell.getNetMapOffset(global);
+		if (netMapIndex < 0) return -1;
+		return nm_net[netMapIndex];
 	}
 
 	/*

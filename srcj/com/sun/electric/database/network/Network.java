@@ -28,8 +28,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,6 +45,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -254,13 +257,30 @@ public class Network extends Listener
 			setCell(cell, null);
 			if (cell.isIcon() || cell.isSchematicView())
 				NetSchem.updateCellGroup(cell.getCellGroup());
-		} else if (obj instanceof Export) {
-			exportsChanged(cell);
 		} else {
 			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
 		System.out.println("Network.killObject("+obj+")");
+	}
+
+	public void killExport(Export pp, Collection oldPortInsts)
+	{
+		Cell cell = (Cell)pp.getParent();
+		exportsChanged(cell);
+		if (!debug) return;
+		System.out.println("Network.killExport("+pp+","+oldPortInsts.size()+")");
+	}
+
+	public void renameObject(ElectricObject obj, Name oldName)
+	{
+		Cell cell = obj.whichCell();
+		if (obj instanceof Geometric)
+		{
+			if (cell != null) getNetCell(cell).setNetworksDirty();
+		}
+		if (!debug) return;
+		System.out.println("Network.reanameObject("+obj+","+oldName+")");
 	}
 
 	public void newVariable(ElectricObject obj, Variable var)

@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
@@ -36,10 +37,11 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.User;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * The NodeProto class defines a type of NodeInst.
@@ -409,26 +411,38 @@ public abstract class NodeProto extends ElectricObject
 	 * Add a PortProto to this NodeProto.
 	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
 	 * @param port the PortProto to add to this NodeProto.
+	 * @param oldPortInsts a collection of PortInsts to Undo or null.
 	 */
-	public void addPort(PortProto port)
+	public void addPort(PortProto port, Collection oldPortInsts)
 	{
 		checkChanging();
 		port.setPortIndex(ports.size());
 		ports.add(port);
 
 		// create a PortInst for every instance of this node
-		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		if (oldPortInsts != null)
 		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.addPortInst(port);
+			for(Iterator it = oldPortInsts.iterator(); it.hasNext(); )
+			{
+				PortInst pi = (PortInst)it.next();
+				pi.getNodeInst().linkPortInst(pi);
+			}
+		} else
+		{
+			for(Iterator it = getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.addPortInst(port);
+			}
 		}
 	}
 
 	/**
 	 * Removes a PortProto from this NodeProto.
 	 * @param port the PortProto to remove from this NodeProto.
+	 * @return collection of deleted PortInsts of the PortProto.
 	 */
-	public void removePort(PortProto port)
+	public Collection removePort(PortProto port)
 	{
 		checkChanging();
 		int portIndex = port.getPortIndex();
@@ -438,14 +452,16 @@ public abstract class NodeProto extends ElectricObject
 			((PortProto)ports.get(portIndex)).setPortIndex(portIndex);
 		}
 
+		Collection portInsts = new ArrayList();
 		// remove the PortInst from every instance of this node
 		for(Iterator it = getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			ni.removePortInst(port);
+			portInsts.add(ni.removePortInst(port));
 		}
 
 		port.setPortIndex(-1);
+		return portInsts;
 	}
 
 	/**

@@ -27,12 +27,15 @@ import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
+
+import java.util.Collection;
 
 /**
  * This class represents a Listener - a Tool which can listen Changes.
@@ -61,6 +64,8 @@ public class Listener extends Tool implements Changes
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
+	public void killExport(Export pp, Collection oldPortInsts) {}
+	public void renameObject(ElectricObject obj, Name oldName) {}
 	public void redrawObject(ElectricObject obj) {}
 	public void newVariable(ElectricObject obj, Variable var) {}
 	public void killVariable(ElectricObject obj, Variable var) {}

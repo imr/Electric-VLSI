@@ -704,15 +704,25 @@ public class Cell extends NodeProto
 		}
 		
 		// fill-in the fields
-		this.protoName = n.getName();
+		setProtoName(n.getName());
 		this.view = n.getView();
 		this.version = version;
+
+		return false;
+	}
+
+	/**
+	 * Method to change name of this Cell.
+	 * @param name new name.
+	 */
+	private void setProtoName(String name)
+	{
+		this.protoName = name;
 
 		// prepare basename for autonaming
 		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
 		if (basename == null)
 			basename = NodeProto.Function.UNKNOWN.getBasename();
-		return false;
 	}
 
 	/**

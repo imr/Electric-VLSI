@@ -292,6 +292,16 @@ class NetSchem extends NetCell {
 		return nodables.iterator();
 	}
 
+	/**
+	 * Get a set of global signal in this Cell and its descendants.
+	 */
+	Global.Set getGlobals() { return globals; }
+	
+	/*
+	 * Get offset in networks map for given global signal.
+	 */
+	int getNetMapOffset(Global global) { return globals.indexOf(global); }
+
 	/*
 	 * Get offset in networks map for given port instance.
 	 */

@@ -125,6 +125,11 @@ class NetCell
 	 */
 	Iterator getNodables() { return cell.getNodes(); }
 
+	/**
+	 * Get a set of global signal in this Cell and its descendants.
+	 */
+	Global.Set getGlobals() { return Global.Set.empty; }
+
 	void setInvalid(boolean strong)
 	{
 		if (strong) flags &= ~LOCALVALID;
@@ -161,6 +166,11 @@ class NetCell
 // 				netCell.redoNetworks();
 // 		}
 // 	}
+
+	/*
+	 * Get offset in networks map for given global signal.
+	 */
+	int getNetMapOffset(Global global) { return -1; }
 
 	/*
 	 * Get offset in networks map for given port instance.

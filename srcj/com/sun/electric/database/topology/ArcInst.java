@@ -105,6 +105,8 @@ public class ArcInst extends Geometric
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
 	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
 
+	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
+
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
@@ -426,7 +428,7 @@ public class ArcInst extends Geometric
 		if (!isUsernamed())
 		{
 			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
-				if (setNameKey(parent.getAutoname(Name.findName("net@")))) return true;
+				if (setNameKey(parent.getAutoname(BASENAME))) return true;
 		}
 
 		// attach this arc to the two nodes it connects
@@ -1026,6 +1028,12 @@ public class ArcInst extends Geometric
 	 * @return true if this ArcInst is linked to parent Cell.
 	 */
 	public boolean isLinked() { return arcIndex >= 0; }
+
+	/**
+	 * Returns the basename for autonaming.
+	 * @return the basename for autonaming.
+	 */
+	public Name getBasename() { return BASENAME; }
 
 	/**
 	 * Method to return the prototype of this ArcInst.

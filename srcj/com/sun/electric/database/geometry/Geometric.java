@@ -860,7 +860,9 @@ public abstract class Geometric extends ElectricObject
 	 */
 	public boolean setName(String name)
 	{
-		return setNameKey(Name.findName(name));
+		Name key = null;
+		if (name != null && name != "") key = Name.findName(name);
+		return setNameKey(key);
 	}
 
 	/**
@@ -872,8 +874,11 @@ public abstract class Geometric extends ElectricObject
 	{
 		if (name == null)
 		{
-			System.out.println(parent + ": Null name wasn't assigned to Geometric");
-			return true;
+			if (!isLinked()) {
+				this.name = null;
+				return false;
+			}
+			name = parent.getAutoname(getBasename());
 		}
 		if (!name.isValid())
 		{
@@ -895,12 +900,29 @@ public abstract class Geometric extends ElectricObject
 			System.out.println(parent + " already has Geometric with temporary name <"+name+">");
 			return true;
 		}
-		if (isLinked() && !isUsernamed())
+		if (isLinked())
+		{
+			Name oldName = this.name;
+			lowLevelSetNameKey(name);
+			Undo.renameObject(this, oldName);
+		} else
+		{
+			this.name = name;
+		}
+		return false;
+	}
+
+	/**
+	 * Low-level access method to change name of this Geometric.
+	 * @param name new name of this Geometric.
+	 */
+	public void lowLevelSetNameKey(Name name)
+	{
+		if (!isUsernamed())
 			parent.removeTempName(this);
 		this.name = name;
-		if (isLinked() && !isUsernamed())
+		if (!isUsernamed())
 			parent.addTempName(this);
-		return false;
 	}
 
 	/**
@@ -908,6 +930,12 @@ public abstract class Geometric extends ElectricObject
 	 * @return true if this Geometric is linked to parent Cell.
 	 */
 	public abstract boolean isLinked();
+
+	/**
+	 * Abstract method gives prefix for autonaming.
+	 * @return true if this Geometric is linked to parent Cell.
+	 */
+	public abstract Name getBasename();
 
 	/**
 	 * Method to return the Text Descriptor associated with name of this Geometric.

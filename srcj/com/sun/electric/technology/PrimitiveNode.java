@@ -243,7 +243,7 @@ public class PrimitiveNode extends NodeProto
 		for(int i = 0; i < ports.length; i++)
 		{
 			ports[i].setParent(this);
-			addPort(ports[i]);
+			addPort(ports[i], null);
 		}
 	}
 

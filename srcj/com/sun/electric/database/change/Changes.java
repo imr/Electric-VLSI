@@ -26,6 +26,7 @@ package com.sun.electric.database.change;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -33,6 +34,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
+
+import java.util.Collection;
 
 /**
  * This interface defines changes that are made to the database.
@@ -56,6 +59,8 @@ public interface Changes
 
 	void newObject(ElectricObject obj);
 	void killObject(ElectricObject obj);
+	void killExport(Export pp, Collection oldPortInsts);
+	void renameObject(ElectricObject obj, Name oldName);
 	void redrawObject(ElectricObject obj);
 	void newVariable(ElectricObject obj, Variable var);
 	void killVariable(ElectricObject obj, Variable var);

@@ -53,6 +53,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 public class Layout extends Constraints
@@ -164,19 +165,15 @@ public class Layout extends Constraints
 	/*
 	 * If an export is deleted, touch all instances of the cell
 	 */
-	public void killObject(ElectricObject obj)
+	public void killExport(Export pp, Collection oldPortInsts)
 	{
-//		if (obj instanceof Export)
-//		{
-//			Export pp = (Export)obj;
-//			Cell cell = (Cell)pp.getParent();
-//			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
-//			{
-//				NodeInst ni = (NodeInst)it.next();
-//				Undo.redrawObject(ni);
-////				ni.modifyInstance(0, 0, 0, 0, 0);
-//			}
-//		}
+// 		Cell cell = (Cell)pp.getParent();
+// 		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+// 		{
+// 			NodeInst ni = (NodeInst)it.next();
+// 			Undo.redrawObject(ni);
+//// 			ni.modifyInstance(0, 0, 0, 0, 0);
+// 		}
 	}
 
 	/*

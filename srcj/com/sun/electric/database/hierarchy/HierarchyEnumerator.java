@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -65,6 +66,8 @@ public final class HierarchyEnumerator {
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
+	private Global.Set rootGlobals;
+	private int[] globalToNetID;
 	private List netIdToNetDesc = new ArrayList();
 
 	private static void error(boolean pred, String msg) {
@@ -80,6 +83,26 @@ public final class HierarchyEnumerator {
 		int numNets = netlist.getNumNetworks();
 		int[] netToNetID = new int[numNets];
 		Arrays.fill(netToNetID, -1);
+		Global.Set globals = netlist.getGlobals();
+		for (int i = 0; i < globals.size(); i++) {
+			Global global = globals.get(i);
+			int netIndex = netlist.getNetIndex(global);
+			int globalIndex = rootGlobals.indexOf(global);
+			int netID = globalToNetID[globalIndex];
+			if (netID < 0) {
+				// Create netID for global signal.
+				// Assume cell is a root Cell
+				if (netIndex == nextNetID()) {
+					JNetwork net = netlist.getNetwork(netIndex);
+					netIdToNetDesc.add(new NetDescription(net, info));
+					System.out.println(global + " added at " + netIndex);
+				} else if (netIndex > nextNetID()) {
+					System.out.println("ierarchyEnumerator: unexpected order of global signal " + global);
+				}
+				globalToNetID[globalIndex] = netID = netIndex;
+			}
+			netToNetID[netIndex] = netID;
+		}
 		for (int i = 0; i < portNmToNetIDs.length; i++) {
 			Export export = (Export) cell.getPort(i);
 			int[] ids = portNmToNetIDs[i];
@@ -160,28 +183,6 @@ public final class HierarchyEnumerator {
 			}
 		}
 
-// 		for (Iterator it = cell.getNodes(); it.hasNext();) {
-// 			NodeInst ni = (NodeInst) it.next();
-                
-// 			instCnt++;
-// 			boolean descend = visitor.visitNodeInst(ni, info);
-//             NodeProto np = ni.getProto();
-//             Cell eq = ni.getProtoEquivalent();
-//             if (cell == eq) descend = false;  // do not descend into own icon
-//             if (descend && np instanceof Cell) {
-// 				if (eq == null) {
-// 					System.out.println("Warning: missing schematic: " 
-// 					                   + np.getProtoName());
-// 				} else {
-// 					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
-// 					AffineTransform xformToRootRK2 =
-// 						new AffineTransform(xformToRootRK);
-// 					xformToRootRK2.concatenate(ni.rkTransformOut());
-// 					enumerateCell(ni, eq, context.push(ni), portNmToNetIDs2,
-// 						          xformToRootRK2, info);
-// 				}
-// 			}
-// 		}
 		visitor.exitCell(info);
 
 		// remove entries in netIdToNetDesc that we'll never use again
@@ -197,6 +198,9 @@ public final class HierarchyEnumerator {
 		if (context == null) context = VarContext.globalContext;
 		int numPorts = root.getNumPorts();
 		int[][] portNmToNetIDs = new int[0][];
+		rootGlobals = netlist.getGlobals();
+		globalToNetID = new int[rootGlobals.size()];
+		Arrays.fill(globalToNetID, -1);
 		enumerateCell(null,	root, context, netlist, portNmToNetIDs,
 		              new AffineTransform(), new AffineTransform(), null);
 

@@ -27,6 +27,8 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -38,9 +40,10 @@ import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * This interface defines changes that are made to the database.
@@ -76,6 +79,7 @@ public class Undo
 		/** Describes a changed Cell. */									public static final Type CELLMOD = new Type("CellMod");
 		/** Describes the creation of an arbitrary object. */				public static final Type OBJECTNEW = new Type("ObjectNew");
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
+		/** Describes the renaming of an arbitrary object. */				public static final Type OBJECTRENAME = new Type("ObjectRename");
 		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
 		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
@@ -149,13 +153,25 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.newObject(obj);
 				}
-			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
+			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL ||
 				type == Type.CELLKILL || type == Type.OBJECTKILL)
 			{
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
 					listener.killObject(obj);
+				}
+			} else if (type == Type.EXPORTKILL) {
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				{
+					Listener listener = (Listener)it.next();
+					listener.killExport((Export)obj, (Collection)o1);
+				}
+			} else if (type == Type.OBJECTRENAME) {
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
+				{
+					Listener listener = (Listener)it.next();
+					listener.renameObject(obj, (Name)o1);
 				}
 			} else if (type == Type.OBJECTREDRAW)
 			{
@@ -322,15 +338,16 @@ public class Undo
 			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
-				pp.lowLevelUnlink();
+				o1 = pp.lowLevelUnlink();
 				type = Type.EXPORTKILL;
 				return;
 			}
 			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
-				pp.lowLevelLink();
+				pp.lowLevelLink((Collection)o1);
 				type = Type.EXPORTNEW;
+				o1 = null;
 				return;
 			}
 			if (type == Type.EXPORTMOD)
@@ -401,6 +418,17 @@ public class Undo
 //						break;
 //				}
 				type = Type.OBJECTNEW;
+				return;
+			}
+			if (type == Type.OBJECTRENAME)
+			{
+				if (obj instanceof Geometric)
+				{
+					Geometric geom = (Geometric)obj;
+					Name oldName = (Name)o1;
+					o1 = geom.getNameKey();
+					geom.lowLevelSetNameKey(oldName);
+				}
 				return;
 			}
 			if (type == Type.VARIABLENEW)
@@ -499,7 +527,7 @@ public class Undo
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTREDRAW)
+			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTRENAME || type == Type.OBJECTREDRAW)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
@@ -616,6 +644,10 @@ public class Undo
 			{
 				return "Deleted object " + obj;
 			}
+			if (type == Type.OBJECTRENAME)
+			{
+				return "Renamed object " + obj + " oldName " + (Name)o1;
+			}
 			if (type == Type.OBJECTREDRAW)
 			{
 				return "Redraw object " + obj;
@@ -678,10 +710,12 @@ public class Undo
 			for(int j = 0; j<batchSize; j++)
 			{
 				Change ch = (Change)changes.get(j);
-				if (ch.getType() == Type.NODEINSTNEW || ch.getType() == Type.NODEINSTKILL || ch.getType() == Type.NODEINSTMOD)
+				if (ch.getType() == Type.NODEINSTNEW || ch.getType() == Type.NODEINSTKILL || ch.getType() == Type.NODEINSTMOD ||
+					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof NodeInst)
 				{
 					nodeInst++;
-				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD)
+				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD ||
+					ch.getType() == Type.OBJECTRENAME && ch.obj instanceof NodeInst)
 				{
 					arcInst++;
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
@@ -902,13 +936,14 @@ public class Undo
 	 * <LI>ARCINSTKILL takes nothing.
 	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth.
 	 * <LI>EXPORTNEW takes nothing.
-	 * <LI>EXPORTKILL takes nothing.
+	 * <LI>EXPORTKILL takes o1=oldPortInsts.
 	 * <LI>EXPORTMOD takes o1=oldPortInst.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
 	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.
 	 * <LI>OBJECTNEW takes nothing.
 	 * <LI>OBJECTKILL takes nothing.
+	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLENEW takes o1=var.
 	 * <LI>VARIABLEKILL takes o1=var.
@@ -1032,11 +1067,30 @@ public class Undo
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
-		else if (obj instanceof Export) type = Type.EXPORTKILL;
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		Constraints.getCurrent().killObject(obj);
+	}
+
+	public static void killExport(Export pp, Collection oldPortInsts)
+	{
+		if (!recordChange()) return;
+		Type type = Type.EXPORTKILL;
+		Change ch = newChange(pp, type, oldPortInsts);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraints.getCurrent().killExport(pp, oldPortInsts);
+	}
+
+	public static void renameObject(ElectricObject obj, Name oldName)
+	{
+		if (!recordChange()) return;
+		Type type = Type.OBJECTRENAME;
+		Change ch = newChange(obj, type, oldName);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
 	public static void redrawObject(ElectricObject obj)

@@ -1101,7 +1101,7 @@ public class InputBinary extends Input
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
 			if (pp.lowLevelPopulate(pi)) return;
-			if (pp.lowLevelLink()) return;
+			if (pp.lowLevelLink(null)) return;
 			pp.lowLevelSetUserbits(portProtoUserbits[i]);
 		}
 

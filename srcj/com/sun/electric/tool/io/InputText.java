@@ -564,7 +564,7 @@ public class InputText extends Input
 			if (!el.exportSubNode[j].isLinked()) continue;
 			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
 			if (pp.lowLevelPopulate(pi)) return;
-			if (pp.lowLevelLink()) return;
+			if (pp.lowLevelLink(null)) return;
 		}
 	}
 

@@ -1535,10 +1535,20 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Method to delete a new PortInst from this NodeInst.
-	 * @param pp the prototype of the PortInst to remove.
+	 * Method to link saved PortInst on this NodeInst.
+	 * @param pi saved PortInst.
 	 */
-	public void removePortInst(PortProto pp)
+	public void linkPortInst(PortInst pi)
+	{
+		portInsts.add(pi.getPortIndex(), pi);
+	}
+
+	/**
+	 * Method to delete a PortInst from this NodeInst.
+	 * @param pp the prototype of the PortInst to remove.
+	 * @return deleted PortInst
+	 */
+	public PortInst removePortInst(PortProto pp)
 	{
 		PortInst pi = (PortInst) portInsts.get(pp.getPortIndex());
 
@@ -1559,6 +1569,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		portInsts.remove(pp.getPortIndex());
+		return pi;
 	}
 
     /** 
@@ -2216,7 +2227,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Returns the basename for autonaming.
 	 * @return the basename for autonaming.
 	 */
-	private Name getBasename()
+	public Name getBasename()
 	{
 		return protoType instanceof Cell ? ((Cell)protoType).getBasename() : getFunction().getBasename();
 	}
