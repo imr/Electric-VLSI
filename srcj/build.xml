@@ -41,9 +41,22 @@
         </java>
     </target>
 
-	<!-- Not able to put if confition inside unjar -->
+	<!-- Not able to put if condition inside unjar -->
 	<target name="unjarBsh" unless="GNU">
         <unjar dest="." src="${beanshell}"/>
+	</target>
+
+	<target name="jarForGNUBinary" description="Make binary Jar file for GNU">
+	    <antcall target="jarWithVersion">
+	        <param name="GNU" value="1"/>
+	    </antcall>
+	</target>
+
+	<target name="jarForGNUSource" description="Make source Jar file for GNU">
+	    <antcall target="jarWithVersion">
+	        <param name="GNU" value="1"/>
+	        <param name="source" value="1"/>
+	    </antcall>
 	</target>
 
 	<target name="jarWithVersion" depends="init,compile" description="Make binary Jar file with version">
@@ -64,8 +77,10 @@
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/tool/simulation/interval/*.*" if="GNU"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
@@ -98,8 +113,10 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/tool/simulation/interval/*.*" if="GNU"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>

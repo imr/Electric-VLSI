@@ -24,26 +24,67 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
+import com.sun.electric.tool.user.dialogs.options.CDLTab;
+import com.sun.electric.tool.user.dialogs.options.CIFTab;
+import com.sun.electric.tool.user.dialogs.options.ColorsTab;
+import com.sun.electric.tool.user.dialogs.options.CompactionTab;
+import com.sun.electric.tool.user.dialogs.options.CopyrightTab;
+import com.sun.electric.tool.user.dialogs.options.DEFTab;
+import com.sun.electric.tool.user.dialogs.options.DRCTab;
+import com.sun.electric.tool.user.dialogs.options.DXFTab;
+import com.sun.electric.tool.user.dialogs.options.DesignRulesTab;
+import com.sun.electric.tool.user.dialogs.options.EDIFTab;
+import com.sun.electric.tool.user.dialogs.options.FastHenryTab;
+import com.sun.electric.tool.user.dialogs.options.FrameTab;
+import com.sun.electric.tool.user.dialogs.options.GDSTab;
+import com.sun.electric.tool.user.dialogs.options.GeneralTab;
+import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
+import com.sun.electric.tool.user.dialogs.options.IconTab;
+import com.sun.electric.tool.user.dialogs.options.LayersTab;
+import com.sun.electric.tool.user.dialogs.options.LibraryTab;
+import com.sun.electric.tool.user.dialogs.options.LogicalEffortTab;
+import com.sun.electric.tool.user.dialogs.options.NCCTab;
+import com.sun.electric.tool.user.dialogs.options.NetworkTab;
+import com.sun.electric.tool.user.dialogs.options.NewArcsTab;
+import com.sun.electric.tool.user.dialogs.options.NewNodesTab;
+import com.sun.electric.tool.user.dialogs.options.ParasiticTab;
+import com.sun.electric.tool.user.dialogs.options.PortsAndExportsTab;
+import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
+import com.sun.electric.tool.user.dialogs.options.PrintingTab;
+import com.sun.electric.tool.user.dialogs.options.RoutingTab;
+import com.sun.electric.tool.user.dialogs.options.SUETab;
+import com.sun.electric.tool.user.dialogs.options.ScaleTab;
+import com.sun.electric.tool.user.dialogs.options.SelectionTab;
+import com.sun.electric.tool.user.dialogs.options.SkillTab;
+import com.sun.electric.tool.user.dialogs.options.SpiceTab;
+import com.sun.electric.tool.user.dialogs.options.TechnologyTab;
+import com.sun.electric.tool.user.dialogs.options.TextTab;
+import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
+import com.sun.electric.tool.user.dialogs.options.UnitsTab;
+import com.sun.electric.tool.user.dialogs.options.VerilogTab;
+import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.dialogs.options.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import javax.swing.JPanel;
+
 import javax.swing.JButton;
-import javax.swing.JSplitPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
 
 /**
  * Class to handle the "PreferencesFrame" dialog.
@@ -193,9 +234,12 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(sut);
 		ioSet.add(new DefaultMutableTreeNode(sut.getName()));
 
-		SkillTab skt = new SkillTab(parent, modal);
-		optionPanes.add(skt);
-		ioSet.add(new DefaultMutableTreeNode(skt.getName()));
+		if (IOTool.hasSkill())
+		{
+			SkillTab skt = new SkillTab(parent, modal);
+			optionPanes.add(skt);
+			ioSet.add(new DefaultMutableTreeNode(skt.getName()));
+		}
 
 		LibraryTab lit = new LibraryTab(parent, modal);
 		optionPanes.add(lit);
