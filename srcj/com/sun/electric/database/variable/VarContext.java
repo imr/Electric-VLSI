@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 
 import java.lang.Number;
 import java.lang.NumberFormatException;
+import java.lang.Exception;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -133,7 +134,7 @@ public class VarContext
     public Object evalVar(Variable var, Object info)
     {
         if (var == null) return null;
-        if (var.isJava()) return(EvalJavaBsh.eval(var.getObject(), this, info));
+        if (var.isJava()) return(EvalJavaBsh.tool.eval(var.getObject(), this, info));
         // TODO: if(var.isTCL()) { }
         // TODO: if(var.isLisp()) { }
         return var.getObject();
@@ -158,7 +159,7 @@ public class VarContext
         }
         if (var == null) return null;
         // evaluate var in it's context
-        return this.pop().evalVar(var);
+        return this.pop().evalVar(var, ni);
     }
     
     /** 
@@ -181,11 +182,11 @@ public class VarContext
             
             Variable var = ni.getVar(name);             // look up var
 			if (var != null)
-				return scan.pop().evalVar(var);
+				return scan.pop().evalVar(var, scan.getNodeInst());
             NodeProto np = ni.getProto();               // look up default var
             var = np.getVar(name);
             if (var != null)
-                return scan.pop().evalVar(var);
+                return scan.pop().evalVar(var, scan.getNodeInst());
 			scan = scan.prev;
 		}
 		return null;
@@ -210,7 +211,6 @@ public class VarContext
         if (this==globalContext) return "";
 
         String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
-
         NodeInst ni = getNodeInst();
         if (ni==null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
@@ -222,7 +222,7 @@ public class VarContext
         }
         if (prefix.equals("")) return me;
         return prefix + sep + me;
-	}
+    }
 
     /** Helper method to convert an Object to a float, if possible.
      * if not possible, return @param def.

@@ -38,6 +38,24 @@ public class LETool extends Tool {
     /** The Logical Effort tool Thread */       private Thread toolThread = null;
     /** LESizer object */                       private LESizer lesizer = null;
     /** if the tool has been paused */          private boolean paused = false;
+   
+    // preferences; default values are for the TSMC 180nm technology
+    public static String        OPTION_USELOCALSETTINGS = "UseLocalSettings";
+    public static boolean       DEFAULT_USELOCALSETTINGS = true;
+    public static String        OPTION_GLOBALFANOUT = "GlobalFanout";
+    public static float         DEFAULT_GLOBALFANOUT = 4.7f;
+    public static String        OPTION_WIRERATIO = "WireRatio";
+    public static float         DEFAULT_WIRERATIO = 0.16f;
+    public static String        OPTION_EPSILON = "Epsilon";
+    public static float         DEFAULT_EPSILON = 0.001f;
+    public static String        OPTION_MAXITER = "MaxIterations";
+    public static int           DEFAULT_MAXITER = 30;
+    public static String        OPTION_GATECAP = "GateCapfFPerLambda";
+    public static float         DEFAULT_GATECAP = 0.4f;
+    public static String        OPTION_DIFFALPHA = "DiffusionAlpha";
+    public static float         DEFAULT_DIFFALPHA = 0.7f;
+    public static String        OPTION_KEEPERRATIO = "KeeperRatio";
+    public static float         DEFAULT_KEEPERRATIO = 0.1f;
     
     /** Creates a new instance of LETool */
     private LETool() {
@@ -51,80 +69,25 @@ public class LETool extends Tool {
     
     /** Initialize tool - add calls to Bean Shell Evaluator */
     public void init() {
-        Interpreter env = EvalJavaBsh.getInterpreter();
+        Interpreter env = EvalJavaBsh.tool.getInterpreter();
         try {            
             env.set("LE", tool);
         } catch (bsh.EvalError e) {
             System.out.println("  LETool init() bean shell error: "+e.getMessage());
         }
-
-		// initialize preferences
- 		if (!Prefs.exists("LEUseLocalSettings")) setUseLocalSettings(true);
- 		if (!Prefs.exists("LEDisplayIntermediateCaps")) setDisplayIntermediateCaps(true);
- 		if (!Prefs.exists("LEGlobalFanOut")) setGlobalFanOut(4.5);
-		if (!Prefs.exists("LEConvergence")) setConvergence(0.1);
-		if (!Prefs.exists("LEMaxIterations")) setMaxIterations(3);
-		if (!Prefs.exists("LEGateCapacitance")) setGateCapacitance(0.4);
-		if (!Prefs.exists("LEDefWireCapRatio")) setDefWireCapRatio(0.1);
-		if (!Prefs.exists("LEDiffToGateCapRatioNMOS")) setDiffToGateCapRatioNMOS(0.7);
-		if (!Prefs.exists("LEDiffToGateCapRatioPMOS")) setDiffToGateCapRatioPMOS(0.7);
-		if (!Prefs.exists("LEKeeperSizeRatio")) setKeeperSizeRatio(0.1);
    }
 
-	public static double getGlobalFanOut() { return Prefs.getDoubleOption("LEGlobalFanOut"); }
-	public static void setGlobalFanOut(double v) { Prefs.setDoubleOption("LEGlobalFanOut", v); }
-
-	public static double getConvergence() { return Prefs.getDoubleOption("LEConvergence"); }
-	public static void setConvergence(double v) { Prefs.setDoubleOption("LEConvergence", v); }
-
-	public static int getMaxIterations() { return Prefs.getIntegerOption("LEMaxIterations"); }
-	public static void setMaxIterations(int v) { Prefs.setIntegerOption("LEMaxIterations", v); }
-
-	public static double getGateCapacitance() { return Prefs.getDoubleOption("LEGateCapacitance"); }
-	public static void setGateCapacitance(double v) { Prefs.setDoubleOption("LEGateCapacitance", v); }
-
-	public static double getDefWireCapRatio() { return Prefs.getDoubleOption("LEDefWireCapRatio"); }
-	public static void setDefWireCapRatio(double v) { Prefs.setDoubleOption("LEDefWireCapRatio", v); }
-
-	public static double getDiffToGateCapRatioNMOS() { return Prefs.getDoubleOption("LEDiffToGateCapRatioNMOS"); }
-	public static void setDiffToGateCapRatioNMOS(double v) { Prefs.setDoubleOption("LEDiffToGateCapRatioNMOS", v); }
-
-	public static double getDiffToGateCapRatioPMOS() { return Prefs.getDoubleOption("LEDiffToGateCapRatioPMOS"); }
-	public static void setDiffToGateCapRatioPMOS(double v) { Prefs.setDoubleOption("LEDiffToGateCapRatioPMOS", v); }
-
-	public static double getKeeperSizeRatio() { return Prefs.getDoubleOption("LEKeeperSizeRatio"); }
-	public static void setKeeperSizeRatio(double v) { Prefs.setDoubleOption("LEKeeperSizeRatio", v); }
-
-	public static double getArcRatio(ArcProto arc) { return Prefs.getDoubleOption("LERatio"+arc.getTechnology().getTechName()+arc.getProtoName()); }
-	public static void setArcRatio(ArcProto arc, double v) { Prefs.setDoubleOption("LERatio"+arc.getTechnology().getTechName()+arc.getProtoName(), v); }
-
-	public static boolean isUseLocalSettings() { return Prefs.getBooleanOption("LEUseLocalSettings"); }
-	public static void setUseLocalSettings(boolean v) { Prefs.setBooleanOption("LEUseLocalSettings", v); }
-
-	public static boolean isDisplayIntermediateCaps() { return Prefs.getBooleanOption("LEDisplayIntermediateCaps"); }
-	public static void setDisplayIntermediateCaps(boolean v) { Prefs.setBooleanOption("LEDisplayIntermediateCaps", v); }
-
-	public static boolean isHighlightComponents() { return Prefs.getBooleanOption("LEHighlightComponents"); }
-	public static void setHighlightComponents(boolean v) { Prefs.setBooleanOption("LEHighlightComponents", v); }
-
     public Object getdrive() {
-        Interpreter env = EvalJavaBsh.getInterpreter();
-        try {            
-            Object info = env.get("info");
-            if (!(info instanceof NodeInst)) return "?";
-            Object context = env.get("context");
-            if (!(context instanceof VarContext)) return "?";
-            NodeInst ni = (NodeInst)info;
-            VarContext vc = (VarContext)context;
-            String ledrive = LETool.makeDriveStr(vc.push(ni));
-            Variable var = ni.getVar(ledrive);
-            if (var == null) return "?";
-            Object val = var.getObject();
-            return val;
-        } catch (bsh.EvalError e) {
-            System.out.println("  LETool getdrive failed: "+e.getMessage());
-        }
-        return null;
+        Object info = EvalJavaBsh.tool.getCurrentInfo();
+        if (!(info instanceof NodeInst)) return "?";
+        VarContext context = EvalJavaBsh.tool.getCurrentContext();
+        NodeInst ni = (NodeInst)info;
+        String ledrive = LETool.makeDriveStr(context.push(ni));
+        if (ledrive == null) return "?";
+        Variable var = ni.getVar(ledrive);
+        if (var == null) return "?";
+        Object val = var.getObject();
+        return val;
     }
         
     private static String makeDriveStr(VarContext context) {
@@ -147,7 +110,7 @@ public class LETool extends Tool {
         /** EditWindow */                       private EditWindow wnd;
         
         protected AnalyzeCell(Cell cell, VarContext context, EditWindow wnd) {
-           super("Analyze Cell "+cell.describe(), tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
+            super("Analyze Cell "+cell.describe(), tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             progress = null;
             this.cell = cell;
             this.context = context;
@@ -160,7 +123,7 @@ public class LETool extends Tool {
             try {
                 boolean donesleeping = false;
                 while(!donesleeping) {
-                    Thread.sleep(5000);
+                    Thread.sleep(1);
                     donesleeping = true;
                 }
             } catch (InterruptedException e) {}
@@ -178,7 +141,7 @@ public class LETool extends Tool {
             try {
                 boolean donesleeping = false;
                 while(!donesleeping) {
-                    Thread.sleep(5000);
+                    Thread.sleep(1);
                     donesleeping = true;
                 }
             } catch (InterruptedException e) {}

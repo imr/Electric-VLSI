@@ -338,7 +338,7 @@ public final class HierarchyEnumerator {
             Integer netID = (Integer)netToNetID.get(net);
             NetDescription ns = (NetDescription)netIdToNetDesc.get(netID);
             VarContext netContext = ns.getCellInfo().getContext();
-            
+
             StringBuffer buf = new StringBuffer();
             buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any
             if (!buf.toString().equals("")) buf.append(sep);
@@ -346,7 +346,7 @@ public final class HierarchyEnumerator {
             if (it.hasNext()) {
     			buf.append((String) it.next());
     		} else {
-        		buf.append("net"+netID.intValue());
+        		buf.append("netID"+netID.intValue());
             }
             return buf.toString();
         }

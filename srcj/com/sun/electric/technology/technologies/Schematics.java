@@ -30,9 +30,11 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -44,7 +46,9 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
+import java.awt.Dimension;
 import java.util.Iterator;
+
 
 /**
  * This is the Schematics technology.
@@ -1728,7 +1732,23 @@ public class Schematics extends Technology
 				ni.setTechSpecific(TWOPTLINE);
 		}
 	}
-
+    
+	/**
+	 * Routine to return the size of a transistor NodeInst in this Technology.
+     * You should most likely be calling NodeInst.getTransistorSize instead of this.
+	 * @param ni the NodeInst.
+     * @param context the VarContext, set to VarContext.globalContext if not needed.
+	 * @return the size of the NodeInst.
+	 */
+	public Dimension getTransistorSize(NodeInst ni, VarContext context)
+	{
+        double length = VarContext.objectToDouble(context.evalVar(ni.getVar("ATTR_length")), 0);
+        double width = VarContext.objectToDouble(context.evalVar(ni.getVar("ATTR_width")), 0);
+        Dimension dim = new Dimension();
+        dim.setSize(width, length);
+        return dim;
+    }
+    
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {
 //	x_(""), x_(""), x_(""),										/* pins */
 //	x_("buffer/inverter"), x_("and%ld/nand%ld"), x_("or%ld/nor%ld"), x_("xor%ld/xnor%ld"),	/* gates */

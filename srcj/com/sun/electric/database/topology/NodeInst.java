@@ -40,6 +40,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -953,6 +954,7 @@ public class NodeInst extends Geometric implements Instancable
 		}
 		transform.rotate(angle*Math.PI/1800, getCenterX(), getCenterY());
 		transform.translate(dx, dy);
+        /*
 		System.out.println("rkTransformOut: {\n"
 		                   + "    lowerCellBounds: " + bounds + "\n"
 						   + "    (cX, cY): " + getCenterX() + " " + getCenterY() + "\n"
@@ -960,6 +962,7 @@ public class NodeInst extends Geometric implements Instancable
 						   + "    (sX, sY): " + sX + " " + sY + "\n"
 						   + "    xform: " + transform + "\n"
 						   + "}\n");
+         */
 		return transform;
 	}
 
@@ -1701,16 +1704,76 @@ public class NodeInst extends Geometric implements Instancable
 		return np.getTechnology().getPrimitiveFunction(this);
 	}
 
+    /** 
+     * Routine to see if this NodeInst is a Primitive Transistor.
+     * Use getFunction() to determine what specific transitor type it is,
+     * if any.
+     * @return true if NodeInst represents Primitive Transistor
+     */
+    public boolean isPrimitiveTransistor()
+    {
+        NodeProto.Function func = protoType.getFunction(); // note bypasses ni.getFunction() call
+        if (func == NodeProto.Function.TRANS ||         // covers all Schematic trans
+            func == NodeProto.Function.TRANS4 ||        // covers all Schematic trans4
+            func == NodeProto.Function.TRANMOS ||       // covers all MoCMOS nmos gates
+            func == NodeProto.Function.TRAPMOS          // covers all MoCMOS pmos gates
+            )
+            return true;
+        return false;
+    }
+    
 	/**
 	 * Routine to return the size of this transistor NodeInst.
+     * @param context the VarContext in which any evaluations take place,
+     * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension getTransistorSize()
+	public Dimension getTransistorSize(VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
-		return np.getTechnology().getTransistorSize(this);
+		return np.getTechnology().getTransistorSize(this, context);
 	}
 
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorGatePort()
+    {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorGatePort(this);
+    }
+    
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorSourcePort()
+    {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorSourcePort(this);
+    }
+    
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorDrainPort()
+    {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorDrainPort(this);
+    }
+    
+    
 	/**
 	 * Returns the basename for autonaming.
 	 * @return the basename for autonaming.

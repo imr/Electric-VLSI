@@ -73,10 +73,12 @@ import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Arc2D;
 import java.awt.Font;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
@@ -178,7 +180,8 @@ public class EditWindow extends JPanel
 
 	public void paint(Graphics g)
 	{
-		// to enable keys to be recieved
+        Graphics2D g2 = (Graphics2D)g;
+        // to enable keys to be recieved
 		requestFocus();
 		if (img == null || !getSize().equals(sz))
 		{
@@ -192,10 +195,10 @@ public class EditWindow extends JPanel
 			needsUpdate = false;
 			drawImage();
 		}
-		g.drawImage(img, 0, 0, this);
+		g2.drawImage(img, 0, 0, this);
 
 		// add in grid
-		if (showGrid) drawGrid(g);
+		if (showGrid) drawGrid(g2);
 
 		// add in highlighting
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -203,12 +206,12 @@ public class EditWindow extends JPanel
 			Highlight h = (Highlight)it.next();
 			Cell highCell = h.getCell();
 			if (highCell != cell) continue;
-			h.showHighlight(this, g);
+			h.showHighlight(this, g2);
 		}
 
 		// add in drag area
 		if (doingAreaDrag)
-			showDragBox(g);
+			showDragBox(g2);
 	}
 
 	/**
@@ -574,25 +577,29 @@ public class EditWindow extends JPanel
 	{
 		AffineTransform saveAT = g2.getTransform();
 		double cScale = 100;
-//		if (poly.getStyle() == Poly.Type.THICKCIRCLE) g2.setStroke(thickLine); else
-//			g2.setStroke(solidLine);
 		g2.scale(1/cScale, 1/cScale);
+		if (poly.getStyle() == Poly.Type.THICKCIRCLE) g2.setStroke(thickLine); else
+			g2.setStroke(solidLine);
 		Point2D [] points = poly.getPoints();
-		int ctrX = (int)(points[0].getX() * cScale);
-		int ctrY = (int)(points[0].getY() * cScale);
-		int edgeX = (int)(points[1].getX() * cScale);
-		int edgeY = (int)(points[1].getY() * cScale);
-		int radius;
+		double ctrX = points[0].getX() * cScale;
+		double ctrY = points[0].getY() * cScale;
+		double edgeX = points[1].getX() * cScale;
+		double edgeY = points[1].getY() * cScale;
+		double radius;
 		if (edgeX == ctrX) radius = Math.abs(ctrY - edgeY); else
 			if (edgeY == ctrY) radius = Math.abs(ctrX - edgeX); else
-				radius = (int)Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
-		int diameter = radius * 2;
-		if (poly.getStyle() == Poly.Type.DISC)
+				radius = Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
+		double diameter = radius * 2;
+        Arc2D circle = new Arc2D.Double((int)ctrX-radius, (int)ctrY-radius, (int)diameter, (int)diameter,
+                                        (int)0.0, (int)360.0, Arc2D.OPEN);
+        if (poly.getStyle() == Poly.Type.DISC)
 		{
-			g2.fillOval(ctrX-radius, ctrY-radius, diameter, diameter);
+            g2.fill(circle);
+			//g2.fillOval(ctrX-radius, ctrY-radius, diameter, diameter);
 		} else
 		{
-			g2.drawOval(ctrX-radius, ctrY-radius, diameter, diameter);
+            g2.draw(circle);
+            //g2.drawOval(ctrX-radius, ctrY-radius, diameter, diameter);
 		}
 		g2.setTransform(saveAT);
 	}

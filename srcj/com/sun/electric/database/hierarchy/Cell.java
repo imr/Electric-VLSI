@@ -47,6 +47,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -1767,13 +1768,21 @@ public class Cell extends NodeProto
 	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
 	 * an ArrayList are treated as if they are connected.  All of the
 	 * PortProtos in a single ArrayList must belong to the same
-	 * NodeProto. */
-	public void rebuildNetworks(ArrayList connectedPorts)
+	 * NodeProto.
+     *
+     * <p>Because shorting resistors is a fairly common request, it is 
+     * implemented in the method if @param shortResistors is set to true.
+     */
+	public void rebuildNetworks(ArrayList connectedPorts, boolean shortResistors)
 	{
 		if (connectedPorts == null)
 		{
 			connectedPorts = new ArrayList();
 		}
+        if (shortResistors)
+        {
+            connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
+        }
 		HashMap connPorts = buildConnPortsTable(connectedPorts);
 		currentTime++;
 		redoNetworks(connPorts);

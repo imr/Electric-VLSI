@@ -1254,6 +1254,16 @@ public abstract class NodeProto extends ElectricObject
 		return ports.iterator();
 	}
 
+    /**
+     * Routine to return the list of PortProtos.  Useful for passing
+     * to Cell.rebuildNetworks()
+     * @return a List of this NodeProto's PortProtos.
+     */
+    public List getPortsList()
+    {
+        return ports;
+    }
+    
 	/**
 	 * Routine to return the number of PortProtos on this NodeProto.
 	 * @return the number of PortProtos on this NodeProto.

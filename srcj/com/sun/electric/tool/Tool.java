@@ -40,6 +40,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.prefs.Preferences;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
@@ -58,6 +59,8 @@ public class Tool extends ElectricObject implements Change
 	private static List tools = new ArrayList();
 	private static int toolNumber = 0;
 
+    /** Preferences for this Tool */                        private Preferences prefs;
+    
 	/** set if tool is on */								private static final int TOOLON =             01;
 	/** set if tool is running in background */				private static final int TOOLBG =             02;
 	/** set if tool will fix errors */						private static final int TOOLFIX =            04;
@@ -76,6 +79,7 @@ public class Tool extends ElectricObject implements Change
 		this.toolState = 0;
 		this.toolIndex = toolNumber++;
 		tools.add(this);
+        prefs = Preferences.userNodeForPackage(this.getClass());  // per-package namespace for preferences
 	}
 
 	/**
@@ -141,6 +145,12 @@ public class Tool extends ElectricObject implements Change
 	 */
 	public int getIndex() { return toolIndex; }
 
+    /**
+     * Routine to return Preferences object
+     * @return Preferences object
+     */
+    public Preferences getPrefs() { return prefs; }
+    
 	/**
 	 * Routine to set this Tool to be on.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
@@ -269,7 +279,7 @@ public class Tool extends ElectricObject implements Change
 	{
 		return "Tool '" + toolName;
 	}
-
+    
 	public void init() {}
 	public void request(String cmd) {}
 	public void examineCell(Cell cell) {}

@@ -30,10 +30,12 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
@@ -856,10 +858,13 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Routine to return the size of a transistor NodeInst in this Technology.
+     * You should most likely be calling NodeInst.getTransistorSize instead of this.
 	 * @param ni the NodeInst.
+     * @param context the VarContext in which any vars will be evaluated,
+     * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension getTransistorSize(NodeInst ni)
+	public Dimension getTransistorSize(NodeInst ni, VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		SizeOffset so = np.getSizeOffset();
@@ -870,7 +875,40 @@ public class Technology extends ElectricObject
 		return dim;
 	}
 
-	/**
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorGatePort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorGatePort(NodeInst ni) { return ni.findPortInst("g"); }
+    
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorSourcePort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorSourcePort(NodeInst ni) { return ni.findPortInst("s"); }
+
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorDrainPort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorDrainPort(NodeInst ni) { return ni.findPortInst("d"); }
+
+    /**
 	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
 	 * This routine is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.

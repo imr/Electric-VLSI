@@ -68,14 +68,14 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     /** Creates a new instance of LENetlister */
     public LENetlister(LESizer lesizer, OutputStream ostream) {
         // get preferences for this package
-        Preferences prefs = Preferences.userNodeForPackage(LENetlister.class);
-        su = prefs.getFloat("step-up", (float)4.7);
-        wireRatio = prefs.getFloat("wireRatio", (float)0.16);
-        epsilon = prefs.getFloat("epsilon", (float)0.001);
-        maxIterations = prefs.getInt("maxIterations", 30);
-        gateCap = prefs.getFloat("gateCap", (float)0.4);
-        alpha = prefs.getFloat("alpha", (float)0.7);
-        keeperRatio = prefs.getFloat("keeperRatio", (float)0.1);
+        Tool leTool = Tool.findTool("logical effort");
+        su = leTool.getPrefs().getFloat(LETool.OPTION_GLOBALFANOUT, LETool.DEFAULT_GLOBALFANOUT);
+		epsilon = leTool.getPrefs().getFloat(LETool.OPTION_EPSILON, LETool.DEFAULT_EPSILON);
+		maxIterations = leTool.getPrefs().getInt(LETool.OPTION_MAXITER, LETool.DEFAULT_MAXITER);
+		gateCap = leTool.getPrefs().getFloat(LETool.OPTION_GATECAP, LETool.DEFAULT_GATECAP);
+		wireRatio = leTool.getPrefs().getFloat(LETool.OPTION_WIRERATIO, LETool.DEFAULT_WIRERATIO);
+		alpha = leTool.getPrefs().getFloat(LETool.OPTION_DIFFALPHA, LETool.DEFAULT_DIFFALPHA);
+		keeperRatio = leTool.getPrefs().getFloat(LETool.OPTION_KEEPERRATIO, LETool.DEFAULT_KEEPERRATIO);
         
         this.lesizer = lesizer;
         this.instancesMap = new HashMap();
@@ -83,7 +83,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     }        
     
     /** NodeInst should be an LESettings instance */
-    protected void setOptions(NodeInst ni, VarContext context) {
+    protected void useLESettings(NodeInst ni, VarContext context) {
         Variable var;
         if ((var = ni.getVar("ATTR_su")) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
         if ((var = ni.getVar("ATTR_wire_ratio")) != null) wireRatio = VarContext.objectToFloat(context.evalVar(var), wireRatio);
@@ -96,13 +96,15 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         
     protected void netlist(Cell cell, VarContext context) {
 
-        cell.rebuildNetworks(null);
+        //ArrayList connectedPorts = new ArrayList();
+        //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
+        cell.rebuildNetworks(null, true);
         
         // read schematic-specific sizing options
         for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.getVar("ATTR_LESETTINGS") != null) {
-                setOptions(ni, context);            // get settings from object
+                useLESettings(ni, context);            // get settings from object
                 break;
             }
         }
@@ -112,7 +114,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     
     public void size() {
         //lesizer.printDesign();
-        boolean verbose = false;
+        boolean verbose = true;
         lesizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
         //out.println("---------After optimization:------------");
         //lesizer.printDesign();
@@ -122,8 +124,8 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         Set allEntries = instancesMap.entrySet();
         for (Iterator it = allEntries.iterator(); it.hasNext();) {
             Map.Entry entry = (Map.Entry)it.next();
-            NodeInst ni = (NodeInst)entry.getKey();
-            Instance inst = (Instance)entry.getValue();
+            Instance inst = (Instance)entry.getKey();
+            NodeInst ni = (NodeInst)entry.getValue();
             String varName = "LEDRIVE_" + inst.getName();
             ni.setVar(varName, new Float(inst.getLeX()));
         }
@@ -156,7 +158,8 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             float len = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
             var = ni.getVar("ATTR_width");
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0f);
-            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;
+            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
+            leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
         }
         else if (ni.getVar("ATTR_LEKEEPER") != null) type = Instance.Type.LEKEEPER;
         else if (ni.getVar("ATTR_LESETTINGS") != null) return false;
@@ -179,12 +182,13 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
             //out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
+            if (type == Instance.Type.NOTSIZEABLE) break;    // this is LEWIRE, only add one pin of it
         }
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
         Instance inst = lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
         //out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
-        instancesMap.put(ni, inst);
+        instancesMap.put(inst, ni);
         return false;
     }
             

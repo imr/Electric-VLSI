@@ -36,6 +36,8 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -2564,6 +2566,63 @@ public class MoCMOS extends Technology
 		if (name.equals("Metal-1-Well-Con")) return(metal1PWellContact_node);
 		return null;
 	}
+    
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorGatePort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorGatePort(NodeInst ni) 
+    {
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        if (np == pTransistor_node) return ni.findPortInst("p-trans-poly-left");
+        if (np == nTransistor_node) return ni.findPortInst("n-trans-poly-left");
+        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-poly-left");
+        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-poly-left");
+        return null;
+    }
+    
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorSourcePort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorSourcePort(NodeInst ni)
+    {
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-top");
+        if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-top");
+        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-top");
+        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-top");
+        return null;
+    }
+
+    /**
+     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorDrainPort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorDrainPort(NodeInst ni)
+    {
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        if (np == pTransistor_node) return ni.findPortInst("p-trans-diff-bottom");
+        if (np == nTransistor_node) return ni.findPortInst("n-trans-diff-bottom");
+        if (np == scalablePTransistor_node) return ni.findPortInst("p-trans-sca-diff-bottom");
+        if (np == scalableNTransistor_node) return ni.findPortInst("n-trans-sca-diff-bottom");
+        return null;
+    }
 
 /* this tables must correspond with the above table (nodeprotos) */
 //static INTBIG node_minsize[NODEPROTOCOUNT*2] = {

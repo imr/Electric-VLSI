@@ -58,6 +58,7 @@ import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.misc.PadGenerator;
 import com.sun.electric.tool.simulation.Spice;
+import com.sun.electric.tool.simulation.IRSIMTool;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
@@ -210,6 +211,10 @@ public final class UserMenuCommands
         logEffortSubMenu.addMenuItem("Analyze Cell", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
+        Menu netlisters = Menu.createMenu("Other Netlisters");
+        netlisters.addMenuItem("Write IRSIM Netlist", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
+        toolMenu.add(netlisters);
 		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
 		toolMenu.add(routingSubMenu);
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
@@ -251,7 +256,9 @@ public final class UserMenuCommands
         Menu jongMenu = Menu.createMenu("JonG", 'J');
 		menuBar.add(jongMenu);
         jongMenu.addMenuItem("Describe Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
+        jongMenu.addMenuItem("Describe Proto Vars", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(true); }});
         jongMenu.addMenuItem("Eval Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
         jongMenu.addMenuItem("LE test1", null,
@@ -721,13 +728,23 @@ public final class UserMenuCommands
 //		NetFactory nf = new NetFactory();
 //		nf.testFour();
 	}
+    
+    public static void irsimNetlistCommand()
+    {
+        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        if (curEdit == null) {
+            System.out.println("Please select valid window first");
+            return;
+        }
+        IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
+    }        
 
 	public static void padFrameGeneratorCommand()
 	{
 		PadGenerator gen = new PadGenerator();
 		gen.ArrayFromFile();
 	}
-
+    
     // ---------------------- THE HELP MENU -----------------
 
 	public static void aboutCommand()
@@ -862,7 +879,7 @@ public final class UserMenuCommands
 				{
 					Cell cell = (Cell)cit.next();
 					ncell++;
-					cell.rebuildNetworks(null);
+					cell.rebuildNetworks(null, false);
 				}
 			}
 		} else
@@ -901,7 +918,7 @@ public final class UserMenuCommands
     
     // ---------------------- THE JON GAINSLEY MENU -----------------
     
-    public static void listVarsOnObject() {
+    public static void listVarsOnObject(boolean useproto) {
         if (Highlight.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
             return;
@@ -910,7 +927,15 @@ public final class UserMenuCommands
             Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.GEOM) continue;
             Geometric geom = (Geometric)h.getGeom();
-            geom.getInfo();
+            if (geom instanceof NodeInst) {
+                NodeInst ni = (NodeInst)geom;
+                if (useproto) {
+                    System.out.println("using prototype");
+                    ((ElectricObject)ni.getProto()).getInfo();
+                } else {
+                    ni.getInfo();
+                }
+            }
         }
     }
     

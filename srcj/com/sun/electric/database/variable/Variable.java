@@ -28,7 +28,9 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 
-import java.text.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.FieldPosition;
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -224,12 +226,12 @@ public class Variable
 		return name;
 	}
 
-    /** number format */ private static final DecimalFormat df = new DecimalFormat("#######.###");
+    /** number format */ private static final DecimalFormat df = new DecimalFormat("#######.##");
     /** field position */ private static final FieldPosition fp = new FieldPosition(NumberFormat.INTEGER_FIELD);
-    /** Format a float to something sensible that can be printed */
-    public static String format(float num) {
+    /** Truncate a Number to something sensible that can be printed */
+    public static String truncate(Number num) {
         StringBuffer buf = new StringBuffer();
-        df.format(num, buf, fp);
+        df.format(num.doubleValue(), buf, fp);
         return buf.toString();
     }
     
@@ -335,9 +337,9 @@ public class Variable
 		if (addr instanceof Integer)
 			return ((Integer)addr).toString();
 		if (addr instanceof Float)
-			return (format(((Float)addr).floatValue())); // only display up to 3 significant figures
+			return (truncate((Float)addr)); // only display limited # of significant figures
 		if (addr instanceof Double)
-			return ((Double)addr).toString();
+			return (truncate((Double)addr));  // only display limited # of significant figures
 		if (addr instanceof Short)
 			return ((Short)addr).toString();
 		if (addr instanceof Byte)

@@ -30,6 +30,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
@@ -462,52 +463,52 @@ public class ToolOptions extends javax.swing.JDialog
 	private DefaultListModel leArcListModel;
 	private HashMap leArcOptions;
 	private boolean leUseLocalSettingsInitial, leDisplayIntermediateCapsInitial, leHighlightComponentsInitial;
-	private double leGlobalFanOutInitial, leConvergenceInitial;
+	private float leGlobalFanOutInitial, leConvergenceInitial;
 	private int leMaxIterationsInitial;
-	private double leGateCapacitanceInitial, leDefaultWireCapRatioInitial, leDiffToGateCapRatioNMOSInitial;
-	private double leDiffToGateCapRatioPMOSInitial, leKeeperSizeRatioInitial;
+	private float leGateCapacitanceInitial, leDefaultWireCapRatioInitial, leDiffToGateCapRatioInitial;
+	private float leKeeperSizeRatioInitial;
 
 	private void initLogicalEffort()
 	{
-		leUseLocalSettingsInitial = LETool.isUseLocalSettings();
+        Tool leTool = Tool.findTool("logical effort");
+        //try { leTool.getPrefs().clear(); } catch (java.util.prefs.BackingStoreException e) {}
+        
+		leUseLocalSettingsInitial = leTool.getPrefs().getBoolean(LETool.OPTION_USELOCALSETTINGS, LETool.DEFAULT_USELOCALSETTINGS);
 		leUseLocalSettings.setSelected(leUseLocalSettingsInitial);
 
-		leDisplayIntermediateCapsInitial = LETool.isDisplayIntermediateCaps();
+		leDisplayIntermediateCapsInitial = leTool.getPrefs().getBoolean("blah", false);
 		leDisplayIntermediateCaps.setSelected(leDisplayIntermediateCapsInitial);
 
-		leHighlightComponentsInitial = LETool.isHighlightComponents();
+		leHighlightComponentsInitial = leTool.getPrefs().getBoolean("blah2", false);
 		leHighlightComponents.setSelected(leHighlightComponentsInitial);
 
-		leGlobalFanOutInitial = LETool.getGlobalFanOut();
-		leGlobalFanOut.setText(Double.toString(leGlobalFanOutInitial));
+		leGlobalFanOutInitial = leTool.getPrefs().getFloat(LETool.OPTION_GLOBALFANOUT, LETool.DEFAULT_GLOBALFANOUT);
+		leGlobalFanOut.setText(Float.toString(leGlobalFanOutInitial));
 
-		leConvergenceInitial = LETool.getConvergence();
-		leConvergence.setText(Double.toString(leConvergenceInitial));
+		leConvergenceInitial = leTool.getPrefs().getFloat(LETool.OPTION_EPSILON, LETool.DEFAULT_EPSILON);
+		leConvergence.setText(Float.toString(leConvergenceInitial));
 
-		leMaxIterationsInitial = LETool.getMaxIterations();
+		leMaxIterationsInitial = leTool.getPrefs().getInt(LETool.OPTION_MAXITER, LETool.DEFAULT_MAXITER);
 		leMaxIterations.setText(Integer.toString(leMaxIterationsInitial));
 
-		leGateCapacitanceInitial = LETool.getGateCapacitance();
-		leGateCapacitance.setText(Double.toString(leGateCapacitanceInitial));
+		leGateCapacitanceInitial = leTool.getPrefs().getFloat(LETool.OPTION_GATECAP, LETool.DEFAULT_GATECAP);
+		leGateCapacitance.setText(Float.toString(leGateCapacitanceInitial));
 
-		leDefaultWireCapRatioInitial = LETool.getDefWireCapRatio();
-		leDefaultWireCapRatio.setText(Double.toString(leDefaultWireCapRatioInitial));
+		leDefaultWireCapRatioInitial = leTool.getPrefs().getFloat(LETool.OPTION_WIRERATIO, LETool.DEFAULT_WIRERATIO);
+		leDefaultWireCapRatio.setText(Float.toString(leDefaultWireCapRatioInitial));
 
-		leDiffToGateCapRatioNMOSInitial = LETool.getDiffToGateCapRatioNMOS();
-		leDiffToGateCapRatioNMOS.setText(Double.toString(leDiffToGateCapRatioNMOSInitial));
+		leDiffToGateCapRatioInitial = leTool.getPrefs().getFloat(LETool.OPTION_DIFFALPHA, LETool.DEFAULT_DIFFALPHA);
+		leDiffToGateCapRatio.setText(Float.toString(leDiffToGateCapRatioInitial));
 
-		leDiffToGateCapRatioPMOSInitial = LETool.getDiffToGateCapRatioPMOS();
-		leDiffToGateCapRatioPMOS.setText(Double.toString(leDiffToGateCapRatioPMOSInitial));
-
-		leKeeperSizeRatioInitial = LETool.getKeeperSizeRatio();
-		leKeeperSizeRatio.setText(Double.toString(leKeeperSizeRatioInitial));
+		leKeeperSizeRatioInitial = leTool.getPrefs().getFloat(LETool.OPTION_KEEPERRATIO, LETool.DEFAULT_KEEPERRATIO);
+		leKeeperSizeRatio.setText(Float.toString(leKeeperSizeRatioInitial));
 
 		// make an empty list for the layer names
 		leArcOptions = new HashMap();
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			leArcOptions.put(arc, Option.newDoubleOption(LETool.getArcRatio(arc)));
+			leArcOptions.put(arc, Option.newDoubleOption(leTool.getPrefs().getDouble(arc.toString(), 0.0)));
 		}
 		leArcListModel = new DefaultListModel();
 		leArcList = new JList(leArcListModel);
@@ -525,45 +526,44 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void termLogicalEffort()
 	{
-		boolean nowBoolean = leUseLocalSettings.isSelected();
-		if (leUseLocalSettingsInitial != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
+        Tool leTool = Tool.findTool("logical effort");
+
+        boolean nowBoolean = leUseLocalSettings.isSelected();
+		if (leUseLocalSettingsInitial != nowBoolean) leTool.getPrefs().putBoolean(LETool.OPTION_USELOCALSETTINGS, nowBoolean);
 
 		nowBoolean = leDisplayIntermediateCaps.isSelected();
-		if (leDisplayIntermediateCapsInitial != nowBoolean) LETool.setDisplayIntermediateCaps(nowBoolean);
+		if (leDisplayIntermediateCapsInitial != nowBoolean) leTool.getPrefs().putBoolean("blah", nowBoolean);
 
 		nowBoolean = leHighlightComponents.isSelected();
-		if (leHighlightComponentsInitial != nowBoolean) LETool.setHighlightComponents(nowBoolean);
+		if (leHighlightComponentsInitial != nowBoolean) leTool.getPrefs().putBoolean("blah2", nowBoolean);
 
-		double nowDouble = EMath.atof(leGlobalFanOut.getText());
-		if (leGlobalFanOutInitial != nowDouble) LETool.setGlobalFanOut(nowDouble);
+		float nowFloat = (float)EMath.atof(leGlobalFanOut.getText());
+		if (leGlobalFanOutInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_GLOBALFANOUT, nowFloat);
 
-		nowDouble = EMath.atof(leConvergence.getText());
-		if (leConvergenceInitial != nowDouble) LETool.setConvergence(nowDouble);
+		nowFloat = (float)EMath.atof(leConvergence.getText());
+		if (leConvergenceInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_EPSILON, nowFloat);
 
 		int nowInt = EMath.atoi(leMaxIterations.getText());
-		if (leMaxIterationsInitial != nowInt) LETool.setMaxIterations(nowInt);
+		if (leMaxIterationsInitial != nowInt) leTool.getPrefs().putInt(LETool.OPTION_MAXITER, nowInt);
 
-		nowDouble = EMath.atof(leGateCapacitance.getText());
-		if (leGateCapacitanceInitial != nowDouble) LETool.setGateCapacitance(nowDouble);
+		nowFloat = (float)EMath.atof(leGateCapacitance.getText());
+		if (leGateCapacitanceInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_GATECAP, nowFloat);
 
-		nowDouble = EMath.atof(leDefaultWireCapRatio.getText());
-		if (leDefaultWireCapRatioInitial != nowDouble) LETool.setDefWireCapRatio(nowDouble);
+		nowFloat = (float)EMath.atof(leDefaultWireCapRatio.getText());
+		if (leDefaultWireCapRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_WIRERATIO, nowFloat);
 
-		nowDouble = EMath.atof(leDiffToGateCapRatioNMOS.getText());
-		if (leDiffToGateCapRatioNMOSInitial != nowDouble) LETool.setDiffToGateCapRatioNMOS(nowDouble);
+		nowFloat = (float)EMath.atof(leDiffToGateCapRatio.getText());
+		if (leDiffToGateCapRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_DIFFALPHA, nowFloat);
 
-		nowDouble = EMath.atof(leDiffToGateCapRatioPMOS.getText());
-		if (leDiffToGateCapRatioPMOSInitial != nowDouble) LETool.setDiffToGateCapRatioPMOS(nowDouble);
-
-		nowDouble = EMath.atof(leKeeperSizeRatio.getText());
-		if (leKeeperSizeRatioInitial != nowDouble) LETool.setKeeperSizeRatio(nowDouble);
+		nowFloat = (float)EMath.atof(leKeeperSizeRatio.getText());
+		if (leKeeperSizeRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_KEEPERRATIO, nowFloat);
 
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
 			Option option = (Option)leArcOptions.get(arc);
 			if (option != null && option.isChanged())
-				LETool.setArcRatio(arc, option.getDoubleValue());
+                leTool.getPrefs().putDouble(arc.toString(), option.getDoubleValue());
 		}
 	}
 
@@ -634,7 +634,7 @@ public class ToolOptions extends javax.swing.JDialog
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			model.addElement(arc.getProtoName() + " (" + Double.toString(LETool.getArcRatio(arc)) + ")");
+			model.addElement(arc.getProtoName() + " (" + ((Option)leArcOptions.get(arc)).getDoubleValue() + ")");
 		}
 	}
 
@@ -694,8 +694,7 @@ public class ToolOptions extends javax.swing.JDialog
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         spiceHeader = new javax.swing.ButtonGroup();
@@ -795,7 +794,6 @@ public class ToolOptions extends javax.swing.JDialog
         jLabel20 = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
         jLabel23 = new javax.swing.JLabel();
-        jLabel24 = new javax.swing.JLabel();
         jLabel25 = new javax.swing.JLabel();
         leUseLocalSettings = new javax.swing.JCheckBox();
         leHighlightComponents = new javax.swing.JCheckBox();
@@ -805,8 +803,7 @@ public class ToolOptions extends javax.swing.JDialog
         leMaxIterations = new javax.swing.JTextField();
         leGateCapacitance = new javax.swing.JTextField();
         leDefaultWireCapRatio = new javax.swing.JTextField();
-        leDiffToGateCapRatioNMOS = new javax.swing.JTextField();
-        leDiffToGateCapRatioPMOS = new javax.swing.JTextField();
+        leDiffToGateCapRatio = new javax.swing.JTextField();
         leKeeperSizeRatio = new javax.swing.JTextField();
         leWireRatio = new javax.swing.JTextField();
         routing = new javax.swing.JPanel();
@@ -819,10 +816,8 @@ public class ToolOptions extends javax.swing.JDialog
 
         setTitle("Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -1200,10 +1195,8 @@ public class ToolOptions extends javax.swing.JDialog
         spiceBrowseHeaderFile.setText("Browse");
         spiceBrowseHeaderFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseHeaderFile.setPreferredSize(new java.awt.Dimension(78, 20));
-        spiceBrowseHeaderFile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        spiceBrowseHeaderFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 spiceBrowseHeaderFileActionPerformed(evt);
             }
         });
@@ -1212,8 +1205,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice5.add(spiceBrowseHeaderFile, gridBagConstraints);
 
         spiceTrailerCardExtension.setColumns(5);
@@ -1237,10 +1230,8 @@ public class ToolOptions extends javax.swing.JDialog
         spiceBrowseTrailerFile.setText("Browse");
         spiceBrowseTrailerFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseTrailerFile.setPreferredSize(new java.awt.Dimension(78, 20));
-        spiceBrowseTrailerFile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        spiceBrowseTrailerFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 spiceBrowseTrailerFileActionPerformed(evt);
             }
         });
@@ -1249,8 +1240,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice5.add(spiceBrowseTrailerFile, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1313,10 +1304,8 @@ public class ToolOptions extends javax.swing.JDialog
         spice6.add(spiceUseModelFromFile, gridBagConstraints);
 
         spiceModelFileBrowse.setText("Browse");
-        spiceModelFileBrowse.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        spiceModelFileBrowse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 spiceModelFileBrowseActionPerformed(evt);
             }
         });
@@ -1367,8 +1356,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         network.add(netUnifyPwrGnd, gridBagConstraints);
 
         netUnifyLikeNamedNets.setText("Unify all like-named nets");
@@ -1376,8 +1365,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         network.add(netUnifyLikeNamedNets, gridBagConstraints);
 
         netIgnoreResistors.setText("Ignore Resistors");
@@ -1385,8 +1374,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         network.add(netIgnoreResistors, gridBagConstraints);
 
         jLabel3.setText("Unify Networks that start with:");
@@ -1394,8 +1383,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         network.add(jLabel3, gridBagConstraints);
 
         netUnificationPrefix.setColumns(20);
@@ -1404,8 +1393,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         network.add(netUnificationPrefix, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1428,16 +1417,16 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         network.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         network.add(netStartingIndex, gridBagConstraints);
 
         jLabel28.setText("Default order:");
@@ -1445,16 +1434,14 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         network.add(jLabel28, gridBagConstraints);
 
         netAscending.setText("Ascending (0:N)");
         netDefaultOrder.add(netAscending);
-        netAscending.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        netAscending.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 netAscendingActionPerformed(evt);
             }
         });
@@ -1463,8 +1450,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         network.add(netAscending, gridBagConstraints);
 
         netDescending.setText("Descending (N:0)");
@@ -1473,8 +1460,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
         network.add(netDescending, gridBagConstraints);
 
         jLabel29.setText("Network numbering:");
@@ -1539,10 +1526,8 @@ public class ToolOptions extends javax.swing.JDialog
         logicalEffort.add(jLabel14, gridBagConstraints);
 
         leHelp.setText("Help");
-        leHelp.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        leHelp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 leHelpActionPerformed(evt);
             }
         });
@@ -1576,21 +1561,13 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         logicalEffort.add(jLabel22, gridBagConstraints);
 
-        jLabel23.setText("Diffusion to gate cap ratio (NMOS):");
+        jLabel23.setText("Diffusion to gate cap ratio (alpha) :");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         logicalEffort.add(jLabel23, gridBagConstraints);
-
-        jLabel24.setText("Diffusion to gate cap ratio (PMOS):");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        logicalEffort.add(jLabel24, gridBagConstraints);
 
         jLabel25.setText("Keeper size ratio (keeper size / driver size):");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1624,10 +1601,7 @@ public class ToolOptions extends javax.swing.JDialog
         logicalEffort.add(jLabel6, gridBagConstraints);
 
         leGlobalFanOut.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        logicalEffort.add(leGlobalFanOut, gridBagConstraints);
+        logicalEffort.add(leGlobalFanOut, new java.awt.GridBagConstraints());
 
         leConvergence.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1653,17 +1627,11 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 4;
         logicalEffort.add(leDefaultWireCapRatio, gridBagConstraints);
 
-        leDiffToGateCapRatioNMOS.setColumns(8);
+        leDiffToGateCapRatio.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
-        logicalEffort.add(leDiffToGateCapRatioNMOS, gridBagConstraints);
-
-        leDiffToGateCapRatioPMOS.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
-        logicalEffort.add(leDiffToGateCapRatioPMOS, gridBagConstraints);
+        logicalEffort.add(leDiffToGateCapRatio, gridBagConstraints);
 
         leKeeperSizeRatio.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1697,10 +1665,8 @@ public class ToolOptions extends javax.swing.JDialog
         getContentPane().add(tabs, gridBagConstraints);
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CancelButton(evt);
             }
         });
@@ -1714,10 +1680,8 @@ public class ToolOptions extends javax.swing.JDialog
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ok.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 OKButton(evt);
             }
         });
@@ -1731,10 +1695,8 @@ public class ToolOptions extends javax.swing.JDialog
         getContentPane().add(ok, gridBagConstraints);
 
         factoryReset.setText("Factory Reset");
-        factoryReset.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        factoryReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 factoryResetActionPerformed(evt);
             }
         });
@@ -1835,7 +1797,6 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
@@ -1856,8 +1817,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JScrollPane leArc;
     private javax.swing.JTextField leConvergence;
     private javax.swing.JTextField leDefaultWireCapRatio;
-    private javax.swing.JTextField leDiffToGateCapRatioNMOS;
-    private javax.swing.JTextField leDiffToGateCapRatioPMOS;
+    private javax.swing.JTextField leDiffToGateCapRatio;
     private javax.swing.JCheckBox leDisplayIntermediateCaps;
     private javax.swing.JTextField leGateCapacitance;
     private javax.swing.JTextField leGlobalFanOut;

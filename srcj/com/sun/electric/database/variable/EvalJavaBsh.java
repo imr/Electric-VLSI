@@ -34,7 +34,9 @@ import com.sun.electric.database.variable.VarContext;
 import bsh.Interpreter;
 import bsh.InterpreterError;
 
-import java.util.regex.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.Stack;
 
 /**
  * Used for evaluating Java expressions in Variables
@@ -47,31 +49,50 @@ import java.util.regex.*;
 public class EvalJavaBsh {
     
     // ------------------------ private data ------------------------------------
+        
+    /** The EvalJavaBsh Tool */                     public static EvalJavaBsh tool = new EvalJavaBsh();
     
-    /** The bean shell interpreter */               private static Interpreter env = init();
+    /** The bean shell interpreter */               private Interpreter env;
     /** For replacing @variable */ private static final Pattern atPat = Pattern.compile("@(\\w+)");
+    /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
+    
+    /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
+    /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
+    
+    /** turn on Bsh verbose debug stmts */          private static boolean debug = true;
     
     // ------------------------ private and protected methods -------------------
     
-    /** the contructor is not used */
+    /** the contructor */
     private EvalJavaBsh() {
+        init();
     }
     
     /** Initialize bean shell */
-    protected static Interpreter init() {
+    private void init() {
         env = new Interpreter();
         try {
-            env.eval("Object P(String par) { return context.lookupVarEval(par); }");
-            env.eval("Object PAR(String par) { return context.lookupVarFarEval(par); }");
+            env.set("evalJavaBsh", this);
+            env.eval("Object P(String par) { return evalJavaBsh.P(par); }");
+
+            //env.eval("Object P(String par) { context = evalContextStack.peek(); return context.lookupVarEval(par); }");
+            //env.eval("Object PAR(String par) { context = evalContextStack.peek(); return context.lookupVarFarEval(par); }");
+            //env.set("context", VarContext.globalContext);
         } catch (bsh.EvalError e) {
             handleBshError(e);
         }
-        return env;
     }
     
     /** Handle errors.  Sends it to system.out */
-    protected static void handleBshError(bsh.EvalError e) {
+    protected void handleBshError(bsh.EvalError e) {
         System.out.println("Bean Shell eval error: " + e.getMessage());
+        if (debug) {
+            if (e instanceof bsh.TargetError) {
+                bsh.TargetError te = (bsh.TargetError)e;
+                Throwable t = te.getTarget();
+                System.out.println("  Exception thrown: "+t+"; "+t.getMessage());
+            }
+        }
     }
     
     /** Get the interpreter so other tools may add methods to it. There is only
@@ -79,42 +100,85 @@ public class EvalJavaBsh {
      * terms of namespace.  I recommend when adding objects or methods to the
      * Interpreter you prepend the object or method names with the Tool name.
      */
-    public static Interpreter getInterpreter() { return env; }
+    public Interpreter getInterpreter() { return env; }
+    
+    /**
+     * See what the current context of eval is.
+     * @return a VarContext.
+     */
+    public VarContext getCurrentContext() { return (VarContext)contextStack.peek(); }
+
+    /**
+     * See what the current info of eval is.
+     * @return an Object.
+     */
+    public Object getCurrentInfo() { return infoStack.peek(); }
+    
+    /**
+     * Replaces @var calls to P("var")
+     * Replaces P("var") calls to P("ATTR_var")
+     * Replaces PAR("var") calls to PAR("ATTR_var")
+     * @param expr the expression
+     * @return replaced expression
+     */
+    protected static String replace(String expr) {
+       StringBuffer sb = new StringBuffer();
+       Matcher atMat = atPat.matcher(expr); 
+       while(atMat.find()) {
+           atMat.appendReplacement(sb, "P(\""+atMat.group(1)+"\")");
+       }
+       atMat.appendTail(sb);
+
+       expr = sb.toString();
+       sb = new StringBuffer();
+       Matcher pMat = pPat.matcher(expr);
+       while(pMat.find()) {
+           if (pMat.group(2).startsWith("ATTR_"))
+                pMat.appendReplacement(sb, pMat.group(0));
+           else
+                pMat.appendReplacement(sb, pMat.group(1)+"(\"ATTR_"+pMat.group(2)+"\")");
+       }
+       pMat.appendTail(sb);
+       
+       return sb.toString();
+    }
     
     /** Evaluate Object as if it were a String containing java code.
+     * Note that this function may call itself recursively.
      * @param obj the object to be evaluated (toString() must apply).
      * @param context the context in which the object will be evaluated.
      * @param info used to pass additional info from Electric to the interpreter, if needed.
      * @return the evaluated object.
      */
-    protected static Object eval(Object obj, VarContext context, Object info) {
+    protected Object eval(Object obj, VarContext context, Object info) {
         try {
             if (context == null) context = VarContext.globalContext;
-            env.set("context", context);            // set context
-            env.set("info", info);                  // set info
+            contextStack.push(context);             // push context
+            infoStack.push(info);                   // push info
             String expr = replace(obj.toString());  // change @var calls to P(var)
             Object ret = env.eval(expr);            // ask bsh to eval
-            env.unset("context");                   // remove context
-            env.unset("info");                      // remove info
+            contextStack.pop();                     // pop context
+            infoStack.pop();                        // pop info
+            //System.out.println("BSH: "+expr.toString()+" --> "+ret);
             return ret;
         } catch (bsh.EvalError e) {
             handleBshError(e);
         }
         return null;
     }
-    
-    /**
-     * Replaces @var calls to P("var")
-     * @param expr the expression
-     * @return replaced expression
+
+    //------------------Methods that may be called through Interpreter--------------
+
+    /** Lookup variable for evaluation
+     * @return an evaluated object
      */
-    protected static String replace(String expr) {
-       Matcher mat = atPat.matcher(expr);       
-       StringBuffer sb = new StringBuffer();
-       while(mat.find()) {
-           mat.appendReplacement(sb, "P(\"ATTR_"+mat.group(1)+"\")");
-       }
-       mat.appendTail(sb);
-       return sb.toString();
+    public Object P(String name) {
+        VarContext context = (VarContext)contextStack.peek();
+        return context.lookupVarEval(name);
+    }
+    
+    public Object PAR(String name) {
+        VarContext context = (VarContext)contextStack.peek();
+        return context.lookupVarFarEval(name);
     }
 }

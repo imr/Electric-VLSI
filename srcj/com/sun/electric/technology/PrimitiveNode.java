@@ -25,6 +25,9 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.*;
 
 import java.util.Iterator;
 
@@ -245,4 +248,5 @@ public class PrimitiveNode extends NodeProto
 	{
 		return "PrimitiveNode " + describe();
 	}
+    
 }
