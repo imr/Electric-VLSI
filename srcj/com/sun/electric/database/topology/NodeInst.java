@@ -744,7 +744,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			PortProto pp = protoType.getPort(i);
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
-		this.center.setLocation(DBMath.round(center.getX()), DBMath.round(center.getY()));
+		double centerX = DBMath.round(center.getX());
+		if (centerX == 0) centerX = +0.0;
+		double centerY = DBMath.round(center.getY());
+		if (centerY == 0) centerY = +0.0;
+		this.center.setLocation(centerX, centerY);
 		this.sX = DBMath.round(width);
 		this.sY = DBMath.round(height);
 		this.angle = angle % 3600;

@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -277,23 +278,23 @@ public abstract class ElectricObject
         return this;
     }
 
-	/**
-	 * Method to return the number of persistent Variables on this ElectricObject.
-	 * A persistent Variable is one that will be saved with the library when written to disk.
-	 * @return the number of persistent Variables on this ElectricObject.
-	 */
-	public int numPersistentVariables()
-	{
-        //checkExamine();
-		int numVars = 0;
-		for (Iterator it = getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			if (var.isDontSave()) continue;
-			numVars++;
-		}
-		return numVars;
-	}
+// 	/**
+// 	 * Method to return the number of persistent Variables on this ElectricObject.
+// 	 * A persistent Variable is one that will be saved with the library when written to disk.
+// 	 * @return the number of persistent Variables on this ElectricObject.
+// 	 */
+// 	public int numPersistentVariables()
+// 	{
+//         //checkExamine();
+// 		int numVars = 0;
+// 		for (Iterator it = getVariables(); it.hasNext(); )
+// 		{
+// 			Variable var = (Variable)it.next();
+// 			if (var.isDontSave()) continue;
+// 			numVars++;
+// 		}
+// 		return numVars;
+// 	}
 
 	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.

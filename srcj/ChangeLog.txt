@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/17/05, DN) Deterministic output of ELIB and ReadableDump:
+     Only referenced objects and variable keys are written;
+     Userbits of objects contain only bits used in Java Electric;
+     Only variable flags used in Java Electric are written;
+     VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL bits in TextDescriptor are replaced by VTDISPLAYNAMEVALUE;
+
 IMP: (01/14/05, RK) NCC: I eliminated the annoying "false sharing" behavior during hierarchical NCC. This allows NCC regressions to pass once again.
 
 IMP: (01/14/05, SMR) Added special properties dialog for nodes with outline information

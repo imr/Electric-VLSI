@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -62,10 +63,13 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.JOptionPane;
 
@@ -76,10 +80,48 @@ import javax.swing.JOptionPane;
  */
 public class Output
 {
+	static class OrderedConnections implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Connection c1 = (Connection)o1;
+			Connection c2 = (Connection)o2;
+			int i1 = c1.getPortInst().getPortProto().getPortIndex();
+			int i2 = c2.getPortInst().getPortProto().getPortIndex();
+			int cmp = i1 - i2;
+			if (cmp != 0) return cmp;
+			cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
+			if (cmp != 0) return cmp;
+			boolean head1 = c1.isHeadEnd();
+			boolean head2 = c2.isHeadEnd();
+			if (head1 == head2) return 0;
+			return head1 ? -1 : 1;
+		}
+	}
+
+	static class OrderedExports implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Export e1 = (Export)o1;
+			Export e2 = (Export)o2;
+			int i1 = e1.getOriginalPort().getPortProto().getPortIndex();
+			int i2 = e2.getOriginalPort().getPortProto().getPortIndex();
+			int cmp = i1 - i2;
+			if (cmp != 0) return cmp;
+			return e1.getPortIndex() - e2.getPortIndex();
+		}
+	}
+
+	/** connections comparator for writeNodeInst */		static final Comparator CONNECTIONS_ORDER = new OrderedConnections();
+	/** exports comparator for writeNodeInst */			static final Comparator EXPORTS_ORDER = new OrderedExports();
+
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
 	/** Map of referenced objects for library files */	HashMap objInfo;
+	/** Maps memory face index to disk face index */	int[] faceMap;
+	/** Name space of variable names */					TreeMap/*<String,Integer>*/ nameSpace;
 
 	public Output()
 	{
@@ -359,10 +401,12 @@ public class Output
 	/**
 	 * Gathers into objInfo map all objects references from library objects.
 	 * @param lib the Library to examine.
+	 * @param needVars true if variable name space and font information is necessary
 	 */
-	void gatherReferencedObjects(Library lib)
+	void gatherReferencedObjects(Library lib, boolean needVars)
 	{
 		objInfo = new HashMap();
+		nameSpace = needVars ? new TreeMap/*<String,Integer>*/(TextUtils.STRING_NUMBER_ORDER) : null;
 		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
@@ -388,6 +432,11 @@ public class Output
 					gatherVariables(pi);
 				}
 				gatherVariables(ni);
+				if (needVars)
+				{
+					gatherFont(ni.getTextDescriptor(NodeInst.NODE_NAME_TD));
+					gatherFont(ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
+				}
 			}
 
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -399,6 +448,7 @@ public class Output
 				//gatherObj(ai.getHead().getPortInst().getPortProto());
 				//gatherObj(ai.getTail().getPortInst().getPortProto());
 				gatherVariables(ai);
+				if (needVars) gatherFont(ai.getTextDescriptor(ArcInst.ARC_NAME_TD));
 			}
 
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -406,6 +456,7 @@ public class Output
 				Export e = (Export)it.next();
 				//gatherObj(e.getOriginalPort().getPortProto());
 				gatherVariables(e);
+				if (needVars) gatherFont(e.getTextDescriptor(Export.EXPORT_NAME_TD));
 			}
 
 			gatherVariables(cell);
@@ -417,6 +468,19 @@ public class Output
 
 		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
 			gatherMeaningPrefs(it.next());
+
+		if (needVars)
+		{
+			putNameSpace(Library.FONT_ASSOCIATIONS.getName());
+			putNameSpace(NodeInst.NODE_NAME.getName());
+			putNameSpace(ArcInst.ARC_NAME.getName());
+			short varIndex = 0;
+			for (Iterator it = nameSpace.entrySet().iterator(); it.hasNext(); )
+			{
+				Map.Entry e = (Map.Entry)it.next();
+				e.setValue(new Short(varIndex++));
+			}
+		}
 	}
 
 	/**
@@ -428,10 +492,8 @@ public class Output
 		for (Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			Variable.Key key = var.getKey();
-			if (eObj instanceof PortInst)
-				key = convertPortInstVariable(((PortInst)eObj).getPortProto().getName(), key);
-			gatherObj(key);
+			//if (var.isDontSave()) continue;
+			if (nameSpace != null) putNameSpace(diskName(var));
 			gatherFont(var.getTextDescriptor());
 			Object value = var.getObject();
 			if (value == null) continue;
@@ -477,8 +539,8 @@ public class Output
 		{
 			gatherObj(obj);
 			Pref pref = (Pref)it.next();
-			Variable.Key key = pref.getMeaning().getKey();
-			gatherObj(key);
+			String name = pref.getPrefName();
+			if (nameSpace != null) putNameSpace(name);
 		}
 	}
 
@@ -513,13 +575,35 @@ public class Output
 	}
 
 	/**
-	 * Convert variable key on PortInst to modified variable key ATTRP_portName_key.
-	 * PortInst variables are stored on disk as NodeInst variables with such a name.
-	 * @param portName name of port.
-	 * @param key variable key.
+	 * Put index of object into objInfo map.
+	 * @param obj Object to put.
+	 * @param index index of object.
 	 */
-	Variable.Key convertPortInstVariable(String portName, Variable.Key key)
+	void putObjIndex(Object obj, int index)
 	{
+		objInfo.put(obj, new Integer(index));
+	}
+
+	/**
+	 * Put string into variable name space.
+	 * @param name name to put.
+	 */
+	void putNameSpace(String name)
+	{
+		nameSpace.put(name, null);
+	}
+
+	/**
+	 * Returns variable disk name. Usually it is variable name.
+	 * Disk name of PortInst variables is key ATTRP_portName_varName.
+	 * @param var Variable.
+	 * @return disk name of variable.
+	 */
+	String diskName(Variable var)
+	{
+		if (!(var.getOwner() instanceof PortInst)) return var.getKey().getName();
+		PortInst pi = (PortInst)var.getOwner();
+		String portName = pi.getPortProto().getName();
 		StringBuffer sb = new StringBuffer("ATTRP_");
 		for (int i = 0; i < portName.length(); i++)
 		{
@@ -528,122 +612,41 @@ public class Output
 			sb.append(ch);
 		}
 		sb.append('_');
-		sb.append(key.toString());
-		return ElectricObject.newKey(sb.toString());
+		sb.append(var.getKey().getName());
+		return sb.toString();
 	}
 
 	/**
-	 * Method to gather all font settings in a Library and attach them to the Library.
-	 * @param lib the Library to examine.
+	 * Method to gather all font settings in a Library.
 	 * The method examines all TextDescriptors that might be saved with the Library
-	 * and adds a new Variable to that Library that describes the font associations.
-	 * The Variable is called "LIB_font_associations" and it is an array of Strings.
+	 * and returns an array of Strings that describes the font associations.
 	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
 	 * in the TextDescriptor and FONTNAME is the font name.
+	 * @param lib the Library to examine.
+	 * @return font association array or null.
 	 */
-	public static void createFontAssociationVariable(Library lib)
+	String[] createFontAssociation()
 	{
 		int maxIndices = TextDescriptor.ActiveFont.getMaxIndex();
-		if (maxIndices == 0) return;
-		boolean [] fontFound = new boolean[maxIndices];
-		for(int i=0; i<maxIndices; i++) fontFound[i] = false;
-
-		// now examine all objects to see which fonts are in use
-		checkFontUsage(lib, fontFound);
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		if (maxIndices == 0) return null;
+		faceMap = new int[maxIndices + 1];
+		TreeMap/*<String,TextDescriptor.ActiveFont>*/ sortedFonts = new TreeMap/*<String,TextDescriptor.ActiveFont>*/();
+		for (int i = 1; i < maxIndices; i++)
 		{
-			Cell cell = (Cell)it.next();
-			checkFontUsage(cell, fontFound);
-			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)nIt.next();
-				checkFontUsage(ni, fontFound);
-				updateFontUsage(ni.getTextDescriptor(NodeInst.NODE_NAME_TD), fontFound);
-				if (ni.getProto() instanceof Cell)
-					updateFontUsage(ni.getTextDescriptor(NodeInst.NODE_PROTO_TD), fontFound);
-				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
-				{
-					PortInst pi = (PortInst)pIt.next();
-					checkFontUsage(pi, fontFound);
-				}
-			}
-			for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)aIt.next();
-				checkFontUsage(ai, fontFound);
-				updateFontUsage(ai.getTextDescriptor(ArcInst.ARC_NAME_TD), fontFound);
-			}
-			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
-			{
-				Export pp = (Export)eIt.next();
-				checkFontUsage(pp, fontFound);
-				updateFontUsage(pp.getTextDescriptor(Export.EXPORT_NAME_TD), fontFound);
-			}
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i);
+			if (!objInfo.containsKey(af)) continue;
+			sortedFonts.put(af.getName(), af);
 		}
-// 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-// 		{
-// 			Technology tech = (Technology)it.next();
-// 			checkFontUsage(tech, fontFound);
-// 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
-// 			{
-// 				PrimitiveNode np = (PrimitiveNode)nIt.next();
-//				checkFontUsage(np, fontFound);
-// 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
-// 				{
-// 					PrimitivePort pp = (PrimitivePort)pIt.next();
-// 					checkFontUsage(pp, fontFound);
-// 				}
-// 			}
-// 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-// 			{
-// 				PrimitiveArc ap = (PrimitiveArc)aIt.next();
-// 				checkFontUsage(ap, fontFound);
-// 			}
-// 		}
-// 		for(Iterator it = Tool.getTools(); it.hasNext(); )
-// 		{
-// 			Tool tool = (Tool)it.next();
-// 			checkFontUsage(tool, fontFound);
-// 		}
-// 		for(Iterator it = View.getViews(); it.hasNext(); )
-// 		{
-// 			View view = (View)it.next();
-// 			checkFontUsage(view, fontFound);
-// 		}
-
-		// now save the associations
-		List associations = new ArrayList();
-		for(int i=0; i<maxIndices; i++)
+		List/*<String>*/ fontAssociation = new ArrayList/*<String>*/();
+		for (Iterator it = sortedFonts.values().iterator(); it.hasNext(); )
 		{
-			if (!fontFound[i]) continue;
-			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i+1);
-			if (af == null) continue;
-			String association = Integer.toString(i+1) + "/" + af.getName();
-			associations.add(association);
+			TextDescriptor.ActiveFont af = (TextDescriptor.ActiveFont)it.next();
+			int face = fontAssociation.size() + 1;
+			faceMap[af.getIndex()] = face;
+			String association = face + "/" + af.getName();
+			fontAssociation.add(association);
 		}
-		int numAssociations = associations.size();
-		if (numAssociations == 0) return;
-		String [] assocArray = new String[numAssociations];
-		int i = 0;
-		for(Iterator it = associations.iterator(); it.hasNext(); )
-			assocArray[i++] = (String)it.next();
-		lib.newVar(Library.FONT_ASSOCIATIONS, assocArray);
-	}
-
-	private static void checkFontUsage(ElectricObject eobj, boolean [] fontFound)
-	{
-		for(Iterator it = eobj.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			updateFontUsage(var.getTextDescriptor(), fontFound);
-		}
-	}
-
-	private static void updateFontUsage(TextDescriptor td, boolean [] fontFound)
-	{
-		int fontIndex = td.getFace();
-		if (fontIndex == 0) return;
-		fontFound[fontIndex-1] = true;
+		return (String[])fontAssociation.toArray(new String[fontAssociation.size()]);
 	}
 
     /**

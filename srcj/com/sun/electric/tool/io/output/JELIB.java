@@ -101,7 +101,7 @@ public class JELIB extends Output
 		throws IOException
 	{
 		// gather all referenced objects
-		gatherReferencedObjects(lib);
+		gatherReferencedObjects(lib, false);
 
 		// write header information (library, version, main cell)
 		printWriter.println("# header information:");
@@ -541,26 +541,48 @@ public class JELIB extends Output
 	}
 
 	/**
+	 * Method to write the variables on an object.
+	 * If object is NodeInst write variables on its PortInsts also.
+	 * The current cell is "curCell" such that any references to objects in a cell
+	 * must be in this cell.
+	 */
+	private void printlnVars(ElectricObject eObj, Cell curCell)
+	{
+		// write the variables
+		printVars(eObj, curCell);
+		if (eObj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)eObj;
+			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+			{
+				PortInst pi = (PortInst)it.next();
+				if (pi.getNumVariables() != 0)
+					printVars(pi, curCell);
+			}
+		}
+		printWriter.println();
+	}
+
+	/**
 	 * Method to write the variables on an object.  The current cell is
 	 * "curCell" such that any references to objects in a cell must be in
 	 * this cell.
 	 */
-	private void printlnVars(ElectricObject eObj, Cell curCell)
+	private void printVars(ElectricObject eObj, Cell curCell)
 	{
 		// write the variables
 		for(Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			if (var.isDontSave()) continue;
+//			if (var.isDontSave()) continue;
 			String tdString = describeDescriptor(var, var.getTextDescriptor());
-			printWriter.print("|" + convertVariableName(var.getKey().getName()) + "(" + tdString + ")");
+			printWriter.print("|" + convertVariableName(diskName(var)) + "(" + tdString + ")");
 
 			Object varObj = var.getObject();
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
 			printWriter.print(pt);
 		}
-		printWriter.println();
 	}
 
 	/**

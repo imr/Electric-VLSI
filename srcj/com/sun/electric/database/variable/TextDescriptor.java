@@ -750,6 +750,11 @@ public class TextDescriptor implements Serializable
 		this.descriptor0 = descriptor.descriptor0;
 		this.descriptor1 = descriptor.descriptor1;
 		this.colorIndex = descriptor.colorIndex;
+
+		// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
+		if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
+		// Convert zero VTSIZE to RelSize(1)
+		if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
 	}
 
 	/**
@@ -766,6 +771,12 @@ public class TextDescriptor implements Serializable
 		this.descriptor0 = (int)(descriptor >> 32);
 		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
 		this.colorIndex = colorIndex;
+
+		// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
+		if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
+		// Convert zero VTSIZE to RelSize(1)
+		if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
+
 		if (fontName.length() > 0)
 			descriptor1 = (descriptor1 & ~VTFACE) | (ActiveFont.findActiveFont(fontName).getIndex() << VTFACESH);
 	}
@@ -1001,6 +1012,11 @@ public class TextDescriptor implements Serializable
             this.descriptor0 = d0;
             this.descriptor1 = d1;
             this.colorIndex = ci;
+
+			// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
+			if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
+			// Convert zero VTSIZE to RelSize(1)
+			if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
         }
 	}
 

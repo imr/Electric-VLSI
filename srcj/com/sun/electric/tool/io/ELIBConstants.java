@@ -95,10 +95,60 @@ public class ELIBConstants
 	/** Defines the right shift for VLENGTH. */									public static final int VLENGTHSH =                 9;
 	/** Defines whether the variable is interpreted code (with VCODE1). */		public static final int VCODE2 =          04000000000;
 
+	// some bits of TextDescriptor of a Variable:
+	/** Semantic bits in descriptor 0 (VTISPARAMETER|VTINTERIOR|VTINHERIT). */	public static final int VTSEMANTIC0 =           07000;
+	/** Semantic bits in descriptor 1 (VTUNITS). */								public static final int VTSEMANTIC1 =    034000000000;
+	/** Face of text bits in descriptor 1. */									public static final int VTFACE =            017700000;
+	/** Right shift of VTFACE. */												public static final int VTFACESH =                 15;
+
+	// Cell userbits
+	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
+	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
+	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
+	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
+	/** set if cell is from a technology-library */					private static final int TECEDITCELL   =    040000000;
+	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
+	public static final int CELL_BITS = WANTNEXPAND | NPLOCKED | NPILOCKED | INCELLLIBRARY | TECEDITCELL /* | MULTIPAGE*/;
+
+	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
+	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
+	public static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
+
+	/** fixed-length arc */								private static final int FIXED =                     01;
+	/** fixed-angle arc */								private static final int FIXANG =                    02;
+	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
+	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
+	/** set if head end of ArcInst is negated */		public  static final int ISHEADNEGATED =        0200000;
+	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
+	/** set if tail end of ArcInst is negated */		public  static final int ISNEGATED =           01000000;
+	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
+	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0 =             04000000;
+	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
+	/** reverse extension/negation/arrow ends */		public  static final int REVERSEEND =         020000000;
+	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
+	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
+	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
+
+	public static final int ARC_BITS = FIXED | FIXANG | AANGLE | ISHEADNEGATED | NOEXTEND | ISNEGATED | ISDIRECTIONAL | NOTEND0 | NOTEND1 | REVERSEEND | CANTSLIDE /* | FIXEDMOD*/ | HARDSELECTA;
+
+	/** if on, draw node expanded */						private static final int NEXPAND =                   04;
+	/** set if node not drawn due to wiping arcs */			private static final int WIPED =                    010;
+	/** set if node is to be drawn shortened */				private static final int NSHORT =                   020;
+	/** set if hard to select */							private static final int HARDSELECTN =          0100000;
+	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE =     040000000;
+	/** technology-specific bits for primitives */			private static final int NTECHBITS =          037400000;
+	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
+	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
+
+	public static final int NODE_BITS = NEXPAND | WIPED | NSHORT | HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
+
 	// bits found in the "userbits" field of an ArcInst:
-	/** set if head end of ArcInst is negated */								public static final int ISHEADNEGATED =       0200000;
-	/** set if tail end of ArcInst is negated */								public static final int ISNEGATED =          01000000;
-	/** reverse extension/negation/arrow ends */								public static final int REVERSEEND =        020000000;
+// 	/** set if head end of ArcInst is negated */								public static final int ISHEADNEGATED =       0200000;
+// 	/** set if tail end of ArcInst is negated */								public static final int ISNEGATED =          01000000;
+// 	/** reverse extension/negation/arrow ends */								public static final int REVERSEEND =        020000000;
 
 	/**
 	 * Method to convert an integer date read from disk to a Java Date object.

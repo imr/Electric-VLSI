@@ -166,7 +166,7 @@ public class ViewChanges
 						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
 						cellVar.setCode(var.getCode());
 						cellVar.setDisplay(true);
-						if (var.isDontSave()) cellVar.setDontSave();
+//						if (var.isDontSave()) cellVar.setDontSave();
 					}
 				}
 	

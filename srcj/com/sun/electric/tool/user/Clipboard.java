@@ -556,7 +556,7 @@ public class Clipboard
 					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
 					cellVar.setCode(var.getCode());
 					cellVar.setDisplay(true);
-					if (var.isDontSave()) cellVar.setDontSave();
+//					if (var.isDontSave()) cellVar.setDontSave();
 				}
 			}
 			return true;
@@ -743,7 +743,7 @@ public class Clipboard
 			if (cellVar != null)
 			{
 				cellVar.setDisplay(var.isDisplay());
-				if (var.isDontSave()) cellVar.setDontSave();
+//				if (var.isDontSave()) cellVar.setDontSave();
 				cellVar.setCode(var.getCode());
 				cellVar.setTextDescriptor(var.getTextDescriptor());
 			}

@@ -38,9 +38,10 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
@@ -57,12 +58,15 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** 
  * Class to write a library to disk in Readable Dump format.
@@ -70,13 +74,13 @@ import java.util.Iterator;
 public class ReadableDump extends Output
 {
 	private int nodeInstError, portProtoError, arcInstError, typeError;
-	private HashMap cellOrdering;
+	private LinkedHashMap cellOrdering = new LinkedHashMap();
 	private HashMap cellGrouping;
 	private HashMap nodeMap;
 	private HashMap arcMap;
 	private HashMap portMap;
-	private int cellNumber;
-	private Cell [] cells;
+//	private int cellNumber;
+//	private Cell [] cells;
 
 	ReadableDump()
 	{
@@ -108,45 +112,57 @@ public class ReadableDump extends Output
 		// clear error counters
 		nodeInstError = portProtoError = arcInstError = typeError = 0;
 
+		gatherReferencedObjects(lib, true);
+
 		// determine proper library order
-		cellOrdering = new HashMap();
 		cellGrouping = new HashMap();
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library oLib = (Library)lIt.next();
+			if (oLib == lib) continue;
+			if (!objInfo.containsKey(oLib)) continue;
 			for(Iterator it = oLib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				cellOrdering.put(cell, new DBMath.MutableInteger(-1));
+				if (!objInfo.containsKey(cell)) continue;
+				cellOrdering.put(cell, null);
+//				cellOrdering.put(cell, new DBMath.MutableInteger(-1));
 			}
 		}
-		cellNumber = 0;
+//		cellNumber = 0;
+// 		for(Iterator it = lib.getCells(); it.hasNext(); )
+// 		{
+// 			Cell cell = (Cell)it.next();
+// 			if (cell.getNumUsagesIn() == 0) textRecurse(cell);
+// 		}
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			if (cell.getNumUsagesIn() == 0) textRecurse(cell);
+			if (!cellOrdering.containsKey(cell)) textRecurse(lib, cell);
+// 			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
+// 			if (mi == null || mi.intValue() < 0) textRecurse(cell);
 		}
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		int cellNumber = 0;
+		for (Iterator it = cellOrdering.entrySet().iterator(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
-			if (mi == null || mi.intValue() < 0) textRecurse(cell);
+			Map.Entry e = (Map.Entry)it.next();
+			e.setValue(new Integer(cellNumber++));
 		}
-		if (cellNumber > 0)
-		{
-			cells = new Cell[cellNumber];
-			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-			{
-				Library oLib = (Library)lIt.next();
-				for(Iterator it = oLib.getCells(); it.hasNext(); )
-				{
-					Cell cell = (Cell)it.next();
-					DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
-					if (mi.intValue() >= 0)
-						cells[mi.intValue()] = cell;
-				}
-			}
-		}
+// 		if (cellNumber > 0)
+// 		{
+// 			cells = new Cell[cellNumber];
+// 			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+// 			{
+// 				Library oLib = (Library)lIt.next();
+// 				for(Iterator it = oLib.getCells(); it.hasNext(); )
+// 				{
+// 					Cell cell = (Cell)it.next();
+// 					DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
+// 					if (mi.intValue() >= 0)
+// 						cells[mi.intValue()] = cell;
+// 				}
+// 			}
+// 		}
 
 		// determine cell groupings
 		for(Iterator it = lib.getCells(); it.hasNext(); )
@@ -169,57 +185,80 @@ public class ReadableDump extends Output
 			}
 		}
 
-		// write header information
-		printWriter.print("****library: \"" + lib.getName() + "\"\n");
-		printWriter.print("version: " + Version.getVersion() + "\n");
-		printWriter.print("aids: " + Tool.getNumTools() + "\n");
+		int toolCount = 0;
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
-			printWriter.print("aidname: " + tool.getName() + "\n");
-			writeMeaningPrefs(tool);
+			if (!objInfo.containsKey(tool)) continue;
+			toolCount++;
 		}
-		printWriter.print("userbits: " + lib.lowLevelGetUserBits() + "\n");
-		printWriter.print("techcount: " + Technology.getNumTechnologies() + "\n");
+		int techCount = 0;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			printWriter.print("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2) + "\n");
+			if (!objInfo.containsKey(tech)) continue;
+			techCount++;
+		}
+
+		// write header information
+		printWriter.println("****library: \"" + lib.getName() + "\"");
+		printWriter.println("version: " + Version.getVersion());
+		printWriter.println("aids: " + toolCount);
+		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		{
+			Tool tool = (Tool)it.next();
+			if (!objInfo.containsKey(tool)) continue;
+			printWriter.println("aidname: " + tool.getName());
+			writeMeaningPrefs(tool);
+		}
+//		printWriter.println("userbits: " + lib.lowLevelGetUserBits());
+		printWriter.println("techcount: " + techCount);
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (!objInfo.containsKey(tech)) continue;
+			printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
 			writeMeaningPrefs(tech);
 		}
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View v = (View)it.next();
-			printWriter.print("view: " + v.getFullName() + "{" + v.getAbbreviation() + "}\n");
+			if (!objInfo.containsKey(v)) continue;
+			printWriter.println("view: " + v.getFullName() + "{" + v.getAbbreviation() + "}");
 		}
-		printWriter.print("cellcount: " + cellNumber + "\n");
-		Cell curCell = lib.getCurCell();
-		if (curCell != null)
-		{
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(curCell);
-			printWriter.print("maincell: " + mi.intValue() + "\n");
-		}
+		printWriter.println("cellcount: " + cellNumber);
+// 		Cell curCell = lib.getCurCell();
+// 		if (curCell != null)
+// 		{
+// 			printWriter.println("maincell: " + ((Integer)cellOrdering.get(curCell)).intValue());
+// 			//DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(curCell);
+// 			//printWriter.println("maincell: " + mi.intValue());
+// 		}
 
 		// write variables on the library
 		writeVars(lib, null);
 
 		// write the rest of the database
-		for(int i = 0; i < cellNumber; i++)
+		for (Iterator cIt = cellOrdering.entrySet().iterator(); cIt.hasNext(); )
 		{
-			// write the nodeproto name
-			Cell cell = cells[i];
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
+			Map.Entry entry = (Map.Entry)cIt.next();
+			Cell cell = (Cell)entry.getKey();
+// 		for(int i = 0; i < cellNumber; i++)
+// 		{
+// 			// write the nodeproto name
+// 			Cell cell = cells[i];
+//			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 			int groupIndex = 0;
 			DBMath.MutableInteger mig = (DBMath.MutableInteger)cellGrouping.get(cell);
 			if (mig != null) groupIndex = mig.intValue();
-			printWriter.print("***cell: " + mi.intValue() + "/" + groupIndex + "\n");
+			printWriter.println("***cell: " + ((Integer)entry.getValue()).intValue() + "/" + groupIndex);
 			printWriter.print("name: " + cell.getName());
 			if (cell.getView().getAbbreviation().length() > 0)
 				printWriter.print("{" + cell.getView().getAbbreviation() + "}");
-			printWriter.print("\n");
-			printWriter.print("version: " + cell.getVersion() + "\n");
-			printWriter.print("creationdate: " + ELIBConstants.dateToSeconds(cell.getCreationDate()) + "\n");
-			printWriter.print("revisiondate: " + ELIBConstants.dateToSeconds(cell.getRevisionDate()) + "\n");
+			printWriter.println();
+			printWriter.println("version: " + cell.getVersion());
+			printWriter.println("creationdate: " + ELIBConstants.dateToSeconds(cell.getCreationDate()));
+			printWriter.println("revisiondate: " + ELIBConstants.dateToSeconds(cell.getRevisionDate()));
 
 			// write the nodeproto bounding box
 			Rectangle2D bounds = cell.getBounds();
@@ -229,19 +268,20 @@ public class ReadableDump extends Output
 			int highX = (int)(bounds.getMaxX() * scale);
 			int lowY = (int)(bounds.getMinY() * scale);
 			int highY = (int)(bounds.getMaxY() * scale);
-			printWriter.print("lowx: " + lowX + " highx: " + highX +
-				" lowy: " + lowY + " highy: " + highY + "\n");
+			printWriter.println("lowx: " + lowX + " highx: " + highX +
+				" lowy: " + lowY + " highy: " + highY);
 
 			// cells in external libraries mention the library and stop
 			if (cell.getLibrary() != lib)
 			{
-				printWriter.print("externallibrary: \"" + cell.getLibrary().getLibFile().getFile() + "\"\n");
+				printWriter.println("externallibrary: \"" + cell.getLibrary().getLibFile().getFile() + "\"");
 				continue;
 			}
 
 			// write tool information
-			printWriter.print("aadirty: 0\n");
-			printWriter.print("userbits: " + cell.lowLevelGetUserbits() + "\n");
+//			printWriter.println("aadirty: 0");
+//			printWriter.println("userbits: " + cell.lowLevelGetUserbits());
+			printWriter.println("userbits: " + (cell.lowLevelGetUserbits() & ELIBConstants.CELL_BITS));
 
 			// count and number the nodes, arcs, and ports
 			nodeMap = new HashMap();
@@ -263,8 +303,8 @@ public class ReadableDump extends Output
 				Export pp = (Export)it.next();
 				portMap.put(pp, new Integer(portCount++));
 			}
-			printWriter.print("nodes: " + cell.getNumNodes() + " arcs: " + cell.getNumArcs() +
-				" porttypes: " + cell.getNumPorts() + "\n");
+			printWriter.println("nodes: " + cell.getNumNodes() + " arcs: " + cell.getNumArcs() +
+				" porttypes: " + cell.getNumPorts());
 
 			// write variables on the cell
 			writeVars(cell, cell);
@@ -275,15 +315,15 @@ public class ReadableDump extends Output
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
 				Integer nodeIndex = (Integer)nodeMap.get(ni);
-				printWriter.print("**node: " + nodeIndex.intValue() + "\n");
+				printWriter.println("**node: " + nodeIndex.intValue());
 				if (np instanceof Cell)
 				{
-					DBMath.MutableInteger subMi = (DBMath.MutableInteger)cellOrdering.get(np);
-					printWriter.print("type: [" + subMi.intValue() + "]\n");
+					Integer subMi = (Integer)cellOrdering.get(np);
+					//DBMath.MutableInteger subMi = (DBMath.MutableInteger)cellOrdering.get(np);
+					printWriter.println("type: [" + subMi.intValue() + "]");
 				} else
 				{
-					printWriter.print("type: " + np.getTechnology().getTechName() + ":" +
-					np.getName() + "\n");
+					printWriter.println("type: " + np.getTechnology().getTechName() + ":" + np.getName());
 				}
 				if (np instanceof Cell)
 				{
@@ -298,7 +338,7 @@ public class ReadableDump extends Output
 					lowY = (int)((ni.getAnchorCenterY() - ni.getYSize()/2) * scale);
 					highY = (int)((ni.getAnchorCenterY() + ni.getYSize()/2) * scale);
 				}
-				printWriter.print("lowx: " + lowX + " highx: " + highX + " lowy: " + lowY + " highy: " + highY + "\n");
+				printWriter.println("lowx: " + lowX + " highx: " + highX + " lowy: " + lowY + " highy: " + highY);
 				int angle = ni.getAngle();
 				int transpose = (ni.isXMirrored() != ni.isYMirrored()) ? 1 : 0;
 				if (ni.isXMirrored())
@@ -314,48 +354,47 @@ public class ReadableDump extends Output
 				{
 					angle = (angle + 2700) % 3600;
 				}
-				printWriter.print("rotation: " + angle + " transpose: " + transpose + "\n");
+				printWriter.println("rotation: " + angle + " transpose: " + transpose);
 				if (np instanceof Cell)
-				{
-					printWriter.print("descript: " + ni.getTextDescriptor(NodeInst.NODE_PROTO_TD).lowLevelGet0() + "/" +
-						ni.getTextDescriptor(NodeInst.NODE_PROTO_TD).lowLevelGet1() + "\n");
-				}
-				printWriter.print("userbits: " + ni.lowLevelGetUserbits() + "\n");
+					writeTextDescriptor(-1, ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
+				printWriter.println("userbits: " + (ni.lowLevelGetUserbits() & ELIBConstants.NODE_BITS));
+//				printWriter.println("userbits: " + ni.lowLevelGetUserbits());
 				writeVars(ni, cell);
 
 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
-					boolean found = false;
+					ArrayList sortedConnections = new ArrayList();
+					ArrayList sortedExports = new ArrayList();
 					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 					{
 						Connection con = (Connection)aIt.next();
 						if (con.getPortInst().getPortProto() == pp)
-						{
-							if (!found)
-							{
-								printWriter.print("*port: " + pp.getName() + "\n");
-								found = true;
-							}
-							Integer aIndex = (Integer)arcMap.get(con.getArc());
-							if (aIndex == null) aIndex = new Integer(-1);
-							printWriter.print("arc: " + aIndex.intValue() + "\n");
-						}
+							sortedConnections.add(con);
 					}
+					Collections.sort(sortedConnections, CONNECTIONS_ORDER);
 					for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
 					{
 						Export e = (Export)eIt.next();
 						if (e.getOriginalPort().getPortProto() == pp)
-						{
-							if (!found)
-							{
-								printWriter.print("*port: " + pp.getName() + "\n");
-								found = true;
-							}
-							Integer pIndex = (Integer)portMap.get(e);
-							if (pIndex == null) pIndex = new Integer(-1);
-							printWriter.print("exported: " + pIndex.intValue() + "\n");
-						}
+							sortedExports.add(e);
+					}
+					Collections.sort(sortedExports, EXPORTS_ORDER);
+					if (sortedConnections.size() > 0 || sortedExports.size() > 0)
+						printWriter.println("*port: " + pp.getName());
+					for(Iterator aIt = sortedConnections.iterator(); aIt.hasNext(); )
+					{
+						Connection con = (Connection)aIt.next();
+						Integer aIndex = (Integer)arcMap.get(con.getArc());
+						if (aIndex == null) aIndex = new Integer(-1);
+						printWriter.println("arc: " + aIndex.intValue());
+					}
+					for(Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
+					{
+						Export e = (Export)eIt.next();
+						Integer pIndex = (Integer)portMap.get(e);
+						if (pIndex == null) pIndex = new Integer(-1);
+						printWriter.println("exported: " + pIndex.intValue());
 					}
 				}
 			}
@@ -365,19 +404,19 @@ public class ReadableDump extends Output
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
-				printWriter.print("**porttype: " + poc + "\n");
+				printWriter.println("**porttype: " + poc);
 				poc++;
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();
 				Integer subNodeIndex = (Integer)nodeMap.get(subNi);
 				PortProto subPp = pp.getOriginalPort().getPortProto();
-				printWriter.print("subnode: " + subNodeIndex.intValue() + "\n");
-				printWriter.print("subport: " + subPp.getName() + "\n");
-				printWriter.print("name: " + pp.getName() + "\n");
+				printWriter.println("subnode: " + subNodeIndex.intValue());
+				printWriter.println("subport: " + subPp.getName());
+				printWriter.println("name: " + pp.getName());
 
 				// need to write both words
-				TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME_TD);
-				printWriter.print("descript: " + td.lowLevelGet0() + "/" + td.lowLevelGet1() + "\n");
-				printWriter.print("userbits: " + pp.lowLevelGetUserbits() + "\n");
+				writeTextDescriptor(-1, pp.getTextDescriptor(Export.EXPORT_NAME_TD));
+				printWriter.println("userbits: " + (pp.lowLevelGetUserbits() & ELIBConstants.EXPORT_BITS));
+//				printWriter.println("userbits: " + pp.lowLevelGetUserbits());
 				writeVars(pp, cell);
 			}
 
@@ -386,16 +425,17 @@ public class ReadableDump extends Output
 			{
 				ArcInst ai = (ArcInst)it.next();
 				Integer arcIndex = (Integer)arcMap.get(ai);
-				printWriter.print("**arc: " + arcIndex.intValue() + "\n");
-				printWriter.print("type: " + ai.getProto().getTechnology().getTechName() + ":" +
-					ai.getProto().getName() + "\n");
+				printWriter.println("**arc: " + arcIndex.intValue());
+				printWriter.println("type: " + ai.getProto().getTechnology().getTechName() + ":" +
+					ai.getProto().getName());
 				int width = (int)(ai.getWidth() * scale);
 				int length = (int)(ai.getLength() * scale);
-				printWriter.print("width: " + width + " length: " + length + "\n");
+				printWriter.println("width: " + width + " length: " + length);
 
 				int arcAngle = ai.getAngle() / 10;
 				ai.lowLevelSetArcAngle(arcAngle);
-				int userBits = ai.lowLevelGetUserbits();
+				int userBits = ai.lowLevelGetUserbits() & ELIBConstants.ARC_BITS;
+//				int userBits = ai.lowLevelGetUserbits();
 
 				// add a negated bit if the tail is negated
 				userBits &= ~(ELIBConstants.ISNEGATED | ELIBConstants.ISHEADNEGATED);
@@ -409,22 +449,22 @@ public class ReadableDump extends Output
 					if (ai.isReverseEnds()) userBits |= ELIBConstants.ISNEGATED; else
 						userBits |= ELIBConstants.ISHEADNEGATED;
 				}
-				printWriter.print("userbits: " + userBits + "\n");
+				printWriter.println("userbits: " + userBits);
 				for(int e=0; e<2; e++)
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst conNi = con.getPortInst().getNodeInst();
 					Integer conNodeIndex = (Integer)nodeMap.get(conNi);
-					printWriter.print("*end: " + e + "\n");
-					printWriter.print("node: " + conNodeIndex.intValue() + "\n");
-					printWriter.print("nodeport: " + con.getPortInst().getPortProto().getName() + "\n");
+					printWriter.println("*end: " + e);
+					printWriter.println("node: " + conNodeIndex.intValue());
+					printWriter.println("nodeport: " + con.getPortInst().getPortProto().getName());
 					int endX = (int)(con.getLocation().getX() * scale);
 					int endY = (int)(con.getLocation().getY() * scale);
-					printWriter.print("xpos: " + endX + " ypos: " + endY + "\n");
+					printWriter.println("xpos: " + endX + " ypos: " + endY);
 				}
 				writeVars(ai, cell);
 			}
-			printWriter.print("celldone: " + cell.getName() + "\n");
+			printWriter.println("celldone: " + cell.getName());
 		}
 
 		// print any variable-related error messages
@@ -448,20 +488,23 @@ public class ReadableDump extends Output
 	 * Method to help order the library for proper nonforward references
 	 * in the outout
 	 */
-	private void textRecurse(Cell cell)
+	private void textRecurse(Library lib, Cell cell)
 	{
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			Cell subCell = (Cell)ni.getProto();
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(subCell);
-			if (mi == null || mi.intValue() < 0) textRecurse(subCell);
+			if (subCell.getLibrary() != lib) continue;
+			if (!cellOrdering.containsKey(subCell)) textRecurse(lib, subCell);
+// 			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(subCell);
+// 			if (mi == null || mi.intValue() < 0) textRecurse(subCell);
 		}
 
 		// add this cell to the list
-		DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
-		mi.setValue(cellNumber++);
+		cellOrdering.put(cell, null);
+// 		DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
+// 		mi.setValue(cellNumber++);
 	}
 
 	/**
@@ -469,92 +512,132 @@ public class ReadableDump extends Output
 	 * "curCell" such that any references to objects in a cell must be in
 	 * this cell.
 	 */
-	private void writeVars(ElectricObject eObj, Cell curCell)
+	private void writeVars(ElectricObject obj, Cell curCell)
 	{
-		// count the number of variables
-		int i = 0;
-		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		// write the number of Variables
+		int count = obj.getNumVariables();
+// 		int count = 0;
+// 		for(Iterator it = obj.getVariables(); it.hasNext(); )
+// 		{
+// 			Variable var = (Variable)it.next();
+// 			if (!var.isDontSave()) count++;
+// 		}
+		String additionalVarName = null;
+		int additionalVarType = ELIBConstants.VSTRING;
+		Object additionalVarValue = null;
+		if (obj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)obj;
+			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
+			{
+				PortInst pi = (PortInst)pit.next();
+				count += pi.getNumVariables();
+			}
+			additionalVarName = NodeInst.NODE_NAME_TD;
+			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
+			additionalVarValue = ni.getName();
+		} else if (obj instanceof ArcInst)
+		{
+			ArcInst ai = (ArcInst)obj;
+			additionalVarName = ArcInst.ARC_NAME_TD;
+			if (ai.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
+			additionalVarValue = ai.getName();
+		} else if (obj instanceof Library)
+		{
+			String[] fontAssociation = createFontAssociation();
+			if (fontAssociation != null)
+			{
+				additionalVarName = Library.FONT_ASSOCIATIONS.getName();
+				additionalVarType |= ELIBConstants.VISARRAY | (fontAssociation.length << ELIBConstants.VLENGTHSH);
+				additionalVarValue = fontAssociation;
+			}
+		}
+		if (additionalVarName != null) count++;
+
+		if (count == 0) return;
+		printWriter.println("variables: " + count + "");
+
+		// write the variables
+		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			if (!var.isDontSave()) i++;
+			writeVar(var, curCell);
 		}
 
-		// add one more for Geometrics with names
-		if (eObj instanceof Geometric && ((Geometric)eObj).getNameKey() != null)
-			i++;
-		if (i == 0) return;
-
-		printWriter.print("variables: " + i + "\n");
-		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		// write variables on PortInsts
+		if (obj instanceof NodeInst)
 		{
-			Variable var = (Variable)it.next();
-			if (var.isDontSave()) continue;
-			int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
-			Object varObj = var.getObject();
-
-			// special case for "trace" information on NodeInsts
-			if (eObj instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
+			NodeInst ni = (NodeInst)obj;
+			for (Iterator pit = ni.getPortInsts(); pit.hasNext(); )
 			{
-				Object [] objList = (Object [])varObj;
-				Point2D [] points = (Point2D [])objList;
-				int len = points.length * 2;
-				Float [] newPoints = new Float[len];
-				for(int j=0; j<points.length; j++)
+				PortInst pi = (PortInst)pit.next();
+				if (pi.getNumVariables() == 0) continue;
+				for (Iterator it = pi.getVariables(); it.hasNext(); )
 				{
-					newPoints[j*2] = new Float(points[j].getX());
-					newPoints[j*2+1] = new Float(points[j].getY());
+					Variable var = (Variable)it.next();
+						writeVar(var, curCell);
 				}
-				varObj = newPoints;
 			}
-
-			String pt = makeString(varObj, curCell);
-			if (pt == null) pt = "";
-			printName(var.getKey().getName());
-			TextDescriptor td = var.getTextDescriptor();
-
-			if (varObj instanceof Object[])
-			{
-				Object [] objList = (Object [])varObj;
-				int objType = ELIBConstants.getVarType(objList[0]);
-				if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
-				int len = objList.length;
-				type |= objType | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
-				printWriter.print("(" + len + ")[0" + Integer.toOctalString(type) + ",0" +
-					Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
-			} else
-			{
-				int objType = ELIBConstants.getVarType(varObj);
-				if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
-				type |= objType;
-				printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
-					Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
-			}
-			printWriter.print(pt + "\n");
 		}
 
-		// write the node or arc name
-		if (eObj instanceof Geometric && ((Geometric)eObj).getNameKey() != null)
+		// write the additional variable
+		if (additionalVarName != null)
 		{
-			Geometric geom = (Geometric)eObj;
-			Variable.Key key;
-			String varName;
-			if (geom instanceof NodeInst)
-			{
-				key = NodeInst.NODE_NAME;
-				varName = NodeInst.NODE_NAME_TD;
-			} else
-			{
-				key = ArcInst.ARC_NAME;
-				varName = ArcInst.ARC_NAME_TD;
-			}
-			int type = ELIBConstants.VSTRING;
-			if (geom.isUsernamed()) type |= ELIBConstants.VDISPLAY;
-			TextDescriptor td = geom.getTextDescriptor(varName);
-			printName(key.getName());
-			printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
-				Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
-			printWriter.print("\"" + convertString(geom.getName()) + "\"\n");
+			printName(additionalVarName);
+			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarName) : null;
+			writeTextDescriptor(additionalVarType, td);
+			String pt = makeString(additionalVarValue, curCell);
+			if (pt == null) pt = "";
+			printWriter.println(pt);
 		}
+	}
+
+	/**
+	 * Method to write the variable.  The current cell is
+	 * "curCell" such that any references to objects in a cell must be in
+	 * this cell.
+	 */
+	private void writeVar(Variable var, Cell curCell)
+	{
+//		if (var.isDontSave()) return;
+		int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
+		Object varObj = var.getObject();
+
+		// special case for "trace" information on NodeInsts
+		if (var.getOwner() instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
+		{
+			Object [] objList = (Object [])varObj;
+			Point2D [] points = (Point2D [])objList;
+			int len = points.length * 2;
+			Float [] newPoints = new Float[len];
+			for(int j=0; j<points.length; j++)
+			{
+				newPoints[j*2] = new Float(points[j].getX());
+				newPoints[j*2+1] = new Float(points[j].getY());
+			}
+			varObj = newPoints;
+		}
+
+		String pt = makeString(varObj, curCell);
+		if (pt == null) pt = "";
+		printName(var.getKey().getName());
+		TextDescriptor td = var.getTextDescriptor();
+
+		if (varObj instanceof Object[])
+		{
+			Object [] objList = (Object [])varObj;
+			int objType = ELIBConstants.getVarType(objList[0]);
+			if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
+			int len = objList.length;
+			type |= objType | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
+		} else
+		{
+			int objType = ELIBConstants.getVarType(varObj);
+			if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
+			type |= objType;
+		}
+		writeTextDescriptor(type, td);
+		printWriter.println(pt);
 	}
 
 	/**
@@ -565,7 +648,7 @@ public class ReadableDump extends Output
 		// count the number of variables
 		List prefs = Pref.getMeaningVariables(obj);
 		if (prefs.size() == 0) return;
-		printWriter.print("variables: " + prefs.size() + "\n");
+		printWriter.println("variables: " + prefs.size());
 		for(Iterator it = prefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
@@ -574,7 +657,7 @@ public class ReadableDump extends Output
 			if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
 			String pt = makeString(varObj, null);
 			if (pt == null) pt = "";
-			printWriter.print(pref.getPrefName() + "[0" + Integer.toOctalString(objType) + ",0/0]: " + pt + "\n");
+			printWriter.println(pref.getPrefName() + "[0" + Integer.toOctalString(objType) + ",0/0]: " + pt);
 		}
 	}
 
@@ -690,7 +773,8 @@ public class ReadableDump extends Output
 		if (obj instanceof Cell)
 		{
 			Cell cell = (Cell)obj;
-			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
+			Integer mi = (Integer)cellOrdering.get(cell);
+			//DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 			int cIndex = -1;
 			if (mi != null) cIndex = mi.intValue();
 			infstr.append(Integer.toString(cIndex));
@@ -719,6 +803,50 @@ public class ReadableDump extends Output
 			return;
 		}
 		typeError++;
+	}
+
+	/**
+	 * Method to write a text descriptor (possibly wit variable bits).
+	 * Face of text descriptor is mapped according to "faceMap".
+	 * @param varBits variableBits or -1.
+	 * @param td TextDescriptor to write.
+	 */
+	private void writeTextDescriptor(int varBits, TextDescriptor td)
+	{
+		int td0;
+		int td1;
+		if (td != null)
+		{
+			td0 = td.lowLevelGet0();
+			td1 = td.lowLevelGet1();
+			if ((varBits & ELIBConstants.VDISPLAY) != 0)
+			{
+				// Convert font face
+				if ((td1 & ELIBConstants.VTFACE) != 0)
+				{
+					int face = (td1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
+					td1 = (td1 & ~ELIBConstants.VTFACE) | (faceMap[face] << ELIBConstants.VTFACESH);
+				}
+			} else
+			{
+				td0 &= ELIBConstants.VTSEMANTIC0;
+				td1 &= ELIBConstants.VTSEMANTIC1;
+			}
+		} else
+		{
+			td0 = 0;
+			td1 = 0;
+		}
+		if (varBits == -1)
+		{
+			printWriter.println("descript: " + td0 + "/" + td1);
+			return;
+		}
+		if ((varBits & ELIBConstants.VISARRAY) != 0)
+			printWriter.print("(" + ((varBits & ELIBConstants.VLENGTH) >> ELIBConstants.VLENGTHSH) + ")");
+		printWriter.print("[0" + Integer.toOctalString(varBits) +
+						  ",0" + Integer.toOctalString(td0) +
+						  "/0" + Integer.toOctalString(td1) + "]: ");
 	}
 
 	/**

@@ -54,8 +54,6 @@ public class Variable
 	public static class Key implements Comparable
 	{
 		private final String name;
-		private final int    index;
-		private static int currentIndex = 0;
 		
 		/**
 		 * Method to create a new Key object with the specified name.
@@ -64,14 +62,7 @@ public class Variable
 		Key(String name)
 		{
 			this.name = name;
-			this.index = currentIndex++;
 		}
-
-		/**
-		 * Method to return the index of this Key object.
-		 * @return the index of this Key object.
-		 */
-		public int getIndex() { return index; }
 
 		/**
 		 * Method to return the name of this Key object.
@@ -138,8 +129,8 @@ public class Variable
 	/** variable is LISP */								private static final int VLISP =              VCODE1;
 	/** variable is TCL */								private static final int VTCL =               VCODE2;
 	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
-	/** set to prevent saving on disk */				private static final int VDONTSAVE =    010000000000;
-	/** set to prevent changing value */				private static final int VCANTSET =     020000000000;
+//	/** set to prevent saving on disk */				private static final int VDONTSAVE =    010000000000;
+//	/** set to prevent changing value */				private static final int VCANTSET =     020000000000;
 
 	/**
 	 * The constructor builds a Variable from the given parameters.
@@ -576,7 +567,10 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".
 	 */
-	public synchronized void lowLevelSetFlags(int flags) { this.flags = flags; }
+	public synchronized void lowLevelSetFlags(int flags)
+	{
+		this.flags = flags & (VCODE1|VCODE2|VDISPLAY);
+	}
 
 	/**
 	 * Method to copy flags from another variable.
@@ -690,39 +684,39 @@ public class Variable
 	 * Method to set this Variable to be not-saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public synchronized void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
+//	public synchronized void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
 
 	/**
 	 * Method to set this Variable to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public synchronized void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
+//	public synchronized void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
 
 	/**
 	 * Method to return true if this Variable is to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 * @return true if this Variable is to be saved.
 	 */
-	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
+//	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
 
 	/**
 	 * Method to set this Variable to be not-settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public synchronized void setCantSet() { checkChanging(); flags |= VCANTSET; }
+//	public synchronized void setCantSet() { checkChanging(); flags |= VCANTSET; }
 
 	/**
 	 * Method to set this Variable to be settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public synchronized void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
+//	public synchronized void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
 
 	/**
 	 * Method to return true if this Variable is settable.
 	 * Only Variables that are settable can have their value changed.
 	 * @return true if this Variable is settable.
 	 */
-	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
+//	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
 
     /**
      * Method to return if this is Variable is a User Attribute.

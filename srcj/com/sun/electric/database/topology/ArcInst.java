@@ -406,8 +406,16 @@ public class ArcInst extends Geometric implements Comparable
 			width = protoType.getWidth();
 		this.width = DBMath.round(width);
 
-		headPt.setLocation(DBMath.round(headPt.getX()), DBMath.round(headPt.getY()));
-		tailPt.setLocation(DBMath.round(tailPt.getX()), DBMath.round(tailPt.getY()));
+		double headX = DBMath.round(headPt.getX());
+		if (headX == 0) headX = +0.0;
+		double headY = DBMath.round(headPt.getY());
+		if (headY == 0) headY = +0.0;
+		headPt.setLocation(headX, headY);
+		double tailX = DBMath.round(tailPt.getX());
+		if (tailX == 0) tailX = +0.0;
+		double tailY = DBMath.round(tailPt.getY());
+		if (tailY == 0) tailY = +0.0;
+		tailPt.setLocation(tailX, tailY);
 
 		Cell parent = headPort.getNodeInst().getParent();
 		if (parent != tailPort.getNodeInst().getParent())
