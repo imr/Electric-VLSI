@@ -640,6 +640,8 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean lowLevelPopulate(NodeProto protoType, Point2D center, double width, double height, int angle,
 		Cell parent)
 	{
+		if (getParent() != null && this.protoType != null)
+			System.out.println("NodeInst " + this + " of type " + this.protoType + " is populated again in " + getParent());
 		setParent(parent);
 		this.protoType = protoType;
 
