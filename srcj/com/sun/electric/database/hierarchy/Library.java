@@ -79,7 +79,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** version of Electric which wrote the library. */		private Version version;
-	/** list of Cells in this library */					private TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
+	/** list of Cells in this library */					/*private*/ TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;

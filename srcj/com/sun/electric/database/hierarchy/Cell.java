@@ -2989,7 +2989,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		int count = 0;
 		String protoName = getName();
 		View view = getView();
-		sybchronized (lib.cells) {
+		synchronized (lib.cells) {
 			for (Iterator it = getVersionsTail(); it.hasNext(); )
 			{
 				Cell c = (Cell)it.next();
