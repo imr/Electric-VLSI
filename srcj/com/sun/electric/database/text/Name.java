@@ -299,9 +299,9 @@ public class Name implements Comparable
 	/**
 	 * Constructs a <CODE>Name</CODE> (cannot be called).
 	 */
-	private Name(String ns)
+	private Name(String ons)
 	{
-		this.ons = ns;
+		this.ons = ons;
 		this.ns = trimPlusMinus(ns);
 		this.numSuffix = 0;
 		String lower = ns.toLowerCase();
@@ -428,7 +428,7 @@ public class Name implements Comparable
 	{
 		if (split >= ns.length())
 		{
-//			System.out.println("HEY! string is '"+ns+"' but want index "+split);
+			System.out.println("HEY! string is '"+ns+"' but want index "+split);
 			return;
 		}
 		Name baseName = findTrimmedName(ns.substring(0,split));
