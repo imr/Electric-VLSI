@@ -30,11 +30,14 @@ import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIEdit;
 import java.util.Iterator;
 
+/**
+ * This is the User Interface tool.
+ */
 public class User extends Tool
 {
 	// ---------------------- private and protected methods -----------------
 
-	public static User tool = new User();
+	/** the User Interface tool. */		public static User tool = new User();
 
 	/**
 	 * The constructor sets up the User tool.

@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * A NodeUsage is an usage of a NodeProto (a PrimitiveNode or a Cell) in
- * some Cell. NodeUsage A NodeUsage points to its prototype and the Cell
+ * A NodeUsage is a usage of a NodeProto (a PrimitiveNode or a Cell) in
+ * some Cell.  A NodeUsage points to its prototype and the Cell
  * in which it has been used. NodeUsage implies that there is one or more
- * instance of this NodeProte in the Cell. It lists all such NodeInsts.
+ * instance of this NodeProto in the Cell. It lists all such NodeInsts.
  */
 public class NodeUsage
 {

@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * This class is a collection of math utilities.
@@ -162,6 +163,60 @@ public class EMath
 		// handle nonmanhattan
 		if ((pt.getX()-end1.getX()) * (end2.getY()-end1.getY()) == (pt.getY()-end1.getY()) * (end2.getX()-end1.getX())) return true;
 		return false;
+	}
+
+	/**
+	 * routine to compute the distance between point (x,y) and the line that runs
+	 * from (x1,y1) to (x2,y2).
+	 */
+	public static double distToLine(Point2D.Double l1, Point2D.Double l2, Point2D.Double pt)
+	{
+		// get point on line from (x1,y1) to (x2,y2) close to (x,y)
+		double x1 = l1.getX();   double y1 = l1.getY();
+		double x2 = l2.getX();   double y2 = l2.getY();
+		if (doublesEqual(x1, x2) && doublesEqual(y1, y2))
+		{
+			return pt.distance(l1);
+		}
+		int ang = figureAngle(l1, l2);
+		Point2D.Double iPt = intersect(l1, ang, pt, ang+900);
+		double iX = iPt.getX();
+		double iY = iPt.getY();
+		if (doublesEqual(x1, x2)) iX = x1;
+		if (doublesEqual(y1, y2)) iY = y1;
+
+		// make sure (ix,iy) is on the segment from (x1,y1) to (x2,y2)
+		if (iX < Math.min(x1,x2) || iX > Math.max(x1,x2) ||
+			iY < Math.min(y1,y2) || iY > Math.max(y1,y2))
+		{
+			if (Math.abs(iX-x1) + Math.abs(iY-y1) < Math.abs(iX-x2) + Math.abs(iY-y2))
+			{
+				iX = x1;   iY = y1;
+			} else
+			{
+				iX = x2;   iY = y2;
+			}
+		}
+		iPt.setLocation(iX, iY);
+		return iPt.distance(pt);
+	}
+
+	/**
+	 * Routine to tell whether a point is inside of a bounds.
+	 * The reason that this is necessary is that Rectangle2D.contains requires that
+	 * the point be INSIDE of the bounds, whereas this routine accepts a point that
+	 * is ON the bounds.
+	 * @param pt the point in question.
+	 * @param bounds the bounds being tested.
+	 * @return true if the point is in the bounds.
+	 */
+	public static boolean pointInRect(Point2D.Double pt, Rectangle2D.Double bounds)
+	{
+		if (pt.getX() < bounds.getMinX()) return false;
+		if (pt.getX() > bounds.getMaxX()) return false;
+		if (pt.getY() < bounds.getMinY()) return false;
+		if (pt.getY() > bounds.getMaxY()) return false;
+		return true;
 	}
 
 	/*

@@ -23,6 +23,11 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.tool.user.ui.UIEdit;
+
+import java.awt.Point;
+
 /**
  * This class describes how variable text appears.
  */
@@ -80,7 +85,7 @@ public class TextDescriptor
 	// text size information
 	private static final int TXTMAXPOINTS =    63;
 	private static final int TXTQGRIDSH =       6;		
-	private static final int TXTMAXQGRID =    511;
+	private static final double TXTMAXQGRID =    127.75;
 
 	/**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
@@ -95,11 +100,13 @@ public class TextDescriptor
 	{
 		private final String name;
 		private final int index;
+		private final Poly.Type pt;
 
-		private Position(String name, int index)
+		private Position(String name, int index, Poly.Type pt)
 		{
 			this.name = name;
 			this.index = index;
+			this.pt = pt;
 		}
 
 		/**
@@ -107,6 +114,14 @@ public class TextDescriptor
 		 * @return the integer equivalent of this Position.
 		 */
 		private int getIndex() { return index; }
+
+		/**
+		 * Routine to return the Poly.Type to use for this Position.
+		 * The Poly.Type will vary through the 9 "grab point" locations:
+		 * center, left, right, up, down, up-left, up-right, down-left, down-right.
+		 * @return the Poly.Type to use for this Position.
+		 */
+		public Poly.Type getPolyType() { return pt; }
 
 		/**
 		 * Returns a printable version of this Position.
@@ -117,53 +132,53 @@ public class TextDescriptor
 		/**
 		 * Describes text centered at a point.
 		 */
-		public static final Position CENT = new Position("centered", VTPOSCENT);
+		public static final Position CENT = new Position("centered", VTPOSCENT, Poly.Type.TEXTCENT);
 
 		/**
 		 * Describes text centered above a point.
 		 */
-		public static final Position UP = new Position("up", VTPOSUP);
+		public static final Position UP = new Position("up", VTPOSUP, Poly.Type.TEXTBOT);
 
 		/**
 		 * Describes text centered below a point.
 		 */
-		public static final Position DOWN = new Position("down", VTPOSDOWN);
+		public static final Position DOWN = new Position("down", VTPOSDOWN, Poly.Type.TEXTTOP);
 
 		/**
 		 * Describes text centered to left of a point.
 		 */
-		public static final Position LEFT = new Position("left", VTPOSLEFT);
+		public static final Position LEFT = new Position("left", VTPOSLEFT, Poly.Type.TEXTRIGHT);
 
 		/**
 		 * Describes text centered to right of a point.
 		 */
-		public static final Position RIGHT = new Position("right", VTPOSRIGHT);
+		public static final Position RIGHT = new Position("right", VTPOSRIGHT, Poly.Type.TEXTLEFT);
 
 		/**
 		 * Describes text centered to upper-left of a point.
 		 */
-		public static final Position UPLEFT = new Position("up-left", VTPOSUPLEFT);
+		public static final Position UPLEFT = new Position("up-left", VTPOSUPLEFT, Poly.Type.TEXTBOTRIGHT);
 
 		/**
 		 * Describes text centered to upper-right of a point.
 		 */
-		public static final Position UPRIGHT = new Position("up-right", VTPOSUPRIGHT);
+		public static final Position UPRIGHT = new Position("up-right", VTPOSUPRIGHT, Poly.Type.TEXTBOTLEFT);
 
 		/**
 		 * Describes text centered to lower-left of a point.
 		 */
-		public static final Position DOWNLEFT = new Position("down-left", VTPOSDOWNLEFT);
+		public static final Position DOWNLEFT = new Position("down-left", VTPOSDOWNLEFT, Poly.Type.TEXTTOPRIGHT);
 
 		/**
 		 * Describes text centered to lower-right of a point.
 		 */
-		public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT);
+		public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT, Poly.Type.TEXTTOPLEFT);
 
 		/**
 		 * Describes text centered and limited to the object size.
 		 * This means that the text may shrink in size or clip letters if necessary.
 		 */
-		public static final Position BOXED = new Position("boxed", VTPOSBOXED);
+		public static final Position BOXED = new Position("boxed", VTPOSBOXED, Poly.Type.TEXTCENT);
 	}
 	private static final Position [] thePositions = new Position[] {Position.CENT, Position.UP, Position.DOWN,
 		Position.LEFT, Position.RIGHT, Position.UPLEFT, Position.UPRIGHT, Position.DOWNLEFT, Position.DOWNRIGHT, Position.BOXED};
@@ -229,19 +244,19 @@ public class TextDescriptor
 	public static class Size
 	{
 		private final boolean absolute;
-		private final int size;
+		private final double size;
 		private final int bits;
 
-		private Size(int size, boolean absolute)
+		private Size(double size, boolean absolute)
 		{
 			this.size = size;
 			this.absolute = absolute;
 			if (absolute)
 			{
-				this.bits = size;
+				this.bits = (int)size;
 			} else
 			{
-				this.bits = size << TXTQGRIDSH;
+				this.bits = ((int)(size*4.0)) << TXTQGRIDSH;
 			}
 		}
 
@@ -262,7 +277,7 @@ public class TextDescriptor
 			if (size <= 0 || size > TXTMAXPOINTS) return null;
 			return new Size(size, true);
 		}
-		
+
 		/**
 		 * Routine to return a Size object that describes an absolute point text size.
 		 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
@@ -271,20 +286,15 @@ public class TextDescriptor
 		 */
 		public static Size newRelSize(double size)
 		{
-			int iSize = (int)(size * 4);
-			if (iSize <= 0 || iSize > TXTMAXQGRID) return null;
-			return new Size(iSize, false);
+			if (size <= 0 || size > TXTMAXQGRID) return null;
+			return new Size(size, false);
 		}
 
 		/**
 		 * Routine to return text Size value (in points or units).
 		 * @return the text Size value (in points or units).
 		 */
-		public double getSize()
-		{
-			if (absolute) return size;
-			return size / 4;
-		}
+		public double getSize() { return size; }
 
 		/**
 		 * Routine to tell whether this text Size is absolute or relative.
@@ -373,14 +383,79 @@ public class TextDescriptor
 		Units.INDUCTANCE, Units.CURRENT, Units.VOLTAGE, Units.DISTANCE, Units.TIME};
 
 
-	/** the first word of the text descriptor */		private int descriptor0;
-	/** the second word of the text descriptor */		private int descriptor1;
+	/** the words of the text descriptor */		private int descriptor0, descriptor1;
 
 	/**
 	 * The constructor simply creates a TextDescriptor with no values filled-in.
 	 */
-	public TextDescriptor()
+	private TextDescriptor()
 	{
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is blank.
+	 * @return a TextDescriptor that is blank.
+	 */
+	public static TextDescriptor newBlankDescriptor()
+	{
+		return new TextDescriptor();
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is a default for Variables on NodeInsts.
+	 * @return a TextDescriptor with to be used on a Variable on a NodeInsts.
+	 */
+	public static TextDescriptor newNodeArcDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(1);
+		return td;
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is a default for Exports.
+	 * @return a TextDescriptor with to be used on an Export.
+	 */
+	public static TextDescriptor newExportDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(2);
+		return td;
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is a default for Nonlayout text (on invisible pins).
+	 * @return a TextDescriptor with to be used on Nonlayout text (on invisible pins)..
+	 */
+	public static TextDescriptor newNonLayoutDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(1);
+		return td;
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is a default for Cell instance names.
+	 * This text appears on unexpanded instances of Cells.
+	 * @return a TextDescriptor with to be used on a Cell instance name.
+	 */
+	public static TextDescriptor newInstanceDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(4);
+		return td;
+	}
+
+	/**
+	 * Routine to return a TextDescriptor that is a default for Variables on Cells.
+	 * These variables are use for parameter declarations.
+	 * @return a TextDescriptor with to be used on a Variable on a Cells.
+	 */
+	public static TextDescriptor newCellDescriptor()
+	{
+		TextDescriptor td = new TextDescriptor();
+		td.setRelSize(1);
+		return td;
 	}
 
 	/**
@@ -465,7 +540,25 @@ public class TextDescriptor
 	{
 		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
 		if (textSize <= TXTMAXPOINTS) return Size.newAbsSize(textSize);
-		return Size.newRelSize((textSize>>TXTQGRIDSH) / 4);
+		int sizeValue = textSize>>TXTQGRIDSH;
+		double size = sizeValue / 4.0;
+		return Size.newRelSize(size);
+	}
+
+	public int getTrueSize(UIEdit wnd)
+	{
+		Size s = getSize();
+		if (s == null) return 14;
+
+		// absolute font sizes are easy
+		if (s.isAbsolute()) return (int)s.getSize();
+
+		// relative font: get size in grid units
+		double height = s.getSize();
+
+		// convert to screen units
+		Point p = wnd.deltaDatabaseToScreen(height, height);
+		return p.x;
 	}
 
 	/**

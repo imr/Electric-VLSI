@@ -37,11 +37,15 @@ import com.sun.electric.tool.user.ui.UIEdit;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 import com.sun.electric.tool.user.ui.UITopLevel;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 
 import java.util.Iterator;
 
+/**
+ * This class has all of the pulldown menu commands in Electric.
+ */
 public final class UserMenuCommands
 {
 	// ---------------------- private and protected methods -----------------
@@ -73,6 +77,9 @@ public final class UserMenuCommands
 		}
 	}
 
+	/**
+	 * This routine implements the command to read a library.
+	 */
 	public static void openLibraryCommand()
 	{
 		String fileName = UIDialogOpenFile.ELIB.chooseInputFile(null);
@@ -104,6 +111,9 @@ public final class UserMenuCommands
 		}
 	}
 
+	/**
+	 * This routine implements the command to import a library (Readable Dump format).
+	 */
 	public static void importLibraryCommand()
 	{
 		String fileName = UIDialogOpenFile.TEXT.chooseInputFile(null);
@@ -115,6 +125,9 @@ public final class UserMenuCommands
 		}
 	}
 
+	/**
+	 * This routine implements the command to save a library.
+	 */
 	public static void saveLibraryCommand()
 	{
 		Library lib = Library.getCurrent();
@@ -140,6 +153,9 @@ public final class UserMenuCommands
 		}
 	}
 
+	/**
+	 * This routine implements the command to save a library to a different file.
+	 */
 	public static void saveAsLibraryCommand()
 	{
 		Library lib = Library.getCurrent();
@@ -147,6 +163,9 @@ public final class UserMenuCommands
 		saveLibraryCommand();
 	}
 
+	/**
+	 * This routine implements the command to quit Electric.
+	 */
 	public static void quitCommand()
 	{
 		System.exit(0);
@@ -181,9 +200,7 @@ public final class UserMenuCommands
 
 	public static void getInfoCommand()
 	{
-//		double s = 19.7 - 18.3;
-//		System.out.println("19.7 - 18.3 ="+s);
-		if (UIEdit.getNumHighlights() == 0)
+		if (Highlight.getNumHighlights() == 0)
 		{
 			// information about the cell
 			Cell c = Library.getCurrent().getCurCell();
@@ -191,14 +208,18 @@ public final class UserMenuCommands
 		} else
 		{
 			// information about the selected items
-			for(Iterator it = UIEdit.getHighlights(); it.hasNext(); )
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
-				Geometric geom = (Geometric)it.next();
+				Highlight h = (Highlight)it.next();
+				Geometric geom = h.getGeom();
 				geom.getInfo();
 			}
 		}
 	}
 
+	/**
+	 * This routine implements the command to toggle the display of the grid.
+	 */
 	public static void toggleGridCommand()
 	{
 		UIEditFrame uif = UITopLevel.getCurrent();
@@ -217,6 +238,9 @@ public final class UserMenuCommands
 		curCell.getRTree().printRTree(0);
 	}
 
+	/**
+	 * This routine implements the command to show the undo history.
+	 */
 	public static void showUndoListCommand()
 	{
 		Undo.showHistoryList();
@@ -249,12 +273,18 @@ public final class UserMenuCommands
 		cellFlag.freeFlagSet();
 	}
 
+	/**
+	 * This routine implements the command to undo the last change.
+	 */
 	public static void undoCommand()
 	{
 		if (!Undo.undoABatch())
 			System.out.println("Undo failed!");
 	}
 
+	/**
+	 * This routine implements the command to redo the last change.
+	 */
 	public static void redoCommand()
 	{
 		if (!Undo.redoABatch())
@@ -305,12 +335,13 @@ public final class UserMenuCommands
     }
     
     public static void listVarsOnObject() {
-        if (UIEdit.getNumHighlights() == 0) {
+        if (Highlight.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
             return;
         }
-        for (Iterator it = UIEdit.getHighlights(); it.hasNext();) {
-            Geometric geom = (Geometric)it.next();
+        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+            Highlight h = (Highlight)it.next();
+            Geometric geom = (Geometric)h.getGeom();
             geom.getInfo();
         }
     }
@@ -318,12 +349,13 @@ public final class UserMenuCommands
     public static void evalVarsOnObject() {
         UIEditFrame curFrame = UITopLevel.getCurrent();
         UIEdit curEdit = curFrame.getEdit();
-        if (UIEdit.getNumHighlights() == 0) {
+        if (Highlight.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
             return;
         }
-        for (Iterator it = UIEdit.getHighlights(); it.hasNext();) {
-            ElectricObject eobj = (ElectricObject)it.next();
+        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+            Highlight h = (Highlight)it.next();
+            ElectricObject eobj = (ElectricObject)h.getGeom();
             Iterator itVar = eobj.getVariables();
             while(itVar.hasNext()) {
                 Variable var = (Variable)itVar.next();

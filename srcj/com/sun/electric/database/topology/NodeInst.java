@@ -105,7 +105,7 @@ public class NodeInst extends Geometric
 		this.portMap = new HashMap();
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
-		this.descriptor = new TextDescriptor();
+		this.descriptor = TextDescriptor.newInstanceDescriptor();
 	}
 
 	/**
@@ -364,6 +364,14 @@ public class NodeInst extends Geometric
 			}
 		}
 		parent.setDirty();
+	}
+
+	public static void modifyInstances(NodeInst [] nis, double [] dxs, double [] dys, double [] dxsizes, double [] dysizes, int [] drots)
+	{
+		for(int i=0; i<nis.length; i++)
+		{
+			nis[i].modifyInstance(dxs[i], dys[i], dxsizes[i], dysizes[i], drots[i]);
+		}
 	}
 
 	/**

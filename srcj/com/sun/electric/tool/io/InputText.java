@@ -1164,7 +1164,7 @@ public class InputText extends Input
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord.substring(slashPos+1));
-		TextDescriptor td = new TextDescriptor();
+		TextDescriptor td = TextDescriptor.newNodeArcDescriptor();
 		td.lowLevelSet(td0, td1);
 		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setTextDescriptor(td);
 	}
@@ -1399,7 +1399,7 @@ public class InputText extends Input
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord, slashPos+1);
-		TextDescriptor td = new TextDescriptor();
+		TextDescriptor td = TextDescriptor.newExportDescriptor();
 		td.lowLevelSet(td0, td1);
 		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
 	}
@@ -1528,7 +1528,7 @@ public class InputText extends Input
 
 			// get the descriptor
 			int commaPos = keyWord.indexOf(',');
-			TextDescriptor td = new TextDescriptor();
+			TextDescriptor td = TextDescriptor.newNodeArcDescriptor();
 			td.clear();
 			if (commaPos >= 0)
 			{

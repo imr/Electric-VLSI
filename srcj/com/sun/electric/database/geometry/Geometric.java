@@ -768,6 +768,7 @@ public class Geometric extends ElectricObject
 	/** center coordinate of this geometric */				protected double cX, cY;
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
+	/** The temporary Object for the node or arc. */		private Object tempObj;
 	/** temporary integer value for the node or arc */		private int tempInt;
 	/** The temporary flag bits. */							private int flagBits;
 	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
@@ -947,5 +948,17 @@ public class Geometric extends ElectricObject
 	 * @param tempInt the integer to be set on this Geometric.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
+
+	/**
+	 * Routine to set an arbitrary Object in a temporary location on this Geometric.
+	 * @param tempObj the Object to be set on this Geometric.
+	 */
+	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
+
+	/**
+	 * Routine to get the temporary Object on this Geometric.
+	 * @return the temporary Object on this Geometric.
+	 */
+	public Object getTempObj() { return tempObj; }
 
 }

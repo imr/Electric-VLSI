@@ -168,7 +168,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		this.parent = null;
 		this.network = null;
 		this.userBits = 0;
-		this.descriptor = new TextDescriptor();
+		this.descriptor = TextDescriptor.newExportDescriptor();
 		//if (network!=null)  network.addPart(this);
 	}
 

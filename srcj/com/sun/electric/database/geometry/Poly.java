@@ -191,17 +191,6 @@ public class Poly implements Shape
 
 		// ************************ miscellaneous ************************
 		/**
-		 * Describes grid dots in the window.
-		 * The grid is to be drawn with the following characteristics:
-		 * point 0 defines the spacing of the grid in "grid space";
-		 * point 1 defines the lower-left dot to set in "grid space";
-		 * point 2 defines the lower-left extent of the grid on the screen;
-		 * point 3 defines the upper-right extent of the grid on the screen;
-		 * point 4 defines the lower-left extent of "grid space";
-		 * point 5 defines the upper-right extent of "grid space".
-		 */
-		public static final Type GRIDDOTS = new Type();
-		/**
 		 * Describes a small cross, drawn at the specified location.
 		 * Typically there will be only one point in this polygon
 		 * but if there are more they are averaged and the cross is drawn in the center.
@@ -352,10 +341,10 @@ public class Poly implements Shape
 	 */
 	public Rectangle2D.Double getBox()
 	{
-		/* closed boxes must have exactly four points */
+		// closed boxes must have exactly four points
 		if (points.length == 4)
 		{
-			/* only closed polygons and text can be boxes */
+			// only closed polygons and text can be boxes
 			if (style != Type.FILLED && style != Type.CLOSED && style != Type.TEXTBOX) return null;
 		} else if (points.length == 5)
 		{
@@ -364,12 +353,12 @@ public class Poly implements Shape
 			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return null;
 		} else return null;
 
-		/* make sure the polygon is rectangular and orthogonal */
+		// make sure the polygon is rectangular and orthogonal
 		if (points[0].getX() == points[1].getX() && points[2].getX() == points[3].getX() &&
 			points[0].getY() == points[3].getY() && points[1].getY() == points[2].getY())
 		{
-			double cX = (points[2].getX() + points[0].getX()) / 2;
-			double cY = (points[1].getY() + points[0].getY()) / 2;
+			double lX = Math.min(points[2].getX(), points[0].getX());
+			double lY = Math.min(points[1].getY(), points[0].getY());
 			double sX, sY;
 			if (points[0].getX() < points[2].getX())
 			{
@@ -385,13 +374,13 @@ public class Poly implements Shape
 			{
 				sY = points[0].getY() - points[1].getY();
 			}
-			return new Rectangle2D.Double(EMath.smooth(cX), EMath.smooth(cY), EMath.smooth(sX), EMath.smooth(sY));
+			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
 			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
 		{
-			double cX = (points[1].getX() + points[0].getX()) / 2;
-			double cY = (points[2].getY() + points[0].getY()) / 2;
+			double lX = Math.min(points[1].getX(), points[0].getX());
+			double lY = Math.min(points[2].getY(), points[0].getY());
 			double sX, sY;
 			if (points[0].getX() < points[1].getX())
 			{
@@ -407,7 +396,7 @@ public class Poly implements Shape
 			{
 				sY = points[0].getY() - points[2].getY();
 			}
-			return new Rectangle2D.Double(EMath.smooth(cX), EMath.smooth(cY), EMath.smooth(sX), EMath.smooth(sY));
+			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		return null;
 	}
@@ -417,19 +406,19 @@ public class Poly implements Shape
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
-	public boolean isinside(Point2D.Double pt)
+	public boolean isInside(Point2D.Double pt)
 	{
 		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED || style == Type.TEXTBOX)
 		{
-				/* check rectangular case for containment */
+			// check rectangular case for containment
 			Rectangle2D.Double bounds = getBox();
 			if (bounds != null)
 			{
-				if (bounds.contains(pt)) return true;
+				if (EMath.pointInRect(pt, bounds)) return true;
 				return false;
 			}
 
-			/* general polygon containment by summing angles to vertices */
+			// general polygon containment by summing angles to vertices
 			double ang = 0;
 			Point2D.Double lastPoint = points[points.length-1];
 			if (pt.equals(lastPoint)) return true;
@@ -458,11 +447,11 @@ public class Poly implements Shape
 		if (style == Type.OPENED || style == Type.OPENEDT1 || style == Type.OPENEDT2 ||
 			style == Type.OPENEDT3 || style == Type.VECTORS)
 		{
-			/* first look for trivial inclusion by being a vertex */
+			// first look for trivial inclusion by being a vertex
 			for(int i=0; i<points.length; i++)
 				if (pt.equals(points[i])) return true;
 
-			/* see if the point is on one of the edges */
+			// see if the point is on one of the edges
 			if (style == Type.VECTORS)
 			{
 				for(int i=0; i<points.length; i += 2)
@@ -485,7 +474,7 @@ public class Poly implements Shape
 
 		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
 		{
-			/* first see if the point is at the proper angle from the center of the arc */
+			// first see if the point is at the proper angle from the center of the arc
 			int ang = EMath.figureAngle(points[0], pt);
 			int endangle = EMath.figureAngle(points[0], points[1]);
 			int startangle = EMath.figureAngle(points[0], points[2]);
@@ -500,7 +489,7 @@ public class Poly implements Shape
 				angrange = 3600 - startangle + endangle;
 			}
 
-			/* now see if the point is the proper distance from the center of the arc */
+			// now see if the point is the proper distance from the center of the arc
 			double dist = points[0].distance(pt);
 			double wantdist;
 			if (ang == startangle || angrange == 0)
@@ -523,8 +512,146 @@ public class Poly implements Shape
 			return false;
 		}
 
-		/* I give up */
+		// I give up
 		return false;
+	}
+
+	/**
+	 * Routine to report the distance of a point to this Poly.
+	 * @param pt the point to test for distance to the Poly.
+	 * @return the distance of the point to the Poly.
+	 * The routine returns a negative amount if the point is a direct hit on or inside
+	 * the polygon (the more negative, the closer to the center).
+	 */
+	public double polyDistance(Point2D.Double pt)
+	{
+		// determine the center of this polygon
+		Rectangle2D.Double bounds = getBounds2DDouble();
+		double cX = bounds.getCenterX();
+		double cY = bounds.getCenterY();
+		Point2D.Double center = new Point2D.Double(cX, cY);
+
+		// handle single point polygons
+		if (style == Type.CROSS || style == Type.BIGCROSS || points.length == 1)
+		{
+			if (cX == pt.getX() && cY == pt.getY()) return(Double.MIN_VALUE);
+			return pt.distance(center);
+		}
+
+		// handle polygons that are filled in
+		if (style == Type.FILLED || style == Type.CROSSED || style == Type.TEXTCENT ||
+			style == Type.TEXTTOP || style == Type.TEXTBOT || style == Type.TEXTLEFT ||
+			style == Type.TEXTRIGHT || style == Type.TEXTTOPLEFT || style == Type.TEXTBOTLEFT ||
+			style == Type.TEXTTOPRIGHT || style == Type.TEXTBOTRIGHT || style == Type.TEXTBOX)
+		{
+			// give special returned value if point is a direct hit
+			if (isInside(pt))
+			{
+				return pt.distance(center) - Double.MAX_VALUE;
+			}
+
+			// if polygon is a box, use M.B.R. information
+			Rectangle2D.Double box = getBox();
+			if (box != null)
+			{
+				if (pt.getX() > box.getMaxX()) cX = pt.getX() - box.getMaxX(); else
+					if (pt.getX() < box.getMinX()) cX = box.getMinX() - pt.getX(); else
+						cX = 0;
+				if (pt.getY() > box.getMaxY()) cY = pt.getY() - box.getMaxY(); else
+					if (pt.getY() < box.getMinY()) cY = box.getMinY() - pt.getY(); else
+						cY = 0;
+				if (cX == 0 || cY == 0) return cX + cY;
+				return center.distance(new Point2D.Double(0,0));
+			}
+
+			// point is outside of irregular polygon: fall into to next case
+			style = Type.CLOSED;
+		}
+
+		// handle closed outline figures
+		if (style == Type.CLOSED)
+		{
+			double bestDist = Double.MAX_VALUE;
+			Point2D.Double lastPt = points[points.length-1];
+			for(int i=0; i<points.length; i++)
+			{
+				if (i != 0) lastPt = points[i-1];
+				Point2D.Double thisPt = points[i];
+
+				// compute distance of close point to "pt"
+				double dist = EMath.distToLine(lastPt, thisPt, pt);
+				if (dist < bestDist) bestDist = dist;
+			}
+			return bestDist;
+		}
+
+		// handle opened outline figures
+		if (style == Type.OPENED || style == Type.OPENEDT1 || style == Type.OPENEDT2 || style == Type.OPENEDT3 || style == Type.OPENEDO1)
+		{
+			double bestDist = Double.MAX_VALUE;
+			for(int i=1; i<points.length; i++)
+			{
+				Point2D.Double lastPt = points[i-1];
+				Point2D.Double thisPt = points[i];
+
+				// compute distance of close point to "pt"
+				double dist = EMath.distToLine(lastPt, thisPt, pt);
+				if (dist < bestDist) bestDist = dist;
+			}
+			return bestDist;
+		}
+
+		// handle outline vector lists
+		if (style == Type.VECTORS)
+		{
+			double bestDist = Double.MAX_VALUE;
+			for(int i=0; i<points.length; i += 2)
+			{
+				Point2D.Double lastPt = points[i];
+				Point2D.Double thisPt = points[i+1];
+
+				// compute distance of close point to "pt"
+				double dist = EMath.distToLine(lastPt, thisPt, pt);
+				if (dist < bestDist) bestDist = dist;
+			}
+			return bestDist;
+		}
+
+		// handle circular objects
+		if (style == Type.CIRCLE || style == Type.THICKCIRCLE || style == Type.DISC)
+		{
+			double odist = points[0].distance(points[1]);
+			double dist = points[0].distance(pt);
+			if (style == Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
+			return Math.abs(dist-odist);
+		}
+		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
+		{
+			// determine closest point to ends of arc
+			double sdist = pt.distance(points[1]);
+			double edist = pt.distance(points[2]);
+			double dist = Math.min(sdist, edist);
+
+			// see if the point is in the segment of the arc
+			int pang = EMath.figureAngle(points[0], pt);
+			int sang = EMath.figureAngle(points[0], points[1]);
+			int eang = EMath.figureAngle(points[0], points[2]);
+			if (eang > sang)
+			{
+				if (pang < eang && pang > sang) return dist;
+			} else
+			{
+				if (pang < eang || pang > sang) return dist;
+			}
+
+			// point in arc: determine distance
+			double odist = points[0].distance(points[1]);
+			dist = points[0].distance(pt);
+			return Math.abs(dist-odist);
+		}
+
+		// can't figure out others: use distance to polygon center
+		return pt.distance(center);
 	}
 
 	/**
@@ -536,7 +663,7 @@ public class Poly implements Shape
 	 */
 	public boolean contains(double x, double y)
 	{
-		return isinside(new Point2D.Double(x, y));
+		return isInside(new Point2D.Double(x, y));
 	}
 
 	/**
@@ -547,7 +674,7 @@ public class Poly implements Shape
 	 */
 	public boolean contains(Point2D p)
 	{
-		return isinside(new Point2D.Double(p.getX(), p.getY()));
+		return isInside(new Point2D.Double(p.getX(), p.getY()));
 	}
 
 	/**

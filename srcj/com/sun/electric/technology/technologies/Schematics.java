@@ -32,6 +32,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -301,6 +302,12 @@ public class Schematics extends Technology
 
 
 		//**************************************** NODES ****************************************
+		
+		// this text descriptor is used for all text on nodes
+		TextDescriptor tdBig = TextDescriptor.newBlankDescriptor();
+		tdBig.setRelSize(2);
+		TextDescriptor tdSmall = TextDescriptor.newBlankDescriptor();
+		tdSmall.setRelSize(1);
 
 		/** wire pin */
 		wirePin_node = PrimitiveNode.newInstance("Wire_Pin", this, 0.5, 0.5, null,
@@ -353,9 +360,10 @@ public class Schematics extends Technology
 		wireCon_node.addPrimitivePorts(new PrimitivePort [] {wireCon_port});
 		wireCon_node.setFunction(NodeProto.Function.CONNECT);
 		letterJ.setMessage("J");
+		letterJ.setDescriptor(tdBig);
 
 		/** general buffer */
-		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 0, 1, 0),
+		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 1, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
@@ -377,7 +385,7 @@ public class Schematics extends Technology
 		buffer_node.setFunction(NodeProto.Function.BUFFER);
 
 		/** general and */
-		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0, 0.5, 0),
+		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -410,7 +418,7 @@ public class Schematics extends Technology
 		and_node.setFunction(NodeProto.Function.GATEAND);
 
 		/** general or */
-		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0, 0.5, 0),
+		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -452,7 +460,7 @@ public class Schematics extends Technology
 		or_node.setFunction(NodeProto.Function.GATEOR);
 
 		/** general xor */
-		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0, 0.5, 0),
+		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -526,66 +534,77 @@ public class Schematics extends Technology
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterD.setMessage("D");
+		ffLetterD.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterR.setMessage("R");
+		ffLetterR.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterJ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterJ.setMessage("J");
+		ffLetterJ.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterT = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP8),
 			new Technology.TechPoint(LEFTBYP4,       TOPBYP4)});
 		ffLetterT.setMessage("T");
+		ffLetterT.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterE = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterE.setMessage("E");
+		ffLetterE.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterS = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterS.setMessage("S");
+		ffLetterS.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterK = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP4),
 			new Technology.TechPoint(EdgeH.LEFTEDGE, BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP8),
 			new Technology.TechPoint(LEFTBYP4,       BOTBYP4)});
 		ffLetterK.setMessage("K");
+		ffLetterK.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterQ = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP4),
 			new Technology.TechPoint(EdgeH.RIGHTEDGE, TOPBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       TOPBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       TOPBYP4)});
 		ffLetterQ.setMessage("Q");
+		ffLetterQ.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterQB = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP4),
 			new Technology.TechPoint(EdgeH.RIGHTEDGE, BOTBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       BOTBYP8),
 			new Technology.TechPoint(RIGHTBYP4,       BOTBYP4)});
 		ffLetterQB.setMessage("QB");
+		ffLetterQB.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterPR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6,        TOPBYP6),
 			new Technology.TechPoint(LEFTBYP6,        EdgeV.TOPEDGE),
 			new Technology.TechPoint(RIGHTBYP6,       EdgeV.TOPEDGE),
 			new Technology.TechPoint(RIGHTBYP6,       TOPBYP6)});
 		ffLetterPR.setMessage("PR");
+		ffLetterPR.setDescriptor(tdSmall);
 		Technology.NodeLayer ffLetterCLR = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6,        BOTBYP6),
 			new Technology.TechPoint(LEFTBYP6,        EdgeV.BOTTOMEDGE),
 			new Technology.TechPoint(RIGHTBYP6,       EdgeV.BOTTOMEDGE),
 			new Technology.TechPoint(RIGHTBYP6,       BOTBYP6)});
 		ffLetterCLR.setMessage("CLR");
+		ffLetterCLR.setDescriptor(tdSmall);
 		ffLayersRSMS = new Technology.NodeLayer []
 		{
 			ffWaveformMS, ffLetterR, ffLetterS,
@@ -667,7 +686,7 @@ public class Schematics extends Technology
 		flipflop_node.setFunction(NodeProto.Function.FLIPFLOP);
 
 		/** mux */
-		mux_node = PrimitiveNode.newInstance("Mux", this, 8.0, 10.0, null,
+		mux_node = PrimitiveNode.newInstance("Mux", this, 8.0, 10.0, new SizeOffset(0.5, 0.5, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
@@ -713,7 +732,7 @@ public class Schematics extends Technology
 		bbox_node.setFunction(NodeProto.Function.UNKNOWN);
 
 		/** switch */
-		switch_node = PrimitiveNode.newInstance("Switch", this, 6.0, 2.0, null,
+		switch_node = PrimitiveNode.newInstance("Switch", this, 6.0, 2.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -910,7 +929,7 @@ public class Schematics extends Technology
 		transistor_node.setFunction(NodeProto.Function.TRANS);
 
 		/** resistor */
-		resistor_node = PrimitiveNode.newInstance("Resistor", this, 2.0, 1.0, null,
+		resistor_node = PrimitiveNode.newInstance("Resistor", this, 2.0, 1.0, new SizeOffset(1, 1, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1025,6 +1044,7 @@ public class Schematics extends Technology
 		/** meter */
 		Technology.NodeLayer meterLetterV = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, Technology.TechPoint.FULLBOX);
 		meterLetterV.setMessage("V");
+		meterLetterV.setDescriptor(tdBig);
 		meter_node = PrimitiveNode.newInstance("Meter", this, 6.0, 6.0, null,
 			new Technology.NodeLayer []
 			{

@@ -242,6 +242,20 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headX, headY, tail, tailX, tailY)) return null;
+		if (!ai.stillInPort(true, headX, headY))
+		{
+			Cell parent = head.getNodeInst().getParent();
+			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
+				" arc at (" + headX + "," + headY + ") does not fit in port");
+			return null;
+		}
+		if (!ai.stillInPort(false, tailX, tailY))
+		{
+			Cell parent = tail.getNodeInst().getParent();
+			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
+				" arc at (" + tailX + "," + tailY + ") does not fit in port");
+			return null;
+		}
 		if (ai.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -688,6 +702,24 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
 	public Connection getTail() { return tail; }
+
+	/**
+	 * routine to tell whether end "e" of arcinst "ai" would be properly connected
+	 * to its nodeinst if it were located at (x, y), but considering the width of
+	 * the arc as a limiting factor.
+	 */
+	public boolean stillInPort(boolean onHead, double x, double y)
+	{
+		// determine the area of the nodeinst
+		PortInst pi;
+		if (onHead) pi = head.getPortInst(); else
+			pi = tail.getPortInst();
+		Poly poly = pi.getPoly();
+		if (poly.isInside(new Point2D.Double(x, y))) return true;
+
+		// no good
+		return false;
+	}
 
 	/*
 	 * Routine to write a description of this ArcInst.

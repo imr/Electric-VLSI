@@ -143,7 +143,9 @@ public class ElectricObject
 			Point2D.Double [] pointList = new Point2D.Double[1];
 			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			polys[start] = new Poly(pointList);
-			polys[start].setStyle(Poly.Type.TEXTCENT);
+			TextDescriptor.Position pos = td.getPos();
+			Poly.Type style = pos.getPolyType();
+			polys[start].setStyle(style);
 			polys[start].setString(var.describe());
 			polys[start].setTextDescriptor(td);
 			polys[start].setLayer(null);
@@ -170,7 +172,7 @@ public class ElectricObject
 		{
 			vars = new HashMap();
 		}
-		Variable v = new Variable(value, new TextDescriptor(), vn);
+		Variable v = new Variable(value, TextDescriptor.newNodeArcDescriptor(), vn);
 		vars.put(name, v);
 		return v;
 	}

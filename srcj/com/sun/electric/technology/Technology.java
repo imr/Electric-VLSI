@@ -32,6 +32,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -270,6 +271,7 @@ public class Technology extends ElectricObject
 		private int representation;
 		private TechPoint [] points;
 		private String message;
+		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
 
 		// the meaning of "representation"
@@ -385,7 +387,7 @@ public class Technology extends ElectricObject
 		 * It only makes sense if the representation is BOX or MINBOX.
 		 * The returned coordinate is a scalable EdgeV object.
 		 */
-		public EdgeV getBOTTOMEDGE() { return points[0].getY(); }
+		public EdgeV getBottomEdge() { return points[0].getY(); }
 
 		/**
 		 * Returns the right edge coordinate (a scalable EdgeH object) associated with this NodeLayer.
@@ -393,7 +395,7 @@ public class Technology extends ElectricObject
 		 * It only makes sense if the representation is BOX or MINBOX.
 		 * The returned coordinate is a scalable EdgeH object.
 		 */
-		public EdgeH getRIGHTEDGE() { return points[1].getX(); }
+		public EdgeH getRightEdge() { return points[1].getX(); }
 
 		/**
 		 * Returns the top edge coordinate (a scalable EdgeV object) associated with this NodeLayer.
@@ -401,7 +403,7 @@ public class Technology extends ElectricObject
 		 * It only makes sense if the representation is BOX or MINBOX.
 		 * The returned coordinate is a scalable EdgeV object.
 		 */
-		public EdgeV getTOPEDGE() { return points[1].getY(); }
+		public EdgeV getTopEdge() { return points[1].getY(); }
 
 		/**
 		 * Returns the text message associated with this list NodeLayer.
@@ -416,6 +418,20 @@ public class Technology extends ElectricObject
 		 * This only makes sense if the style is one of the TEXT types.
 		 */
 		public void setMessage(String message) { this.message = message; }
+
+		/**
+		 * Returns the text descriptor associated with this list NodeLayer.
+		 * @return the text descriptor associated with this list NodeLayer.
+		 * This only makes sense if the style is one of the TEXT types.
+		 */
+		public TextDescriptor getDescriptor() { return descriptor; }
+
+		/**
+		 * Sets the text descriptor to be drawn by this NodeLayer.
+		 * @param descriptor the text descriptor to be drawn by this NodeLayer.
+		 * This only makes sense if the style is one of the TEXT types.
+		 */
+		public void setDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
 
 		/**
 		 * Returns the left extension of this layer.
@@ -859,9 +875,9 @@ public class Technology extends ElectricObject
 			if (representation == Technology.NodeLayer.BOX)
 			{
 				double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
-				double portHighX = ni.getCenterX() + primLayer.getRIGHTEDGE().getMultiplier() * ni.getXSize() + primLayer.getRIGHTEDGE().getAdder();
-				double portLowY = ni.getCenterY() + primLayer.getBOTTOMEDGE().getMultiplier() * ni.getYSize() + primLayer.getBOTTOMEDGE().getAdder();
-				double portHighY = ni.getCenterY() + primLayer.getTOPEDGE().getMultiplier() * ni.getYSize() + primLayer.getTOPEDGE().getAdder();
+				double portHighX = ni.getCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
+				double portLowY = ni.getCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
+				double portHighY = ni.getCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
 				double portX = (portLowX + portHighX) / 2;
 				double portY = (portLowY + portHighY) / 2;
 				polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
@@ -889,7 +905,7 @@ public class Technology extends ElectricObject
 				style == Poly.Type.TEXTBOX)
 			{
 				polys[i].setString(primLayer.getMessage());
-				polys[i].setTextDescriptor(null);
+				polys[i].setTextDescriptor(primLayer.getDescriptor());
 			}
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
@@ -1509,8 +1525,10 @@ public class Technology extends ElectricObject
 				double portHighY = ni.getCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 				double portX = (portLowX + portHighX) / 2;
 				double portY = (portLowY + portHighY) / 2;
-				Poly portpoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-				return portpoly;
+				Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+				portPoly.setStyle(Poly.Type.FILLED);
+				portPoly.setTextDescriptor(pp.getTextDescriptor());
+				return portPoly;
 			}
 		}
 	}

@@ -49,6 +49,10 @@ import java.awt.event.InputEvent;
 import javax.swing.KeyStroke;
 import javax.swing.JMenuBar;
 
+/**
+ * This class initializes the User Interface.
+ * It is the main class of Electric.
+ */
 public final class UserInitial
 {
 	// ------------------------- private data ----------------------------
@@ -168,6 +172,7 @@ public final class UserInitial
 		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0, myCell);
 		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0, myCell);
 		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), 450, myCell);
+		if (metal12Via == null || contactNode == null || metal2Pin == null || poly1Pin == null || transistor == null || rotTrans == null) return;
 		rotTrans.setName("rotated");
 
 		// make arcs to connect them
@@ -177,12 +182,16 @@ public final class UserInitial
 		PortInst p1Port = poly1Pin.getOnlyPortInst();
 		PortInst transRPort = transistor.findPortInst("p-trans-poly-right");
 		ArcInst metal2Arc = ArcInst.newInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
+		if (metal2Arc == null) return;
 		metal2Arc.setFixedAngle();
 		ArcInst metal1Arc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port);
+		if (metal1Arc == null) return;
 		metal1Arc.setFixedAngle();
 		ArcInst polyArc = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), contactPort, p1Port);
+		if (polyArc == null) return;
 		polyArc.setFixedAngle();
 		ArcInst polyArc2 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transRPort, p1Port);
+		if (polyArc2 == null) return;
 		polyArc2.setFixedAngle();
 
 		// export the two pins

@@ -40,11 +40,13 @@ public class Layer
 	{
 		private final String name;
 		private final String constantName;
+		private final int extraBits;
 
-		private Function(String name, String constantName)
+		private Function(String name, String constantName, int extraBits)
 		{
 			this.name = name;
 			this.constantName = constantName;
+			this.extraBits = extraBits;
 		}
 
 		/**
@@ -66,52 +68,114 @@ public class Layer
 		/** Describes a layer that is contacts diffusion (used to identify contacts/vias). */	public static final int CONDIFF =     0200000;
 		/** Describes a layer that is inside transistor. */			public static final int INTRANS =   020000000;
 
-		/** Describes an unknown layer. */							public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN");
-		/** Describes a metal layer 1. */							public static final Function METAL1     = new Function("metal-1",    "LFMETAL1");
-		/** Describes a metal layer 2. */							public static final Function METAL2     = new Function("metal-2",    "LFMETAL2");
-		/** Describes a metal layer 3. */							public static final Function METAL3     = new Function("metal-3",    "LFMETAL3");
-		/** Describes a metal layer 4. */							public static final Function METAL4     = new Function("metal-4",    "LFMETAL4");
-		/** Describes a metal layer 5. */							public static final Function METAL5     = new Function("metal-5",    "LFMETAL5");
-		/** Describes a metal layer 6. */							public static final Function METAL6     = new Function("metal-6",    "LFMETAL6");
-		/** Describes a metal layer 7. */							public static final Function METAL7     = new Function("metal-7",    "LFMETAL7");
-		/** Describes a metal layer 8. */							public static final Function METAL8     = new Function("metal-8",    "LFMETAL8");
-		/** Describes a metal layer 9. */							public static final Function METAL9     = new Function("metal-9",    "LFMETAL9");
-		/** Describes a metal layer 10. */							public static final Function METAL10    = new Function("metal-10",   "LFMETAL10");
-		/** Describes a metal layer 11. */							public static final Function METAL11    = new Function("metal-11",   "LFMETAL11");
-		/** Describes a metal layer 12. */							public static final Function METAL12    = new Function("metal-12",   "LFMETAL12");
-		/** Describes a polysilicon layer 1. */						public static final Function POLY1      = new Function("poly-1",     "LFPOLY1");
-		/** Describes a polysilicon layer 2. */						public static final Function POLY2      = new Function("poly-2",     "LFPOLY2");
-		/** Describes a polysilicon layer 3. */						public static final Function POLY3      = new Function("poly-3",     "LFPOLY3");
-		/** Describes a polysilicon gate layer. */					public static final Function GATE       = new Function("gate",       "LFGATE");
-		/** Describes a diffusion layer. */							public static final Function DIFF       = new Function("diffusion",  "LFDIFF");
-		/** Describes an implant layer. */							public static final Function IMPLANT    = new Function("implant",    "LFIMPLANT");
-		/** Describes a contact layer 1. */							public static final Function CONTACT1   = new Function("contact-1",  "LFCONTACT1");
-		/** Describes a contact layer 2. */							public static final Function CONTACT2   = new Function("contact-2",  "LFCONTACT2");
-		/** Describes a contact layer 3. */							public static final Function CONTACT3   = new Function("contact-3",  "LFCONTACT3");
-		/** Describes a contact layer 4. */							public static final Function CONTACT4   = new Function("contact-4",  "LFCONTACT4");
-		/** Describes a contact layer 5. */							public static final Function CONTACT5   = new Function("contact-5",  "LFCONTACT5");
-		/** Describes a contact layer 6. */							public static final Function CONTACT6   = new Function("contact-6",  "LFCONTACT6");
-		/** Describes a contact layer 7. */							public static final Function CONTACT7   = new Function("contact-7",  "LFCONTACT7");
-		/** Describes a contact layer 8. */							public static final Function CONTACT8   = new Function("contact-8",  "LFCONTACT8");
-		/** Describes a contact layer 9. */							public static final Function CONTACT9   = new Function("contact-9",  "LFCONTACT9");
-		/** Describes a contact layer 10. */						public static final Function CONTACT10  = new Function("contact-10", "LFCONTACT10");
-		/** Describes a contact layer 11. */						public static final Function CONTACT11  = new Function("contact-11", "LFCONTACT11");
-		/** Describes a contact layer 12. */						public static final Function CONTACT12  = new Function("contact-12", "LFCONTACT12");
-		/** Describes a sinker layer (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "LFPLUG");
-		/** Describes an overglass layer (passivation). */			public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS");
-		/** Describes a resistor layer. */							public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR");
-		/** Describes a capacitor layer. */							public static final Function CAP        = new Function("capacitor",  "LFCAP");
-		/** Describes a transistor layer (usually a pseudo-layer). */	public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR");
-		/** Describes an emitter layer of a bipolar transistor. */	public static final Function EMITTER    = new Function("emitter",    "LFEMITTER");
-		/** Describes a base layer of a bipolar transistor. */		public static final Function BASE       = new Function("base",       "LFBASE");
-		/** Describes a collector layer of a bipolar transistor. */	public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR");
-		/** Describes a substrate layer. */							public static final Function SUBSTRATE  = new Function("substrate",  "LFSUBSTRATE");
-		/** Describes a well layer. */								public static final Function WELL       = new Function("well",       "LFWELL");
-		/** Describes a guard layer. */								public static final Function GUARD      = new Function("guard",      "LFGUARD");
-		/** Describes an isolation layer (bipolar). */				public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION");
-		/** Describes a bus layer. */								public static final Function BUS        = new Function("bus",        "LFBUS");
-		/** Describes an artwork layer. */							public static final Function ART        = new Function("art",        "LFART");
-		/** Describes a control layer. */							public static final Function CONTROL    = new Function("control",    "LFCONTROL");
+		/** Describes an unknown layer. */							public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN", 0);
+		/** Describes a metal layer 1. */							public static final Function METAL1     = new Function("metal-1",    "LFMETAL1", 0);
+		/** Describes a metal layer 2. */							public static final Function METAL2     = new Function("metal-2",    "LFMETAL2", 0);
+		/** Describes a metal layer 3. */							public static final Function METAL3     = new Function("metal-3",    "LFMETAL3", 0);
+		/** Describes a metal layer 4. */							public static final Function METAL4     = new Function("metal-4",    "LFMETAL4", 0);
+		/** Describes a metal layer 5. */							public static final Function METAL5     = new Function("metal-5",    "LFMETAL5", 0);
+		/** Describes a metal layer 6. */							public static final Function METAL6     = new Function("metal-6",    "LFMETAL6", 0);
+		/** Describes a metal layer 7. */							public static final Function METAL7     = new Function("metal-7",    "LFMETAL7", 0);
+		/** Describes a metal layer 8. */							public static final Function METAL8     = new Function("metal-8",    "LFMETAL8", 0);
+		/** Describes a metal layer 9. */							public static final Function METAL9     = new Function("metal-9",    "LFMETAL9", 0);
+		/** Describes a metal layer 10. */							public static final Function METAL10    = new Function("metal-10",   "LFMETAL10", 0);
+		/** Describes a metal layer 11. */							public static final Function METAL11    = new Function("metal-11",   "LFMETAL11", 0);
+		/** Describes a metal layer 12. */							public static final Function METAL12    = new Function("metal-12",   "LFMETAL12", 0);
+		/** Describes a polysilicon layer 1. */						public static final Function POLY1      = new Function("poly-1",     "LFPOLY1", 0);
+		/** Describes a polysilicon layer 2. */						public static final Function POLY2      = new Function("poly-2",     "LFPOLY2", 0);
+		/** Describes a polysilicon layer 3. */						public static final Function POLY3      = new Function("poly-3",     "LFPOLY3", 0);
+		/** Describes a polysilicon gate layer. */					public static final Function GATE       = new Function("gate",       "LFGATE", INTRANS);
+		/** Describes a diffusion layer. */							public static final Function DIFF       = new Function("diffusion",  "LFDIFF", 0);
+		/** Describes a P-diffusion layer. */						public static final Function DIFFP      = new Function("p-diffusion","LFDIFF", PTYPE);
+		/** Describes a N-diffusion layer. */						public static final Function DIFFN      = new Function("n-diffusion","LFDIFF", NTYPE);
+		/** Describes an implant layer. */							public static final Function IMPLANT    = new Function("implant",    "LFIMPLANT", 0);
+		/** Describes a P-implant layer. */							public static final Function IMPLANTP   = new Function("p-implant",  "LFIMPLANT", PTYPE);
+		/** Describes an N-implant layer. */						public static final Function IMPLANTN   = new Function("n-implant",  "LFIMPLANT", NTYPE);
+		/** Describes a contact layer 1. */							public static final Function CONTACT1   = new Function("contact-1",  "LFCONTACT1", 0);
+		/** Describes a contact layer 2. */							public static final Function CONTACT2   = new Function("contact-2",  "LFCONTACT2", 0);
+		/** Describes a contact layer 3. */							public static final Function CONTACT3   = new Function("contact-3",  "LFCONTACT3", 0);
+		/** Describes a contact layer 4. */							public static final Function CONTACT4   = new Function("contact-4",  "LFCONTACT4", 0);
+		/** Describes a contact layer 5. */							public static final Function CONTACT5   = new Function("contact-5",  "LFCONTACT5", 0);
+		/** Describes a contact layer 6. */							public static final Function CONTACT6   = new Function("contact-6",  "LFCONTACT6", 0);
+		/** Describes a contact layer 7. */							public static final Function CONTACT7   = new Function("contact-7",  "LFCONTACT7", 0);
+		/** Describes a contact layer 8. */							public static final Function CONTACT8   = new Function("contact-8",  "LFCONTACT8", 0);
+		/** Describes a contact layer 9. */							public static final Function CONTACT9   = new Function("contact-9",  "LFCONTACT9", 0);
+		/** Describes a contact layer 10. */						public static final Function CONTACT10  = new Function("contact-10", "LFCONTACT10", 0);
+		/** Describes a contact layer 11. */						public static final Function CONTACT11  = new Function("contact-11", "LFCONTACT11", 0);
+		/** Describes a contact layer 12. */						public static final Function CONTACT12  = new Function("contact-12", "LFCONTACT12", 0);
+		/** Describes a sinker layer (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "LFPLUG", 0);
+		/** Describes an overglass layer (passivation). */			public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS", 0);
+		/** Describes a resistor layer. */							public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR", 0);
+		/** Describes a capacitor layer. */							public static final Function CAP        = new Function("capacitor",  "LFCAP", 0);
+		/** Describes a transistor layer (usually a pseudo-layer). */	public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR", 0);
+		/** Describes an emitter layer of a bipolar transistor. */	public static final Function EMITTER    = new Function("emitter",    "LFEMITTER", 0);
+		/** Describes a base layer of a bipolar transistor. */		public static final Function BASE       = new Function("base",       "LFBASE", 0);
+		/** Describes a collector layer of a bipolar transistor. */	public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR", 0);
+		/** Describes a substrate layer. */							public static final Function SUBSTRATE  = new Function("substrate",  "LFSUBSTRATE", 0);
+		/** Describes a well layer. */								public static final Function WELL       = new Function("well",       "LFWELL", 0);
+		/** Describes a P-well layer. */							public static final Function WELLP      = new Function("p-well",     "LFWELL", PTYPE);
+		/** Describes a N-well layer. */							public static final Function WELLN      = new Function("n-well",     "LFWELL", NTYPE);
+		/** Describes a guard layer. */								public static final Function GUARD      = new Function("guard",      "LFGUARD", 0);
+		/** Describes an isolation layer (bipolar). */				public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION", 0);
+		/** Describes a bus layer. */								public static final Function BUS        = new Function("bus",        "LFBUS", 0);
+		/** Describes an artwork layer. */							public static final Function ART        = new Function("art",        "LFART", 0);
+		/** Describes a control layer. */							public static final Function CONTROL    = new Function("control",    "LFCONTROL", 0);
+
+		/**
+		 * Routine to tell whether this layer function is metal.
+		 * @return true if this layer function is metal.
+		 */
+		public boolean isMetal()
+		{
+			if (this == METAL1  || this == METAL2  || this == METAL3 ||
+				this == METAL4  || this == METAL5  || this == METAL6 ||
+				this == METAL7  || this == METAL8  || this == METAL9 ||
+				this == METAL10 || this == METAL11 || this == METAL12) return true;
+			return false;
+		}
+
+		/**
+		 * Routine to tell whether this layer function is diffusion (active).
+		 * @return true if this layer function is diffusion (active).
+		 */
+		public boolean isDiff()
+		{
+			if (this == DIFF || this == DIFFP || this == DIFFN) return true;
+			return false;
+		}
+
+		/**
+		 * Routine to tell whether this layer function is polysilicon.
+		 * @return true if this layer function is polysilicon.
+		 */
+		public boolean isPoly()
+		{
+			if (this == POLY1 || this == POLY2 || this == POLY3 || this == GATE) return true;
+			return false;
+		}
+
+		/**
+		 * Routine to tell whether this layer function is polysilicon in the gate of a transistor.
+		 * @return true if this layer function is the gate of a transistor.
+		 */
+		public boolean isGatePoly()
+		{
+			if (isPoly() && (extraBits&INTRANS) != 0) return true;
+			return false;
+		}
+
+		/**
+		 * Routine to tell whether this layer function is a contact.
+		 * @return true if this layer function is contact.
+		 */
+		public boolean isContact()
+		{
+			if (this == CONTACT1 || this == CONTACT2 || this == CONTACT3 ||
+				this == CONTACT4 || this == CONTACT5 || this == CONTACT6 ||
+				this == CONTACT7 || this == CONTACT8 || this == CONTACT9 ||
+				this == CONTACT10 || this == CONTACT11 || this == CONTACT12)  return true;
+			return false;
+		}
 	}
 
 	private String name;

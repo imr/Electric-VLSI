@@ -802,12 +802,12 @@ public class MoCMOS extends Technology
 		metal6_lay.setFunction(Layer.Function.METAL6);														// Metal-6
 		poly1_lay.setFunction(Layer.Function.POLY1);														// Polysilicon-1
 		poly2_lay.setFunction(Layer.Function.POLY2);														// Polysilicon-2
-		pActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE);									// P-Active
-		nActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.NTYPE);									// N-Active
-		pSelect_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE);								// P-Select
-		nSelect_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.NTYPE);								// N-Select
-		pWell_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE);									// P-Well
-		nWell_lay.setFunction(Layer.Function.WELL, Layer.Function.NTYPE);									// N-Well
+		pActive_lay.setFunction(Layer.Function.DIFFP);														// P-Active
+		nActive_lay.setFunction(Layer.Function.DIFFN);														// N-Active
+		pSelect_lay.setFunction(Layer.Function.IMPLANTP);													// P-Select
+		nSelect_lay.setFunction(Layer.Function.IMPLANTN);													// N-Select
+		pWell_lay.setFunction(Layer.Function.WELLP);														// P-Well
+		nWell_lay.setFunction(Layer.Function.WELLN);														// N-Well
 		polyCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONPOLY);							// Poly-Cut
 		activeCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);							// Active-Cut
 		via1_lay.setFunction(Layer.Function.CONTACT2, Layer.Function.CONMETAL);								// Via-1
@@ -816,9 +816,9 @@ public class MoCMOS extends Technology
 		via4_lay.setFunction(Layer.Function.CONTACT5, Layer.Function.CONMETAL);								// Via-4
 		via5_lay.setFunction(Layer.Function.CONTACT6, Layer.Function.CONMETAL);								// Via-5
 		passivation_lay.setFunction(Layer.Function.OVERGLASS);												// Passivation
-		transistorPoly_lay.setFunction(Layer.Function.POLY1, Layer.Function.INTRANS);						// Transistor-Poly
+		transistorPoly_lay.setFunction(Layer.Function.GATE);												// Transistor-Poly
 		polyCap_lay.setFunction(Layer.Function.CAP);														// Poly-Cap
-		pActiveWell_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE);								// P-Active-Well
+		pActiveWell_lay.setFunction(Layer.Function.DIFFP);													// P-Active-Well
 		silicideBlock_lay.setFunction(Layer.Function.ART);													// Silicide-Block
 		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);							// Pseudo-Metal-1
 		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);							// Pseudo-Metal-2
@@ -828,12 +828,12 @@ public class MoCMOS extends Technology
 		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);							// Pseudo-Metal-6
 		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);							// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);							// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P-Active
-		pseudoNActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.NTYPE|Layer.Function.PSEUDO);		// Pseudo-N-Active
-		pseudoPSelect_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE|Layer.Function.PSEUDO);	// Pseudo-P-Select
-		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.NTYPE|Layer.Function.PSEUDO);	// Pseudo-N-Select
-		pseudoPWell_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P-Well
-		pseudoNWell_lay.setFunction(Layer.Function.WELL, Layer.Function.NTYPE|Layer.Function.PSEUDO);		// Pseudo-N-Well
+		pseudoPActive_lay.setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);							// Pseudo-P-Active
+		pseudoNActive_lay.setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);							// Pseudo-N-Active
+		pseudoPSelect_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);						// Pseudo-P-Select
+		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);						// Pseudo-N-Select
+		pseudoPWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);							// Pseudo-P-Well
+		pseudoNWell_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);							// Pseudo-N-Well
 		padFrame_lay.setFunction(Layer.Function.ART);														// Pad-Frame
 
 		// The CIF names
