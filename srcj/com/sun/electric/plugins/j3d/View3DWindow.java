@@ -56,7 +56,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -71,7 +70,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -83,12 +81,8 @@ import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
-import com.sun.j3d.utils.behaviors.keyboard.KeyNavigatorBehavior;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickCanvas;
 import com.sun.j3d.utils.picking.PickResult;
-import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -130,10 +124,7 @@ public class View3DWindow extends JPanel
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
 
 	// Done only once.
-	/** cell has a unique appearance **/                    private static JAppearance cellApp = new JAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0);
-	/** highligh appearance **/                             private static JAppearance highligtAp = new JAppearance(null, TransparencyAttributes.BLENDED, 0.5f);
-    /** standard colors to be used by materials **/         private static Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
-	/** standard colors to be used by materials **/         private static Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+	/** cell has a unique appearance **/                    private static final JAppearance cellApp = new JAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0);
 
     static {
 
@@ -142,9 +133,6 @@ public class View3DWindow extends JPanel
 		ColoringAttributes ca = new ColoringAttributes();
 		ca.setColor(objColor);
 		cellApp.setColoringAttributes(ca);
-
-		TransparencyAttributes ta = new TransparencyAttributes(cellApp.transparencyMode, cellApp.transparencyFactor);
-		cellApp.setTransparencyAttributes(ta);
 
 			// Set up the polygon attributes
 		PolygonAttributes pa = new PolygonAttributes();
@@ -160,13 +148,6 @@ public class View3DWindow extends JPanel
 		LineAttributes lineAttr = new LineAttributes();
 		lineAttr.setLineAntialiasingEnable(true);
 		cellApp.setLineAttributes(lineAttr);
-
-	    // For highlighted objects
-	    highligtAp.setColoringAttributes(new ColoringAttributes(black, ColoringAttributes.SHADE_GOURAUD));
-	    TransparencyAttributes hTa = new TransparencyAttributes(highligtAp.transparencyMode, highligtAp.transparencyFactor);
-	    //PolygonAttributes hPa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0);
-	    //highligtAp.setPolygonAttributes(hPa);
-	    highligtAp.setTransparencyAttributes(hTa);
 	}
 
     // constructor
@@ -330,7 +311,7 @@ public class View3DWindow extends JPanel
         Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
         AmbientLight aLgt = new AmbientLight(alColor);
 		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
-		DirectionalLight light1 = new DirectionalLight(white, lightDir1);
+		DirectionalLight light1 = new DirectionalLight(J3DUtils.white, lightDir1);
 
 		// Setting the influencing bounds
 		light1.setInfluencingBounds(infiniteBounds);
@@ -415,7 +396,6 @@ public class View3DWindow extends JPanel
 	{
 		Cell cell = getCell();
 		if (cell == null) return;
-		Dimension dim = getSize();
 		double panningAmount = panningAmounts[User.getPanningDistance()];
 
 		//double value = (direction == 0) ? dim.width : dim.height;
@@ -532,7 +512,7 @@ public class View3DWindow extends JPanel
 
 			pol.transform(transform);
 			rect = pol.getBounds2D();
-			list.add(addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
+			list.add(J3DUtils.addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
 		}
 		else
         {
@@ -626,10 +606,10 @@ public class View3DWindow extends JPanel
                 bottomList.add(new Point3d(pointClose.getX(), pointClose.getY(), distPoly));
                 bottomList.add(new Point3d(pointClose.getX()-values[0], pointClose.getY()-values[1], distPoly));
                 bottomList.add(new Point3d(pointClose.getX(), pointClose.getY(), dist));
-                correctNormals(topList, bottomList);
+                J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(addShape3D(pts, 4, JAppearance.getAppearance(layer)));
+                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer), objTrans));
 
                 // Second polyhedron
                 topList.clear();
@@ -642,10 +622,10 @@ public class View3DWindow extends JPanel
                 bottomList.add(new Point3d(points[right].getX(), points[right].getY(), distPoly));
                 bottomList.add(new Point3d(points[right].getX()+values[0], points[right].getY()+values[1], distPoly));
                 bottomList.add(new Point3d(points[right].getX(), points[right].getY(), dist));
-                correctNormals(topList, bottomList);
+                J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(addShape3D(pts, 4, JAppearance.getAppearance(layer)));
+                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer), objTrans));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -653,219 +633,6 @@ public class View3DWindow extends JPanel
 	}
 
     /**
-     * Method to correct points sequence to obtain valid normals
-     * @param topList
-     * @param bottomList
-     */
-    private void correctNormals(List topList, List bottomList)
-    {
-        // Determining normal direction
-        Point3d p0 = (Point3d)topList.get(0);
-        Point3d p1 = new Point3d((Point3d)topList.get(1));
-        p1.sub(p0);
-        Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
-        pn.sub(p0);
-        Vector3d aux = new Vector3d();
-        aux.cross(new Vector3d(p1), new Vector3d(pn));
-        // the other layer
-        Point3d b0 = new Point3d((Point3d)bottomList.get(0));
-        b0.sub(p0);
-        // Now the dot product
-        double dot = aux.dot(new Vector3d(b0));
-        if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
-        {
-            Collections.reverse(topList);
-            Collections.reverse(bottomList);
-        }
-    }
-
-    /**
-     * Simple method to generate polyhedra
-     * @param pts
-     * @param listLen
-     * @param ap
-     * @return
-     */
-    private Shape3D addShape3D(Point3d[] pts, int listLen, Appearance ap)
-    {
-
-        int numFaces = listLen + 2; // contour + top + bottom
-        int[] indices = new int[listLen*6];
-        int[] stripCounts = new int[numFaces];
-        int[] contourCount = new int[numFaces];
-        Arrays.fill(contourCount, 1);
-        Arrays.fill(stripCounts, 4);
-        stripCounts[0] = listLen; // top
-        stripCounts[numFaces-1] = listLen; // bottom
-
-        int count = 0;
-        // Top face
-        for (int i = 0; i < listLen; i++)
-            indices[count++] = i;
-        // Contour
-        for (int i = 0; i < listLen; i++)
-        {
-            indices[count++] = i;
-            indices[count++] = i + listLen;
-            indices[count++] = (i+1)%listLen + listLen;
-            indices[count++] = (i+1)%listLen;
-        }
-        // Bottom face
-        for (int i = 0; i < listLen; i++)
-            indices[count++] = (listLen-i)%listLen + listLen;
-
-        GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
-        gi.setCoordinates(pts);
-        gi.setCoordinateIndices(indices);
-        gi.setStripCounts(stripCounts);
-        gi.setContourCounts(contourCount);
-        NormalGenerator ng = new NormalGenerator();
-        ng.setCreaseAngle ((float) Math.toRadians(30));
-        ng.generateNormals(gi);
-        GeometryArray c = gi.getGeometryArray();
-        c.setCapability(GeometryArray.ALLOW_INTERSECT);
-
-        Shape3D box = new Shape3D(c, ap);
-        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
-        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
-        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
-        box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
-        box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
-        box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
-        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
-        objTrans.addChild(box);
-        return (box);
-    }
-
-	/**
-	 * Method to add a polyhedron to the transformation group
-	 * @param objTrans
-	 */
-	private Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
-	                          Appearance ap, TransformGroup objTrans)
-	{
-        GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
-        double height = thickness + distance;
-        Point3d[] pts = new Point3d[8];
-        pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
-        pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
-        pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
-        pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
-        pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
-        pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
-        pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
-        pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
-        int[] indices = {0, 1, 2, 3, /* bottom z */
-                         0, 4, 5, 1, /* back y */
-                         0, 3, 7, 4, /* back x */
-                         1, 5, 6, 2, /* front x */
-                         2, 6, 7, 3, /* front y */
-                         4, 7, 6, 5}; /* top z */
-        gi.setCoordinates(pts);
-        gi.setCoordinateIndices(indices);
-        NormalGenerator ng = new NormalGenerator();
-        ng.generateNormals(gi);
-        GeometryArray c = gi.getGeometryArray();
-        c.setCapability(GeometryArray.ALLOW_INTERSECT);
-
-        Shape3D box = new Shape3D(c, ap);
-        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
-        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
-        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
-		box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
-		box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
-		box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
-        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
-        objTrans.addChild(box);
-
-		return(box);
-	}
-
-    /**
-     */
-	private Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
-	                          Appearance ap, TransformGroup objTrans)
-	{
-        double height = thickness + distance;
-        double [] coords = new double[6];
-		List topList = new ArrayList();
-		List bottomList = new ArrayList();
-        List shapes = new ArrayList();
-
-		while (!pIt.isDone())
-		{
-			int type = pIt.currentSegment(coords);
-			if (type == PathIterator.SEG_CLOSE)
-			{
-				int listLen = topList.size();
-				Point3d [] pts = new Point3d[listLen*2];
-                correctNormals(topList, bottomList);
-				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
-				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
-				int numFaces = listLen + 2; // contour + top + bottom
-				int[] indices = new int[listLen*6];
-				int[] stripCounts = new int[numFaces];
-                int[] contourCount = new int[numFaces];
-				Arrays.fill(contourCount, 1);
-				Arrays.fill(stripCounts, 4);
-				stripCounts[0] = listLen; // top
-				stripCounts[numFaces-1] = listLen; // bottom
-
-				int count = 0;
-				// Top face
-				for (int i = 0; i < listLen; i++)
-					indices[count++] = i;
-				// Contour
-				for (int i = 0; i < listLen; i++)
-				{
-					indices[count++] = i;
-					indices[count++] = i + listLen;
-					indices[count++] = (i+1)%listLen + listLen;
-					indices[count++] = (i+1)%listLen;
-				}
-				// Bottom face
-				for (int i = 0; i < listLen; i++)
-					indices[count++] = (listLen-i)%listLen + listLen;
-
-				GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
-				gi.setCoordinates(pts);
-				gi.setCoordinateIndices(indices);
-				gi.setStripCounts(stripCounts);
-				gi.setContourCounts(contourCount);
-				NormalGenerator ng = new NormalGenerator();
-				ng.setCreaseAngle ((float) Math.toRadians(30));
-				ng.generateNormals(gi);
-				GeometryArray c = gi.getGeometryArray();
-				c.setCapability(GeometryArray.ALLOW_INTERSECT);
-
-				Shape3D box = new Shape3D(c, ap);
-				box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
-				box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
-				box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
-				box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
-				box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
-				box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
-				PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
-				objTrans.addChild(box);
-				shapes.add(box);
-
-				topList.clear();
-				bottomList.clear();
-			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
-			{
-				Point3d pt = new Point3d(coords[0], coords[1], distance);
-				topList.add(pt);
-				pt = new Point3d(coords[0], coords[1], height);
-				bottomList.add(pt);
-			}
-			pIt.next();
-		}
-
-		if (shapes.size()>1) System.out.println("Error: case not handled");
-		return((Shape3D)shapes.get(0));
-	}
-
-	/**
 	 * Adds given list of Polys representing a PrimitiveNode to the transformation group
 	 * @param polys
 	 * @param transform
@@ -898,12 +665,12 @@ public class View3DWindow extends JPanel
 
 			if (poly.getBox() == null) // non-manhattan shape
 			{
-				list.add(addPolyhedron(poly.getPathIterator(null), distance, thickness, ap, objTrans));
+				list.add(J3DUtils.addPolyhedron(poly.getPathIterator(null), distance, thickness, ap, objTrans));
 			}
 			else
 			{
 				Rectangle2D bounds = poly.getBounds2D();
-				list.add(addPolyhedron(bounds, distance, thickness, ap, objTrans));
+				list.add(J3DUtils.addPolyhedron(bounds, distance, thickness, ap, objTrans));
 			}
 		}
 		return (list);
@@ -954,10 +721,10 @@ public class View3DWindow extends JPanel
      * Method to change Z values in elements
      * @param value
      */
-    public static void setScaleFactor(Double value)
+    public static void setScaleFactor(double value)
     {
 	    Transform3D vTrans = new Transform3D();
-	    Vector3d vCenter = new Vector3d(1, 1, value.doubleValue());
+	    Vector3d vCenter = new Vector3d(1, 1, value);
 
        	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -975,7 +742,7 @@ public class View3DWindow extends JPanel
 	 * Method to turn on/off antialiasing
 	 * @param value true if antialiasing is set to true
 	 */
-	public static void setAntialiasing(Boolean value)
+	public static void setAntialiasing(boolean value)
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -984,7 +751,7 @@ public class View3DWindow extends JPanel
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
 			View view = wnd.u.getViewer().getView();
-			view.setSceneAntialiasingEnable(value.booleanValue());
+			view.setSceneAntialiasingEnable(value);
 		}
 	}
 
@@ -1109,9 +876,9 @@ public class View3DWindow extends JPanel
 			if (toSelect) // highlight cell, set transparency
 			{
 				JAppearance app = (JAppearance)obj.getAppearance();
-				obj.setAppearance(highligtAp);
+				obj.setAppearance(JAppearance.highligtAp);
 				//app.getRenderingAttributes().setVisible(false);
-				highligtAp.seGraphics(app.getGraphics());
+				JAppearance.highligtAp.seGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -1130,7 +897,7 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				EGraphics graphics = highligtAp.getGraphics();
+				EGraphics graphics = JAppearance.highligtAp.getGraphics();
 				if (graphics != null)
 				{
 					JAppearance origAp = (JAppearance)graphics.get3DAppearance();
@@ -1199,7 +966,7 @@ public class View3DWindow extends JPanel
 		//WindowFrame.curMouseMotionListener.mouseDragged(evt);
 	}
 
-	private void showCoordinates(MouseEvent evt)
+	public void showCoordinates(MouseEvent evt)
 	{
 		View3DWindow wnd = (View3DWindow)evt.getSource();
 
@@ -1255,139 +1022,6 @@ public class View3DWindow extends JPanel
 		*/
 		return new Point2D.Double(dbX, dbY);
 	}
-
-	//************************ SPECIAL BEHAVIORS *********************************************/
-
-	/**
-	 * Extending original translate class to allow panning
-	 */
-    public class JMouseTranslate extends MouseTranslate
-	{
-		Vector3d extraTrans = new Vector3d();
-
-		public JMouseTranslate(Component c, int flags) {super(c, flags);}
-
-        void setView(double x, double y)
-        {
-			transformGroup.getTransform(currXform);
-		    extraTrans.x = x;
-		    extraTrans.y = -y;
-		    transformX.set(extraTrans);
-
-		    if (invert) {
-			    currXform.mul(currXform, transformX);
-		    } else {
-			    currXform.mul(transformX, currXform);
-		    }
-
-		    transformGroup.setTransform(currXform);
-		    transformChanged( currXform );
-        }
-
-		void panning(int dx, int dy)
-		{
-            setView(dx*getXFactor(), -dy*getYFactor());
-		}
-	}
-
-	/**
-	 * Extending original zoom class to allow zoom not from original behavior
-	 */
-	public class JMouseZoom extends MouseZoom
-	{
-		public JMouseZoom(Component c, int flags) {super(c, flags);}
-
-        void setZoom(double factor)
-        {
-            // Remember old matrix
-            transformGroup.getTransform(currXform);
-            Matrix4d mat = new Matrix4d();
-            currXform.get(mat);
-            double dy = currXform.getScale() * factor;
-            currXform.setScale(dy);
-            transformGroup.setTransform(currXform);
-            transformChanged( currXform );
-        }
-
-		void zoomInOut(boolean out)
-		{
-//			// Remember old matrix
-//			transformGroup.getTransform(currXform);
-//
-//			Matrix4d mat = new Matrix4d();
-//			currXform.get(mat);
-			double z_factor = Math.abs(getFactor());
-			double factor = (out) ? (0.5/z_factor) : (2*z_factor);
-			double factor1 = (out) ? (1/z_factor) : (z_factor);
-            setZoom(factor1);
-//
-//			double dy = currXform.getScale() * factor1;
-//			currXform.setScale(dy);
-//
-//			// Translate to origin
-////			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
-////
-////			extraTrans.z = dy; //dy*getFactor();
-////
-////			//transformX.set(extraTrans);
-////			transformX.setScale(dy);
-////
-////			if (invert) {
-////				currXform.mul(currXform, transformX);
-////			} else {
-////				currXform.mul(transformX, currXform);
-////			}
-////
-////			// Set old extraTrans back
-////			Vector3d extraTrans = new Vector3d(mat.m03, mat.m13, mat.m23);
-////			currXform.setTranslation(extraTrans);
-//
-//			transformGroup.setTransform(currXform);
-//
-//			transformChanged( currXform );
-
-		}
-    }
-
-    /**
-	 * Extending original rotation class to allow rotation not from original behavior
-	 */
-	public class JMouseRotate extends MouseRotate
-    {
-        public JMouseRotate(int flags) {super(flags);}
-
-        void setRotation(double angleX, double angleY)
-        {
-		    transformX.rotX(angleX);
-		    transformY.rotY(angleY);
-
-		    transformGroup.getTransform(currXform);
-
-		    Matrix4d mat = new Matrix4d();
-		    // Remember old matrix
-		    currXform.get(mat);
-
-		    // Translate to origin
-		    currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
-		    if (invert) {
-			currXform.mul(currXform, transformX);
-			currXform.mul(currXform, transformY);
-		    } else {
-			currXform.mul(transformX, currXform);
-			currXform.mul(transformY, currXform);
-		    }
-
-		    // Set old translation back
-		    Vector3d translation = new
-			Vector3d(mat.m03, mat.m13, mat.m23);
-		    currXform.setTranslation(translation);
-
-		    // Update xform
-		    transformGroup.setTransform(currXform);
-
-		    transformChanged( currXform );
-        }
-    }
 
     /*****************************************************************************
      *          To navigate in tree and create 3D objects                           *

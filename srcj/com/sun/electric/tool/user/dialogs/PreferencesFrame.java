@@ -69,6 +69,7 @@ import com.sun.electric.tool.user.dialogs.options.UnitsTab;
 import com.sun.electric.tool.user.dialogs.options.VerilogTab;
 import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -199,7 +200,7 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(ft);
 		displaySet.add(new DefaultMutableTreeNode(ft.getName()));
 
-		ThreeDTab tdt = new ThreeDTab(parent, modal);
+		ThreeDTab tdt = ThreeDTab.create3DTab(parent, modal);
 		optionPanes.add(tdt);
 		displaySet.add(new DefaultMutableTreeNode(tdt.getName()));
 

@@ -75,12 +75,15 @@ public class Resources {
 
     }
 
+    private static Class view3DClass = null;
 	/**
-	 * Method to obtain main 3D class.
+	 * Method to obtain main 3D class. Singlenton pattern
 	 * @return the main 3D class.
 	 */
 	public static Class get3DMainClass()
 	{
-		return get3DClass("View3DWindow");
+        if (view3DClass == null)
+            view3DClass = get3DClass("View3DWindow");
+        return (view3DClass);
 	}
 }

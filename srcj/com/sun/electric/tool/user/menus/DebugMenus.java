@@ -757,7 +757,7 @@ public class DebugMenus {
 
     public static void threeViewCommand()
 	{
-        Class three3DViewDialog = Resources.get3DClass("ThreeView");
+        Class three3DViewDialog = Resources.get3DClass("J3DViewDialog");
 
         if (three3DViewDialog == null) return; // error in class initialization or not available
 

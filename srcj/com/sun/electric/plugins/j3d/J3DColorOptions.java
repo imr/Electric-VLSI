@@ -6,13 +6,16 @@
 
 package com.sun.electric.plugins.j3d;
 
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 
 import javax.media.j3d.TransparencyAttributes;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  *
@@ -21,6 +24,8 @@ import java.util.Iterator;
 public class J3DColorOptions extends javax.swing.JPanel
 {
     private static final HashMap modeMap = new HashMap(5);
+    private ColorPatternPanel parentPanel;
+    private boolean notSetting = true;
 
     // Filling the data
     static {
@@ -55,43 +60,73 @@ public class J3DColorOptions extends javax.swing.JPanel
     }
 
     /** Creates new form J3DColorOptions */
-    public J3DColorOptions() {
+    public J3DColorOptions(ColorPatternPanel panel) {
+        parentPanel = panel;
         initComponents();
+        transparancyField.getDocument().addDocumentListener(new J3DDocumentListener());
+
+        for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
+        {
+            J3DTransparencyOption op = (J3DTransparencyOption)it.next();
+            transparencyMode.addItem(op);
+        }
+
+        // Add listener after creating the list
+        transparencyMode.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent evt) { get3DGraphicsData(); }
+        });
     }
 
+	/**
+	 * Class to handle special changes to color information.
+	 */
+	private class J3DDocumentListener implements DocumentListener
+	{
+		J3DDocumentListener() {}
+
+		public void changedUpdate(DocumentEvent e) { get3DGraphicsData(); }
+		public void insertUpdate(DocumentEvent e) { get3DGraphicsData(); }
+		public void removeUpdate(DocumentEvent e) { get3DGraphicsData(); }
+	}
+
+    /**
+     * Method to set 3D data after dialog is closed
+     * @param jOption
+     * @param info
+     */
     public static void set3DGraphicsData(javax.swing.JPanel jOption, ColorPatternPanel.Info info)
     {
         if (!(jOption instanceof J3DColorOptions)) return;
         J3DColorOptions option = (J3DColorOptions)jOption;
 
+        option.notSetting = false;
         // Setting dialog with data
         for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
         {
             J3DTransparencyOption op = (J3DTransparencyOption)it.next();
-            option.transparencyMode.addItem(op);
             if (op.mode == info.transMode)
+            {
                 option.transparencyMode.setSelectedItem(op);
-
+                break;  // found
+            }
         }
         // default factor is Zero
-        option.transparancyField.setText(Float.toString(info.transMode));
+        option.transparancyField.setText(Float.toString(info.transFactor));
+        option.notSetting = true;
     }
 
     /**
      * Method to update 3D graphics data from GUI
-     * @param jOption
-     * @param info
      */
-    public static void update3DGraphicsData(javax.swing.JPanel jOption, ColorPatternPanel.Info info)
+    public void get3DGraphicsData()
     {
-        if (!(jOption instanceof J3DColorOptions)) return;
-        J3DColorOptions option = (J3DColorOptions)jOption;
-        // Create JAppearance if does not exist
-        JAppearance ap = JAppearance.getAppearance(info.graphics.getLayer());
-
-        ap.transparencyFactor = (float)TextUtils.atof(option.transparancyField.getText());
-        J3DTransparencyOption op = (J3DTransparencyOption)option.transparencyMode.getSelectedItem();
-        ap.transparencyMode = op.mode;
+        if (notSetting)
+        {
+            parentPanel.getInfo().transFactor = (float)TextUtils.atof(transparancyField.getText());
+            J3DTransparencyOption op = (J3DTransparencyOption)transparencyMode.getSelectedItem();
+            parentPanel.getInfo().transMode = op.mode;
+        }
     }
 
     /** This method is called from within the constructor to

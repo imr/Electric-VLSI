@@ -62,15 +62,15 @@ public class ColorPatternPanel extends JPanel
 	// 3D view. Static values to avoid unnecessary calls
 	private static final Class app3DClass = Resources.get3DClass("JAppearance");
     private static final Class option3DClass = Resources.get3DClass("J3DColorOptions");
-	private static Method setColorMethod3DClass = null;
-    private static Method setAppearanceMethod3DClass = null;
-    private static Method updateAppearanceMethod3DClass = null;
+	private static Method setJAppMethod = null;
+    private static Method setColor3DMethod = null;
+    private static Method getJAppMethod = null;
 
     /**
      * Method to add 3D options if j3d plugin is available
      * @param li if li is null, it will create panel
      */
-    private void set3DComponents(Info li, boolean updateData)
+    private void set3DComponents(Info li, boolean copyDataInInfo)
     {
         if (option3DClass == null) return; // plugin is not available
 
@@ -81,8 +81,8 @@ public class ColorPatternPanel extends JPanel
 
             try
             {
-                Constructor constructor = option3DClass.getDeclaredConstructor(new Class[] {});
-                Object option = constructor.newInstance(new Object[] {});
+                Constructor constructor = option3DClass.getDeclaredConstructor(new Class[] {ColorPatternPanel.class});
+                Object option = constructor.newInstance(new Object[] {this});
                 if (option != null)
                     options3D = (JPanel)option;
             } catch (Exception e) {
@@ -102,19 +102,19 @@ public class ColorPatternPanel extends JPanel
         {
            try
            {
-               if (updateData)
+               if (copyDataInInfo)
                {
-                   if (updateAppearanceMethod3DClass == null)
-                       updateAppearanceMethod3DClass = option3DClass.getDeclaredMethod("update3DGraphicsData",
-                               new Class[] {JPanel.class, Info.class});
-                   updateAppearanceMethod3DClass.invoke(option3DClass, new Object[] {options3D, li});
+                   if (getJAppMethod == null)
+                        getJAppMethod = app3DClass.getDeclaredMethod("copyAppearanceIntoInfo",
+                           new Class[] {Info.class});
+                   getJAppMethod.invoke(app3DClass, new Object[] {li});
                }
                else
                {
-                   if (setAppearanceMethod3DClass == null)
-                        setAppearanceMethod3DClass = option3DClass.getDeclaredMethod("set3DGraphicsData",
+                   if (setColor3DMethod == null)
+                        setColor3DMethod = option3DClass.getDeclaredMethod("set3DGraphicsData",
                            new Class[] {JPanel.class, Info.class});
-                   setAppearanceMethod3DClass.invoke(option3DClass, new Object[] {options3D, li});
+                   setColor3DMethod.invoke(option3DClass, new Object[] {options3D, li});
                }
             } catch (Exception e) {
                 System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
@@ -158,6 +158,16 @@ public class ColorPatternPanel extends JPanel
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
 			opacity = graphics.getOpacity();
+
+           try
+           {
+               if (getJAppMethod == null)
+                    getJAppMethod = app3DClass.getDeclaredMethod("getAppearanceInfo",
+                       new Class[] {Info.class});
+               getJAppMethod.invoke(app3DClass, new Object[] {this});
+            } catch (Exception e) {
+                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
+            }
 		}
 
 		/**
@@ -199,23 +209,24 @@ public class ColorPatternPanel extends JPanel
 
 			// check the color values
 			int color = (red << 16) | (green << 8) | blue;
+            Color colorObj = null;
 			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
 			{
 //System.out.println("Color changed to 0x"+Integer.toHexString(color)+" on "+graphics);
-				Color colorObj = new Color(color);
+				colorObj = new Color(color);
 				graphics.setColor(colorObj);
-				Object obj3D = graphics.get3DAppearance();
-
-				if (obj3D != null)
-				{
-					try
-					{
-						if (setColorMethod3DClass == null) setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
-						setColorMethod3DClass.invoke(app3DClass, new Object[]{obj3D, colorObj});
-					} catch (Exception e) {
-						System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-					}
-				}
+//				Object obj3D = graphics.get3DAppearance();
+//
+//				if (obj3D != null)
+//				{
+//					try
+//					{
+//						if (setColorMethod3DClass == null) setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
+//						setColorMethod3DClass.invoke(app3DClass, new Object[]{obj3D, colorObj});
+//					} catch (Exception e) {
+//						System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
+//					}
+//				}
 				changed = true;
 			}
 			if (opacity != graphics.getOpacity())
@@ -228,6 +239,18 @@ public class ColorPatternPanel extends JPanel
 				graphics.setTransparentLayer(transparentLayer);
 				changed = true;
 			}
+
+            // Checking 3D values if available
+            // color and transparency values
+            //@ No returning if something was changed
+            try
+            {
+                if (setJAppMethod == null) setJAppMethod = app3DClass.getDeclaredMethod("setJAppearance",
+                        new Class[] {Info.class, java.awt.Color.class});
+                setJAppMethod.invoke(app3DClass, new Object[]{this, colorObj});
+            } catch (Exception e) {
+                System.out.println("Cannot call 3D plugin method setJAppearance: " + e.getMessage());
+            }
 			return changed;
 		}
 
@@ -310,6 +333,11 @@ public class ColorPatternPanel extends JPanel
  		}
    }
 
+    /**
+     * Method to return current Info instance
+     * @return
+     */
+    public Info getInfo() {return currentLI;}
 	/**
 	 * Method to update the panel to reflect the given Info.
 	 * @param li the Info structure with data for this panel.
@@ -391,7 +419,6 @@ public class ColorPatternPanel extends JPanel
 		currentLI.green = TextUtils.atoi(layerGreen.getText());
 		currentLI.blue = TextUtils.atoi(layerBlue.getText());
 		currentLI.opacity = TextUtils.atof(opacity.getText());
-        set3DComponents(currentLI, true); // setting 3D if available
 	}
 
 	/**

@@ -21,29 +21,17 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs.options;
+package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.font.LineMetrics;
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -59,52 +47,23 @@ import javax.swing.event.DocumentListener;
 /**
  * Class to handle the "3D" tab of the Preferences dialog.
  */
-public class ThreeDTab extends PreferencePanel
+public class JThreeDTab extends ThreeDTab
 {
-    /** Creates new form ThreeDTab depending on if 3Dplugin is on or not */
-    public static ThreeDTab create3DTab(java.awt.Frame parent, boolean modal)
-    {
-        ThreeDTab tab = null;
-
-        Class plugin = Resources.get3DClass("JThreeDTab");
-        if (plugin != null)
-        {
-            try
-            {
-                Constructor instance = plugin.getDeclaredConstructor(new Class[]{java.awt.Frame.class, Boolean.class});
-                Object panel = instance.newInstance(new Object[] {parent, new Boolean(modal)});
-                tab = (ThreeDTab)panel;
-            }
-            catch (Exception e)
-            {
-                System.out.println("Cannot create instance of 3D plugin JThreeDTab: " + e.getMessage());
-            }
-        }
-        else
-            tab = new ThreeDTab(parent, modal);
-        return tab;
-    }
-
-	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
-    /** Set Antialiasing method */                       private static Method set3DClass = null;
-
 	/** Creates new form ThreeDTab */
-	public ThreeDTab(java.awt.Frame parent, boolean modal)
+	public JThreeDTab(java.awt.Frame parent, Boolean modal)
 	{
-		super(parent, modal);
+		super(parent, modal.booleanValue());
 		initComponents();
 	}
 
 	public JPanel getPanel() { return threeD; }
 
-	public String getName() { return "3D"; }
-
 	private boolean initial3DTextChanging = false;
-	private JList threeDLayerList;
+	protected JList threeDLayerList;
     private JTextField scaleField, rotXField, rotYField;
 	private DefaultListModel threeDLayerModel;
-	protected HashMap threeDThicknessMap, threeDDistanceMap;
-	private JPanel threeDSideView;
+	public HashMap threeDThicknessMap, threeDDistanceMap;
+	private JThreeDSideView threeDSideView;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -137,13 +96,13 @@ public class ThreeDTab extends PreferencePanel
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 
-		threeDSideView = new ThreeDSideView(this);
+		threeDSideView = new JThreeDSideView(this);
 		threeDSideView.setMinimumSize(new java.awt.Dimension(200, 450));
 		threeDSideView.setPreferredSize(new java.awt.Dimension(200, 450));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 1;
-		gbc.gridwidth = 2;   gbc.gridheight = 4;
-		gbc.weightx = 0.5;   gbc.weighty = 1.0;
+		gbc.gridwidth = 10;   gbc.gridheight = 4;
+		//gbc.weightx = 0.5;   gbc.weighty = 1.0;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
@@ -212,152 +171,14 @@ public class ThreeDTab extends PreferencePanel
         threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
 	}
 
-	private class ThreeDSideView extends JPanel
-		implements MouseMotionListener, MouseListener
-	{
-		ThreeDTab dialog;
-		double lowHeight = Double.MAX_VALUE, highHeight = Double.MIN_VALUE;
-
-		ThreeDSideView(ThreeDTab dialog)
-		{
-			this.dialog = dialog;
-			addMouseListener(this);
-			addMouseMotionListener(this);
-
-			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = (Layer)it.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-				if (!layer.isVisible()) continue;
-				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
-				double dis = distance.doubleValue();
-				double thick = thickness.doubleValue() / 2;
-				double valLow = dis - thick;
-				double valHig = dis + thick;
-
-				if (valLow < lowHeight)
-					lowHeight = valLow;
-				if (valHig > highHeight)
-					highHeight = valHig;
-			}
-			lowHeight -= 4;
-			highHeight += 4;
-		}
-
-		/**
-		 * Method to repaint this ThreeDSideView.
-		 */
-		public void paint(Graphics g)
-		{
-			Dimension dim = getSize();
-			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, dim.width, dim.height);
-			g.setColor(Color.BLACK);
-			g.drawLine(0, 0, 0, dim.height-1);
-			g.drawLine(0, dim.height-1, dim.width-1, dim.height-1);
-			g.drawLine(dim.width-1, dim.height-1, dim.width-1, 0);
-			g.drawLine(dim.width-1, 0, 0, 0);
-
-			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
-			Layer selectedLayer = dialog.curTech.findLayer(layerName);
-			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = (Layer)it.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-				if (!layer.isVisible()) continue;
-				if (layer == selectedLayer) g.setColor(Color.RED); else
-					g.setColor(Color.BLACK);
-				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
-				double dis = distance.doubleValue() + thickness.doubleValue()/2;
-				int yValue = dim.height - (int)((dis - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
-				int yHeight = (int)(thickness.doubleValue() / (highHeight - lowHeight) * dim.height + 0.5);
-				if (yHeight == 0)
-				{
-					g.drawLine(0, yValue, dim.width/3, yValue);
-				} else
-				{
-					//yHeight -= 4;
-					int firstPart = dim.width / 6;
-					int pointPos = dim.width / 4;
-					g.drawLine(0, yValue-yHeight/2, firstPart, yValue-yHeight/2);
-					g.drawLine(0, yValue+yHeight/2, firstPart, yValue+yHeight/2);
-					g.drawLine(firstPart, yValue-yHeight/2, pointPos, yValue);
-					g.drawLine(firstPart, yValue+yHeight/2, pointPos, yValue);
-					g.drawLine(pointPos, yValue, dim.width/3, yValue);
-				}
-				String string = layer.getName();
-				Font font = new Font(User.getDefaultFont(), Font.PLAIN, 9);
-				g.setFont(font);
-				FontRenderContext frc = new FontRenderContext(null, true, true);
-				GlyphVector gv = font.createGlyphVector(frc, string);
-				LineMetrics lm = font.getLineMetrics(string, frc);
-				double txtHeight = lm.getHeight();
-				Graphics2D g2 = (Graphics2D)g;
-				g2.drawGlyphVector(gv, dim.width/3 + 1, (float)(yValue + txtHeight/2) - lm.getDescent());
-			}
-		}
-
-		// the MouseListener events
-		public void mousePressed(MouseEvent evt)
-		{
-			Dimension dim = getSize();
-			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
-			Layer selectedLayer = dialog.curTech.findLayer(layerName);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(selectedLayer);
-			int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
-			if (Math.abs(yValue - evt.getY()) > 5)
-			{
-				int bestDist = dim.height;
-				for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
-				{
-					Layer layer = (Layer)it.next();
-					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-					height = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
-					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
-					int dist = Math.abs(yValue - evt.getY());
-					if (dist < bestDist)
-					{
-						bestDist = dist;
-						selectedLayer = layer;
-					}
-				}
-				dialog.threeDLayerList.setSelectedValue(selectedLayer.getName(), true);
-				dialog.threeDValuesChanged(false);
-			}
-		}
-		public void mouseReleased(MouseEvent evt) {}
-		public void mouseClicked(MouseEvent evt) {}
-		public void mouseEntered(MouseEvent evt) {}
-		public void mouseExited(MouseEvent evt) {}
-
-		// the MouseMotionListener events
-		public void mouseMoved(MouseEvent evt) {}
-		public void mouseDragged(MouseEvent evt)
-		{
-			Dimension dim = getSize();
-			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
-			Layer layer = dialog.curTech.findLayer(layerName);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-			double newHeight = (double)(dim.height - evt.getY()) / dim.height * (highHeight - lowHeight) + lowHeight;
-			if (height.doubleValue() != newHeight)
-			{
-				height.setValue(newHeight);
-				dialog.threeDHeight.setText(TextUtils.formatDouble(newHeight));
-				repaint();
-			}
-		}
-	}
-
-	/**
+    /**
 	 * Class to handle changes to the thickness or height.
 	 */
 	private static class ThreeDInfoDocumentListener implements DocumentListener
 	{
-		ThreeDTab dialog;
+		JThreeDTab dialog;
 
-		ThreeDInfoDocumentListener(ThreeDTab dialog) { this.dialog = dialog; }
+		ThreeDInfoDocumentListener(JThreeDTab dialog) { this.dialog = dialog; }
 
 		public void changedUpdate(DocumentEvent e) { dialog.threeDValuesChanged(true); }
 		public void insertUpdate(DocumentEvent e) { dialog.threeDValuesChanged(true); }
@@ -366,8 +187,7 @@ public class ThreeDTab extends PreferencePanel
 
 	private void threeDValuesChanged(boolean set)
 	{
-        if (!set)
-           initial3DTextChanging = true;
+        if (!set) initial3DTextChanging = true;
         else if (initial3DTextChanging) return;
 		String layerName = (String)threeDLayerList.getSelectedValue();
 		Layer layer = curTech.findLayer(layerName);
@@ -378,14 +198,15 @@ public class ThreeDTab extends PreferencePanel
         {
             thickness.setValue(TextUtils.atof(threeDThickness.getText()));
             height.setValue(TextUtils.atof(threeDHeight.getText()));
+            threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
         }
         else
         {
             threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
         }
+		threeDSideView.showLayer(layer);
         if (!set) initial3DTextChanging = false;
-		threeDSideView.repaint();
 	}
 
 	/**
@@ -413,35 +234,14 @@ public class ThreeDTab extends PreferencePanel
         boolean currentAntialiasing = threeDAntialiasing.isSelected();
 		if (currentAntialiasing != User.is3DAntialiasing())
 		{
-			// Using reflection to call 3D function
-			if (view3DClass != null)
-
-			try
-			{
-				if (set3DClass == null)
-					set3DClass = view3DClass.getDeclaredMethod("setAntialiasing", new Class[] {Boolean.class});
-				Boolean value = new Boolean(currentAntialiasing);
-				set3DClass.invoke(view3DClass, new Object[]{value});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D setAntialiasing plugin method: " + e.getMessage());
-			}
+            View3DWindow.setAntialiasing(currentAntialiasing);
 			User.set3DAntialiasing(currentAntialiasing);
 		}
+
         double currentValue = TextUtils.atof(scaleField.getText());
         if (currentValue != User.get3DFactor())
         {
-			// Using reflection to call 3D function
-			if (view3DClass != null)
-
-			try
-			{
-				if (set3DClass == null)
-					set3DClass = view3DClass.getDeclaredMethod("setScaleFactor", new Class[] {Double.class});
-				Double value = new Double(currentValue);
-				set3DClass.invoke(view3DClass, new Object[]{value});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D setScaleFactor plugin method: " + e.getMessage());
-			}
+            View3DWindow.setScaleFactor(currentValue);
             User.set3DFactor(currentValue);
         }
 

@@ -2,12 +2,11 @@ package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.TransparencyAttributes;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Material;
+import javax.media.j3d.*;
 import javax.vecmath.Color3f;
 import java.awt.*;
 import java.util.HashMap;
@@ -23,17 +22,31 @@ public class JAppearance extends Appearance
 {
     private static final HashMap graphics3DTransModePrefs = new HashMap(); // NONE is the default
     private static final HashMap graphics3DTransFactorPrefs = new HashMap(); // 0 is the default
+    private static final int JAPP_MODE = TransparencyAttributes.NONE;
+    private static final float JAPP_FACTOR = 0;
 
     private EGraphics graphics; // reference to layer for fast access to appearance
-    protected int transparencyMode;
-    protected float transparencyFactor;
+    /** highligh appearance **/ public static final JAppearance highligtAp = new JAppearance(null, TransparencyAttributes.BLENDED, 0.5f);
+
+    static
+    {
+	    // For highlighted objects
+	    JAppearance.highligtAp.setColoringAttributes(new ColoringAttributes(J3DUtils.black, ColoringAttributes.SHADE_GOURAUD));
+	    //PolygonAttributes hPa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0);
+	    //highligtAp.setPolygonAttributes(hPa);
+
+    }
 
     public JAppearance(EGraphics graphics, int mode, float factor)
     {
         super();
         this.graphics = graphics;
-        this.transparencyMode = mode;
-        this.transparencyFactor = factor;
+
+        TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
+        ta.setCapability(TransparencyAttributes.ALLOW_MODE_WRITE);
+        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
+        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+        setTransparencyAttributes(ta);
     }
     public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
     public EGraphics getGraphics() { return graphics;}
@@ -47,8 +60,8 @@ public class JAppearance extends Appearance
         if (ap == null)
         {
             int mode = layer.getIntegerPref("3DTransparencyMode",
-                    graphics3DTransModePrefs, TransparencyAttributes.NONE).getInt();
-            float factor = (float)layer.getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, 0).getDouble();
+                    graphics3DTransModePrefs, JAPP_MODE).getInt();
+            float factor = (float)layer.getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, JAPP_FACTOR).getDouble();
             ap = new JAppearance(graphics, mode, factor);
             Color color = layer.getGraphics().getColor();
             Color3f objColor = new Color3f(color);
@@ -58,10 +71,6 @@ public class JAppearance extends Appearance
             ap.setColoringAttributes(ca);
             */
 
-            TransparencyAttributes ta = new TransparencyAttributes();
-            ta.setTransparencyMode(mode);
-            ta.setTransparency(factor);
-            ap.setTransparencyAttributes(ta);
 
             // Adding Rendering attributes to access visibility flag
             RenderingAttributes ra = new RenderingAttributes();
@@ -115,17 +124,39 @@ public class JAppearance extends Appearance
 
     /**
 	 * Method to set color in Appearance objects from external tools
-	 * @param obj Appearance object
 	 * @param color new color to setup
+     * @param info structure with temporary information
 	 */
-	public static void set3DColor(Object obj, Color color)
+	public static void setJAppearance(ColorPatternPanel.Info info, Color color)
 	{
-		JAppearance app = (JAppearance)obj;
-		Color3f color3D = new Color3f(color);
-		Material mat = app.getMaterial();
-		mat.setAmbientColor(color3D);
-		mat.setDiffuseColor(color3D);
+        Layer layer = info.graphics.getLayer();
+		JAppearance app = getAppearance(layer);
+
+        // In case of real change
+        if (color != null)
+        {
+		    Color3f color3D = new Color3f(color);
+            Material mat = app.getMaterial();
+            mat.setAmbientColor(color3D);
+		    mat.setDiffuseColor(color3D);
+        }
+
+        TransparencyAttributes ta = app.getTransparencyAttributes();
+        ta.setTransparency(info.transFactor);
+        ta.setTransparencyMode(info.transMode);
+
+        layer.getIntegerPref("3DTransparencyMode", graphics3DTransModePrefs, TransparencyAttributes.NONE).setInt(info.transMode);
+        layer.getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, 0).setDouble(info.transFactor);
 	}
+
+    public static void getAppearanceInfo(ColorPatternPanel.Info info)
+    {
+        JAppearance app = getAppearance(info.graphics.getLayer());
+        TransparencyAttributes ta = app.getTransparencyAttributes();
+
+        info.transMode = ta.getTransparencyMode();
+        info.transFactor = ta.getTransparency();
+    }
 
     /**
 	 * Method to set visibility in Appearance objects from external tools

@@ -26,13 +26,19 @@ package com.sun.electric.plugins.j3d;
 
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.j3d.utils.geometry.NormalGenerator;
+import com.sun.j3d.utils.picking.PickTool;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+import com.sun.electric.tool.user.User;
 
 import javax.vecmath.*;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.ImageComponent;
+import javax.media.j3d.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
+import java.util.*;
 
 /**
  * Utility class for 3D module
@@ -41,6 +47,76 @@ import java.awt.image.BufferedImage;
  */
 public final class J3DUtils
 {
+    /** standard colors to be used by materials **/         public static final Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
+    /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+
+    public static void createLights(BoundingSphere infiniteBounds, BranchGroup scene, TransformGroup objTrans)
+    {
+
+        // Lights
+        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
+        AmbientLight aLgt = new AmbientLight(alColor);
+        Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+        DirectionalLight light1 = new DirectionalLight(white, lightDir1);
+
+        // Setting the influencing bounds
+        light1.setInfluencingBounds(infiniteBounds);
+        aLgt.setInfluencingBounds(infiniteBounds);
+        // Allow to turn off light while the scene graph is live
+        light1.setCapability(Light.ALLOW_STATE_WRITE);
+        // Add light to the env.
+        scene.addChild(aLgt);
+        objTrans.addChild(light1);
+
+    }
+
+    public static void setViewPoint(SimpleUniverse u, Canvas3D canvas, BranchGroup scene, Rectangle2D cellBnd)
+    {
+		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
+		double radius = sceneBnd.getRadius();
+		View view = u.getViewer().getView();
+
+		// Too expensive at this point
+        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
+		    view.setSceneAntialiasingEnable(true);
+
+		// Setting the projection policy
+		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
+		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+
+		Point3d c1 = new Point3d();
+		sceneBnd.getCenter(c1);
+		Vector3d vCenter = new Vector3d(c1);
+		double vDist = 1.4 * radius / Math.tan(view.getFieldOfView()/2.0);
+        Point3d c2 = new Point3d();
+
+        sceneBnd.getCenter(c2);
+		c2.z += vDist;
+
+		//if (User.is3DPerspective())
+		vCenter.z += vDist;
+		Transform3D vTrans = new Transform3D();
+
+		vTrans.set(vCenter);
+
+		view.setBackClipDistance((vDist+radius)*2.0);
+		view.setFrontClipDistance((vDist+radius)/200.0);
+		view.setBackClipPolicy(View.VIRTUAL_EYE);
+		view.setFrontClipPolicy(View.VIRTUAL_EYE);
+		if (User.is3DPerspective())
+		{
+			u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
+		}
+		else
+		{
+            Transform3D proj = new Transform3D();
+            proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
+			view.setVpcToEc(proj);
+			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
+		}
+
+    }
+
     /**
      * Method to generate each individual frame key for the interporlation
      * based on Poly information
@@ -121,6 +197,310 @@ public final class J3DUtils
 
 		return qx;
 	}
+
+    /**
+     * Utility class to modify live/compiled scene graph
+     */
+    private static class JGeometryUpdater implements GeometryUpdater
+    {
+
+        private double[] pts; // new set of points for this geometry, 3 values per point.
+
+        public JGeometryUpdater(double[] pts)
+        {
+            this.pts = pts;
+        }
+
+        public void updateData(Geometry geometry)
+        {
+            if (!(geometry instanceof GeometryArray)) return;
+
+            GeometryArray ga = (GeometryArray)geometry;
+            ga.setCoordRefDouble(pts);
+
+        }
+    }
+
+    /**
+     * Method to reset z values of shapes created with addPolyhedron
+     * @param shape
+     * @param z1
+     * @param z2
+     */
+    public static void updateZValues(Shape3D shape, double z1, double z2)
+    {
+        GeometryArray ga = (GeometryArray)shape.getGeometry();
+        Point3d[] pts = new Point3d[8];
+        double[] values = new double[3*8];
+        double[] newValues = ga.getCoordRefDouble();
+
+        // They must be 8-points polyhedra
+        for (int i = 0; i < 4; i++)
+        {
+            newValues[i*3+2] = z1;
+//            pts[i] = new Point3d();
+//            ga.getCoordinate(i, pts[i]);
+//            pts[i].z = z1;
+//            //ga.setCoordinate(i, pts[i]);
+//            values[i*3] = pts[i].x;
+//            values[i*3+1] = pts[i].y;
+//            values[i*3+2] = z1;
+        }
+
+        for (int i = 4; i < 8; i++)
+        {
+            newValues[i*3+2] = z2;
+//            pts[i] = new Point3d();
+//            ga.getCoordinate(i, pts[i]);
+//            values[i*3] = pts[i].x;
+//            values[i*3+1] = pts[i].y;
+//            values[i*3+2] = z2;
+        }
+        ga.updateData(new JGeometryUpdater(newValues));
+    }
+
+    /**
+	 * Method to add a polyhedron to the transformation group
+	 * @param objTrans
+	 */
+	public static Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
+	                          Appearance ap, TransformGroup objTrans)
+	{
+        GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
+        double height = thickness + distance;
+        Point3d[] pts = new Point3d[8];
+        pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
+        pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
+        pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
+        pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
+        pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
+        pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
+        pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
+        pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
+        int[] indices = {0, 1, 2, 3, /* bottom z */
+                         0, 4, 5, 1, /* back y */
+                         0, 3, 7, 4, /* back x */
+                         1, 5, 6, 2, /* front x */
+                         2, 6, 7, 3, /* front y */
+                         4, 7, 6, 5}; /* top z */
+        gi.setCoordinates(pts);
+        gi.setCoordinateIndices(indices);
+        NormalGenerator ng = new NormalGenerator();
+        ng.generateNormals(gi);
+        GeometryArray c = gi.getGeometryArray();
+//
+//        Point3f[] pts1 = gi.getCoordinates();
+//
+//        //gi.getTexCoordSetMapLength();
+//        //c.get
+//
+//        GeometryArray c = new QuadArray(8,
+//          GeometryArray.COORDINATES | GeometryArray.NORMALS | GeometryArray.BY_REFERENCE);
+//
+//        double[] values = new double[3*8];
+//        for (int i = 0; i < 8; i++)
+//        {
+//            values[i*3] = pts1[i].x;
+//            values[i*3+1] = pts1[i].y;
+//            values[i*3+2] = pts1[i].z;
+//        }
+//        float[] valuesf = new float[8*3];
+//        old.getCoordinates(0, valuesf);
+//        c.setCoordRefFloat(valuesf);
+//        float[] normals = new float[8*3];
+//        old.getNormals(0, normals);
+//        c.setNormalRefFloat(normals);
+
+        c.setCapability(GeometryArray.ALLOW_INTERSECT);
+        //c.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+        c.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+        c.setCapability(GeometryArray.BY_REFERENCE);
+        c.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+        c.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+
+        Shape3D box = new Shape3D(c, ap);
+        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+		box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+		box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+		box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
+        box.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+        objTrans.addChild(box);
+
+		return(box);
+	}
+
+    /**
+     * Simple method to generate polyhedra
+     * @param pts
+     * @param listLen
+     * @param ap
+     * @return
+     */
+    public static Shape3D addShape3D(Point3d[] pts, int listLen, Appearance ap,
+                                     TransformGroup objTrans)
+    {
+
+        int numFaces = listLen + 2; // contour + top + bottom
+        int[] indices = new int[listLen*6];
+        int[] stripCounts = new int[numFaces];
+        int[] contourCount = new int[numFaces];
+        Arrays.fill(contourCount, 1);
+        Arrays.fill(stripCounts, 4);
+        stripCounts[0] = listLen; // top
+        stripCounts[numFaces-1] = listLen; // bottom
+
+        int count = 0;
+        // Top face
+        for (int i = 0; i < listLen; i++)
+            indices[count++] = i;
+        // Contour
+        for (int i = 0; i < listLen; i++)
+        {
+            indices[count++] = i;
+            indices[count++] = i + listLen;
+            indices[count++] = (i+1)%listLen + listLen;
+            indices[count++] = (i+1)%listLen;
+        }
+        // Bottom face
+        for (int i = 0; i < listLen; i++)
+            indices[count++] = (listLen-i)%listLen + listLen;
+
+        GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+        gi.setCoordinates(pts);
+        gi.setCoordinateIndices(indices);
+        gi.setStripCounts(stripCounts);
+        gi.setContourCounts(contourCount);
+        NormalGenerator ng = new NormalGenerator();
+        ng.setCreaseAngle ((float) Math.toRadians(30));
+        ng.generateNormals(gi);
+        GeometryArray c = gi.getGeometryArray();
+        c.setCapability(GeometryArray.ALLOW_INTERSECT);
+
+        Shape3D box = new Shape3D(c, ap);
+        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+        box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+        box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+        box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
+        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+        objTrans.addChild(box);
+        return (box);
+    }
+
+    /**
+     */
+	public static Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
+	                          Appearance ap, TransformGroup objTrans)
+	{
+        double height = thickness + distance;
+        double [] coords = new double[6];
+		java.util.List topList = new ArrayList();
+		java.util.List bottomList = new ArrayList();
+        java.util.List shapes = new ArrayList();
+
+		while (!pIt.isDone())
+		{
+			int type = pIt.currentSegment(coords);
+			if (type == PathIterator.SEG_CLOSE)
+			{
+				int listLen = topList.size();
+				Point3d [] pts = new Point3d[listLen*2];
+                correctNormals(topList, bottomList);
+				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
+				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
+				int numFaces = listLen + 2; // contour + top + bottom
+				int[] indices = new int[listLen*6];
+				int[] stripCounts = new int[numFaces];
+                int[] contourCount = new int[numFaces];
+				Arrays.fill(contourCount, 1);
+				Arrays.fill(stripCounts, 4);
+				stripCounts[0] = listLen; // top
+				stripCounts[numFaces-1] = listLen; // bottom
+
+				int count = 0;
+				// Top face
+				for (int i = 0; i < listLen; i++)
+					indices[count++] = i;
+				// Contour
+				for (int i = 0; i < listLen; i++)
+				{
+					indices[count++] = i;
+					indices[count++] = i + listLen;
+					indices[count++] = (i+1)%listLen + listLen;
+					indices[count++] = (i+1)%listLen;
+				}
+				// Bottom face
+				for (int i = 0; i < listLen; i++)
+					indices[count++] = (listLen-i)%listLen + listLen;
+
+				GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+				gi.setCoordinates(pts);
+				gi.setCoordinateIndices(indices);
+				gi.setStripCounts(stripCounts);
+				gi.setContourCounts(contourCount);
+				NormalGenerator ng = new NormalGenerator();
+				ng.setCreaseAngle ((float) Math.toRadians(30));
+				ng.generateNormals(gi);
+				GeometryArray c = gi.getGeometryArray();
+				c.setCapability(GeometryArray.ALLOW_INTERSECT);
+
+				Shape3D box = new Shape3D(c, ap);
+				box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+				box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+				box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+				box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+				box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+				box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
+				PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+				objTrans.addChild(box);
+				shapes.add(box);
+
+				topList.clear();
+				bottomList.clear();
+			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+			{
+				Point3d pt = new Point3d(coords[0], coords[1], distance);
+				topList.add(pt);
+				pt = new Point3d(coords[0], coords[1], height);
+				bottomList.add(pt);
+			}
+			pIt.next();
+		}
+
+		if (shapes.size()>1) System.out.println("Error: case not handled");
+		return((Shape3D)shapes.get(0));
+	}
+
+    /**
+     * Method to correct points sequence to obtain valid normals
+     * @param topList
+     * @param bottomList
+     */
+    public static void correctNormals(java.util.List topList, java.util.List bottomList)
+    {
+        // Determining normal direction
+        Point3d p0 = (Point3d)topList.get(0);
+        Point3d p1 = new Point3d((Point3d)topList.get(1));
+        p1.sub(p0);
+        Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
+        pn.sub(p0);
+        Vector3d aux = new Vector3d();
+        aux.cross(new Vector3d(p1), new Vector3d(pn));
+        // the other layer
+        Point3d b0 = new Point3d((Point3d)bottomList.get(0));
+        b0.sub(p0);
+        // Now the dot product
+        double dot = aux.dot(new Vector3d(b0));
+        if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
+        {
+            Collections.reverse(topList);
+            Collections.reverse(bottomList);
+        }
+    }
 
     public static class ThreeDDemoKnot
     {

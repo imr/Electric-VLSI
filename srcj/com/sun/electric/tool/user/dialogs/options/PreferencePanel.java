@@ -52,6 +52,8 @@ public class PreferencePanel extends EDialog
 
 	public void setInited() { inited = true; }
 
+    public Technology getTech() { return curTech; }
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Frame tab.
