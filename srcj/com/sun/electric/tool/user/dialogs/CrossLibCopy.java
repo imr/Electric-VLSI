@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -194,7 +195,8 @@ public class CrossLibCopy extends EDialog
 			{
 				Cell leftCell = (Cell)cellListLeft.get(leftPos);
 				Cell rightCell = (Cell)cellListRight.get(rightPos);
-				int j = leftCell.noLibDescribe().compareToIgnoreCase(rightCell.noLibDescribe());
+				int j = TextUtils.nameSameNumeric(leftCell.noLibDescribe(), rightCell.noLibDescribe());
+//				int j = leftCell.noLibDescribe().compareToIgnoreCase(rightCell.noLibDescribe());
 				if (j < 0) op = 1; else
 					if (j > 0) op = 2; else
 						op = 3;

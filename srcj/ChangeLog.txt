@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+BUG: (11/18/04, SMR) Cross-library copy doesn't sort cell names properly.
+FIX: In "CrossLibCopy.showCells()", use "nameSameNumeric".
+
 BUG: (11/18/04, DN) Port moved always reported for ports of transistors rotated to 45 degree.
 FIX: ArcInst.stillInPort() tolerates distance to nearest grid point "0.01*sqrt(0.5)".
 
