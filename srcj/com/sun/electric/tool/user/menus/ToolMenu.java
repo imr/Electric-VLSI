@@ -434,7 +434,7 @@ public class ToolMenu {
             // run NCC, get results
             NccOptions options = new NccOptions();
             NccResult result = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options);
-            if (result == null) {
+            if (result == null || !result.topologyMatch()) {
                 System.out.println("Ncc failed, can't back-annotate");
                 return false;
             }
@@ -910,8 +910,10 @@ public class ToolMenu {
 
             Layer.Function func = layer.getFunction();
             /* accumulate total wire length on all metal/poly layers */
-            if (func.isPoly() && !func.isGatePoly() || func.isMetal())
+            if (func.isPoly() && !func.isGatePoly() || func.isMetal()) {
+                System.out.println(func.toString()+": "+halfperimeter);
                 totalWire += halfperimeter;
+            }
         }
 
         public void print() {
