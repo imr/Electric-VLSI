@@ -931,8 +931,8 @@ public class TextUtils
 		{
 			Cell c1 = (Cell)o1;
 			Cell c2 = (Cell)o2;
-			String s1 = c1.noLibDescribe();
-			String s2 = c2.noLibDescribe();
+			String s1 = c1.getName();
+			String s2 = c2.getName();
 			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
