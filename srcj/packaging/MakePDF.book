@@ -1,0 +1,4 @@
+#HTMLDOC 1.8.11
+1
+./electric.html
+-t pdf13 -f ElectricManual.pdf --book --toclevels 3 --no-numbered --toctitle "Table of Contents" --title --titleimage screenshotbusy.png --logoimage iconplug.png --linkstyle plain --size Universal --left 1.0in --right 0.5in --top 0.5in --bottom 0.5in --header ... --footer lt1 --tocheader ... --tocfooter lti --duplex --portrait --color --no-pscommands --compression=1 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 11.0 --headfootfont Helvetica --charset 8859-1 --links --no-truetype --pagemode outline --pagelayout single --firstpage p1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 700
