@@ -65,7 +65,13 @@ public class TextUtils
 	 */
     public static double atof(String text)
     {
-        return atof(text, null);
+		try
+		{
+			return Double.parseDouble(text);
+		} catch (NumberFormatException e)
+		{
+			return atof(text, null);
+		}
     }
 
     /**
@@ -999,6 +1005,25 @@ public class TextUtils
 			String s1 = c1.getName();
 			String s2 = c2.getName();
 			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	public static class CellsByFullName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
+			String s1 = c1.getName();
+			String s2 = c2.getName();
+			int cmp = TextUtils.nameSameNumeric(s1, s2);
+			if (cmp != 0) return cmp;
+
+			cmp = c1.getView().getOrder() - c2.getView().getOrder();
+			if (cmp != 0) return cmp;
+
+			cmp = c1.getVersion() - c2.getVersion();
+			return cmp;
 		}
 	}
 

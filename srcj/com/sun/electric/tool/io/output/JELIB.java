@@ -140,7 +140,7 @@ public class JELIB extends Output
 					Cell cell = (Cell)cIt.next();
 					if (cell.getLibrary() == eLib) sortedExternalCells.add(cell);
 				}
-				Collections.sort(sortedExternalCells, new TextUtils.CellsByName());
+				Collections.sort(sortedExternalCells, new TextUtils.CellsByFullName());
 				for(Iterator cIt = sortedExternalCells.iterator(); cIt.hasNext(); )
 				{
 					Cell cell = (Cell)cIt.next();
@@ -268,7 +268,7 @@ public class JELIB extends Output
 		}
 
 		// write the cells of the database
-		List cells = lib.getCellsSortedByName();
+		List cells = lib.getCellsSortedByFullName();
 		List groups = new ArrayList();
 		for(Iterator cIt = cells.iterator(); cIt.hasNext(); )
 		{
@@ -503,7 +503,7 @@ public class JELIB extends Output
 			List sortedList = new ArrayList();
 			for(Iterator cIt = group.getCells(); cIt.hasNext(); )
 				sortedList.add(cIt.next());
-			Collections.sort(sortedList, new TextUtils.CellsByName());
+			Collections.sort(sortedList, new TextUtils.CellsByFullName());
 			printWriter.print("G");
 
 			// if there is a main schematic cell, write that first

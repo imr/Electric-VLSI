@@ -943,6 +943,22 @@ public class Library extends ElectricObject
 		return sortedList;
 	}
 
+	/**
+	 * Method to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public List getCellsSortedByFullName()
+	{
+		List sortedList = new ArrayList();
+		synchronized (cells)
+		{
+			for(Iterator it = getCells(); it.hasNext(); )
+				sortedList.add(it.next());
+		}
+		Collections.sort(sortedList, new TextUtils.CellsByFullName());
+		return sortedList;
+	}
+
     /**
      * Combines two lists of cells and sorts them by name
      * (case sensitive sort by Cell.noLibDescribe()).

@@ -97,6 +97,8 @@ public class TextDescriptor
 	private static final int VTUNITSDIST =                6;		/* 1:   units: distance */
 	private static final int VTUNITSTIME =                7;		/* 1:   units: time */
 
+	private static final int VTOFFMAX = (1 << VTOFFMASKWID) - 1;	/* 0: Maximal value of unshifted VTXOFF and VTYOFF */
+
 	/**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
 	 * The Position describes the "anchor point" of the text,
@@ -1508,22 +1510,20 @@ public class TextDescriptor
 	public synchronized void setOff(double xd, double yd)
 	{
 		checkChanging();
-		int x = (int)(xd * 4);
-		int y = (int)(yd * 4);
 		descriptor0 &= ~(VTXOFF|VTYOFF|VTXOFFNEG|VTYOFFNEG);
-		if (x < 0)
+		if (xd < 0)
 		{
-			x = -x;
+			xd = -xd;
 			descriptor0 |= VTXOFFNEG;
 		}
-		if (y < 0)
+		if (yd < 0)
 		{
-			y = -y;
+			yd = -yd;
 			descriptor0 |= VTYOFFNEG;
 		}
-		int scale = Math.max(x,y) >> VTOFFMASKWID;
-		x /= (scale + 1);
-		y /= (scale + 1);
+		int scale = ((int)(Math.max(xd,yd) * 4)) >> VTOFFMASKWID;
+		int x = Math.min( (int)(xd * 4/(scale + 1) + 0.5), VTOFFMAX);
+		int y = Math.min( (int)(yd * 4/(scale + 1) + 0.5), VTOFFMAX);
 		descriptor0 |= (x << VTXOFFSH) & VTXOFF;
 		descriptor0 |= (y << VTYOFFSH) & VTYOFF;
 		//setOffScale(scale);

@@ -318,7 +318,7 @@ public class ReadableDump extends Output
 				if (np instanceof Cell)
 				{
 					printWriter.print("descript: " + ni.getProtoTextDescriptor().lowLevelGet0() + "/" +
-						ni.getProtoTextDescriptor().lowLevelGet0() + "\n");
+						ni.getProtoTextDescriptor().lowLevelGet1() + "\n");
 				}
 				printWriter.print("userbits: " + ni.lowLevelGetUserbits() + "\n");
 				writeVars(ni, cell);
@@ -540,6 +540,7 @@ public class ReadableDump extends Output
 			int type = ELIBConstants.VSTRING;
 			if (geom.isUsernamed()) type |= ELIBConstants.VDISPLAY;
 			TextDescriptor td = geom.getNameTextDescriptor();
+			printName(key.getName());
 			printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
 				Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
 			printWriter.print("\"" + convertString(geom.getName()) + "\"\n");
@@ -739,7 +740,7 @@ public class ReadableDump extends Output
 		for(int i=0; i<len; i++)
 		{
 			char pt = name.charAt(i);
-			if (pt == '^' || pt == '[' || pt == '(') printWriter.print("^");
+			if (pt == '^' || pt == '[' || pt == '(' || pt == ':') printWriter.print("^");
 			printWriter.print(pt);
 		}
 	}

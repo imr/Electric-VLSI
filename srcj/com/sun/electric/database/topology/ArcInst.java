@@ -378,7 +378,10 @@ public class ArcInst extends Geometric
 
 		if (width < 0)
 			width = protoType.getWidth();
-		this.width = width;
+		this.width = DBMath.round(width);
+
+		headPt.setLocation(DBMath.round(headPt.getX()), DBMath.round(headPt.getY()));
+		tailPt.setLocation(DBMath.round(tailPt.getX()), DBMath.round(tailPt.getY()));
 
 		Cell parent = headPort.getNodeInst().getParent();
 		if (parent != tailPort.getNodeInst().getParent())

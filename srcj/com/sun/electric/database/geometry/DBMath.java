@@ -33,16 +33,24 @@ import java.awt.geom.Rectangle2D;
  */
 public class DBMath extends GenMath {
 
+	/**
+	 * NDECIMALS number digits to round decimal numbers
+	 */
+	private static final int NDECIMALS = 2;
+
+	/**
+	 * Number of grid points per unit = 10^NDECIMALS
+	 */
+	private static final double GRID = 100;
+
     /**
      * epsilon is the largest amount of absolute difference
      * between two numbers in the database for which those numbers
      * will still be regarded as "equal".
      */
-    private static double EPSILON = 0.01;
-	/**
-	 * NDECIMALS number digits to round decimal numbers
-	 */
-	private static int NDECIMALS = 2;
+    private static final double EPSILON = 1/GRID;
+
+	private static final double TINYDELTA = EPSILON*1.01;
 
 	/**
 	 * To return private epsilon used for calculation.
@@ -60,10 +68,10 @@ public class DBMath extends GenMath {
      * epsilon.
      */
     public static boolean pointInRect(Point2D pt, Rectangle2D bounds) {
-        if (pt.getX() < (bounds.getMinX() - EPSILON)) return false;
-        if (pt.getX() > (bounds.getMaxX() + EPSILON)) return false;
-        if (pt.getY() < (bounds.getMinY() - EPSILON)) return false;
-        if (pt.getY() > (bounds.getMaxY() + EPSILON)) return false;
+        if (pt.getX() < (bounds.getMinX() - TINYDELTA)) return false;
+        if (pt.getX() > (bounds.getMaxX() + TINYDELTA)) return false;
+        if (pt.getY() < (bounds.getMinY() - TINYDELTA)) return false;
+        if (pt.getY() > (bounds.getMaxY() + TINYDELTA)) return false;
         return true;
     }
 
@@ -74,7 +82,7 @@ public class DBMath extends GenMath {
     * @return true if the numbers are approximately equal (to a few decimal places).
     */
     public static boolean areEquals(double a, double b) {
-        if (Math.abs(a-b) < EPSILON) return true;
+        if (Math.abs(a-b) < TINYDELTA) return true;
         return false;
     }
 
@@ -91,14 +99,15 @@ public class DBMath extends GenMath {
 	}
 	
 	/**
-	 * pre: x >= 0.0 and -15 <= n <= 15
-	 * @param x
-	 * @return the return value is an approximation of x rounded to n digits
+	 * @param x 
+	 * @return the return value is an approximation of x rounded to GRID
+	 * Sign of retrun values is the same as sign of x
 	 */
 	public static double round(double x)
 	{
-        double pow10 = Math.pow(10, NDECIMALS);
-        return (Math.floor(x*pow10 + 0.5) / pow10);
+		return Math.rint(x * GRID) / GRID;
+//         double pow10 = Math.pow(10, NDECIMALS);
+//         return (Math.floor(x*pow10 + 0.5) / pow10);
 	}
 
     /**

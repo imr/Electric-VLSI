@@ -562,7 +562,9 @@ public class ReadableDump extends LibraryFiles
 			Export pp = el.exportList[j];
 			if (pp.lowLevelName(cell, el.exportName[j])) return;
 			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
+			int userBits = pp.lowLevelGetUserbits();
 			if (pp.lowLevelPopulate(pi)) return;
+			pp.lowLevelSetUserbits(userBits);
 			if (pp.lowLevelLink(null)) return;
 		}
 	}
@@ -605,7 +607,7 @@ public class ReadableDump extends LibraryFiles
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt, defAngle);
+			ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle);
 			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
@@ -1007,7 +1009,7 @@ public class ReadableDump extends LibraryFiles
 			if (cell != null)
 			{
 				// cell found: make sure it is valid
-				if (cell.getRevisionDate() != ELIBConstants.secondsToDate(curCellCreationDate))
+				if (cell.getRevisionDate().compareTo(ELIBConstants.secondsToDate(curCellRevisionDate)) != 0)
 				{
 					System.out.println("Warning: cell " + cell.describe() + " in library " + elib.getName() +
 						" has been modified since its use in library " + lib.getName());
@@ -1040,7 +1042,12 @@ public class ReadableDump extends LibraryFiles
 
 			// rename the cell
 			//curCellName.setName(curCellName.getName() + "FROM" + elibName);
-            curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName);
+			if (curCellName.getVersion() != 0)
+				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
+					";" + curCellName.getVersion() + "{" + curCellName.getView().getAbbreviation() + "}");
+			else
+				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
+					"{" + curCellName.getView().getAbbreviation() + "}");
 			finishCellInitialization();
 
 			// schedule the cell to have two nodes (cell center and big "X")
@@ -1624,7 +1631,7 @@ public class ReadableDump extends LibraryFiles
 				invalid = naddr.isDeprecatedVariable(varKey);
 
 			// get type
-			int openSquarePos = keyWord.indexOf('[');
+			int openSquarePos = keyWord.lastIndexOf('['); // lastIndex, because LE variables may contain '['
 			if (openSquarePos < 0)
 			{
 				System.out.println("Error on line "+lineReader.getLineNumber()+": missing type information in variable: " + keyWord);

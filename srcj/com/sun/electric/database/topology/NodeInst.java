@@ -713,9 +713,10 @@ public class NodeInst extends Geometric implements Nodable
 			PortProto pp = (PortProto) it.next();
 			addPortInst(pp);
 		}
-		this.center.setLocation(center);
-		this.sX = width;   this.sY = height;
-		this.angle = angle;
+		this.center.setLocation(DBMath.round(center.getX()), DBMath.round(center.getY()));
+		this.sX = DBMath.round(width);
+		this.sY = DBMath.round(height);
+		this.angle = angle % 3600;
 
 		// fill in the geometry
 		redoGeometric();
@@ -779,10 +780,8 @@ public class NodeInst extends Geometric implements Nodable
 
 		// make the change
 		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
-
-		sX = DBMath.round(sX + dXSize);
-		sY = DBMath.round(sY + dYSize);
-
+		if (dXSize != 0) sX = DBMath.round(sX + dXSize);
+		if (dYSize != 0) sX = DBMath.round(sY + dYSize);
 		angle = (angle + dRot) % 3600;
 
 		// fill in the Geometric fields
@@ -923,14 +922,14 @@ public class NodeInst extends Geometric implements Nodable
 	 * horizontal line running through its center.
 	 * @return true if mirrored.
 	 */
-	public boolean isMirroredAboutXAxis() { return sY<0;}
+	public boolean isMirroredAboutXAxis() { return isYMirrored(); }
 	
 	/** 
 	 * Method to return whether NodeInst is mirrored about a
 	 * vertical line running through its center.
 	 * @return true if mirrored.
 	 */
-	public boolean isMirroredAboutYAxis() { return sX<0; }
+	public boolean isMirroredAboutYAxis() { return isXMirrored(); }
 
 	/**
 	 * Method to tell whether this NodeInst is mirrored in the X coordinate.
@@ -938,7 +937,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
 	 * @return true if this NodeInst is mirrored in the X coordinate.
 	 */
-	public boolean isXMirrored() { return sX < 0; }
+	public boolean isXMirrored() { return sX < 0 || sX == 0 && 1/sX < 0; }
 
 	/**
 	 * Method to tell whether this NodeInst is mirrored in the Y coordinate.
@@ -946,7 +945,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Thus, it is equivalent to mirroring ABOUT the X axis.
 	 * @return true if this NodeInst is mirrored in the Y coordinate.
 	 */
-	public boolean isYMirrored() { return sY < 0; }
+	public boolean isYMirrored() { return sY < 0 || sY == 0 && 1/sY < 0; }
 
 	/**
 	 * Method to return the old (C) style rotation/transpose for this NodeInst.
@@ -1057,7 +1056,7 @@ public class NodeInst extends Geometric implements Nodable
 			Cell subCell = (Cell)protoType;
 			Rectangle2D bounds = subCell.getBounds();
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = pureRotate(angle, sX < 0, sY < 0);
+			AffineTransform trans = pureRotate(angle, isXMirrored(), isYMirrored());
 			trans.transform(shift, shift);
 			double cX = center.getX(), cY = center.getY();
 			cX -= shift.getX();
@@ -1118,7 +1117,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// normal bounds computation
-		Poly poly = new Poly(center.getX(), center.getY(), sX, sY);
+		Poly poly = new Poly(center.getX(), center.getY(), Math.abs(sX), Math.abs(sY));
 		AffineTransform trans = rotateOut();
 		poly.transform(trans);
 		visBounds.setRect(poly.getBounds2D());
@@ -1397,13 +1396,15 @@ public class NodeInst extends Geometric implements Nodable
 	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
 	{
 		AffineTransform transform = new AffineTransform();
-		if (sX < 0 || sY < 0)
+		boolean xMirrored = sX < 0 || sX == 0 && 1/sX < 0;
+		boolean yMirrored = sY < 0 || sY == 0 && 1/sY < 0;
+		if (xMirrored || yMirrored)
 		{
 			// must do mirroring, so it is trickier
 			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
 			transform.setToTranslation(cX, cY);
-			if (sX < 0) transform.concatenate(mirrorXcoord);
-			if (sY < 0) transform.concatenate(mirrorYcoord);
+			if (xMirrored) transform.concatenate(mirrorXcoord);
+			if (yMirrored) transform.concatenate(mirrorYcoord);
 			transform.concatenate(rotateTranspose);
 			transform.translate(-cX, -cY);
 		} else
@@ -1457,7 +1458,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public AffineTransform pureRotateOut()
 	{
-		return pureRotate(angle, sX < 0, sY < 0);
+		return pureRotate(angle, isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1470,11 +1471,11 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform pureRotateIn()
 	{
 		int numFlips = 0;
-		if (sX < 0) numFlips++;
-		if (sY < 0) numFlips++;
+		if (isXMirrored()) numFlips++;
+		if (isYMirrored()) numFlips++;
 		int rotAngle = angle;
 		if (numFlips != 1) rotAngle = -rotAngle;
-		return pureRotate(rotAngle, sX < 0, sY < 0);
+		return pureRotate(rotAngle, isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1488,8 +1489,8 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform rotateIn()
 	{
 		int numFlips = 0;
-		if (sX < 0) numFlips++;
-		if (sY < 0) numFlips++;
+		if (isXMirrored()) numFlips++;
+		if (isYMirrored()) numFlips++;
 		int rotAngle = angle;
 		if (numFlips != 1) rotAngle = -rotAngle;
 		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), sX, sY);
@@ -1509,7 +1510,7 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform rotateIn(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
+		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
 
 		AffineTransform transform = rotateIn();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -1554,7 +1555,7 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
+		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
 
 		AffineTransform transform = rotateOut();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -1575,7 +1576,7 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform rotateOutAboutTrueCenter(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
+		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
 
 		AffineTransform transform = rotateOutAboutTrueCenter();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -2541,8 +2542,8 @@ public class NodeInst extends Geometric implements Nodable
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
 					" x " + bounds.getHeight() + " (REPAIRED)");
-				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
-				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
+				sX = DBMath.round(bounds.getWidth()) * (isXMirrored() ? -1 : 1);
+				sY = DBMath.round(bounds.getHeight()) * (isYMirrored() ? -1 : 1);
 				redoGeometric();
 				warningCount++;
 			}
@@ -2568,8 +2569,10 @@ public class NodeInst extends Geometric implements Nodable
 						" is " + getXSize() + "x" + getYSize() +
 						" but has outline of size " + (hX-lX) + "x" + (hY-lY) +
 						" (REPAIRED)");
-					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
-					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
+					sX = DBMath.round(hX-lX) * (isXMirrored() ? -1 : 1);
+					sY = DBMath.round(hY-lY) * (isYMirrored() ? -1 : 1);
+// 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
+// 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
 					redoGeometric();
 					warningCount++;
 				}

@@ -4,6 +4,41 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ai: *********************************
 
+IMP: (11/1/04, DN) Coordinates and sizes of ArcInst and NodeInst are
+    rounded to DBMath.GRID when loaded from libraries. Comparison
+    functions from DBMath consider neighbour grid points as equal.
+
+IMP: (11/1/04, DN) Cells in JELIB are sorted by (name,view,version)
+      for easier text comparison of JELIB files.
+
+BUG: (11/1/04, DN) Arc ends are swapped when loading from ReadableDump.
+FIX: (11/1/04, DN) In input.ReadableDump.realizeArcs.
+
+BUG: (11/1/04, DN) Export characteristic is not loaded from ReadableDump.
+FIX: Restore "userBits" after "lowLevelPopulate" in input.ReadableDump.realizeExports.
+
+BUG: (11/1/04, DN) Variables names with ":" and "[" are corrupted in RedableDump.
+FIX: Add "^" before ":" in output.ReadableDump.printName. Change
+     "indexOf" to "lastIndexOf" in input.ReadableDump.keyboardGetVar
+
+BUG: (11/1/04, DN) Name of NodeInsts and ArcInsts are not stored to ReadableDump
+FIX: Add printName(...) to output.ReadableDumpwriteVars.
+
+BUG: (11/1/04, DN) ProtoTextDescriptor of NodeInsts is not properly
+     stored to ReadableDump.
+FIX: In output.ReadableDump.writeTheLibrary.
+
+BUG: (11/1/04, DN) Library variables are not loaded from JELIB.
+FIX: In input.JELIB load variables.
+
+BUG: (11/1/04, DN) Offset information in TextDescriptors are not
+     always properly restored from JELIB files.
+FIX: In TextDescriptor do rounding more carefully. In input.JELIB set
+     both coordinates simultaneously.
+
+BUG: (11/1/04, DN) Mirror state of NodeInsts with zero size may be lost.
+FIX: Distinguish between -0 and +0 in NodeInst.isMirrored methods.
+
 ************************* Version 8.01ah: *********************************
 
 IMP/MAN (10/29/04, GVG) Batch option. Ability to run JElectric on batch mode (-batch).

@@ -299,6 +299,7 @@ public class JELIB extends LibraryFiles
 				{
 					if (version.compareTo(Version.parseVersion(revisions[revision])) < 0) break;
 				}
+				addVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -792,8 +793,9 @@ public class JELIB extends LibraryFiles
 			Export pp = Export.newInstance(cell, pi, exportName, false);
 			if (pp == null)
 			{
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot create export " + exportName, cell, -1);
+				log.addGeom(pi.getNodeInst(), true, cell, null);
 				continue;
 			}
 
@@ -1352,6 +1354,7 @@ public class JELIB extends LibraryFiles
 	 */
 	private void loadTextDescriptor(TextDescriptor td, Variable var, String varBits, String fileName, int lineNumber)
 	{
+		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
 		{
 			char varBit = varBits.charAt(j);
@@ -1413,7 +1416,8 @@ public class JELIB extends LibraryFiles
 							", Bad X offset (semicolon missing): " + varBits, null, -1);
 						break;
 					}
-					td.setOff(TextUtils.atof(varBits.substring(j+1, semiPos)), td.getYOff());
+					xoff = TextUtils.atof(varBits.substring(j+1, semiPos));
+					//td.setOff(TextUtils.atof(varBits.substring(j+1, semiPos)), td.getYOff());
 					j = semiPos;
 					break;
 				case 'Y':		// Y offset
@@ -1424,7 +1428,8 @@ public class JELIB extends LibraryFiles
 							", Bad Y offset (semicolon missing): " + varBits, null, -1);
 						break;
 					}
-					td.setOff(td.getXOff(), TextUtils.atof(varBits.substring(j+1, semiPos)));
+					yoff = TextUtils.atof(varBits.substring(j+1, semiPos));
+					//td.setOff(td.getXOff(), TextUtils.atof(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'B':		// bold
@@ -1528,6 +1533,7 @@ public class JELIB extends LibraryFiles
 					break;
 			}
 		}
+		td.setOff(xoff, yoff);
 	}
 
 	/**
