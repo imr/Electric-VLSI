@@ -46,7 +46,6 @@ public class View implements Comparable
 	// -------------------------- private data -----------------------------
 
 	/** view contains only text */							private final static int TEXTVIEW       = 01;	
-	/** view is one of multiple pages  */					private final static int MULTIPAGEVIEW  = 02;	
 	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW  = 04;	
 
 	/** the full name of the view */						private final String fullName;
@@ -206,23 +205,6 @@ public class View implements Comparable
 	}
 
 	/**
-	 * Method to create a Multipage Schematic View for the given page number.
-	 * @param page the page number of the View.
-	 * @return the newly created Multipage Schematic View.
-	 */
-	public static View newMultiPageSchematicInstance(int page)
-	{
-		// make sure this can be done now
-		Job.checkChanging();
-
-		View view = makeInstance("schematic-page-" + page, "p" + page, MULTIPAGEVIEW, getNextOrder());
-
-		// handle change control, constraint, and broadcast
-//		Undo.newObject(view);
-		return view;
-	}
-
-	/**
 	 * Method to delete this View.
 	 */
 	public void kill()
@@ -287,9 +269,6 @@ public class View implements Comparable
 			return null;
 		}
 
-		if (fullName.toLowerCase().startsWith("schematic-page-"))
-			type |= View.MULTIPAGEVIEW;
-
 		// create the view
 		View v = new View(fullName, abbreviation, type, order);
 
@@ -318,17 +297,6 @@ public class View implements Comparable
 	public static View findView(String name)
 	{
 		return (View) viewNames.get(name);
-	}
-
-	/**
-	 * Method to return a View for a multipage schematic from its page number.
-	 * @param page the page number of the View.
-	 * @return the specified View, or null if no such View exists.
-	 */
-	public static View findMultiPageSchematicView(int page)
-	{
-		String viewName = "schematic-page-" + page;
-		return findView(viewName);
 	}
 
     /**
@@ -365,13 +333,6 @@ public class View implements Comparable
 	 * @return true if this View is Text-only.
 	 */
 	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
-
-	/**
-	 * Method to return true if this View is Multipage.
-	 * Multipage views are those where multiple cells are used to compose a single circuit.
-	 * @return true if this View is Text-only.
-	 */
-	public boolean isMultiPageView() { return (type & MULTIPAGEVIEW) != 0; }
 
 	/**
 	 * Method to return true if this View is permanent.

@@ -310,8 +310,8 @@ public class Spice extends Topology
 				{
 					Global global = (Global)globals.get(i);
 					String name = global.getName();
-					if (global == Global.power) name = getPowerName();
-					if (global == Global.ground) name = getGroundName();
+					if (global == Global.power) { if (getPowerName() != null) name = getPowerName(); }
+					if (global == Global.ground) { if (getGroundName() != null) name = getGroundName(); }
 					infstr.append(" " + name);
 				}
 				infstr.append("\n");
@@ -1177,7 +1177,7 @@ public class Spice extends Topology
 	}
 
 	/** Method to return the proper name of Power */
-	protected String getPowerName() { return "vdd"; }
+	protected String getPowerName() { return null; }
 
 	/** Method to return the proper name of Ground */
 	protected String getGroundName() { return "gnd"; }

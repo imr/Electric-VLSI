@@ -216,7 +216,7 @@ public class Spread extends EDialog
 	}//GEN-LAST:event_closeDialog
 
 	/**
-	 * Class to create a cell in a new thread.
+	 * Class to spread a cell in a new thread.
 	 */
 	private static class SpreadJob extends Job
 	{

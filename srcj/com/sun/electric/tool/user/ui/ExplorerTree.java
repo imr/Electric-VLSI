@@ -34,12 +34,15 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.CellMenu;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -909,13 +912,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 				menu.addSeparator();
 
-				menuItem = new JMenuItem("Place Instance of Cell");
+				menuItem = new JMenuItem("Make New Page");
 				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellInstanceAction(); } });
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeNewSchematicPage(); } });
 
-				menuItem = new JMenuItem("Create New Cell");
+				menuItem = new JMenuItem("Delete This Page");
 				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteSchematicPage(); } });
 
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
@@ -1155,14 +1158,30 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void editCellAction(boolean newWindow)
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = null;
+			int pageNo = 1;
+			if (currentSelectedObject instanceof Cell)
+			{
+				cell = (Cell)currentSelectedObject;
+			} else if (currentSelectedObject instanceof MultiPageCell)
+			{
+				MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+				cell = mpc.cell;
+				pageNo = mpc.pageNo;
+			}
+			WindowFrame wf = null;
  			if (newWindow)
 			{
-				WindowFrame wf = WindowFrame.createEditWindow(cell);
+				wf = WindowFrame.createEditWindow(cell);
 			} else
 			{
-				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+				wf = WindowFrame.getCurrentWindowFrame();
 				wf.setCellWindow(cell);
+			}
+			if (cell.isMultiPage() && wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				wnd.setMultiPageNumber(pageNo);
 			}
 		}
 
@@ -1266,7 +1285,61 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             if (!Main.BATCHMODE) dialog.show();
         }
 
-		private void showAlphabeticallyAction()
+        private void makeNewSchematicPage()
+        {
+        	MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+            Cell cell = mpc.cell;
+         	if (!cell.isMultiPage())
+        	{
+        		System.out.println("First turn this cell into a multi-page schematic");
+        		return;
+        	}
+        	int numPages = cell.getNumMultiPages();
+    		CellMenu.SetMultiPageJob job = new CellMenu.SetMultiPageJob(cell, numPages+1);
+           	EditWindow wnd = EditWindow.needCurrent();
+        	if (wnd != null) wnd.setMultiPageNumber(numPages);
+        }
+
+        private void deleteSchematicPage()
+        {
+        	MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+            Cell cell = mpc.cell;
+         	if (!cell.isMultiPage()) return;
+        	int numPages = cell.getNumMultiPages();
+         	if (numPages <= 1)
+        	{
+        		System.out.println("Cannot delete the last page of a multi-page schematic");
+        		return;
+        	}
+    		DeleteMultiPageJob job = new DeleteMultiPageJob(cell, mpc.pageNo);
+           	EditWindow wnd = EditWindow.needCurrent();
+        	if (wnd != null) wnd.setMultiPageNumber(numPages);
+        }
+
+        /**
+         * Class to delete a page from a multi-page schematic.
+         */
+        public static class DeleteMultiPageJob extends Job
+    	{
+    		private Cell cell;
+    		private int page;
+
+    		public DeleteMultiPageJob(Cell cell, int page)
+    		{
+    			super("Delete Page from Multi-Page Schematic", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+    			this.cell = cell;
+    			this.page = page;
+    			startJob();
+    		}
+
+    		public boolean doIt()
+    		{
+    			System.out.println("CANNOT DELETE PAGES YET");
+    			return true;
+    		}
+    	}
+
+        private void showAlphabeticallyAction()
 		{
 			howToShow = SHOWALPHABETICALLY;
 			//WindowFrame.wantToRedoLibraryTree();

@@ -4,6 +4,26 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
+IMP: (11/24/04, SMR) Widened coordinate area in status bar to account for Macintosh font size.
+
+IMP: (11/24/04, SMR) Added hook to clear the cache of expanded cell contents, used by layer visibility.
+
+IMP: (11/24/04, SMR) Spice netlister no longer forces power and ground to be named "vdd" and "gnd".
+
+BUG: (11/24/04, SMR) When an arc connects from a port to itself, deleting the port crashes.
+FIX: In "NodeInst.removePortInst()" make sure the number of connections is valid.
+
+BUG: (11/23/04, SMR) Node Instance names are not drawn right if the instance is rotated/mirrored and its
+     contents are not centered.
+FIX: In ElectricObject.computeTextPoly() transform name text about the true node center.
+
+IMP: (11/23/04, SMR) Implemented "multi-page schematics".  Commands in the Cell menu control it.
+     All pages are actually in a single cell, spaced far apart.
+
+IMP: (11/23/04, SMR) Duplicating a cell that is on the screen multiple times only changes one display.
+
+IMP: (11/23/04, SMR) Duplicating a cell and giving it a name that already exists prompts for confirmation.
+
 ************************* Version 8.01aq: *********************************
 
 BUG: (11/23/04, SMR) Panning an expanded cell makes its exports go away.

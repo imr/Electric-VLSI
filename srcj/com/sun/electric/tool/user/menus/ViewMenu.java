@@ -63,8 +63,6 @@ public class ViewMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
         viewMenu.addMenuItem("Edit Schematic View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editSchematicViewCommand(); } });
-        viewMenu.addMenuItem("Edit Multi-Page Schematic View...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { editMultiPageSchematicViewCommand(); } });
         viewMenu.addMenuItem("Edit Icon View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editIconViewCommand(); } });
         viewMenu.addMenuItem("Edit VHDL View", null,
@@ -84,8 +82,6 @@ public class ViewMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
 		viewMenu.addMenuItem("Make Alternate Layout View...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeLayoutView(); } });
-		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Make Skeleton View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
 
@@ -138,31 +134,6 @@ public class ViewMenu {
             WindowFrame.createEditWindow(schematicView);
         else
             System.out.println("No schematic view for cell "+curCell.describe());
-    }
-
-    public static void editMultiPageSchematicViewCommand()
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-        String newSchematicPage = JOptionPane.showInputDialog("Page Number", "");
-        if (newSchematicPage == null) return;
-        int pageNo = TextUtils.atoi(newSchematicPage);
-        if (pageNo <= 0)
-        {
-            System.out.println("Multi-page schematics are numbered starting at page 1");
-            return;
-        }
-        View v = View.findMultiPageSchematicView(pageNo);
-        if (v != null)
-        {
-            Cell otherView = curCell.otherView(v);
-            if (otherView != null)
-            {
-                WindowFrame.createEditWindow(otherView);
-                return;
-            }
-        }
-        System.out.println("Cannot find schematic page " + pageNo + " of this cell");
     }
 
     public static void editIconViewCommand()

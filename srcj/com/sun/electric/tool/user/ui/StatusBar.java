@@ -85,7 +85,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         fieldTech.setMaximumSize(d);
         fieldTech.setPreferredSize(d);
 		fieldCoords = new JLabel();
-        d = new Dimension(100, 16);
+        d = new Dimension(110, 16);
         fieldCoords.setMinimumSize(d);
         fieldCoords.setMaximumSize(d);
         fieldCoords.setPreferredSize(d);

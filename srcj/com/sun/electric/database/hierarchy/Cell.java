@@ -3023,7 +3023,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public boolean isSchematic()
 	{
 		if (getView() == View.SCHEMATIC) return true;
-		if (getView().isMultiPageView()) return true; // isn't it deprecated
 		return false;
 	}
 

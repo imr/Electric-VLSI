@@ -1986,9 +1986,10 @@ public class NodeInst extends Geometric implements Nodable
 		// This will also remove the connections themselves
 		for (int i = connections.size() - 1; i >= 0; i--)
 		{
+			// arcs that connect from a port to itself will cause the number of connections to shrink more quickly
+			if (i >= connections.size()) continue;
 			Connection con = (Connection)connections.get(i);
 			if (con.getPortInst() == pi) con.getArc().kill();
-			
 		}
 
 		// remove connected exports

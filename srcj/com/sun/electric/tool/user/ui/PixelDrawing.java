@@ -292,6 +292,15 @@ public class PixelDrawing
 	public Image getImage() { return img; }
 
 	/**
+	 * Method to clear the cache of expanded subcells.
+	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
+	 */
+	public static void clearSubCellCache()
+	{
+		expandedCells = new HashMap();
+	}
+
+	/**
 	 * This is the entrypoint for rendering.
 	 * It displays a cell in this offscreen window.
 	 * @param expandBounds the area in the cell to expand fully.

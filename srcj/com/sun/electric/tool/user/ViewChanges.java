@@ -79,6 +79,104 @@ public class ViewChanges
 	// constructor, never used
 	ViewChanges() {}
 
+	/****************************** CONVERT OLD-STYLE MULTI-PAGE SCHEMATICS ******************************/
+
+	public static void convertMultiPageViews()
+	{
+		List multiPageCells = new ArrayList();
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				if (cell.getView().getFullName().startsWith("schematic-page-")) multiPageCells.add(cell);
+			}
+		}
+		if (multiPageCells.size() == 0)
+		{
+			System.out.println("No old-style multi-page schematics to convert");
+			return;
+		}
+		Collections.sort(multiPageCells, new TextUtils.CellsByName());
+
+		FixOldMultiPageSchematics job = new FixOldMultiPageSchematics(multiPageCells);
+	}
+
+	/**
+	 * Class to update old-style multi-page schematics in a new thread.
+	 */
+	private static class FixOldMultiPageSchematics extends Job
+	{
+		private List multiPageCells;
+
+		protected FixOldMultiPageSchematics(List multiPageCells)
+		{
+			super("Repair old-style Multi-Page Schematics", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.multiPageCells = multiPageCells;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			for(Iterator it = multiPageCells.iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				int pageNo = TextUtils.atoi(cell.getView().getFullName().substring(15));
+				String destCellName = cell.getName() + "{sch}";
+				Cell destCell = cell.getLibrary().findNodeProto(destCellName);
+				if (pageNo == 1 || destCell == null)
+				{
+					destCell = Cell.makeInstance(cell.getLibrary(), destCellName);
+					if (destCell == null)
+					{
+						System.out.println("Unable to create cell " + cell.getLibrary().getName() + ":" + destCellName);
+						return false;
+					}
+					destCell.setMultiPage(true);
+					destCell.newVar(User.FRAME_SIZE, "d");
+				}
+	
+				// copy this page into the multipage cell
+				double dY = (pageNo - 1) * 1000;
+				List pasteList = new ArrayList();
+				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					pasteList.add(ni);
+				}
+				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)aIt.next();
+					pasteList.add(ai);
+				}
+				Clipboard.copyListToCell(null, pasteList, cell, destCell, new Point2D.Double(0, dY), true);
+	
+				// also copy any variables on the cell
+				for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					if (!var.isDisplay()) continue;
+					Variable cellVar = destCell.newVar(var.getKey().getName(), var.getObject());
+					if (cellVar != null)
+					{
+						cellVar.setTextDescriptor(var.getTextDescriptor());
+						TextDescriptor td = cellVar.getTextDescriptor();
+						td.setOff(td.getXOff(), td.getYOff() + dY);
+						cellVar.setCode(var.getCode());
+						cellVar.setDisplay(true);
+						if (var.isDontSave()) cellVar.setDontSave();
+					}
+				}
+	
+				// delete the original
+				cell.kill();
+			}
+			return true;
+		}
+	}
+
 	/****************************** CHANGE A CELL'S VIEW ******************************/
 
 	public static void changeCellView(Cell cell, View newView)
@@ -132,53 +230,6 @@ public class ViewChanges
 				}
 			}
 			EditWindow.repaintAll();
-			return true;
-		}
-	}
-
-	/****************************** MAKE A MULTI-PAGE SCHEMATIC FOR A CELL ******************************/
-
-	public static void makeMultiPageSchematicViewCommand()
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		String newSchematicPage = JOptionPane.showInputDialog("Page Number", "");
-		if (newSchematicPage == null) return;
-		int pageNo = TextUtils.atoi(newSchematicPage);
-		if (pageNo <= 0)
-		{
-			System.out.println("Multi-page schematics are numbered starting at page 1");
-			return;
-		}
-		MakeMultiPageView job = new MakeMultiPageView(curCell, pageNo);
-	}
-
-	private static class MakeMultiPageView extends Job
-	{
-		private Cell cell;
-		private int pageNo;
-
-		protected MakeMultiPageView(Cell cell, int pageNo)
-		{
-			super("Make Multipage Schematic View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			this.pageNo = pageNo;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			View v = View.findMultiPageSchematicView(pageNo);
-			if (v == null)
-			{
-				v = View.newMultiPageSchematicInstance(pageNo);
-			}
-			Cell otherView = cell.otherView(v);
-			if (otherView == null)
-			{
-				otherView = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{p" + pageNo + "}");
-			}
-			WindowFrame.createEditWindow(otherView);
 			return true;
 		}
 	}

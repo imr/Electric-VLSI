@@ -52,6 +52,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
 import java.awt.geom.AffineTransform;
@@ -197,6 +198,7 @@ public class EDIF extends Input
 	/** the new library */						private Library curLibrary;
 	/** the active technology */				private Technology curTechnology;
 	/** the current active cell */				private Cell curCell;
+	/** the current page in cell */				private int curCellPage;
 	/** the current active instance */			private NodeInst curNode;
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
@@ -357,6 +359,7 @@ public class EDIF extends Input
 
 		// active database inits
 		curCell = null;
+		curCellPage = 0;
 		curNode = null;
 		curArc = null;
 		curPort = null;
@@ -914,6 +917,7 @@ public class EDIF extends Input
 		if (ost.isJMirrorX()) sX = -sX;
 		if (ost.isJMirrorY()) sY = -sY;
 		rot = ost.getJAngle();
+		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
 			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, rot, null, 0);
 		if (ni == null)
@@ -1212,7 +1216,11 @@ public class EDIF extends Input
 		double sY = hY - lY;
 		if (curOrientation.isMirrorX()) sX = -sX;
 		if (curOrientation.isMirrorY()) sY = -sY;
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double((lX+hX)/2, (lY+hY)/2), sX, sY,
+		double cX = (hX + lX) / 2;
+		double cY = (hY + lY) / 2;
+		double yPos = cY;
+		if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
 			curCell, curOrientation.getRot(), null, 0);
 		if (ni == null)
 		{
@@ -1221,8 +1229,6 @@ public class EDIF extends Input
 		} else
 		{
 			Point2D [] trace = new Point2D[curPoints.size()];
-			double cX = (hX + lX) / 2;
-			double cY = (hY + lY) / 2;
 			for(int i=0; i<curPoints.size(); i++)
 			{
 				Point2D point = (Point2D)curPoints.get(i);
@@ -1459,7 +1465,10 @@ public class EDIF extends Input
 				if (curOrientation.isMirrorY()) sY = -sY;
 
 				// create the node instance
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double((lX+hX)/2,(lY+hY)/2),
+				double cX = (hX + lX) / 2;
+				double cY = (hY + lY) / 2;
+				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
 					sX, sY, curCell, curOrientation.getRot(), null, 0);
 				if (ni == null)
 				{
@@ -1588,8 +1597,11 @@ public class EDIF extends Input
 				{
 					// create a internal wire port using the pin-proto, and create the port and export
 					Point2D p0 = (Point2D)curPoints.get(0);
+					double xPos = p0.getX();
+					double yPos = p0.getY();
 					Point2D size = getSizeAndMirror(cellRefProto);
-					NodeInst ni = placePin(cellRefProto, p0.getX(), p0.getY(), size.getX(), size.getY(), curOrientation.getRot(), curCell);
+					if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+					NodeInst ni = placePin(cellRefProto, xPos, yPos, size.getX(), size.getY(), curOrientation.getRot(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
@@ -1618,8 +1630,11 @@ public class EDIF extends Input
 			{
 				// create the node instance
 				Point2D p0 = (Point2D)curPoints.get(0);
+				double xPos = p0.getX();
+				double yPos = p0.getY();
+				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-					new Point2D.Double(p0.getX(), p0.getY()), 0, 0, curCell);
+					new Point2D.Double(xPos, yPos), 0, 0, curCell);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -1829,13 +1844,24 @@ public class EDIF extends Input
 						if (sheetXPos == -1)
 						{
 							// create the new page
-							String viewName = "p" + (++pageNumber);
-							if (View.findMultiPageSchematicView(pageNumber) == null)
-								View.newMultiPageSchematicInstance(pageNumber);
-							String nodeName = cellName + "{" + viewName + "}";
-							curCell = Cell.makeInstance(curLibrary, nodeName);
-							if (curCell == null) throw new IOException("Error creating cell");
-							builtCells.add(curCell);
+							curCellPage = ++pageNumber;
+//							String viewName = "p" + curCellPage;
+//							if (View.findMultiPageSchematicView(pageNumber) == null)
+//								View.newMultiPageSchematicInstance(pageNumber);
+//							String nodeName = cellName + "{" + viewName + "}";
+							String nodeName = cellName + "{sch}";
+							if (curCellPage == 1)
+							{
+								curCell = Cell.makeInstance(curLibrary, nodeName);
+								if (curCell == null) throw new IOException("Error creating cell");
+								builtCells.add(curCell);
+								curCell.setMultiPage(true);
+								curCell.newVar(User.FRAME_SIZE, "d");
+							} else
+							{
+								curCell = curLibrary.findNodeProto(nodeName);
+								if (curCell == null) throw new IOException("Error finding cell");
+							}
 							sheetXPos = sheetYPos = 1;
 							sheetOffset = 2;
 						}
@@ -1845,6 +1871,7 @@ public class EDIF extends Input
 						double cX = ((sheetXPos - (SHEETWIDTH / 2)) * INCH);
 						double cY = ((sheetYPos - (SHEETHEIGHT / 2)) * INCH);
 						Point2D size = getSizeAndMirror(cellRefProto);
+						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), size.getX(), size.getY(), curCell,
 							curOrientation.getRot(), null, 0);
 						curNode = ni;
@@ -1990,6 +2017,7 @@ public class EDIF extends Input
 				builtCells.add(curCell);
 			}
 			else curCell = np;
+			curCellPage = 0;
 
 			// now set the current position in the schematic page
 			inPortPos = bidirPortPos = outPortPos = 0;
@@ -2303,25 +2331,27 @@ public class EDIF extends Input
 			// check for the name
 			checkName();
 
-			String view = "p" + (++pageNumber);
-			if (View.findMultiPageSchematicView(pageNumber) == null)
-				View.newMultiPageSchematicInstance(pageNumber);
+			curCellPage = ++pageNumber;
+//			String view = "p" + curCellPage;
+//			if (View.findMultiPageSchematicView(pageNumber) == null)
+//				View.newMultiPageSchematicInstance(pageNumber);
 
 			// locate this in the list of cells
 			Cell proto = null;
 			for(Iterator it = curLibrary.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				if (cell.getName().equalsIgnoreCase(cellName) &&
-					cell.getView().getAbbreviation().equalsIgnoreCase(view))
-						{ proto = cell;   break; }
+				if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
+					{ proto = cell;   break; }
 			}
 			if (proto == null)
 			{
 				// allocate the cell
-				String cname = cellName + "{" + view + "}";
+				String cname = cellName + "{sch}";
 				proto = Cell.makeInstance(curLibrary, cname);
 				if (proto == null) throw new IOException("Error creating cell");
+				proto.setMultiPage(true);
+				proto.newVar(User.FRAME_SIZE, "d");
 				builtCells.add(proto);
 			} else
 			{
@@ -2366,27 +2396,35 @@ public class EDIF extends Input
 			{
 				Point2D fPoint = (Point2D)curPoints.get(i);
 				Point2D tPoint = (Point2D)curPoints.get(i+1);
+				double fX = fPoint.getX();   double fY = fPoint.getY();
+				double tX = tPoint.getX();   double tY = tPoint.getY();
+				if (curCellPage > 0)
+				{
+					fY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+					tY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+				}
 				if (curGeometryType == GNET || curGeometryType == GBUS)
 				{
 					// create a pin to pin connection
 					if (fList.size() == 0)
 					{
 						// look for the first pin
-						fList = findEDIFPort(curCell, fPoint.getX(), fPoint.getY(), Schematics.tech.wire_arc);
+						fList = findEDIFPort(curCell, fX, fY, Schematics.tech.wire_arc);
 						if (fList.size() == 0)
 						{
 							// create the "from" pin
-							NodeInst ni = placePin(np, fPoint.getX(), fPoint.getY(), np.getDefWidth(), np.getDefHeight(), 0, curCell);
+							NodeInst ni = placePin(np, fX, fY, np.getDefWidth(), np.getDefHeight(), 0, curCell);
 							if (ni != null) fList.add(ni.getOnlyPortInst());
 						}
 					}
 
 					// now the second ...
-					List tList = findEDIFPort(curCell, tPoint.getX(), tPoint.getY(), Schematics.tech.wire_arc);
+					List tList = findEDIFPort(curCell, tX, tY, Schematics.tech.wire_arc);
 					if (tList.size() == 0)
 					{
 						// create the "to" pin
-						NodeInst ni = placePin(np, tPoint.getX(), tPoint.getY(), np.getDefWidth(), np.getDefHeight(), 0, curCell);
+						if (curCellPage > 0) tY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+						NodeInst ni = placePin(np, tX, tY, np.getDefWidth(), np.getDefHeight(), 0, curCell);
 						if (ni != null) tList.add(ni.getOnlyPortInst());
 					}
 
@@ -2437,7 +2475,7 @@ public class EDIF extends Input
 								(tPi.getPortProto() == defaultBusPort || tbus)) ap = Schematics.tech.bus_arc;
 
 							ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi,
-								new Point2D.Double(fPoint.getX(), fPoint.getY()), new Point2D.Double(tPoint.getX(), tPoint.getY()), null);
+								new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 							if (ai == null)
 							{
 								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path (arc)");
@@ -2459,14 +2497,14 @@ public class EDIF extends Input
 				{
 					// rectalinear paths with some width
 					// create a path from here to there (orthogonal only now)
-					double lX = fPoint.getX();
-					double lY = fPoint.getY();
+					double lX = fX;
+					double lY = fY;
 					double hX = lX;
 					double hY = lY;
-					if (lX > tPoint.getX()) lX = tPoint.getX();
-					if (hX < tPoint.getX()) hX = tPoint.getX();
-					if (lY > tPoint.getY()) lY = tPoint.getY();
-					if (hY < tPoint.getY()) hY = tPoint.getY();
+					if (lX > tX) lX = tX;
+					if (hX < tX) hX = tX;
+					if (lY > tY) lY = tY;
+					if (hY < tY) hY = tY;
 					if (lY == hY || extendEnd)
 					{
 						lY -= pathWidth/2;
@@ -2477,7 +2515,10 @@ public class EDIF extends Input
 						lX -= pathWidth/2;
 						hX += pathWidth/2;
 					}
-					NodeInst ni = placePin(curFigureGroup, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY,
+					double cY = (lY+hY)/2;
+					double cX = (lX+hX)/2;
+					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+					NodeInst ni = placePin(curFigureGroup, cX, cY, hX-lX, hY-lY,
 						curOrientation.getRot(), curCell);
 					if (ni == null)
 					{
@@ -2574,6 +2615,7 @@ public class EDIF extends Input
 			// now create the off-page reference
 			double psX = Schematics.tech.offpageNode.getDefWidth();
 			double psY = Schematics.tech.offpageNode.getDefHeight();
+			if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 			NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
 			if (ni == null)
 			{
@@ -3049,8 +3091,11 @@ public class EDIF extends Input
 				double sY = hY - lY;
 				if (curOrientation.isMirrorX()) sX = -sX;
 				if (curOrientation.isMirrorY()) sY = -sY;
+				double yPos = (lY+hY)/2;
+				double xPos = (lX+hX)/2;
+				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-					new Point2D.Double((lX+hX)/2, (lY+hY)/2), sX, sY, curCell, curOrientation.getRot(), null, 0);
+					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getRot(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -3073,7 +3118,10 @@ public class EDIF extends Input
 				{
 					// create a rectangle using the pin-proto, and create the port and export ensure full sized port
 					Point2D size = getSizeAndMirror(cellRefProto);
-					ni = placePin(cellRefProto, (lX+hX)/2, (lY+hY)/2, size.getX(), size.getY(),
+					double cX = (lX+hX) / 2;
+					double cY = (lY+hY) / 2;
+					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+					ni = placePin(cellRefProto, cX, cY, size.getX(), size.getY(),
 						curOrientation.getRot(), curCell);
 					if (ni == null)
 					{
@@ -3276,7 +3324,10 @@ public class EDIF extends Input
 					} else
 					{
 						// create the node instance
-						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(p0.getX(), p0.getY()), 0, 0, curCell);
+						double xPos = p0.getX();
+						double yPos = p0.getY();
+						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
 						key = "EDIF_annotate";
 					}
 					if (ni != null || ai != null)
@@ -3353,6 +3404,7 @@ public class EDIF extends Input
 			}
 
 			curCell = proto;
+			curCellPage = 0;
 			curFigureGroup = null;
 		}
 
@@ -3464,7 +3516,9 @@ public class EDIF extends Input
 					for (int iY = 0; iY < arrayYVal; iY++)
 					{
 						Point2D size = getSizeAndMirror(cellRefProto);
-						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, lY),
+						double yPos = lY;
+						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
 							size.getX(), size.getY(), curCell, curOrientation.getRot(), null, 0);
 						curNode = ni;
 						if (ni == null)
@@ -3739,6 +3793,7 @@ public class EDIF extends Input
 				}
 
 				curCell = proto;
+				curCellPage = 0;
 			}
 			else curCell = null;
 

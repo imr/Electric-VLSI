@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -162,6 +163,7 @@ public class LayerVisibility extends EDialog
 		if (currentTextOnCell != initialTextOnCell)
 			User.setTextVisibilityOnCell(initialTextOnCell = currentTextOnCell);
 
+		PixelDrawing.clearSubCellCache();
 		EditWindow.repaintAllContents();
 	}
 

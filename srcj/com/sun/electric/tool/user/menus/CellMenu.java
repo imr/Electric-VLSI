@@ -24,20 +24,28 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.dialogs.*;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.CellLists;
+import com.sun.electric.tool.user.dialogs.CellProperties;
+import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Cell" pulldown menu.
@@ -73,6 +81,8 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
         multiPageSubMenu.addMenuItem("Edit Next Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editNextMultiPage(); }});
+        multiPageSubMenu.addMenuItem("Convert old-style Multi-Page Schematics", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.convertMultiPageViews(); }});
 
         cellMenu.addSeparator();
 
@@ -194,12 +204,12 @@ public class CellMenu {
     /**
      * Class to set a cell to be multi-page with a given page count.
      */
-    private static class SetMultiPageJob extends Job
+    public static class SetMultiPageJob extends Job
 	{
 		private Cell cell;
 		private int numPages;
 
-		private SetMultiPageJob(Cell cell, int numPages)
+		public SetMultiPageJob(Cell cell, int numPages)
 		{
 			super("Make Cell be Multi-Page", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;

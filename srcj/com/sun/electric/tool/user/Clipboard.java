@@ -193,7 +193,7 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
 			// copy objects to clipboard
-			copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(0,0));
+			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0,0), User.isDupCopiesExports());
 			return true;
 		}
 	}
@@ -258,7 +258,7 @@ public class Clipboard
 			highlights = deleteList;
 
 			// copy objects to clipboard
-			copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(mouseDB.getX(), mouseDB.getY()));
+			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(mouseDB.getX(), mouseDB.getY()), User.isDupCopiesExports());
 
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, highlights);
@@ -305,7 +305,7 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
             // copy objects to clipboard
-            copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(0, 0));
+            copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0), User.isDupCopiesExports());
 
             Highlighter highlighter = wnd.getHighlighter();
             if (highlighter != null) highlighter.clear();
@@ -492,7 +492,7 @@ public class Clipboard
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
 
 			// paste them into the current cell
-			copyListToCell(wnd, pasteList, clipCell, parent, true, new Point2D.Double(dX, dY));
+			copyListToCell(wnd, pasteList, clipCell, parent, new Point2D.Double(dX, dY), User.isDupCopiesExports());
 
 			// also copy any variables on the clipboard cell
 			for(Iterator it = clipCell.getVariables(); it.hasNext(); )
@@ -521,12 +521,15 @@ public class Clipboard
 	public String toString() { return "Clipboard"; }
 
 	/**
-	 * Method to copy the list of Geometrics in "list" (NOGEOM terminated) from "fromCell"
-	 * to "toCell".  If "highlight" is true, highlight the objects in the new cell.
-     * The center of the collection of objects paste will be moved by 'delta'.
+	 * Method to copy the list of Geometrics to a new Cell.
+	 * @param wnd the EditWindow in which this is happening (if null, do not highlight copied Geometrics).
+	 * @param list the list of Geometrics to copy.
+	 * @param fromCell the source cell of the Geometrics.
+	 * @param toCell the destination cell of the Geometrics.
+	 * @param delta an offset for all of the copied Geometrics.
 	 */
-	private static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell, boolean highlight,
-		Point2D delta)
+	public static void copyListToCell(EditWindow wnd, List list, Cell fromCell, Cell toCell,
+		Point2D delta, boolean copyExports)
 	{
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
@@ -623,7 +626,7 @@ public class Clipboard
 			// copy the ports, too
             List portInstsToExport = new ArrayList();
             HashMap originalExports = new HashMap();
-			if (User.isDupCopiesExports())
+			if (copyExports)
 			{
 				for(Iterator eit = ni.getExports(); eit.hasNext(); )
 				{
@@ -692,7 +695,7 @@ public class Clipboard
 		}
 
 		// highlight the copy
-		if (highlight)
+		if (wnd != null)
 		{
             Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();

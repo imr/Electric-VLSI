@@ -404,7 +404,8 @@ public abstract class ElectricObject
 				poly.setStyle(style);
 				if (geom instanceof NodeInst)
 				{
-					poly.transform(((NodeInst)geom).rotateOut());
+//					poly.transform(((NodeInst)geom).rotateOut());
+					poly.transform(((NodeInst)geom).rotateOutAboutTrueCenter());
 				}
 				poly.setTextDescriptor(td);
 				poly.setString(name.toString());

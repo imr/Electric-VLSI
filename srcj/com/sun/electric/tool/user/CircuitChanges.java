@@ -3327,7 +3327,13 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
-			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
+			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
+			if (cell.getLibrary().findNodeProto(newCellName) != null)
+			{
+				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Cell " + newCellName + " already exists.  Make this a new version?");
+				if (response == JOptionPane.NO_OPTION) return false;
+			}
+			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {
                 System.out.println("Could not duplicate cell "+cell.describe());
                 return false;
@@ -3363,15 +3369,31 @@ public class CircuitChanges
             }
 
 			// change the display of old cell to the new one
+            WindowFrame curWf = WindowFrame.getCurrentWindowFrame();
+            if (curWf != null)
+            {
+				WindowContent content = curWf.getContent();
+				if (content != null && content.getCell() == cell)
+				{
+					content.setCell(dupCell, VarContext.globalContext);
+					content.repaint();
+					return true;
+				}
+            }
+
+            // current cell was not duplicated: see if any displayed cell is
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
+				{
 					content.setCell(dupCell, VarContext.globalContext);
+					content.repaint();
+					return true;
+				}
 			}
-			EditWindow.repaintAll();
 			return true;
 		}
 	}

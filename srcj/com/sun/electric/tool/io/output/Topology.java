@@ -114,10 +114,10 @@ public abstract class Topology extends Output
 	/** Abstract method to convert a cell name to one that is safe for this format */
 	protected abstract String getSafeCellName(String name);
 
-	/** Abstract method to return the proper name of Power */
+	/** Abstract method to return the proper name of Power (or null to use existing name) */
 	protected abstract String getPowerName();
 
-	/** Abstract method to return the proper name of Ground */
+	/** Abstract method to return the proper name of Ground (or null to use existing name) */
 	protected abstract String getGroundName();
 
 	/** Abstract method to return the proper name of a Global signal */
@@ -582,13 +582,15 @@ public abstract class Topology extends Output
 		if (cni.pwrNet != null)
 		{
 			CellSignal cs = (CellSignal)cni.cellSignals.get(cni.pwrNet);
-			cs.name = getPowerName();
+			String powerName = getPowerName();
+			if (powerName != null) cs.name = powerName;
 			cs.power = true;
 		}
 		if (cni.gndNet != null)
 		{
 			CellSignal cs = (CellSignal)cni.cellSignals.get(cni.gndNet);
-			cs.name = getGroundName();
+			String groundName = getGroundName();
+			if (groundName != null) cs.name = groundName;
 			cs.ground = true;
 		}
 
