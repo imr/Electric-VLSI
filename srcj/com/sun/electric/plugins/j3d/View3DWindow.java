@@ -117,11 +117,7 @@ import javax.media.j3d.View;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.vecmath.Color3f;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import javax.vecmath.*;
 
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
@@ -613,113 +609,107 @@ public class View3DWindow extends JPanel
 				Point3d [] pts = new Point3d[8];
 				double max, delta;
 	            Point2D[] points = polys[gate].getPoints();
-	            double dist1 = points[0].distance(points[1]);
-	            double dist2 = points[0].distance(points[2]);
+                Point2D p0 = points[0];
+                Point2D p1 = points[1];
+                Point2D p2 = points[points.length-1];
+	            double dist1 = p0.distance(p1);
+	            double dist2 = p0.distance(p2);
 				Layer layer = polys[gate].getLayer();
 				double dist = (layer.getDistance() + layer.getThickness()) * scale;
-				//double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
 				double distPoly = (polys[poly].getLayer().getDistance()) * scale;
                 Point2D pointDist, pointClose;
+                List topList = new ArrayList();
+		        List bottomList = new ArrayList();
+                int center, right;
 
 	            if (dist1 > dist2)
 	            {
-	                pointDist = points[1];
-		            pointClose = points[2];
+	                pointDist = p1;
+		            pointClose = p2;
+                    center = 1;
+                    right = 2;
 	            }
 	            else
 	            {
-	                pointDist = points[2];
-		            pointClose = points[1];
+	                pointDist = p2;
+		            pointClose = p1;
+                    center = 2;
+                    right = points.length-1;
 	            }
-	            {
-		            delta = (points[0].getX() + pointDist.getX())/10;
+                Point2d pDelta = new Point2d(pointDist.getX()-points[0].getX(), pointDist.getY()-points[0].getY());
+                pDelta.scale(0.1);
+                double[] values = new double[2];
+                pDelta.get(values);
 
-		            pts[0] = new Point3d(points[0].getX()+delta, points[0].getY(), dist);
-					pts[1] = new Point3d(points[0].getX(), points[0].getY(), distPoly);
-					pts[2] = new Point3d(points[0].getX()-delta, points[0].getY(), distPoly);
-					pts[3] = new Point3d(points[0].getX(), points[0].getY(), dist);
-		            pts[4] = new Point3d(points[0].getX()+delta, pointClose.getY(), dist);
-					pts[5] = new Point3d(points[0].getX(), pointClose.getY(), distPoly);
-					pts[6] = new Point3d(points[0].getX()-delta, pointClose.getY(), distPoly);
-					pts[7] = new Point3d(points[0].getX(), pointClose.getY(), dist);
-		            //boxList.add(addShape3D(pts, 4, getAppearance(layer)));
-	            }
+                // First extra polyhedron
+                topList.add(new Point3d(p0.getX()+values[0], p0.getY()+values[1], dist));
+                topList.add(new Point3d(p0.getX(), p0.getY(), distPoly));
+                topList.add(new Point3d(p0.getX()-values[0], p0.getY()-values[1], distPoly));
+                topList.add(new Point3d(p0.getX(), p0.getY(), dist));
+                bottomList.add(new Point3d(pointClose.getX()+values[0], pointClose.getY()+values[1], dist));
+                bottomList.add(new Point3d(pointClose.getX(), pointClose.getY(), distPoly));
+                bottomList.add(new Point3d(pointClose.getX()-values[0], pointClose.getY()-values[1], distPoly));
+                bottomList.add(new Point3d(pointClose.getX(), pointClose.getY(), dist));
+                correctNormals(topList, bottomList);
+                System.arraycopy(topList.toArray(), 0, pts, 0, 4);
+                System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
+                boxList.add(addShape3D(pts, 4, getAppearance(layer)));
 
-				Rectangle2D rect1 = polys[gate].getBounds2D();
-				boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
-
-				Poly gateP = new Poly(rect1);
-				rect1 = gateP.getBounds2D();
-
-				if (alongX)
-				{
-					max = rect1.getMaxX();
-					delta = rect1.getWidth()/10;
-				}
-				else
-				{
-					max = rect1.getMaxY();
-					delta = rect1.getHeight()/10;
-				}
-				double cutGate = (max - delta);
-				double cutPoly = (max + delta);
-				if (alongX)
-				{
-					pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
-					pts[1] = new Point3d(max, rect1.getMinY(), dist);
-					pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-					pts[3] = new Point3d(max, rect1.getMinY(), distPoly);
-					pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
-					pts[5] = new Point3d(max, rect1.getMaxY(), dist);
-					pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-					pts[7] = new Point3d(max, rect1.getMaxY(), distPoly);
-				}
-				else
-				{
-					pts[0] = new Point3d(rect1.getMaxX(), cutGate, dist);
-					pts[1] = new Point3d(rect1.getMinX(), cutGate, dist);
-					pts[2] = new Point3d(rect1.getMinX(), max, dist);
-					pts[3] = new Point3d(rect1.getMaxX(), max, dist);
-					pts[4] = new Point3d(rect1.getMaxX(), max, distPoly);
-					pts[5] = new Point3d(rect1.getMinX(), max, distPoly);
-					pts[6] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
-					pts[7] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
-				}
-				// First connection
-				boxList.add(addShape3D(pts, 4, getAppearance(layer)));
-				max = (alongX) ? rect1.getMinX() : rect1.getMinY();
-				cutGate = (max + delta);
-				cutPoly = (max - delta);
-				if (alongX)
-				{
-					pts[0] = new Point3d(max, rect1.getMinY(), dist);
-					pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
-					pts[2] = new Point3d(max, rect1.getMinY(), distPoly);
-					pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-					pts[4] = new Point3d(max, rect1.getMaxY(), dist);
-					pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
-					pts[6] = new Point3d(max, rect1.getMaxY(), distPoly);
-					pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-				}
-				else
-				{
-					pts[0] = new Point3d(rect1.getMaxX(), max, dist);
-					pts[1] = new Point3d(rect1.getMinX(), max, dist);
-					pts[2] = new Point3d(rect1.getMinX(), cutGate, dist);
-					pts[3] = new Point3d(rect1.getMaxX(), cutGate, dist);
-					pts[4] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
-					pts[5] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
-					pts[6] = new Point3d(rect1.getMinX(), max, distPoly);
-					pts[7] = new Point3d(rect1.getMaxX(), max, distPoly);
-				}
-				// Second connection
-				boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+                // Second polyhedron
+                topList.clear();
+                bottomList.clear();
+                topList.add(new Point3d(points[center].getX()-values[0], points[center].getY()-values[1], dist));
+                topList.add(new Point3d(points[center].getX(), points[center].getY(), distPoly));
+                topList.add(new Point3d(points[center].getX()+values[0], points[center].getY()+values[1], distPoly));
+                topList.add(new Point3d(points[center].getX(), points[center].getY(), dist));
+                bottomList.add(new Point3d(points[right].getX()-values[0], points[right].getY()-values[1], dist));
+                bottomList.add(new Point3d(points[right].getX(), points[right].getY(), distPoly));
+                bottomList.add(new Point3d(points[right].getX()+values[0], points[right].getY()+values[1], distPoly));
+                bottomList.add(new Point3d(points[right].getX(), points[right].getY(), dist));
+                correctNormals(topList, bottomList);
+                System.arraycopy(topList.toArray(), 0, pts, 0, 4);
+                System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
+                boxList.add(addShape3D(pts, 4, getAppearance(layer)));
             }
             if (boxList != null) list.addAll(boxList);
         }
 		electricObjectMap.put(no, list);
 	}
 
+    /**
+     * Method to correct points sequence to obtain valid normals
+     * @param topList
+     * @param bottomList
+     */
+    private void correctNormals(List topList, List bottomList)
+    {
+        // Determining normal direction
+        Point3d p0 = (Point3d)topList.get(0);
+        Point3d p1 = new Point3d((Point3d)topList.get(1));
+        p1.sub(p0);
+        Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
+        pn.sub(p0);
+        Vector3d aux = new Vector3d();
+        aux.cross(new Vector3d(p1), new Vector3d(pn));
+        // the other layer
+        Point3d b0 = new Point3d((Point3d)bottomList.get(0));
+        b0.sub(p0);
+        // Now the dot product
+        double dot = aux.dot(new Vector3d(b0));
+        if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
+        {
+            Collections.reverse(topList);
+            Collections.reverse(bottomList);
+        }
+    }
+
+    /**
+     * Simple method to generate polyhedra
+     * @param pts
+     * @param listLen
+     * @param ap
+     * @return
+     */
     private Shape3D addShape3D(Point3d[] pts, int listLen, Appearance ap)
     {
 
@@ -905,23 +895,24 @@ public class View3DWindow extends JPanel
 			{
 				int listLen = topList.size();
 				Point3d [] pts = new Point3d[listLen*2];
-				// Determining normal direction
-				Point3d p0 = (Point3d)topList.get(0);
-				Point3d p1 = new Point3d((Point3d)topList.get(1));
-				p1.sub(p0);
-				Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
-				pn.sub(p0);
-				Vector3d aux = new Vector3d();
-				aux.cross(new Vector3d(p1), new Vector3d(pn));
-				// the other layer
-				Point3d b0 = new Point3d((Point3d)bottomList.get(0));
-				// Now the dot product
-				double dot = aux.dot(new Vector3d(b0));
-				if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
-				{
-					Collections.reverse(topList);
-					Collections.reverse(bottomList);
-				}
+                correctNormals(topList, bottomList);
+//				// Determining normal direction
+//				Point3d p0 = (Point3d)topList.get(0);
+//				Point3d p1 = new Point3d((Point3d)topList.get(1));
+//				p1.sub(p0);
+//				Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
+//				pn.sub(p0);
+//				Vector3d aux = new Vector3d();
+//				aux.cross(new Vector3d(p1), new Vector3d(pn));
+//				// the other layer
+//				Point3d b0 = new Point3d((Point3d)bottomList.get(0));
+//				// Now the dot product
+//				double dot = aux.dot(new Vector3d(b0));
+//				if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
+//				{
+//					Collections.reverse(topList);
+//					Collections.reverse(bottomList);
+//				}
 				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
 				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
 				int numFaces = listLen + 2; // contour + top + bottom
