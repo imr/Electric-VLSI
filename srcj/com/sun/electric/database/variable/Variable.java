@@ -38,9 +38,12 @@ import java.text.FieldPosition;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Collections;
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
+ * <P>
+ * This class should be thread-safe.
  */
 public class Variable
 {
@@ -49,15 +52,15 @@ public class Variable
 	 */
 	public static class Key
 	{
-		private String name;
-		private int    index;
+		private final String name;
+		private final int    index;
 		private static int currentIndex = 0;
 		
 		/**
 		 * Method to create a new Key object with the specified name.
 		 * @param name the name of the Variable.
 		 */
-		public Key(String name)
+		protected Key(String name)
 		{
 			this.name = name;
 			this.index = currentIndex++;
@@ -100,7 +103,7 @@ public class Variable
         public String toString() { return name; }
 
         /** Get an iterator over all Code types */
-        public static Iterator getCodes() { return allCodes.iterator(); }
+        public static Iterator getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
 
         public static final Code JAVA = new Code("Java");
         public static final Code LISP = new Code("Lisp (not avail.)");
@@ -110,9 +113,9 @@ public class Variable
 
 
 	private Object addr;
-	private Key key;
 	private int flags;
-	private TextDescriptor descriptor;
+    private final Key key;
+	private final TextDescriptor descriptor;
 
     /** true if var is attached to valid electric object */ private boolean linked;
 
@@ -196,7 +199,7 @@ public class Variable
 	 * For non-arrayed Variables, this is 1.
      * @return the number of entries stored in this Variable.
      */
-    public int getLength()
+    public synchronized int getLength()
 	{
 		if (addr instanceof Object[])
 			return ((Object [])addr).length;
@@ -207,7 +210,7 @@ public class Variable
      * Get the actual object stored in this Variable.
      * @return the object stored in this Variable.
      */
-    public Object getObject() { return addr; }
+    public synchronized Object getObject() { return addr; }
 
     /** 
      * Treat the stored Object as an array of Objects and
@@ -215,7 +218,7 @@ public class Variable
      * @param index index into the array of objects.
      * @return the objects stored in this Variable at the index.
      */
-    public Object getObject(int index)
+    public synchronized Object getObject(int index)
     {
 		if (!(addr instanceof Object[])) return null;
 		return ((Object[]) addr)[index];
@@ -227,7 +230,7 @@ public class Variable
 	 * @param index insertion index
 	 * @param value object to insert
 	 */
-	public void lowLevelInsert(int index, Object value)
+	public synchronized void lowLevelInsert(int index, Object value)
 	{
 		Object[] oldArr = (Object[])addr;
 		Object[] newArr = new Object[oldArr.length+1];
@@ -243,7 +246,7 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @param index deletion index
 	 */
-	public void lowLevelDelete(int index)
+	public synchronized void lowLevelDelete(int index)
 	{
 		Object[] oldArr = (Object[])addr;
 		Object[] newArr = new Object[oldArr.length-1];
@@ -261,13 +264,17 @@ public class Variable
     /**
      * Set if this variable is linked to an ElectricObject
      */
-    public void setLinked(boolean linked) { this.linked = linked; }
+    public synchronized void setLinked(boolean linked) { this.linked = linked; }
 
     /**
      * Returns true if variable is linked to a linked database object, false otherwise.
      * @return true if variable is linked to a linked database object, false otherwise.
      */
-    public boolean isLinked() { return (linked && descriptor.owner.isLinked()); }
+    public boolean isLinked() {
+        boolean thisLinked;
+        synchronized(this) { thisLinked = linked; }
+        return (thisLinked && descriptor.owner.isLinked());
+    }
 
     /**
      * Get the Electric object that stores this Variable
@@ -437,7 +444,7 @@ public class Variable
 		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
 		String whichIndex = "";
 
-		if ((flags & (VCODE1|VCODE2)) != 0)
+        if (isCode())
 		{
 			/* special case for code: it is a string, the type applies to the result */
 			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
@@ -453,7 +460,7 @@ public class Variable
         } else
 		{
 			returnVal.append(getPureValue(aindex, purpose));
-			if (addr instanceof Object[] && aindex >= 0)
+			if (getObject() instanceof Object[] && aindex >= 0)
 			{
 				/* normal array indexing */
 				whichIndex = "[" + aindex + "]";
@@ -479,10 +486,11 @@ public class Variable
 	{
 		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
-		if (addr instanceof Object[])
+        Object thisAddr = getObject();
+		if (thisAddr instanceof Object[])
 		{
 			/* compute the array length */
-			Object [] addrArray = (Object [])addr;
+			Object [] addrArray = (Object [])thisAddr;
 			int len = addrArray.length;
 
 			/* if asking for a single entry, get it */
@@ -505,7 +513,7 @@ public class Variable
 			}
 		} else
 		{
-			returnVal.append(makeStringVar(addr, purpose, units));
+			returnVal.append(makeStringVar(thisAddr, purpose, units));
 		}
 		return returnVal.toString();
 	}
@@ -564,7 +572,7 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @return the "type bits".
 	 */
-	public int lowLevelGetFlags() { return flags; }
+	public synchronized int lowLevelGetFlags() { return flags; }
 
 	/**
 	 * Low-level method to set the type bits.
@@ -575,19 +583,22 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".
 	 */
-	public void lowLevelSetFlags(int flags) { this.flags = flags; }
+	public synchronized void lowLevelSetFlags(int flags) { this.flags = flags; }
 
 	/**
 	 * Method to copy flags from another variable.
 	 * @param var another variable.
 	 */
-	public void copyFlags(Variable var) { checkChanging(); this.flags = var.flags; }
+	public void copyFlags(Variable var) {
+        checkChanging();
+        lowLevelSetFlags(var.lowLevelGetFlags());
+    }
 
 	/**
 	 * Method to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void setDisplay(boolean state)
+	public synchronized void setDisplay(boolean state)
     {
         checkChanging();
         if (state)
@@ -600,13 +611,13 @@ public class Variable
 	 * Method to return true if this Variable is displayable.
 	 * @return true if this Variable is displayable.
 	 */
-	public boolean isDisplay() { return (flags & VDISPLAY) != 0; }
+	public synchronized boolean isDisplay() { return (flags & VDISPLAY) != 0; }
 
     /**
      * Determine what code type this variable has, if any
      * @return the code type
      */
-    public Code getCode() {
+    public synchronized Code getCode() {
         if (isJava()) return Code.JAVA;
         if (isTCL()) return Code.TCL;
         if (isLisp()) return Code.LISP;
@@ -617,7 +628,7 @@ public class Variable
      * Sets the code type of this Variable
      * @param code the code to set to
      */
-    public void setCode(Code code) {
+    public synchronized void setCode(Code code) {
         if (code == Code.JAVA) setJava();
         if (code == Code.LISP) setLisp();
         if (code == Code.TCL) setTCL();
@@ -675,7 +686,7 @@ public class Variable
 	 * Method to tell whether this Variable is any code.
 	 * @return true if this Variable is any code.
 	 */
-	public boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
+	public synchronized boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
 
 	/**
 	 * Method to set this Variable to be not-code.
@@ -686,45 +697,45 @@ public class Variable
 	 * Method to set this Variable to be not-saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
+	public synchronized void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
 
 	/**
 	 * Method to set this Variable to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
+	public synchronized void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
 
 	/**
 	 * Method to return true if this Variable is to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 * @return true if this Variable is to be saved.
 	 */
-	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
+	public synchronized boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
 
 	/**
 	 * Method to set this Variable to be not-settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void setCantSet() { checkChanging(); flags |= VCANTSET; }
+	public synchronized void setCantSet() { checkChanging(); flags |= VCANTSET; }
 
 	/**
 	 * Method to set this Variable to be settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
+	public synchronized void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
 
 	/**
 	 * Method to return true if this Variable is settable.
 	 * Only Variables that are settable can have their value changed.
 	 * @return true if this Variable is settable.
 	 */
-	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
+	public synchronized boolean isCantSet() { return (flags & VCANTSET) != 0; }
 
     /**
      * Method to return if this is Variable is a User Attribute.
      * @return true if this Variable is an attribute, false otherwise.
      */
-    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
+    public synchronized boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
 
 	/**
 	 * Returns a printable version of this Variable.

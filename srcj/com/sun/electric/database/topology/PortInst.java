@@ -34,17 +34,23 @@ import java.util.*;
 /**
  * The PortInst class represents an instance of a Port.  It is the
  * combination of a NodeInst and a PortProto.
+ * <P>
+ * This class is thread-safe.
  */
 public class PortInst extends ElectricObject
 {
 	// ------------------------ private data ------------------------
 
-	private NodeInst nodeInst;
-	private PortProto portProto;
+	private final NodeInst nodeInst;
+	private final PortProto portProto;
 
 	// -------------------protected or private methods ---------------
 
-	private PortInst() { setLinked(false); }
+	private PortInst(PortProto portProto, NodeInst nodeInst) {
+        this.portProto = portProto;
+        this.nodeInst = nodeInst;
+        setLinked(false);
+    }
 
 	// ------------------------ public methods -------------------------
 
@@ -56,9 +62,7 @@ public class PortInst extends ElectricObject
 	 */
 	public static PortInst newInstance(PortProto portProto, NodeInst nodeInst)
 	{
-		PortInst pi = new PortInst();
-		pi.portProto = portProto;
-		pi.nodeInst = nodeInst;
+		PortInst pi = new PortInst(portProto, nodeInst);
 		return pi;
 	}
 

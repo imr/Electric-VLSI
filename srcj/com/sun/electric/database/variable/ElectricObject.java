@@ -46,6 +46,8 @@ import java.util.Iterator;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
+ * <P>
+ * This class should be thread-safe.
  */
 public abstract class ElectricObject
 {
@@ -54,8 +56,8 @@ public abstract class ElectricObject
 	/** extra variables (null if no variables yet) */		private HashMap vars;
     /** if object is linked into database */                private boolean linked;
 
-	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
-	/** all variable keys addressed by lower case name */	private static HashMap varLowCaseKeys = new HashMap();
+	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
+	/** all variable keys addressed by lower case name */	private static final HashMap varLowCaseKeys = new HashMap();
 
 	// ------------------------ private and protected methods -------------------
 
@@ -69,7 +71,7 @@ public abstract class ElectricObject
     /**
      * Returns true if object is linked into database
      */
-    public boolean isLinked() { return linked; }
+    public synchronized boolean isLinked() { return linked; }
 
     /**
      * Sets the flag that says the object is linked into the database.
@@ -77,7 +79,7 @@ public abstract class ElectricObject
      * lowLevelLink and lowLevelUnlink methods.
      * @param linked true if object is now linked, false if not.
      */
-    protected void setLinked(boolean linked) { this.linked = linked; }
+    protected synchronized void setLinked(boolean linked) { this.linked = linked; }
 	
     /**
      * Returns true if this ElectricObject is completely linked into database.
@@ -143,8 +145,11 @@ public abstract class ElectricObject
 	{
         checkExamine();
         if (key == null) return null;
-		if (vars == null) return null;
-		Variable var = (Variable)vars.get(key);
+        Variable var;
+        synchronized(this) {
+            if (vars == null) return null;
+            var = (Variable)vars.get(key);
+        }
 		if (var != null) {
             if (type == null) return var;                   // null type means any type
             if (type.isInstance(var.getObject())) return var;
@@ -225,7 +230,7 @@ public abstract class ElectricObject
      * @return the object that holds the default variables and values.
      */
     public ElectricObject getVarDefaultOwner() {
-        checkExamine();
+        //checkExamine();
         return this;
     }
 
@@ -236,11 +241,14 @@ public abstract class ElectricObject
 	 */
 	public int numPersistentVariables()
 	{
-        checkExamine();
-		if (vars == null) return 0;
-
+        //checkExamine();
+        Iterator it;
+        synchronized(this) {
+		    if (vars == null) return 0;
+            it = vars.values().iterator();
+        }
 		int numVars = 0;
-		for(Iterator it = vars.values().iterator(); it.hasNext(); )
+		while (it.hasNext())
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
@@ -257,11 +265,14 @@ public abstract class ElectricObject
 	 */
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
-        checkExamine();
-		if (vars == null) return 0;
-
+        //checkExamine();
+        Iterator it;
+        synchronized(this) {
+		    if (vars == null) return 0;
+            it = vars.values().iterator();
+        }
 		int numVars = 0;
-		for(Iterator it = vars.values().iterator(); it.hasNext(); )
+		while (it.hasNext())
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDisplay())
@@ -295,11 +306,14 @@ public abstract class ElectricObject
 	{
         checkExamine();
 		int numAddedVariables = 0;
-		if (vars == null) return numAddedVariables;
-
-		double cX = rect.getCenterX();
-		double cY = rect.getCenterY();
-		for(Iterator it = vars.values().iterator(); it.hasNext(); )
+        Iterator it;
+        synchronized(this) {
+		    if (vars == null) return 0;
+            it = vars.values().iterator();
+        }
+        double cX = rect.getCenterX();
+        double cY = rect.getCenterY();
+		while (it.hasNext())
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
@@ -525,11 +539,12 @@ public abstract class ElectricObject
 	public Variable newVar(Variable.Key key, Object value)
 	{
 		checkChanging();
-		if (vars == null)
-		{
-			vars = new HashMap();
-		}
-		Variable oldVar = (Variable) vars.get(key);
+        Variable oldVar;
+        synchronized(this) {
+            if (vars == null)
+                vars = new HashMap();
+            oldVar = (Variable) vars.get(key);
+        }
 		if (oldVar != null)
 		{
 			lowLevelUnlinkVar(oldVar);
@@ -632,7 +647,6 @@ public abstract class ElectricObject
 	public void delVar(Variable.Key key)
 	{
 		checkChanging();
-		if (vars == null) return;
 		Variable v = getVar(key);
 		if (v == null) return;
 		lowLevelUnlinkVar(v);
@@ -646,7 +660,9 @@ public abstract class ElectricObject
 	 */
 	public void lowLevelLinkVar(Variable var)
 	{
-		vars.put(var.getKey(), var);
+        synchronized(this) {
+		    vars.put(var.getKey(), var);
+        }
         var.setLinked(true);
 
 		// check for side-effects of the change
@@ -659,7 +675,9 @@ public abstract class ElectricObject
 	 */
 	public void lowLevelUnlinkVar(Variable var)
 	{
-		vars.remove(var.getKey());
+        synchronized(this) {
+		    vars.remove(var.getKey());
+        }
         var.setLinked(false);
 
 		// check for side-effects of the change
@@ -748,16 +766,20 @@ public abstract class ElectricObject
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-		for(Iterator it = other.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-            Variable newVar = this.newVar(var.getKey(), var.getObject());
-			if (newVar != null)
-			{
-				newVar.copyFlags(var);
-				newVar.setTextDescriptor(var.getTextDescriptor());
-			}
-		}
+        Iterator it = other.getVariables();
+        synchronized(this) {
+            while(it.hasNext())
+            {
+                Variable var = (Variable)it.next();
+                Variable newVar = this.newVar(var.getKey(), var.getObject());
+                if (newVar != null)
+                {
+                    newVar.copyFlags(var);
+                    newVar.setTextDescriptor(var.getTextDescriptor());
+                }
+            }
+        }
+
 
 		// variables may affect geometry size
 //		if (this instanceof NodeInst || this instanceof ArcInst)
@@ -979,9 +1001,9 @@ public abstract class ElectricObject
 	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
-	public Iterator getVariables()
+	public synchronized Iterator getVariables()
 	{
-        checkExamine();
+        //checkExamine();
 		if (vars == null)
 			return (new ArrayList()).iterator();
 		return (new ArrayList(vars.values())).iterator();
@@ -991,9 +1013,9 @@ public abstract class ElectricObject
 	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
-	public int getNumVariables()
+	public synchronized int getNumVariables()
 	{
-        checkExamine();
+        //checkExamine();
 		if (vars == null) return 0;
 		return vars.entrySet().size();
 	}
@@ -1050,7 +1072,7 @@ public abstract class ElectricObject
 		{
 			String lowCaseName = name.toLowerCase();
 			if (!lowCaseName.equals(name))
-				key = (Variable.Key)varKeys.get(lowCaseName);
+				key = (Variable.Key)varLowCaseKeys.get(lowCaseName);
 		}
 		return key;
 	}
@@ -1082,7 +1104,7 @@ public abstract class ElectricObject
 	 * Method to write a description of this ElectricObject (lists all Variables).
 	 * Displays the description in the Messages Window.
 	 */
-	public void getInfo()
+	public synchronized void getInfo()
 	{
         checkExamine();
 		if (vars == null) return;
