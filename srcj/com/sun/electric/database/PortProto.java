@@ -13,7 +13,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/**
 	 * Function is a typesafe enum class that describes the function of a portproto.
 	 */
-	static public class Function
+	public static class Function
 	{
 		private final String name;
 
@@ -43,7 +43,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	/** port name */								protected String protoName;
 	/** flag bits */								protected int userBits;
-	/** parent NodeProto */							private NodeProto parent;
+	/** parent NodeProto */							protected NodeProto parent;
 
 	/** Network that this port belongs to (in case two ports are permanently
 	 * connected, like the two ends of the gate in a MOS transistor.
@@ -78,17 +78,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * for the bounds of a port without a NodeInst.  The NodeInst should
 	 * be an instance of the NodeProto that this port belongs to,
 	 * although this isn't checked. */
-	abstract Poly getPoly(NodeInst ni);
-
-	protected boolean putPrivateVar(String var, Object value)
-	{
-		if (var.equals("userbits"))
-		{
-			userBits = ((Integer) value).intValue();
-			return true;
-		}
-		return false;
-	}
+	abstract public Poly getPoly(NodeInst ni);
 
 	// Set the network associated with this Export.
 	void setNetwork(JNetwork net)
@@ -120,7 +110,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	// ---------------------- public methods -------------------------
 
-	public String getName() { return protoName; }
+	public String getProtoName() { return protoName; }
 
 	/** Get the NodeProto (Cell or PrimitiveNode) that owns this port. */
 	public NodeProto getParent() { return parent; }

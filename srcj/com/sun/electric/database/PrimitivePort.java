@@ -22,16 +22,20 @@ public class PrimitivePort extends PortProto
 	protected PortProto.Function function;
 
 	// ---------------------- protected and private methods ----------------
-	private PrimitivePort(Technology tech, ArcProto [] portArcs, String protoName, int portAngle, int portRange,
-		int portTopology, PortProto.Function function, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
+	private PrimitivePort(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
+		int portAngle, int portRange, int portTopology, PortProto.Function function,
+		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
-//		super(parent, protoName, userbits);
-		this.tech = tech;
-		this.portArcs = portArcs;
+		// initialize the parent object
+		this.parent = parent;
 		this.protoName = protoName;
 		this.userBits = (portAngle<<PortProto.PORTANGLESH) |
 						(portRange << PortProto.PORTARANGESH) |
 						(portTopology << PortProto.PORTNETSH);
+
+		// initialize this object
+		this.tech = tech;
+		this.portArcs = portArcs;
 		this.function = function;
 		this.left = left;
 		this.bottom = bottom;
@@ -39,16 +43,18 @@ public class PrimitivePort extends PortProto
 		this.top = top;
 	}
 
-	public static PrimitivePort newInstance(Technology tech, ArcProto [] portArcs, String protoName, int portAngle, int portRange,
-		int portTopology, PortProto.Function function, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
+	public static PrimitivePort newInstance(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
+		int portAngle, int portRange, int portTopology, PortProto.Function function,
+		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
-		PrimitivePort pp = new PrimitivePort(tech, portArcs, protoName, portAngle, portRange,
-			portTopology, function, left, bottom, right, top);
+		PrimitivePort pp = new PrimitivePort(tech, parent, portArcs, protoName,
+			portAngle, portRange, portTopology, function,
+			left, bottom, right, top);
 		return pp;
 	}
 
 	// Get the bounds for this port with respect to some NodeInst.
-	Poly getPoly(NodeInst ni)
+	public Poly getPoly(NodeInst ni)
 	{
 		return tech.getPoly(ni, this);
 	}

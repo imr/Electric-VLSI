@@ -11,7 +11,7 @@ import java.util.Iterator;
  */
 public class Technology extends ElectricObject
 {
-	public class ArcLayer
+	public static class ArcLayer
 	{
 		Layer layer;
 		int offset;
@@ -28,7 +28,7 @@ public class Technology extends ElectricObject
 		public Poly.Type getStyle() { return style; }
 	}
 
-	public class NodeLayer
+	public static class NodeLayer
 	{
 		private Layer layer;
 		private int portNum;
@@ -167,7 +167,98 @@ public class Technology extends ElectricObject
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Get a list of polygons that describe node "ni"
+	 */
+	public Poly [] getShape(NodeInst ni)
+	{
+		NodeProto prototype = ni.getProto();
+		if (!(prototype instanceof PrimitiveNode)) return null;
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		Technology.NodeLayer [] primLayers = np.getLayers();
+
+		// get information about the node
+		double halfWidth = ni.getXSize() / 2;
+		double lowX = ni.getX() - halfWidth;
+		double highX = ni.getX() + halfWidth;
+		double halfHeight = ni.getYSize() / 2;
+		double lowY = ni.getY() - halfHeight;
+		double highY = ni.getY() + halfHeight;
+		
+		// construct the polygons
+		Poly [] polys = new Poly[primLayers.length];
+		for(int i = 0; i < primLayers.length; i++)
+		{
+			Technology.NodeLayer primLayer = primLayers[i];
+			int representation = primLayer.getRepresentation();
+			Poly.Type style = primLayer.getStyle();
+			if (representation == Technology.NodeLayer.BOX)
+			{
+//				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
+//				{
+//				} else
+				{
+					double portLowX = ni.getX() + primLayer.leftEdge.getMultiplier() * ni.getXSize() + primLayer.leftEdge.getAdder();
+					double portHighX = ni.getX() + primLayer.rightEdge.getMultiplier() * ni.getXSize() + primLayer.rightEdge.getAdder();
+					double portLowY = ni.getY() + primLayer.bottomEdge.getMultiplier() * ni.getYSize() + primLayer.bottomEdge.getAdder();
+					double portHighY = ni.getY() + primLayer.topEdge.getMultiplier() * ni.getYSize() + primLayer.topEdge.getAdder();
+					double portX = (portLowX + portHighX) / 2;
+					double portY = (portLowY + portHighY) / 2;
+					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+				}
+			}
+			polys[i].setLayer(primLayer.getLayer());
+		}
+		return polys;
+	}
+
+	/**
+	 * Get a list of polygons that describe arc "ai"
+	 */
+	public Poly [] getShape(ArcInst ai)
+	{
+		ArcProto ap = ai.getProto();
+		Technology.ArcLayer [] primLayers = ap.getLayers();
+
+		// get information about the arc
+		double halfWidth = ai.getXSize() / 2;
+		double lowX = ai.getX() - halfWidth;
+		double highX = ai.getX() + halfWidth;
+		double halfHeight = ai.getYSize() / 2;
+		double lowY = ai.getY() - halfHeight;
+		double highY = ai.getY() + halfHeight;
+		
+		// construct the polygons
+//		Poly [] polys = new Poly[primLayers.length];
+//		for(int i = 0; i < primLayers.length; i++)
+//		{
+//			Technology.ArcLayer primLayer = primLayers[i];
+//			int representation = primLayer.getRepresentation();
+//			Poly.Type style = primLayer.getStyle();
+//			if (representation == Technology.NodeLayer.BOX)
+//			{
+//				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
+//				{
+//				} else
+//				{
+//					double portLowX = ai.getX() + primLayer.leftEdge.getMultiplier() * ai.getXSize() + primLayer.leftEdge.getAdder();
+//					double portHighX = ai.getX() + primLayer.rightEdge.getMultiplier() * ai.getXSize() + primLayer.rightEdge.getAdder();
+//					double portLowY = ai.getY() + primLayer.bottomEdge.getMultiplier() * ai.getYSize() + primLayer.bottomEdge.getAdder();
+//					double portHighY = ai.getY() + primLayer.topEdge.getMultiplier() * ai.getYSize() + primLayer.topEdge.getAdder();
+//					double portX = (portLowX + portHighX) / 2;
+//					double portY = (portLowY + portHighY) / 2;
+//					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+//				}
+//			}
+//		}
+//		return polys;
+		return null;
+	}
+
+	/**
+	 * Get a polygon that describes port "pp" of node "ni"
+	 */
 	public Poly getPoly(NodeInst ni, PrimitivePort pp)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();

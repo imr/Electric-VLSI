@@ -15,7 +15,7 @@ public class Poly implements Shape
 	/**
 	 * Function is a typesafe enum class that describes the function of an arcproto.
 	 */
-	static public class Type
+	public static class Type
 	{
 		private Type()
 		{
@@ -61,7 +61,7 @@ public class Poly implements Shape
 	}
 
 	private Layer layer;
-	private double xpts[], ypts[];
+	private Point2D points[];
 	private Rectangle2D.Double bounds;
 	private int style;
 
@@ -100,10 +100,9 @@ public class Poly implements Shape
 //	}
 
 	/** Create a new Poly given (x,y) points and a specific Layer */
-	public Poly(double xpts[], double ypts[])
+	public Poly(Point2D [] points)
 	{
-		this.xpts = xpts;
-		this.ypts = ypts;
+		this.points = points;
 		layer = null;
 		style = 0;
 		bounds = null;
@@ -114,8 +113,11 @@ public class Poly implements Shape
 	{
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
-		this.xpts = new double[] { cX-halfWidth,  cX+halfWidth,  cX+halfWidth,  cX-halfWidth };
-		this.ypts = new double[] { cY-halfHeight, cY-halfHeight, cY+halfHeight, cY+halfHeight };
+		this.points = new Point2D[] {
+			new Point2D.Double(cX-halfWidth, cY-halfHeight),
+			new Point2D.Double(cX+halfWidth, cY-halfHeight),
+			new Point2D.Double(cX+halfWidth, cY+halfHeight),
+			new Point2D.Double(cX-halfWidth, cY+halfHeight)};
 		layer = null;
 		style = 0;
 		bounds = null;
@@ -129,23 +131,10 @@ public class Poly implements Shape
 
 	/** Get a transformed copy of this polygon, including scale, offset,
 	 * and rotation.
-	 * @param width factor to scale width
-	 * @param height factor to scale height
-	 * @param cx horizontal offset amount
-	 * @param cy vertical offset amount
-	 * @param cos cosine of the angle of rotation
-	 * @param sin sine of the angle of rotation */
-	public void transform(
-		double width, double height,
-		double cx, double cy,
-		double cos, double sin)
+	 * @param af transformation to apply */
+	public void transform(AffineTransform af)
 	{
-		for (int i = 0; i < xpts.length; i++)
-		{
-			double newX = ( xpts[i] * width * cos + ypts[i] * height * sin + cx);
-			double newY = (-xpts[i] * width * sin + ypts[i] * height * cos + cy);
-			xpts[i] = newX;   ypts[i] = newY;
-		}
+		af.transform(points, 0, points, 0, points.length);
 	}
 
 	// SHAPE REQUIREMENTS:
@@ -224,22 +213,14 @@ public class Poly implements Shape
 	protected void calcBounds()
 	{
 		double lx, ly, hx, hy;
+		Rectangle2D sum;
 
-		if (xpts.length == 0)
+		bounds = new Rectangle2D.Double();
+		for (int i = 0; i < points.length; i++)
 		{
-			bounds = new Rectangle2D.Double();
-			return;
+			if (i == 0) bounds.setRect(points[0].getX(), points[0].getY(), 0, 0); else
+				bounds.add(points[i]);
 		}
-		lx = hx = xpts[0];
-		ly = hy = ypts[0];
-		for (int i = 1; i < xpts.length; i++)
-		{
-			if (xpts[i] < lx) lx = xpts[i];
-			if (xpts[i] > hx) hx = xpts[i];
-			if (ypts[i] < ly) ly = ypts[i];
-			if (ypts[i] > hy) hy = ypts[i];
-		}
-		bounds = new Rectangle2D.Double(lx, ly, hx - lx, hy - ly);
 	}
 
 	class PolyPathIterator implements PathIterator
@@ -259,7 +240,7 @@ public class Poly implements Shape
 
 		public boolean isDone()
 		{
-			return idx > xpts.length;
+			return idx > points.length;
 		}
 
 		public void next()
@@ -269,12 +250,12 @@ public class Poly implements Shape
 
 		public int currentSegment(float[] coords)
 		{
-			if (idx >= xpts.length)
+			if (idx >= points.length)
 			{
 				return SEG_CLOSE;
 			}
-			coords[0] = (float) xpts[idx];
-			coords[1] = (float) ypts[idx];
+			coords[0] = (float) points[idx].getX();
+			coords[1] = (float) points[idx].getY();
 			if (trans != null)
 			{
 				trans.transform(coords, 0, coords, 0, 1);
@@ -284,12 +265,12 @@ public class Poly implements Shape
 
 		public int currentSegment(double[] coords)
 		{
-			if (idx >= xpts.length)
+			if (idx >= points.length)
 			{
 				return SEG_CLOSE;
 			}
-			coords[0] = xpts[idx];
-			coords[1] = ypts[idx];
+			coords[0] = points[idx].getX();
+			coords[1] = points[idx].getY();
 			if (trans != null)
 			{
 				trans.transform(coords, 0, coords, 0, 1);
@@ -310,14 +291,4 @@ public class Poly implements Shape
 	{
 		return getPathIterator(at);
 	}
-
-//	/** Get a transformed copy of this polygon, including offset and rotation.
-//	 * @param dx horizontal offset amount
-//	 * @param dy vertical offset amount
-//	 * @param cos cosine of the angle of rotation
-//	 * @param sin sine of the angle of rotation */
-//	public Poly transform(double dx, double dy, double cos, double sin)
-//	{
-//		return transform(1, 1, dx, dy, cos, sin);
-//	}
 }

@@ -23,7 +23,7 @@ public abstract class NodeProto extends ElectricObject
 	/**
 	 * Function is a typesafe enum class that describes the function of an arcproto.
 	 */
-	static public class Function
+	public static class Function
 	{
 		private final String name;
 		private final String shortName;
@@ -417,7 +417,7 @@ public abstract class NodeProto extends ElectricObject
 		for (int i = 0; i < ports.size(); i++)
 		{
 			PortProto pp = (PortProto) ports.get(i);
-			if (pp.getName().equals(name))
+			if (pp.getProtoName().equals(name))
 				return pp;
 		}
 		return null;

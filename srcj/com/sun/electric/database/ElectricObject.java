@@ -1,5 +1,6 @@
 package com.sun.electric.database;
 
+import com.sun.electric.user.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,37 +44,20 @@ public class ElectricObject
 			}
 		}
 	}
-//
-//	protected static int round(double num)
-//	{
-//		return (int) Math.round(num);
-//	}
 
 	// Create an object that represents a C-side Electric structure
 	protected ElectricObject()
 	{
-//		Electric.construct(this, cptr);
 	}
 
 	/** put an object value associated with a name */
 	protected void putVar(String name, Object value)
 	{
-		if (!putPrivateVar(name, value))
+		if (vars == null)
 		{
-			if (vars == null)
-			{
-				vars = new HashMap();
-			}
-			vars.put(name, value);
+			vars = new HashMap();
 		}
-	}
-
-	/** Set a variable that actually represents one of the fields of
-	 * this object.  If the variable matches, return true, otherwise,
-	 * return false. */
-	protected boolean putPrivateVar(String name, Object value)
-	{
-		return false;
+		vars.put(name, value);
 	}
 
 	/** put an object into an array value associated with a name */
@@ -186,10 +170,7 @@ public class ElectricObject
 	}
 
 	/** Remove this ElectricObject from Electric's and Jose's data base.
-	 *
-	 * <p> Warning: if the Jose client has saved references to this
-	 * object then after delete() those references will be to an invalid
-	 * Jose object. */
+	 */
 	public void delete()
 	{
 		error(this instanceof Tool, "Tools can't be deleted");

@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,7 +129,7 @@ public class NodeInst extends Geometric
 		{
 			PortProto pp = (PortProto) it.next();
 			PortInst pi = PortInst.newInstance(pp, ni);
-			ni.portMap.put(pp.getName(), pi);
+			ni.portMap.put(pp.getProtoName(), pi);
 		}
 		int sz = ni.portMap.size();
 		return ni;
@@ -157,17 +158,6 @@ public class NodeInst extends Geometric
 
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
-
-	protected boolean putPrivateVar(String var, Object value)
-	{
-		if (var.equals("userbits"))
-		{
-			userBits = ((Integer) value).intValue();
-			return true;
-		}
-		return false;
-	}
-
 
 	void addExport(Export e)
 	{
@@ -231,7 +221,7 @@ public class NodeInst extends Geometric
 			{
 				Connection c = (Connection) connections.get(i);
 				System.out.println("     " + c.getArc().getProto().getProtoName()
-					+ " on " + c.getPortInst().getPortProto().getName());
+					+ " on " + c.getPortInst().getPortProto().getProtoName());
 			}
 		}
 		if (exports.size() != 0)
@@ -269,8 +259,8 @@ public class NodeInst extends Geometric
 		{
 			Export e = (Export) toMove.get(i);
 
-			String expNm = e.getName();
-			String portNm = e.getPortInst().getPortProto().getName();
+			String expNm = e.getProtoName();
+			String portNm = e.getPortInst().getPortProto().getProtoName();
 			e.delete();
 			PortInst newPort = newInst.findPort(portNm);
 			error(
@@ -344,32 +334,18 @@ public class NodeInst extends Geometric
 	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
 	/** Get the Locked bit */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
-
-	public Poly [] getShape()
+	
+	public AffineTransform transformOut()
 	{
-		if (!(prototype instanceof PrimitiveNode)) return null;
-		PrimitiveNode np = (PrimitiveNode)prototype;
-		Technology.NodeLayer [] primLayers = np.getLayers();
-		for(int i = 0; i < primLayers.length; i++)
-		{
-			Technology.NodeLayer primLayer = primLayers[i];
-			int representation = primLayer.getRepresentation();
-			Poly.Type style = primLayer.getStyle();
-			if (representation == Technology.NodeLayer.BOX)
-			{
-				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
-				{
-				} else
-				{
-			//		double lowX = 
-//					subrange(ni->lowx, ni->highx, lay->points[0], lay->points[1],
-//						lay->points[4], lay->points[5], &poly->xv[0], &poly->xv[2], lambda);
-//					subrange(ni->lowy, ni->highy, lay->points[2], lay->points[3],
-//						lay->points[6], lay->points[7], &poly->yv[0], &poly->yv[1], lambda);
-				}
-			}
-		}
-		return null;
+		// to transform out of this node instance, first translate inner coordinates to outer
+		Cell lowerCell = (Cell)prototype;
+		Rectangle2D bounds = lowerCell.getBounds();
+		double dx = getX() - bounds.getX();
+		double dy = getY() - bounds.getY();
+		AffineTransform transform = new AffineTransform();
+		transform.setToRotation(angle, cX, cY);
+		transform.translate(dx, dy);
+		return transform;
 	}
 
 	/** Get an iterator for all PortInst's */

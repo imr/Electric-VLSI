@@ -47,18 +47,6 @@ public class PortInst
 		return r;
 	}
 
-//	public double getCenterX()
-//	{
-//		Poly p = portProto.getPoly(nodeInst);
-//		return p.getCenterX();
-//	}
-//
-//	public double getCenterY()
-//	{
-//		Poly p = portProto.getPoly(nodeInst);
-//		return p.getCenterY();
-//	}
-
 	/** Can this PortInst be connected to a particular type of arc? */
 //	public boolean connectsTo(ArcProto arc)
 //	{

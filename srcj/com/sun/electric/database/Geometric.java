@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 /**
  * This class is the superclass for all Electric classes that have visual
@@ -55,8 +56,8 @@ public class Geometric extends ElectricObject
 	protected void getInfo()
 	{
 		System.out.println(" Parent: " + parent.describe());
-		System.out.println(" Location: (" + cX + "," + cY + "), at: " + sX + "x" + sY + ", rotated " + angle * 180.0 / Math.PI);
-		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), at: " +
+		System.out.println(" Location: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle * 180.0 / Math.PI);
+		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: " +
 			visBounds.getWidth() + "x" + visBounds.getHeight());
 	}
 
@@ -66,8 +67,17 @@ public class Geometric extends ElectricObject
 		Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
 
 		// transform by the relevant amount
-		poly.transform(sX, sY, cX, cY, cos, sin);
-		
+		AffineTransform scale = new AffineTransform();
+		scale.setToScale(sX, sY);
+		AffineTransform rotate = new AffineTransform();
+		rotate.setToRotation(angle);
+		AffineTransform translate = new AffineTransform();
+		translate.setToTranslation(cX, cY);
+		rotate.concatenate(scale);
+		translate.concatenate(rotate);
+
+		poly.transform(translate);
+
 		// return its bounds
 		visBounds = poly.getBounds2DDouble();
 	}
@@ -112,5 +122,6 @@ public class Geometric extends ElectricObject
 	public double getAngle() { return angle; }
 	public double getXSize() { return sX; }
 	public double getYSize() { return sY; }
+	public Rectangle2D getBounds() { return visBounds; }
 
 }

@@ -15,7 +15,7 @@ public class Layer
 	/**
 	 * Function is a typesafe enum class that describes the function of a layer.
 	 */
-	static public class Function
+	public static class Function
 	{
 		private final String name;
 		private final String constantName;
@@ -90,7 +90,7 @@ public class Layer
 	}
 
 	private String name;
-	private Graphics graphics;
+	private EGraphics graphics;
 	private Function function;
 	private int functionExtras;
 	private String cifLayer;
@@ -103,17 +103,20 @@ public class Layer
 //	public static final int OUTLINE = 1;
 //	public static final int FILL = 2;
 
-	private Layer(String name, Graphics graphics)
+	private Layer(String name, EGraphics graphics)
 	{
 		this.name = name;
 		this.graphics = graphics;
 	}
 
-	public static Layer newInstance(String name, Graphics graphics)
+	public static Layer newInstance(String name, EGraphics graphics)
 	{
 		Layer layer = new Layer(name, graphics);
 		return layer;
 	}
+
+	public String getName() { return name; }
+	public EGraphics getGraphics() { return graphics; }
 
 	public void setFunction(Function function)
 	{
@@ -126,18 +129,24 @@ public class Layer
 		this.function = function;
 		this.functionExtras = functionExtras;
 	}
+	public Function getFunction() { return function; }
 
 	public void setHeight(double thickness, double height)
 	{
 		this.thickness = thickness;
 		this.height = height;
 	}
+	public double getHeight() { return height; }
+	public double getThickness() { return thickness; }
 
 	public void setCIFLayer(String cifLayer) { this.cifLayer = cifLayer; }
+	public String getCIFLayer() { return cifLayer; }
 
 	public void setGDSLayer(String gdsLayer) { this.gdsLayer = gdsLayer; }
+	public String getGDSLayer() { return gdsLayer; }
 
 	public void setSkillLayer(String skillLayer) { this.skillLayer = skillLayer; }
+	public String getSkillLayer() { return skillLayer; }
 
 	/** printable version of this object */
 	public String toString()

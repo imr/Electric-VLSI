@@ -1,6 +1,8 @@
 package com.sun.electric.database;
 
-public class Graphics extends ElectricObject
+import java.awt.*;
+
+public class EGraphics extends ElectricObject
 {
 	int bits;
 	int color;
@@ -11,7 +13,7 @@ public class Graphics extends ElectricObject
 	int printForeground;
 	int [] pattern;
 
-	/* bit map colors (in GRAPHICS->bits) */
+	/* bit map colors */
 	public final static int LAYERN=   0000;			/* nothing                               */
 	public final static int LAYERH=   0001;			/* highlight color and bit plane         */
 	public final static int LAYEROE=  0002;			/* opaque layer escape bit               */
@@ -24,7 +26,7 @@ public class Graphics extends ElectricObject
 	public final static int LAYERG=   0200;			/* grid line color and bit plane         */
 	public final static int LAYERA=   0777;			/* everything                            */
 
-	/* color map colors (in GRAPHICS->col) */
+	/* color map colors */
 	public final static int ALLOFF=   0000;			/* no color                              */
 	public final static int HIGHLIT=  0001;			/* highlight color and bit plane         */
 	public final static int COLORT1=  0004;			/* transparent color 1                   */
@@ -67,7 +69,7 @@ public class Graphics extends ElectricObject
 	/*               0172 */		/* unassigned                            */
 	/*               0176 */		/* unassigned (and should stay that way) */
 
-	/* drawing styles (in GRAPHICS->style) */
+	/* drawing styles */
 	public final static int NATURE=       1;			/* choice between solid and patterned */
 	public final static int SOLIDC=       0;			/*   solid colors */
 	public final static int PATTERNED=    1;			/*   stippled with "raster" */
@@ -75,7 +77,7 @@ public class Graphics extends ElectricObject
 	public final static int INVTEMP=      4;			/* temporary for INVISIBLE bit */
 	public final static int OUTLINEPAT= 010;			/* if NATURE is PATTERNED, outline it */
 
-	public Graphics(int bits, int color, int displayMethod, int printMethod,
+	public EGraphics(int bits, int color, int displayMethod, int printMethod,
 		int printRed, int printGreen, int printBlue, double printOpacity, int printForeground, int[] pattern)
 	{
 		this.bits = bits;
@@ -88,5 +90,12 @@ public class Graphics extends ElectricObject
 		this.printOpacity = printOpacity;
 		this.printForeground = printForeground;
 		this.pattern = pattern;
+	}
+	
+	public Color getColor()
+	{
+		int alpha = (int)(printOpacity * 255.0);
+		Color color = new Color(printRed, printGreen, printBlue, alpha);
+		return color;
 	}
 }

@@ -69,6 +69,10 @@ public class Cell extends NodeProto
 	/** Flag bits for the cell */					private int userbits;
 	/** time stamp for marking */					private int timeStamp;
 	/** the bounds of the Cell */					private Rectangle2D.Double elecBounds;
+	/** whether the bounds need to be recomputed */	private boolean boundsDirty;
+	/** whether the bounds have anything in them */	private boolean boundsEmpty;
+	
+	
 
 	// ------------------ protected and private methods -----------------------
 
@@ -87,6 +91,9 @@ public class Cell extends NodeProto
 		creationDate = new Date();
 		revisionDate = new Date();
 		userbits = 0;
+		elecBounds = new Rectangle2D.Double();
+		boundsEmpty = true;
+		boundsDirty = false;
 
 		// add ourselves to the library
 		lib.addCell(this);
@@ -213,6 +220,9 @@ public class Cell extends NodeProto
 			error("Cell " + this +" already contains arc " + a);
 		}
 		arcs.add(a);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
 	}
 
 	void removeArc(ArcInst a)
@@ -222,6 +232,9 @@ public class Cell extends NodeProto
 			error("Cell " + this +" doesn't contain arc " + a);
 		}
 		arcs.remove(a);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
 	}
 
 	/**
@@ -234,10 +247,13 @@ public class Cell extends NodeProto
 		{
 			error("Cell " + this +" already contains node inst " + ni);
 		}
-		
+
 		// add the node
 		nodes.add(ni);
-		
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
 		if (np instanceof PrimitiveNode && np.getProtoName().equals("Cell-Center"))
@@ -258,6 +274,10 @@ public class Cell extends NodeProto
 			error("Cell " + this +" doesn't contain node inst " + ni);
 		}
 		nodes.remove(ni);
+
+		// must recompute the bounds of the cell
+		boundsDirty = true;
+
 		if (ni == referencePoint)
 			referencePoint = null;
 		essenBounds.remove(ni);
@@ -355,7 +375,7 @@ public class Cell extends NodeProto
 		for (Iterator it = getPorts(); it.hasNext();)
 		{
 			Export e = (Export) it.next();
-			String expNm = e.getName();
+			String expNm = e.getProtoName();
 			error(
 				expNm == null,
 				"Cell.addExportNamesToNet: Export with no name!");
@@ -514,8 +534,46 @@ public class Cell extends NodeProto
 
 	/** Get the Electric bounds.  This excludes invisible widths. Base
 	 * units */
-	Rectangle2D.Double getVisBounds()
+	public Rectangle2D getBounds()
 	{
+		if (boundsDirty)
+		{
+			// recompute bounds
+			double cellLowX, cellHighX, cellLowY, cellHighY;
+			boundsEmpty = true;
+			cellLowX = cellHighX = cellLowY = cellHighY = 0;
+
+			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst) it.next();
+				double xOffset = ni.getXSize()/2;
+				double xCenter = ni.getX();
+				double yOffset = ni.getYSize()/2;
+				double yCenter = ni.getY();
+				double lowx = xCenter - xOffset;
+				double highx = xCenter + xOffset;
+				double lowy = yCenter - yOffset;
+				double highy = yCenter + yOffset;
+				if (boundsEmpty)
+				{
+					boundsEmpty = false;
+					cellLowX = lowx;   cellHighX = highx;
+					cellLowY = lowy;   cellHighY = highy;
+				} else
+				{
+					if (lowx < cellLowX) cellLowX = lowx;
+					if (highx > cellHighX) cellHighX = highx;
+					if (lowy < cellLowY) cellLowY = lowy;
+					if (highy > cellHighY) cellHighY = highy;
+				}
+			}
+			elecBounds.x = (cellLowX + cellHighX) / 2.0;
+			elecBounds.width = cellHighX - cellLowX;
+			elecBounds.y = (cellLowY + cellHighY) / 2.0;
+			elecBounds.height = cellHighY - cellLowY;
+			boundsDirty = false;
+		}
+
 		return new Rectangle2D.Double(
 			elecBounds.x,
 			elecBounds.y,
@@ -591,7 +649,7 @@ public class Cell extends NodeProto
 		error(
 			newInst == null,
 			"no new instance for old instance in oldToNew?!");
-		String portNm = oldPort.getPortProto().getName();
+		String portNm = oldPort.getPortProto().getProtoName();
 		error(portNm == null, "PortProto with no name?");
 		return newInst.findPort(portNm);
 	}
@@ -617,7 +675,7 @@ public class Cell extends NodeProto
 			Export e = (Export) it.next();
 			PortInst newPort = getNewPortInst(e.getPortInst(), oldToNew);
 			error(newPort == null, "can't find new PortInst to export");
-			f.newExport(e.getName(), newPort);
+			f.newExport(e.getProtoName(), newPort);
 		}
 	}
 
@@ -630,15 +688,21 @@ public class Cell extends NodeProto
 		copyExports(f, oldToNew);
 	}
 
-	protected void getInfo()
+	public void getInfo()
 	{
+		System.out.println("--------- CELL: ---------");
+//		System.out.println(" ArcProto: " + protoType.describe());
+
+		System.out.println("  name= " + protoName);
 		System.out.println("  tech= " + tech);
 		System.out.println("  view= " + view);
 		System.out.println("  version= " + version);
 		System.out.println("  creationDate= " + creationDate);
 		System.out.println("  revisionDate= " + revisionDate);
 		System.out.println("  newestVersion= " + getNewestVersion());
-		System.out.println("  userbits= " + Integer.toHexString(userbits));
+//		System.out.println("  userbits= " + Integer.toHexString(userbits));
+		Rectangle2D rect = getBounds();
+		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), at: " + rect.getWidth() + "x" + rect.getHeight());
 		System.out.println("  nodes (" + nodes.size() + "):");
 		for (int i = 0; i < nodes.size(); i++)
 		{

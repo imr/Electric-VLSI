@@ -68,8 +68,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		double dx = p2.x - p1.x;
 		double dy = p2.y - p1.y;
 		double len = Math.sqrt(dx * dx + dy * dy);
-		// affine transform takes (0,0) to p1, (0,1) to p2, and
-		// (1,0) to a distance of width
 		this.sY = arcWidth;
 		this.sX = len;
 		this.cX = (p1.x + p2.x) / 2;
@@ -84,16 +82,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	void setConnection(Connection c, boolean end)
 	{
 		ends[end ? 1 : 0] = c;
-	}
-
-	protected boolean putPrivateVar(String var, Object value)
-	{
-		if (var.equals("userbits"))
-		{
-			userBits = ((Integer) value).intValue();
-			return true;
-		}
-		return false;
 	}
 
 	// Remove this ArcInst.  Will also remove the connections on either
@@ -118,7 +106,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		ends[end ? 1 : 0] = null;
 	}
 
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println("--------- ARC INSTANCE: ---------");
 		System.out.println(" ArcProto: " + protoType.describe());
@@ -176,6 +164,22 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			return null;
 		}
 
+		// make sure the arc can connect to these ports
+		PortProto pa = a.getPortProto();
+		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
+		if (!ppa.connectsTo(type))
+		{
+			System.out.println("Cannot create arc: type " + type.describe() + " cannot connect to port " + pa.getProtoName());
+			return null;
+		}
+		PortProto pb = b.getPortProto();
+		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
+		if (!ppb.connectsTo(type))
+		{
+			System.out.println("Cannot create arc: type " + type.describe() + " cannot connect to port " + pb.getProtoName());
+			return null;
+		}
+
 		// create the arc instance
 		ArcInst ai = new ArcInst(type, arcWidth, parent);
 		if (ai == null)
@@ -201,6 +205,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		
 		// fill in the geometry
 		ai.updateGeometric();
+		parent.addArc(ai);
 
 		return ai;
 	}

@@ -15,7 +15,7 @@ public class ArcProto extends ElectricObject
 	/**
 	 * ArcProto.Function is a typesafe enum class that describes the function of an arcproto.
 	 */
-	static public class Function
+	public static class Function
 	{
 		private final String name;
 
@@ -111,6 +111,8 @@ public class ArcProto extends ElectricObject
 	public String getProtoName() { return protoName; }
 
 	public Technology getTechnology() { return tech; }
+
+	public Technology.ArcLayer [] getLayers() { return layers; }
 
 	public double getDefaultWidth() { return defaultWidth; }
 

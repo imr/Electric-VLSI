@@ -13,6 +13,7 @@ public class EdgeV
 
 	public static final EdgeV BottomEdge = new EdgeV(-0.5, 0.0);
 	public static final EdgeV TopEdge = new EdgeV(0.5, 0.0);
+	public static final EdgeV AtCenter = new EdgeV(0.0, 0.0);
 
 	public double getMultiplier() { return multiplier; }
 	public double getAdder() { return adder; }

@@ -86,7 +86,6 @@ public class PrimitiveNode extends NodeProto
 	{
 		for(int i = 0; i < ports.length; i++)
 		{
-//			addPort(ports[i]);
 			ports[i].setParent(this);
 		}
 	}
@@ -127,7 +126,7 @@ public class PrimitiveNode extends NodeProto
 //	/**
 //	 * Get the Electric bounds.  This excludes invisible widths. Base units
 //	 */
-//	Rectangle2D.Double getVisBounds()
+//	Rectangle2D getVisBounds()
 //	{
 //		return new Rectangle2D.Double(
 //			elecBounds.x + sizeOffset.lx,
