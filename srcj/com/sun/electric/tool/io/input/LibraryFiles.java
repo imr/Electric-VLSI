@@ -135,6 +135,7 @@ public class LibraryFiles extends Input
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
+				if (cell == null) continue;
 				if (cell.getLibrary() != reader.lib) continue;
 				reader.cellLambda[cellIndex] = reader.computeLambda(cell, cellIndex);
 				cell.setTempInt(cellIndex);
@@ -155,6 +156,7 @@ public class LibraryFiles extends Input
 				for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 				{
 					Cell cell = reader.nodeProtoList[cellIndex];
+					if (cell == null) continue;
 					if (cell.getLibrary() != reader.lib) continue;
 					if (reader.spreadLambda(cell, cellIndex))
 					{
@@ -174,6 +176,7 @@ public class LibraryFiles extends Input
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
+				if (cell == null) continue;
 				if (cell.isBit(markCellForNodes)) continue;
 				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0, 0);
 			}

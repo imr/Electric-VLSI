@@ -152,7 +152,7 @@ public final class MenuCommands
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
 		fileMenu.addMenuItem("I/O Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
 
 		fileMenu.addSeparator();
 
@@ -196,13 +196,13 @@ public final class MenuCommands
 		menuBar.add(editMenu);
 
 		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { cutCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.cut(); } });
 		editMenu.addMenuItem("Copy", KeyStroke.getKeyStroke('C', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { copyCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.copy(); } });
 		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { pasteCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(); } });
         editMenu.addMenuItem("Duplicate", KeyStroke.getKeyStroke('M', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.duplicate(); } });
 
 		editMenu.addSeparator();
 
@@ -251,6 +251,28 @@ public final class MenuCommands
 
 		editMenu.addMenuItem("Adjust Size", KeyStroke.getKeyStroke('B', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
+
+		Menu moveSubMenu = new Menu("Move", 'V');
+		editMenu.add(moveSubMenu);
+		moveSubMenu.addMenuItem("Spread...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Spread.showSpreadDialog(); }});
+		moveSubMenu.addMenuItem("Move Objects By...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MoveBy.showMoveByDialog(); }});
+		moveSubMenu.addSeparator();
+		moveSubMenu.addMenuItem("Align Horizontally to Left", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(true, 0); }});
+		moveSubMenu.addMenuItem("Align Horizontally to Right", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(true, 1); }});
+		moveSubMenu.addMenuItem("Align Horizontally to Center", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(true, 2); }});
+		moveSubMenu.addSeparator();
+		moveSubMenu.addMenuItem("Align Vertically to Top", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(false, 0); }});
+		moveSubMenu.addMenuItem("Align Vertically to Bottom", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(false, 1); }});
+		moveSubMenu.addMenuItem("Align Vertically to Center", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(false, 2); }});
+
 		editMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
 
@@ -263,7 +285,7 @@ public final class MenuCommands
 		editMenu.addSeparator();
 
 		editMenu.addMenuItem("Edit Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { EditOptions.editOptionsCommand(); } });
 		editMenu.addMenuItem("Key Bindings...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 
@@ -677,7 +699,7 @@ public final class MenuCommands
 		toolMenu.addSeparator();
 
 		toolMenu.addMenuItem("Tool Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
 		Menu languagesSubMenu = new Menu("Languages");
 		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
@@ -1306,61 +1328,6 @@ public final class MenuCommands
 			if (!Undo.redoABatch())
 				System.out.println("Redo failed!");
 		}
-	}
-
-	/**
-	 * This method implements the command to cut the highlighted circuitry or text.
-	 */
-	public static void cutCommand()
-	{
-		Clipboard.cut();
-	}
-
-	/**
-	 * This method implements the command to copy the highlighted circuitry or text.
-	 */
-	public static void copyCommand()
-	{
-		Clipboard.copy();
-	}
-
-	/**
-	 * This method implements the command to paste circuitry or text.
-	 */
-	public static void pasteCommand()
-	{
-		Clipboard.paste();
-	}
-
-    public static void duplicateCommand()
-    {
-        Clipboard.duplicate();
-    }
-	/**
-	 * This method implements the command to show the I/O Options dialog.
-	 */
-	public static void ioOptionsCommand()
-	{
- 		IOOptions dialog = new IOOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
-	}
-
-	/**
-	 * This method implements the command to show the Edit Options dialog.
-	 */
-	public static void editOptionsCommand()
-	{
- 		EditOptions dialog = new EditOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
-	}
-
-	/**
-	 * This method implements the command to show the Tool Options dialog.
-	 */
-	public static void toolOptionsCommand()
-	{
- 		ToolOptions dialog = new ToolOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
 	}
 	
 	/** 

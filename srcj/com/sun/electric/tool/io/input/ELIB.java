@@ -741,6 +741,7 @@ public class ELIB extends LibraryFiles
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
+//System.out.println("Technology " + techList[index].getTechName()+" has l=");
 		}
 
 		// read the global namespace
@@ -1914,7 +1915,7 @@ public class ELIB extends LibraryFiles
 			}
 			if (externalStream == null)
 			{
-				System.out.println("CANNOT FIND OR OPEN referenced library " + libFile.getPath()+":");
+				System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
                 System.out.print(errmsg.toString());
                 String pt = null;
                 while (true) {
@@ -1942,7 +1943,7 @@ public class ELIB extends LibraryFiles
 				elib = Library.newInstance(libName, externalURL);
 			} else
 			{
-				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
+				System.out.println("Error: cannot find referenced library " + libFile.getPath());
 				elib = null;
 			}
 			if (elib == null)

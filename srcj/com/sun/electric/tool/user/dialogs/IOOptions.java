@@ -32,6 +32,7 @@ import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
@@ -60,6 +61,15 @@ public class IOOptions extends EDialog
 {
 
 	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
+
+	/**
+	 * This method implements the command to show the I/O Options dialog.
+	 */
+	public static void ioOptionsCommand()
+	{
+		IOOptions dialog = new IOOptions(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
 
 	/** Creates new form IOOptions */
 	public IOOptions(java.awt.Frame parent, boolean modal)
@@ -545,7 +555,7 @@ public class IOOptions extends EDialog
 	{
 	}
 
-	//******************************** SUE ********************************
+	//******************************** SCALE ********************************
 
 	private JList unitsTechnologyList;
 	private DefaultListModel unitsTechnologyModel;
@@ -575,7 +585,7 @@ public class IOOptions extends EDialog
 		{
 			Technology tech = (Technology)it.next();
 			if (!tech.isScaleRelevant()) continue;
-			double shownScale = tech.getScale() / 2.0;
+			double shownScale = tech.getScale();
 			unitValues.put(tech, new Double(shownScale));
 			unitsTechnologyModel.addElement(tech.getTechName() + " (scale=" + shownScale + " nanometers)");
 			if (tech == Technology.getCurrent()) wantIndex = index;
@@ -645,9 +655,9 @@ public class IOOptions extends EDialog
 		{
 			Technology tech = (Technology)it.next();
 			Double scaleValue = (Double)unitValues.get(tech);
-			if (scaleValue.doubleValue() != tech.getScale()/2.0)
+			if (scaleValue.doubleValue() != tech.getScale())
 			{
-				tech.setScale(scaleValue.doubleValue() * 2.0);
+				tech.setScale(scaleValue.doubleValue());
 			}
 		}
 	}

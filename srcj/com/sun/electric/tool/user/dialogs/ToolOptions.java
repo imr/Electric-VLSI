@@ -42,6 +42,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -140,6 +141,15 @@ public class ToolOptions extends EDialog
 	}
 
 	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
+
+	/**
+	 * This method implements the command to show the Tool Options dialog.
+	 */
+	public static void toolOptionsCommand()
+	{
+		ToolOptions dialog = new ToolOptions(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
 
 	/** Creates new form ToolOptions */
 	public ToolOptions(java.awt.Frame parent, boolean modal)

@@ -2218,7 +2218,7 @@ public class Technology extends ElectricObject
 	public void setScale(double scale)
 	{
 		if (scale == 0) return;
-		System.out.println("SETTING SCALE FOR "+techName+" TO "+scale);
+//		System.out.println("SETTING SCALE FOR "+techName+" TO "+scale);
 		prefScale.setDouble(scale);
 	}
 

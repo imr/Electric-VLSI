@@ -319,16 +319,16 @@ public class ELIB extends Output
 		View.LAYOUT.setTempInt(-2);
 		View.SCHEMATIC.setTempInt(-3);
 		View.ICON.setTempInt(-4);
-		View.DOCWAVE.setTempInt(-5);
-		View.LAYOUTSKEL.setTempInt(-6);
+		View.DOCWAVE.setTempInt(-5);			// unknown in C
+		View.LAYOUTSKEL.setTempInt(-6);			// unknown in C
 		View.VHDL.setTempInt(-7);
 		View.NETLIST.setTempInt(-8);
 		View.DOC.setTempInt(-9);
-		View.NETLISTNETLISP.setTempInt(-10);
-		View.NETLISTALS.setTempInt(-11);
-		View.NETLISTQUISC.setTempInt(-12);
-		View.NETLISTRSIM.setTempInt(-13);
-		View.NETLISTSILOS.setTempInt(-14);
+		View.NETLISTNETLISP.setTempInt(-10);	// unknown in C
+		View.NETLISTALS.setTempInt(-11);		// unknown in C
+		View.NETLISTQUISC.setTempInt(-12);		// unknown in C
+		View.NETLISTRSIM.setTempInt(-13);		// unknown in C
+		View.NETLISTSILOS.setTempInt(-14);		// unknown in C
 		View.VERILOG.setTempInt(-15);
 //		View.LAYOUTCOMP.setTempInt(-16);
 		int i = 1;
@@ -418,6 +418,7 @@ public class ELIB extends Output
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
+System.out.println("Tech "+tech.getTechName()+" l="+tech.getScale());
 			writeBigInteger((int)tech.getScale()*2);
 		}
 

@@ -277,7 +277,7 @@ public class StatusBar extends JPanel
 		if (tech != null)
 		{
 			String message = "TECHNOLOGY: " + tech.getTechName();
-			if (tech.isScaleRelevant()) message += " (scale=" + (tech.getScale()/2.0) + "nm)";
+			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm)";
 			fieldTech.setText(message);
 		}
 

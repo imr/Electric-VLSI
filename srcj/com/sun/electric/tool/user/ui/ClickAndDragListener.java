@@ -145,7 +145,7 @@ class ClickAndDragListener
 			EditWindow.gridAlign(delta);
 			if (delta.getX() == 0 && delta.getY() == 0) return;
 			Highlight.setHighlightOffset(0, 0);
-			CircuitChanges.manyMove(delta.getX(), delta.getY(), wnd);
+			CircuitChanges.manyMove(delta.getX(), delta.getY());
 			wnd.repaint();
 		}
 	}
@@ -247,7 +247,7 @@ class ClickAndDragListener
 		if (evt.isShiftDown()) { dX *= scale;   dY *= scale; }
 		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
-		CircuitChanges.manyMove(dX, dY, wnd);
+		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents();
 	}
 

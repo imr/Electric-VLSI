@@ -339,30 +339,6 @@ public class ExplorerTree extends JTree
 		}
 		cellFlag.freeFlagSet();
 	}
-//
-//	private static void recursivelyCache(ExplorerTree tree, HashMap expanded, TreePath path, boolean cache)
-//	{
-//		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-//		Object obj = node.getUserObject();
-//		int numChildren = node.getChildCount();
-//		if (numChildren == 0) return;
-//
-//		if (cache)
-//		{
-//			if (tree.isExpanded(path)) expanded.put(obj, obj);
-//		} else
-//		{
-//			if (expanded.get(obj) != null) tree.expandPath(path);
-//		}
-//
-//		// now recurse
-//		for(int i=0; i<numChildren; i++)
-//		{
-//			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
-//			TreePath descentPath = path.pathByAddingChild(child);
-//			recursivelyCache(tree, expanded, descentPath, cache);
-//		}
-//	}
 
 	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
 		int row, boolean hasFocus)

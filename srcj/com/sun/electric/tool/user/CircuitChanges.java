@@ -328,6 +328,155 @@ public class CircuitChanges
 		}
 	}
 
+	/****************************** NODE ALIGNMENT ******************************/
+
+	/**
+	 * Method to align the selected nodes.
+	 * @param horizontal true to align them horizontally; false for vertically.
+	 * @param direction if horizontal is true, meaning is 0 for left, 1 for right, 2 for center.
+	 * If horizontal is false, meaning is 0 for top, 1 for bottom, 2 for center.
+	 */
+	public static void alignNodes(boolean horizontal, int direction)
+	{
+		// make sure there is a current cell
+		Cell np = WindowFrame.needCurCell();
+		if (np == null) return;
+
+		// get the objects to be moved (mark nodes with nonzero "temp1")
+		List list = Highlight.getHighlighted(true, true);
+		if (list.size() == 0)
+		{
+			System.out.println("First select objects to move");
+			return;
+		}
+
+		// make sure they are all in the same cell
+		for(Iterator it = list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom.getParent() != np)
+			{
+				System.out.println("All moved objects must be in the same cell");
+				return;
+			}
+		}
+
+		// count the number of nodes
+		List nodes = new ArrayList();
+		for(Iterator it = list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				if (cantEdit(np, (NodeInst)geom, true)) return;
+				nodes.add(geom);
+			}
+		}
+		int total = nodes.size();
+		if (total == 0) return;
+
+		NodeInst [] nis = new NodeInst[total];
+		double [] dCX = new double[total];
+		double [] dCY = new double[total];
+		double [] dSX = new double[total];
+		double [] dSY = new double[total];
+		int [] dRot = new int[total];
+		for(int i=0; i<total; i++)
+		{
+			nis[i] = (NodeInst)nodes.get(i);
+			dSX[i] = dSY[i] = 0;
+			dRot[i] = 0;
+		}
+
+		// get bounds
+		double lX = 0, hX = 0, lY = 0, hY = 0;
+		for(int i=0; i<total; i++)
+		{
+			NodeInst ni = nis[i];
+			Rectangle2D bounds = ni.getBounds();
+			if (i == 0)
+			{
+				lX = bounds.getMinX();
+				hX = bounds.getMaxX();
+				lY = bounds.getMinY();
+				hY = bounds.getMaxY();
+			} else
+			{
+				if (bounds.getMinX() < lX) lX = bounds.getMinX();
+				if (bounds.getMaxX() > hX) hX = bounds.getMaxX();
+				if (bounds.getMinY() < lY) lY = bounds.getMinY();
+				if (bounds.getMaxY() > hY) hY = bounds.getMaxY();
+			}
+		}
+
+		// determine motion
+		for(int i=0; i<total; i++)
+		{
+			NodeInst ni = nis[i];
+			Rectangle2D bounds = ni.getBounds();
+			dCX[i] = dCY[i] = 0;
+			if (horizontal)
+			{
+				// horizontal alignment
+				switch (direction)
+				{
+					case 0:		// align to left
+						dCX[i] = lX - bounds.getMinX();
+						break;
+					case 1:		// align to right
+						dCX[i] = hX - bounds.getMaxX();
+						break;
+					case 2:		// align to center
+						dCX[i] = (lX + hX) / 2 - bounds.getCenterX();
+						break;
+				}
+			} else
+			{
+				// vertical alignment
+				switch (direction)
+				{
+					case 0:		// align to top
+						dCY[i] = hY - bounds.getMaxY();
+						break;
+					case 1:		// align to bottom
+						dCY[i] = lY - bounds.getMinY();
+						break;
+					case 2:		// align to center
+						dCY[i] = (lY + hY) / 2 - bounds.getCenterY();
+						break;
+				}
+			}
+		}
+		AlignNodes job = new AlignNodes(nis, dCX, dCY, dSX, dSY, dRot);
+	}
+
+	protected static class AlignNodes extends Job
+	{
+		NodeInst [] nis;
+		double [] dCX;
+		double [] dCY;
+		double [] dSX;
+		double [] dSY;
+		int [] dRot;
+
+		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
+		{
+			super("Align objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.nis = nis;
+			this.dCX = dCX;
+			this.dCY = dCY;
+			this.dSX = dSX;
+			this.dSY = dSY;
+			this.dRot = dRot;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
+		}
+	}
+
 	/****************************** ARC MODIFICATION ******************************/
 
 	/**
@@ -2050,22 +2199,20 @@ public class CircuitChanges
 	 * Method to move the arcs in the GEOM module list "list" (terminated by
 	 * NOGEOM) and the "total" nodes in the list "nodelist" by (dX, dY).
 	 */
-	public static void manyMove(double dX, double dY, EditWindow wnd)
+	public static void manyMove(double dX, double dY)
 	{
-        ManyMove job = new ManyMove(dX, dY, wnd);
+        ManyMove job = new ManyMove(dX, dY);
 	}
 
 	protected static class ManyMove extends Job
 	{
 		double dX, dY;
-		EditWindow wnd;
         static final boolean verbose = false;
 
-		protected ManyMove(double dX, double dY, EditWindow wnd)
+		protected ManyMove(double dX, double dY)
 		{
 			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dX = dX;   this.dY = dY;
-			this.wnd = wnd;
 			startJob();
 		}
 

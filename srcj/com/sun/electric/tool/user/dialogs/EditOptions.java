@@ -61,6 +61,15 @@ public class EditOptions extends EDialog
 {
 	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
 
+	/**
+	 * This method implements the command to show the Edit Options dialog.
+	 */
+	public static void editOptionsCommand()
+	{
+		EditOptions dialog = new EditOptions(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
+
 	/** Creates new form Edit Options */
 	public EditOptions(java.awt.Frame parent, boolean modal)
 	{

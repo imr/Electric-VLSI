@@ -329,7 +329,7 @@ public class ClickZoomWireListener
 	                EditWindow.gridAlign(dbDelta);
 	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                    Highlight.setHighlightOffset(0, 0);
-	                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
+	                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
 	                    wnd.repaintContents();
 	                }
 	                modeLeft = Mode.none;
@@ -743,7 +743,7 @@ public class ClickZoomWireListener
 	                    EditWindow.gridAlign(dbDelta);
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                        Highlight.setHighlightOffset(0, 0);
-	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
+	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
 	                        wnd.repaintContents();
 	                    }
 	                }
@@ -917,7 +917,7 @@ public class ClickZoomWireListener
 		if (scaleMove) { dX *= scale;   dY *= scale; }
 		if (scaleMove2) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
-		CircuitChanges.manyMove(dX, dY, wnd);
+		CircuitChanges.manyMove(dX, dY);
 		wnd.repaintContents();
 	}
 

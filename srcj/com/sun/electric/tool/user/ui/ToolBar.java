@@ -26,6 +26,9 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.EditOptions;
+import com.sun.electric.tool.user.dialogs.IOOptions;
+import com.sun.electric.tool.user.dialogs.ToolOptions;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -290,7 +293,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton editOptionButton = ToolBarButton.newInstance("Edit Options",
             new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
 		editOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.editOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { EditOptions.editOptionsCommand(); } });
 		editOptionButton.setToolTipText("Edit Options");
         editOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         toolbar.add(editOptionButton);
@@ -299,7 +302,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options",
             new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
 		toolOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.toolOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
 		toolOptionButton.setToolTipText("Tool Options");
         toolOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(toolOptionButton);
@@ -307,7 +310,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options",
             new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
 		ioOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.ioOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
 		ioOptionButton.setToolTipText("I/O Options");
         ioOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(ioOptionButton);
