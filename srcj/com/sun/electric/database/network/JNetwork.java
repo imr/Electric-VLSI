@@ -60,6 +60,7 @@ public class JNetwork
 {
 	// ------------------------- private data ------------------------------
 	private Netlist netlist; // Cell that owns this JNetwork
+	private int netIndex; // Index of this JNetwork in Netlist.
 	private ArrayList names = new ArrayList(); // Sorted list of names. The
 	// first name is the most
 	// appropriate.
@@ -77,9 +78,10 @@ public class JNetwork
 // 	}
 
 	// used to build Cell networks
-	public JNetwork(Netlist netlist)
+	public JNetwork(Netlist netlist, int netIndex)
 	{
 		this.netlist = netlist;
+		this.netIndex = netIndex;
 		//		this(new ArrayList(), cell);
 	}
 
@@ -106,6 +108,9 @@ public class JNetwork
 	{
 		return netlist.netCell.cell;
 	}
+
+	/** Returns index of this JNetwork in netlist. */
+	public int getNetIndex() { return netIndex; }
 
 	/** A net can have multiple names. Return alphabetized list of names. */
 	public Iterator getNames()

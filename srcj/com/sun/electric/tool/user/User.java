@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
 import com.sun.electric.tool.user.dialogs.GetInfoArc;
@@ -50,7 +51,7 @@ import java.util.Iterator;
 /**
  * This is the User Interface tool.
  */
-public class User extends Tool
+public class User extends Listener
 {
 	// ---------------------- private and protected methods -----------------
 

@@ -27,13 +27,14 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 
 /**
  * This is the Routing tool.
  */
-public class Routing extends Tool
+public class Routing extends Listener
 {
 	public static class Activity
 	{

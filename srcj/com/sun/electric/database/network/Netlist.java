@@ -109,7 +109,7 @@ public class Netlist
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) {
-				networks[k] = new JNetwork(this);
+				networks[k] = new JNetwork(this, k);
 				nm_net[i] = k;
 				k++;
 			} else {
@@ -206,6 +206,25 @@ public class Netlist
 // 		checkForModification();
 // 		return netCell.getGlobals();
 // 	}
+
+	/**
+	 * Get number of networks in this Netlist.
+	 * @return number of networks in this Netlist.
+	 */
+	public int getNumNetworks() {
+		checkForModification();
+		return networks.length;
+	}
+
+	/**
+	 * Get JNetwork with specified index.
+	 * @param netIndex index of JNetwork
+	 * @return JNetwork with specified index.
+	 */
+	public JNetwork getNetwork(int netIndex) {
+		checkForModification();
+		return networks[netIndex];
+	}
 
 	/**
 	 * Get an iterator over all of the JNetworks of this Netlist.

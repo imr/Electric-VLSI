@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 
 import java.util.Iterator;
@@ -48,7 +49,7 @@ import java.util.Map;
 /**
  * This is the Network tool.
  */
-public class Network extends Tool
+public class Network extends Listener
 {
 
 	// ---------------------- private and protected methods -----------------

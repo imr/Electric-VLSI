@@ -35,9 +35,12 @@ import com.sun.electric.database.variable.VarContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
+//import java.util.Map;
 
 /** The HierarchyEnumerator can help programs that need to "flatten"
  * the design hierarchy. Examples of such programs include the logical
@@ -58,11 +61,11 @@ import java.util.Map;
 public final class HierarchyEnumerator {
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
-	private int nextNetID = 0; // first unassigned net number
+	//private int nextNetID = 0; // first unassigned net number
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
-	private Map netIdToNetDesc = new HashMap();
+	private List netIdToNetDesc = new ArrayList();
 
 	private static void error(boolean pred, String msg) {
 		if (pred) System.out.println(msg);
@@ -71,91 +74,61 @@ public final class HierarchyEnumerator {
 	// Prevent anyone from instantiating HierarchyEnumerator.
 	private HierarchyEnumerator() {	};
 
-	// See if net inherits a net number from an export. If not then
-	// return null.
-	private Integer netIDFromExports(JNetwork net, Map portNmToNetID) {
-		// A network may get a net number from an export
-		for (Iterator expIt = net.getExports(); expIt.hasNext();) {
-			Export e = (Export) expIt.next();
-			Integer[] ids = (Integer[]) portNmToNetID.get(e.getProtoName());
-			if (ids != null) {
-				// only works in the absence of busses
-				return ids[0];
+	private int nextNetID() { return netIdToNetDesc.size(); }
+
+	private int[] numberNets(Cell cell, Netlist netlist, int[][] portNmToNetIDs, CellInfo info) {
+		int numNets = netlist.getNumNetworks();
+		int[] netToNetID = new int[numNets];
+		Arrays.fill(netToNetID, -1);
+		for (int i = 0; i < portNmToNetIDs.length; i++) {
+			Export export = (Export) cell.getPort(i);
+			int[] ids = portNmToNetIDs[i];
+			for (int j = 0; j < ids.length; j++) {
+				int netIndex = netlist.getNetIndex(export, j);
+				netToNetID[netIndex] = ids[j];
 			}
 		}
-		return null;
-	}
-
-	private Map numberNets(Netlist netlist, Map portNmToNetIDs, CellInfo info) {
-		Map netToNetID = new HashMap();
-		for (Iterator netIt = netlist.getNetworks(); netIt.hasNext();) {
-			JNetwork net = (JNetwork) netIt.next();
-
-			Integer netID = netIDFromExports(net, portNmToNetIDs);
+		for (int i = 0; i < numNets; i++) {
+			JNetwork net = netlist.getNetwork(i);
+			if (netToNetID[i] >= 0) continue;
 
 			// No netID from export. Allocate a new netID.
-			if (netID == null) {
-				netID = new Integer(nextNetID++);
-				netIdToNetDesc.put(netID, new NetDescription(net, info));
-			}
-
-			netToNetID.put(net, netID);
+			int netID = nextNetID();
+			netIdToNetDesc.add(new NetDescription(net, info));
+			netToNetID[i] = netID;
 		}
 		return netToNetID;
 	}
 
-	private Integer[] getNetIDs(Netlist netlist, Nodable ni, PortProto pp, Map netToNetID) {
-		JNetwork net = netlist.getNetwork(ni, pp, 0);
-		error(net == null,
-			  "Network=null! Did you call Cell.rebuildNetworks()?");
-		Integer netID = (Integer) netToNetID.get(net);
-		error(netID == null, "no netID for net");
-
-		// only works in absence of busses
-		return new Integer[] { netID };
-	}
-
-	private Map buildPortMap(Netlist netlist, Nodable ni, Map netToNetID) {
-		Map portNmToNetIDs = new HashMap();
-		for (Iterator it = ni.getProto().getPorts(); it.hasNext();) {
-			PortProto pp = (PortProto) it.next();
-			Integer[] netIDs = getNetIDs(netlist, ni, pp, netToNetID);
-			portNmToNetIDs.put(pp.getProtoName(), netIDs);
+	private int[][] buildPortMap(Netlist netlist, Nodable ni, int[] netToNetID) {
+		Cell cell = (Cell)ni.getProto();
+		int numPorts = cell.getNumPorts();
+		int[][] portNmToNetIDs = new int[numPorts][];
+		for (int i = 0; i < numPorts; i++) {
+			PortProto pp = cell.getPort(i);
+			int busWidth = pp.getProtoNameKey().busWidth();
+			int[] netIDs = new int[busWidth];
+			for (int j = 0; j < busWidth; j++) {
+				int netIndex = netlist.getNetIndex(ni, pp, j);
+				int netID = netToNetID[netIndex];
+				error(netID < 0, "no netID for net");
+				netIDs[j] = netID;
+			}
+			portNmToNetIDs[i] = netIDs;
 		}
 		return portNmToNetIDs;
 	}
 
-// 	private Integer[] getNetIDs(PortInst pi, Map netToNetID) {
-// 		JNetwork net = pi.getNetwork();
-// 		error(net == null,
-// 			  "Network=null! Did you call Cell.rebuildNetworks()?");
-// 		Integer netID = (Integer) netToNetID.get(net);
-// 		error(netID == null, "no netID for net");
-
-// 		// only works in absence of busses
-// 		return new Integer[] { netID };
-// 	}
-
-// 	private Map buildPortMap(NodeInst ni, Map netToNetID) {
-// 		Map portNmToNetIDs = new HashMap();
-// 		for (Iterator it = ni.getPortInsts(); it.hasNext();) {
-// 			PortInst pi = (PortInst) it.next();
-// 			Integer[] netIDs = getNetIDs(pi, netToNetID);
-// 			portNmToNetIDs.put(pi.getPortProto().getProtoName(), netIDs);
-// 		}
-// 		return portNmToNetIDs;
-// 	}
-
 	// portNmToNetIDs is a map from an Export name to an array of
 	// NetIDs.
 	private void enumerateCell(Nodable parentInst,	Cell cell,
-	                           VarContext context, Netlist netlist, Map portNmToNetIDs,
+	                           VarContext context, Netlist netlist, int[][] portNmToNetIDs,
 		                       AffineTransform xformToRoot,
 		                       CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
-		int firstNetID = nextNetID;
-		Map netToNetID = numberNets(netlist, portNmToNetIDs, info);
-		int lastNetIDPlusOne = nextNetID;
+		int firstNetID = nextNetID();
+		int[] netToNetID = numberNets(cell, netlist, portNmToNetIDs, info);
+		int lastNetIDPlusOne = nextNetID();
 		cellCnt++;
 		info.init(parentInst, cell,	context, netlist, netToNetID, portNmToNetIDs,
 			      xformToRoot, netIdToNetDesc, parent);
@@ -170,7 +143,7 @@ public final class HierarchyEnumerator {
 			boolean descend = visitor.visitNodeInst(ni, info);
 			NodeProto np = ni.getProto();
 			if (descend && np instanceof Cell && !np.isIcon()) {
-				Map portNmToNetIDs2 = buildPortMap(netlist, ni, netToNetID);
+				int[][] portNmToNetIDs2 = buildPortMap(netlist, ni, netToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
 				if (ni instanceof NodeInst) {
 					xformToRoot2 = new AffineTransform(xformToRoot);
@@ -207,7 +180,7 @@ public final class HierarchyEnumerator {
 
 		// remove entries in netIdToNetDesc that we'll never use again
 		for (int i = firstNetID; i < lastNetIDPlusOne; i++) {
-			netIdToNetDesc.remove(new Integer(i));
+			netIdToNetDesc.set(i, null);
 		}
 	}
 
@@ -216,10 +189,12 @@ public final class HierarchyEnumerator {
 	private void doIt(Cell root, VarContext context, Netlist netlist, Visitor visitor) {
 		this.visitor = visitor;
 		if (context == null) context = VarContext.globalContext;
-		enumerateCell(null,	root, context, netlist, new HashMap(),
+		int numPorts = root.getNumPorts();
+		int[][] portNmToNetIDs = new int[0][];
+		enumerateCell(null,	root, context, netlist, portNmToNetIDs,
 		              new AffineTransform(), null);
 
-		System.out.println("A total of: " + nextNetID + " nets were numbered");
+		System.out.println("A total of: " + nextNetID() + " nets were numbered");
 		System.out.println("A total of: " + cellCnt + " Cells were visited");
 		System.out.println(
 			"A total of: " + instCnt + " NodeInsts were visited");
@@ -334,18 +309,18 @@ public final class HierarchyEnumerator {
 		private Cell cell;
 		private VarContext context;
 		private Netlist netlist;
-		private Map netToNetID;
-		private Map exportNmToNetIDs;
+		private int[] netToNetID;
+		private int[][] exportNmToNetIDs;
 		private AffineTransform xformToRoot;
 		private Nodable parentInst;
 		private CellInfo parentInfo;
-		private Map netIdToNetDesc;
+		private List netIdToNetDesc;
 
 		// package private
 		void init(Nodable parentInst, Cell cell, VarContext context,
 			      Netlist netlist,
-		          Map netToNetID, Map exportNmToNetIDs, 
-				  AffineTransform xformToRoot, Map netIdToNetDesc,	
+		          int[] netToNetID, int[][] exportNmToNetIDs, 
+				  AffineTransform xformToRoot, List netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
@@ -389,8 +364,10 @@ public final class HierarchyEnumerator {
 
 		/** Get netIDs for the Export named: exportNm.
 		 * @return an array of net numbers. */
-		public final Integer[] getExportNetIDs(String exportNm) {
-			return (Integer[]) exportNmToNetIDs.get(exportNm);
+		public final int[] getExportNetIDs(String exportNm) {
+			PortProto pp = cell.findPortProto(exportNm);
+			if (pp == null) return null;
+			return exportNmToNetIDs[pp.getPortIndex()];
 		}
 
 		/** Map any net inside the current cell to a net
@@ -406,8 +383,8 @@ public final class HierarchyEnumerator {
 		 * netID in the NetDescription.  Also, I haven't provided a
 		 * mechanism for mapping a JNetwork in the current Cell to a
 		 * JNetwork in the current Cell's parent. */
-		public final Integer getNetID(JNetwork net) {
-			return (Integer) netToNetID.get(net);
+		public final int getNetID(JNetwork net) {
+			return netToNetID[net.getNetIndex()];
 		}
 
         /** Get a unique, flat net name for the network.  The network 
@@ -417,8 +394,8 @@ public final class HierarchyEnumerator {
          * @return a unique String identifier for the network
          */
         public final String getUniqueNetName(JNetwork net, String sep) {
-            Integer netID = (Integer)netToNetID.get(net);
-            NetDescription ns = (NetDescription)netIdToNetDesc.get(netID);
+            int netID = netToNetID[net.getNetIndex()];
+            NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
             VarContext netContext = ns.getCellInfo().getContext();
 
             StringBuffer buf = new StringBuffer();
@@ -428,14 +405,14 @@ public final class HierarchyEnumerator {
             if (it.hasNext()) {
     			buf.append((String) it.next());
     		} else {
-        		buf.append("netID"+netID.intValue());
+        		buf.append("netID"+netID);
             }
             return buf.toString();
         }
         
 		/** Get the JNetwork that is closest to the root in the design
 		 * hierarchy that corresponds to netID. */
-		public final NetDescription netIdToNetDescription(Integer netID) {
+		public final NetDescription netIdToNetDescription(int netID) {
 			return (NetDescription) netIdToNetDesc.get(netID);
 		}
 

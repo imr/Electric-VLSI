@@ -53,7 +53,7 @@ import java.util.prefs.BackingStoreException;
  * variables that keep track of the currently selected object, and other
  * useful information.
  */
-public class Tool extends ElectricObject implements Changes
+public class Tool extends ElectricObject
 {
 	public class Pref
 	{
@@ -104,6 +104,7 @@ public class Tool extends ElectricObject implements Changes
 
 	// the static list of all tools
 	private static List tools = new ArrayList();
+	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
     /** Preferences for this Tool */                        public Preferences prefs;
@@ -127,6 +128,17 @@ public class Tool extends ElectricObject implements Changes
 		this.toolIndex = toolNumber++;
 		tools.add(this);
         prefs = Preferences.userNodeForPackage(this.getClass());  // per-package namespace for preferences
+	}
+
+	private void updateListeners()
+	{
+		listeners.clear();
+		for (Iterator it = tools.iterator(); it.hasNext(); )
+		{
+			Object o = it.next();
+			if (o instanceof Listener && ((Listener)o).isOn())
+				listeners.add(o);
+		}
 	}
 
 	/**
@@ -181,6 +193,16 @@ public class Tool extends ElectricObject implements Changes
 	public static int getNumTools()
 	{
 		return tools.size();
+	}
+
+	/**
+	 * Method to return an Iterator over all of the Listener in Electric
+	 * which are on.
+	 * @return an Iterator over all of the Listeners in Electric which are on
+	 */
+	public static Iterator getListeners()
+	{
+		return listeners.iterator();
 	}
 
 	/**
@@ -247,13 +269,21 @@ public class Tool extends ElectricObject implements Changes
 	 * Method to set this Tool to be on.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
 	 */
-	public void setOn() { toolState |= TOOLON; }
+	public void setOn()
+	{
+		toolState |= TOOLON;
+		updateListeners();
+	}
 
 	/**
 	 * Method to set this Tool to be off.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
 	 */
-	public void clearOn() { toolState &= ~TOOLON; }
+	public void clearOn()
+	{
+		toolState &= ~TOOLON;
+		updateListeners();
+	}
 
 	/**
 	 * Method to tell whether this Tool is on.
@@ -374,32 +404,4 @@ public class Tool extends ElectricObject implements Changes
 	}
     
 	public void init() {}
-	public void request(String cmd) {}
-	public void examineCell(Cell cell) {}
-	public void slice() {}
-
-	public void startBatch(Tool tool, boolean undoRedo) {}
-	public void endBatch() {}
-
-	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot) {}
-	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot) {}
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
-	public void modifyExport(Export pp, PortInst oldPi) {}
-	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY) {}
-	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1) {}
-
-	public void newObject(ElectricObject obj) {}
-	public void killObject(ElectricObject obj) {}
-	public void redrawObject(ElectricObject obj) {}
-	public void newVariable(ElectricObject obj, Variable var) {}
-	public void killVariable(ElectricObject obj, Variable var) {}
-	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
-	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
-	public void insertVariable(ElectricObject obj, Variable var, int index) {}
-	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
-
-	public void readLibrary(Library lib) {}
-	public void eraseLibrary(Library lib) {}
-	public void writeLibrary(Library lib, boolean pass2) {}
-
 }

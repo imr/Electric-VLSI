@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Point2D;
@@ -134,111 +135,111 @@ public class Undo
 			if (firstchange)
 			{
 				// broadcast a start-batch on the first change
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.startBatch(tool, undoRedo);
+					Listener listener = (Listener)it.next();
+					listener.startBatch(listener, undoRedo);
 				}
 			}
 			if (type == Type.NODEINSTNEW || type == Type.ARCINSTNEW || type == Type.EXPORTNEW ||
 				type == Type.CELLNEW || type == Type.OBJECTNEW)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.newObject(obj);
+					Listener listener = (Listener)it.next();
+					listener.newObject(obj);
 				}
 			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
 				type == Type.CELLKILL || type == Type.OBJECTKILL)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.killObject(obj);
+					Listener listener = (Listener)it.next();
+					listener.killObject(obj);
 				}
 			} else if (type == Type.OBJECTREDRAW)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.redrawObject(obj);
+					Listener listener = (Listener)it.next();
+					listener.redrawObject(obj);
 				}
 			} else if (type == Type.NODEINSTMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyNodeInst((NodeInst)obj, a1, a2, a3, a4, i1);
+					Listener listener = (Listener)it.next();
+					listener.modifyNodeInst((NodeInst)obj, a1, a2, a3, a4, i1);
 				}
 			} else if (type == Type.ARCINSTMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyArcInst((ArcInst)obj, a1, a2, a3, a4, a5);
+					Listener listener = (Listener)it.next();
+					listener.modifyArcInst((ArcInst)obj, a1, a2, a3, a4, a5);
 				}
 			} else if (type == Type.EXPORTMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyExport((Export)obj, (PortInst)o1);
+					Listener listener = (Listener)it.next();
+					listener.modifyExport((Export)obj, (PortInst)o1);
 				}
 			} else if (type == Type.CELLMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyCell((Cell)obj, a1, a2, a3, a4);
+					Listener listener = (Listener)it.next();
+					listener.modifyCell((Cell)obj, a1, a2, a3, a4);
 				}
 			} else if (type == Type.VARIABLENEW)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.newVariable(obj, (Variable)o1);
+					Listener listener = (Listener)it.next();
+					listener.newVariable(obj, (Variable)o1);
 				}
 			} else if (type == Type.VARIABLEKILL)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.killVariable(obj, (Variable)o1);
+					Listener listener = (Listener)it.next();
+					listener.killVariable(obj, (Variable)o1);
 				}
 			} else if (type == Type.VARIABLEMODFLAGS)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyVariableFlags(obj, (Variable)o1, i1);
+					Listener listener = (Listener)it.next();
+					listener.modifyVariableFlags(obj, (Variable)o1, i1);
 				}
 			} else if (type == Type.VARIABLEMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyVariable(obj, (Variable)o1, i1, o2);
+					Listener listener = (Listener)it.next();
+					listener.modifyVariable(obj, (Variable)o1, i1, o2);
 				}
 			} else if (type == Type.VARIABLEINSERT)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.insertVariable(obj, (Variable)o1, i1);
+					Listener listener = (Listener)it.next();
+					listener.insertVariable(obj, (Variable)o1, i1);
 				}
 			} else if (type == Type.VARIABLEDELETE)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.deleteVariable(obj, (Variable)o1, i1, o2);
+					Listener listener = (Listener)it.next();
+					listener.deleteVariable(obj, (Variable)o1, i1, o2);
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2);
+					Listener listener = (Listener)it.next();
+					listener.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2);
 				}
 			}
 			broadcasting = null;
@@ -862,10 +863,10 @@ public class Undo
 		// start the batch of changes
 		Constraints.getCurrent().startBatch(tool, false);
 
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
-			Tool t = (Tool)it.next();
-			if (t.isOn()) t.startBatch(tool, false);
+			Listener listener = (Listener)it.next();
+			listener.startBatch(tool, false);
 		}
 	}
 
@@ -880,10 +881,10 @@ public class Undo
 		// changes made: apply final constraints to this batch of changes
 		Constraints.getCurrent().endBatch();
 
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
-			Tool tool = (Tool)it.next();
-			if (tool.isOn()) tool.endBatch();
+			Listener listener = (Listener)it.next();
+			listener.endBatch();
 		}
 
 		currentBatch = null;
@@ -1178,10 +1179,10 @@ public class Undo
 		}
 
 		// broadcast the end-batch
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
-			Tool tool = (Tool)it.next();
-			if (tool.isOn()) tool.endBatch();
+			Listener listener = (Listener)it.next();
+			listener.endBatch();
 		}
 
 		// mark that this batch is undone
@@ -1221,10 +1222,10 @@ public class Undo
 		}
 
 		// broadcast the end-batch
-		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
-			Tool tool = (Tool)it.next();
-			if (tool.isOn()) tool.endBatch();
+			Listener listener = (Listener)it.next();
+			listener.endBatch();
 		}
 
 		// mark that this batch is redone

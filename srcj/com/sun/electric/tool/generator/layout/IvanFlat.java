@@ -67,7 +67,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			JNetwork net = info.getNetlist().getNetwork(e, 0);
-			Integer netId = info.getNetID(net);
+			int netId = info.getNetID(net);
 			String netNm = generateNetName(netId, info);
 			writeln("EXPORT "+e.getProtoName()+" "+netNm);
 		}
@@ -91,7 +91,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		}
 	}
 
-	private String generateNetName(Integer id,
+	private String generateNetName(int id,
 		                           HierarchyEnumerator.CellInfo info) {
 		HierarchyEnumerator.NetDescription netDesc =
 			info.netIdToNetDescription(id);
@@ -103,7 +103,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		if (it.hasNext()) {
 			netNm = pathNm + (String) it.next();
 		} else {
-			netNm = pathNm + id.intValue();
+			netNm = pathNm + id;
 		}
 		return netNm;
 	}
@@ -114,8 +114,8 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		error(port == null, "can't find port: " + portNm);
 		JNetwork net = info.getNetlist().getNetwork(port);
 		error(net == null, "missing JNetwork for port: " + portNm);
-		Integer id = info.getNetID(net);
-		error(id == null, "missing net ID for port: " + portNm);
+		int id = info.getNetID(net);
+		error(id < 0, "missing net ID for port: " + portNm);
 		return generateNetName(id, info);
 	}
 	
