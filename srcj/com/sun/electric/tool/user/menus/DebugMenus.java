@@ -761,54 +761,17 @@ public class DebugMenus {
      */
     public static void testBash()
     {
-        String regressionname = "area";
-        String logname = "output/"+regressionname+Version.getVersion()+".log";
-  TopLevel.getMessagesWindow().save(logname);
-  String techName = "tsmc90";
-  DebugMenus.makeFakeCircuitryForCoverageCommand(techName, false);
-  Library rootLib = Library.findLibrary("noname");
-  Cell cell = rootLib.findNodeProto("higher{lay}");
-        Technology curTech = cell.getTechnology();
-
-  for(Iterator it = curTech.getLayers(); it.hasNext(); )
-  {
-    Layer layer = (Layer)it.next();
-    Object obj = layerAreaMap.get(layer);
-    if (obj == null) continue;  // it should not happen though
-    GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
-    layer.setFactoryAreaCoverageInfo(value.doubleValue());
-  }
     }
 
     public static void threeViewCommand()
 	{
- 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
-		dialog.setVisible(true);
+// 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
+//		dialog.setVisible(true);
 	}
 
     public static void genFakeNodes()
     {
         makeFakeCircuitryForCoverageCommand("tsmc90", true);
-        /*EditWindow wnd = EditWindow.getCurrent();
-        NodeInst[] cells = new NodeInst[2];
-        int count = 0;
-
-        // Getting the cells
-        for(Iterator it = wnd.getHighlighter().getHighlights().iterator();
-            it.hasNext() && count < 2; )
-        {
-            Highlight h = (Highlight)it.next();
-			ElectricObject eobj = h.getElectricObject();
-			if (h.getType() == Highlight.Type.EOBJ)
-            {
-                if (eobj instanceof NodeInst)
-                    cells[count++] = (NodeInst)eobj;
-                else if (eobj instanceof PortInst)
-                   cells[count++] = ((PortInst)eobj).getNodeInst(); 
-            }
-        }
-        if (count == 2)
-            System.out.println("Result " + DRCConnection.checkCellConnectivity(cells[0], cells[1]));*/
     }
 
 	/**
