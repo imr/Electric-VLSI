@@ -341,7 +341,8 @@ public class TopLevel extends JFrame
         getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;
         // clean up scroll bar
-        getContentPane().remove(sb); sb = null;
+        getContentPane().remove(sb);
+        sb.finished(); sb = null;
         /* Note that this gets called from WindowFrame, and
             WindowFrame has a reference to EditWindow, so
             WindowFrame will call wnd.finished(). */

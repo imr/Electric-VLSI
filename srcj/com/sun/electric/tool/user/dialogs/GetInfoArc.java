@@ -31,17 +31,18 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
-public class GetInfoArc extends EDialog
+public class GetInfoArc extends JDialog implements HighlightListener
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
@@ -66,14 +67,14 @@ public class GetInfoArc extends EDialog
 		theDialog.show();
 	}
 
-	/**
-	 * Method to reload the Arc Get-Info dialog from the current highlighting.
-	 */
-	public static void load()
+    /**
+     * Reloads the dialog when Highlights change
+     */
+    public void highlightChanged()
 	{
-		if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-		theDialog.loadArcInfo();
+        if (!isVisible()) return;
+		loadArcInfo();
+        pack();
 	}
 
 	/** Creates new form Arc Get-Info */
@@ -83,6 +84,9 @@ public class GetInfoArc extends EDialog
 		initComponents();
         getRootPane().setDefaultButton(ok);
 		loadArcInfo();
+        setLocation(100, 50);
+        // add myself as a highlight listener
+        Highlight.addHighlightListener(this);
 	}
 
 	private void loadArcInfo()
@@ -668,8 +672,9 @@ public class GetInfoArc extends EDialog
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-		theDialog = null;
-		dispose();
+		//theDialog = null;
+        //Highlight.removeHighlightListener(this);
+		//dispose();
 	}//GEN-LAST:event_closeDialog
 
 	protected static class ChangeArc extends Job

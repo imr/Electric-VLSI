@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -43,13 +44,13 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.util.List;
 import java.util.Iterator;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
-public class GetInfoExport extends EDialog
+public class GetInfoExport extends JDialog implements HighlightListener
 {
 	private static GetInfoExport theDialog = null;
 	private Export shownExport;
@@ -77,14 +78,13 @@ public class GetInfoExport extends EDialog
 		theDialog.show();
 	}
 
-	/**
-	 * Method to reload the Export Get-Info dialog from the current highlighting.
-	 */
-	public static void load()
+    /**
+     * Reloads the dialog when Highlights change
+     */
+    public void highlightChanged()
 	{
-		if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-		theDialog.loadExportInfo();
+        if (!isVisible()) return;
+		loadExportInfo();
 	}
 
 	private void loadExportInfo()
@@ -165,6 +165,10 @@ public class GetInfoExport extends EDialog
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+        setLocation(100, 50);
+
+        // add myself as a listener for highlight changes
+        Highlight.addHighlightListener(this);
 
         // set characteristic combo box
 		List chars = PortProto.Characteristic.getOrderedCharacteristics();
@@ -236,22 +240,6 @@ public class GetInfoExport extends EDialog
 			return true;
 		}
 	}
-
-    /**
-     * Job to trigger update to Attributes dialog.  Type set to CHANGE and priority to USER
-     * so that in queues in order behind other Jobs from this class: this assures it will
-     * occur after the queued changes
-     */
-    private static class UpdateDialog extends Job {
-        private UpdateDialog() {
-            super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            startJob();
-        }
-        public boolean doIt() {
-            GetInfoExport.load();
-			return true;
-        }
-    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -491,7 +479,8 @@ public class GetInfoExport extends EDialog
         // possibly generate job to change export text options
         textPanel.applyChanges();
         // update dialog
-        UpdateDialog job2 = new UpdateDialog();
+        // TODO: need to be a database change listener
+        //UpdateDialog job2 = new UpdateDialog();
 
         initialName = newName;
         initialBodyOnly = newBodyOnly;
@@ -517,6 +506,7 @@ public class GetInfoExport extends EDialog
 	{
 		setVisible(false);
 		//theDialog = null;
+        //Highlight.removeHighlightListener(this);
 		//dispose();
 	}//GEN-LAST:event_closeDialog
 

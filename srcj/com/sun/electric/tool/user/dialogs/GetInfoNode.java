@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
@@ -57,16 +58,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
+import javax.swing.*;
 
 
 /**
  * Class to handle the "Node Get-Info" dialog.
  */
-public class GetInfoNode extends EDialog
+public class GetInfoNode extends JDialog implements HighlightListener
 {
 	private static GetInfoNode theDialog = null;
 	private static NodeInst shownNode = null;
@@ -101,14 +99,13 @@ public class GetInfoNode extends EDialog
 		theDialog.show();
 	}
 
-	/**
-	 * Method to reload the Node Get-Info dialog from the current highlighting.
-	 */
-	public static void load()
+    /**
+     * Reloads the dialog when Highlights change
+     */
+    public void highlightChanged()
 	{
-		if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-		theDialog.loadNodeInfo();
+        if (!isVisible()) return;
+		loadNodeInfo();
 	}
 
 	/** Creates new form Node Get-Info */
@@ -117,6 +114,10 @@ public class GetInfoNode extends EDialog
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+        setLocation(100, 50);
+
+        // add myself as a listener for highlight changes
+        Highlight.addHighlightListener(this);
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);
         int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
@@ -1617,8 +1618,9 @@ public class GetInfoNode extends EDialog
         if (parameters.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
         if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
 		setVisible(false);
-		theDialog = null;
-		dispose();
+		//theDialog = null;
+        //Highlight.removeHighlightListener(this);
+		//dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -204,18 +204,7 @@ public class User extends Listener
 		}
 
 		// update live dialogs and status bar
-		updateInformationAreas();
-	}
-
-	public void updateInformationAreas()
-	{
-		GetInfoNode.load();
-		GetInfoArc.load();
-		GetInfoExport.load();
-		GetInfoText.load();
-		GetInfoMulti.load();
-		Attributes.load();
-		StatusBar.updateStatusBar();
+		//updateInformationAreas();
 	}
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/

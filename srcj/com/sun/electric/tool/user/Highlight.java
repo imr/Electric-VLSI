@@ -138,6 +138,8 @@ public class Highlight
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
 
+    /** List of HighlightListeners */                           private static List highlightListeners = new ArrayList();
+
 	private static final int EXACTSELECTDISTANCE = 5;
 	private static final int CROSSSIZE = 3;
 
@@ -158,7 +160,7 @@ public class Highlight
 	/**
 	 * Method to clear the list of highlighted objects.
 	 */
-	public static void clear()
+	public static synchronized void clear()
 	{
 		highlightList.clear();
 		highOffX = highOffY = 0;
@@ -168,7 +170,7 @@ public class Highlight
 	 * Method to indicate that changes to highlighting are finished.
 	 * Call this after any change to highlighting.
 	 */
-	public static void finished()
+	public static synchronized void finished()
 	{
 		// see if arcs of a single type were selected
 		boolean mixedArc = false;
@@ -194,7 +196,7 @@ public class Highlight
 		}
 		if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
 
-		User.tool.updateInformationAreas();
+		//User.tool.updateInformationAreas();
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
@@ -204,15 +206,35 @@ public class Highlight
 			EditWindow wnd = (EditWindow)content;
 			wnd.repaint();
 		}
+
+        // notify all listeners that highlights have changed (changes committed).
+        fireHighlightChanged();
 	}
 
+    /** Add a Highlight listener */
+    public static synchronized void addHighlightListener(HighlightListener l) {
+        highlightListeners.add(l);
+    }
+
+    /** Remove a Highlight listener */
+    public static synchronized void removeHighlightListener(HighlightListener l) {
+        highlightListeners.remove(l);
+    }
+
+    /** Notify listeners that highlights have changed */
+    private static synchronized void fireHighlightChanged() {
+        for (Iterator it = highlightListeners.iterator(); it.hasNext(); ) {
+            HighlightListener l = (HighlightListener)it.next();
+            l.highlightChanged();
+        }
+    }
 	/**
 	 * Method to add an ElectricObject to the list of highlighted objects.
 	 * @param eobj the ElectricObject to add to the list of highlighted objects.
 	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addElectricObject(ElectricObject eobj, Cell cell)
+	public static synchronized Highlight addElectricObject(ElectricObject eobj, Cell cell)
 	{
 		Highlight h = new Highlight(Type.EOBJ);
 		h.eobj = eobj;
@@ -229,7 +251,7 @@ public class Highlight
 	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addText(ElectricObject eobj, Cell cell, Variable var, Name name)
+	public static synchronized Highlight addText(ElectricObject eobj, Cell cell, Variable var, Name name)
 	{
 		Highlight h = new Highlight(Type.TEXT);
 		h.eobj = eobj;
@@ -248,7 +270,7 @@ public class Highlight
 	 * @param loc the location of the string (in database units).
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addMessage(Cell cell, String message, Point2D loc)
+	public static synchronized Highlight addMessage(Cell cell, String message, Point2D loc)
 	{
 		Highlight h = new Highlight(Type.MESSAGE);
 		h.msg = message;
@@ -265,7 +287,7 @@ public class Highlight
 	 * @param cell the Cell in which this area resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addArea(Rectangle2D area, Cell cell)
+	public static synchronized Highlight addArea(Rectangle2D area, Cell cell)
 	{
 		Highlight h = new Highlight(Type.BBOX);
 		h.bounds = new Rectangle2D.Double();
@@ -283,7 +305,7 @@ public class Highlight
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addLine(Point2D start, Point2D end, Cell cell)
+	public static synchronized Highlight addLine(Point2D start, Point2D end, Cell cell)
 	{
 		Highlight h = new Highlight(Type.LINE);
 		h.pt1 = new Point2D.Double(start.getX(), start.getY());
@@ -301,7 +323,7 @@ public class Highlight
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
+	public static synchronized Highlight addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
 	{
 		Highlight h = new Highlight(Type.THICKLINE);
 		h.pt1 = new Point2D.Double(start.getX(), start.getY());
@@ -447,7 +469,7 @@ public class Highlight
 	 * Method to return the number of highlighted objects.
 	 * @return the number of highlighted objects.
 	 */
-	public static int getNumHighlights() { return highlightList.size(); }
+	public static synchronized int getNumHighlights() { return highlightList.size(); }
 
 	/**
 	 * Method to return an Iterator over the highlighted objects.
@@ -459,7 +481,7 @@ public class Highlight
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public static void setHighlightList(List newHighlights)
+	public static synchronized void setHighlightList(List newHighlights)
 	{
 		for(Iterator it = newHighlights.iterator(); it.hasNext(); )
 		{
@@ -529,7 +551,7 @@ public class Highlight
 	 * @return a set of the currently selected networks.
 	 * If there are no selected networks, the list is empty.
 	 */
-	public static Set getHighlightedNetworks()
+	public static synchronized Set getHighlightedNetworks()
 	{
 		Set nets = new HashSet();
 		Cell cell = WindowFrame.getCurrentCell();
@@ -632,7 +654,7 @@ public class Highlight
 	 * the export text will not be included if "unique" is true.
 	 * @return a list with the Highlight objects that point to text.
 	 */
-	public static List getHighlightedText(boolean unique)
+	public static synchronized List getHighlightedText(boolean unique)
 	{
 		// now place the objects in the list
 		List highlightedText = new ArrayList();
@@ -706,7 +728,7 @@ public class Highlight
 	 * @param wnd the window in which to get bounds.
 	 * @return the bounds of the highlighted objects (null if nothing is highlighted).
 	 */
-	public static Rectangle2D getHighlightedArea(EditWindow wnd)
+	public static synchronized Rectangle2D getHighlightedArea(EditWindow wnd)
 	{
 		// initially no area
 		Rectangle2D bounds = null;
@@ -772,7 +794,7 @@ public class Highlight
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlighted object (null if error).
 	 */
-	public static Highlight getOneHighlight()
+	public static synchronized Highlight getOneHighlight()
 	{
 		if (getNumHighlights() == 0)
 		{
@@ -793,7 +815,7 @@ public class Highlight
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlighted object (null if error).
 	 */
-	public static ElectricObject getOneElectricObject(Class type)
+	public static synchronized ElectricObject getOneElectricObject(Class type)
 	{
 		Highlight high = getOneHighlight();
 		if (high == null) return null;
@@ -822,7 +844,7 @@ public class Highlight
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.
 	 */
-	public static void setHighlightOffset(int offX, int offY)
+	public static synchronized void setHighlightOffset(int offX, int offY)
 	{
 		highOffX = offX;
 		highOffY = offY;
@@ -832,7 +854,7 @@ public class Highlight
      * Method to return the screen offset for the display of highlighting
      * @return a Point2D containing the x and y offset.
      */
-    public static Point2D getHighlightOffset()
+    public static synchronized Point2D getHighlightOffset()
     {
         return new Point2D.Double(highOffX, highOffY);
     }
@@ -847,7 +869,7 @@ public class Highlight
 	 * @param invertSelection is true to invert the selection (remove what is already highlighted and add what is new).
 	 * @param findSpecial is true to find hard-to-select objects.
 	 */
-	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY,
+	public static synchronized void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY,
 		boolean invertSelection, boolean findSpecial)
 	{
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
@@ -884,7 +906,7 @@ public class Highlight
 	 * @param y the Y screen coordinate of the point.
 	 * @return true if the point is over this Highlight.
 	 */
-	public static boolean overHighlighted(EditWindow wnd, int x, int y)
+	public static synchronized boolean overHighlighted(EditWindow wnd, int x, int y)
 	{
 		for(Iterator it = getHighlights(); it.hasNext(); )
 		{

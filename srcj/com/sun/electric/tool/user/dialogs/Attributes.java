@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -57,7 +58,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes extends EDialog
+public class Attributes extends JDialog implements HighlightListener
 {
     private static Attributes theDialog = null;
     private DefaultListModel listModel;
@@ -97,13 +98,12 @@ public class Attributes extends EDialog
     }
 
     /**
-     * Method to reload the Attributes dialog from the current highlighting.
+     * Reloads the dialog when Highlights change
      */
-    public static void load()
+    public void highlightChanged()
     {
-        if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-        theDialog.loadAttributesInfo();
+        if (!isVisible()) return;
+        loadAttributesInfo();
     }
 
     /**
@@ -113,6 +113,10 @@ public class Attributes extends EDialog
     {
         super(parent, modal);
         initComponents();
+        setLocation(100, 50);
+
+        // add myself as a listener for highlight changes
+        Highlight.addHighlightListener(this);
 
         // make the list
         listModel = new DefaultListModel();
@@ -517,7 +521,8 @@ public class Attributes extends EDialog
             if (var == null) return false;
             owner.delVar(var.getKey());
             // update the attributes dialog
-            Attributes.load();
+            // TODO: need to be database change listener
+            //Attributes.load();
             return true;
         }
     }
@@ -553,22 +558,6 @@ public class Attributes extends EDialog
                 td.setParam();
                 td.setInherit();
             }
-            return true;
-        }
-    }
-
-    /**
-     * Job to trigger update to Attributes dialog.  Type set to CHANGE and priority to USER
-     * so that in queues in order behind other Jobs from this class: this assures it will
-     * occur after the queued changes
-     */
-    private static class UpdateDialog extends Job {
-        private UpdateDialog() {
-            super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            startJob();
-        }
-        public boolean doIt() {
-            Attributes.load();
             return true;
         }
     }
@@ -1097,7 +1086,6 @@ public class Attributes extends EDialog
     private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
     {
         setVisible(false);
-//		dispose();
     }//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -35,6 +35,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.HighlightListener;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -49,7 +50,7 @@ import javax.swing.border.BevelBorder;
 /**
  * This class manages the Electric status bar at the bottom of the edit window.
  */
-public class StatusBar extends JPanel
+public class StatusBar extends JPanel implements HighlightListener
 {
 	//private int fillPosition;
 	private WindowFrame frame;
@@ -71,6 +72,9 @@ public class StatusBar extends JPanel
 		addField(fieldTech = new JLabel(), 2);
 		fieldCoords = new JLabel();
 		if (User.isShowCursorCoordinates()) addField(fieldCoords, 3);
+
+        // add myself as listener for highlight changes
+        Highlight.addHighlightListener(this);
 	}
 
 	private void addField(JLabel field, int index)
@@ -129,6 +133,11 @@ public class StatusBar extends JPanel
 		selectionOverride = ov;
 		updateStatusBar();
 	}
+
+    public void highlightChanged()
+    {
+        redoStatusBar();
+    }
 
 	/**
 	 * Method to update the status bar from current values.
@@ -284,5 +293,12 @@ public class StatusBar extends JPanel
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
 	}
+
+    /**
+     * Call when done with this Object. Cleans up references to this object.
+     */
+    public void finished() {
+        Highlight.removeHighlightListener(this);
+    }
 
 }

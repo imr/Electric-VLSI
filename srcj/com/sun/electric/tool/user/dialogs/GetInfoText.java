@@ -40,6 +40,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -52,12 +53,13 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.border.BevelBorder;
 
 /**
  * Class to handle the "Text Get-Info" dialog.
  */
-public class GetInfoText extends EDialog {
+public class GetInfoText extends JDialog implements HighlightListener {
     private static GetInfoText theDialog = null;
     private Highlight shownText;
     private String initialText;
@@ -83,12 +85,12 @@ public class GetInfoText extends EDialog {
     }
 
     /**
-     * Method to reload the Text Get-Info dialog from the current highlighting.
+     * Reloads the dialog when Highlights change
      */
-    public static void load() {
-        if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-        theDialog.loadTextInfo();
+    public void highlightChanged()
+    {
+        if (!isVisible()) return;
+        loadTextInfo();
     }
 
     private void loadTextInfo() {
@@ -212,6 +214,10 @@ public class GetInfoText extends EDialog {
         super(parent, modal);
         initComponents();
         getRootPane().setDefaultButton(ok);
+        setLocation(100, 50);
+
+        // add myself as a listener for Highlight changes
+        Highlight.addHighlightListener(this);
 
         loadTextInfo();
     }
@@ -248,25 +254,8 @@ public class GetInfoText extends EDialog {
                     }
                 }
             }
-            GetInfoText.load();
-            return true;
-        }
-    }
-
-    /**
-     * Job to trigger update to Attributes dialog.  Type set to CHANGE and priority to USER
-     * <p/>
-     * so that in queues in order behind other Jobs from this class: this assures it will
-     * <p/>
-     * occur after the queued changes
-     */
-    private static class UpdateDialog extends Job {
-        private UpdateDialog() {
-            super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            startJob();
-        }
-        public boolean doIt() {
-            GetInfoText.load();
+            // TODO: need to be a database change listener
+            //GetInfoText.highlightChanged();
             return true;
         }
     }
@@ -556,6 +545,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
     private void closeDialog(java.awt.event.WindowEvent evt) {
         setVisible(false);
         //theDialog = null;
+        //Highlight.removeHighlightListener(this);
         //dispose();
     }
 

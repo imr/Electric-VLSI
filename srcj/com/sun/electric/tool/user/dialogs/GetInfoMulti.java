@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Rectangle2D;
@@ -43,16 +44,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
+import javax.swing.*;
 
 
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
-public class GetInfoMulti extends EDialog
+public class GetInfoMulti extends JDialog implements HighlightListener
 {
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
@@ -76,13 +74,12 @@ public class GetInfoMulti extends EDialog
 	}
 
 	/**
-	 * Method to reload the Multi-object Get-Info dialog from the current highlighting.
+	 * Reloads the dialog when Highlights change
 	 */
-	public static void load()
+	public void highlightChanged()
 	{
-		if (theDialog == null) return;
-        if (!theDialog.isVisible()) return;
-		theDialog.loadMultiInfo();
+        if (!isVisible()) return;
+		loadMultiInfo();
 	}
 
 	/** Creates new form Multi-Object Get Info */
@@ -92,6 +89,10 @@ public class GetInfoMulti extends EDialog
 		highlightList = new ArrayList();
 		initComponents();
         getRootPane().setDefaultButton(ok);
+        setLocation(100, 50);
+
+        // add myself as a listener to Highlights
+        Highlight.addHighlightListener(this);
 
 		// make the list
 		listModel = new DefaultListModel();
@@ -893,8 +894,9 @@ public class GetInfoMulti extends EDialog
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-		theDialog = null;
-		dispose();
+		//theDialog = null;
+        //Highlight.removeHighlightListener(this);
+		//dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
