@@ -1244,6 +1244,12 @@ public class CircuitChanges
 				Highlight h = (Highlight)it.next();
 				Geometric geom = h.getGeometric();
 				if (geom == null) continue;
+				if (h.getType() == Highlight.Type.TEXT)
+				{
+					ElectricObject eobj = h.getElectricObject();
+					if (eobj instanceof Export) continue;
+				}
+
 				if (cell != h.getCell())
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),

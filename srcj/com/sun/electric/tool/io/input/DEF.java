@@ -1,39 +1,42 @@
 /* -*- tab-width: 4 -*-
-*
-* Electric(tm) VLSI Design System
-*
-* File: DEF.java
-* Input/output tool: DEF (Design Exchange Format) reader
-* Written by Steven M. Rubin, Sun Microsystems.
-*
-* Copyright (c) 2004 Sun Microsystems and Static Free Software
-*
-* Electric(tm) is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* Electric(tm) is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Electric(tm); see the file COPYING.  If not, write to
-* the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-* Boston, Mass 02111-1307, USA.
-*/
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: DEF.java
+ * Input/output tool: DEF (Design Exchange Format) reader
+ * Written by Steven M. Rubin, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto.Function;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
@@ -45,6 +48,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
@@ -60,19 +64,19 @@ import java.util.List;
  */
 public class DEF extends Input
 {
-	private String    io_defline;
-	private String   io_deffilename;
-	private int  io_deflinepos;
+	private String  io_defline;
+	private String  io_deffilename;
+	private int     io_deflinepos;
 	private double  io_defunits;
-	private VIADEF io_deffirstviadef;
+	private VIADEF  io_deffirstviadef;
 
 	private static class VIADEF
 	{
-		String       vianame;
-		NodeProto  via;
-		ArcProto   lay1, lay2;
-		double      sx, sy;
-		VIADEF nextviadef;
+		private String    vianame;
+		private NodeProto via;
+		private ArcProto  lay1, lay2;
+		private double    sx, sy;
+		private VIADEF    nextviadef;
 	};
 
 	/**
@@ -225,25 +229,25 @@ public class DEF extends Input
 	
 			if (key.equalsIgnoreCase("COMPONENTS"))
 			{
-//				if (io_defreadcomponents(cell)) return true;
+				if (io_defreadcomponents(cell)) return true;
 				continue;
 			}
 	
 			if (key.equalsIgnoreCase("PINS"))
 			{
-//				if (io_defreadpins(cell)) return true;
+				if (io_defreadpins(cell)) return true;
 				continue;
 			}
 	
 			if (key.equalsIgnoreCase("SPECIALNETS"))
 			{
-//				if (io_defreadnets(cell, true)) return true;
+				if (io_defreadnets(cell, true)) return true;
 				continue;
 			}
 	
 			if (key.equalsIgnoreCase("NETS"))
 			{
-//				if (io_defreadnets(cell, false)) return true;
+				if (io_defreadnets(cell, false)) return true;
 				continue;
 			}
 	
@@ -273,27 +277,6 @@ public class DEF extends Input
 		}
 		return false;
 	}
-//	
-//	BOOLEAN io_defreadorientation(FILE *f, INTSML *rot, INTSML *trans)
-//	{
-//		REGISTER CHAR *key;
-//	
-//		key = io_defmustgetkeyword(f, _("orientation"));
-//		if (key == 0) return(TRUE);
-//		if (namesame(key, x_("N"))  == 0) { *rot = 0;    *trans = 0; } else
-//		if (namesame(key, x_("S"))  == 0) { *rot = 1800; *trans = 0; } else
-//		if (namesame(key, x_("E"))  == 0) { *rot = 2700; *trans = 0; } else
-//		if (namesame(key, x_("W"))  == 0) { *rot = 900;  *trans = 0; } else
-//		if (namesame(key, x_("FN")) == 0) { *rot = 900;  *trans = 1; } else
-//		if (namesame(key, x_("FS")) == 0) { *rot = 2700; *trans = 1; } else
-//		if (namesame(key, x_("FE")) == 0) { *rot = 1800; *trans = 1; } else
-//		if (namesame(key, x_("FW")) == 0) { *rot = 0;    *trans = 1; } else
-//		{
-//			io_definerror(_("Unknown orientation (%s)"), key);
-//			return(TRUE);
-//		}
-//		return false;
-//	}
 
 	private Point2D io_defreadcoordinate()
 		throws IOException
@@ -353,6 +336,56 @@ public class DEF extends Input
 		}
 		return null;
 	}
+	private class GetOrientation
+	{
+		int angle;
+		boolean mX, mY;
+
+		GetOrientation()
+			throws IOException
+		{
+			String key = io_defmustgetkeyword("orientation");
+			if (key == null) return;
+			boolean transpose = false;
+			if (key.equalsIgnoreCase("N")) { angle = 0; } else
+			if (key.equalsIgnoreCase("S")) { angle = 1800; } else
+			if (key.equalsIgnoreCase("E")) { angle = 2700; } else
+			if (key.equalsIgnoreCase("W")) { angle = 900; } else
+			if (key.equalsIgnoreCase("FN")) { angle = 900;  transpose = true; } else
+			if (key.equalsIgnoreCase("FS")) { angle = 2700; transpose = true; } else
+			if (key.equalsIgnoreCase("FE")) { angle = 1800; transpose = true; } else
+			if (key.equalsIgnoreCase("FW")) { angle = 0;    transpose = true; } else
+			{
+				io_definerror("Unknown orientation (" + key + ")");
+				return;
+			}
+			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(angle, transpose);
+			angle = ost.getJAngle();
+			mX = ost.isJMirrorX();
+			mY = ost.isJMirrorY();
+		}
+	}
+//	
+//	BOOLEAN io_defreadorientation(FILE *f, INTSML *rot, INTSML *trans)
+//	{
+//		REGISTER CHAR *key;
+//	
+//		key = io_defmustgetkeyword(f, _("orientation"));
+//		if (key == 0) return(TRUE);
+//		if (namesame(key, x_("N"))  == 0) { *rot = 0;    *trans = 0; } else
+//		if (namesame(key, x_("S"))  == 0) { *rot = 1800; *trans = 0; } else
+//		if (namesame(key, x_("E"))  == 0) { *rot = 2700; *trans = 0; } else
+//		if (namesame(key, x_("W"))  == 0) { *rot = 900;  *trans = 0; } else
+//		if (namesame(key, x_("FN")) == 0) { *rot = 900;  *trans = 1; } else
+//		if (namesame(key, x_("FS")) == 0) { *rot = 2700; *trans = 1; } else
+//		if (namesame(key, x_("FE")) == 0) { *rot = 1800; *trans = 1; } else
+//		if (namesame(key, x_("FW")) == 0) { *rot = 0;    *trans = 1; } else
+//		{
+//			io_definerror(_("Unknown orientation (%s)"), key);
+//			return(TRUE);
+//		}
+//		return false;
+//	}
 
 	private static class GetLayerInformation
 	{
@@ -476,6 +509,158 @@ public class DEF extends Input
 		}
 	}
 
+	/*************** PINS ***************/
+	
+	private boolean io_defreadpins(Cell cell)
+		throws IOException
+	{
+		if (io_defignoretosemicolon("PINS")) return true;
+		for(;;)
+		{
+			// get the next keyword
+			String key = io_defmustgetkeyword("PINs");
+			if (key == null) return true;
+			if (key.equals("-"))
+			{
+				if (io_defreadpin(cell)) return true;
+				continue;
+			}
+	
+			if (key.equalsIgnoreCase("END"))
+			{
+				key = io_defgetkeyword();
+				break;
+			}
+	
+			// ignore the keyword
+			if (io_defignoretosemicolon(key)) return true;
+		}
+		return false;
+	}
+	
+	private boolean io_defreadpin(Cell cell)
+		throws IOException
+	{
+		// get the pin name
+		String key = io_defmustgetkeyword("PIN");
+		if (key == null) return true;
+		String pinname = key;
+		PortCharacteristic portbits = null;
+		int havecoord = 0;
+		NodeProto np = null;
+		Point2D ll = null, ur = null, xy = null;
+		boolean haveCoord = false;
+		GetOrientation orient = null;
+
+		for(;;)
+		{
+			// get the next keyword
+			key = io_defmustgetkeyword("PIN");
+			if (key == null) return true;
+			if (key.equals("+"))
+			{
+				key = io_defmustgetkeyword("PIN");
+				if (key == null) return true;
+				if (key.equalsIgnoreCase("NET"))
+				{
+					key = io_defmustgetkeyword("net name");
+					if (key == null) return true;
+					continue;
+				}
+				if (key.equalsIgnoreCase("DIRECTION"))
+				{
+					key = io_defmustgetkeyword("DIRECTION");
+					if (key == null) return true;
+					if (key.equalsIgnoreCase("INPUT")) portbits = PortCharacteristic.IN; else
+					if (key.equalsIgnoreCase("OUTPUT")) portbits = PortCharacteristic.OUT; else
+					if (key.equalsIgnoreCase("INOUT")) portbits = PortCharacteristic.BIDIR; else
+					if (key.equalsIgnoreCase("FEEDTHRU")) portbits = PortCharacteristic.BIDIR; else
+					{
+						io_definerror("Unknown direction (" + key + ")");
+						return true;
+					}
+					continue;
+				}
+				if (key.equalsIgnoreCase("USE"))
+				{
+					key = io_defmustgetkeyword("USE");
+					if (key == null) return true;
+					if (key.equalsIgnoreCase("SIGNAL")) ; else
+					if (key.equalsIgnoreCase("POWER")) portbits = PortCharacteristic.PWR; else
+					if (key.equalsIgnoreCase("GROUND")) portbits = PortCharacteristic.GND; else
+					if (key.equalsIgnoreCase("CLOCK")) portbits = PortCharacteristic.CLK; else
+					if (key.equalsIgnoreCase("TIEOFF")) ; else
+					if (key.equalsIgnoreCase("ANALOG")) ; else
+					{
+						io_definerror("Unknown usage (" + key + ")");
+						return true;
+					}
+					continue;
+				}
+				if (key.equalsIgnoreCase("LAYER"))
+				{
+					key = io_defmustgetkeyword("LAYER");
+					if (key == null) return true;
+					GetLayerInformation li = new GetLayerInformation(key);
+					if (li.pin == null)
+					{
+						io_definerror("Unknown layer (" + key + ")");
+						return true;
+					}
+					np = li.pin;
+					ll = io_defreadcoordinate();
+					if (ll == null) return true;
+					ur = io_defreadcoordinate();
+					if (ur == null) return true;
+					continue;
+				}
+				if (key.equalsIgnoreCase("PLACED"))
+				{
+					// get pin location and orientation
+					xy = io_defreadcoordinate();
+					if (xy == null) return true;
+					orient = new GetOrientation();
+					haveCoord = true;
+					continue;
+				}
+				continue;
+			}
+	
+			if (key.equals(";"))
+				break;
+		}
+	
+		// all factors read, now place the pin
+		if (np != null && haveCoord)
+		{
+			// determine the pin size
+			AffineTransform trans = NodeInst.pureRotate(orient.angle, orient.mX, orient.mY);
+			trans.transform(ll, ll);
+			trans.transform(ur, ur);
+			double sX = Math.abs(ll.getX() - ur.getX());
+			double sY = Math.abs(ll.getY() - ur.getY());
+			double cX = (ll.getX() + ur.getX()) / 2 + xy.getX();
+			double cY = (ll.getY() + ur.getY()) / 2 + xy.getY();
+	
+			// make the pin
+			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, cell);
+			if (ni == null)
+			{
+				io_definerror("Unable to create pin");
+				return true;
+			}
+			PortInst pi = ni.findPortInstFromProto(np.getPort(0));
+			Export e = Export.newInstance(cell, pi, pinname);
+			if (e == null)
+			{
+				io_definerror("Unable to create pin name");
+				return true;
+			}
+			e.setCharacteristic(portbits);
+		}
+		return false;
+	}
+
 	/*************** COMPONENTS ***************/
 	
 	private boolean io_defreadcomponents(Cell cell)
@@ -508,16 +693,6 @@ public class DEF extends Input
 	private boolean io_defreadcomponent(Cell cell)
 		throws IOException
 	{
-//		REGISTER CHAR *key;
-//		INTBIG x, y, cx, cy;
-//		INTBIG sx, sy;
-//		REGISTER INTBIG lx, hx, ly, hy;
-//		REGISTER NODEINST *ni;
-//		REGISTER NODEPROTO *np;
-//		REGISTER VARIABLE *var;
-//		INTSML rot, trans;
-//		CHAR compname[200], modelname[200];
-	
 		// get the component name and model name
 		String key = io_defmustgetkeyword("COMPONENT");
 		if (key == null) return true;
@@ -548,25 +723,19 @@ public class DEF extends Input
 					// handle placement
 					Point2D pt = io_defreadcoordinate();
 					if (pt == null) return true;
-//					if (io_defreadcoordinate(f, &x, &y)) return true;
-//					if (io_defreadorientation(f, &rot, &trans)) return true;
-//	
-//					// place the node
-//					defaultnodesize(np, &sx, &sy);
-//					corneroffset(NONODEINST, np, 0, 0, &cx, &cy, FALSE);
-//					lx = x - cx;   hx = lx + sx;
-//					ly = y - cy;   hy = ly + sy;
-//					ni = newnodeinst(np, lx, hx, ly, hy, trans, rot, cell);
-//					if (ni == NONODEINST)
-//					{
-//						io_definerror(_("Unable to create node"));
-//						return true;
-//					}
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//					var = setvalkey((INTBIG)ni, VNODEINST, el_node_name_key,
-//						(INTBIG)compname, VSTRING|VDISPLAY);
-//					if (var != NOVARIABLE)
-//						defaulttextsize(3, var->textdescript);
+					GetOrientation or = new GetOrientation();
+	
+					// place the node
+					double sX = np.getDefWidth();
+					double sY = np.getDefHeight();
+					if (or.mX) sX = -sX;
+					if (or.mY) sY = -sY;
+					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compname, 0);
+					if (ni == null)
+					{
+						io_definerror("Unable to create node");
+						return true;
+					}
 					continue;
 				}
 				continue;
@@ -577,6 +746,451 @@ public class DEF extends Input
 		return false;
 	}
 	
+	/*************** NETS ***************/
+	
+	private boolean io_defreadnets(Cell cell, boolean special)
+		throws IOException
+	{
+		for(;;)
+		{
+			// get the next keyword
+			String key = io_defmustgetkeyword("NETs");
+			if (key == null) return true;
+			if (key.equals("-"))
+			{
+				if (io_defreadnet(cell, special)) return true;
+				continue;
+			}
+			if (key.equalsIgnoreCase("END"))
+			{
+				key = io_defgetkeyword();
+				break;
+			}
+	
+			// ignore the keyword
+			if (io_defignoretosemicolon(key)) return true;
+		}
+		return false;
+	}
+	
+	private boolean io_defreadnet(Cell cell, boolean special)
+		throws IOException
+	{
+//		REGISTER CHAR *key;
+//		INTBIG lx, hx, ly, hy, plx, ply, phx, phy, sx, sy, fx, fy, tx, ty;
+//		REGISTER INTBIG i, curx, cury, lastx, lasty, pathstart, placedvia, width,
+//			wantpinpairs, specialwidth, bits;
+//		NODEINST *ni, *lastni, *nextni;
+//		REGISTER NODEINST *lastlogni;
+//		REGISTER ARCINST *ai;
+//		REGISTER BOOLEAN foundcoord;
+//		PORTPROTO *pp, *lastpp, *nextpp;
+//		REGISTER PORTPROTO *lastlogpp;
+//		REGISTER NODEPROTO *np;
+//		NODEPROTO *pin, *pure;
+//		ARCPROTO *routap;
+//		REGISTER VARIABLE *var;
+//		float v;
+//		CHAR netname[200];
+//		REGISTER VIADEF *vd;
+//	
+//		// get the net name
+//		key = io_defmustgetkeyword(f, x_("NET"));
+//		if (key == null) return true;
+//		estrcpy(netname, key);
+//	
+//		// get the next keyword
+//		key = io_defmustgetkeyword(f, x_("NET"));
+//		if (key == null) return true;
+//	
+//		// scan the "net" statement
+//		wantpinpairs = 1;
+//		lastx = lasty = 0;
+//		pathstart = 1;
+//		lastlogni = null;
+//		for(;;)
+//		{
+//			// examine the next keyword
+//			if (namesame(key, x_(";")) == 0) break;
+//	
+//			if (namesame(key, x_("+")) == 0)
+//			{
+//				wantpinpairs = 0;
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == 0) return true;
+//	
+//				if (namesame(key, x_("USE")) == 0)
+//				{
+//					// ignore "USE" keyword
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//				} else if (namesame(key, x_("ROUTED")) == 0)
+//				{
+//					// handle "ROUTED" keyword
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//					io_defgetlayernodes(key, &pin, &pure, &routap);
+//					if (pin == NONODEPROTO)
+//					{
+//						io_definerror(_("Unknown layer (%s)"), key);
+//						return true;
+//					}
+//					pathstart = 1;
+//					if (special)
+//					{
+//						// specialnets have width here
+//						key = io_defmustgetkeyword(f, x_("NET"));
+//						if (key == null) return true;
+//						v = (float)eatof(key) / (float)io_defunits;
+//						specialwidth = scalefromdispunit(v, DISPUNITMIC);
+//					}
+//				} else if (namesame(key, x_("FIXED")) == 0)
+//				{
+//					// handle "FIXED" keyword
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//					io_defgetlayernodes(key, &pin, &pure, &routap);
+//					if (pin == NONODEPROTO)
+//					{
+//						io_definerror(_("Unknown layer (%s)"), key);
+//						return true;
+//					}
+//					pathstart = 1;
+//				} else if (namesame(key, x_("SHAPE")) == 0)
+//				{
+//					// handle "SHAPE" keyword
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//				} else
+//				{
+//					io_definerror(_("Cannot handle '%s' nets"), key);
+//					return true;
+//				}
+//	
+//				// get next keyword
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				continue;
+//			}
+//	
+//			// if still parsing initial pin pairs, do so
+//			if (wantpinpairs != 0)
+//			{
+//				// it must be the "(" of a pin pair
+//				if (namesame(key, x_("(")) != 0)
+//				{
+//					io_definerror(_("Expected '(' of pin pair"));
+//					return true;
+//				}
+//	
+//				// get the pin names
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (namesame(key, x_("PIN")) == 0)
+//				{
+//					// find the export
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == 0) return true;
+//					pp = getportproto(cell, key);
+//					if (pp == null)
+//					{
+//						io_definerror(_("Warning: unknown pin '%s'"), key);
+//						if (io_defignoretosemicolon(f, _("NETS"))) return true;
+//						return false;
+//					}
+//					ni = pp->subnodeinst;
+//					pp = pp->subportproto;
+//				} else
+//				{
+//					for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//					{
+//						var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
+//						if (var == NOVARIABLE) continue;
+//						if (namesame((CHAR *)var->addr, key) == 0) break;
+//					}
+//					if (ni == null)
+//					{
+//						io_definerror(_("Unknown component '%s'"), key);
+//						return true;
+//					}
+//	
+//					// get the port name
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//					pp = getportproto(ni->proto, key);
+//					if (pp == null)
+//					{
+//						io_definerror(_("Unknown port '%s' on component '%s'"),
+//							key, (CHAR *)var->addr);
+//						return true;
+//					}
+//				}
+//	
+//				// get the close parentheses
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (namesame(key, x_(")")) != 0)
+//				{
+//					io_definerror(_("Expected ')' of pin pair"));
+//					return true;
+//				}
+//	
+//				if (lastlogni != NONODEINST && !IOTool.isDEFLogicalPlacement())
+//				{
+//					portposition(ni, pp, &fx, &fy);
+//	
+//					// LINTED "lastlogpp" used in proper order
+//					portposition(lastlogni, lastlogpp, &tx, &ty);
+//					bits = us_makearcuserbits(gen_unroutedarc);
+//					ai = newarcinst(gen_unroutedarc, defaultarcwidth(gen_unroutedarc), bits,
+//						ni, pp, fx, fy, lastlogni, lastlogpp, tx, ty, cell);
+//					if (ai == null)
+//					{
+//						io_definerror(_("Could not create unrouted arc"));
+//						return true;
+//					}
+//				}
+//				lastlogni = ni;
+//				lastlogpp = pp;
+//	
+//				// get the next keyword and continue parsing
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				continue;
+//			}
+//	
+//			// handle "new" start of coordinate trace
+//			if (namesame(key, x_("NEW")) == 0)
+//			{
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				io_defgetlayernodes(key, &pin, &pure, &routap);
+//				if (pin == NONODEPROTO)
+//				{
+//					io_definerror(_("Unknown layer (%s)"), key);
+//					return true;
+//				}
+//				pathstart = 1;
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (special)
+//				{
+//					// specialnets have width here
+//					v = (float)eatof(key) / (float)io_defunits;
+//					specialwidth = scalefromdispunit(v, DISPUNITMIC);
+//	
+//					// get the next keyword
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//				}
+//				continue;
+//			}
+//	
+//			foundcoord = FALSE;
+//			if (namesame(key, x_("(")) == 0)
+//			{
+//				// get the X coordinate
+//				foundcoord = TRUE;
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (estrcmp(key, x_("*")) == 0) curx = lastx; else
+//				{
+//					v = (float)eatof(key) / (float)io_defunits;
+//					curx = scalefromdispunit(v, DISPUNITMIC);
+//				}
+//	
+//				// get the Y coordinate
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (estrcmp(key, x_("*")) == 0) cury = lasty; else
+//				{
+//					v = (float)eatof(key) / (float)io_defunits;
+//					cury = scalefromdispunit(v, DISPUNITMIC);
+//				}
+//	
+//				// get the close parentheses
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//				if (namesame(key, x_(")")) != 0)
+//				{
+//					io_definerror(_("Expected ')' of coordinate pair"));
+//					return true;
+//				}
+//			}
+//	
+//			// get the next keyword
+//			key = io_defmustgetkeyword(f, x_("NET"));
+//			if (key == null) return true;
+//	
+//			// see if it is a via name
+//			for(vd = io_deffirstviadef; vd != NOVIADEF; vd = vd->nextviadef)
+//				if (namesame(key, vd->vianame) == 0) break;
+//			if (vd == null)
+//			{
+//				// see if the via name is from the LEF file
+//				for(vd = io_leffirstviadef; vd != NOVIADEF; vd = vd->nextviadef)
+//					if (namesame(key, vd->vianame) == 0) break;
+//			}
+//	
+//			// stop now if not placing physical nets
+//			if (IOTool.isDEFPhysicalPlacement())
+//			{
+//				// ignore the next keyword if a via name is coming
+//				if (vd != null)
+//				{
+//					key = io_defmustgetkeyword(f, x_("NET"));
+//					if (key == null) return true;
+//				}
+//				continue;
+//			}
+//	
+//			// if a via is mentioned next, use it
+//			if (vd != null)
+//			{
+//				// place the via at this location
+//				sx = vd->sx;
+//				sy = vd->sy;
+//				lx = curx - sx / 2;   hx = lx + sx;
+//				ly = cury - sy / 2;   hy = ly + sy;
+//				if (vd->via == null)
+//				{
+//					io_definerror(_("Cannot to create via"));
+//					return true;
+//				}
+//	
+//				// see if there is a connection point here when starting a path
+//				if (pathstart != 0)
+//				{
+//					if (!io_deffindconnection(curx, cury, routap, cell, NONODEINST,
+//						&lastni, &lastpp)) lastni = NONODEINST;
+//				}
+//	
+//				// create the via
+//				nodeprotosizeoffset(vd->via, &plx, &ply, &phx, &phy, cell);
+//				ni = newnodeinst(vd->via, lx-plx, hx+phx, ly-ply, hy+phy, 0, 0, cell);
+//				if (ni == null)
+//				{
+//					io_definerror(_("Unable to create via layer"));
+//					return true;
+//				}
+//				pp = ni->proto->firstportproto;
+//	
+//				// if the path starts with a via, wire it
+//				if (pathstart != 0 && lastni != null && foundcoord)
+//				{
+//					if (special) width = specialwidth; else
+//					{
+//						var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
+//						if (var == null) width = defaultarcwidth(routap); else
+//							width = var->addr;
+//					}
+//					ai = newarcinst(routap, width, us_makearcuserbits(routap),
+//						lastni, lastpp, curx, cury, ni, pp, curx, cury, cell);
+//					if (ai == null)
+//					{
+//						io_definerror(_("Unable to create net starting point"));
+//						return true;
+//					}
+//					endobjectchange((INTBIG)ai, VARCINST);
+//				}
+//	
+//				// remember that a via was placed
+//				placedvia = 1;
+//	
+//				// get the next keyword
+//				key = io_defmustgetkeyword(f, x_("NET"));
+//				if (key == null) return true;
+//			} else
+//			{
+//				// no via mentioned: just make a pin
+//				if (io_defgetpin(curx, cury, routap, cell, &ni, &pp)) return true;
+//				placedvia = 0;
+//			}
+//			if (!foundcoord) continue;
+//	
+//			// run the wire
+//			if (pathstart == 0)
+//			{
+//				// make sure that this arc can connect to the current pin
+//				for(i=0; pp->connects[i] != null; i++)
+//					if (pp->connects[i] == routap) break;
+//				if (pp->connects[i] == null)
+//				{
+//					np = getpinproto(routap);
+//					defaultnodesize(np, &sx, &sy);
+//					lx = curx - sx / 2;   hx = lx + sx;
+//					ly = cury - sy / 2;   hy = ly + sy;
+//					ni = newnodeinst(np, lx, hx, ly, hy, 0, 0, cell);
+//					if (ni == null)
+//					{
+//						io_definerror(_("Unable to create net pin"));
+//						return true;
+//					}
+//					pp = ni->proto->firstportproto;
+//				}
+//	
+//				// run the wire
+//				if (special) width = specialwidth; else
+//				{
+//					var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
+//					if (var == null) width = defaultarcwidth(routap); else
+//						width = var->addr;
+//				}
+//				ai = newarcinst(routap, width, us_makearcuserbits(routap),
+//					lastni, lastpp, lastx, lasty, ni, pp, curx, cury, cell);
+//				if (ai == null)
+//				{
+//					io_definerror(_("Unable to create net path"));
+//					return true;
+//				}
+//				endobjectchange((INTBIG)ai, VARCINST);
+//			}
+//			lastx = curx;   lasty = cury;
+//			pathstart = 0;
+//			lastni = ni;
+//			lastpp = pp;
+//	
+//			// switch layers to the other one supported by the via
+//			if (placedvia != 0)
+//			{
+//				if (routap == vd->lay1)
+//				{
+//					routap = vd->lay2;
+//				} else if (routap == vd->lay2)
+//				{
+//					routap = vd->lay1;
+//				}
+//				pin = getpinproto(routap);
+//			}
+//	
+//			// if the path ends here, connect it
+//			if (namesame(key, x_("NEW")) == 0 || namesame(key, x_(";")) == 0)
+//			{
+//				// see if there is a connection point here when starting a path
+//				if (!io_deffindconnection(curx, cury, routap, cell, ni, &nextni, &nextpp))
+//					nextni = null;
+//	
+//				// if the path starts with a via, wire it
+//				if (nextni != null)
+//				{
+//					if (special) width = specialwidth; else
+//					{
+//						var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
+//						if (var == null) width = defaultarcwidth(routap); else
+//							width = var->addr;
+//					}
+//					ai = newarcinst(routap, width, us_makearcuserbits(routap),
+//						ni, pp, curx, cury, nextni, nextpp, curx, cury, cell);
+//					if (ai == null)
+//					{
+//						io_definerror(_("Unable to create net ending point"));
+//						return true;
+//					}
+//				}
+//			}
+//		}
+		return false;
+	}
 
 	/*************** VIAS ***************/
 	
@@ -733,615 +1347,6 @@ public class DEF extends Input
 	}
 
 }
-//	/*************** PINS ***************/
-//	
-//	BOOLEAN io_defreadpins(FILE *f, NODEPROTO *cell)
-//	{
-//		REGISTER CHAR *key;
-//		CHAR curkey[200];
-//	
-//		if (io_defignoretosemicolon(f, _("PINS"))) return true;
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("PINs"));
-//			if (key == 0) return true;
-//			if (namesame(key, x_("-")) == 0)
-//			{
-//				if (io_defreadpin(f, cell)) return true;
-//				continue;
-//			}
-//	
-//			if (namesame(key, x_("END")) == 0)
-//			{
-//				key = io_defgetkeyword(f);
-//				break;
-//			}
-//	
-//			// ignore the keyword
-//			estrcpy(curkey, key);
-//			if (io_defignoretosemicolon(f, curkey)) return true;
-//		}
-//		return false;
-//	}
-//	
-//	BOOLEAN io_defreadpin(FILE *f, NODEPROTO *cell)
-//	{
-//		REGISTER CHAR *key;
-//		INTBIG lx, hx, ly, hy, x, y;
-//		REGISTER INTBIG portbits, i, havecoord;
-//		REGISTER NODEINST *ni;
-//		NODEPROTO *np, *pure;
-//		ARCPROTO *ap;
-//		REGISTER PORTPROTO *pp;
-//		INTSML rot, trn;
-//		CHAR pinname[200];
-//		XARRAY trans;
-//	
-//		// get the pin name
-//		key = io_defmustgetkeyword(f, x_("PIN"));
-//		if (key == 0) return true;
-//		estrcpy(pinname, key);
-//		portbits = havecoord = 0;
-//		np = NONODEPROTO;
-//	
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("PIN"));
-//			if (key == 0) return true;
-//			if (namesame(key, x_("+")) == 0)
-//			{
-//				key = io_defmustgetkeyword(f, x_("PIN"));
-//				if (key == 0) return true;
-//				if (namesame(key, x_("NET")) == 0)
-//				{
-//					key = io_defmustgetkeyword(f, _("net name"));
-//					if (key == 0) return(TRUE);
-//					continue;
-//				}
-//				if (namesame(key, x_("DIRECTION")) == 0)
-//				{
-//					key = io_defmustgetkeyword(f, x_("DIRECTION"));
-//					if (key == 0) return(TRUE);
-//					if (namesame(key, x_("INPUT")) == 0) portbits = INPORT; else
-//					if (namesame(key, x_("OUTPUT")) == 0) portbits = OUTPORT; else
-//					if (namesame(key, x_("INOUT")) == 0) portbits = BIDIRPORT; else
-//					if (namesame(key, x_("FEEDTHRU")) == 0) portbits = BIDIRPORT; else
-//					{
-//						io_definerror(_("Unknown direction (%s)"), key);
-//						return(TRUE);
-//					}
-//					continue;
-//				}
-//				if (namesame(key, x_("USE")) == 0)
-//				{
-//					key = io_defmustgetkeyword(f, x_("USE"));
-//					if (key == 0) return(TRUE);
-//					if (namesame(key, x_("SIGNAL")) == 0) portbits = portbits; else
-//					if (namesame(key, x_("POWER")) == 0) portbits = PWRPORT; else
-//					if (namesame(key, x_("GROUND")) == 0) portbits = GNDPORT; else
-//					if (namesame(key, x_("CLOCK")) == 0) portbits = CLKPORT; else
-//					if (namesame(key, x_("TIEOFF")) == 0) portbits = portbits; else
-//					if (namesame(key, x_("ANALOG")) == 0) portbits = portbits; else
-//					{
-//						io_definerror(_("Unknown usage (%s)"), key);
-//						return(TRUE);
-//					}
-//					continue;
-//				}
-//				if (namesame(key, x_("LAYER")) == 0)
-//				{
-//					key = io_defmustgetkeyword(f, x_("LAYER"));
-//					if (key == 0) return(TRUE);
-//					io_defgetlayernodes(key, &np, &pure, &ap);
-//					if (np == NONODEPROTO)
-//					{
-//						io_definerror(_("Unknown layer (%s)"), key);
-//						return(TRUE);
-//					}
-//					if (io_defreadcoordinate(f, &lx, &ly)) return(TRUE);
-//					if (io_defreadcoordinate(f, &hx, &hy)) return(TRUE);
-//					continue;
-//				}
-//				if (namesame(key, x_("PLACED")) == 0)
-//				{
-//					// get pin location and orientation
-//					if (io_defreadcoordinate(f, &x, &y)) return(TRUE);
-//					if (io_defreadorientation(f, &rot, &trn)) return(TRUE);
-//					havecoord = 1;
-//					continue;
-//				}
-//				continue;
-//			}
-//	
-//			if (namesame(key, x_(";")) == 0)
-//				break;
-//		}
-//	
-//		// all factors read, now place the pin
-//		if (np != NONODEPROTO && havecoord != 0)
-//		{
-//			// determine the pin size
-//			makeangle(rot, trn, trans);
-//			rot = trn = 0;
-//			xform(lx, ly, &lx, &ly, trans);
-//			xform(hx, hy, &hx, &hy, trans);
-//			if (lx > hx) { i = lx;   lx = hx;   hx = i; }
-//			if (ly > hy) { i = ly;   ly = hy;   hy = i; }
-//			lx += x;   hx += x;
-//			ly += y;   hy += y;
-//	
-//			// make the pin
-//			ni = newnodeinst(np, lx, hx, ly, hy, trn, rot, cell);
-//			if (ni == NONODEINST)
-//			{
-//				io_definerror(_("Unable to create pin"));
-//				return(TRUE);
-//			}
-//			endobjectchange((INTBIG)ni, VNODEINST);
-//			pp = newportproto(cell, ni, np->firstportproto, pinname);
-//			if (pp == NOPORTPROTO)
-//			{
-//				io_definerror(_("Unable to create pin name"));
-//				return(TRUE);
-//			}
-//			pp->userbits = (pp->userbits & ~STATEBITS) | portbits;
-//		}
-//		return false;
-//	}
-//	
-//	/*************** NETS ***************/
-//	
-//	BOOLEAN io_defreadnets(FILE *f, NODEPROTO *cell, BOOLEAN special)
-//	{
-//		REGISTER CHAR *key;
-//		CHAR curkey[200];
-//	
-//		for(;;)
-//		{
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("NETs"));
-//			if (key == 0) return(TRUE);
-//			if (namesame(key, x_("-")) == 0)
-//			{
-//				if (io_defreadnet(f, cell, special)) return(TRUE);
-//				continue;
-//			}
-//			if (namesame(key, x_("END")) == 0)
-//			{
-//				key = io_defgetkeyword(f);
-//				break;
-//			}
-//	
-//			// ignore the keyword
-//			estrcpy(curkey, key);
-//			if (io_defignoretosemicolon(f, curkey)) return(TRUE);
-//		}
-//		return false;
-//	}
-//	
-//	BOOLEAN io_defreadnet(FILE *f, NODEPROTO *cell, BOOLEAN special)
-//	{
-//		REGISTER CHAR *key;
-//		INTBIG lx, hx, ly, hy, plx, ply, phx, phy, sx, sy, fx, fy, tx, ty;
-//		REGISTER INTBIG i, curx, cury, lastx, lasty, pathstart, placedvia, width,
-//			wantpinpairs, specialwidth, bits;
-//		NODEINST *ni, *lastni, *nextni;
-//		REGISTER NODEINST *lastlogni;
-//		REGISTER ARCINST *ai;
-//		REGISTER BOOLEAN foundcoord;
-//		PORTPROTO *pp, *lastpp, *nextpp;
-//		REGISTER PORTPROTO *lastlogpp;
-//		REGISTER NODEPROTO *np;
-//		NODEPROTO *pin, *pure;
-//		ARCPROTO *routap;
-//		REGISTER VARIABLE *var;
-//		float v;
-//		CHAR netname[200];
-//		REGISTER VIADEF *vd;
-//	
-//		// get the net name
-//		key = io_defmustgetkeyword(f, x_("NET"));
-//		if (key == 0) return(TRUE);
-//		estrcpy(netname, key);
-//	
-//		// get the next keyword
-//		key = io_defmustgetkeyword(f, x_("NET"));
-//		if (key == 0) return(TRUE);
-//	
-//		// scan the "net" statement
-//		wantpinpairs = 1;
-//		lastx = lasty = 0;
-//		pathstart = 1;
-//		lastlogni = NONODEINST;
-//		for(;;)
-//		{
-//			// examine the next keyword
-//			if (namesame(key, x_(";")) == 0) break;
-//	
-//			if (namesame(key, x_("+")) == 0)
-//			{
-//				wantpinpairs = 0;
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//	
-//				if (namesame(key, x_("USE")) == 0)
-//				{
-//					// ignore "USE" keyword
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//				} else if (namesame(key, x_("ROUTED")) == 0)
-//				{
-//					// handle "ROUTED" keyword
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//					io_defgetlayernodes(key, &pin, &pure, &routap);
-//					if (pin == NONODEPROTO)
-//					{
-//						io_definerror(_("Unknown layer (%s)"), key);
-//						return(TRUE);
-//					}
-//					pathstart = 1;
-//					if (special)
-//					{
-//						// specialnets have width here
-//						key = io_defmustgetkeyword(f, x_("NET"));
-//						if (key == 0) return(TRUE);
-//						v = (float)eatof(key) / (float)io_defunits;
-//						specialwidth = scalefromdispunit(v, DISPUNITMIC);
-//					}
-//				} else if (namesame(key, x_("FIXED")) == 0)
-//				{
-//					// handle "FIXED" keyword
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//					io_defgetlayernodes(key, &pin, &pure, &routap);
-//					if (pin == NONODEPROTO)
-//					{
-//						io_definerror(_("Unknown layer (%s)"), key);
-//						return(TRUE);
-//					}
-//					pathstart = 1;
-//				} else if (namesame(key, x_("SHAPE")) == 0)
-//				{
-//					// handle "SHAPE" keyword
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//				} else
-//				{
-//					io_definerror(_("Cannot handle '%s' nets"), key);
-//					return(TRUE);
-//				}
-//	
-//				// get next keyword
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				continue;
-//			}
-//	
-//			// if still parsing initial pin pairs, do so
-//			if (wantpinpairs != 0)
-//			{
-//				// it must be the "(" of a pin pair
-//				if (namesame(key, x_("(")) != 0)
-//				{
-//					io_definerror(_("Expected '(' of pin pair"));
-//					return(TRUE);
-//				}
-//	
-//				// get the pin names
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (namesame(key, x_("PIN")) == 0)
-//				{
-//					// find the export
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//					pp = getportproto(cell, key);
-//					if (pp == NOPORTPROTO)
-//					{
-//						io_definerror(_("Warning: unknown pin '%s'"), key);
-//						if (io_defignoretosemicolon(f, _("NETS"))) return(TRUE);
-//						return false;
-//					}
-//					ni = pp->subnodeinst;
-//					pp = pp->subportproto;
-//				} else
-//				{
-//					for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//					{
-//						var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
-//						if (var == NOVARIABLE) continue;
-//						if (namesame((CHAR *)var->addr, key) == 0) break;
-//					}
-//					if (ni == NONODEINST)
-//					{
-//						io_definerror(_("Unknown component '%s'"), key);
-//						return(TRUE);
-//					}
-//	
-//					// get the port name
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//					pp = getportproto(ni->proto, key);
-//					if (pp == NOPORTPROTO)
-//					{
-//						io_definerror(_("Unknown port '%s' on component '%s'"),
-//							key, (CHAR *)var->addr);
-//						return(TRUE);
-//					}
-//				}
-//	
-//				// get the close parentheses
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (namesame(key, x_(")")) != 0)
-//				{
-//					io_definerror(_("Expected ')' of pin pair"));
-//					return(TRUE);
-//				}
-//	
-//				if (lastlogni != NONODEINST && !IOTool.isDEFLogicalPlacement())
-//				{
-//					portposition(ni, pp, &fx, &fy);
-//	
-//					// LINTED "lastlogpp" used in proper order
-//					portposition(lastlogni, lastlogpp, &tx, &ty);
-//					bits = us_makearcuserbits(gen_unroutedarc);
-//					ai = newarcinst(gen_unroutedarc, defaultarcwidth(gen_unroutedarc), bits,
-//						ni, pp, fx, fy, lastlogni, lastlogpp, tx, ty, cell);
-//					if (ai == NOARCINST)
-//					{
-//						io_definerror(_("Could not create unrouted arc"));
-//						return(TRUE);
-//					}
-//					endobjectchange((INTBIG)ai, VARCINST);
-//				}
-//				lastlogni = ni;
-//				lastlogpp = pp;
-//	
-//				// get the next keyword and continue parsing
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				continue;
-//			}
-//	
-//			// handle "new" start of coordinate trace
-//			if (namesame(key, x_("NEW")) == 0)
-//			{
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				io_defgetlayernodes(key, &pin, &pure, &routap);
-//				if (pin == NONODEPROTO)
-//				{
-//					io_definerror(_("Unknown layer (%s)"), key);
-//					return(TRUE);
-//				}
-//				pathstart = 1;
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (special)
-//				{
-//					// specialnets have width here
-//					v = (float)eatof(key) / (float)io_defunits;
-//					specialwidth = scalefromdispunit(v, DISPUNITMIC);
-//	
-//					// get the next keyword
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//				}
-//				continue;
-//			}
-//	
-//			foundcoord = FALSE;
-//			if (namesame(key, x_("(")) == 0)
-//			{
-//				// get the X coordinate
-//				foundcoord = TRUE;
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (estrcmp(key, x_("*")) == 0) curx = lastx; else
-//				{
-//					v = (float)eatof(key) / (float)io_defunits;
-//					curx = scalefromdispunit(v, DISPUNITMIC);
-//				}
-//	
-//				// get the Y coordinate
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (estrcmp(key, x_("*")) == 0) cury = lasty; else
-//				{
-//					v = (float)eatof(key) / (float)io_defunits;
-//					cury = scalefromdispunit(v, DISPUNITMIC);
-//				}
-//	
-//				// get the close parentheses
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//				if (namesame(key, x_(")")) != 0)
-//				{
-//					io_definerror(_("Expected ')' of coordinate pair"));
-//					return(TRUE);
-//				}
-//			}
-//	
-//			// get the next keyword
-//			key = io_defmustgetkeyword(f, x_("NET"));
-//			if (key == 0) return(TRUE);
-//	
-//			// see if it is a via name
-//			for(vd = io_deffirstviadef; vd != NOVIADEF; vd = vd->nextviadef)
-//				if (namesame(key, vd->vianame) == 0) break;
-//			if (vd == NOVIADEF)
-//			{
-//				// see if the via name is from the LEF file
-//				for(vd = io_leffirstviadef; vd != NOVIADEF; vd = vd->nextviadef)
-//					if (namesame(key, vd->vianame) == 0) break;
-//			}
-//	
-//			// stop now if not placing physical nets
-//			if (IOTool.isDEFPhysicalPlacement())
-//			{
-//				// ignore the next keyword if a via name is coming
-//				if (vd != NOVIADEF)
-//				{
-//					key = io_defmustgetkeyword(f, x_("NET"));
-//					if (key == 0) return(TRUE);
-//				}
-//				continue;
-//			}
-//	
-//			// if a via is mentioned next, use it
-//			if (vd != NOVIADEF)
-//			{
-//				// place the via at this location
-//				sx = vd->sx;
-//				sy = vd->sy;
-//				lx = curx - sx / 2;   hx = lx + sx;
-//				ly = cury - sy / 2;   hy = ly + sy;
-//				if (vd->via == NONODEPROTO)
-//				{
-//					io_definerror(_("Cannot to create via"));
-//					return(TRUE);
-//				}
-//	
-//				// see if there is a connection point here when starting a path
-//				if (pathstart != 0)
-//				{
-//					if (!io_deffindconnection(curx, cury, routap, cell, NONODEINST,
-//						&lastni, &lastpp)) lastni = NONODEINST;
-//				}
-//	
-//				// create the via
-//				nodeprotosizeoffset(vd->via, &plx, &ply, &phx, &phy, cell);
-//				ni = newnodeinst(vd->via, lx-plx, hx+phx, ly-ply, hy+phy, 0, 0, cell);
-//				if (ni == NONODEINST)
-//				{
-//					io_definerror(_("Unable to create via layer"));
-//					return(TRUE);
-//				}
-//				endobjectchange((INTBIG)ni, VNODEINST);
-//				pp = ni->proto->firstportproto;
-//	
-//				// if the path starts with a via, wire it
-//				if (pathstart != 0 && lastni != NONODEINST && foundcoord)
-//				{
-//					if (special) width = specialwidth; else
-//					{
-//						var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
-//						if (var == NOVARIABLE) width = defaultarcwidth(routap); else
-//							width = var->addr;
-//					}
-//					ai = newarcinst(routap, width, us_makearcuserbits(routap),
-//						lastni, lastpp, curx, cury, ni, pp, curx, cury, cell);
-//					if (ai == NOARCINST)
-//					{
-//						io_definerror(_("Unable to create net starting point"));
-//						return(TRUE);
-//					}
-//					endobjectchange((INTBIG)ai, VARCINST);
-//				}
-//	
-//				// remember that a via was placed
-//				placedvia = 1;
-//	
-//				// get the next keyword
-//				key = io_defmustgetkeyword(f, x_("NET"));
-//				if (key == 0) return(TRUE);
-//			} else
-//			{
-//				// no via mentioned: just make a pin
-//				if (io_defgetpin(curx, cury, routap, cell, &ni, &pp)) return(TRUE);
-//				placedvia = 0;
-//			}
-//			if (!foundcoord) continue;
-//	
-//			// run the wire
-//			if (pathstart == 0)
-//			{
-//				// make sure that this arc can connect to the current pin
-//				for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//					if (pp->connects[i] == routap) break;
-//				if (pp->connects[i] == NOARCPROTO)
-//				{
-//					np = getpinproto(routap);
-//					defaultnodesize(np, &sx, &sy);
-//					lx = curx - sx / 2;   hx = lx + sx;
-//					ly = cury - sy / 2;   hy = ly + sy;
-//					ni = newnodeinst(np, lx, hx, ly, hy, 0, 0, cell);
-//					if (ni == NONODEINST)
-//					{
-//						io_definerror(_("Unable to create net pin"));
-//						return(TRUE);
-//					}
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//					pp = ni->proto->firstportproto;
-//				}
-//	
-//				// run the wire
-//				if (special) width = specialwidth; else
-//				{
-//					var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
-//					if (var == NOVARIABLE) width = defaultarcwidth(routap); else
-//						width = var->addr;
-//				}
-//				ai = newarcinst(routap, width, us_makearcuserbits(routap),
-//					lastni, lastpp, lastx, lasty, ni, pp, curx, cury, cell);
-//				if (ai == NOARCINST)
-//				{
-//					io_definerror(_("Unable to create net path"));
-//					return(TRUE);
-//				}
-//				endobjectchange((INTBIG)ai, VARCINST);
-//			}
-//			lastx = curx;   lasty = cury;
-//			pathstart = 0;
-//			lastni = ni;
-//			lastpp = pp;
-//	
-//			// switch layers to the other one supported by the via
-//			if (placedvia != 0)
-//			{
-//				if (routap == vd->lay1)
-//				{
-//					routap = vd->lay2;
-//				} else if (routap == vd->lay2)
-//				{
-//					routap = vd->lay1;
-//				}
-//				pin = getpinproto(routap);
-//			}
-//	
-//			// if the path ends here, connect it
-//			if (namesame(key, x_("NEW")) == 0 || namesame(key, x_(";")) == 0)
-//			{
-//				// see if there is a connection point here when starting a path
-//				if (!io_deffindconnection(curx, cury, routap, cell, ni, &nextni, &nextpp))
-//					nextni = NONODEINST;
-//	
-//				// if the path starts with a via, wire it
-//				if (nextni != NONODEINST)
-//				{
-//					if (special) width = specialwidth; else
-//					{
-//						var = getval((INTBIG)routap, VARCPROTO, VINTEGER, x_("IO_lef_width"));
-//						if (var == NOVARIABLE) width = defaultarcwidth(routap); else
-//							width = var->addr;
-//					}
-//					ai = newarcinst(routap, width, us_makearcuserbits(routap),
-//						ni, pp, curx, cury, nextni, nextpp, curx, cury, cell);
-//					if (ai == NOARCINST)
-//					{
-//						io_definerror(_("Unable to create net ending point"));
-//						return(TRUE);
-//					}
-//					endobjectchange((INTBIG)ai, VARCINST);
-//				}
-//			}
-//		}
-//		return false;
-//	}
 //	
 //	/*
 //	 * Routine to look for a connection to arcs of type "ap" in cell "cell"
@@ -1379,7 +1384,7 @@ public class DEF extends Input
 //					termsearch(sea);
 //					*theni = ni;
 //					*thepp = pp;
-//					return(TRUE);
+//					return true;
 //				}
 //			}
 //		}
@@ -1411,7 +1416,7 @@ public class DEF extends Input
 //		if (ni == NONODEINST)
 //		{
 //			io_definerror(_("Unable to create net pin"));
-//			return(TRUE);
+//			return true;
 //		}
 //		endobjectchange((INTBIG)ni, VNODEINST);
 //		*theni = ni;

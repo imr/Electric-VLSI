@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01an: *********************************
 
+BUG: (11/12/04, SMR) Deleting an export may delete the node.
+FIX: Do not consider exports to be attached to nodes when deleting.
+
+IMP: (11/12/04, SMR) Long network names are truncated in the "Arc Properties" dialog.
+
 BUG: (11/11/04, GVG) List Geometry on Network: fast algorithm in PolyQTree not working correctly while splitting the tree. 
 Fix: put back the slow code
 

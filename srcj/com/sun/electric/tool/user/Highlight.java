@@ -488,13 +488,13 @@ public class Highlight
 		if (type != Type.TEXT) return false;
 		if (var != null)
 		{
-			/* moving variable text */
+			// moving variable text
 			if (!(eobj instanceof NodeInst)) return false;
 			NodeInst ni = (NodeInst)eobj;
 			if (ni.isInvisiblePinWithText()) return true;
 		} else
 		{
-			/* moving export text */
+			// moving export text
 			if (!(eobj instanceof Export)) return false;
 			Export pp = (Export)eobj;
 			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
