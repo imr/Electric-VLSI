@@ -1568,7 +1568,7 @@ public class View3DWindow extends JPanel
         if (result != null && result.getNode(PickResult.SHAPE3D) != null)
         {
              Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
-             shape.setAppearance(J3DAppearance.highligtApp);
+             //shape.setAppearance(J3DAppearance.highligtApp);
             for (int i = 0; i < result.numIntersections(); i++)
             {
                 PickIntersection inter = result.getIntersection(i);
