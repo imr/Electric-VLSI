@@ -240,22 +240,6 @@ class NetCell
 				}
 			}
 		}
-
-		int numArcs = cell.getNumArcs();
-		ArcProto universalArc = Generic.tech.universal_arc;
-		int numUniversalArcs = 0;
-		ArcProto unroutedArc = Generic.tech.unrouted_arc;
-		int numUnroutedArcs = 0;
-		for (int i = 0; i < numArcs; i++) {
-			ArcInst ai = cell.getArc(i);
-			ArcProto ap = ai.getProto();
-			if (ap == universalArc) numUniversalArcs++;
-			if (ap == unroutedArc) numUnroutedArcs++;
-		}
-		if (numUniversalArcs > 0)
-			System.out.println("Network: Layout cell " + cell.describe() + " has " + numUniversalArcs + " " + universalArc.describe() + " arcs");
-		if (numUnroutedArcs > 0)
-			System.out.println("Network: Layout cell " + cell.describe() + " has " + numUnroutedArcs + " " + unroutedArc.describe() + " arcs");
 	}
 
 	private void initConnections() {

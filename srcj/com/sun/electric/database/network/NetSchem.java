@@ -26,7 +26,7 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-//import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -679,6 +679,7 @@ class NetSchem extends NetCell {
 				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
 								   drawnNames[drawn] + "> and <" + name + ">");
 		}
+		ArcProto busArc = Schematics.tech.bus_arc;
 		for (int i = 0; i < numArcs; i++) {
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
@@ -686,8 +687,11 @@ class NetSchem extends NetCell {
 			Name name = ai.getNameKey();
 			if (!name.isTempname()) continue;
 			int oldWidth = drawnWidths[drawn];
-			if (oldWidth < 0)
+			if (oldWidth < 0) {
 				drawnNames[drawn] = name;
+				if (ai.getProto() != busArc)
+					drawnWidths[drawn] = 1;
+			}
 		}
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
@@ -708,8 +712,8 @@ class NetSchem extends NetCell {
 					if (netCell instanceof NetSchem) {
 						int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
 						int portWidth = pi.getPortProto().getProtoNameKey().busWidth();
-						if (oldWidth == arraySize*portWidth) continue;
-						newWidth = portWidth;
+						if (oldWidth == portWidth) continue;
+						newWidth = arraySize*portWidth;
 					}
 				}
 				if (oldWidth < 0) {

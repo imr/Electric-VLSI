@@ -114,11 +114,44 @@ public abstract class Geometry extends Output
 		/** true if cell name used in other libraries */	protected boolean nonUniqueName;
         
         /** Constructor */
-        protected CellGeom()
+        protected CellGeom(Cell cell)
         {
             polyMap = new HashMap();
-            nodables = new ArrayList();            
+            nodables = new ArrayList();
+			this.cell = cell;
+			nonUniqueName = false;
+			checkLayoutCell();
         }
+
+		private void checkLayoutCell()
+		{
+			NodeProto universalPin = Generic.tech.universalPinNode;
+			for (Iterator it = cell.getUsagesIn(); it.hasNext();) {
+				NodeUsage nu = (NodeUsage)it.next();
+				NodeProto np = nu.getProto();
+				if (np == universalPin) {
+					System.out.println("Geometry: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
+						" " + np.describe() + " nodes");
+				}
+			}
+
+			int numArcs = cell.getNumArcs();
+			ArcProto universalArc = Generic.tech.universal_arc;
+			int numUniversalArcs = 0;
+			ArcProto unroutedArc = Generic.tech.unrouted_arc;
+			int numUnroutedArcs = 0;
+			for (int i = 0; i < numArcs; i++)
+			{
+				ArcInst ai = cell.getArc(i);
+				ArcProto ap = ai.getProto();
+				if (ap == universalArc) numUniversalArcs++;
+				if (ap == unroutedArc) numUnroutedArcs++;
+			}
+			if (numUniversalArcs > 0)
+				System.out.println("Geometry: Layout cell " + cell.describe() + " has " + numUniversalArcs + " " + universalArc.describe() + " arcs");
+			if (numUnroutedArcs > 0)
+				System.out.println("Geometry: Layout cell " + cell.describe() + " has " + numUnroutedArcs + " " + unroutedArc.describe() + " arcs");
+		}
         
         /** add polys to cell geometry */
         protected void addPolys(Poly[] polys)
@@ -159,9 +192,7 @@ public abstract class Geometry extends Output
 			outGeomStack[curHierDepth] = cellGeom;
 			Cell cell = info.getCell();
             if (cellGeoms.containsKey(cell)) return false;    // already processed this Cell
-            cellGeom = new CellGeom();
-            cellGeom.cell = cell;
-			cellGeom.nonUniqueName = false;
+            cellGeom = new CellGeom(cell);
 			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 			{
 				Library lib = (Library)lIt.next();

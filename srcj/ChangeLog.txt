@@ -2,6 +2,11 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (6/10/04, DN) Unnamed bus connected to array node may detect wrong width.
+FIX: In "NetSchem.java".
+
+IMP: (6/10/04, DN) Checking of generic pins and arcs in layout cells moved from Network tool to Geometry output.
+
 IMP: (6/8/04, SMR) Improved "PixelDrawing.java" to align stipple patterns correctly.
 
 IMP: (6/8/04, SMR) Implemented Windows / Messages Window menu with "Save Messages" and "Clear".
