@@ -43,12 +43,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 
-// the bean shell
-import bsh.EvalError;
-import bsh.Interpreter;
+//// the bean shell
+//import bsh.EvalError;
+//import bsh.Interpreter;
 
 /**
  * a console for the Java side of Electric.  Used because the standard
@@ -60,7 +58,7 @@ import bsh.Interpreter;
  */
 public class MessagesWindow
 	extends OutputStream
-	implements ActionListener, KeyListener, CaretListener, Runnable
+	implements ActionListener, KeyListener, Runnable
 {
 	private ArrayList history;
 	private JTextField entry;
@@ -69,7 +67,7 @@ public class MessagesWindow
 	private int histidx = 0;
 	private Thread ticker = null;
 	private StringBuffer buffer = new StringBuffer();
-	private Interpreter bi;
+//	private Interpreter bi;
 	private Container jf;
 
 	// -------------------- private and protected methods ------------------------
@@ -90,13 +88,12 @@ public class MessagesWindow
 			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			contentFrame = jFrame.getContentPane();
 		}
-		bi = new Interpreter();
+//		bi = new Interpreter();
 		history = new ArrayList();
 		entry = new JTextField();
 		entry.addActionListener(this);
 		entry.addKeyListener(this);
 		info = new JTextArea(20, 110);
-		info.addCaretListener(this);
 		info.setLineWrap(false);
 		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -124,24 +121,6 @@ public class MessagesWindow
 	public Rectangle getMessagesLocation()
 	{
 		return jf.getBounds();
-	}
-
-	public void interpret(String args[])
-	{
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < args.length - 1; i++)
-		{
-			sb.append(args[i] + " ");
-		}
-		sb.append(args[args.length - 1]);
-		try
-		{
-			Object obj = bi.eval(sb.toString());
-			System.out.println("=>" + obj);
-		} catch (EvalError ee)
-		{
-			System.out.println(ee);
-		}
 	}
 
 	public void flush()
@@ -192,16 +171,16 @@ public class MessagesWindow
 		}
 		ticker = null;
 		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
 			{
-				public void run()
+				synchronized (buffer)
 				{
-					synchronized (buffer)
-					{
-						dump(buffer.toString());
-						buffer.setLength(0);
-					}
+					dump(buffer.toString());
+					buffer.setLength(0);
 				}
-			});
+			}
+		});
 	}
 
 	protected void dump(String str)
@@ -275,34 +254,29 @@ public class MessagesWindow
 			Runtime rt = Runtime.getRuntime();
 			System.out.println("Total memory: " + rt.totalMemory());
 			System.out.println("Free memory: " + rt.freeMemory());
-		} else
-		{
-			// try to execute it
-			interpret(cmds);
+//		} else
+//		{
+//			// try to execute it
+//			interpret(cmds);
 		}
 	}
 
-	public void caretUpdate(CaretEvent evt)
-	{
-		int d = evt.getDot();
-		int m = evt.getMark();
-		if (d != m)
-		{
-			String sel = info.getSelectedText();
-			try
-			{
-				int value = Integer.parseInt(sel, 16);
-				if (value > 0)
-				{
-					String cmds[] = new String[2];
-					cmds[0] = "info";
-					cmds[1] = sel;
-					info.append("=================== info " + sel + " =================\n");
-					interpret(cmds);
-				}
-			} catch (NumberFormatException nfe)
-			{
-			}
-		}
-	}
+//	public void interpret(String args[])
+//	{
+//		StringBuffer sb = new StringBuffer();
+//		for (int i = 0; i < args.length - 1; i++)
+//		{
+//			sb.append(args[i] + " ");
+//		}
+//		sb.append(args[args.length - 1]);
+//		try
+//		{
+//			Object obj = bi.eval(sb.toString());
+//			System.out.println("=>" + obj);
+//		} catch (EvalError ee)
+//		{
+//			System.out.println(ee);
+//		}
+//	}
+
 }

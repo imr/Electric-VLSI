@@ -58,6 +58,7 @@ import java.awt.Color;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -710,13 +711,13 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Method to tell whether two layers should be considered equivalent for the purposes of cropping.
+	 * The method is overridden by individual technologies to provide specific answers.
 	 * @param layer1 the first Layer.
 	 * @param layer2 the second Layer.
 	 * @return true if the layers are equivalent.
 	 */
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
-		// SHOULD USE EQUIVALENCE TABLES!!!!
 		return layer1 == layer2;
 	}
 
@@ -1278,7 +1279,7 @@ public class Technology extends ElectricObject
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni, np.getSpecialValues());
+			std = new SerpentineTrans(ni);
 			if (std.layersTotal > 0)
 			{
 				numExtraCuts = std.layersTotal;
@@ -1366,7 +1367,7 @@ public class Technology extends ElectricObject
 		{
 			for(int i = 0; i < numExtraCuts; i++)
 			{
-				polys[numBasicLayers+i] = std.fillTransPoly(ni, i);
+				polys[numBasicLayers+i] = std.fillTransPoly(i);
 			}
 		}
 
@@ -1514,26 +1515,21 @@ public class Technology extends ElectricObject
 	 */
 	private static class SerpentineTrans
 	{
-		/** the number of polygons that make up this serpentine transistor */	int layersTotal;
-		/** the number of segments in this serpentine transistor */				int numSegments;
-		/** the extra gate width of this serpentine transistor */				double extraScale;
-		/** the node layers that make up this serpentine transistor */			Technology.NodeLayer [] primLayers;
-		/** the gate coordinates for this serpentine transistor */				Point2D [] points;
+		/** the NodeInst that is this serpentine transistor */					private NodeInst theNode;
+		/** the prototype of this serpentine transistor */						private PrimitiveNode theProto;
+		/** the number of polygons that make up this serpentine transistor */	private int layersTotal;
+		/** the number of segments in this serpentine transistor */				private int numSegments;
+		/** the extra gate width of this serpentine transistor */				private double extraScale;
+		/** the node layers that make up this serpentine transistor */			private Technology.NodeLayer [] primLayers;
+		/** the gate coordinates for this serpentine transistor */				private Point2D [] points;
 
 		/**
 		 * Constructor throws initialize for a serpentine transistor.
 		 * @param ni the NodeInst with a serpentine transistor.
-		 * @param specialValues the array of special values for the NodeInst.
-		 * The values in "specialValues" are:
-		 *     layer count is [0]
-		 *     active port inset [1] from end of serpentine path
-		 *     active port is [2] from poly edge
-		 *     poly width is [3]
-		 *     poly port inset [4] from poly edge
-		 *     poly port is [5] from active edge
 		 */
-		public SerpentineTrans(NodeInst ni, double [] specialValues)
+		public SerpentineTrans(NodeInst ni)
 		{
+			theNode = ni;
 			layersTotal = 0;
 			points = ni.getTrace();
 			if (points != null)
@@ -1542,8 +1538,8 @@ public class Technology extends ElectricObject
 			}
 			if (points != null)
 			{
-				PrimitiveNode np = (PrimitiveNode)ni.getProto();
-				primLayers = np.getLayers();
+				theProto = (PrimitiveNode)ni.getProto();
+				primLayers = theProto.getLayers();
 				int count = primLayers.length;
 				numSegments = points.length - 1;
 				layersTotal = count * numSegments;
@@ -1557,6 +1553,8 @@ public class Technology extends ElectricObject
 				}
 			}
 		}
+
+		public boolean hasValidData() { return points != null; }
 
 		private static final int LEFTANGLE =  900;
 		private static final int RIGHTANGLE =  2700;
@@ -1572,7 +1570,7 @@ public class Technology extends ElectricObject
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		Poly fillTransPoly(NodeInst ni, int box)
+		Poly fillTransPoly(int box)
 		{
 			// compute the segment (along the serpent) and element (of transistor)
 			int segment = box % numSegments;
@@ -1587,8 +1585,8 @@ public class Technology extends ElectricObject
 			rwid += extraScale;
 
 			// prepare to fill the serpentine transistor
-			double xoff = ni.getTrueCenterX();
-			double yoff = ni.getTrueCenterY();
+			double xoff = theNode.getTrueCenterX();
+			double yoff = theNode.getTrueCenterY();
 			int thissg = segment;   int next = segment+1;
 			Point2D thisPt = points[thissg];
 			Point2D nextPt = points[next];
@@ -1689,164 +1687,156 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * Method to describe a port in a transistor that may be part of a serpentine
-		 * path.  If the variable "trace" exists on the node, get that x/y/x/y
-		 * information as the centerline of the serpentine path.  The port path
-		 * is shrunk by "diffinset" in the length and is pushed "diffextend" from the centerline.
-		 * The default width of the transistor is "defwid".  The outline is placed
-		 * in the polygon "poly".
+		 * Method to describe a port in a transistor that is part of a serpentine path.
+		 * The port path is shrunk by "diffInset" in the length and is pushed "diffExtend" from the centerline.
+		 * The default width of the transistor is "defWid".
 		 * The assumptions about directions are:
-		 * Segments have port 1 to the left, and port 3 to the right of the gate
-		 * trace. Port 0, the "left-hand" end of the gate, appears at the starting
+		 * Segments have port 1 to the left, and port 3 to the right of the gate trace.
+		 * Port 0, the "left-hand" end of the gate, appears at the starting
 		 * end of the first trace segment; port 2, the "right-hand" end of the gate,
 		 * appears at the end of the last trace segment.  Port 3 is drawn as a
 		 * reflection of port 1 around the trace.
-		 * The values "diffinset", "diffextend", "defwid", "polyinset", and "polyextend"
-		 * are used to determine the offsets of the ports:
-		 * The poly ports are extended "polyextend" beyond the appropriate end of the trace
-		 * and are inset by "polyinset" from the polysilicon edge.
-		 * The diffusion ports are extended "diffextend" from the polysilicon edge
-		 * and set in "diffinset" from the ends of the trace segment.
+		 * The poly ports are extended "polyExtend" beyond the appropriate end of the trace
+		 * and are inset by "polyInset" from the polysilicon edge.
+		 * The diffusion ports are extended "diffExtend" from the polysilicon edge
+		 * and set in "diffInset" from the ends of the trace segment.
 		 */
-//		Poly fillTransPort(NodeInst ni, PortProto *pp, XARRAY trans,
-//			TECH_NODES *nodedata, int diffinset, int diffextend, int defwid,
-//			int polyinset, int polyextend)
-//		{
-//			/* see if the transistor has serpentine information */
-//			var = gettrace(ni);
-//			if (var != NOVARIABLE)
-//			{
-//				/* trace data is there: make sure there are enough points */
-//				total = getlength(var);
-//				if (total <= 2) var = NOVARIABLE;
-//			}
-//
-//			/* nonserpentine transtors fill in the normal way */
-//			lambda = lambdaofnode(ni);
-//			if (var == NOVARIABLE)
-//			{
-//				tech_fillportpoly(ni, pp, poly, trans, nodedata, -1, lambda);
-//				return;
-//			}
-//
-//			/* prepare to fill the serpentine transistor port */
-//			list = (INTBIG *)var->addr;
-//			poly->style = OPENED;
-//			xoff = (ni->highx+ni->lowx)/2;
-//			yoff = (ni->highy+ni->lowy)/2;
-//			total /= 2;
-//
-//			/* see if nonstandard width is specified */
-//			defwid = lambda * defwid / WHOLE;
-//			diffinset = lambda * diffinset / WHOLE;   diffextend = lambda * diffextend / WHOLE;
-//			polyinset = lambda * polyinset / WHOLE;   polyextend = lambda * polyextend / WHOLE;
-//			varw = getvalkey((INTBIG)ni, VNODEINST, VFRACT, el_transistor_width_key);
-//			if (varw != NOVARIABLE) defwid = lambda * varw->addr / WHOLE;
-//
-//			/* determine which port is being described */
-//			for(lpp = ni->proto->firstportproto, which=0; lpp != NOPORTPROTO;
-//				lpp = lpp->nextportproto, which++) if (lpp == pp) break;
-//
-//			/* ports 0 and 2 are poly (simple) */
-//			if (which == 0)
-//			{
-//				if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//				thisx = list[0];   thisy = list[1];
-//				nextx = list[2];   nexty = list[3];
-//				angle = figureangle(thisx, thisy, nextx, nexty);
-//				ang = (angle+1800) % 3600;
-//				thisx += mult(cosine(ang), polyextend) + xoff;
-//				thisy += mult(sine(ang), polyextend) + yoff;
-//				ang = (angle+LEFTANGLE) % 3600;
-//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
-//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
-//				xform(nextx, nexty, &poly->xv[0], &poly->yv[0], trans);
-//				ang = (angle+RIGHTANGLE) % 3600;
-//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
-//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
-//				xform(nextx, nexty, &poly->xv[1], &poly->yv[1], trans);
-//				poly->count = 2;
-//				return;
-//			}
-//			if (which == 2)
-//			{
-//				if (poly->limit < 2) (void)extendpolygon(poly, 2);
-//				thisx = list[(total-1)*2];   thisy = list[(total-1)*2+1];
-//				nextx = list[(total-2)*2];   nexty = list[(total-2)*2+1];
-//				angle = figureangle(thisx, thisy, nextx, nexty);
-//				ang = (angle+1800) % 3600;
-//				thisx += mult(cosine(ang), polyextend) + xoff;
-//				thisy += mult(sine(ang), polyextend) + yoff;
-//				ang = (angle+LEFTANGLE) % 3600;
-//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
-//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
-//				xform(nextx, nexty, &poly->xv[0], &poly->yv[0], trans);
-//				ang = (angle+RIGHTANGLE) % 3600;
-//				nextx = thisx + mult(cosine(ang), defwid/2-polyinset);
-//				nexty = thisy + mult(sine(ang), defwid/2-polyinset);
-//				xform(nextx, nexty, &poly->xv[1], &poly->yv[1], trans);
-//				poly->count = 2;
-//				return;
-//			}
-//
-//			/* THE ORIGINAL CODE TREATED PORT 1 AS THE NEGATED PORT ... SRP */
-//			/* port 3 is the negated path side of port 1 */
-//			if (which == 3)
-//			{
-//				diffextend = -diffextend;
-//				defwid = -defwid;
-//			}
-//
-//			/* extra port on some n-transistors */
-//			if (which == 4) diffextend = defwid = 0;
-//
-//			/* polygon will need total points */
-//			if (poly->limit < total) (void)extendpolygon(poly, total);
-//
-//			for(next=1; next<total; next++)
-//			{
-//				thissg = next-1;
-//				thisx = list[thissg*2];   thisy = list[thissg*2+1];
-//				nextx = list[next*2];   nexty = list[next*2+1];
-//				angle = figureangle(thisx, thisy, nextx, nexty);
-//
-//				/* determine the points */
-//				if (thissg == 0)
-//				{
-//					/* extend "thissg" 0 degrees forward */
-//					thisx += mult(cosine(angle), diffinset);
-//					thisy += mult(sine(angle), diffinset);
-//				}
-//				if (next == total-1)
-//				{
-//					/* extend "next" 180 degrees back */
-//					ang = (angle+1800) % 3600;
-//					nextx += mult(cosine(ang), diffinset);
-//					nexty += mult(sine(ang), diffinset);
-//				}
-//
-//				/* compute endpoints of line parallel to center line */
-//				ang = (angle+LEFTANGLE) % 3600;   sin = sine(ang);   cos = cosine(ang);
-//				thisx += mult(cos, defwid/2+diffextend);   thisy += mult(sin, defwid/2+diffextend);
-//				nextx += mult(cos, defwid/2+diffextend);   nexty += mult(sin, defwid/2+diffextend);
-//
-//				if (thissg != 0)
-//				{
-//					/* compute intersection of this and previous line */
-//
-//					/* LINTED "pthisx", "pthisy", and "pangle" used in proper order */
-//					(void)intersect(pthisx, pthisy, pangle, thisx, thisy, angle, &x, &y);
-//					thisx = x;   thisy = y;
-//					xform(thisx+xoff, thisy+yoff, &poly->xv[thissg], &poly->yv[thissg], trans);
-//				} else
-//					xform(thisx+xoff, thisy+yoff, &poly->xv[0], &poly->yv[0], trans);
-//				pthisx = thisx;   pthisy = thisy;
-//				pangle = angle;
-//			}
-//
-//			xform(nextx+xoff, nexty+yoff, &poly->xv[total-1], &poly->yv[total-1], trans);
-//			poly->count = total;
-//		}
+		private Poly fillTransPort(PortProto pp)
+		{
+			double [] specialValues = theProto.getSpecialValues();
+			double diffInset = specialValues[1];
+			double diffExtend = specialValues[2];
+			double defWid = specialValues[3] + extraScale;
+			double polyInset = specialValues[4];
+			double polyExtend = specialValues[5];
+
+			// prepare to fill the serpentine transistor port
+			double xOff = theNode.getTrueCenterX();
+			double yOff = theNode.getTrueCenterY();
+			int total = points.length;
+			AffineTransform trans = theNode.rotateOut();
+
+			// determine which port is being described
+			int which = 0;
+			for(Iterator it = theProto.getPorts(); it.hasNext(); )
+			{
+				PortProto lpp = (PortProto)it.next();
+				if (lpp == pp) break;
+				which++;
+			}
+
+			// ports 0 and 2 are poly (simple)
+			if (which == 0)
+			{
+				Point2D thisPt = new Point2D.Double(points[0].getX(), points[0].getY());
+				Point2D nextPt = new Point2D.Double(points[1].getX(), points[1].getY());
+				int angle = EMath.figureAngle(thisPt, nextPt);
+				int ang = (angle+1800) % 3600;
+				thisPt.setLocation(thisPt.getX() + EMath.cos(ang) * polyExtend + xOff,
+					thisPt.getY() + EMath.sin(ang) * polyExtend + yOff);
+
+				ang = (angle+LEFTANGLE) % 3600;
+				Point2D end1 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+
+				ang = (angle+RIGHTANGLE) % 3600;
+				Point2D end2 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+
+				Point2D [] portPoints = new Point2D.Double[2];
+				portPoints[0] = end1;
+				portPoints[1] = end2;
+				trans.transform(portPoints, 0, portPoints, 0, 2);
+				Poly retPoly = new Poly(portPoints);
+				retPoly.setStyle(Poly.Type.OPENED);
+				return retPoly;
+			}
+			if (which == 2)
+			{
+				Point2D thisPt = new Point2D.Double(points[total-1].getX(), points[total-1].getY());
+				Point2D nextPt = new Point2D.Double(points[total-2].getX(), points[total-2].getY());
+				int angle = EMath.figureAngle(thisPt, nextPt);
+				int ang = (angle+1800) % 3600;
+				thisPt.setLocation(thisPt.getX() + EMath.cos(ang) * polyExtend + xOff,
+					thisPt.getY() + EMath.sin(ang) * polyExtend + yOff);
+
+				ang = (angle+LEFTANGLE) % 3600;
+				Point2D end1 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+
+				ang = (angle+RIGHTANGLE) % 3600;
+				Point2D end2 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+
+				Point2D [] portPoints = new Point2D.Double[2];
+				portPoints[0] = end1;
+				portPoints[1] = end2;
+				trans.transform(portPoints, 0, portPoints, 0, 2);
+				Poly retPoly = new Poly(portPoints);
+				retPoly.setStyle(Poly.Type.OPENED);
+				return retPoly;
+			}
+
+			// port 3 is the negated path side of port 1
+			if (which == 3)
+			{
+				diffExtend = -diffExtend;
+				defWid = -defWid;
+			}
+
+			// extra port on some n-transistors
+			if (which == 4) diffExtend = defWid = 0;
+
+			Point2D [] portPoints = new Point2D.Double[total];
+			Point2D lastPoint = null;
+			int lastAngle = 0;
+			for(int nextIndex=1; nextIndex<total; nextIndex++)
+			{
+				int thisIndex = nextIndex-1;
+				Point2D thisPt = new Point2D.Double(points[thisIndex].getX() + xOff, points[thisIndex].getY() + yOff);
+				Point2D nextPt = new Point2D.Double(points[nextIndex].getX() + xOff, points[nextIndex].getY() + yOff);
+				int angle = EMath.figureAngle(thisPt, nextPt);
+
+				// determine the points
+				if (thisIndex == 0)
+				{
+					// extend "this" 0 degrees forward
+					thisPt.setLocation(thisPt.getX() + EMath.cos(angle) * diffInset,
+						thisPt.getY() + EMath.sin(angle) * diffInset);
+				}
+				if (nextIndex == total-1)
+				{
+					// extend "next" 180 degrees back
+					int backAng = (angle+1800) % 3600;
+					nextPt.setLocation(nextPt.getX() + EMath.cos(backAng) * diffInset,
+						nextPt.getY() + EMath.sin(backAng) * diffInset);
+				}
+
+				// compute endpoints of line parallel to center line
+				int ang = (angle+LEFTANGLE) % 3600;
+				double sine = EMath.sin(ang);
+				double cosine = EMath.cos(ang);
+				thisPt.setLocation(thisPt.getX() + cosine * (defWid/2+diffExtend),
+					thisPt.getY() + sine * (defWid/2+diffExtend));
+				nextPt.setLocation(nextPt.getX() + cosine * (defWid/2+diffExtend),
+					nextPt.getY() + sine * (defWid/2+diffExtend));
+
+				if (thisIndex != 0)
+				{
+					// compute intersection of this and previous line
+					thisPt = EMath.intersect(lastPoint, lastAngle, thisPt, angle);
+				}
+				portPoints[thisIndex] = thisPt;
+				lastPoint = thisPt;
+				lastAngle = angle;
+				if (nextIndex == total-1)
+					portPoints[nextIndex] = nextPt;
+			}
+			trans.transform(portPoints, 0, portPoints, 0, total);
+			Poly retPoly = new Poly(portPoints);
+			retPoly.setStyle(Poly.Type.OPENED);
+			return retPoly;
+		}
 	}
 
 	/**
@@ -1871,54 +1861,48 @@ public class Technology extends ElectricObject
 	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-//		double [] specialValues = np.getSpecialValues();
-//		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
-//		{
-//			// serpentine transistors use a more complex port determination (tech_filltransport)
-//			Poly portpoly = new Poly(0, 0, 0, 0);
-//			return portpoly;
-//		} else
+		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
-			// standard port determination, see if there is outline information
-			if (np.isHoldsOutline())
-			{
-				// outline may determine the port
-				Point2D [] outline = ni.getTrace();
-				if (outline != null)
-				{
-					double cX = ni.getTrueCenterX();
-					double cY = ni.getTrueCenterY();
-					Point2D [] pointList = new Point2D.Double[outline.length];
-					for(int i=0; i<outline.length; i++)
-					{
-						pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
-					}
-					Poly portPoly = new Poly(pointList);
-					portPoly.setStyle(Poly.Type.FILLED);
-					portPoly.setTextDescriptor(pp.getTextDescriptor());
-					return portPoly;
-				}
-			}
-
-			// standard port computation
-			double halfWidth = ni.getXSize() / 2;
-//			double lowX = ni.getTrueCenterX() - halfWidth;
-//			double highX = ni.getTrueCenterX() + halfWidth;
-//			double halfHeight = ni.getYSize() / 2;
-//			double lowY = ni.getTrueCenterY() - halfHeight;
-//			double highY = ni.getTrueCenterY() + halfHeight;
-
-			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-			double portHighY = ni.getTrueCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
-			double portX = (portLowX + portHighX) / 2;
-			double portY = (portLowY + portHighY) / 2;
-			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-			portPoly.setStyle(Poly.Type.FILLED);
-			portPoly.setTextDescriptor(pp.getTextDescriptor());
-			return portPoly;
+			// serpentine transistors use a more complex port determination
+			SerpentineTrans std = new SerpentineTrans(ni);
+			if (std.hasValidData())
+				return std.fillTransPort(pp);
 		}
+
+		// standard port determination, see if there is outline information
+		if (np.isHoldsOutline())
+		{
+			// outline may determine the port
+			Point2D [] outline = ni.getTrace();
+			if (outline != null)
+			{
+				double cX = ni.getTrueCenterX();
+				double cY = ni.getTrueCenterY();
+				Point2D [] pointList = new Point2D.Double[outline.length];
+				for(int i=0; i<outline.length; i++)
+				{
+					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
+				}
+				Poly portPoly = new Poly(pointList);
+				portPoly.setStyle(Poly.Type.FILLED);
+				portPoly.setTextDescriptor(pp.getTextDescriptor());
+				return portPoly;
+			}
+		}
+
+		// standard port computation
+		double halfWidth = ni.getXSize() / 2;
+
+		double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+		double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+		double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+		double portHighY = ni.getTrueCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+		double portX = (portLowX + portHighX) / 2;
+		double portY = (portLowY + portHighY) / 2;
+		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+		portPoly.setStyle(Poly.Type.FILLED);
+		portPoly.setTextDescriptor(pp.getTextDescriptor());
+		return portPoly;
 	}
 
 	/**

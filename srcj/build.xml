@@ -48,6 +48,7 @@
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="build.xml"/>
+            <exclude name="ChangeLog.txt"/>
             <exclude name="electric.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>

@@ -131,7 +131,6 @@ public class ZoomAndPanListener
 		EditWindow wnd = (EditWindow)evt.getSource();
 
 		// zooming the window scale
-//			wnd.clearDoingAreaDrag();
 		Highlight.clear();
 		Highlight.finished();
 		Point2D start = wnd.screenToDatabase(startX, startY);
@@ -150,7 +149,13 @@ public class ZoomAndPanListener
 		} else
 		{
 			Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
-			wnd.focusScreen(bounds);
+			if (bounds.getWidth() > 0 || bounds.getHeight() > 0)
+			{
+				wnd.focusScreen(bounds);
+			} else
+			{
+				System.out.println("To zoom-in, drag an area");
+			}
 		}
 	}
 

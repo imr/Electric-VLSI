@@ -1266,39 +1266,6 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Method to check if NodeProto is a child of other NodeProto.
-	 * @param granny other NodeProto
-	 * @return true if this NodeProto is a child of NodeProto np.
-	 */
-// 	public boolean isChildOf(NodeProto granny)
-// 	{
-// 		if (granny == this) return true;
-// 		return isChildOf(granny, new HashSet());
-// 	}
-
-	/**
-	 * Recursive method to check if NodeProto is a child of other NodeProto.
-	 * @param granny other NodeProto
-	 * @param checked set of NodeProtos which either are beeing checked or
-	 *              are surely not children of np
-	 * @return true if this NodeProto is a child of NodeProto np.
-	 */
-// 	private boolean isChildOf(NodeProto granny, HashSet checked)
-// 	{
-// 		for (Iterator it = getUsagesOf(); it.hasNext(); )
-// 		{
-// 			NodeUsage nu = (NodeUsage)it.next();
-// 			if (nu.isIconOfParent()) continue;
-// 			NodeProto father = nu.getProto();
-// 			if (father == granny) return true;
-// 			if (checked.contains(father)) continue;
-// 			checked.add(father);
-// 			if (father.isChildOf(granny, checked)) return true;
-// 		}
-// 		return false;
-// 	}
-
-	/**
 	 * Method to determine whether this NodeProto  is an icon Cell.
 	 * overriden in Cell
 	 * @return true if this NodeProto is an icon  Cell.

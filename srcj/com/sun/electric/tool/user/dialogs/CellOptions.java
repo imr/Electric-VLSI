@@ -147,8 +147,6 @@ public class CellOptions extends javax.swing.JDialog
 
 		confirmDelete.setSelected(true);
 
-		rename.setEnabled(false);
-
 		loadCellList();
 	}
 
@@ -159,7 +157,7 @@ public class CellOptions extends javax.swing.JDialog
 		if (lib == null) return;
 		boolean any = false;
 		cellListModel.clear();
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator it = lib.getCellsSortedByName().iterator(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			cellListModel.addElement(cell.noLibDescribe());
@@ -716,7 +714,21 @@ public class CellOptions extends javax.swing.JDialog
 
 	private void renameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_renameActionPerformed
 	{//GEN-HEADEREND:event_renameActionPerformed
-		System.out.println("Can't rename yet");
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		String cellStr = (String)cellList.getSelectedValue();
+		if (cellStr == null) return;
+		Cell cell = lib.findNodeProto(cellStr);
+		if (cell == null)
+		{
+			System.out.println("cannot find cell "+cellStr+" here");
+			return;
+		}
+		String newName = cellName.getText();
+		CircuitChanges.renameCellInJob(cell, newName);
+
+		loadCellList();
+		cellList.setSelectedValue(cell.noLibDescribe(), true);
 	}//GEN-LAST:event_renameActionPerformed
 
 	private void deleteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteActionPerformed

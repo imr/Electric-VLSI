@@ -226,9 +226,6 @@ public class Export extends PortProto
 //		this->userbits = (this->userbits & STATEBITS) |
 //			(newPortProto->userbits & (PORTANGLE|PORTARANGE|PORTNET|PORTISOLATED));
 		changeallports();
-
-		// mark a change to the database
-//		db_changetimestamp++;
 	}
 
 	/****************************** GRAPHICS ******************************/
@@ -491,8 +488,6 @@ public class Export extends PortProto
 				{
 					// Should use change control here !!!
 					upPP.lowLevelSetUserbits(lowLevelGetUserbits());
-//					setval((INTBIG)pe->exportproto, VPORTPROTO, x_("userbits"),
-//						pp->userbits, VINTEGER);
 				}
 				upPP.recursivelyChangeAllPorts();
 			}

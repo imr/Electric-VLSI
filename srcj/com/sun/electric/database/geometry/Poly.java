@@ -440,10 +440,6 @@ public class Poly implements Shape
 		}
 		af.transform(points, 0, points, 0, points.length);
 //		af.transform(points, points);
-
-		// smooth the results
-//		for(int i=0; i<points.length; i++)
-//			points[i].setLocation(EMath.smooth(points[i].getX()), EMath.smooth(points[i].getY()));
 		bounds = null;
 	}
 
@@ -473,23 +469,11 @@ public class Poly implements Shape
 			points[0].getY() == points[3].getY() && points[1].getY() == points[2].getY())
 		{
 			return getBounds2D();
-//			double lX = Math.min(points[2].getX(), points[0].getX());
-//			double lY = Math.min(points[1].getY(), points[0].getY());
-//			double sX = Math.abs(points[2].getX() - points[0].getX());
-//			double sY = Math.abs(points[1].getY() - points[0].getY());
-////			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
-//			return new Rectangle2D.Double(lX, lY, sX, sY);
 		}
 		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
 			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
 		{
 			return getBounds2D();
-//			double lX = Math.min(points[1].getX(), points[0].getX());
-//			double lY = Math.min(points[2].getY(), points[0].getY());
-//			double sX = Math.abs(points[1].getX() - points[0].getX());
-//			double sY = Math.abs(points[2].getY() - points[0].getY());
-////			return new Rectangle2D.Double(EMath.smooth(lX), EMath.smooth(lY), EMath.smooth(sX), EMath.smooth(sY));
-//			return new Rectangle2D.Double(lX, lY, sX, sY);
 		}
 		return null;
 	}
@@ -672,49 +656,6 @@ public class Poly implements Shape
 		}
 		return true;
 	}
-//		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
-//		{
-//			// first see if the point is at the proper angle from the center of the arc
-//			int ang = EMath.figureAngle(points[0], pt);
-//			int endangle = EMath.figureAngle(points[0], points[1]);
-//			int startangle = EMath.figureAngle(points[0], points[2]);
-//			double angrange;
-//			if (endangle > startangle)
-//			{
-//				if (ang < startangle || ang > endangle) return false;
-//				angrange = endangle - startangle;
-//			} else
-//			{
-//				if (ang < startangle && ang > endangle) return false;
-//				angrange = 3600 - startangle + endangle;
-//			}
-//
-//			// now see if the point is the proper distance from the center of the arc
-//			double dist = points[0].distance(pt);
-//			double wantdist;
-//			if (ang == startangle || angrange == 0)
-//			{
-//				wantdist = points[0].distance(points[1]);
-//			} else if (ang == endangle)
-//			{
-//				wantdist = points[0].distance(points[2]);
-//			} else
-//			{
-//				double startdist = points[0].distance(points[1]);
-//				double enddist = points[0].distance(points[2]);
-//				if (enddist == startdist) wantdist = startdist; else
-//				{
-//					wantdist = startdist + (ang - startangle) / angrange *
-//						(enddist - startdist);
-//				}
-//			}
-//			if (dist == wantdist) return true;
-//			return false;
-//		}
-
-		// I give up
-//		return false;
-//	}
 
 	/**
 	 * Method to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
@@ -1588,7 +1529,6 @@ public class Poly implements Shape
 	public double getCenterX()
 	{
 		Rectangle2D b = getBounds2D();
-//		return EMath.smooth(b.getCenterX());
 		return b.getCenterX();
 	}
 
@@ -1599,7 +1539,6 @@ public class Poly implements Shape
 	public double getCenterY()
 	{
 		Rectangle2D b = getBounds2D();
-//		return EMath.smooth(b.getCenterY());
 		return b.getCenterY();
 	}
 

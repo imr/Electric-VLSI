@@ -20,10 +20,6 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
- *
- * Job.java
- *
- * Created on November 18, 2003, 11:29 AM
  */
 
 package com.sun.electric.tool;

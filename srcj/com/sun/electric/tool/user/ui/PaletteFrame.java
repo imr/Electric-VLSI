@@ -48,8 +48,9 @@ import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.LayoutText;
-import com.sun.electric.tool.user.dialogs.MakeCellInstance;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
@@ -512,7 +513,7 @@ public class PaletteFrame
 				{
 					JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
 					JMenuItem menuItem = new JMenuItem("Cell Instance...");
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellInstanceCommand(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
 					specialMenu.add(menuItem);
 					specialMenu.addSeparator();
 					menuItem = new JMenuItem("Annotation Text");
@@ -584,12 +585,6 @@ public class PaletteFrame
 				}
 			}
 			repaint();
-		}
-
-		public void makeCellInstanceCommand()
-		{
-			MakeCellInstance dialog = new MakeCellInstance(TopLevel.getCurrentJFrame(), true);
-			dialog.show();
 		}
 
 		public void makeLayoutTextCommand()

@@ -110,21 +110,6 @@ public class ElectricObject
 		return var;
 	}
 
-//	/**
-//	 * Method to return an entry in an arrayed Variable on this ElectricObject.
-//	 * @param name the name of the Variable.
-//	 * @param index the required entry in the Variable array.
-//	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
-//	 */
-//    public Object getVal(String name, int index)
-//	{
-//		Variable v = getVar(name);
-//		if (v == null) return null;
-//		Object addr = v.getObject();
-//		if (!(addr instanceof Object[])) return null;
-//		return ((Object[]) addr)[index];
-//	}
-
 	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.

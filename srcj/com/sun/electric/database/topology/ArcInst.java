@@ -898,23 +898,6 @@ public class ArcInst extends Geometric
 		return false;
 	}
 
-//	/**
-//	 * Method to remove the Connection from an end of this ArcInst.
-//	 * @param c the Connection to remove.
-//	 * @param onHead true if the Connection is on the head of this ArcInst.
-//	 */
-//	private void removeConnection(Connection c, boolean onHead)
-//	{
-//		// safety check
-//		if ((onHead ? ends[HEADEND] : ends[TAILEND]) != c)
-//		{
-//			System.out.println("Tried to remove the wrong connection from a wire end: "
-//				+ c + " on " + this);
-//		}
-//		if (onHead) ends[HEADEND] = null; else
-//			ends[TAILEND] = null;
-//	}
-
 	/****************************** TEXT ******************************/
 
 	/**

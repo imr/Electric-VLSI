@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -126,6 +127,25 @@ public class User extends Listener
 			PortInst pi = (PortInst)obj;
 			Cell parent = pi.getNodeInst().getParent();
 			markCellForRedraw(parent, true);
+		}
+	}
+
+	/**
+	 * Daemon Method called when an object has been renamed.
+	 */
+	public void renameObject(ElectricObject obj, Name oldName)
+	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				EditWindow wnd = wf.getEditWindow();
+				if (wnd == null) continue;
+				if (wnd.getCell() != cell) continue;
+				wnd.setWindowTitle();
+			}
 		}
 	}
 

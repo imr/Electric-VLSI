@@ -75,7 +75,6 @@ public class PrimitiveNode extends NodeProto
 		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
-//		this.specialValues = new double [] {0,0,0,0,0,0};
 		this.defWidth = defWidth;
 		this.defHeight = defHeight;
 		if (offset == null) offset = new SizeOffset(0,0,0,0);

@@ -1001,7 +1001,7 @@ public class ExplorerTree extends JTree
 			Cell cell = (Cell)currentSelectedObject;
 			String response = JOptionPane.showInputDialog(tree, "New name for cell " + cell.describe(), cell.getProtoName());
 			if (response == null) return;
-			System.out.println("Want to rename cell " + cell.getProtoName() + " to " + response + " BUT CAN'T YET");
+			CircuitChanges.renameCellInJob(cell, response);
 		}
 
 		private void reViewCellAction(ActionEvent e)

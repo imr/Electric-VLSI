@@ -388,10 +388,6 @@ public class NodeInst extends Geometric implements Nodable
 		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;
 
-//		// adjust position of the new NodeInst to align centers
-//		Point2D newCenter = newNi.getGrabCenter();
-//		newNi.modifyInstance(oldCenter.getX()-newCenter.getX(), oldCenter.getY()-newCenter.getY(), 0, 0, 0);
-
 		// draw new node expanded if appropriate
 		if (np instanceof Cell)
 		{
@@ -1306,34 +1302,6 @@ public class NodeInst extends Geometric implements Nodable
 		returnTransform.concatenate(transform);
 		return returnTransform;
 	}
-
-//	/**
-//	 * Method to return the lower-left corner of this NodeInst.  The
-//	 * corner considers both the highlight offset and the rotation, so
-//	 * the coordinate is that of the lower-left valid part, as placed
-//	 * in the database.
-//	 * @return a Point with the location of this NodeInst's lower-left
-//	 * corner.
-//	 */
-//	public Point2D getLowLeft()
-//	{
-//		SizeOffset so = getProto().getSizeOffset();
-//
-//		double width = getXSize() / 2;
-//		double height = getYSize() / 2;
-//		double lX = getTrueCenterX() - width + so.getLowXOffset();
-//		double hX = getTrueCenterX() + width - so.getHighXOffset();
-//		double lY = getTrueCenterY() - height + so.getLowYOffset();
-//		double hY = getTrueCenterY() + height - so.getHighYOffset();
-//		Poly poly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
-//		if (getAngle() != 0 || isXMirrored() || isYMirrored())
-//		{
-//			AffineTransform trans = this.rotateOut();
-//			poly.transform(trans);
-//		}
-//		Rectangle2D bounds = poly.getBounds2D();
-//		return new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-//	}
 
 	/**
 	 * Method to return a Poly that describes the location of a port

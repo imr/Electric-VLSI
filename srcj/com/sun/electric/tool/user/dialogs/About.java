@@ -42,51 +42,57 @@ public class About extends javax.swing.JDialog
 	{
 		String name;
 		String work;
+
 		private CastOfThousands(String name, String work) { this.name = name;   this.work = work; }
-		static CastOfThousands [] theCast = new CastOfThousands[] {
-			new CastOfThousands("Philip Attfield", 			"Box merging"),
-			new CastOfThousands("Brett Bissinger", 		    "Node extraction"),
-			new CastOfThousands("Ron Bolton", 				"Mathematical help"),
+
+		static CastOfThousands [] theCast = new CastOfThousands[]
+		{
+			new CastOfThousands("Philip Attfield", 			"Box merging (C)"),
+			new CastOfThousands("Brett Bissinger", 		    "Node extraction (C)"),
+			new CastOfThousands("Ron Bolton", 				"Mathematical help (C)"),
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
-			new CastOfThousands("Mark Brinsmead", 			"Mathematical help"),
-			new CastOfThousands("Stefano Concina", 			"Polygon clipping"),
+			new CastOfThousands("Mark Brinsmead", 			"Mathematical help (C)"),
+			new CastOfThousands("Stefano Concina", 			"Polygon clipping (C)"),
 			new CastOfThousands("Jonathan Gainsley", 		"Testing and design"),
-			new CastOfThousands("Peter Gallant", 			"ALS simulator"),
+			new CastOfThousands("Peter Gallant", 			"ALS simulator (C)"),
 			new CastOfThousands("R. Brian Gardiner", 		"Electric lifeline"),
-			new CastOfThousands("T. J. Goodman", 			"Texsim output"),
+			new CastOfThousands("T. J. Goodman", 			"Texsim output (C)"),
 			new CastOfThousands("Gerrit Groenewold", 		"SPICE parts"),
-			new CastOfThousands("David Groulx", 		    "Node extraction"),
-			new CastOfThousands("D. Guptill", 			    "X-window help"),
-			new CastOfThousands("David Harris", 			"Color PostScript output"),
-			new CastOfThousands("Robert Hon", 				"CIF input parser"),
+			new CastOfThousands("David Groulx", 		    "Node extraction (C)"),
+			new CastOfThousands("D. Guptill", 			    "X-window help (C)"),
+			new CastOfThousands("David Harris", 			"Color PostScript output (C)"),
+			new CastOfThousands("Robert Hon", 				"CIF input parser (C)"),
 			new CastOfThousands("Jason Imada", 				"ROM generator"),
-			new CastOfThousands("Sundaravarathan Iyengar", 	"nMOS PLA generator"),
-			new CastOfThousands("Allan Jost", 				"VHDL compiler help, X-window help"),
-			new CastOfThousands("Wallace Kroeker", 			"Digital filter technology, CMOS PLA generator"),
-			new CastOfThousands("Andrew Kostiuk", 			"VHDL compiler, Silicon Compiler"),
-			new CastOfThousands("Oliver Laumann", 			"ELK Lisp"),
-			new CastOfThousands("Glen Lawson", 				"Maze routing, GDS input, EDIF I/O"),
-			new CastOfThousands("Frank Lee", 				"ROM generator"),
-			new CastOfThousands("Neil Levine", 				"PADS output"),
-			new CastOfThousands("David Lewis", 				"Flat DRC checking"),
-			new CastOfThousands("Erwin Liu", 				"Schematic and Round CMOS technology help"),
-			new CastOfThousands("Dick Lyon", 				"MOSIS and Round CMOS technology help"),
-			new CastOfThousands("John Mohammed", 			"Mathematical help"),
-			new CastOfThousands("Mark Moraes", 				"Hierarchical DRC, X-window help"),
+			new CastOfThousands("Sundaravarathan Iyengar", 	"nMOS PLA generator (C)"),
+			new CastOfThousands("Allan Jost", 				"VHDL compiler help, X-window help (C)"),
+			new CastOfThousands("Russell Kao",				"NCC, hierarchy enumeration"),
+			new CastOfThousands("Wallace Kroeker", 			"Digital filter technology, CMOS PLA generator (C)"),
+			new CastOfThousands("Andrew Kostiuk", 			"VHDL compiler, Silicon Compiler (C)"),
+			new CastOfThousands("Oliver Laumann", 			"ELK Lisp (C)"),
+			new CastOfThousands("Glen Lawson", 				"Maze routing, GDS input, EDIF I/O (C)"),
+			new CastOfThousands("Frank Lee", 				"ROM generator (C)"),
+			new CastOfThousands("Neil Levine", 				"PADS output (C)"),
+			new CastOfThousands("David Lewis", 				"Flat DRC checking (C)"),
+			new CastOfThousands("Erwin Liu", 				"Schematic and Round CMOS technology help (C)"),
+			new CastOfThousands("Dick Lyon", 				"MOSIS and Round CMOS technology help (C)"),
+			new CastOfThousands("John Mohammed", 			"Mathematical help (C)"),
+			new CastOfThousands("Mark Moraes", 				"Hierarchical DRC, X-window help (C)"),
 			new CastOfThousands("Dmitry Nadezhin", 			"Qt port, simulation, networks, optimizations, development"),
-			new CastOfThousands("Sid Penstone", 			"SPICE, SILOS, GDS, Box merging, technologies"),
-			new CastOfThousands("J. P. Polonovski", 		"Memory allocation help"),
-			new CastOfThousands("Kevin Ryan", 			    "X-window help"),
-			new CastOfThousands("Nora Ryan", 				"Compaction, technology conversion"),
-			new CastOfThousands("Miguel Saro", 				"French translation"),
-			new CastOfThousands("Brent Serbin", 			"ALS simulator"),
-			new CastOfThousands("Lyndon Swab", 				"HPGL output, SPICE output help, technologies"),
-			new CastOfThousands("Brian W. Thomson", 		"Mimic stitcher, RSIM interface"),
-			new CastOfThousands("Burnie West", 				"Bipolar technology, EDIF output help"),
-			new CastOfThousands("Telle Whitney", 			"River router"),
-			new CastOfThousands("Rob Winstanley", 			"CIF input, RNL output"),
-			new CastOfThousands("Russell Wright", 			"SDF input, miscellaneous help"),
-			new CastOfThousands("David J. Yurach",			"VHDL help")};
+			new CastOfThousands("Sid Penstone", 			"SPICE, SILOS, GDS, Box merging, technologies (C)"),
+			new CastOfThousands("J. P. Polonovski", 		"Memory allocation help (C)"),
+			new CastOfThousands("Kevin Ryan", 			    "X-window help (C)"),
+			new CastOfThousands("Nora Ryan", 				"Compaction, technology conversion (C)"),
+			new CastOfThousands("Miguel Saro", 				"French translation (C)"),
+			new CastOfThousands("Brent Serbin", 			"ALS simulator (C)"),
+			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
+			new CastOfThousands("Lyndon Swab", 				"HPGL output, SPICE output help, technologies (C)"),
+			new CastOfThousands("Brian W. Thomson", 		"Mimic stitcher, RSIM interface (C)"),
+			new CastOfThousands("Burnie West", 				"Bipolar technology, EDIF output help (C)"),
+			new CastOfThousands("Telle Whitney", 			"River router (C)"),
+			new CastOfThousands("Rob Winstanley", 			"CIF input, RNL output (C)"),
+			new CastOfThousands("Russell Wright", 			"SDF input, miscellaneous help (C)"),
+			new CastOfThousands("David J. Yurach",			"VHDL help (C)")
+		};
 	}
 
 	/** Creates new form About */
@@ -117,10 +123,7 @@ public class About extends javax.swing.JDialog
 		Center.setViewportView(list);
 		list.addMouseListener(new java.awt.event.MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt)
-			{
-				listClick(evt);
-			}
+			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(evt); }
 		});
 	}
 	
@@ -136,7 +139,7 @@ public class About extends javax.swing.JDialog
         Center = new javax.swing.JScrollPane();
         Top = new javax.swing.JPanel();
         TopRight = new javax.swing.JPanel();
-        jLabel7 = new javax.swing.JLabel();
+        theIcon = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox();
         TopLeft = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
@@ -172,15 +175,15 @@ public class About extends javax.swing.JDialog
 
         TopRight.setLayout(new java.awt.GridBagLayout());
 
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel7.setMaximumSize(new java.awt.Dimension(64, 64));
-        jLabel7.setMinimumSize(new java.awt.Dimension(64, 64));
-        jLabel7.setPreferredSize(new java.awt.Dimension(64, 64));
+        theIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        theIcon.setMaximumSize(new java.awt.Dimension(64, 64));
+        theIcon.setMinimumSize(new java.awt.Dimension(64, 64));
+        theIcon.setPreferredSize(new java.awt.Dimension(64, 64));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        TopRight.add(jLabel7, gridBagConstraints);
+        TopRight.add(theIcon, gridBagConstraints);
 
         jComboBox1.setMinimumSize(new java.awt.Dimension(100, 25));
         jComboBox1.setName("");
@@ -356,11 +359,9 @@ public class About extends javax.swing.JDialog
 
 	private void showCast(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showCast
 	{//GEN-HEADEREND:event_showCast
-//		String [] nameData = new String[CastOfThousands.theCast.length];
 		model.clear();
 		for(int i=0; i<CastOfThousands.theCast.length; i++)
 			model.addElement(CastOfThousands.theCast[i].name);
-//		list.setListData(nameData);
 		showingCast = true;
 	}//GEN-LAST:event_showCast
 
@@ -539,7 +540,6 @@ public class About extends javax.swing.JDialog
 		model.clear();
 		for(int i=0; i<copyingString.length; i++)
 			model.addElement(copyingString[i]);
-//		list.setListData(copyingString);
 		showingCast = false;
 	}//GEN-LAST:event_showCopying
 
@@ -569,7 +569,6 @@ public class About extends javax.swing.JDialog
 		model.clear();
 		for(int i=0; i<warrantyString.length; i++)
 			model.addElement(warrantyString[i]);
-//		list.setListData(warrantyString);
 		showingCast = false;
 	}//GEN-LAST:event_showWarranty
 
@@ -594,7 +593,7 @@ public class About extends javax.swing.JDialog
 			case 10: socketName = "SocketUK.gif";           break;
 		}
 		if (socketName != null)
-			jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource(socketName)));
+			theIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource(socketName)));
 	}//GEN-LAST:event_regionChanged
 	
 	/** Closes the dialog */
@@ -608,7 +607,7 @@ public class About extends javax.swing.JDialog
 	{
 		if (!showingCast) return;
 		int index = list.getSelectedIndex();
-		model.setElementAt(CastOfThousands.theCast[index].name + " did " + CastOfThousands.theCast[index].work, index);
+		model.setElementAt(CastOfThousands.theCast[index].name + ": " + CastOfThousands.theCast[index].work, index);
 	}
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -625,10 +624,10 @@ public class About extends javax.swing.JDialog
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JButton ok;
+    private javax.swing.JLabel theIcon;
     private javax.swing.JButton warrantyDetails;
     // End of variables declaration//GEN-END:variables
 	

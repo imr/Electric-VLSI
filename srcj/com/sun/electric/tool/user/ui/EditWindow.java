@@ -171,7 +171,26 @@ public class EditWindow extends JPanel
         setCell(cell, context, true);
     }
 
-    /**
+	/**
+	 * Method to set the window title.
+	 */
+	public void setWindowTitle()
+	{
+		if (wf == null) return;
+
+		if (cell == null)
+		{
+			wf.setTitle("***NONE***");
+			return;
+		}
+
+		String title = cell.describe();
+		if (cell.getLibrary() != Library.getCurrent())
+			title += " - Current library: " + Library.getCurrent().getLibName();
+		wf.setTitle(title);
+	}
+
+	/**
      * Method to set the cell that is shown in the window to "cell".
      */
 	private void setCell(Cell cell, VarContext context, boolean addToHistory)
@@ -189,20 +208,14 @@ public class EditWindow extends JPanel
 
 		if (wf != null)
 		{
-			if (cell == null)
-			{
-				wf.setTitle("***NONE***");
-			} else
+			setWindowTitle();
+			if (cell != null)
 			{
 				if (wf == WindowFrame.getCurrentWindowFrame())
 				{
 					// if auto-switching technology, do it
 					PaletteFrame.autoTechnologySwitch(cell);
 				}
-				String title = cell.describe();
-				if (cell.getLibrary() != Library.getCurrent())
-					title += " - Current library: " + Library.getCurrent().getLibName();
-				wf.setTitle(title);
 				if (cell.getView().isTextView())
 				{
 					wf.setContent(WindowFrame.TEXTWINDOW);

@@ -733,6 +733,35 @@ public class CircuitChanges
 //		}
 	}
 
+	/****************************** RENAME CELLS ******************************/
+
+	public static void renameCellInJob(Cell cell, String newName)
+	{
+		RenameCell job = new RenameCell(cell, newName);
+	}
+
+	/**
+	 * Class to rename a cell in a new thread.
+	 */
+	protected static class RenameCell extends Job
+	{
+		Cell cell;
+		String newName;
+
+		protected RenameCell(Cell cell, String newName)
+		{
+			super("Rename Cell" + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.newName = newName;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			cell.rename(newName);
+		}
+	}
+
 	/****************************** DELETE UNUSED OLD VERSIONS OF CELLS ******************************/
 
 	public static void deleteUnusedOldVersions()

@@ -637,24 +637,33 @@ public class Cell extends NodeProto
 		return newCell;
 	}
 
-	/** Create a copy of this Cell. Warning: this method doesn't yet
-	 * properly copy all variables on all objects.
-	 * @param copyLib library into which the copy is placed. null means
-	 * place the copy into the library that contains this Cell.
-	 * @param copyNm name of the copy
-	 * @return the copy */
-//	public Cell copy(Library copyLib, String copyNm)
-//	{
-//		if (copyLib == null)
-//			copyLib = lib;
-//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
-//		Cell f = copyLib.newCell(copyNm);
-//		error(f == null, "unable to create copy Cell named: " + copyNm);
-//		copyContents(f);
-//		return f;
-//	}
+	/**
+	 * Method to rename this Cell.
+	 * @param newName the new name of this cell.
+	 */
+	public void rename(String newName)
+	{
+		checkChanging();
+
+		// do the rename
+		Name oldName = basename;
+		lowLevelRename(newName);
+
+		// handle change control, constraint, and broadcast
+		Undo.renameObject(this, oldName);
+	}
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
+
+	/**
+	 * Low-level access method to rename a Cell.
+	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
+	 * @param newName the new name of this cell.
+	 */
+	public void lowLevelRename(String newName)
+	{
+		setProtoName(newName);
+	}
 
 	/**
 	 * Low-level access method to create a cell in library "lib".
@@ -680,6 +689,7 @@ public class Cell extends NodeProto
 	public boolean lowLevelPopulate(String name)
 	{
 		checkChanging();
+
 		// see if this cell already exists
 		Library lib = getLibrary();
 //		Cell existingCell = lib.findNodeProto(name);
@@ -1457,49 +1467,6 @@ public class Cell extends NodeProto
 		return name;
 	}
 
-    /** Get the library referred to in the cell description from cell.describe()
-     * @return the Library, or null if none specified
-	 *
-	 * INSTEAD OF THIS, USE Library.findLibrary()
-     */
-//    public static Library getLibFromDescription(String desc)
-//    {
-//        String descsplit[] = desc.split(":");
-//        if (descsplit.length == 1) return null; // no library specified
-//        for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
-//            Library lib = (Library)libIt.next();
-//            if (lib.getLibName().equals(descsplit[0]))
-//                return lib;
-//        }
-//        return null;                            // lib not found
-//    }
-
-    /** Get the cell referred to in the cell description from cell.describe().
-     * Assumes current library if none specified.
-     * @return a Cell, or null if none found.
-	 *
-	 * INSTEAD OF THIS, USE NodeProto.findNodeProto()
-     */
-//    public static Cell getCellFromDescription(String desc)
-//    {
-//        String descsplit[] = desc.split(":");
-//        Library lib = Library.getCurrent(); // assume lib is current lib
-//        if (descsplit.length > 1) {
-//            for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
-//                Library lib2 = (Library)libIt.next();
-//                if (lib.getLibName().equals(descsplit[0])) { lib = lib2; break; }
-//            }
-//        }   
-//        // find cell in lib
-//        String cellName = (descsplit.length > 1)? descsplit[1] : descsplit[0];
-//        for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
-//            Cell cell = (Cell)cellIt.next();
-//            if (cell.noLibDescribe().equals(cellName))
-//                return cell;
-//        }
-//        return null; // cell not found
-//    }
-
 	/**
 	 * Method to return a list of Polys that describes all text on this Cell.
 	 * @param hardToSelect is true if considering hard-to-select text.
@@ -1832,12 +1799,14 @@ public class Cell extends NodeProto
 		if (this == parent) return true;
 
 		/* look through every instance of the parent cell */
+		Cell lastParent = null;
 		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
-//			/* if two instances in a row have same parent, skip this one */
-//			if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+			/* if two instances in a row have same parent, skip this one */
+			if (ni.getParent() == lastParent) continue;
+			lastParent = ni.getParent();
 
 			/* recurse to see if the grandparent belongs to the child */
 			if (getIsAChildOf(ni.getParent())) return true;
@@ -1847,12 +1816,14 @@ public class Cell extends NodeProto
 		Cell np = parent.iconView();
 		if (np != null)
 		{
+			lastParent = null;
 			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-//				/* if two instances in a row have same parent, skip this one */
-//				if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+				/* if two instances in a row have same parent, skip this one */
+				if (ni.getParent() == lastParent) continue;
+				lastParent = ni.getParent();
 
 				/* special case: allow an icon to be inside of the contents for illustration */
 				NodeProto niProto = ni.getProto();

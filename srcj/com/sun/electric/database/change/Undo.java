@@ -428,6 +428,11 @@ public class Undo
 					Name oldName = (Name)o1;
 					o1 = geom.getNameKey();
 					geom.lowLevelSetNameKey(oldName);
+				} else if (obj instanceof Cell)
+				{
+					Cell cell = (Cell)obj;
+					Name oldName = (Name)o1;
+					cell.lowLevelRename(oldName.toString());
 				}
 				return;
 			}

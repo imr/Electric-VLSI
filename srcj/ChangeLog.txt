@@ -1,0 +1,3 @@
+			Java Electric change log
+
+************************* Version 7.01: Released  *************************

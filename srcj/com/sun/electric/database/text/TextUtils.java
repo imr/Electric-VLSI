@@ -416,8 +416,6 @@ public class TextUtils
 		try
 		{
 			return file.toURL();
-//			URL url = new URL("file://" + fileName);
-//			return url;
 		} catch (java.net.MalformedURLException e)
 		{
 			System.out.println("Cannot find file " + fileName);

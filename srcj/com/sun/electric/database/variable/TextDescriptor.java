@@ -608,9 +608,6 @@ public class TextDescriptor
 	public static TextDescriptor newNodeArcDescriptor(ElectricObject owner)
 	{
 		return new TextDescriptor(owner, 0, 1 << (2 + TXTQGRIDSH + VTSIZESH));
-// 		TextDescriptor td = new TextDescriptor(owner);
-// 		td.setRelSize(1);
-// 		return td;
 	}
 
 	/**
@@ -621,9 +618,6 @@ public class TextDescriptor
 	public static TextDescriptor newExportDescriptor(ElectricObject owner)
 	{
 		return new TextDescriptor(owner, 0, 2 << (2 + TXTQGRIDSH + VTSIZESH));
-// 		TextDescriptor td = new TextDescriptor(owner);
-// 		td.setRelSize(2);
-// 		return td;
 	}
 
 	/**
@@ -634,9 +628,6 @@ public class TextDescriptor
 	public static TextDescriptor newNonLayoutDescriptor(ElectricObject owner)
 	{
 		return new TextDescriptor(owner, 0, 2 << (2 + TXTQGRIDSH + VTSIZESH));
-// 		TextDescriptor td = new TextDescriptor(owner);
-// 		td.setRelSize(2);
-// 		return td;
 	}
 
 	/**
@@ -648,9 +639,6 @@ public class TextDescriptor
 	public static TextDescriptor newInstanceDescriptor(ElectricObject owner)
 	{
 		return new TextDescriptor(owner, 0, 4 << (2 + TXTQGRIDSH + VTSIZESH));
-// 		TextDescriptor td = new TextDescriptor(owner);
-// 		td.setRelSize(4);
-// 		return td;
 	}
 
 	/**
@@ -662,9 +650,6 @@ public class TextDescriptor
 	public static TextDescriptor newCellDescriptor(ElectricObject owner)
 	{
 		return new TextDescriptor(owner, 0, 1 << (2 + TXTQGRIDSH + VTSIZESH));
-// 		TextDescriptor td = new TextDescriptor(owner);
-// 		td.setRelSize(1);
-// 		return td;
 	}
 
     /**
@@ -1118,9 +1103,6 @@ public class TextDescriptor
 
 	/** Method to return the offset scale of the text in the text descriptor. */
 	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
-
-	/** Method to set the offset scale of the text in the text descriptor. */
-	//private TextDescriptor setOffScale(int v) { return descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
 
 	/**
 	 * Method to return the Unit of the TextDescriptor.

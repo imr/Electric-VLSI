@@ -76,7 +76,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Font;
-//import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -931,35 +930,62 @@ public class Highlight
 		{
 			NodeInst ni = (NodeInst)realEObj;
 			NodeProto np = ni.getProto();
-			SizeOffset so = new SizeOffset(0,0,0,0);
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
+			boolean drewOutline = false;
 			if (np instanceof PrimitiveNode)
 			{
-				PrimitiveNode pnp = (PrimitiveNode)np;
-				so = Technology.getSizeOffset(ni);
+				// special case for outline nodes
+				if (np.isHoldsOutline()) 
+				{
+					Point2D [] outline = ni.getTrace();
+					if (outline != null)
+					{
+						int numPoints = outline.length;
+						Point2D [] pointList = new Point2D.Double[numPoints];
+						for(int i=0; i<numPoints; i++)
+						{
+							pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
+								ni.getTrueCenterY() + outline[i].getY());
+						}
+						trans.transform(pointList, 0, pointList, 0, numPoints);
+						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, true, null);
+						drewOutline = true;
+					}
+				}
+			}
 
-//				// special case for outline nodes
-//				double [] specialValues = pnp.getSpecialValues();
-//				if (np.isHoldsOutline()) 
-//				{
-//					Float [] outline = ni.getTrace();
-//					if (outline != null)
-//					{
-//						int numPoints = outline.length / 2;
-//						Point2D [] pointList = new Point2D.Double[numPoints];
-//						for(int i=0; i<numPoints; i++)
-//						{
-//							pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
-//								ni.getCenterY() + outline[i*2+1].floatValue());
-//						}
-//						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, null);
-//					}
-//				}
+			// setup outline of node with standard offset
+			int offX = highOffX;
+			int offY = highOffY;
+			if (!drewOutline)
+			{
+				SizeOffset so = np.getSizeOffset();
+				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+				double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+				if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
+				{
+					float x = (float)nodeLowX;
+					float y = (float)nodeLowY;
+					float size = 3 / (float)wnd.getScale();
+					Point c1 = wnd.databaseToScreen(x+size, y);
+					Point c2 = wnd.databaseToScreen(x-size, y);
+					Point c3 = wnd.databaseToScreen(x, y+size);
+					Point c4 = wnd.databaseToScreen(x, y-size);
+					g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
+					g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
+				} else
+				{
+					double nodeX = (nodeLowX + nodeHighX) / 2;
+					double nodeY = (nodeLowY + nodeHighY) / 2;
+					Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+					poly.transform(trans);
+					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false, null);
+				}
 			}
 
 			// draw the selected point
-			int offX = highOffX;
-			int offY = highOffY;
 			if (point >= 0)
 			{
 				Point2D [] points = ni.getTrace();
@@ -1051,31 +1077,6 @@ public class Highlight
 					// do not offset the node, just this point
 					offX = offY = 0;
 				}
-			}
-
-			// setup outline of node with standard offset
-			double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-			double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-			double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-			double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-			if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
-			{
-				float x = (float)nodeLowX;
-				float y = (float)nodeLowY;
-				float size = 3 / (float)wnd.getScale();
-				Point c1 = wnd.databaseToScreen(x+size, y);
-				Point c2 = wnd.databaseToScreen(x-size, y);
-				Point c3 = wnd.databaseToScreen(x, y+size);
-				Point c4 = wnd.databaseToScreen(x, y-size);
-				g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
-				g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
-			} else
-			{
-				double nodeX = (nodeLowX + nodeHighX) / 2;
-				double nodeY = (nodeLowY + nodeHighY) / 2;
-				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-				poly.transform(trans);
-				drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false, null);
 			}
 
 			// draw the selected port
