@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 
 import java.io.InputStream;
@@ -58,7 +59,7 @@ public class VerilogOut extends Simulate
 	/**
 	 * Method to read an Verilog output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL)
+	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file

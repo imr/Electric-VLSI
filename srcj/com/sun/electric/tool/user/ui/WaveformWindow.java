@@ -26,12 +26,16 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.HighlightListener;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -58,6 +62,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -74,7 +80,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
  */
-public class WaveformWindow implements WindowContent
+public class WaveformWindow implements WindowContent, HighlightListener
 {
 	private static int panelSizeDigital = 30;
 	private static int panelSizeAnalog = 150;
@@ -148,7 +154,7 @@ public class WaveformWindow implements WindowContent
 		/** high vertical axis for this trace (analog) */		private double analogHighValue;
 		/** vertical range for this trace (analog) */			private double analogRange;
 		/** the size of the window (in pixels) */				private Dimension sz;
-		/** the cell that is in the window */					private Cell cell;
+//		/** the cell that is in the window */					private Cell cell;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if this waveform panel is selected */			private boolean selected;
@@ -603,8 +609,7 @@ public class WaveformWindow implements WindowContent
 				g.drawLine(lowX, highY, highX, highY);
 				g.drawLine(highX, highY, highX, lowY);
 				g.drawLine(highX, lowY, lowX, lowY);
-				if (ToolBar.getCursorMode() != ToolBar.CursorMode.ZOOM &&
-					ToolBar.getCursorMode() != ToolBar.CursorMode.PAN)
+				if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 				{
 					// show dimensions while dragging
 					double lowTime = scaleXToTime(lowX);
@@ -949,7 +954,8 @@ public class WaveformWindow implements WindowContent
 			if (draggingArea)
 			{
 				Panel wp = (Panel)evt.getSource();
-				if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
+				if (ToolBar.getCursorMode() != ToolBar.CursorMode.MEASURE &&
+					ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 				{
 					draggingArea = false;
 					List foundList = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
@@ -961,6 +967,12 @@ public class WaveformWindow implements WindowContent
 						{
 							Signal ws = (Signal)it.next();
 							wp.addHighlightedSignal(ws);
+						}
+						if (foundList.size() == 1)
+						{
+							// a single signal: show it in the schematic
+							Signal sig = (Signal)foundList.iterator().next();
+							sig.showNetworkInSchematic();
 						}
 					} else
 					{
@@ -979,7 +991,7 @@ public class WaveformWindow implements WindowContent
 			}
 			this.repaint();
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Dragged event for selection.
 		 */ 
@@ -1229,6 +1241,9 @@ public class WaveformWindow implements WindowContent
 				// standard click: add this as the only trace
 				ws.wavePanel.clearHighlightedSignals();
 				ws.wavePanel.addHighlightedSignal(ws);
+
+				// a single signal: show it in the schematic
+				ws.showNetworkInSchematic();
 			} else
 			{
 				// shift click: add or remove to list of highlighted traces
@@ -1236,6 +1251,114 @@ public class WaveformWindow implements WindowContent
 					ws.wavePanel.addHighlightedSignal(ws);
 			}
 		}
+
+		/**
+		 * Method called when a signal is selected in the waveform and should be crossprobed to the schematic.
+		 */
+		public void showNetworkInSchematic()
+		{
+			// if this waveform has no cell associated with it, bail
+			Cell cell = wavePanel.waveWindow.getCell();
+			if (cell == null) return;
+
+			// look for the original cell to highlight it
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				if (wf.getContent().getCell() != cell) continue;
+				if (wf.getContent() instanceof EditWindow)
+				{
+					Netlist netlist = cell.getUserNetlist();
+					String want = sSig.getSignalName();
+
+					JNetwork net = findNetwork(netlist, want);
+					if (net != null)
+					{
+						Highlight.clear();
+						Highlight.addNetwork(net, cell);
+						Highlight.finished();
+					}
+					return;	
+				}
+			}
+		}
+	}
+
+	public void highlightChanged()
+	{
+		Set highSet = Highlight.getHighlightedNetworks();
+		if (highSet.size() == 1)
+		{
+			JNetwork net = (JNetwork)highSet.iterator().next();
+			String netName = net.describe();
+
+			// look at all signal names in the cell
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+
+				// look at all traces in this panel
+				// Should use code from "network.cpp:net_parsenetwork()" on the names of highlighted signals
+				for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+				{
+					Signal ws = (Signal)sIt.next();
+					if (netName.equals(ws.sSig.getSignalName()))
+					{
+						for(Iterator oIt = wavePanels.iterator(); oIt.hasNext(); )
+						{
+							Panel oWp = (Panel)oIt.next();
+							oWp.clearHighlightedSignals();
+						}
+
+						wp.addHighlightedSignal(ws);
+						repaint();
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	private static JNetwork findNetwork(Netlist netlist, String name)
+	{
+		/*
+		 * Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
+		 */
+		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
+		{
+			JNetwork net = (JNetwork)nIt.next();
+			if (net.describe().equals(name)) return net;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to get a Set of currently highlighted networks in this WaveformWindow.
+	 */
+	public Set getHighlightedNetworks()
+	{
+		// make empty set
+		Set nets = new HashSet();
+
+		// if no cell in the window, stop now
+		Cell cell = sd.getCell();
+		if (cell == null) return nets;
+		Netlist netlist = cell.getUserNetlist();
+
+		// look at all signal names in the cell
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+
+			// look at all traces in this panel
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+				JNetwork net = findNetwork(netlist, ws.sSig.getSignalName());
+				nets.add(net);
+			}
+		}
+		return nets;
 	}
 
 	/** the window that this lives in */					private WindowFrame wf;
@@ -1270,6 +1393,8 @@ public class WaveformWindow implements WindowContent
 		this.sd = sd;
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
+
+		Highlight.addHighlightListener(this);
 
 		// the total panel in the waveform window
 		overall = new JPanel();

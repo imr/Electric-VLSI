@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 
 import java.io.InputStream;
@@ -40,7 +41,7 @@ public class RawSpiceOut extends Simulate
 	/**
 	 * Method to read an Raw Spice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL)
+	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -52,7 +53,7 @@ public class RawSpiceOut extends Simulate
 		startProgressDialog("Raw Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readRawFile();
+		SimData sd = readRawFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -62,7 +63,7 @@ public class RawSpiceOut extends Simulate
 		return sd;
 	}
 
-	private SimData readRawFile()
+	private SimData readRawFile(Cell cell)
 		throws IOException
 	{
 		boolean first = true;
@@ -70,6 +71,7 @@ public class RawSpiceOut extends Simulate
 		int numSignals = -1;
 		int eventCount = -1;
 		SimData sd = new SimData();
+		sd.setCell(cell);
 		Simulate.SimAnalogSignal [] signals = null;
 		for(;;)
 		{

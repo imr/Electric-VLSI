@@ -189,7 +189,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
 		        new ImageIcon(toolbar.getClass().getResource("ButtonSaveLibrary.gif")));
         toolbar.saveLibraryButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
         toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
         toolbar.saveLibraryButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         // setModel before setEnable... not sure why yet

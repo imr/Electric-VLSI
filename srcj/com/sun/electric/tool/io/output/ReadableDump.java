@@ -296,8 +296,22 @@ public class ReadableDump extends Output
 					highY = (int)((ni.getAnchorCenterY() + ni.getYSize()/2) * scale);
 				}
 				printWriter.print("lowx: " + lowX + " highx: " + highX + " lowy: " + lowY + " highy: " + highY + "\n");
-				boolean transpose = ni.isXMirrored() != ni.isYMirrored();
-				printWriter.print("rotation: " + ni.getAngle() + " transpose: " + (transpose?1:0) + "\n");
+				int angle = ni.getAngle();
+				int transpose = (ni.isXMirrored() != ni.isYMirrored()) ? 1 : 0;
+				if (ni.isXMirrored())
+				{
+					if (ni.isYMirrored())
+					{
+						angle = (angle + 1800) % 3600;
+					} else
+					{
+						angle = (angle + 900) % 3600;
+					}
+				} else if (ni.isYMirrored())
+				{
+					angle = (angle + 2700) % 3600;
+				}
+				printWriter.print("rotation: " + angle + " transpose: " + transpose + "\n");
 				if (np instanceof Cell)
 				{
 					printWriter.print("descript: " + ni.getProtoTextDescriptor().lowLevelGet0() + "/" +

@@ -66,6 +66,8 @@ public class ELIB extends Output
 {
 
 	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
+	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
+	/** map to assign indices to cell names (for 6.XX) */		private HashMap cellIndexMap;
 
 	/** all of the names used in variables */					private static HashMap varNames;
 	/** all of the views and their integer values. */			private HashMap viewMap;
@@ -73,6 +75,8 @@ public class ELIB extends Output
 	ELIB()
 	{
 	}
+
+	public void write6Compatible() { compatibleWith6 = true; }
 
 	// ----------------------- public methods -------------------------------
 
@@ -99,7 +103,9 @@ public class ELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		writeBigInteger(ELIBConstants.MAGIC13);
+		int magic = ELIBConstants.MAGIC13;
+		if (compatibleWith6) magic = ELIBConstants.MAGIC11;
+		writeBigInteger(magic);
 		writeByte((byte)2);		// size of Short
 		writeByte((byte)4);		// size of Int
 		writeByte((byte)1);		// size of Char
@@ -245,19 +251,22 @@ public class ELIB extends Output
 		}
 
 		// count and number the cells in other libraries
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+//		if (!compatibleWith6)
 		{
-			Library olib = (Library)it.next();
-			if (olib == lib) continue;
-			for(Iterator cit = olib.getCells(); cit.hasNext(); )
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
 			{
-				Cell cell = (Cell)cit.next();
-				if (!cell.isBit(externalRefFlag)) continue;
-				cell.setTempInt(nodeProtoIndex++);
-				for(Iterator eit = cell.getPorts(); eit.hasNext(); )
+				Library olib = (Library)it.next();
+				if (olib == lib) continue;
+				for(Iterator cit = olib.getCells(); cit.hasNext(); )
 				{
-					Export pp = (Export)eit.next();
-					pp.setTempInt(portProtoIndex++);
+					Cell cell = (Cell)cit.next();
+					if (!cell.isBit(externalRefFlag)) continue;
+					cell.setTempInt(nodeProtoIndex++);
+					for(Iterator eit = cell.getPorts(); eit.hasNext(); )
+					{
+						Export pp = (Export)eit.next();
+						pp.setTempInt(portProtoIndex++);
+					}
 				}
 			}
 		}
@@ -292,6 +301,45 @@ public class ELIB extends Output
 		writeBigInteger(portProtoIndex);
 		writeBigInteger(arcIndex);
 		writeBigInteger(0);
+
+		// write count of cells if creating version-6-compatible output
+		int cellCount = 0;
+		if (compatibleWith6)
+		{
+			cellIndexMap = new HashMap();
+			for(Iterator it = lib.getCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				String cellName = cell.getName();
+				Integer cellIndex = (Integer)cellIndexMap.get(cellName);
+				if (cellIndex == null)
+				{
+					cellIndex = new Integer(cellCount++);
+					cellIndexMap.put(cellName, cellIndex);
+				}
+				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					if (ni.getProto() instanceof Cell)
+					{
+						Cell subCell = (Cell)ni.getProto();
+						if (subCell.getLibrary() != lib)
+						{
+							// external cell reference: include it in the cell names list
+							cellName = subCell.getName();
+							cellIndex = (Integer)cellIndexMap.get(cellName);
+							if (cellIndex == null)
+							{
+								cellIndex = new Integer(cellCount++);
+								cellIndexMap.put(cellName, cellIndex);
+							}
+
+						}
+					}
+				}
+			}
+			writeBigInteger(cellCount);
+		}
 
 		// write the current cell
 		int curNodeProto = -1;
@@ -517,6 +565,24 @@ public class ELIB extends Output
 			writeVariables(view, 0);
 		}
 
+		// write cells if creating version-6-compatible output
+		if (compatibleWith6)
+		{
+			String [] cellNames = new String[cellCount];
+			for(Iterator it = cellIndexMap.keySet().iterator(); it.hasNext(); )
+			{
+				String cellName = (String)it.next();
+				Integer cellIndex = (Integer)cellIndexMap.get(cellName);
+				if (cellIndex == null) continue;
+				cellNames[cellIndex.intValue()] = cellName;
+			}
+			for(int j=0; j<cellCount; j++)
+			{
+				writeString(cellNames[j]);
+				writeBigInteger(0);
+			}
+		}
+
 		// write all of the cells in this library
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
@@ -598,22 +664,32 @@ public class ELIB extends Output
 	private void writeNodeProto(Cell cell, boolean thislib)
 		throws IOException
 	{
-		// write cell information
-		writeString(cell.getName());
-
-		// write the "next in cell group" pointer
-		int nextGrp = -1;
-		Object obj = cell.getTempObj();
-		if (obj != null && obj instanceof Cell)
+		if (compatibleWith6)
 		{
-			Cell nextInGroup = (Cell)obj;
-			nextGrp = nextInGroup.getTempInt();
+			// write cell index if creating version-6-compatible output
+			Integer cellIndex = (Integer)cellIndexMap.get(cell.getName());
+			writeBigInteger(cellIndex.intValue());
+		} else
+		{
+			// write cell information
+			writeString(cell.getName());
+	
+			// write the "next in cell group" pointer
+			int nextGrp = -1;
+			Object obj = cell.getTempObj();
+			if (obj != null && obj instanceof Cell)
+			{
+				Cell nextInGroup = (Cell)obj;
+				nextGrp = nextInGroup.getTempInt();
+			}
+			writeBigInteger(nextGrp);
+	
+			// write the "next in continuation" pointer
+			int nextCont = -1;
+			writeBigInteger(nextCont);
 		}
-		writeBigInteger(nextGrp);
 
-		// write the "next in continuation" pointer
-		int nextCont = -1;
-		writeBigInteger(nextCont);
+		// write the view information
 		Integer viewIndex = (Integer)viewMap.get(cell.getView());
 		if (viewIndex == null) viewIndex = new Integer(0);
 		writeBigInteger(viewIndex.intValue());
@@ -730,7 +806,7 @@ public class ELIB extends Output
 		writeBigInteger(highY);
 
 		// write anchor point too
-		if (np instanceof Cell)
+		if (np instanceof Cell && !compatibleWith6)
 		{
 			int anchorX = (int)(ni.getAnchorCenterX() * tech.getScale() * 2);
 			int anchorY = (int)(ni.getAnchorCenterY() * tech.getScale() * 2);
@@ -740,8 +816,28 @@ public class ELIB extends Output
 
 		int transpose = 0;
 		int rotation = ni.getAngle();
-		if (ni.isXMirrored()) transpose |= 2;
-		if (ni.isYMirrored()) transpose |= 4;
+		if (compatibleWith6)
+		{
+			if (ni.isXMirrored())
+			{
+				if (ni.isYMirrored())
+				{
+					rotation = (rotation + 1800) % 3600;
+				} else
+				{
+					rotation = (rotation + 900) % 3600;
+					transpose = 1;
+				}
+			} else if (ni.isYMirrored())
+			{
+				rotation = (rotation + 2700) % 3600;
+				transpose = 1;
+			}
+		} else
+		{
+			if (ni.isXMirrored()) transpose |= 2;
+			if (ni.isYMirrored()) transpose |= 4;
+		}
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
@@ -953,15 +1049,16 @@ public class ELIB extends Output
 				type |= ELIBConstants.getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
 			} else
 			{
+				if (compatibleWith6 && varObj instanceof Double)
+					varObj = new Float(((Double)varObj).doubleValue());
 				type |= ELIBConstants.getVarType(varObj);
 			}
 
 			// special case for "trace" information on NodeInsts
-			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Object[])
+			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Point2D[])
 			{
-				Object [] objList = (Object [])varObj;
+				Point2D [] points = (Point2D [])varObj;
 				type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
-				Point2D [] points = (Point2D [])objList;
 				int len = points.length * 2;
 				type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
 				Float [] newPoints = new Float[len];

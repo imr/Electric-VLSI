@@ -197,7 +197,7 @@ public final class MenuCommands
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", KeyStroke.getKeyStroke('S', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
 		fileMenu.addMenuItem("Save Library as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
 		fileMenu.addMenuItem("Save All Libraries",null,
@@ -214,7 +214,9 @@ public final class MenuCommands
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("Readable Dump", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false); } });
+		exportSubMenu.addMenuItem("Version 6 ELIB", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true); } });
 
 		fileMenu.addSeparator();
 
@@ -820,9 +822,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
-		m = spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
+		spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResultsThisCell(); }});
 		spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
 		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
@@ -853,9 +854,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG, true); } });
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
-		m = verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResultsThisCell(); }});
 		verilogSimulationSubMenu.addSeparator();
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
@@ -1285,14 +1285,17 @@ public final class MenuCommands
 	/**
 	 * This method implements the command to save a library.
 	 * It is interactive, and pops up a dialog box.
+	 * @param lib the Library to save.
+	 * @param type the format of the library (OpenFile.Type.ELIB for binary; OpenFile.Type.READABLEDUMP for text).
+	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true if library saved, false otherwise.
 	 */
-	public static boolean saveLibraryCommand(Library lib, OpenFile.Type type)
+	public static boolean saveLibraryCommand(Library lib, OpenFile.Type type, boolean compatibleWith6)
 	{
 		String [] extensions = type.getExtensions();
 		String extension = extensions[0];
 		String fileName;
-		if (lib.isFromDisk() && type == OpenFile.Type.ELIB)
+		if (lib.isFromDisk() && type == OpenFile.Type.ELIB && !compatibleWith6)
 		{
 			fileName = lib.getLibFile().getPath();
 		} else
@@ -1309,7 +1312,7 @@ public final class MenuCommands
 				}
 			}
 		}
-		SaveLibrary job = new SaveLibrary(lib, fileName, type);
+		SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6);
         return true;
 	}
 
@@ -1323,13 +1326,15 @@ public final class MenuCommands
 		Library lib;
 		String newName;
 		OpenFile.Type type;
+		boolean compatibleWith6;
 
-		public SaveLibrary(Library lib, String newName, OpenFile.Type type)
+		public SaveLibrary(Library lib, String newName, OpenFile.Type type, boolean compatibleWith6)
 		{
 			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.newName = newName;
 			this.type = type;
+			this.compatibleWith6 = compatibleWith6;
 			startJob();
 		}
 
@@ -1343,7 +1348,7 @@ public final class MenuCommands
 				lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
 			}
 
-			boolean error = Output.writeLibrary(lib, type);
+			boolean error = Output.writeLibrary(lib, type, compatibleWith6);
 			if (error)
 			{
 				System.out.println("Error writing the library file");
@@ -1360,7 +1365,7 @@ public final class MenuCommands
 	{
 		Library lib = Library.getCurrent();
 		lib.clearFromDisk();
-		saveLibraryCommand(lib, OpenFile.Type.ELIB);
+		saveLibraryCommand(lib, OpenFile.Type.ELIB, false);
 		WindowFrame.wantToRedoTitleNames();
 	}
 
@@ -1374,7 +1379,7 @@ public final class MenuCommands
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-			if (!saveLibraryCommand(lib, OpenFile.Type.ELIB)) break;
+			if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false)) break;
 		}
 	}
 
@@ -1621,7 +1626,7 @@ public final class MenuCommands
 			if (ret == 0)
 			{
 				// save the library
-				if (!saveLibraryCommand(lib, OpenFile.Type.ELIB))
+				if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false))
                     saveCancelled = true;
 				continue;
 			}

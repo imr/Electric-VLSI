@@ -151,7 +151,7 @@ public class LayoutLib {
 	 * @param lib the library to be written.
 	 */
 	public static void writeLibrary(Library lib) {
-		Output.writeLibrary(lib, OpenFile.Type.ELIB);
+		Output.writeLibrary(lib, OpenFile.Type.ELIB, false);
 	}
 	/**
 	 * Get the width of an ArcInst. The getArcInstWidth method differs

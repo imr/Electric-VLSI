@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 
 import java.io.InputStream;
@@ -55,7 +56,7 @@ public class HSpiceOut extends Simulate
 	/**
 	 * Method to read an HSpice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL)
+	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// the .pa0 file has name information
@@ -65,7 +66,7 @@ public class HSpiceOut extends Simulate
 		startProgressDialog("HSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readTR0File(fileURL, pa0List);
+		SimData sd = readTR0File(fileURL, pa0List, cell);
 
 		// stop progress dialog
 		stopProgressDialog();
@@ -121,7 +122,7 @@ public class HSpiceOut extends Simulate
 		return pa0List;
 	}
 
-	private SimData readTR0File(URL fileURL, List pa0List)
+	private SimData readTR0File(URL fileURL, List pa0List, Cell cell)
 		throws IOException
 	{
 		InputStream tr0Stream = TextUtils.getURLStream(fileURL);
@@ -282,6 +283,7 @@ public class HSpiceOut extends Simulate
 
 		// now read the data
 		SimData sd = new SimData();
+		sd.setCell(cell);
 		eofReached = false;
 		List timeValues = new ArrayList();
 		for(int k=0; k<numSignals; k++)

@@ -47,6 +47,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -570,6 +571,12 @@ public class Highlight
 	 */
 	public static synchronized Set getHighlightedNetworks()
 	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf.getContent() instanceof WaveformWindow)
+		{
+			WaveformWindow ww = (WaveformWindow)wf.getContent();
+			return ww.getHighlightedNetworks();
+		}
 		Set nets = new HashSet();
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell != null)

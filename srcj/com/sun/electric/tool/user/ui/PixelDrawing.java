@@ -913,7 +913,7 @@ public class PixelDrawing
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, true);
+			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, false);
 			offscreensCreated++;
 		}
 

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 
 import java.io.InputStream;
@@ -47,7 +48,7 @@ public class SpiceOut extends Simulate
 	/**
 	 * Method to read an Spice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL)
+	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -59,7 +60,7 @@ public class SpiceOut extends Simulate
 		startProgressDialog("Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readSpiceFile();
+		SimData sd = readSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -69,7 +70,7 @@ public class SpiceOut extends Simulate
 		return sd;
 	}
 
-	private SimData readSpiceFile()
+	private SimData readSpiceFile(Cell cell)
 		throws IOException
 	{
 //		datamode = FALSE;
@@ -238,6 +239,7 @@ public class SpiceOut extends Simulate
 //		return(sim_spice_signals);
 
 //		SimData sd = new SimData();
+//		sd.setCell(cell);
 //		sd.signalNames = sim_spice_signames;
 //		sd.events = sim_spice_numbers;
 		System.out.println("CANNOT READ SPICE OUTPUT YET");

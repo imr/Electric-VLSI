@@ -2,6 +2,15 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/20/04, SMR) Implemented simple waveform window cross-probing.
+
+IMP: (6/20/04, SMR) Added command to export "version 6" ELIB files.
+
+BUG: (6/20/04, SMR) Cell centers are seen higher up the hierarchy.
+FIX: In "PixelDrawing.expandedCellCached()" call "drawCell()" with "false" as the last argument.
+
+IMP: (6/18/04, SMR) Implemented "Plot Spice for this Cell" and "Plot Verilog for this Cell".
+
 BUG: (6/18/04, RK) Fixed various problems with NCC export checking
 
 IMP: (6/18/04, SMR) Changed binary file format to include cell anchor points.

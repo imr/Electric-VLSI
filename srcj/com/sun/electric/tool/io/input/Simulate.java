@@ -261,7 +261,19 @@ public class Simulate extends Input
 	{
 		OpenFile.Type type = getCurrentSpiceOutputType();
 		if (type == null) return;
-		plotSimulationResults(type);
+		plotSimulationResults(type, null);
+	}
+
+	/**
+	 * Method called from the pulldown menus to read Spice output for the current cell.
+	 */
+	public static void plotSpiceResultsThisCell()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		OpenFile.Type type = getCurrentSpiceOutputType();
+		if (type == null) return;
+		plotSimulationResults(type, cell);
 	}
 
 	/**
@@ -269,13 +281,23 @@ public class Simulate extends Input
 	 */
 	public static void plotVerilogResults()
 	{
-		plotSimulationResults(OpenFile.Type.VERILOGOUT);
+		plotSimulationResults(OpenFile.Type.VERILOGOUT, null);
+	}
+
+	/**
+	 * Method called from the pulldown menus to read Verilog output for the current cell.
+	 */
+	public static void plotVerilogResultsThisCell()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		plotSimulationResults(OpenFile.Type.VERILOGOUT, cell);
 	}
 
 	/**
 	 * Method to read simulation output of a given type.
 	 */
-	private static void plotSimulationResults(OpenFile.Type type)
+	private static void plotSimulationResults(OpenFile.Type type, Cell cell)
 	{
 		Simulate is = null;
 		if (type == OpenFile.Type.HSPICEOUT)
@@ -302,10 +324,21 @@ public class Simulate extends Input
 			System.out.println("Cannot handle " + type.getName() + " files yet");
 			return;
 		}
-		String fileName = OpenFile.chooseInputFile(type, null);
-		if (fileName == null) return;
-		URL fileURL = TextUtils.makeURLToFile(fileName);
-		ReadSimulationOutput job = new ReadSimulationOutput(is, fileURL);
+
+		URL fileURL = null;
+		if (cell == null)
+		{
+			String fileName = OpenFile.chooseInputFile(type, null);
+			if (fileName == null) return;
+			fileURL = TextUtils.makeURLToFile(fileName);
+		} else
+		{
+			String [] extensions = type.getExtensions();
+			String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+			String fileName = cell.getName() + "." + extensions[0];
+			fileURL = TextUtils.makeURLToFile(filePath + fileName);
+		}
+		ReadSimulationOutput job = new ReadSimulationOutput(is, fileURL, cell);
 	}
 
 	/**
@@ -316,11 +349,13 @@ public class Simulate extends Input
 	{
 		Simulate is;
 		URL fileURL;
-		protected ReadSimulationOutput(Simulate is, URL fileURL)
+		Cell cell;
+		protected ReadSimulationOutput(Simulate is, URL fileURL, Cell cell)
 		{
 			super("Read Simulation Output", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.is = is;
 			this.fileURL = fileURL;
+			this.cell = cell;
 			startJob();
 		}
 
@@ -328,7 +363,7 @@ public class Simulate extends Input
 		{
 			try
 			{
-				SimData sd = is.readSimulationOutput(fileURL);
+				SimData sd = is.readSimulationOutput(fileURL, cell);
 				if (sd != null) showSimulationData(sd);
 			} catch (IOException e)
 			{
@@ -341,7 +376,7 @@ public class Simulate extends Input
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
-	protected SimData readSimulationOutput(URL fileURL)
+	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		return null;
@@ -387,16 +422,15 @@ public class Simulate extends Input
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 		ww.setDefaultTimeRange(lowTime, highTime);
 
-		// put waveform panels in it
-		for(int sig=0; sig<sd.signals.size(); sig++)
+		// put the first waveform panels in it
+		if (sd.signals.size() > 0)
 		{
-			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(sig);
+			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(0);
 			boolean isAnalog = false;
 			if (sSig instanceof SimAnalogSignal) isAnalog = true;
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
 			if (isAnalog) wp.setValueRange(lowValue, highValue);
 			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
-if (sig > 20) break;
 		}
 		ww.getPanel().validate();
 	}

@@ -107,9 +107,10 @@ public class Output extends IOTool
 	 * cell and the hierarchy below it (use "writeCell").
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
+	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, OpenFile.Type type)
+	public static boolean writeLibrary(Library lib, OpenFile.Type type, boolean compatibleWith6)
 	{
 		Output out;
 
@@ -184,8 +185,9 @@ public class Output extends IOTool
 					}
 				}
 			}
-
-			out = (Output)new ELIB();
+			ELIB elib = new ELIB();
+			if (compatibleWith6) elib.write6Compatible();
+			out = (Output)elib;
 			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
             if (out.openBinaryOutputStream(properOutputName)) return true;
             if (out.writeLib(lib)) return true;
