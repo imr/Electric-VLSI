@@ -32,6 +32,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
@@ -362,7 +364,9 @@ public class StatusBar extends JPanel implements HighlightListener
             } else if (eObj instanceof ArcInst)
             {
                 theArc = (ArcInst)eObj;
-                return("ARC: " + theArc.describe());
+                Netlist netlist = theArc.getParent().getUserNetlist();
+                JNetwork net = netlist.getNetwork(theArc, 0);
+                return("NETWORK: "+net.describe()+ ", ARC: " + theArc.describe());
             }
         } else if (h.getType() == Highlight.Type.TEXT)
         {
