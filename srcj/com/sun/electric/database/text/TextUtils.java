@@ -270,12 +270,13 @@ public class TextUtils
             try {
                 DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);
+                d.setGroupingSize(300);     // make it so comma (1000's separator) is never used
             } catch (Exception e) {}
         }
         numberFormatPostFix.setMaximumFractionDigits(3);
         int unitScaleIndex = 0;
         if (v != 0) {
-            while ((Math.abs(v) > 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
+            while ((Math.abs(v) >= 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
                 v /= 1000;
                 unitScaleIndex--;
             }
