@@ -311,8 +311,10 @@ public class Maker
 		mChan.minY = 0;
 		double yPos = mChan.ySize;
 		MakerRow lastMRow = null;
-		for (Place.RowList row = cell.placement.rows; row != null; row = row.next)
+		for(Iterator it = cell.placement.theRows.iterator(); it.hasNext(); )
 		{
+			Place.RowList row = (Place.RowList)it.next();
+
 			// create maker row data structure
 			MakerRow mRow = new MakerRow();
 			mRow.number = row.rowNum;
@@ -798,8 +800,9 @@ public class Maker
 		}
 
 		// create stitches and lateral feeds
-		for (Place.RowList rlist = data.cell.placement.rows; rlist != null; rlist = rlist.next)
+		for(Iterator it = data.cell.placement.theRows.iterator(); it.hasNext(); )
 		{
+			Place.RowList rlist = (Place.RowList)it.next();
 			for (Place.NBPlace place = rlist.start; place != null; place = place.next)
 			{
 				if (place.cell.type == GetNetlist.STITCH)

@@ -52,7 +52,6 @@ public class Place
 		/** average height of inst */				int				avgHeight;
 		/** number of rows */						int				numRows;
 		/** target size of each row */				int				sizeRows;
-		/** rows of placed cells */					RowList			rows;
 		/** rows of placed cells */					List            theRows;
 		/** start of cell list */					NBPlace			plist;
 		/** end of cell list */						NBPlace			endList;
@@ -66,7 +65,6 @@ public class Place
 		/** instance of cluster */					GetNetlist.SCNiTree node;
 		/** number of cluster */					int				number;
 		/** total size of members */				double			size;
-		/** pointer to next cluster */				Cluster			next;
 	};
 
 	private static class ClusterTree
@@ -95,7 +93,6 @@ public class Place
 		/** end of row cells */						NBPlace		end;
 		/** row number (0 = bottom) */				int			rowNum;
 		/** current row size */						int			rowSize;
-		/** next in row list */						RowList		next;
 	};
 
 	static class NBPlace
@@ -124,7 +121,6 @@ public class Place
 
 	/************************* File variables *************************/
 
-	/** global list of cluster groups */	private Cluster       gCluster;
 	/** global root of cluster tree */		private ClusterTree   gClusterTree;
 	/** cost of current cluster tree */		private int           currentCost;
 
@@ -158,27 +154,35 @@ public class Place
 		place.numRows = SilComp.getNumberOfRows();
 		place.sizeRows = 0;
 		place.theRows = new ArrayList();
-		place.rows = null;
 		place.plist = null;
 		place.endList = null;
 
 		// create clusters of cells
-		gCluster = createClusters(gnl.curSCCell);
-		if (gCluster == null) return "WARNING - No leaf cells found for placement";
-
-		if (gCluster == null)
+		List clusters = createClusters(gnl.curSCCell);
+		int numCl = clusters.size();
+		if (numCl == 0)
 		{
 			System.out.println("ERROR - No cells found to place.  Aborting.");
 			return null;
 		}
 
-		// place clusters in a binary group tree
-		int numCl = 0;
-		for (Cluster cl = gCluster; cl != null; cl = cl.next) numCl++;
-		Cluster [] cllist = new Cluster[numCl];
-		int i = 0;
-		for (Cluster cl = gCluster; cl != null; cl = cl.next) cllist[i++] = cl;
-		gClusterTree = createClusterTree(cllist, numCl, gnl.curSCCell);
+		// create a cluster tree node for each cluster
+		ClusterTree nStart = null;
+		for (Iterator it = clusters.iterator(); it.hasNext(); )
+		{
+			ClusterTree node = new ClusterTree();
+			node.cluster = (Cluster)it.next();
+			node.parent = null;
+			node.next = nStart;
+			nStart = node;
+			node.lPtr = null;
+			node.rPtr = null;
+		}
+
+		// recursively create cluster tree
+		gClusterTree = createCTreeRecurse(nStart, gnl.curSCCell);
+		cTreeAddParents(gClusterTree, null);
+
 		if (DEBUG)
 		{
 			System.out.println("************ Initial placement of Clusters");
@@ -203,33 +207,32 @@ public class Place
 		row.end = null;
 		row.rowNum = 0;
 		row.rowSize = 0;
-		row.next = null;
-		gnl.curSCCell.placement.rows = row;
+		gnl.curSCCell.placement.theRows.add(row);
 
 		// create cell placement list from sorted cluster list
 		createPlaceList(gClusterTree, gnl.curSCCell);
 
 		// number placement
-		numberPlacement(gnl.curSCCell.placement.rows);
+		numberPlacement(gnl.curSCCell.placement.theRows);
 		if (DEBUG)
 		{
 			System.out.println("************ Placement before Net Balancing");
-			showPlacement(gnl.curSCCell.placement.rows);
+			showPlacement(gnl.curSCCell.placement.theRows);
 		}
 
 		// do net balance algorithm
 		if (BALANCEFLAG)
 		{
-			netBalance(gnl.curSCCell.placement.rows, gnl.curSCCell);
+			netBalance(gnl.curSCCell);
 			if (DEBUG)
 			{
 				System.out.println("************ Placement after Net Balancing");
-				showPlacement(gnl.curSCCell.placement.rows);
+				showPlacement(gnl.curSCCell.placement.theRows);
 			}
 		}
 
 		// print process time for placement
-		reorderRows(gnl.curSCCell.placement.rows);
+		reorderRows(gnl.curSCCell.placement.theRows);
 
 		return null;
 	}
@@ -237,9 +240,9 @@ public class Place
 	/**
 	 * Method to create "clusters" of cells of size one.
 	 * @param cell pointer to complex cell.
-	 * @return start of list.
+	 * @return list of clusters.
 	 */
-	private Cluster createClusters(GetNetlist.SCCell cell)
+	private List createClusters(GetNetlist.SCCell cell)
 	{
 		// find total 'size' and number of all the cells
 		int size = 0;
@@ -256,10 +259,11 @@ public class Place
 			}
 		}
 
+		List clusters = new ArrayList();
 		if (num == 0)
 		{
 			System.out.println("WARNING - No leaf cells found for placement");
-			return null;
+			return clusters;
 		}
 		int avgSize = size / num;
 		int avgHeight = height / num;
@@ -278,7 +282,6 @@ public class Place
 
 		// create cluster list
 		int i = 0;
-		Cluster clusterList = null;
 		boolean warn = false;
 		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
 		{
@@ -292,8 +295,7 @@ public class Place
 			cluster.node = node;
 			cluster.size = node.size;
 			cluster.number = i++;
-			cluster.next = clusterList;
-			clusterList = cluster;
+			clusters.add(cluster);
 		}
 		if (warn)
 		{
@@ -301,37 +303,7 @@ public class Place
 			System.out.println("        - Probable cause:  Forgot to do 'PULL' command");
 		}
 
-		return clusterList;
-	}
-
-	/**
-	 * Method to recursively create the cluster tree from a group of clusters.
-	 * At each "node" in the tree, the goal is to pair groups of clusters
-	 * which are strongly connected together.
-	 * @param clusters array of pointer to the clusters.
-	 * @param size size of array (i.e. number of clusters).
-	 * @param cell pointer to cell being placed.
-	 * @return pointer to cluster tree node.
-	 */
-	private ClusterTree createClusterTree(Cluster [] clusters, int size, GetNetlist.SCCell cell)
-	{
-		// create a cluster tree node for each cluster
-		ClusterTree nStart = null;
-		for(int i=0; i<size; i++)
-		{
-			ClusterTree node = new ClusterTree();
-			node.cluster = clusters[i];
-			node.parent = null;
-			node.next = nStart;
-			nStart = node;
-			node.lPtr = null;
-			node.rPtr = null;
-		}
-
-		// recursively create cluster tree
-		ClusterTree cTree = createCTreeRecurse(nStart, cell);
-		cTreeAddParents(cTree, null);
-		return cTree;
+		return clusters;
 	}
 
 	/**
@@ -917,10 +889,7 @@ public class Place
 		// add clusters to placement list
 		if (cTree.cluster != null)
 		{
-			RowList row = cell.placement.rows;
-			while (row.next != null)
-				row = row.next;
-			addClusterToRow(cTree.cluster, row, cell.placement);
+			addClusterToRow(cTree.cluster, cell.placement.theRows, cell.placement);
 		}
 
 		createPlaceList(cTree.rPtr, cell);
@@ -934,7 +903,7 @@ public class Place
 	 * @param row pointer to the current row.
 	 * @param place pointer to placement information.
 	 */
-	private void addClusterToRow(Cluster cluster, RowList row, SCPlace place)
+	private void addClusterToRow(Cluster cluster, List theRows, SCPlace place)
 	{
 		if (cluster.node.type != GetNetlist.LEAFCELL) return;
 		NBPlace newPlace = new NBPlace();
@@ -951,6 +920,9 @@ public class Place
 			place.endList.next = newPlace;
 			place.endList = newPlace;
 		}
+
+		// get the last entry in the list
+		RowList row = (RowList)theRows.get(theRows.size() - 1);
 		double oldCondition = place.sizeRows - row.rowSize;
 		double newCondition = place.sizeRows - (row.rowSize + cluster.node.size);
 		if ((row.rowNum + 1) < place.numRows &&
@@ -961,8 +933,7 @@ public class Place
 			row2.end = null;
 			row2.rowNum = row.rowNum + 1;
 			row2.rowSize = 0;
-			row2.next = null;
-			row.next = row2;
+			theRows.add(row2);
 			row = row2;
 		}
 
@@ -988,7 +959,7 @@ public class Place
 	 * @param row pointer to start of row list.
 	 * @param cell pointer to parent cell.
 	 */
-	private void netBalance(RowList row, GetNetlist.SCCell cell)
+	private void netBalance(GetNetlist.SCCell cell)
 	{
 		// create channel list
 		Channel channel = null, endchan = null;
@@ -1043,19 +1014,19 @@ public class Place
 		// report current placement evaluation
 		if (DEBUG)
 			System.out.println("Evaluation before Net-Balancing  = " +
-				nBCost(cell.placement.rows, channel, cell));
+				nBCost(cell.placement.theRows, channel, cell));
 
 		// do the net balance for each cell
 		nBAllCells(cell, channel);
 
 		// number placement
-		nBRebalanceRows(cell.placement.rows, cell.placement);
-		numberPlacement(cell.placement.rows);
+		nBRebalanceRows(cell.placement.theRows, cell.placement);
+		numberPlacement(cell.placement.theRows);
 
 		// report new evaluation
 		if (DEBUG)
 			System.out.println("Evaluation after Net-Balancing   = %d" +
-				nBCost(cell.placement.rows, channel, cell));
+				nBCost(cell.placement.theRows, channel, cell));
 	}
 
 	/**
@@ -1086,14 +1057,14 @@ public class Place
 		if (place == null) return;
 
 		// find cost at present location and set as current minimum
-		RowList rows = cell.placement.rows;
-		int minCost = nBCost(rows, channels, cell);
+		List theRows = cell.placement.theRows;
+		int minCost = nBCost(theRows, channels, cell);
 		int pos = 0;
 
 		// temporarily remove from list
 		NBPlace oldLast = place.last;
 		NBPlace oldNext = place.next;
-		nBRemove(place, rows);
+		nBRemove(place, theRows);
 
 		// check locations backwards for nb_limit
 		int nPos = -1;
@@ -1102,10 +1073,10 @@ public class Place
 			if (nPlace != null)
 			{
 				// temporarily insert in list
-				nBInsertBefore(place, nPlace, rows);
+				nBInsertBefore(place, nPlace, theRows);
 
 				// check new cost
-				int cost = nBCost(rows, channels, cell);
+				int cost = nBCost(theRows, channels, cell);
 				if (cost < minCost)
 				{
 					minCost = cost;
@@ -1113,7 +1084,7 @@ public class Place
 				}
 
 				// remove place from list
-				nBRemove(place, rows);
+				nBRemove(place, theRows);
 			} else
 			{
 				break;
@@ -1128,10 +1099,10 @@ public class Place
 			if (nPlace != null)
 			{
 				// temporarily insert in list
-				nBInsertAfter(place, nPlace, rows);
+				nBInsertAfter(place, nPlace, theRows);
 
 				// check new cost
-				int cost = nBCost(rows, channels, cell);
+				int cost = nBCost(theRows, channels, cell);
 				if (cost < minCost)
 				{
 					minCost = cost;
@@ -1139,7 +1110,7 @@ public class Place
 				}
 
 				// remove place from list
-				nBRemove(place, rows);
+				nBRemove(place, theRows);
 			} else
 			{
 				break;
@@ -1154,22 +1125,22 @@ public class Place
 			{
 				oldNext = oldNext.next;
 			}
-			nBInsertAfter(place, oldNext, rows);
+			nBInsertAfter(place, oldNext, theRows);
 		} else if (pos < 0)
 		{
 			while(pos++ < -1)
 			{
 				oldLast = oldLast.last;
 			}
-			nBInsertBefore(place, oldLast, rows);
+			nBInsertBefore(place, oldLast, theRows);
 		} else
 		{
 			if (oldLast != null)
 			{
-				nBInsertAfter(place, oldLast, rows);
+				nBInsertAfter(place, oldLast, theRows);
 			} else
 			{
-				nBInsertBefore(place, oldNext, rows);
+				nBInsertBefore(place, oldNext, theRows);
 			}
 		}
 	}
@@ -1181,7 +1152,7 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @return cost.
 	 */
-	private int nBCost(RowList rows, Channel channels, GetNetlist.SCCell cell)
+	private int nBCost(List theRows, Channel channels, GetNetlist.SCCell cell)
 	{
 		// initialize all trunks
 		for (Channel nChan = channels; nChan != null; nChan = nChan.next)
@@ -1199,6 +1170,7 @@ public class Place
 		int dis = 0;
 		int rowNum = 0;
 		int maxRowSize = cell.placement.sizeRows + (cell.placement.avgSize >>1);
+		RowList rows = (RowList)theRows.get(0);
 		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
 			// check for room in current row
@@ -1327,7 +1299,7 @@ public class Place
 	 * @param place pointer to place to be removed.
 	 * @param rows pointer to start of row list.
 	 */
-	private void nBRemove(NBPlace place, RowList rows)
+	private void nBRemove(NBPlace place, List theRows)
 	{
 		NBPlace oldNext = place.next;
 		NBPlace oldLast = place.last;
@@ -1337,8 +1309,9 @@ public class Place
 			place.next.last = oldLast;
 
 		// check if row change
-		for (RowList row = rows; row != null; row = row.next)
+		for(Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			if (row.start == place)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1369,7 +1342,7 @@ public class Place
 	 * @param oldPlace pointer to place to be inserted before.
 	 * @param rows start of list of row markers.
 	 */
-	private void nBInsertBefore(NBPlace place, NBPlace oldPlace, RowList rows)
+	private void nBInsertBefore(NBPlace place, NBPlace oldPlace, List theRows)
 	{
 		place.next = oldPlace;
 		if (oldPlace != null)
@@ -1384,8 +1357,9 @@ public class Place
 		}
 
 		// check if row change
-		for (RowList row = rows; row != null; row = row.next)
+		for(Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1411,7 +1385,7 @@ public class Place
 	 * @param oldPlace pointer to place to be inserted after.
 	 * @param rows start of list of row markers.
 	 */
-	private void nBInsertAfter(NBPlace place, NBPlace oldPlace, RowList rows)
+	private void nBInsertAfter(NBPlace place, NBPlace oldPlace, List theRows)
 	{
 		place.last = oldPlace;
 		if (oldPlace != null)
@@ -1426,8 +1400,10 @@ public class Place
 		}
 
 		// check if row change
-		for (RowList row = rows; row != null; row = row.next)
+		RowList rows = (RowList)theRows.get(0);
+		for (Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			if (row.start == oldPlace)
 			{
 				if ((row.rowNum % 2) != 0)
@@ -1451,16 +1427,19 @@ public class Place
 	 * @param rows pointer to start of row list.
 	 * @param place pointer to global placement structure.
 	 */
-	private void nBRebalanceRows(RowList rows, SCPlace place)
+	private void nBRebalanceRows(List theRows, SCPlace place)
 	{
 		int maxRowSize = place.sizeRows + (place.avgSize >> 1);
+		int rowPos = 0;
+		RowList rows = (RowList)theRows.get(rowPos);
 		rows.rowSize = 0;
 		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
 			if ((rows.rowNum + 1) < place.numRows &&
 				(rows.rowSize + nPlace.cell.size) > maxRowSize)
 			{
-				rows = rows.next;
+				rowPos++;
+				rows = (RowList)theRows.get(rowPos);
 				rows.rowSize = 0;
 				if ((rows.rowNum % 2) != 0)
 				{
@@ -1485,10 +1464,11 @@ public class Place
 	 * Method to number the x position of all the cells in their rows.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private void numberPlacement(RowList rows)
+	private void numberPlacement(List theRows)
 	{
-		for (RowList row = rows; row != null; row = row.next)
+		for (Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			int xPos = 0;
 			NBPlace nPlace = row.start;
 			while (nPlace != null)
@@ -1512,10 +1492,11 @@ public class Place
 	 * of odd rows and breaking the snake pattern by row.
 	 * @param rows pointer to start of row list.
 	 */
-	private void reorderRows(RowList rows)
+	private void reorderRows(List theRows)
 	{
-		for (RowList row = rows; row != null; row = row.next)
+		for(Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			if ((row.rowNum % 2) != 0)
 			{
 				// odd row
@@ -1541,10 +1522,11 @@ public class Place
 	 * Method to print the cells in their rows of placement.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private void showPlacement(RowList rows)
+	private void showPlacement(List theRows)
 	{
-		for (RowList row = rows; row != null; row = row.next)
+		for (Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			RowList row = (RowList)it.next();
 			System.out.println("For Row #" + row.rowNum + ", size " + row.rowSize+ ":");
 			NBPlace inst;
 			for (inst = row.start; inst != row.end;)

@@ -30,6 +30,9 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * The routing part of the Silicon Compiler tool.
  */
@@ -196,10 +199,10 @@ public class Route
 		route.rows = null;
 
 		// first squeeze cell together
-		squeezeCells(gnl.curSCCell.placement.rows);
+		squeezeCells(gnl.curSCCell.placement.theRows);
 
 		// create list of rows and their usage of extracted nodes
-		RouteRow rowList = createRowList(gnl.curSCCell.placement.rows, gnl.curSCCell);
+		RouteRow rowList = createRowList(gnl.curSCCell.placement.theRows, gnl.curSCCell);
 		route.rows = rowList;
 
 		// create Route Channel List
@@ -210,7 +213,7 @@ public class Route
 		channelAssign(rowList, channelList, gnl.curSCCell);
 
 		// decide upon any pass through cells required
-		createPassThroughs(channelList, gnl.curSCCell.placement.rows);
+		createPassThroughs(channelList, gnl.curSCCell.placement.theRows);
 
 		// decide upon export positions
 		route.exports = decideExports(gnl.curSCCell);
@@ -226,10 +229,11 @@ public class Route
 	 * Checks where their active areas start and uses the minimum active distance.
 	 * @param rows pointer to start of row list.
 	 */
-	private void squeezeCells(Place.RowList rows)
+	private void squeezeCells(List theRows)
 	{
-		for (Place.RowList row = rows; row != null; row = row.next)
+		for(Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			Place.RowList row = (Place.RowList)it.next();
 			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
 				if (place.next == null) continue;
@@ -264,7 +268,7 @@ public class Route
 	 * @param cell pointer to parent cell.
 	 * @return created list.
 	 */
-	private RouteRow createRowList(Place.RowList rows, GetNetlist.SCCell cell)
+	private RouteRow createRowList(List theRows, GetNetlist.SCCell cell)
 	{
 		// clear all reference pointers in extracted node list
 		for (GetNetlist.ExtNode eNode = cell.exNodes; eNode != null; eNode = eNode.next)
@@ -273,8 +277,9 @@ public class Route
 		// create a route row list for each placement row
 		RouteRow firstRRow = null, lastRRow = null;
 		RouteNode sameNode = null;
-		for (Place.RowList row = rows; row != null; row = row.next)
+		for(Iterator it = theRows.iterator(); it.hasNext(); )
 		{
+			Place.RowList row = (Place.RowList)it.next();
 			RouteRow newRRow = new RouteRow();
 			newRRow.number = row.rowNum;
 			newRRow.nodes = null;
@@ -935,7 +940,7 @@ public class Route
 	 * @param channels pointer to current channels.
 	 * @param rows pointer to placed rows.
 	 */
-	private void createPassThroughs(RouteChannel channels, Place.RowList rows)
+	private void createPassThroughs(RouteChannel channels, List theRows)
 	{
 		feedNumber = 0;
 
@@ -957,7 +962,7 @@ public class Route
 				for (RouteChNode chNode2 = chNode.sameNext; chNode2 != null; chNode2 = chNode2.sameNext)
 				{
 					chNode2.flags |= ROUTESEEN;
-					betweenChNodes(oldChNode, chNode2, channels, rows);
+					betweenChNodes(oldChNode, chNode2, channels, theRows);
 					oldChNode = chNode2;
 				}
 			}
@@ -973,7 +978,7 @@ public class Route
 	 * @param channels list of channels.
 	 * @param rows list of placed rows.
 	 */
-	private void betweenChNodes(RouteChNode node1, RouteChNode node2, RouteChannel channels, Place.RowList rows)
+	private void betweenChNodes(RouteChNode node1, RouteChNode node2, RouteChannel channels, List theRows)
 	{
 		GetNetlist.ExtNode extNode = node1.extNode;
 
@@ -1013,9 +1018,10 @@ public class Route
 			pMaxX += DEFAULT_FUZZY_WINDOW_LIMIT;
 
 			// determine which row we are in
-			Place.RowList row;
-			for (row = rows; row != null; row = row.next)
+			Place.RowList row = null;
+			for(Iterator it = theRows.iterator(); it.hasNext(); )
 			{
+				row = (Place.RowList)it.next();
 				if (row.rowNum == chan.number) break;
 			}
 
@@ -2350,9 +2356,13 @@ public class Route
 		if (chan.number == 0) return;
 
 		// get correct row
-		Place.RowList row = cell.placement.rows;
+		int rowIndex = 0;
+		Place.RowList row = (Place.RowList)cell.placement.theRows.get(rowIndex);
 		for (int num = 1; num < chan.number && row != null; num++)
-			row = row.next;
+		{
+			rowIndex++;
+			row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+		}
 		if (row == null) return;
 
 		// get correct route row
@@ -2496,9 +2506,13 @@ public class Route
 		if (chan.number == cell.placement.numRows) return;
 
 		// get correct row (above)
-		Place.RowList row = cell.placement.rows;
+		int rowIndex = 0;
+		Place.RowList row = (Place.RowList)cell.placement.theRows.get(rowIndex);
 		for (int num = 0; num < chan.number && row != null; num++)
-			row = row.next;
+		{
+			rowIndex++;
+			row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+		}
 		if (row == null) return;
 
 		// get correct route row (above)

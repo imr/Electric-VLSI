@@ -42,6 +42,7 @@ import javax.swing.KeyStroke;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.SavedViews;
 import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -112,6 +113,8 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerSelection(); }});
         centerSubMenu.addMenuItem("Cursor", KeyStroke.getKeyStroke('5', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
+        windowMenu.addMenuItem("Saved Views...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
 
         windowMenu.addSeparator();
 
