@@ -230,8 +230,10 @@ public class ToolMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
         logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
-        logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node", null,
+        logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node(s)", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
+        logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
         toolMenu.add(logEffortSubMenu);
 
         //------------------- Routing
@@ -353,9 +355,18 @@ public class ToolMenu {
             }
             if (eobj instanceof NodeInst) {
                 NodeInst ni = (NodeInst)eobj;
-                LETool.clearStoredSizes(ni);
+                LETool.clearStoredSizesJob(ni);
             }
         }
+        System.out.println("Sizes cleared");
+    }
+
+    public static void clearSizesCommand() {
+        for (Iterator it = Library.getVisibleLibraries(); it.hasNext(); ) {
+            Library lib = (Library)it.next();
+            LETool.clearStoredSizesJob(lib);
+        }
+        System.out.println("Sizes cleared");
     }
 
     /**

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01r: *********************************
 
+IMP/MAN: (9/17/04, JKG) new command "Tool -> Logical Effort -> Clear LE Sizes in all Libraries"
+
 ************************* Version 8.01q: *********************************
 
 IMP: (9/17/04, SMR) Dialogs remember their last size; "change" dialog grows sensibly.

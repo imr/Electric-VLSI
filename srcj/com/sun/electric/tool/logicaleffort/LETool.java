@@ -476,8 +476,12 @@ public class LETool extends Tool {
         System.out.println("No existing completed sizing jobs contain info about "+no.getName());
     }
 
-    public static void clearStoredSizes(Nodable no) {
+    public static void clearStoredSizesJob(Nodable no) {
         ClearStoredSizes job = new ClearStoredSizes(no);
+    }
+
+    public static void clearStoredSizesJob(Library lib) {
+        ClearStoredSizesLibrary job = new ClearStoredSizesLibrary(lib);
     }
 
     /**
@@ -492,14 +496,21 @@ public class LETool extends Tool {
         }
 
         public boolean doIt() {
-            // delete all vars that start with "LEDRIVE_"
-            for (Iterator it = no.getVariables(); it.hasNext(); ) {
-                Variable var = (Variable)it.next();
-                String name = var.getKey().getName();
-                if (name.startsWith("LEDRIVE_")) {
-                    no.delVar(var.getKey());
-                }
-            }
+            clearStoredSizes(no);
+            return true;
+        }
+    }
+
+    public static class ClearStoredSizesLibrary extends Job {
+        private Library lib;
+        public ClearStoredSizesLibrary(Library lib) {
+            super("Clear LE Sizes", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.lib = lib;
+            startJob();
+        }
+
+        public boolean doIt() {
+            clearStoredSizes(lib);
             return true;
         }
     }
@@ -507,7 +518,7 @@ public class LETool extends Tool {
     /**
      * Clears stored "LEDRIVE_" sizes on all nodes in a Cell.
      */
-    public void clearStoredSizes(Cell cell) {
+    private static void clearStoredSizes(Cell cell) {
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             clearStoredSizes((Nodable)it.next());
         }
@@ -516,9 +527,20 @@ public class LETool extends Tool {
     /**
      * Clears stored "LEDRIVE_" sizes for all cells in a Library.
      */
-    public void clearStoredSizes(Library lib) {
+    private static void clearStoredSizes(Library lib) {
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             clearStoredSizes((Cell)it.next());
+        }
+    }
+
+    // delete all vars that start with "LEDRIVE_"
+    private static void clearStoredSizes(Nodable no) {
+        for (Iterator it = no.getVariables(); it.hasNext(); ) {
+            Variable var = (Variable)it.next();
+            String name = var.getKey().getName();
+            if (name.startsWith("LEDRIVE_")) {
+                no.delVar(var.getKey());
+            }
         }
     }
 
