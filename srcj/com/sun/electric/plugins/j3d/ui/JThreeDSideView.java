@@ -170,7 +170,7 @@ public class JThreeDSideView extends JPanel
         }
 
         // lights
-        J3DUtils.createLights(objRoot, objTrans);
+        J3DUtils.createLights(objRoot);
 
         // picking tool
         pickCanvas = new PickCanvas(canvas, objRoot);

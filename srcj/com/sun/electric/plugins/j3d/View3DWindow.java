@@ -415,7 +415,7 @@ public class View3DWindow extends JPanel
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
         // lights
-        J3DUtils.createLights(objRoot, objTrans);
+        J3DUtils.createLights(objRoot);
 
         // Create Axes
         Rectangle2D cellBnd = cell.getBounds();

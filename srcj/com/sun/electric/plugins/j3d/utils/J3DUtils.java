@@ -239,9 +239,8 @@ public final class J3DUtils
      * Create the lights (directional and ambiental) for the given scene graph
      * based on User's data
      * @param scene
-     * @param objTrans
      */
-    public static void createLights(BranchGroup scene, TransformGroup objTrans)
+    public static void createLights(BranchGroup scene)
     {
         // Checking if light colors are available
         setDirectionalColor(scene);
@@ -277,7 +276,7 @@ public final class J3DUtils
             directionalColor.addObserver(directionalLight);
 
             // Add lights to the env.
-            objTrans.addChild(directionalLight);
+            scene.addChild(directionalLight);
         }
     }
 
