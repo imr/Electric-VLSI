@@ -2,6 +2,8 @@
 
 ************************* Version 8.01: Released  *************************
 
+IMP: (7/18/04, JKG) Implement clipping for arcs and text in PixelDrawing. Speeds up redraw when zoomed in.
+
 BUG: (7/16/04, GVG) PolyQTree doesn't properly merge polygons that are touching each other.
 FIX: Extra code for those cases.
 

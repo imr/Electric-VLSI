@@ -2282,6 +2282,21 @@ public class EditWindow extends JPanel
 		return new Point2D.Double(dbX, dbY);
 	}
 
+    /**
+     * Method to convert a rectangle in screen units to a rectangle in
+     * database units.
+     * @param screenRect the rectangle to convert
+     * @return the same rectangle in database units
+     */
+    public Rectangle2D screenToDatabase(Rectangle2D screenRect)
+    {
+        Point2D anchor = screenToDatabase((int)screenRect.getX(), (int)screenRect.getY());
+        Point2D size = deltaScreenToDatabase((int)screenRect.getWidth(), (int)screenRect.getHeight());
+        // note that lower left corner in screen units is upper left corner in db units, so
+        // compensate for that here
+        return new Rectangle2D.Double(anchor.getX(), anchor.getY()+size.getY(), size.getX(), -size.getY());
+
+    }
 	/**
 	 * Method to convert a screen distance to a database distance.
 	 * @param screenDX the X coordinate change (on the screen in this EditWindow).

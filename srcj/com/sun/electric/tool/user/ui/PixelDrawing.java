@@ -249,7 +249,6 @@ public class PixelDrawing
 	{
 		this.wnd = wnd;
 		this.sz = wnd.getScreenSize();
-        this.drawBounds = wnd.getDisplayedBounds();
 
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -297,6 +296,7 @@ public class PixelDrawing
 	public void drawImage(Rectangle2D expandBounds)
 	{
 		Cell cell = wnd.getCell();
+        drawBounds = wnd.getDisplayedBounds();
 		long startTime = 0;
 //		if (TAKE_STATS)
 //		{
@@ -712,7 +712,15 @@ public class PixelDrawing
 	{
         // see if the arc is completely clipped from the screen
 		Rectangle2D arcBounds = ai.getBounds();
-        if (!arcBounds.intersects(drawBounds)) return;
+        Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
+        // java doesn't think they intersect if they contain no area, so add some area if needed
+        if (arcBounds.getWidth() == 0) dbBounds.setRect(dbBounds.getX(), dbBounds.getY(), 0.0001, dbBounds.getHeight());
+        if (arcBounds.getHeight() == 0) dbBounds.setRect(dbBounds.getX(), dbBounds.getY(), dbBounds.getWidth(), 0.0001);
+        Poly p = new Poly(dbBounds);
+        p.transform(trans);
+        if (drawBounds != null && !p.getBounds2D().intersects(drawBounds)) {
+            return;
+        }
 
         double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		// if the arc it tiny, just approximate it with a single dot
@@ -1967,14 +1975,27 @@ public class PixelDrawing
 		{
 			boxedWidth = (int)rect.getWidth();
 			boxedHeight = (int)rect.getHeight();
+            // clip if not within bounds
+            if (drawBounds != null && !drawBounds.intersects(rect)) return;
 		}
 
-		// render the text
+        // create RenderInfo
         long startTime = System.currentTimeMillis();
-		Raster ras = renderText(s, fontName, size, italic, bold, underline, boxedWidth, boxedHeight);
+        RenderTextInfo renderInfo = new RenderTextInfo();
+        if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
+            return;
+
+        // check if text is on-screen
+        Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
+        if (drawBounds != null && !drawBounds.intersects(dbBounds))
+            return;
+
+		// render the text
+		Raster ras = renderText(renderInfo);
         renderTextTime += (System.currentTimeMillis() - startTime);
+        //System.out.println("Rendered text: "+s);
 		if (ras == null) return;
-		Point pt = getTextCorner(ras, style, rect, rotation);
+		Point pt = getTextCorner(ras.getWidth(), ras.getHeight(), style, rect, rotation);
 		int atX = pt.x;
 		int atY = pt.y;
 		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
@@ -2181,6 +2202,70 @@ public class PixelDrawing
 		return color;
 	}
 
+    private static class RenderTextInfo {
+        private Font font;
+        private GlyphVector gv;
+        private LineMetrics lm;
+        private Point2D anchorPoint;
+        private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
+        private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
+        private boolean underline;
+
+        private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
+                          Rectangle probableBoxedBounds, Poly.Type style, int rotation) {
+            font = getFont(msg, fontName, tSize, italic, bold, underline);
+            this.underline = underline;
+
+            // convert the text to a GlyphVector
+            FontRenderContext frc = new FontRenderContext(null, true, true);
+            gv = font.createGlyphVector(frc, msg);
+            lm = font.getLineMetrics(msg, frc);
+
+            // figure bounding box of text
+            //Rectangle rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+            Rectangle2D rasRect = gv.getLogicalBounds();
+            int width = (int)rasRect.getWidth();
+
+            int height = (int)(lm.getHeight()+0.5);
+            if (width <= 0 || height <= 0) return false;
+            int fontStyle = font.getStyle();
+
+            int boxedWidth = (int)probableBoxedBounds.getWidth();
+            int boxedHeight = (int)probableBoxedBounds.getHeight();
+            // if text is to be "boxed", make sure it fits
+            if (boxedWidth > 0 && boxedHeight > 0)
+            {
+                if (width > boxedWidth || height > boxedHeight)
+                {
+                    double scale = Math.min((double)boxedWidth / width, (double)boxedHeight / height);
+                    font = new Font(fontName, fontStyle, (int)(tSize*scale));
+                    if (font != null)
+                    {
+                        // convert the text to a GlyphVector
+                        gv = font.createGlyphVector(frc, msg);
+                        lm = font.getLineMetrics(msg, frc);
+                        //rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+                        rasRect = gv.getLogicalBounds();
+                        height = (int)(lm.getHeight()+0.5);
+                        if (height <= 0) return false;
+                        width = (int)rasRect.getWidth();
+                    }
+                }
+            }
+            if (underline) height++;
+            rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+
+            anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
+            if (rotation == 1 || rotation == 3) {
+                bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), height, width);
+            } else {
+                bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), width, height);
+            }
+
+            return true;
+        }
+    }
+
 	/**
 	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param gv the GlyphVector describing the text.
@@ -2189,11 +2274,11 @@ public class PixelDrawing
 	 * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise, 2=180, 3=90 clockwise).
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
-	private Point getTextCorner(Raster ras, Poly.Type style, Rectangle rect, int rotation)
+	private static Point getTextCorner(int rasterWidth, int rasterHeight, Poly.Type style, Rectangle rect, int rotation)
 	{
 		// adjust to place text in the center
-		int textWidth = ras.getWidth();
-		int textHeight = ras.getHeight();
+		int textWidth = rasterWidth;
+		int textHeight = rasterHeight;
 		int offX = 0, offY = 0;
 		if (style == Poly.Type.TEXTCENT)
 		{
@@ -2274,49 +2359,22 @@ public class PixelDrawing
 	 */
 	public static Raster renderText(String msg, String font, int tSize, boolean italic, boolean bold, boolean underline, int boxedWidth, int boxedHeight)
 	{
-		// get the font
-		int fontStyle = Font.PLAIN;
-		if (italic) fontStyle |= Font.ITALIC;
-		if (bold) fontStyle |= Font.BOLD;
-		Font theFont = new Font(font, fontStyle, tSize);
-		if (theFont == null)
-		{
-			System.out.println("Could not find the proper font");
-			return null;
-		}
+        RenderTextInfo renderInfo = new RenderTextInfo();
+        if (!renderInfo.buildInfo(msg, font, tSize, italic, bold, underline, new Rectangle(boxedWidth, boxedHeight), null, 0))
+            return null;
+        return renderText(renderInfo);
+    }
 
-		// convert the text to a GlyphVector
-		FontRenderContext frc = new FontRenderContext(null, true, true);
-		GlyphVector gv = theFont.createGlyphVector(frc, msg);
-		LineMetrics lm = theFont.getLineMetrics(msg, frc);
+    private static Raster renderText(RenderTextInfo renderInfo) {
 
-		// allocate space for the rendered text
-		Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-		int width = rect.width;
+        Font theFont = renderInfo.font;
+        if (theFont == null) return null;
 
-		int height = (int)(lm.getHeight()+0.5);
-		if (width <= 0 || height <= 0) return null;
+        int width = (int)renderInfo.rasBounds.getWidth();
+        int height = (int)renderInfo.rasBounds.getHeight();
+        GlyphVector gv = renderInfo.gv;
+        LineMetrics lm = renderInfo.lm;
 
-		// if text is to be "boxed", make sure it fits
-		if (boxedWidth > 0 && boxedHeight > 0)
-		{
-			if (width > boxedWidth || height > boxedHeight)
-			{
-				double scale = Math.min((double)boxedWidth / width, (double)boxedHeight / height);
-				theFont = new Font(font, fontStyle, (int)(tSize*scale));
-				if (theFont != null)
-				{
-					// convert the text to a GlyphVector
-					gv = theFont.createGlyphVector(frc, msg);
-					lm = theFont.getLineMetrics(msg, frc);
-					rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-					height = (int)(lm.getHeight()+0.5);
-					if (height <= 0) return null;
-					width = rect.width;
-				}
-			}
-		}
-		if (underline) height++;
 		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
@@ -2324,8 +2382,8 @@ public class PixelDrawing
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2.setColor(new Color(255,255,255));
-		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
-		if (underline)
+		g2.drawGlyphVector(gv, (float)-renderInfo.rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
+		if (renderInfo.underline)
 		{
 			g2.drawLine(0, height-1, width, height-1);
 		}
@@ -2333,6 +2391,20 @@ public class PixelDrawing
 		// return the bits
 		return textImage.getData();
 	}
+
+    public static Font getFont(String msg, String font, int tSize, boolean italic, boolean bold, boolean underline) {
+        // get the font
+        int fontStyle = Font.PLAIN;
+        if (italic) fontStyle |= Font.ITALIC;
+        if (bold) fontStyle |= Font.BOLD;
+        Font theFont = new Font(font, fontStyle, tSize);
+        if (theFont == null)
+        {
+            System.out.println("Could not find font "+font+" to render text: "+msg);
+            return null;
+        }
+        return theFont;
+    }
 
 	// ************************************* CIRCLE DRAWING *************************************
 
