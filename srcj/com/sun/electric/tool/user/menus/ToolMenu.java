@@ -147,6 +147,8 @@ public class ToolMenu {
 			toolMenu.add(irsimSimulationSubMenu);
 			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
+			irsimSimulationSubMenu.addMenuItem("Update Simulation Window", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("update"); } });
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });

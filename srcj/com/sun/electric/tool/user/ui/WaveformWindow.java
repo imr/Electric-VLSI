@@ -42,6 +42,8 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -146,7 +148,8 @@ public class WaveformWindow implements WindowContent
 		new Color(255,   0, 127)};
 
 	/** the window that this lives in */					private WindowFrame wf;
-	/** the cell being simulated */							private Simulation.SimData sd;
+	/** the cell being simulated */							private Stimuli sd;
+	/** the simulation engine that runs in this window. */	private Engine se;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
@@ -497,7 +500,7 @@ public class WaveformWindow implements WindowContent
 			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
 			{
 				JButton but = (JButton)it.next();
-				Signal ws = (Signal)waveSignals.get(but);
+				WaveSignal ws = (WaveSignal)waveSignals.get(but);
 				signals.add(ws);
 			}
 			return signals;
@@ -518,7 +521,7 @@ public class WaveformWindow implements WindowContent
 			Set set = waveSignals.keySet();
 			if (set.size() == 0) return;
 			JButton but = (JButton)set.iterator().next();
-			Signal ws = (Signal)waveSignals.get(but);
+			WaveSignal ws = (WaveSignal)waveSignals.get(but);
 
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 			{
@@ -571,13 +574,13 @@ public class WaveformWindow implements WindowContent
 			waveWindow.saveSignalOrder();
 		}
 
-		private Signal addSignalToPanel(Simulation.SimSignal sSig)
+		private WaveSignal addSignalToPanel(Stimuli.Signal sSig)
 		{
 			// see if the signal is already there
 			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
 			{
 				JButton but = (JButton)it.next();
-				Signal ws = (Signal)waveSignals.get(but);
+				WaveSignal ws = (WaveSignal)waveSignals.get(but);
 				if (ws.sSig == sSig)
 				{
 					// found it already: just change the color
@@ -598,7 +601,7 @@ public class WaveformWindow implements WindowContent
 
 			// not found: add it
 			int sigNo = waveSignals.size();
-			Signal wsig = new Signal(this, sSig);
+			WaveSignal wsig = new WaveSignal(this, sSig);
 			wsig.color = colorArray[sigNo % colorArray.length];
 			signalButtons.validate();
 			signalButtons.repaint();
@@ -624,11 +627,11 @@ public class WaveformWindow implements WindowContent
 			if (theSignals.size() != 1) return;
 
 			// the only signal must be digital
-			Signal ws = (Signal)theSignals.iterator().next();
-			if (!(ws.sSig instanceof Simulation.SimDigitalSignal)) return;
+			WaveSignal ws = (WaveSignal)theSignals.iterator().next();
+			if (!(ws.sSig instanceof Stimuli.DigitalSignal)) return;
 
 			// the digital signal must be a bus
-			Simulation.SimDigitalSignal sDSig = (Simulation.SimDigitalSignal)ws.sSig;
+			Stimuli.DigitalSignal sDSig = (Stimuli.DigitalSignal)ws.sSig;
 			List bussedSignals = sDSig.getBussedSignals();
 			if (bussedSignals == null) return;
 
@@ -636,8 +639,8 @@ public class WaveformWindow implements WindowContent
 			boolean opened = false;
 			for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 			{
-				Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
-				Signal subWs = waveWindow.findDisplayedSignal(subDS);
+				Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+				WaveSignal subWs = waveWindow.findDisplayedSignal(subDS);
 				if (subWs != null)
 				{
 					opened = true;
@@ -655,8 +658,8 @@ public class WaveformWindow implements WindowContent
 
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
-					Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
-					Signal subWs = waveWindow.findDisplayedSignal(subDS);
+					Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+					WaveSignal subWs = waveWindow.findDisplayedSignal(subDS);
 					if (subWs != null)
 					{
 						Panel wp = subWs.wavePanel;
@@ -669,9 +672,9 @@ public class WaveformWindow implements WindowContent
 				// closed: add all entries on the bus
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
-					Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
+					Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
 					Panel wp = new Panel(waveWindow, false);
-					Signal wsig = new Signal(wp, subDS);
+					WaveSignal wsig = new WaveSignal(wp, subDS);
 				}
 			}
 			waveWindow.overall.validate();
@@ -807,8 +810,8 @@ public class WaveformWindow implements WindowContent
 				boolean first = true;
 				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 				{
-					Signal ws = (Signal)it.next();
-					if (ws.sSig instanceof Simulation.SimAnalogSignal)
+					WaveSignal ws = (WaveSignal)it.next();
+					if (ws.sSig instanceof Stimuli.AnalogSignal)
 					{
 						// grid on analog trace
 						Rectangle2D bounds = ws.sSig.getBounds();
@@ -1051,12 +1054,12 @@ public class WaveformWindow implements WindowContent
 
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				Signal ws = (Signal)it.next();
+				WaveSignal ws = (WaveSignal)it.next();
 				if (g != null) g.setColor(ws.color);
-				if (ws.sSig instanceof Simulation.SimAnalogSignal)
+				if (ws.sSig instanceof Stimuli.AnalogSignal)
 				{
 					// draw analog trace
-					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
+					Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)ws.sSig;
 					int numEvents = as.getNumEvents();
 					if (as.isBasic())
 					{
@@ -1133,10 +1136,10 @@ public class WaveformWindow implements WindowContent
 					}
 					continue;
 				}
-				if (ws.sSig instanceof Simulation.SimDigitalSignal)
+				if (ws.sSig instanceof Stimuli.DigitalSignal)
 				{
 					// draw digital traces
-					Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
+					Stimuli.DigitalSignal ds = (Stimuli.DigitalSignal)ws.sSig;
 					List bussedSignals = ds.getBussedSignals();
 					if (bussedSignals != null)
 					{
@@ -1152,7 +1155,7 @@ public class WaveformWindow implements WindowContent
 							boolean curDefined = true;
 							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 							{
-								Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
+								Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
 								int numEvents = subDS.getNumEvents();
 								boolean undefined = false;
 								for(int i=0; i<numEvents; i++)
@@ -1160,12 +1163,12 @@ public class WaveformWindow implements WindowContent
 									double time = subDS.getTime(i);
 									if (time <= curTime)
 									{
-										switch (subDS.getState(i) & Simulation.SimData.LOGIC)
+										switch (subDS.getState(i) & Stimuli.LOGIC)
 										{
-											case Simulation.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
-											case Simulation.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
-											case Simulation.SimData.LOGIC_X:
-											case Simulation.SimData.LOGIC_Z: undefined = true;    break;
+											case Stimuli.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
+											case Stimuli.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
+											case Stimuli.LOGIC_X:
+											case Stimuli.LOGIC_Z: undefined = true;    break;
 										}
 									} else
 									{
@@ -1230,14 +1233,14 @@ public class WaveformWindow implements WindowContent
 					{
 						double time = ds.getTime(i);
 						int x = scaleTimeToX(time);
-						int state = ds.getState(i) & Simulation.SimData.LOGIC;
+						int state = ds.getState(i) & Stimuli.LOGIC;
 						int lowy = 0, highy = 0;
 						switch (state)
 						{
-							case Simulation.SimData.LOGIC_HIGH: lowy = highy = 5;            break;
-							case Simulation.SimData.LOGIC_LOW:  lowy = highy = hei-5;        break;
-							case Simulation.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
-							case Simulation.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
+							case Stimuli.LOGIC_HIGH: lowy = highy = 5;            break;
+							case Stimuli.LOGIC_LOW:  lowy = highy = hei-5;        break;
+							case Stimuli.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
+							case Stimuli.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
 						}
 						if (i != 0)
 						{
@@ -1273,7 +1276,7 @@ public class WaveformWindow implements WindowContent
 			return result;
 		}
 
-		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List result, Signal ws)
+		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List result, WaveSignal ws)
 		{
 			if (bounds != null)
 			{
@@ -1289,7 +1292,7 @@ public class WaveformWindow implements WindowContent
 			return false;
 		}
 
-		private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds, List result, Signal ws, int sweepNum)
+		private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds, List result, WaveSignal ws, int sweepNum)
 		{
 			if (bounds != null)
 			{
@@ -1443,7 +1446,7 @@ public class WaveformWindow implements WindowContent
 		{
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				Signal ws = (Signal)it.next();
+				WaveSignal ws = (WaveSignal)it.next();
 				if (!ws.highlighted) continue;
 				ws.highlighted = false;
 				if (ws.sigButton != null)
@@ -1453,7 +1456,7 @@ public class WaveformWindow implements WindowContent
 			this.repaint();
 		}
 
-		private void addHighlightedSignal(Signal ws)
+		private void addHighlightedSignal(WaveSignal ws)
 		{
 			if (ws.sigButton != null)
 			{
@@ -1465,7 +1468,7 @@ public class WaveformWindow implements WindowContent
 			this.repaint();
 		}
 
-		private void removeHighlightedSignal(Signal ws)
+		private void removeHighlightedSignal(WaveSignal ws)
 		{
 			ws.highlighted = false;
 			if (ws.sigButton != null)
@@ -1617,11 +1620,11 @@ public class WaveformWindow implements WindowContent
 			// snap to any waveform points if measuring
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				Signal ws = (Signal)it.next();
-				if (!(ws.sSig instanceof Simulation.SimAnalogSignal)) continue;
+				WaveSignal ws = (WaveSignal)it.next();
+				if (!(ws.sSig instanceof Stimuli.AnalogSignal)) continue;
 
 				// draw analog trace
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)ws.sSig;
 				int numEvents = as.getNumEvents();
 				if (as.isBasic())
 				{
@@ -1689,7 +1692,7 @@ public class WaveformWindow implements WindowContent
 						}
 						for(Iterator it = foundList.iterator(); it.hasNext(); )
 						{
-							Signal ws = (Signal)it.next();
+							WaveSignal ws = (WaveSignal)it.next();
 							wp.addHighlightedSignal(ws);
 						}
 					} else
@@ -1697,7 +1700,7 @@ public class WaveformWindow implements WindowContent
 						// shift click: add or remove to list of highlighted traces
 						for(Iterator it = foundList.iterator(); it.hasNext(); )
 						{
-							Signal ws = (Signal)it.next();
+							WaveSignal ws = (WaveSignal)it.next();
 							if (ws.highlighted) removeHighlightedSignal(ws); else
 								wp.addHighlightedSignal(ws);
 						}
@@ -2099,11 +2102,11 @@ public class WaveformWindow implements WindowContent
 				{
 					// moving a signal (analog only)
 					String signalName = sigName.substring(sigPos + 7);
-					Simulation.SimSignal sSig = null;
+					Stimuli.Signal sSig = null;
 					Color oldColor = null;
 					for(Iterator it = sourcePanel.waveSignals.values().iterator(); it.hasNext(); )
 					{
-						Signal ws = (Signal)it.next();
+						WaveSignal ws = (WaveSignal)it.next();
 						if (!ws.sSig.getFullName().equals(signalName)) continue;
 						sSig = ws.sSig;
 						oldColor = ws.color;
@@ -2117,7 +2120,7 @@ public class WaveformWindow implements WindowContent
 						sourcePanel.signalButtons.validate();
 						sourcePanel.signalButtons.repaint();
 						sourcePanel.repaint();
-						Signal newSig = panel.addSignalToPanel(sSig);
+						WaveSignal newSig = panel.addSignalToPanel(sSig);
 						if (newSig != null)
 						{
 							newSig.color = oldColor;
@@ -2131,7 +2134,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// not rearranging: dropped a signal onto a panel
-			Simulation.SimSignal sSig = ww.findSignal(sigName);
+			Stimuli.Signal sSig = ww.findSignal(sigName);
 			if (sSig == null)
 			{
 				dtde.dropComplete(false);
@@ -2139,7 +2142,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// digital signals are always added in new panels
-			if (sSig instanceof Simulation.SimDigitalSignal) panel = null;
+			if (sSig instanceof Stimuli.DigitalSignal) panel = null;
 			if (panel != null)
 			{
 				// overlay this signal onto an existing panel
@@ -2152,11 +2155,11 @@ public class WaveformWindow implements WindowContent
 
 			// add this signal in a new panel
 			boolean isAnalog = false;
-			if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
+			if (sSig instanceof Stimuli.AnalogSignal) isAnalog = true;
 			panel = new Panel(ww, isAnalog);
 			if (isAnalog)
 			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sSig;
 				Rectangle2D rangeBounds = as.getBounds();
 				double lowValue = rangeBounds.getMinY();
 				double highValue = rangeBounds.getMaxY();
@@ -2165,7 +2168,7 @@ public class WaveformWindow implements WindowContent
 				double rangeExtra = range / 10;
 				panel.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
 			}
-			Signal wsig = new Signal(panel, sSig);
+			WaveSignal wsig = new WaveSignal(panel, sSig);
 			ww.overall.validate();
 			panel.repaint();
 			dtde.dropComplete(true);
@@ -2262,10 +2265,10 @@ public class WaveformWindow implements WindowContent
 	/**
 	 * This class defines a single trace in a Panel.
 	 */
-	public static class Signal
+	public static class WaveSignal
 	{
 		/** the panel that holds this signal */			private Panel wavePanel;
-		/** the data for this signal */					private Simulation.SimSignal sSig;
+		/** the data for this signal */					private Stimuli.Signal sSig;
 		/** the color of this signal */					private Color color;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
@@ -2274,9 +2277,9 @@ public class WaveformWindow implements WindowContent
 		{
 			private static final int BUTTON_SIZE = 15;
 
-			private Signal signal;
+			private WaveSignal signal;
 
-			SignalButton(Signal signal) { this.signal = signal; }
+			SignalButton(WaveSignal signal) { this.signal = signal; }
 
 			public void mouseClicked(MouseEvent e)
 			{
@@ -2314,10 +2317,10 @@ public class WaveformWindow implements WindowContent
 
 		static class ChangeSignalColorListener implements ActionListener
 		{
-			Signal signal;
+			WaveSignal signal;
 			Color col;
 
-			ChangeSignalColorListener(Signal signal, Color col) { super();  this.signal = signal;   this.col = col; }
+			ChangeSignalColorListener(WaveSignal signal, Color col) { super();  this.signal = signal;   this.col = col; }
 
 			public void actionPerformed(ActionEvent evt)
 			{
@@ -2327,7 +2330,7 @@ public class WaveformWindow implements WindowContent
 			}
 		};
 
-		public Signal(Panel wavePanel, Simulation.SimSignal sSig)
+		public WaveSignal(Panel wavePanel, Stimuli.Signal sSig)
 		{
 			int sigNo = wavePanel.waveSignals.size();
 			this.wavePanel = wavePanel;
@@ -2362,12 +2365,12 @@ public class WaveformWindow implements WindowContent
 		 * Method to return the actual signal information associated with this line in the waveform window.
 		 * @return the actual signal information associated with this line in the waveform window.
 		 */
-		public Simulation.SimSignal getSignal() { return sSig; }
+		public Stimuli.Signal getSignal() { return sSig; }
 
 		private void signalNameClicked(ActionEvent evt)
 		{
 			JButton signal = (JButton)evt.getSource();
-			Signal ws = (Signal)wavePanel.waveSignals.get(signal);
+			WaveSignal ws = (WaveSignal)wavePanel.waveSignals.get(signal);
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 			{
 				// standard click: add this as the only trace
@@ -2558,7 +2561,7 @@ public class WaveformWindow implements WindowContent
 					Network net = (Network)highSet.iterator().next();
 					//String netName = loc.getContext() + net.describe();
                     String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
-					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
+                    Stimuli.Signal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null)
 					{
 						netName = netName.replace('@', '_');
@@ -2572,7 +2575,7 @@ public class WaveformWindow implements WindowContent
 						Panel wp = (Panel)it.next();
 						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 						{
-							Signal ws = (Signal)sIt.next();
+							WaveSignal ws = (WaveSignal)sIt.next();
 							if (ws.sSig == sSig)
 							{
 								wp.addHighlightedSignal(ws);
@@ -2610,11 +2613,12 @@ public class WaveformWindow implements WindowContent
 		public void componentShown(ComponentEvent e) {}
 	}
 
-	public WaveformWindow(Simulation.SimData sd, WindowFrame wf)
+	public WaveformWindow(Stimuli sd, WindowFrame wf)
 	{
 		// initialize the structure
 		this.wf = wf;
 		this.sd = sd;
+		sd.setWaveformWindow(this);
 		resetSweeps();
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
@@ -3030,6 +3034,10 @@ public class WaveformWindow implements WindowContent
 		return null;
 	}
 
+	public Engine getSimEngine() { return se; }
+
+	public void setSimEngine(Engine se) { this.se = se; }
+
 	/**
 	 * Method called when signal waveforms change, and equivalent should be shown in the edit window.
 	 */
@@ -3056,7 +3064,7 @@ public class WaveformWindow implements WindowContent
 				Panel wp = (Panel)it.next();
 				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 				{
-					Signal ws = (Signal)pIt.next();
+					WaveSignal ws = (WaveSignal)pIt.next();
 					if (!ws.highlighted) continue;
 					String want = ws.sSig.getFullName();
                     Stack upNodables = new Stack();
@@ -3283,7 +3291,7 @@ public class WaveformWindow implements WindowContent
 	 * When new data is read from disk, this is used.
 	 * @param sd new simulation data for this window.
 	 */
-	public void setSimData(Simulation.SimData sd)
+	public void setSimData(Stimuli sd)
 	{
 		this.sd = sd;
 
@@ -3299,13 +3307,13 @@ public class WaveformWindow implements WindowContent
 			boolean redoPanel = false;
 			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 			{
-				Signal ws = (Signal)pIt.next();
-				Simulation.SimSignal ss = ws.sSig;
+				WaveSignal ws = (WaveSignal)pIt.next();
+				Stimuli.Signal ss = ws.sSig;
 				String oldSigName = ss.getFullName();
 				ws.sSig = null;
 				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
 				{
-					Simulation.SimSignal newSs = (Simulation.SimSignal)sIt.next();
+					Stimuli.Signal newSs = (Stimuli.Signal)sIt.next();
 					String newSigName = newSs.getFullName();
 					if (!newSigName.equals(oldSigName)) continue;
 					ws.sSig = newSs;
@@ -3322,7 +3330,7 @@ public class WaveformWindow implements WindowContent
 				redoPanel = false;
 				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 				{
-					Signal ws = (Signal)pIt.next();
+					WaveSignal ws = (WaveSignal)pIt.next();
 					if (ws.sSig == null)
 					{
 						redoPanel = true;
@@ -3433,7 +3441,7 @@ public class WaveformWindow implements WindowContent
 		char separatorChar = sd.getSeparatorChar();
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
-			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
 			if (sSig.getSignalContext() != null)
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
@@ -3441,7 +3449,7 @@ public class WaveformWindow implements WindowContent
 		// add all signals to the tree
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
-			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
 				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
@@ -3486,8 +3494,8 @@ public class WaveformWindow implements WindowContent
 	{
 		public int compare(Object o1, Object o2)
 		{
-			Simulation.SimSignal s1 = (Simulation.SimSignal)o1;
-			Simulation.SimSignal s2 = (Simulation.SimSignal)o2;
+			Stimuli.Signal s1 = (Stimuli.Signal)o1;
+			Stimuli.Signal s2 = (Stimuli.Signal)o2;
 			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
 		}
 	}
@@ -3504,11 +3512,11 @@ public class WaveformWindow implements WindowContent
 		return sweepsExplorerTree;
 	}
 
-	private Simulation.SimSignal findSignal(String name)
+	private Stimuli.Signal findSignal(String name)
 	{
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
-			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
 			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
 		}
@@ -3566,7 +3574,7 @@ public class WaveformWindow implements WindowContent
 		{
 			Network net = (Network)it.next();
             String netName = WaveformWindow.getSpiceNetName(context, net);
-			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
+            Stimuli.Signal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
 				netName = netName.replace('@', '_');
@@ -3582,11 +3590,11 @@ public class WaveformWindow implements WindowContent
 			if (newPanel)
 			{
 				boolean isAnalog = false;
-				if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
+				if (sSig instanceof Stimuli.AnalogSignal) isAnalog = true;
 				wp = new Panel(this, isAnalog);
 				if (isAnalog)
 				{
-					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
+					Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sSig;
 					Rectangle2D rangeBounds = as.getBounds();
 					double lowValue = rangeBounds.getMinY();
 					double highValue = rangeBounds.getMaxY();
@@ -3602,7 +3610,7 @@ public class WaveformWindow implements WindowContent
             boolean alreadyPlotted = false;
             for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
             {
-                Signal ws = (Signal)pIt.next();
+            	WaveSignal ws = (WaveSignal)pIt.next();
                 String name = ws.sSig.getFullName();
                 if (name.equals(sSig.getFullName())) {
                     alreadyPlotted = true;
@@ -3611,7 +3619,7 @@ public class WaveformWindow implements WindowContent
                 }
             }
             if (!alreadyPlotted) {
-			    Signal wsig = new Signal(wp, sSig);
+            	WaveSignal wsig = new WaveSignal(wp, sSig);
             }
 			added = true;
 			wp.repaint();
@@ -3726,18 +3734,18 @@ public class WaveformWindow implements WindowContent
 
 	/**
 	 * Method to locate a simulation signal in the waveform.
-	 * @param sSig the Simulation.SimSignal to locate.
-	 * @return the displayed Signal where it is in the waveform window.
+	 * @param sSig the Stimuli.Signal to locate.
+	 * @return the displayed WaveSignal where it is in the waveform window.
 	 * Returns null if the signal is not being displayed.
 	 */
-	public Signal findDisplayedSignal(Simulation.SimSignal sSig)
+	public WaveSignal findDisplayedSignal(Stimuli.Signal sSig)
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.sSig == sSig) return ws;
 			}
 		}
@@ -3758,7 +3766,7 @@ public class WaveformWindow implements WindowContent
 			boolean changed = false;
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.highlighted) changed = true;
 				ws.highlighted = false;
 			}
@@ -3782,7 +3790,7 @@ public class WaveformWindow implements WindowContent
 			// look at all traces in this panel
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				if (ws.highlighted) highlightedSignals.add(ws.sSig);
 			}
 		}
@@ -3815,7 +3823,7 @@ public class WaveformWindow implements WindowContent
 			// look at all traces in this panel
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				Network net = findNetwork(netlist, ws.sSig.getSignalName());
 				if (net != null) nets.add(net);
 			}
@@ -4120,8 +4128,8 @@ public class WaveformWindow implements WindowContent
 			if (wp.hidden) continue;
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
-				Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
+				WaveSignal ws = (WaveSignal)sIt.next();
+				Stimuli.DigitalSignal ds = (Stimuli.DigitalSignal)ws.sSig;
 				List bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
@@ -4129,7 +4137,7 @@ public class WaveformWindow implements WindowContent
 					int busWidth = bussedSignals.size();
 					for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 					{
-						Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
+						Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
 						putValueOnTrace(subDS, cell, netValues, netlist);
 					}
 				} else
@@ -4212,12 +4220,12 @@ public class WaveformWindow implements WindowContent
 //		} else
 		{
 			/* 2-state display */
-			if ((state & Simulation.SimData.LOGIC) == Simulation.SimData.LOGIC_HIGH) return Color.RED;
+			if ((state & Stimuli.LOGIC) == Stimuli.LOGIC_HIGH) return Color.RED;
 			return Color.BLACK;
 		}
 	}
 
-	private void putValueOnTrace(Simulation.SimDigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
+	private void putValueOnTrace(Stimuli.DigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
 		Network net = findNetwork(netlist, ds.getSignalName());
@@ -4231,7 +4239,7 @@ public class WaveformWindow implements WindowContent
 			double time = ds.getTime(i);
 			if (mainTime < time)
 			{
-				state = ds.getState(i) & Simulation.SimData.LOGIC;
+				state = ds.getState(i) & Stimuli.LOGIC;
 				break;
 			}
 		}
@@ -4431,7 +4439,7 @@ public class WaveformWindow implements WindowContent
 						boolean first = true;
 						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 						{
-							Signal ws = (Signal)sIt.next();
+							WaveSignal ws = (WaveSignal)sIt.next();
 							String sigName = ws.sSig.getFullName();
 							if (first) first = false; else
 								sb.append("\t");
@@ -4521,9 +4529,9 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
-	public void addSignal(Simulation.SimSignal sig)
+	public void addSignal(Stimuli.Signal sig)
 	{
-		if (sig instanceof Simulation.SimAnalogSignal)
+		if (sig instanceof Stimuli.AnalogSignal)
 		{
 			// add analog signal on top of current panel
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -4539,7 +4547,7 @@ public class WaveformWindow implements WindowContent
 		{
 			// add digital signal in new panel
 			Panel wp = new Panel(this, false);
-			Signal wsig = new Signal(wp, sig);
+			WaveSignal wsig = new WaveSignal(wp, sig);
 			overall.validate();
 			wp.repaint();
 		}
@@ -4576,7 +4584,7 @@ public class WaveformWindow implements WindowContent
 			found = false;
 			for(Iterator it = wp.waveSignals.values().iterator(); it.hasNext(); )
 			{
-				Signal ws = (Signal)it.next();
+				WaveSignal ws = (WaveSignal)it.next();
 				if (!ws.highlighted) continue;
 				wp.removeHighlightedSignal(ws);
 				wp.signalButtons.remove(ws.sigButton);
@@ -4620,7 +4628,7 @@ public class WaveformWindow implements WindowContent
 			boolean first = true;
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
-				Signal ws = (Signal)sIt.next();
+				WaveSignal ws = (WaveSignal)sIt.next();
 				Rectangle2D sigBounds = ws.sSig.getBounds();
 				if (first)
 				{

@@ -197,7 +197,7 @@ public class TopLevel extends JFrame
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		scrnSize = tk.getScreenSize();
         Object click = tk.getDesktopProperty("awt.multiClickInterval");
-        if (click != null)
+        if (click == null) doubleClickDelay = 500; else
 		    doubleClickDelay = Integer.parseInt(click.toString());
 
 		// a more advanced way of determining the size of a screen

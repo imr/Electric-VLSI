@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
@@ -444,9 +445,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeInfo;
             return el.getMessage();
         }
-		if (nodeInfo instanceof Simulation.SimSignal)
+		if (nodeInfo instanceof Stimuli.Signal)
 		{
-			Simulation.SimSignal sig = (Simulation.SimSignal)nodeInfo;
+			Stimuli.Signal sig = (Stimuli.Signal)nodeInfo;
 			return sig.getSignalName();
 		}
 		if (nodeInfo == null) return "";
@@ -468,10 +469,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
 		if (selectedNode == null) return;
-		if (selectedNode.getUserObject() instanceof Simulation.SimSignal)
+		if (selectedNode.getUserObject() instanceof Stimuli.Signal)
 		{
 			// Get the Transferable Object
-			Simulation.SimSignal sSig = (Simulation.SimSignal)selectedNode.getUserObject();
+			Stimuli.Signal sSig = (Stimuli.Signal)selectedNode.getUserObject();
 			Transferable transferable = new StringSelection(sSig.getFullName());
 
 			// begin the drag
@@ -711,9 +712,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (currentSelectedObject instanceof Simulation.SimSignal)
+				if (currentSelectedObject instanceof Stimuli.Signal)
 				{
-					Simulation.SimSignal sig = (Simulation.SimSignal)currentSelectedObject;
+					Stimuli.Signal sig = (Stimuli.Signal)currentSelectedObject;
 					if (wf.getContent() instanceof WaveformWindow)
 					{
 						WaveformWindow ww = (WaveformWindow)wf.getContent();

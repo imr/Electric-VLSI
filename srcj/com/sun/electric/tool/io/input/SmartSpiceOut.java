@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -43,7 +44,7 @@ public class SmartSpiceOut extends Simulate
 	/**
 	 * Method to read an Smart Spice output file.
 	 */
-	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -53,7 +54,7 @@ public class SmartSpiceOut extends Simulate
 		startProgressDialog("SmartSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Simulation.SimData sd = readRawSmartSpiceFile(cell);
+		Stimuli sd = readRawSmartSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -63,14 +64,14 @@ public class SmartSpiceOut extends Simulate
 		return sd;
 	}
 
-	private Simulation.SimData readRawSmartSpiceFile(Cell cell)
+	private Stimuli readRawSmartSpiceFile(Cell cell)
 		throws IOException
 	{
 		boolean first = true;
 		int signalCount = -1;
-		Simulation.SimAnalogSignal [] allSignals = null;
+		Stimuli.AnalogSignal [] allSignals = null;
 		int rowCount = -1;
-		Simulation.SimData sd = null;
+		Stimuli sd = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -113,9 +114,9 @@ public class SmartSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				sd = new Simulation.SimData();
+				sd = new Stimuli();
 				sd.setCell(cell);
-				allSignals = new Simulation.SimAnalogSignal[signalCount];
+				allSignals = new Stimuli.AnalogSignal[signalCount];
 				for(int i=0; i<=signalCount; i++)
 				{
 					if (i != 0)
@@ -143,7 +144,7 @@ public class SmartSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+						Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
 						int lastDotPos = name.lastIndexOf('.');
 						if (lastDotPos >= 0)
 						{

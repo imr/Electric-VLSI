@@ -920,7 +920,7 @@ public class Change extends EDialog implements HighlightListener
 					Connection con = (Connection)cIt.next();
 					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
 				}
-				if (allArcs) geomMarked.add(ni);
+				if (ni.getNumConnections() != 0 && allArcs) geomMarked.add(ni);
 			}
 
 			// now create new pins where they belong
@@ -939,7 +939,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
 //				newNi.clearBit(marked);
@@ -987,7 +987,7 @@ public class Change extends EDialog implements HighlightListener
 				double wid = ap.getDefaultWidth();
 				if (ai.getWidth() > wid) wid = ai.getWidth();
 				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHead().getLocation(),
-				        ai.getTail().getLocation(), null);
+				    ai.getTail().getLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
 				geomMarked.remove(newAi);

@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -44,7 +45,7 @@ public class PSpiceOut extends Simulate
 	/**
 	 * Method to read an PSpice output file.
 	 */
-	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -54,7 +55,7 @@ public class PSpiceOut extends Simulate
 		startProgressDialog("PSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-		Simulation.SimData sd = readPSpiceFile(cell);
+		Stimuli sd = readPSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -64,7 +65,7 @@ public class PSpiceOut extends Simulate
 		return sd;
 	}
 
-	private Simulation.SimData readPSpiceFile(Cell cell)
+	private Stimuli readPSpiceFile(Cell cell)
 		throws IOException
 	{
 //		numend = NONUMBERS;

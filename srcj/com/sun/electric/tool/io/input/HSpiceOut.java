@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -59,7 +60,7 @@ public class HSpiceOut extends Simulate
 	/**
 	 * Method to read an HSpice output file.
 	 */
-	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// the .pa0 file has name information
@@ -69,7 +70,7 @@ public class HSpiceOut extends Simulate
 		startProgressDialog("HSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		Simulation.SimData sd = readTR0File(fileURL, pa0List, cell);
+		Stimuli sd = readTR0File(fileURL, pa0List, cell);
 
 		// stop progress dialog
 		stopProgressDialog();
@@ -148,7 +149,7 @@ public class HSpiceOut extends Simulate
 		return name;
 	}
 
-	private Simulation.SimData readTR0File(URL fileURL, List pa0List, Cell cell)
+	private Stimuli readTR0File(URL fileURL, List pa0List, Cell cell)
 		throws IOException
 	{
 		if (openBinaryInput(fileURL)) return null;
@@ -342,11 +343,11 @@ public class HSpiceOut extends Simulate
 		resetBinaryTR0Reader();
 
 		// setup the simulation information
-		Simulation.SimData sd = new Simulation.SimData();
+		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 		for(int k=0; k<numSignals; k++)
 		{
-			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+			Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
@@ -414,7 +415,7 @@ public class HSpiceOut extends Simulate
 			}
 			for(int j=0; j<numSignals; j++)
 			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(j);
 				as.setNumSweeps(sweepcnt);
 				for(int k=0; k<sweepcnt; k++)
 				{
@@ -441,7 +442,7 @@ public class HSpiceOut extends Simulate
 			}
 			for(int j=0; j<numSignals; j++)
 			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(j);
 				as.buildValues(numEvents);
 				for(int i=0; i<numEvents; i++)
 					as.setValue(i, dataRows[i][j+1]);

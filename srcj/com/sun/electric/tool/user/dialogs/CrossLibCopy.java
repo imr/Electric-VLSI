@@ -50,11 +50,11 @@ import javax.swing.event.ChangeListener;
  */
 public class CrossLibCopy extends EDialog
 {
-	private List/*<Library>*/ libList;
-	private Library curLibLeft, curLibRight;
+	private List libList;
 	private List cellListLeft, cellListRight;
 	private JList listLeft, listRight, listCenter;
 	private DefaultListModel modelLeft, modelRight, modelCenter;
+	private static Library curLibLeft = null, curLibRight = null;
 	private static boolean lastDeleteAfterCopy = false;
 	private static boolean lastCopyRelated = false;
 	private static boolean lastCopySubcells = false;
@@ -101,22 +101,35 @@ public class CrossLibCopy extends EDialog
 		super(parent, modal);
 		initComponents();
 
-		// setup the library popups
+		// determine the two libraries to show
 		libList = Library.getVisibleLibraries();
-		/*for(Library lib: libList)*/
-		for (Iterator it = libList.iterator(); it.hasNext(); )
+		if (curLibLeft == null) curLibLeft = Library.getCurrent();
+		if (curLibRight == null) curLibRight = Library.getCurrent();
+		if (curLibLeft == curLibRight)
+		{
+			for(Iterator it = libList.iterator(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib != curLibLeft)
+				{
+					curLibRight = lib;
+					break;
+				}
+			}
+		}
+
+		// setup the library popups
+		Library saveLeft = curLibLeft, saveRight = curLibRight;
+		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			librariesLeft.addItem(lib.getName());
 			librariesRight.addItem(lib.getName());
 		}
-		curLibLeft = curLibRight = Library.getCurrent();
-		int curIndex = libList.indexOf(curLibLeft);
-		if (curIndex >= 0)
-		{
-			librariesLeft.setSelectedIndex(curIndex);
-			librariesRight.setSelectedIndex(curIndex);
-		}
+		int curIndex = libList.indexOf(saveLeft);
+		if (curIndex >= 0) librariesLeft.setSelectedIndex(curIndex);
+		curIndex = libList.indexOf(saveRight);
+		if (curIndex >= 0) librariesRight.setSelectedIndex(curIndex);
 
 		// make the left list
 		modelLeft = new DefaultListModel();

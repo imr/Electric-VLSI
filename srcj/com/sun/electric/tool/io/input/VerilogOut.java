@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -59,7 +60,7 @@ public class VerilogOut extends Simulate
 	/**
 	 * Method to read an Verilog output file.
 	 */
-	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -69,7 +70,7 @@ public class VerilogOut extends Simulate
 		startProgressDialog("Verilog output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Simulation.SimData sd = readVerilogFile(cell);
+		Stimuli sd = readVerilogFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -79,10 +80,10 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private Simulation.SimData readVerilogFile(Cell cell)
+	private Stimuli readVerilogFile(Cell cell)
 		throws IOException
 	{
-		Simulation.SimData sd = new Simulation.SimData();
+		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
@@ -186,7 +187,7 @@ public class VerilogOut extends Simulate
 					}
 					numSignals++;
 
-					Simulation.SimDigitalSignal sig = new Simulation.SimDigitalSignal(null);
+					Stimuli.DigitalSignal sig = new Stimuli.DigitalSignal(null);
 					sig.setSignalName(signalName + index);
 					sig.setSignalContext(currentScope);
 					sig.tempList = new ArrayList();
@@ -205,7 +206,7 @@ public class VerilogOut extends Simulate
 						sig.buildBussedSignalList();
 						for(int i=0; i<width; i++)
 						{
-							Simulation.SimDigitalSignal subSig = new Simulation.SimDigitalSignal(null);
+							Stimuli.DigitalSignal subSig = new Stimuli.DigitalSignal(null);
 							subSig.setSignalName(signalName + "[" + i + "]");
 							subSig.setSignalContext(currentScope);
 							subSig.tempList = new ArrayList();
@@ -245,16 +246,16 @@ public class VerilogOut extends Simulate
 							continue;
 						}
 						if (entry instanceof List) entry = ((List)entry).get(0);
-						Simulation.SimDigitalSignal sig = (Simulation.SimDigitalSignal)entry;
+						Stimuli.DigitalSignal sig = (Stimuli.DigitalSignal)entry;
 
 						// insert the stimuli
 						int state = 0;
 						switch (chr)
 						{
-							case '0': state = Simulation.SimData.LOGIC_LOW  | Simulation.SimData.GATE_STRENGTH;  break;
-							case '1': state = Simulation.SimData.LOGIC_HIGH | Simulation.SimData.GATE_STRENGTH;  break;
-							case 'x': state = Simulation.SimData.LOGIC_X    | Simulation.SimData.GATE_STRENGTH;  break;
-							case 'z': state = Simulation.SimData.LOGIC_Z    | Simulation.SimData.GATE_STRENGTH;  break;
+							case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
+							case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+							case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+							case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 						}
 						VerilogStimuli vs = new VerilogStimuli(curTime, state);
 						sig.tempList.add(vs);
@@ -287,19 +288,19 @@ public class VerilogOut extends Simulate
 							continue;
 						}
 						if (entry instanceof List) entry = ((List)entry).get(0);
-						Simulation.SimDigitalSignal sig = (Simulation.SimDigitalSignal)entry;
+						Stimuli.DigitalSignal sig = (Stimuli.DigitalSignal)entry;
 						int i = 0;
 						for(Iterator it = sig.getBussedSignals().iterator(); it.hasNext(); )
 						{
-							Simulation.SimDigitalSignal subSig = (Simulation.SimDigitalSignal)it.next();
+							Stimuli.DigitalSignal subSig = (Stimuli.DigitalSignal)it.next();
 							char bit = restOfLine.charAt(i++);
 							int state = 0;
 							switch (bit)
 							{
-								case '0': state = Simulation.SimData.LOGIC_LOW  | Simulation.SimData.GATE_STRENGTH;  break;
-								case '1': state = Simulation.SimData.LOGIC_HIGH | Simulation.SimData.GATE_STRENGTH;  break;
-								case 'x': state = Simulation.SimData.LOGIC_X    | Simulation.SimData.GATE_STRENGTH;  break;
-								case 'z': state = Simulation.SimData.LOGIC_Z    | Simulation.SimData.GATE_STRENGTH;  break;
+								case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
+								case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+								case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+								case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 							}
 							VerilogStimuli vs = new VerilogStimuli(curTime, state);
 							subSig.tempList.add(vs);
@@ -322,7 +323,7 @@ public class VerilogOut extends Simulate
 				fullList = (List)entry;
 				entry = fullList.get(0);
 			} 
-			Simulation.SimDigitalSignal sig = (Simulation.SimDigitalSignal)entry;
+			Stimuli.DigitalSignal sig = (Stimuli.DigitalSignal)entry;
 			int numStimuli = sig.tempList.size();
 			if (numStimuli == 0) continue;
 			sig.buildTime(numStimuli);
@@ -340,7 +341,7 @@ public class VerilogOut extends Simulate
 			{
 				for(Iterator lIt = fullList.iterator(); lIt.hasNext(); )
 				{
-					Simulation.SimDigitalSignal oSig = (Simulation.SimDigitalSignal)lIt.next();
+					Stimuli.DigitalSignal oSig = (Stimuli.DigitalSignal)lIt.next();
 					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
 					if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
 				}
@@ -351,7 +352,7 @@ public class VerilogOut extends Simulate
 		String singularPrefix = null;
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
-			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
 			String context = sSig.getSignalContext();
 			if (context == null) { singularPrefix = null;   break; }
 			int dotPos = context.indexOf('.');
@@ -366,7 +367,7 @@ public class VerilogOut extends Simulate
 			int len = singularPrefix.length();
 			for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 			{
-				Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+				Stimuli.Signal sSig = (Stimuli.Signal)it.next();
 				String context = sSig.getSignalContext();
 				if (context.length() <= len) sSig.setSignalContext(null); else
 					sSig.setSignalContext(context.substring(len+1));
@@ -375,7 +376,7 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private void cleanUpScope(List curArray, Simulation.SimData sd)
+	private void cleanUpScope(List curArray, Stimuli sd)
 	{
 		if (curArray == null) return;
 
@@ -387,7 +388,7 @@ public class VerilogOut extends Simulate
 		int numSignalsInArray = curArray.size();
 		for(int j=0; j<numSignalsInArray; j++)
 		{
-			Simulation.SimDigitalSignal sig = (Simulation.SimDigitalSignal)curArray.get(j);
+			Stimuli.DigitalSignal sig = (Stimuli.DigitalSignal)curArray.get(j);
 			int squarePos = sig.getSignalName().indexOf('[');
 			if (squarePos < 0) continue;
 			String purename = sig.getSignalName().substring(0, squarePos);
@@ -402,14 +403,14 @@ public class VerilogOut extends Simulate
 			{
 				if (last.equals(purename)) lastIndex = index; else
 				{
-					Simulation.SimDigitalSignal arraySig = new Simulation.SimDigitalSignal(sd);
+					Stimuli.DigitalSignal arraySig = new Stimuli.DigitalSignal(sd);
 					arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
 					arraySig.setSignalContext(scope);
 					arraySig.buildBussedSignalList();
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
 					{
-						Simulation.SimDigitalSignal subSig = (Simulation.SimDigitalSignal)curArray.get(firstEntry+i);
+						Stimuli.DigitalSignal subSig = (Stimuli.DigitalSignal)curArray.get(firstEntry+i);
 						arraySig.addToBussedSignalList(subSig);
 					}
 					last = null;
@@ -418,26 +419,26 @@ public class VerilogOut extends Simulate
 		}
 		if (last != null)
 		{
-			Simulation.SimDigitalSignal arraySig = new Simulation.SimDigitalSignal(sd);
+			Stimuli.DigitalSignal arraySig = new Stimuli.DigitalSignal(sd);
 			arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
 			arraySig.setSignalContext(scope);
 			arraySig.buildBussedSignalList();
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)
 			{
-				Simulation.SimDigitalSignal subSig = (Simulation.SimDigitalSignal)curArray.get(firstEntry+i);
+				Stimuli.DigitalSignal subSig = (Stimuli.DigitalSignal)curArray.get(firstEntry+i);
 				arraySig.addToBussedSignalList(subSig);
 			}
 		}
 	}
 
-	private void addSignalToHashMap(Simulation.SimDigitalSignal sig, String symbol, HashMap symbolTable)
+	private void addSignalToHashMap(Stimuli.DigitalSignal sig, String symbol, HashMap symbolTable)
 	{
 		Object entry = symbolTable.get(symbol);
 		if (entry == null)
 		{
 			symbolTable.put(symbol, sig);
-		} else if (entry instanceof Simulation.SimDigitalSignal)
+		} else if (entry instanceof Stimuli.DigitalSignal)
 		{
 			List manySigs = new ArrayList();
 			manySigs.add(entry);

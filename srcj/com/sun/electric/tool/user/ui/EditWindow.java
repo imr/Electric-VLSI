@@ -61,8 +61,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 import com.sun.electric.tool.user.ui.PaletteFrame.PlaceNewNode;
-import com.sun.electric.tool.user.ui.WaveformWindow.Panel;
-import com.sun.electric.tool.user.ui.WaveformWindow.Signal;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;

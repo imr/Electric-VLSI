@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -218,7 +219,7 @@ public class WindowFrame extends Observable
 	 * @param sd the simulation data to use in the waveform window.
 	 * @return the WindowFrame that shows the waveforms.
 	 */
-	public static WindowFrame createWaveformWindow(Simulation.SimData sd)
+	public static WindowFrame createWaveformWindow(Stimuli sd)
 	{
 		WindowFrame frame = new WindowFrame();
 		WaveformWindow wWnd = new WaveformWindow(sd, frame);

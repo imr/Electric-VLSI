@@ -9,6 +9,11 @@ IMP: (03/09/05, GVG) New strategy for collision during key navigation (3D)
 BUG: (03/08/05, GVG) Wrong transistor names in TechPalette (Bug #218)
 FIX: Switch i by j during palette information is collected in MoCMOS.java
 
+BUG: (03/08/05, SMR) "Change" does not preserve arc names (Bug #210).
+FIX: In "Change.replaceAllArcs()", use old arc name when creating new one.
+
+IMP: (03/08/05, SMR) "Cross-Library Copy" now remembers the last libraries selected (Bug #212).
+
 IMP: (03/05/05, GVG) Axes in 3D View including rotation according to keybehavior and color.
 
 IMP: (03/04/05, RK) Added qLite and sport to NCC regression suite

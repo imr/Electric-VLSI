@@ -62,6 +62,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
@@ -668,14 +669,14 @@ public class DebugMenus {
 	public static void makeFakeWaveformCommand()
 	{
 		// make the waveform data
-		Simulation.SimData sd = new Simulation.SimData();
+		Stimuli sd = new Stimuli();
 		double timeStep = 0.0000000001;
 		sd.buildCommonTime(100);
 		for(int i=0; i<100; i++)
 			sd.setCommonTime(i, i * timeStep);
 		for(int i=0; i<18; i++)
 		{
-			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+			Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
 			as.setSignalName("Signal"+(i+1));
 			as.buildValues(100);
 			for(int k=0; k<100; k++)
@@ -699,8 +700,8 @@ public class DebugMenus {
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
-				WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, as);
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(j);
+				WaveformWindow.WaveSignal wsig = new WaveformWindow.WaveSignal(wp, as);
 			}
 		}
 	}
@@ -708,14 +709,14 @@ public class DebugMenus {
 	private static void makeFakeIntervalWaveformCommand()
 	{
 		// make the interval waveform data
-		Simulation.SimData sd = new Simulation.SimData();
+		Stimuli sd = new Stimuli();
 		double timeStep = 0.0000000001;
 		sd.buildCommonTime(100);
 		for(int i=0; i<100; i++)
 			sd.setCommonTime(i, i * timeStep);
 		for(int i=0; i<6; i++)
 		{
-			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+			Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
 			as.setSignalName("Signal"+(i+1));
 			as.buildIntervalValues(100);
 			for(int k=0; k<100; k++)
@@ -742,8 +743,8 @@ public class DebugMenus {
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<=i; j++)
 			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(k++);
-				WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, as);
+				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(k++);
+				WaveformWindow.WaveSignal wsig = new WaveformWindow.WaveSignal(wp, as);
 			}
 		}
 	}

@@ -32,6 +32,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -189,7 +190,7 @@ public class Simulate extends Input
 		{
 			try
 			{
-				Simulation.SimData sd = is.readSimulationOutput(fileURL, cell);
+				Stimuli sd = is.readSimulationOutput(fileURL, cell);
 				if (sd != null)
 				{
 					sd.setDataType(type);
@@ -207,7 +208,7 @@ public class Simulate extends Input
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
-	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		return null;

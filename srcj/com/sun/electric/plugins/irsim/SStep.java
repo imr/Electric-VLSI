@@ -18,13 +18,16 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.database.geometry.GenMath;
 
 public class SStep extends Eval
 {
+	SStep(Analyzer analyzer, Sim sim)
+	{
+		super(analyzer, sim);
+	}
 
 	/* event-driven switch-level simulation step Chris Terman 7/84 */
-	
+
 	/* the following file contains most of the declarations, conversion
 	 * tables, etc, that depend on the particular representation chosen
 	 * for node values.  This info is automatically created for interval
@@ -34,55 +37,55 @@ public class SStep extends Eval
 	 */
 
 	/* index for each value interval */
-	static final int EMPTY	= 0;
-	static final int DH		= 1;
-	static final int DHWH	= 2;
-	static final int DHCH	= 3;
-	static final int DHcH	= 4;
-	static final int DHZ	= 5;
-	static final int DHcL	= 6;
-	static final int DHCL	= 7;
-	static final int DHWL	= 8;
-	static final int DHDL	= 9;
-	static final int WH		= 10;
-	static final int WHCH	= 11;
-	static final int WHcH	= 12;
-	static final int WHZ	= 13;
-	static final int WHcL	= 14;
-	static final int WHCL	= 15;
-	static final int WHWL	= 16;
-	static final int WHDL	= 17;
-	static final int CH		= 18;
-	static final int CHcH	= 19;
-	static final int CHZ	= 20;
-	static final int CHcL	= 21;
-	static final int CHCL	= 22;
-	static final int CHWL	= 23;
-	static final int CHDL	= 24;
-	static final int cH		= 25;
-	static final int cHZ	= 26;
-	static final int cHcL	= 27;
-	static final int cHCL	= 28;
-	static final int cHWL	= 29;
-	static final int cHDL	= 30;
-	static final int Z		= 31;
-	static final int ZcL	= 32;
-	static final int ZCL	= 33;
-	static final int ZWL	= 34;
-	static final int ZDL	= 35;
-	static final int cL		= 36;
-	static final int cLCL	= 37;
-	static final int cLWL	= 38;
-	static final int cLDL	= 39;
-	static final int CL		= 40;
-	static final int CLWL	= 41;
-	static final int CLDL	= 42;
-	static final int WL		= 43;
-	static final int WLDL	= 44;
-	static final int DL		= 45;
+	private static final int EMPTY	= 0;
+	private static final int DH		= 1;
+	private static final int DHWH	= 2;
+	private static final int DHCH	= 3;
+	private static final int DHcH	= 4;
+	private static final int DHZ	= 5;
+	private static final int DHcL	= 6;
+	private static final int DHCL	= 7;
+	private static final int DHWL	= 8;
+	private static final int DHDL	= 9;
+	private static final int WH		= 10;
+	private static final int WHCH	= 11;
+	private static final int WHcH	= 12;
+	private static final int WHZ	= 13;
+	private static final int WHcL	= 14;
+	private static final int WHCL	= 15;
+	private static final int WHWL	= 16;
+	private static final int WHDL	= 17;
+	private static final int CH		= 18;
+	private static final int CHcH	= 19;
+	private static final int CHZ	= 20;
+	private static final int CHcL	= 21;
+	private static final int CHCL	= 22;
+	private static final int CHWL	= 23;
+	private static final int CHDL	= 24;
+	private static final int cH		= 25;
+	private static final int cHZ	= 26;
+	private static final int cHcL	= 27;
+	private static final int cHCL	= 28;
+	private static final int cHWL	= 29;
+	private static final int cHDL	= 30;
+	private static final int Z		= 31;
+	private static final int ZcL	= 32;
+	private static final int ZCL	= 33;
+	private static final int ZWL	= 34;
+	private static final int ZDL	= 35;
+	private static final int cL		= 36;
+	private static final int cLCL	= 37;
+	private static final int cLWL	= 38;
+	private static final int cLDL	= 39;
+	private static final int CL		= 40;
+	private static final int CLWL	= 41;
+	private static final int CLDL	= 42;
+	private static final int WL		= 43;
+	private static final int WLDL	= 44;
+	private static final int DL		= 45;
 
 	/* conversion between interval and logic value */
-	static byte [] logic_state = new byte[]
+	private static byte [] logic_state = new byte[]
 	{
 		0,			/* EMPTY state */
 		Sim.HIGH,	/* DH */
@@ -133,7 +136,7 @@ public class SStep extends Eval
 	};
 
 	/* transmit interval through switch */
-	static byte [][] transmit = new byte[][]
+	private static byte [][] transmit = new byte[][]
 	{
 		new byte[] {0, 0,	   0,    0},	/* EMPTY state */
 		new byte[] {Z, DH,   DHZ,  WH},		/* DH */
@@ -184,14 +187,14 @@ public class SStep extends Eval
 	};
 
 	/* tables for converting node value to corresponding charged state */
-	static	byte [] charged_state = new byte[] {CL, CHCL, CHCL, CH};
-	static	byte [] xcharged_state = new byte[] {cL, cHcL, cHcL, cH};
-	
+	private static	byte [] charged_state = new byte[] {CL, CHCL, CHCL, CH};
+	private static	byte [] xcharged_state = new byte[] {cL, cHcL, cHcL, cH};
+
 	/* table for converting node value to corresponding value state */
-	static	byte [] thev_value = new byte[] {DL, DHDL, DHDL, DH};
+	private static	byte [] thev_value = new byte[] {DL, DHDL, DHDL, DH};
 
 	/* result of shorting two intervals */
-	static byte [][] smerge = new byte[][]
+	private static byte [][] smerge = new byte[][]
 	{
 	/* EMPTY state */
 	  new byte[] {0,  0,  0,  0,  0,  0,  0,  0,
@@ -516,18 +519,15 @@ public class SStep extends Eval
 	  DL,  DL,  DL,  DL,  DL,  DL,  DL,  DL,
 	  DL,  DL,  DL,  DL,  DL,  DL}
 	};
-	
-	
 
-	static SStep switchModel = new SStep();
-
-	/* calculate new value for node and its electrical neighbors */
-
-	void modelEvaluate(Sim.Node n)		// irsim_switch_model
+	/**
+	 * calculate new value for node and its electrical neighbor
+	 */
+	public void modelEvaluate(Sim.Node n)		// irsim_switch_model
 	{
 		if ((n.nflags & Sim.VISITED) != 0)
-			Sim.irsim_BuildConnList(n);
-	
+			theSim.irsim_BuildConnList(n);
+
 		/* for each node on list we just built, recompute its value using a
 		 * recursive tree walk.  If logic state of new value differs from
 		 * logic state of current value, node is added to the event list (or
@@ -560,35 +560,35 @@ public class SStep extends Eval
 				if (delta == 0)	// no zero-delay events
 					delta = 1;
 			}
-	
+
 			if ((thisone.nflags & Sim.INPUT) == 0)
 			{
-				/* 
-				 * Check to see if this new value invalidates other events. 
+				/*
+				 * Check to see if this new value invalidates other events.
 				 * Since this event has newer info about the state of the network,
 				 * delete transitions scheduled to come after it.
 				 */
 				Sim.Event e;
-				while((e = thisone.events) != null && e.ntime >= Sched.irsim_cur_delta + delta)
+				while((e = thisone.events) != null && e.ntime >= theSim.irsim_cur_delta + delta)
 				{
-					/* 
+					/*
 					 * Do not try to kick the event scheduled at Sched.irsim_cur_delta if
 					 * newval is equal to this.npot because that event sets
 					 * this.npot, but its consequences has not been handled yet.
-					 * Besides, this event will not be queued. 
+					 * Besides, this event will not be queued.
 					 *
-					 * However, if there is event scheduled now but driving to a 
-					 * different value, then kick it becuase we will enqueue this 
+					 * However, if there is event scheduled now but driving to a
+					 * different value, then kick it becuase we will enqueue this
 					 * one, and source/drain of transistors controlled by this
 					 * node will be re-evaluated. At worst, some extra computation
 					 * will be carried out due to VISITED flags set previously.
 					 */
 					/*		if (e.ntime == Sched.irsim_cur_delta and newval == thisone.npot) */
-					if (e.ntime == (Sched.irsim_cur_delta + delta) && e.eval == newval)
+					if (e.ntime == (theSim.irsim_cur_delta + delta) && e.eval == newval)
 						break;
-					Sched.irsim_PuntEvent(thisone, e);
+					irsim_PuntEvent(thisone, e);
 				}
-	
+
 				/*
 				 * Now see if the new value is different from the last value
 				 * scheduled for the node. If there are no pending events then
@@ -598,11 +598,11 @@ public class SStep extends Eval
 				if (newval != ((e == null) ? thisone.npot : e.eval))
 				{
 					queued = true;
-					Sched.irsim_enqueue_event(thisone, newval, delta, tau);
+					irsim_enqueue_event(thisone, newval, delta, tau);
 				}
 			}
 		}
-	
+
 		// undo connection list
 		Sim.Node next = null;
 		for(Sim.Node thisone = n; thisone != null; thisone = next)
@@ -611,9 +611,9 @@ public class SStep extends Eval
 			thisone.nlink = null;
 		}
 	}
-	
-	
-	/* compute new value for a node using recursive tree walk.  We start off by
+
+	/**
+	 * compute new value for a node using recursive tree walk.  We start off by
 	 * assuming that node is charged to whatever logic state it had last.  The
 	 * contribution of each path leading away from the node is computed
 	 * recursively and merged with accumulated result.  After all paths have been
@@ -634,21 +634,21 @@ public class SStep extends Eval
 	 *	  new-value computation from O(n**2) to O(n) where n is the number of
 	 *	  nodes in the connection list built in the new_value routine.
 	 */
-	static int sc_thev(Sim.Node n, int level)
+	private int sc_thev(Sim.Node n, int level)
 	{
 		if ((n.nflags & Sim.INPUT) != 0) return thev_value[n.npot];
 
 		// initial values and stuff...
 		n.nflags |= Sim.VISITED;
 		int result = (n.ngate == null) ? xcharged_state[n.npot] : charged_state[n.npot];
-	
+
 		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
 		{
 			Sim.Trans t = l.xtor;
-	
+
 			// don't bother with off transistors
 			if (t.state == Sim.OFF) continue;
-	
+
 			/* for each non-off transistor, do nothing if node on other side has
 			 * its visited flag set (this is how cycles are detected).  Otherwise
 			 * check cache and use value found there, if any.  As a last resort,
@@ -674,7 +674,7 @@ public class SStep extends Eval
 				}
 			}
 		}
-	
+
 		n.nflags &= ~Sim.VISITED;
 	
 		return result;

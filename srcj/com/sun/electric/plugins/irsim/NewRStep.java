@@ -22,9 +22,9 @@ import com.sun.electric.database.geometry.GenMath;
 
 public class NewRStep extends Eval
 {
-	/* 
+	/*
 	 * Event-driven timing simulation step for irsim.
-	 * 
+	 *
 	 * Use diamond shape region in R-V plane for dc voltage computation.
 	 * Use 2-pole 1-zero model for pure charge sharing delay calculations.
 	 * Use 2-pole zero-at-origin model for driven spike analysis.
@@ -32,59 +32,44 @@ public class NewRStep extends Eval
 	 * "Improved Models for Switch-Level Simulation" also available as a
 	 * Stanford Technical Report CSL-TR-88-368.
 	 */
-	
-	
-	/* combine 2 resistors in parallel */	
-	static double COMBINE(double r1, double r2) { return (r1 * r2) / (r1 + r2); }
 
-	/* combine 2 resistors in parallel, watch out for zero resistance */
-	static double COMBINE_R(double a, double b) { return ((a + b <= Sim.SMALL) ? 0 : COMBINE(a, b)); }
-	
 	/* flags used in thevenin structure */
-	static final int	T_DEFINITE	= 0x01;	/* set for a definite rooted path	    */
-	static final int	T_UDELAY	= 0x02;	/* set if user specified delay encountered  */
-	static final int	T_SPIKE		= 0x04;	/* set if charge-sharing spike possible	    */
-	static final int	T_DRIVEN	= 0x08;	/* set if this branch is driven		    */
-	static final int	T_REFNODE	= 0x10;	/* set for the reference node in pure c-s   */
-	static final int	T_XTRAN		= 0x20;	/* set if connecting through an X trans.    */
-	static final int	T_INT		= 0x40;	/* set if we should consider input slope    */
-	static final int	T_DOMDRIVEN	= 0x80;	/* set if branch driven to dominant voltage */
-	static final double	NP_RATIO	= 0.7;	    /* nmos-pmos ratio for spike analysis */
+	private static final int	T_DEFINITE	= 0x01;	/* set for a definite rooted path	    */
+	private static final int	T_UDELAY	= 0x02;	/* set if user specified delay encountered  */
+	private static final int	T_SPIKE		= 0x04;	/* set if charge-sharing spike possible	    */
+	private static final int	T_DRIVEN	= 0x08;	/* set if this branch is driven		    */
+	private static final int	T_REFNODE	= 0x10;	/* set for the reference node in pure c-s   */
+	private static final int	T_XTRAN		= 0x20;	/* set if connecting through an X trans.    */
+	private static final int	T_INT		= 0x40;	/* set if we should consider input slope    */
+	private static final int	T_DOMDRIVEN	= 0x80;	/* set if branch driven to dominant voltage */
+	private static final double	NP_RATIO	= 0.7;	    /* nmos-pmos ratio for spike analysis */
 
-	static int       irsim_tunitdelay = 0;	/* if <> 0, all transitions take 'irsim_tunitdelay' DELAY-units */
-	static long  irsim_tdecay = 0;		/* if <> 0, undriven nodes decay to X after 'irsim_tdecay' DELAY-units */
-	static boolean      irsim_withdriven;		/* TRUE if stage is driven by some input */
-
-	static class Dominant			/* one for each possible dominant voltage */
+	private static class Dominant			/* one for each possible dominant voltage */
 	{
 		Sim.Node  nd;			/* list of nodes driven to this potential */
 		boolean   spike;		/* TRUE if this pot needs spike analysis */
 	};
-	
-	
-	static class SpikeRec
+
+	private static class SpikeRec
 	{
 		double  ch_delay;		/* charging delay */
 		double  dr_delay;		/* driven delay */
 		float   peak;		/* spike peak */
 		int     charge;		/* spike charge */
 	}
-	
-	
-	static	Dominant  [] dom_pot;	/* dominant voltage structure */
-	
-	static	Sim.Thev  init_thev;		/* pre-initialized thevenin structs */
-	static	Sim.Thev  [] input_thev;
 
-	
-	
-	static final int SPIKETBLSIZE    = 10;
+	private static	Dominant  [] dom_pot;	/* dominant voltage structure */
 
-	static final int NLSPKMIN        = 0;
-	static final int NLSPKMAX        = 1;
-	static final int LINEARSPK       = 2;
+	private static	Sim.Thev  init_thev;		/* pre-initialized thevenin structs */
+	private static	Sim.Thev  [] input_thev;
 
-	static float spikeTable[][][] =
+	private static final int SPIKETBLSIZE    = 10;
+
+	private static final int NLSPKMIN        = 0;
+	private static final int NLSPKMAX        = 1;
+	private static final int LINEARSPK       = 2;
+
+	private static float spikeTable[][][] =
 	{
 		/* non-linear nmos driven low / pmos driven high */
 		new float[][] {
@@ -117,7 +102,7 @@ public class NewRStep extends Eval
 		},
 
 		/* linear RC (nmos-pmos mix)*/
-	new float[][] {
+		new float[][] {
 	/* .01 */  new float[] {0.010f,  0.099f,  0.198f,  0.296f, 0.394f,  0.491f,  0.589f,  0.688f, 0.787f,  0.887f,  0.979f},
 	/* 0.1 */  new float[] {0.010f,  0.095f,  0.185f,  0.272f, 0.357f,  0.441f,  0.525f,  0.610f, 0.699f,  0.792f,  0.887f},
 	/* 0.2 */  new float[] {0.010f,  0.091f,  0.173f,  0.250f, 0.324f,  0.396f,  0.468f,  0.541f, 0.617f,  0.699f,  0.787f},
@@ -132,7 +117,7 @@ public class NewRStep extends Eval
 		}
 	};
 
-	static float delayTable[][] = 
+	private static float delayTable[][] =
 	{
 	/* .01 */  new float[] {9.12006e+00f,  6.31441e-01f,  2.57972e-01f,  1.44287e-01f,
 	           9.08200e-02f,  6.01663e-02f,  4.03907e-02f,  2.65355e-02f,
@@ -169,50 +154,43 @@ public class NewRStep extends Eval
 	           1.49276e+00f,  7.51022e-01f,  9.21218e-02f}
 	};
 
-	
-	
-	
-	static NewRStep linearModel = new NewRStep();
 
-	NewRStep() { irsim_model_num = Sim.LIN_MODEL; }
-
-	static void irsim_init_newrstep()
+	public NewRStep(Analyzer analyzer, Sim sim)
 	{
-		irsim_tunitdelay = 0;
-		irsim_tdecay = 0;
+		super(analyzer, sim);
+		irsim_InitThevs();
+		theSim.irsim_tunitdelay = 0;
+		theSim.irsim_tdecay = 0;
 		dom_pot = new Dominant[Sim.N_POTS];
 		for(int i=0; i<Sim.N_POTS; i++) dom_pot[i] = new Dominant();
 	}
-	
-	void modelEvaluate(Sim.Node n)
+
+	public void modelEvaluate(Sim.Node n)
 	{
-		for(int i = Sim.LOW; i <= Sim.HIGH; i++) 
+		for(int i = Sim.LOW; i <= Sim.HIGH; i++)
 		{
 			dom_pot[i].nd = null;
 			dom_pot[i].spike = false;
 		}
-	
+
 		if ((n.nflags & Sim.VISITED) != 0)
-			Sim.irsim_BuildConnList(n);
-	
+			theSim.irsim_BuildConnList(n);
+
 		boolean changes = ComputeDC(n);
 		if (!changes)
 			CleanEvents(n);
-		else if (irsim_withdriven)
+		else if (theSim.irsim_withdriven)
 			scheduleDriven();
 		else
 			schedulePureCS(n);
-	
-		if (irsim_tdecay != 0 && ! irsim_withdriven)
+
+		if (theSim.irsim_tdecay != 0 && ! theSim.irsim_withdriven)
 			EnqueDecay(n);
-	
+
 		UndoConnList(n);
 	}
-	
 
-	static boolean IsWatched(Sim.Node n) { return (n.nflags & Sim.WATCHED) != 0; }
-
-	static void CleanEvents(Sim.Node n)
+	private void CleanEvents(Sim.Node n)
 	{
 		do
 		{
@@ -220,48 +198,46 @@ public class NewRStep extends Eval
 			{
 				Sim.Event ev = n.events;
 				if (ev == null) break;
-				Sched.irsim_PuntEvent(n, ev);
+				irsim_PuntEvent(n, ev);
 			}
 		}
 		while((n = n.nlink) != null);
 	}
-	
-	
-	static void EnqueDecay(Sim.Node n)
+
+	private void EnqueDecay(Sim.Node n)
 	{
 		do
 		{
 			Sim.Event ev = n.events;
 			if (((ev == null) ? n.npot : ev.eval) != Sim.X)
 			{
-				Sched.irsim_enqueue_event(n, Sim.DECAY, (long) irsim_tdecay, (long) irsim_tdecay);
+				irsim_enqueue_event(n, Sim.DECAY, (long) theSim.irsim_tdecay, (long) theSim.irsim_tdecay);
 			}
 			n = n.nlink;
 		}
 		while(n != null);
 	}
-	
-	
-	static void UndoConnList(Sim.Node n)
+
+	private void UndoConnList(Sim.Node n)
 	{
 		Sim.Node next = null;
 		do
 		{
 			next = n.nlink;
 			n.nlink = null;
-	
+
 			n.getThev().setT(null);
-	
+
 			for(Sim.Tlist l = n.nterm; l != null; l = l.next)
 			{
 				Sim.Trans t = l.xtor;
 				if (t.state == Sim.OFF)
 					continue;
-	
+
 				if ((t.tflags & (Sim.PBROKEN | Sim.BROKEN)) == 0)
 				{
 					Sim.Thev  r = t.getSThev();
-	
+
 					if (r != null)
 					{
 						r.setT(null);
@@ -278,9 +254,8 @@ public class NewRStep extends Eval
 		}
 		while((n = next) != null);
 	}
-	
-	
-	/* 
+
+	/**
 	 * Schedule the final value for node 'nd'.  Check to see if this final value
 	 * invalidates other events.  Since this event has more recent information
 	 * regarding the state of the network, delete transitions scheduled to come
@@ -290,11 +265,11 @@ public class NewRStep extends Eval
 	 * Finally, before scheduling the final value, check that it is different
 	 * from the previously calculated value for the node.
 	 */
-	static void irsim_QueueFVal(Sim.Node nd, int fval, double tau, double delay)
+	private void irsim_QueueFVal(Sim.Node nd, int fval, double tau, double delay)
 	{
 		boolean queued = false;
-		long delta = Sched.irsim_cur_delta + (long) Sim.ps2d(delay);
-		if (delta == Sched.irsim_cur_delta)			// avoid zero delay
+		long delta = theSim.irsim_cur_delta + (long) Sim.ps2d(delay);
+		if (delta == theSim.irsim_cur_delta)			// avoid zero delay
 			delta++;
 
 		Sim.Event ev = null;
@@ -303,53 +278,51 @@ public class NewRStep extends Eval
 			ev = nd.events;
 			if (ev == null || ev.ntime < delta) break;
 			if (ev.ntime == delta && ev.eval == fval) break;
-			Sched.irsim_PuntEvent(nd, ev);
+			irsim_PuntEvent(nd, ev);
 		}
-	
-		delta -= Sched.irsim_cur_delta;
-	
+
+		delta -= theSim.irsim_cur_delta;
+
 		if (fval != ((ev == null) ? nd.npot : ev.eval))
 		{
-			Sched.irsim_enqueue_event(nd, fval, (long) delta, (long) Sim.ps2d(tau));
+			irsim_enqueue_event(nd, fval, (long) delta, (long) Sim.ps2d(tau));
 			queued = true;
 		}
 	}
-	
-	
-	static void QueueSpike(Sim.Node nd, SpikeRec spk)
+
+	private void QueueSpike(Sim.Node nd, SpikeRec spk)
 	{
 		for(;;)
 		{
 			Sim.Event ev = nd.events;
 			if (ev == null) break;
-			Sched.irsim_PuntEvent(nd, ev);
+			irsim_PuntEvent(nd, ev);
 		}
-	
+
 		if (spk == null)		// no spike, just punt events
 		{
 			return;
 		}
-	
+
 		long ch_delta = Sim.ps2d(spk.ch_delay);
 		long dr_delta = Sim.ps2d(spk.dr_delay);
-	
+
 		if (ch_delta == 0)
 			ch_delta = 1;
 		if (dr_delta == 0)
 			dr_delta = 1;
-	
+
 		if (dr_delta <= ch_delta)		// no zero delay spikes, done
 		{
 			return;
 		}
-	
+
 		// enqueue spike and final value events
-		Sched.irsim_enqueue_event(nd, (int) spk.charge, (long) ch_delta, (long) ch_delta);
-		Sched.irsim_enqueue_event(nd, (int) nd.npot, (long) dr_delta, (long) ch_delta);
+		irsim_enqueue_event(nd, (int) spk.charge, (long) ch_delta, (long) ch_delta);
+		irsim_enqueue_event(nd, (int) nd.npot, (long) dr_delta, (long) ch_delta);
 	}
-	
-	
-	static void scheduleDriven()
+
+	private void scheduleDriven()
 	{
 		for(int dom = 0; dom < Sim.N_POTS; dom++)
 		{
@@ -357,24 +330,24 @@ public class NewRStep extends Eval
 			for(Sim.Node nd = dom_pot[dom].nd; nd != null; nd = r.getN())
 			{
 				r = get_tau(nd, (Sim.Trans) null, dom);
-	
+
 				r.tauA = r.Rdom * r.Ca;
 				r.tauD = r.Rdom * r.Cd;
-	
+
 				if ((r.flags & T_SPIKE) != 0)		// deal with these later
 					continue;
-	
+
 				double tau = 0, delay = 0;
 				if (nd.npot == r.finall)		// no change, just punt
 				{
 					Sim.Event  ev;
-	
+
 					while((ev = nd.events) != null)
-						Sched.irsim_PuntEvent(nd, ev);
+						irsim_PuntEvent(nd, ev);
 					continue;
-				} else if (irsim_tunitdelay != 0)
+				} else if (theSim.irsim_tunitdelay != 0)
 				{
-					delay = irsim_tunitdelay;
+					delay = theSim.irsim_tunitdelay;
 					tau = 0.0;
 				} else if ((r.flags & T_UDELAY) != 0)
 				{
@@ -397,7 +370,7 @@ public class NewRStep extends Eval
 					{
 						tau = r.Rdom * r.Ca;
 					}
-	
+
 					if ((r.flags & T_INT) != 0 && r.Tin > 0.5)
 					{
 						delay = Math.sqrt(tau * tau + Sim.d2ps((long)r.Tin) * r.Ca);
@@ -406,10 +379,10 @@ public class NewRStep extends Eval
 						delay = tau;
 					}
 				}
-	
+
 				irsim_QueueFVal(nd, (int) r.finall, tau, delay);
 			}
-	
+
 			if (dom_pot[dom].spike)
 			{
 				for(Sim.Node nd = dom_pot[dom].nd; nd != null; nd = nd.getThev().getN())
@@ -417,50 +390,49 @@ public class NewRStep extends Eval
 					r = nd.getThev();
 					if ((r.flags & T_SPIKE) == 0)
 						continue;
-	
+
 					r.tauP = get_tauP(nd, (Sim.Trans) null, dom);
-	
+
 					r.tauP *= r.Rdom / r.tauA;
-	
+
 					QueueSpike(nd, ComputeSpike(nd, r, dom));
 				}
 			}
 		}
 	}
-	
-	
-	static void schedulePureCS(Sim.Node nlist)
+
+	private void schedulePureCS(Sim.Node nlist)
 	{
 		Sim.Thev r = nlist.getThev();
-	
+
 		int dom = r.finall;
 		r.flags |= T_REFNODE;
-	
+
 		double taup = 0.0;
 		for(Sim.Node nd = nlist; nd != null; nd = nd.nlink)
 		{
 			r = get_tau(nd, (Sim.Trans) null, dom);
-	
+
 			r.tauD = r.Rdom * r.Ca;
-	
+
 			switch(dom)
 			{
 				case Sim.LOW:
 					r.tauA = r.Rdom * (r.Ca - r.Cd * r.V.max);
 					break;
-				case Sim.HIGH: 
+				case Sim.HIGH:
 					r.tauA = r.Rdom * (r.Cd * (1 - r.V.min) - r.Ca);
 					break;
 				case Sim.X:			// approximate Vf = 0.5
-					r.tauA = r.Rdom * (r.Ca - r.Cd * 0.5); 
+					r.tauA = r.Rdom * (r.Ca - r.Cd * 0.5);
 					break;
 			}
 			taup += r.tauA * nd.ncap;
 		}
-	
+
 		r = nlist.getThev();
 		taup = taup / (r.Clow.min + r.Chigh.max);		// tauP = tauP / CT
-	
+
 		for(Sim.Node  nd = nlist; nd != null; nd = nd.nlink)
 		{
 			r = nd.getThev();
@@ -475,32 +447,31 @@ public class NewRStep extends Eval
 				}
 				if (tau < 0.0)
 					tau = 0.0;
-				if (irsim_tunitdelay != 0)
+				if (theSim.irsim_tunitdelay != 0)
 				{
-					delay = irsim_tunitdelay;   tau = 0.0;
+					delay = theSim.irsim_tunitdelay;   tau = 0.0;
 				} else
 					delay = tau;
 			}
-	
+
 			irsim_QueueFVal(nd, (int) r.finall, tau, delay);
 		}
 	}
-	
-	
-	/*
+
+	/**
 	 * Compute the final value for each node on the connection list.
 	 * This routine will update V.min and V.max and add the node to the
 	 * corresponding dom_driver entry.  Return TRUE if any node changes value.
 	 */
-	static boolean ComputeDC(Sim.Node nlist)
+	private boolean ComputeDC(Sim.Node nlist)
 	{
 		boolean anyChange = false;
 		for(Sim.Node thisone = nlist; thisone != null; thisone = thisone.nlink)
 		{
 			Sim.Thev r = get_dc_val(thisone, null);
 			thisone.setThev(r);
-	
-			if (irsim_withdriven)
+
+			if (theSim.irsim_withdriven)
 			{
 				if (r.Rdown.min >= Sim.LIMIT)
 					r.V.min = 1;
@@ -515,38 +486,38 @@ public class NewRStep extends Eval
 				r.V.min = r.Chigh.min / (r.Chigh.min + r.Clow.max);
 				r.V.max = r.Chigh.max / (r.Chigh.max + r.Clow.min);
 			}
-	
+
 			if (r.V.min >= thisone.vhigh)
 				r.finall = Sim.HIGH;
 			else if (r.V.max <= thisone.vlow)
 				r.finall = Sim.LOW;
 			else
 				r.finall = Sim.X;
-	
-			if (irsim_withdriven)
+
+			if (theSim.irsim_withdriven)
 			{
 				/*
-				 * if driven and indefinite, driven value must equal 
+				 * if driven and indefinite, driven value must equal
 				 * charging value otherwise the final value is X
 				 */
 				if (r.finall != Sim.X && (r.flags & T_DEFINITE) == 0)
 				{
 					char  cs_val;
-	
+
 					if (r.Chigh.min >= thisone.vhigh * (r.Chigh.min + r.Clow.max))
 						cs_val = Sim.HIGH;
 					else if (r.Chigh.max <= thisone.vlow * (r.Chigh.max + r.Clow.min))
 						cs_val = Sim.LOW;
 					else
 						cs_val = Sim.X;			// always X
-	
+
 					if (cs_val != r.finall)
 						r.finall = Sim.X;
 				}
-	
+
 				r.setN(dom_pot[r.finall].nd);		// add it to list
 				dom_pot[r.finall].nd = thisone;
-	
+
 				// possible spike if no transition and opposite charge exists
 				if (r.finall == thisone.npot && (
 					(r.finall == Sim.LOW && r.Chigh.min > Sim.SMALL) ||
@@ -557,15 +528,14 @@ public class NewRStep extends Eval
 					anyChange = true;
 				}
 			}
-	
+
 			if (r.finall != thisone.npot)
 				anyChange = true;
 		}
 		return anyChange;
 	}
-	
-	
-	/*
+
+	/**
 	 * Compute the parametes used to calculate the final value (Chigh, Clow,
 	 * Rup, Rdown) by doing a depth-first traversal of the tree rooted at node
 	 * 'n'.  The traversal is done by a recursive walk through the tree. Note that
@@ -578,14 +548,14 @@ public class NewRStep extends Eval
 	 * tran   : the transistor that leads to 'n' (null if none).
 	 * level  : level of recursion if we are debugging this node, else 0.
 	 */
-	static Sim.Thev get_dc_val(Sim.Node n, Sim.Trans tran)
-	{	
+	private Sim.Thev get_dc_val(Sim.Node n, Sim.Trans tran)
+	{
 		if ((n.nflags & Sim.INPUT) != 0)
 		{
 			Sim.Thev r = new Sim.Thev(input_thev[n.npot]);
 			return r;
 		}
-	
+
 		Sim.Thev r = new Sim.Thev(init_thev);
 		switch(n.npot)
 		{
@@ -593,15 +563,15 @@ public class NewRStep extends Eval
 			case Sim.X:     r.Clow.max = r.Chigh.max = n.ncap;	break;
 			case Sim.HIGH:  r.Chigh.min = r.Chigh.max = n.ncap;	break;
 		}
-	
+
 		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
 		{
 			Sim.Trans t = l.xtor;
-	
+
 			// ignore path going back or through a broken loop
 			if (t == tran || t.state == Sim.OFF || (t.tflags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
-	
+
 			Sim.Thev cache;
 			Sim.Node other;
 			if (n == t.source)
@@ -611,10 +581,10 @@ public class NewRStep extends Eval
 			{
 				other = t.source;	cache = t.getSThev();
 			}
-	
+
 			/*
 			 * if cache is not empty use the value found there, otherwise
-			 * compute what is on the other side of the transistor and 
+			 * compute what is on the other side of the transistor and
 			 * transmit the result through a series operation.
 			 */
 			if (cache == null)
@@ -630,7 +600,7 @@ public class NewRStep extends Eval
 			}
 			parallel_op(r, cache);
 		}
-	
+
 		if ((n.nflags & Sim.USERDELAY) != 0)		// record user delays, if any
 		{
 			r.tplh = n.tplh; r.tphl = n.tphl;
@@ -639,13 +609,12 @@ public class NewRStep extends Eval
 
 		return r;
 	}
-	
-	
-	/*
-	 * The following macros set Req to the appropriate dynamic resistance.
+
+	/**
+	 * The following methods set Req to the appropriate dynamic resistance.
 	 * If the transistor state is UNKNOWN then also set the T_XTRAN flag.
 	 */
-	static void GetReq(Sim.Thev r, Sim.Trans t, int type)
+	private void GetReq(Sim.Thev r, Sim.Trans t, int type)
 	{
 		if ((t.tflags & Sim.PARALLEL) != 0)
 			get_parallel(r, t, type);
@@ -659,9 +628,8 @@ public class NewRStep extends Eval
 				r.Req.max = t.r.dynres[type];
 		}
 	}
-	
-	
-	static void GetMinR(Sim.Thev r, Sim.Trans t)
+
+	private void GetMinR(Sim.Thev r, Sim.Trans t)
 	{
 		if ((t.tflags & Sim.PARALLEL) != 0)
 			get_min_parallel(r, t);
@@ -675,17 +643,17 @@ public class NewRStep extends Eval
 				r.Req.max = r.Req.min;
 		}
 	}
-	
-	/*
+
+	/**
 	 * Do the same as GetReq but deal with parallel transistors.
 	 */
-	static void get_parallel(Sim.Thev r, Sim.Trans t, int restype)
+	private void get_parallel(Sim.Thev r, Sim.Trans t, int restype)
 	{
 		Sim.Resists rp = t.r;
 		double gmin = 1.0 / rp.dynres[restype];
 		double gmax = (t.state == Sim.UNKNOWN) ? 0.0 : gmin;
-	
-		for(t = Sim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
+
+		for(t = theSim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
 		{
 			rp = t.r;
 			gmin += 1.0 / rp.dynres[restype];
@@ -699,18 +667,17 @@ public class NewRStep extends Eval
 		} else
 		r.Req.max = 1.0 / gmax;
 	}
-	
-	
-	/*
+
+	/**
 	 * Do the same as get_parallel but use the minimum dynamic resistance.
 	 */
-	static void get_min_parallel(Sim.Thev r, Sim.Trans t)
+	private void get_min_parallel(Sim.Thev r, Sim.Trans t)
 	{
 		Sim.Resists rp = t.r;
 		double gmin = 1.0 / Math.min(rp.dynres[Sim.R_LOW], rp.dynres[Sim.R_HIGH]);
 		double gmax = (t.state == Sim.UNKNOWN) ? 0.0 : gmin;
-	
-		for(t = Sim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
+
+		for(t = theSim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
 		{
 			rp = t.r;
 			double tmp = 1.0 / Math.min(rp.dynres[Sim.R_LOW], rp.dynres[Sim.R_HIGH]);
@@ -725,17 +692,16 @@ public class NewRStep extends Eval
 		} else
 			r.Req.max = 1.0 / gmax;
 	}
-	
-	
-	/*
+
+	/**
 	 * Add transistor 't' in series with thevenin struct 'r'.  As a side effect
 	 * set Req for 't'.  The midpoint voltage is used to determine whether to
 	 * use the dynamic-high or dynamic-low resistance.  If the branch connecting
 	 * to 't' is not driven by an input then use the charge information.  The
 	 * current estimates of both resistance or capacitance is used.
 	 */
-	static Sim.Thev series_op(Sim.Thev r, Sim.Trans t)
-	{	
+	private Sim.Thev series_op(Sim.Thev r, Sim.Trans t)
+	{
 		if ((r.flags & T_DRIVEN) == 0)
 		{
 			if (r.Chigh.min > r.Clow.max)
@@ -744,19 +710,19 @@ public class NewRStep extends Eval
 				GetReq(r, t, Sim.R_LOW);
 			else
 				GetMinR(r, t);
-			return r;		// no driver, so just set Req 
+			return r;		// no driver, so just set Req
 		}
-	
+
 		if (r.Rdown.min > r.Rup.max)
 			GetReq(r, t, Sim.R_HIGH);
 		else if (r.Rdown.max < r.Rup.min)
 			GetReq(r, t, Sim.R_LOW);
 		else
 			GetMinR(r, t);
-	
+
 		double up_min = r.Rup.min;
 		double down_min = r.Rdown.min;
-	
+
 		if (up_min < Sim.LIMIT)
 			r.Rup.min += r.Req.min * (1.0 + up_min / r.Rdown.max);
 		if (down_min < Sim.LIMIT)
@@ -774,23 +740,23 @@ public class NewRStep extends Eval
 		}
 		return r;
 	}
-	
-	
-	/* make oldr = (oldr || newr), but watch out for infinte resistances. */
-	static double DoParallel(double oldr, double newr)
+
+	/**
+	 * make oldr = (oldr || newr), but watch out for infinte resistances.
+	 */
+	private double DoParallel(double oldr, double newr)
 	{
 		if (oldr > Sim.LIMIT) return newr;
 		if (newr > Sim.LIMIT) return oldr;
-		return COMBINE(oldr, newr);
+		return Sim.COMBINE(oldr, newr);
 	}
-	
-	
-	/*
+
+	/**
 	 * Combine the new resistance block of the tree walk with the current one.
 	 * Accumulate the low and high capacitances, the user-specified
 	 * delay (if any), and the driven flag of the resulting structure.
 	 */
-	static void parallel_op(Sim.Thev r, Sim.Thev newrb)
+	private void parallel_op(Sim.Thev r, Sim.Thev newrb)
 	{
 		r.Clow.max += newrb.Clow.max;
 		r.Chigh.max += newrb.Chigh.max;
@@ -799,7 +765,7 @@ public class NewRStep extends Eval
 			r.Clow.min += newrb.Clow.min;
 			r.Chigh.min += newrb.Chigh.min;
 		}
-	
+
 		/*
 		* Accumulate the minimum user-specified delay only if the new block
 		* has some drive associated with it.
@@ -817,15 +783,15 @@ public class NewRStep extends Eval
 				r.flags |= T_UDELAY;
 			}
 		}
-	
+
 		if ((newrb.flags & T_DRIVEN) == 0)
 			return;				// undriven, just update caps
-	
+
 		r.flags |= T_DRIVEN;		// combined result is driven
-	
+
 		r.Rup.min = DoParallel(r.Rup.min, newrb.Rup.min);
 		r.Rdown.min = DoParallel(r.Rdown.min, newrb.Rdown.min);
-	
+
 		if ((r.flags & newrb.flags & T_DEFINITE) != 0)	// both definite blocks
 		{
 			r.Rup.max = DoParallel(r.Rup.max, newrb.Rup.max);
@@ -842,36 +808,35 @@ public class NewRStep extends Eval
 			if (newrb.Rdown.max < r.Rdown.max) r.Rdown.max = newrb.Rdown.max;
 		}
 	}
-	
-	
-	/*
+
+	/**
 	 * Determine the input time-constant (input-slope * rstatic).  We are only
 	 * interseted in transistors that just turned on (its gate has a transition
 	 * at time == Sched.irsim_cur_delta).  We must be careful not to report as a transition
 	 * nodes that stop being inputs (hist.delay == 0 and hist.inp == 0).
 	 */
-	static boolean IsCurrTransition(Sim.HistEnt h)
+	private boolean IsCurrTransition(Sim.HistEnt h)
 	{
-		return h.htime == Sched.irsim_cur_delta && (h.inp || h.delay != 0);
+		return h.htime == theSim.irsim_cur_delta && (h.inp || h.delay != 0);
 	}
-	
-	static boolean InputTau(Sim.Trans t, GenMath.MutableDouble pr)
+
+	private boolean InputTau(Sim.Trans t, GenMath.MutableDouble pr)
 	{
 		return (t.tflags & Sim.PARALLEL) != 0 ? parallel_GetTin(t, pr) : GetTin(t, pr);
 	}
 
-	/*
+	/**
 	 * Return TRUE if we should consider the input slope of this transistor.  As
 	 * a side-effect, return the input time constant in 'ptin'.
 	 */
-	static boolean GetTin(Sim.Trans t, GenMath.MutableDouble ptin)
+	private boolean GetTin(Sim.Trans t, GenMath.MutableDouble ptin)
 	{
 		Sim.HistEnt  h;
 		boolean is_int = false;
-	
+
 		if (t.state != Sim.ON)
 			return false;
-	
+
 		if ((t.ttype & Sim.GATELIST) == 0)
 		{
 			h = ((Sim.Node)t.gate).curr;
@@ -883,7 +848,7 @@ public class NewRStep extends Eval
 		} else
 		{
 			double  tmp = 0.0;
-	
+
 			for(t = (Sim.Trans) t.gate; t != null; t = t.getSTrans())
 			{
 				h = ((Sim.Node)t.gate).curr;
@@ -897,27 +862,26 @@ public class NewRStep extends Eval
 		}
 		return is_int;
 	}
-	
-	static boolean parallel_GetTin(Sim.Trans t, GenMath.MutableDouble itau)
+
+	private boolean parallel_GetTin(Sim.Trans t, GenMath.MutableDouble itau)
 	{
 		GenMath.MutableDouble tin = new GenMath.MutableDouble(0);
 		boolean is_int = GetTin(t, tin);
-	
-		for(t = Sim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
+
+		for(t = theSim.irsim_parallel_xtors[t.n_par]; t != null; t = t.getDTrans())
 		{
 			GenMath.MutableDouble tmp = new GenMath.MutableDouble(0);
 			if (GetTin(t, tmp))
 			{
-				tin.setValue(is_int ? COMBINE_R(tin.doubleValue(), tmp.doubleValue()) : tmp.doubleValue());
+				tin.setValue(is_int ? Sim.COMBINE_R(tin.doubleValue(), tmp.doubleValue()) : tmp.doubleValue());
 				is_int = true;
 			}
 			itau.setValue(tin.doubleValue());
 		}
 		return is_int;
 	}
-	
-	
-	/*
+
+	/**
 	 * Compute the parameters needed to calculate the 1st order time-constants
 	 * (Rmin, Rdom, Rmax, Ca, Cd, Tin) by doing a depth-first traversal of the
 	 * tree rooted at node 'n'.  The parameters are gathered by performing a
@@ -936,16 +900,16 @@ public class NewRStep extends Eval
 	 * value and the current dominant potential do not match, we go ahead and
 	 * recompute the values.
 	 */
-	static Sim.Thev get_tau(Sim.Node n, Sim.Trans tran, int dom)
+	private Sim.Thev get_tau(Sim.Node n, Sim.Trans tran, int dom)
 	{
 		Sim.Thev r;
 		if (tran == null)
 			r = n.getThev();
 		else
 			r = (tran.source == n) ? tran.getSThev() : tran.getDThev();
-	
+
 		r.tau_done = (char)dom;
-	
+
 		if ((n.nflags & Sim.INPUT) != 0)
 		{
 			r.Tin = r.Rmin = r.Ca = r.Cd = 0.0;
@@ -963,14 +927,14 @@ public class NewRStep extends Eval
 			}
 			return r;
 		}
-	
+
 		if ((n.getThev().flags & T_REFNODE) != 0)	    // reference node in pure CS
 		{
 			r.Rmin = r.Rdom = r.Rmax = 0.0;
 			r.Ca = r.Cd = 0.0;
 			return r;
 		}
-	
+
 		r.Rmin = r.Rdom = r.Rmax = Sim.LARGE;
 		r.Cd = n.ncap;
 		if (dom == Sim.X)			// assume X nodes are charged high
@@ -980,7 +944,7 @@ public class NewRStep extends Eval
 		{
 			r.Ca = (n.npot == dom) ? 0.0 : n.ncap;
 		}
-	
+
 		r.Tin = 0.0;
 		r.flags &= ~(T_DOMDRIVEN | T_INT);
 		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
@@ -1000,7 +964,7 @@ public class NewRStep extends Eval
 			if (cache.tau_done != dom)
 			{
 				GenMath.MutableDouble  oldr = new GenMath.MutableDouble(0);
-	
+
 				cache = get_tau(other, t, dom);
 				// Only use input slope for xtors on the dominant (driven) path
 				if ((cache.flags & T_DOMDRIVEN) != 0 && InputTau(t, oldr))
@@ -1008,9 +972,9 @@ public class NewRStep extends Eval
 					cache.flags |= T_INT;
 					cache.Tin += oldr.doubleValue();
 				}
-	
+
 				oldr.setValue(cache.Rdom);
-	
+
 				cache.Rmin += cache.Req.min;
 				cache.Rdom += cache.Req.min;
 				if ((cache.flags & T_XTRAN) != 0)
@@ -1020,7 +984,7 @@ public class NewRStep extends Eval
 				{
 					cache.Rmax += cache.Req.max;
 				}
-	
+
 				// Exclude capacitors if the other side of X transistor == dom
 				if ((cache.flags & T_XTRAN) != 0 && other.npot == dom)
 					cache.tauP = cache.Ca = cache.Cd = 0.0;
@@ -1033,10 +997,10 @@ public class NewRStep extends Eval
 					cache.Cd *= cache.tauP;
 				}
 			}
-	
+
 			r.Ca += cache.Ca;
 			r.Cd += cache.Cd;
-			r.Rmin = COMBINE(r.Rmin, cache.Rmin);
+			r.Rmin = Sim.COMBINE(r.Rmin, cache.Rmin);
 			if (r.Rdom > Sim.LIMIT)
 			{
 				r.Rdom = cache.Rdom;
@@ -1044,16 +1008,16 @@ public class NewRStep extends Eval
 			}
 			else if (cache.Rdom < Sim.LIMIT)
 			{
-				r.Rdom = COMBINE(r.Rdom, cache.Rdom);
-				r.Rmax = COMBINE(r.Rmax, cache.Rmax);
+				r.Rdom = Sim.COMBINE(r.Rdom, cache.Rdom);
+				r.Rmax = Sim.COMBINE(r.Rmax, cache.Rmax);
 			}
 			if ((cache.flags & T_DOMDRIVEN) != 0)
 				r.flags |= T_DOMDRIVEN;	// at least 1 dominant driven path
-	
+
 			if ((cache.flags & T_INT) != 0)
 			{
 				if ((r.flags & T_INT) != 0)
-					r.Tin = COMBINE_R(r.Tin, cache.Tin);
+					r.Tin = Sim.COMBINE_R(r.Tin, cache.Tin);
 				else
 				{
 					r.Tin = cache.Tin;
@@ -1061,12 +1025,11 @@ public class NewRStep extends Eval
 				}
 			}
 		}
-	
+
 		return r;
 	}
-	
-	
-	/*
+
+	/**
 	 * Calculate the 2nd order time constant (tauP) for the net configuration
 	 * as seen through node 'n'.  The net traversal and the parameters are
 	 * similar to 'get_tau'.  Note that at this point we have not have calculated
@@ -1074,11 +1037,11 @@ public class NewRStep extends Eval
 	 * compute those by first calling get_tau.  This routine will update the tauP
 	 * entry as well as the taup_done flag.
 	 */
-	static double get_tauP(Sim.Node n, Sim.Trans tran, int dom)
+	private double get_tauP(Sim.Node n, Sim.Trans tran, int dom)
 	{
 		if ((n.nflags & Sim.INPUT) != 0)
 			return 0.0;
-	
+
 		Sim.Thev r = n.getThev();
 		if (r.tau_done != dom)		// compute tauA for the node
 		{
@@ -1086,15 +1049,15 @@ public class NewRStep extends Eval
 			r.tauA = r.Rdom * r.Ca;
 			r.tauD = r.Rdom * r.Cd;
 		}
-	
+
 		double taup = r.tauA * n.ncap;
-	
+
 		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
 		{
 			Sim.Trans t = l.xtor;
 			if (t.state == Sim.OFF || t == tran || (t.tflags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
-	
+
 			Sim.Node other;
 			if (t.source == n)
 			{
@@ -1103,7 +1066,7 @@ public class NewRStep extends Eval
 			{
 				other = t.source;	r = t.getSThev();
 			}
-	
+
 			if (r.taup_done != dom)
 			{
 				r.tauP *= get_tauP(other, t, dom);
@@ -1111,11 +1074,11 @@ public class NewRStep extends Eval
 			}
 			taup += r.tauP;
 		}
-	
+
 		return taup;
 	}
-	
-	/*
+
+	/**
 	 * Compute the size of spike.  If the spike is too small return null, else
 	 * fill in the appropriate structure and return a pointer to it.  In order
 	 * to determine in which table to lookup the spike peak we look at the
@@ -1123,13 +1086,13 @@ public class NewRStep extends Eval
 	 * the largest conductivity determines whether it is mostly an nmos or pmos
 	 * network.  This simple scheme should work for most simple nets.
 	 */
-	static SpikeRec ComputeSpike(Sim.Node nd, Sim.Thev r, int dom)
-	{	
+	private SpikeRec ComputeSpike(Sim.Node nd, Sim.Thev r, int dom)
+	{
 		if (r.tauP <= Sim.SMALL)		// no capacitance, no spike
 		{
 			return null;
 		}
-	
+
 		int rtype = (dom == Sim.LOW) ? Sim.R_LOW : Sim.R_HIGH;
 		float nmos = 0, pmos = 0;
 		for(Sim.Tlist l = nd.nterm; l != null; l = l.next)
@@ -1149,13 +1112,13 @@ public class NewRStep extends Eval
 			tab_indx = (rtype == Sim.R_LOW) ? NLSPKMAX : NLSPKMIN;
 		else
 			tab_indx = LINEARSPK;
-	
+
 		int alpha = (int) (SPIKETBLSIZE * r.tauA / (r.tauA + r.tauP - r.tauD));
 		if (alpha < 0)
 			alpha = 0;
 		else if (alpha > SPIKETBLSIZE)
 			alpha = SPIKETBLSIZE;
-	
+
 		int beta = (int) (SPIKETBLSIZE * (r.tauD - r.tauA) / r.tauD);
 		if (beta < 0)
 			beta = 0;
@@ -1165,7 +1128,7 @@ public class NewRStep extends Eval
 		SpikeRec spk = new SpikeRec();
 		spk.peak = spikeTable[tab_indx][beta][alpha];
 		spk.ch_delay = delayTable[beta][alpha];
-	
+
 		if (dom == Sim.LOW)
 		{
 			if (spk.peak <= nd.vlow)		// spike is too small
@@ -1179,23 +1142,22 @@ public class NewRStep extends Eval
 			if (spk.peak <= 1.0 - nd.vhigh) return null;
 			spk.charge = (spk.peak >= 1.0 - nd.vlow) ? Sim.LOW : Sim.X;
 		}
-	
+
 		spk.ch_delay *= r.tauA * r.tauD / r.tauP;
-	
+
 		if (r.Rmax < Sim.LARGE)
 			spk.dr_delay = r.Rmax * r.Ca;
 		else
 			spk.dr_delay = r.Rdom * r.Ca;
-	
+
 		return spk;
 	}
-	
-	
-	/*
+
+	/**
 	 * Initialize pre-initialized thevenin structs.  I want to get it right
 	 * and this is much safer than letting the compiler initialize it.
 	 */
-	static void irsim_InitThevs()
+	private void irsim_InitThevs()
 	{
 		init_thev = new Sim.Thev();		/* pre-initialized thevenin structs */
 		input_thev = new Sim.Thev[Sim.N_POTS];
@@ -1229,7 +1191,7 @@ public class NewRStep extends Eval
 		init_thev.finall	= Sim.X;
 		init_thev.tau_done	= Sim.N_POTS;
 		init_thev.taup_done	= Sim.N_POTS;
-	
+
 		Sim.Thev t =	input_thev[Sim.LOW];
 		t.setN(null);
 		t.flags		= T_DEFINITE | T_DRIVEN;
@@ -1259,7 +1221,7 @@ public class NewRStep extends Eval
 		t.finall	= Sim.LOW;
 		t.tau_done	= Sim.N_POTS;
 		t.taup_done	= Sim.N_POTS;
-	
+
 		t = input_thev[Sim.HIGH];
 		t.setN(null);
 		t.flags		= T_DEFINITE | T_DRIVEN;
@@ -1289,7 +1251,7 @@ public class NewRStep extends Eval
 		t.finall	= Sim.HIGH;
 		t.tau_done	= Sim.N_POTS;
 		t.taup_done	= Sim.N_POTS;
-	
+
 		t = input_thev[Sim.X];
 		t.setN(null);
 		t.flags		= T_DEFINITE | T_DRIVEN;
