@@ -451,10 +451,10 @@ public class WindowMenu {
 			areas[j] = gc.getBounds();
 		}
 
-        // remove the tool palette
-        PaletteFrame pf = TopLevel.getPaletteFrame();
-        Rectangle pb = pf.getPaletteLocation();
-        removeOccludingRectangle(areas, pb);
+//        // remove the tool palette
+//        PaletteFrame pf = TopLevel.getPaletteFrame();
+//        Rectangle pb = pf.getPaletteLocation();
+//        removeOccludingRectangle(areas, pb);
 
         // remove the messages window
         MessagesWindow mw = TopLevel.getMessagesWindow();
@@ -526,7 +526,12 @@ public class WindowMenu {
         User.setColorText(Color.BLACK.getRGB());
         User.setColorInstanceOutline(Color.BLACK.getRGB());
         EditWindow.repaintAllContents();
-        TopLevel.getPaletteFrame().loadForTechnology();
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+        	WindowFrame wf = (WindowFrame)it.next();
+        	wf.loadComponentMenuForTechnology();
+        }
+//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     /**
@@ -541,7 +546,12 @@ public class WindowMenu {
         User.setColorText(Color.WHITE.getRGB());
         User.setColorInstanceOutline(Color.WHITE.getRGB());
         EditWindow.repaintAllContents();
-        TopLevel.getPaletteFrame().loadForTechnology();
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+        	WindowFrame wf = (WindowFrame)it.next();
+        	wf.loadComponentMenuForTechnology();
+        }
+//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     /**
@@ -556,7 +566,12 @@ public class WindowMenu {
         User.setColorText(Color.BLACK.getRGB());
         User.setColorInstanceOutline(Color.BLACK.getRGB());
         EditWindow.repaintAllContents();
-        TopLevel.getPaletteFrame().loadForTechnology();
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+        	WindowFrame wf = (WindowFrame)it.next();
+        	wf.loadComponentMenuForTechnology();
+        }
+//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     private static GraphicsDevice [] getAllGraphicsDevices() {

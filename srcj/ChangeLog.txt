@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/21/05, SMR) Combined the Component menu into the Explorer panel (Bug #35, #67)
+
+BUG: (01/21/05, SMR) Exports don't display when editing "down hierarchy in place" (Bug #164)
+FIX: In PixelDrawing.java, must keep track of top-level window and draw exports properly.
+
+BUG: (01/21/05, SMR) Scroll bars don't work right when editing "down hierarchy in place" (Bug #164)
+FIX: In EditWindow.setScrollPositionUnsafe(), bottomScrollChanged(), and rightScrollChanged()
+     must account for the in-place editing when dealing with the offset values.
+
+BUG: (01/21/05, SMR) Auto-stitching doesn't connect pins.
+FIX: In Technology.getShapeOfNode(), only exclude pin geometry if not doing electrical layers.
+
 IMP/MAN: (01/20/05, GVG) Extra flag in DRC tab to stop checking after first error per node is found.
 
 IMP: (01/20/05, GVG) Setting default colors for Artwork Arcs and Text Properties (in TextDescriptor.DescriptorPref)

@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -80,6 +81,7 @@ public class WindowFrame
     /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
     /** the window event listener */                    private WindowsEvents windowsEvents;
 	/** the tree view part */							public ExplorerTree tree;
+	/** the component part */							public PaletteFrame palette;
 	/** the explorer part of a frame. */				public DefaultMutableTreeNode rootNode;
 	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
@@ -246,10 +248,18 @@ public class WindowFrame
 		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
+		// make a tabbed list of panes on the left
+		JTabbedPane tp = new JTabbedPane();
+		palette = PaletteFrame.newInstance();
+		loadComponentMenuForTechnology();
+		tp.add("Components", palette.getTechPalette());
+
+		tp.add("Explorer", scrolledTree);
+
 		// put them together into the split pane
 		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		js.setRightComponent(content.getPanel());
-		js.setLeftComponent(scrolledTree);
+		js.setLeftComponent(tp);
 //		js.setDividerLocation(0.2);
 		js.setDividerLocation(200);
 
@@ -265,6 +275,8 @@ public class WindowFrame
 		}
 	}
 
+	private static final int WINDOW_OFFSET = 0;		// was 150
+
 	/**
 	 * Create the JFrame that will hold all the Components in 
 	 * this WindowFrame.
@@ -277,16 +289,31 @@ public class WindowFrame
 		{
 			jif = new JInternalFrame(title, true, true, true, true);
 			jif.setSize(frameSize);
-			jif.setLocation(windowOffset+150, windowOffset);
+			jif.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
 			jif.setAutoscrolls(true);
 			jif.setFrameIcon(TopLevel.getFrameIcon());
 		} else
 		{
 			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
 			jf.setSize(frameSize);
-			jf.setLocation(windowOffset+150, windowOffset);
+			jf.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
 		}
 	}        
+
+    /**
+     * Set the Technology Palette (if shown) to the current technology.
+     */
+	public void loadComponentMenuForTechnology()
+	{
+		Technology tech = Technology.getCurrent();
+		if (content.getCell() != null)
+		{
+			tech = content.getCell().getTechnology();
+		}
+
+		//Technology tech = Technology.findTechnology(User.getDefaultTechnology());
+        getPalette().loadForTechnology(tech);
+	}
 
 	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
 	{
@@ -634,6 +661,12 @@ public class WindowFrame
 	}
 
 	/**
+	 * Method to return the component palette associated with this WindowFrame.
+	 * @return the component palette associated with this WindowFrame.
+	 */
+	public PaletteFrame getPalette() { return palette; }
+
+	/**
 	 * Method to insist on a current Cell.
 	 * Prints an error message if there is no current Cell.
 	 * @return the current Cell in the current Library.
@@ -741,7 +774,7 @@ public class WindowFrame
             cell.getLibrary().setCurCell(cell);
 
             // if auto-switching technology, do it
-            PaletteFrame.autoTechnologySwitch(cell);
+            PaletteFrame.autoTechnologySwitch(cell, this);
         }
     }
 

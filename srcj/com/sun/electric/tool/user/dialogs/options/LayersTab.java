@@ -28,6 +28,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -112,7 +113,8 @@ public class LayersTab extends PreferencePanel
 		}
 		if (changed)
 		{
-			TopLevel.getPaletteFrame().loadForTechnology();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
 			EditWindow.repaintAllContents();
 		}
 	}

@@ -33,6 +33,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -335,7 +336,8 @@ public class TechnologyTab extends PreferencePanel
 		// update the display
 		if (redrawPalette)
 		{
-			TopLevel.getPaletteFrame().loadForTechnology();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
 		}
 		if (redrawWindows)
 		{

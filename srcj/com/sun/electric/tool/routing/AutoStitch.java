@@ -101,17 +101,20 @@ public class AutoStitch
 
 		public boolean doIt()
 		{
-			runAutoStitch(highlighted, forced);
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			runAutoStitch(cell, highlighted, forced);
 			return true;
 		}
 	}
 
 	/**
 	 * This is the public interface for Auto-stitching when done in batch mode.
+	 * @param cell the cell in which to stitch.
 	 * @param highlighted true to auto-stitch only what is highlighted; false to do the entire current cell.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
 	 */
-	public static void runAutoStitch(boolean highlighted, boolean forced)
+	public static void runAutoStitch(Cell cell, boolean highlighted, boolean forced)
 	{
 		List nodesToStitch = new ArrayList();
 		if (highlighted)
@@ -123,8 +126,6 @@ public class AutoStitch
 				nodesToStitch.add(it.next());
 		} else
 		{
-			Cell cell = WindowFrame.needCurCell();
-			if (cell == null) return;
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -149,11 +150,10 @@ public class AutoStitch
 		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst nodeToStitch = (NodeInst)it.next();
-			Cell parent = nodeToStitch.getParent();
-			if (cellMark.contains(parent)) continue;
-			cellMark.add(parent);
+			if (cellMark.contains(cell)) continue;
+			cellMark.add(cell);
 
-			for(Iterator nIt = parent.getNodes(); nIt.hasNext(); )
+			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				nodeMark.remove(ni);
@@ -210,7 +210,6 @@ public class AutoStitch
 		for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			Cell cell = ni.getParent();
 			if (cell.isAllLocked()) continue;
 			Netlist netlist = cell.acquireUserNetlist();
 			if (netlist == null)
@@ -247,8 +246,8 @@ public class AutoStitch
 			Library lib = (Library)it.next();
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell)cIt.next();
-				if (!cellMark.contains(cell)) continue;
+				Cell c = (Cell)cIt.next();
+				if (!cellMark.contains(c)) continue;
 			}
 		}
 		cellMark = null;
@@ -263,12 +262,9 @@ public class AutoStitch
         }
 
         // check for any inline pins due to created wires
-
         List pinsToPassThrough = new ArrayList();
-        Cell cell = null;
         for (Iterator it = possibleInlinePins.iterator(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
-            cell = ni.getParent();
             if (ni.isInlinePin()) {
                 CircuitChanges.Reconnect re = CircuitChanges.Reconnect.erasePassThru(ni, false);
                 if (re != null) {
@@ -276,9 +272,10 @@ public class AutoStitch
                 }
             }
         }
-        if ((pinsToPassThrough.size() > 0) && (cell != null)) {
+        if (pinsToPassThrough.size() > 0)
+        {
             CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList(),
-                    pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
+                pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
             job.doIt();
         }
 	}

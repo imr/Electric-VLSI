@@ -1480,11 +1480,14 @@ public class Technology implements Comparable
 		}
 
 		// if node is erased, remove layers
-		if (ni.isWiped()) primLayers = nullPrimLayers; else
+		if (!electrical)
 		{
-			if (np.isWipeOn1or2())
+			if (ni.isWiped()) primLayers = nullPrimLayers; else
 			{
-				if (ni.pinUseCount()) primLayers = nullPrimLayers;
+				if (np.isWipeOn1or2())
+				{
+					if (ni.pinUseCount()) primLayers = nullPrimLayers;
+				}
 			}
 		}
 

@@ -354,7 +354,7 @@ public class PixelDrawing
 			countCell(cell, expandBounds, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, expandBounds, DBMath.MATID, true);
+			drawCell(cell, expandBounds, DBMath.MATID, wnd);
 		}
 
 		// merge transparent image into opaque one
@@ -593,12 +593,12 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, boolean topLevel)
+	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, EditWindow topWnd)
 	{
         renderPolyTime = 0;
         renderTextTime = 0;
 
-		// draw all arcs
+        // draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
 		{
 			drawArc((ArcInst)arcs.next(), prevTrans, false);
@@ -607,10 +607,12 @@ public class PixelDrawing
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, expandBounds, false);
+			drawNode((NodeInst)nodes.next(), prevTrans, topWnd, expandBounds, false);
 		}
 
 		// show cell variables if at the top level
+		boolean topLevel = true;
+		if (topWnd != null) topLevel = (cell == topWnd.getCell());
 		if (topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
@@ -634,10 +636,13 @@ public class PixelDrawing
      * @param expandBounds bounds in which to draw nodes fully expanded
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
      */
-	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D expandBounds, boolean forceVisible)
+	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D expandBounds, boolean forceVisible)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
+
+		boolean topLevel = true;
+		if (topWnd != null) topLevel = (ni.getParent() == topWnd.getCell());
 
 		// draw the node
 		if (np instanceof Cell)
@@ -692,10 +697,10 @@ public class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subTrans))
+				if (!expandedCellCached(subCell, subTrans, topWnd))
 				{
 					// just draw it directly
-					drawCell(subCell, expandBounds, subTrans, false);
+					drawCell(subCell, expandBounds, subTrans, topWnd);
 				}
 				showCellPorts(ni, trans, Color.BLACK);
 			} else
@@ -765,6 +770,8 @@ public class PixelDrawing
 			{
 				Export e = (Export)it.next();
 				Poly poly = e.getNamePoly();
+				if (topWnd != null && topWnd.isInPlaceEdit())
+					poly.transform(topWnd.getInPlaceTransformOut());
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				if (exportDisplayLevel == 2)
 				{
@@ -781,7 +788,10 @@ public class PixelDrawing
 						// use shorter port name
 						portName = e.getShortName();
 					}
-					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+//					if (topWnd != null && topWnd.isInPlaceEdit())
+//						poly.transform(topWnd.getInPlaceTransformOut());
+					Point2D polyLoc = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+					Point pt = wnd.databaseToScreen(polyLoc);
 					Rectangle textRect = new Rectangle(pt);
 					type = Poly.rotateType(type, ni);
 					drawText(textRect, type, descript, portName, null, blackGraphics, false);
@@ -983,7 +993,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans)
+	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1045,7 +1055,7 @@ public class PixelDrawing
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, null, origTrans, false);
+			renderedCell.getOffscreen().drawCell(subCell, null, origTrans, topWnd);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
 

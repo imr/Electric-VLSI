@@ -158,6 +158,30 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to determine whether a polygon intersects a layer in the merge.
+	 * @param layer the layer to test.
+	 * @param poly the polygon to examine.
+	 * @return true if any part of the polygon exists in that layer.
+	 */
+	public boolean intersects(Layer layer, PolyBase poly)
+	{
+		Area layerArea = (Area)allLayers.get(layer);
+		if (layerArea == null) return false;
+
+		// simple calculation for manhattan polygon
+		Rectangle2D box = poly.getBox();
+		if (box != null)
+		{
+			return layerArea.intersects(box);
+		}
+
+		// more complex calculation (not done yet)
+		Area intersectArea = new Area(poly);
+		intersectArea.intersect(layerArea);
+		return !intersectArea.isEmpty();
+	}
+
+	/**
 	 * Method to intersect two layers in this merge and produce a third.
 	 * @param sourceA the first Layer to intersect.
 	 * @param sourceB the second Layer to intersect.

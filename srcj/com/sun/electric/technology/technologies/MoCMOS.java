@@ -46,6 +46,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
@@ -3782,7 +3783,8 @@ public class MoCMOS extends Technology
 		public void setSideEffect()
 		{
 			tech.setState();
-			TopLevel.getPaletteFrame().loadForTechnology();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
 			EditWindow.repaintAllContents();
 		}
 

@@ -285,7 +285,8 @@ public class DebugMenus {
 				return (false);
 			}
 			tech.setCurrent();
-			TopLevel.getPaletteFrame().loadForTechnology();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
 
 			StringBuffer polyName = new StringBuffer("Polysilicon");
 			String lateral = "top";

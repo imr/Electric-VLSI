@@ -784,7 +784,7 @@ public class EditWindow extends JPanel
 				if (wf == WindowFrame.getCurrentWindowFrame(false))
 				{
 					// if auto-switching technology, do it
-					PaletteFrame.autoTechnologySwitch(cell);
+					PaletteFrame.autoTechnologySwitch(cell, wf);
 				}
 			}
 		}
@@ -1154,7 +1154,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawNode(ni, DBMath.MATID, true, null, forceVisible);
+		offscreen.drawNode(ni, DBMath.MATID, null, null, forceVisible);
 		return offscreen.composite();
 	}
 
@@ -2275,23 +2275,27 @@ public class EditWindow extends JPanel
         double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
         double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
 
-        if (!bottomScrollBar.getValueIsAdjusting()) {
-            bottomScrollBar.getModel().setRangeProperties(
-                    (int)((offx-0.5*width)*scrollRangeMult),
-                    (int)(width*scrollRangeMult),
-                    (int)((cellBounds.getX() - scrollPagePercent*cellBounds.getWidth())*scrollRangeMult),
-                    (int)(((cellBounds.getX()+cellBounds.getWidth()) + scrollPagePercent*cellBounds.getWidth())*scrollRangeMult),
-                    false);
+		Point2D dbPt = new Point2D.Double(offx, offy);
+		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
+		double oX = dbPt.getX();   double oY = dbPt.getY();
+
+		if (!bottomScrollBar.getValueIsAdjusting())
+        {
+    		int value = (int)((oX-0.5*width)*scrollRangeMult);
+    		int extent = (int)(width*scrollRangeMult);
+        	int min = (int)((cellBounds.getX() - scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
+        	int max = (int)(((cellBounds.getX()+cellBounds.getWidth()) + scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
+        	bottomScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
             bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
             bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
         }
-        if (!rightScrollBar.getValueIsAdjusting()) {
-            rightScrollBar.getModel().setRangeProperties(
-                    (int)((-offy-0.5*height)*scrollRangeMult),
-                    (int)((height)*scrollRangeMult),
-                    (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult),
-                    (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult),
-                    false);
+        if (!rightScrollBar.getValueIsAdjusting())
+        {
+        	int value = (int)((-oY-0.5*height)*scrollRangeMult);
+        	int extent = (int)(height*scrollRangeMult);
+        	int min = (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
+        	int max = (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
+            rightScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
             //System.out.println("model is "+rightScrollBar.getModel());
             rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
             rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
@@ -2305,7 +2309,11 @@ public class EditWindow extends JPanel
         if (cell == null) return;
         if (ignoreScrollChange) return;
 
-        double val = (double)value/(double)scrollRangeMult;
+		Point2D dbPt = new Point2D.Double(offx, offy);
+		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
+		double oX = dbPt.getX();   double oY = dbPt.getY();
+
+		double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
@@ -2315,7 +2323,8 @@ public class EditWindow extends JPanel
         //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
-        Point2D offset = new Point2D.Double(newoffx, offy);
+        Point2D offset = new Point2D.Double(newoffx, oY);
+        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
         repaintContents(null);
     }
@@ -2324,6 +2333,10 @@ public class EditWindow extends JPanel
     {
         if (cell == null) return;
         if (ignoreScrollChange) return;
+
+		Point2D dbPt = new Point2D.Double(offx, offy);
+		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
+		double oX = dbPt.getX();   double oY = dbPt.getY();
 
         double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
@@ -2336,7 +2349,8 @@ public class EditWindow extends JPanel
         //System.out.println("Old offy="+offy+", new offy="+newoffy+", deltay="+(newoffy-offy));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
-        Point2D offset = new Point2D.Double(offx, newoffy);
+        Point2D offset = new Point2D.Double(oX, newoffy);
+        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
         repaintContents(null);
     }

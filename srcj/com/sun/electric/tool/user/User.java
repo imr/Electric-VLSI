@@ -113,7 +113,12 @@ public class User extends Listener
 	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
 	 * @param ap the new "current" ArcProto.
 	 */
-	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap;   TopLevel.getPaletteFrame().arcProtoChanged(); }
+	public void setCurrentArcProto(ArcProto ap)
+	{
+		currentArcProto = ap;
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+		if (wf != null) wf.getPalette().arcProtoChanged();
+	}
 
 	/**
 	 * Daemon Method called when an object is to be redrawn.
