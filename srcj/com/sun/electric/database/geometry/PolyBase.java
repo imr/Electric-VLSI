@@ -36,10 +36,10 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The Poly class describes an extended set of points
@@ -1423,7 +1423,75 @@ public class PolyBase implements Shape
 		}
 	}
 
-	private class PolyPathIterator implements PathIterator
+    /**
+     * Static method to get PolyBase elements associated to an Area
+     * @param area  Java2D structure containing the geometrical information
+     * @param layer
+     * @param simple if true, polygons with inner loops will return in sample Poly.
+     * @return List of PolyBase elements
+     */
+	public static List getPointsInArea(Area area, Layer layer, boolean simple)
+	{
+		if (area == null) return null;
+
+		List polyList = new ArrayList();
+		double [] coords = new double[6];
+		List pointList = new ArrayList();
+		Point2D lastMoveTo = null;
+		boolean isSingular = area.isSingular();
+		List toDelete = new ArrayList();
+
+		// Gilda: best practice note: System.arraycopy
+		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
+		{
+			int type = pIt.currentSegment(coords);
+			if (type == PathIterator.SEG_CLOSE)
+			{
+				if (lastMoveTo != null) pointList.add(lastMoveTo);
+				Point2D [] points = new Point2D[pointList.size()];
+				int i = 0;
+				for(Iterator it = pointList.iterator(); it.hasNext(); )
+					points[i++] = (Point2D)it.next();
+				PolyBase poly = new PolyBase(points);
+				poly.setLayer(layer);
+				poly.setStyle(Poly.Type.FILLED);
+				lastMoveTo = null;
+				toDelete.clear();
+				if (!simple && !isSingular)
+				{
+					Iterator it = polyList.iterator();
+					while (it.hasNext())
+					{
+						PolyBase pn = (PolyBase)it.next();
+						if (pn.contains((Point2D)pointList.get(0)) ||
+						    poly.contains(pn.getPoints()[0]))
+						{
+							points = pn.getPoints();
+							for (i = 0; i < points.length; i++)
+								pointList.add(points[i]);
+							Point2D[] newPoints = new Point2D[pointList.size()];
+							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
+							poly = new PolyBase(newPoints);
+							toDelete.add(pn);
+						}
+					}
+				}
+				if (poly != null)
+					polyList.add(poly);
+				polyList.removeAll(toDelete);
+				pointList.clear();
+			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+			{
+				Point2D pt = new Point2D.Double(coords[0], coords[1]);
+				pointList.add(pt);
+				if (type == PathIterator.SEG_MOVETO) lastMoveTo = pt;
+			}
+			pIt.next();
+		}
+		return polyList;
+	}
+
+    private class PolyPathIterator implements PathIterator
 	{
 		int idx = 0;
 		AffineTransform trans;
@@ -1611,24 +1679,35 @@ public class PolyBase implements Shape
 	 * returns -1. If boxes don't overlap, returns -2.
 	 * Otherwise the box is cropped and zero is returned
 	 */
-	public static int cropBoxComplete(Rectangle2D bounds, Rectangle2D PUBox)
+	public static int cropBoxComplete(Rectangle2D bounds, Rectangle2D PUBox, boolean parasitic)
 	{
 		// if the two boxes don't touch, just return
 		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
 		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return -2;
+		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return -2;
+        if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
+		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return -2;
 
 		// if the box to be cropped is within the other, say so
-		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+		//if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+        boolean blX = !DBMath.isGreaterThan(bX, lX);
+		boolean uhX = !DBMath.isGreaterThan(hX, uX);
+		boolean blY = !DBMath.isGreaterThan(bY, lY);
+		boolean uhY = !DBMath.isGreaterThan(hY, uY);
+		if (blX && uhX && blY && uhY) return 1;
 
 		// Crop in both directions if possible, self-contained case
 		// covered already
-		if (bX <= lX) lX = uX;
-		if (bY >= lY) hY = bY;
-		if (uY <= hY) lY = hY;
-		if (hX <= uX) hX = bX;
+        // 100% self-contained case. @TODO Check this function GVG
+        //if (parasitic)
+        {
+            if (bX <= lX) lX = uX;
+            if (bY >= lY) hY = bY;
+            if (uY <= hY) lY = hY;
+            if (hX <= uX) hX = bX;
+        }
 		bounds.setRect(lX, lY, hX-lX, hY-lY);
 
 		return 0;
@@ -1647,6 +1726,7 @@ public class PolyBase implements Shape
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
 
+        //@TODO Rounding error here GVG
 		// if the two boxes don't touch, just return
 		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
 

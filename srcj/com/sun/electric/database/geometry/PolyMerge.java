@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -164,13 +165,13 @@ public class PolyMerge
 		return (getMergedPoints((Layer)layer, simple));
 	}
 
-	/**
+    /**
 	 * Method to return list of Polys on a given Layer in this Merge.
 	 * @param layer the layer in question.
 	 * @param simple
 	 * @return the list of Polys that describes this Merge.
 	 */
-	public List getMergedPoints(Layer layer, boolean simple)
+    public List getMergedPoints(Layer layer, boolean simple)
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null) return null;
@@ -234,6 +235,13 @@ public class PolyMerge
 			}
 			pIt.next();
 		}
+        if (Main.LOCALDEBUGFLAG)
+        {
+            List newList = PolyBase.getPointsInArea(area, layer, simple);
+
+            if (newList.size() != polyList.size() || !newList.containsAll(polyList))
+                System.out.println("Error in getPointsInArea");
+        }
 		return polyList;
 	}
 }
