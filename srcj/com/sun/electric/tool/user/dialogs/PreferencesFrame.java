@@ -234,6 +234,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(net);
 		toolSet.add(new DefaultMutableTreeNode(net.getName()));
 
+		ParasiticTab parat = new ParasiticTab(parent, modal);
+		optionPanes.add(parat);
+		toolSet.add(new DefaultMutableTreeNode(parat.getName()));
+
 		RoutingTab rot = new RoutingTab(parent, modal);
 		optionPanes.add(rot);
 		toolSet.add(new DefaultMutableTreeNode(rot.getName()));

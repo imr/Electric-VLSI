@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01y: *********************************
 
+BUG: (10/18/04, GVG) Rounding error in DRC min width checking
+FIX: DBMath.isGreater() function added to consolidate comparison and rouding operations
+
+IMP: (10/18/04, GVG) Parasitic tab skeleton in Preferences. Corresponding html/png files were added for manual. All
+tools-related figures were redone.
+
+IMP: (10/18/04, GVG) New look@feel of WellCheck dialog (documentation changed).
+3DView: Ability to turn on/off antialiasing without closing 3D window.
+Changes in diffuse, specular and ambient colors. Parasitic: arc cropping added.
+Code optimization in DBMath.round and DBMath.pointInRect. Code cleaning in Constraint.Layout.
+Job.checkExamine() disabled.
+
 IMP: (10/18/04, SMR) Specifying libraries on the command line handles both ELIB and JELIB format.
 
 BUG: (10/18/04, SMR) JELIB input damages quoted strings.

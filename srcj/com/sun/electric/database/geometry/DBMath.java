@@ -60,11 +60,10 @@ public class DBMath extends GenMath {
      * epsilon.
      */
     public static boolean pointInRect(Point2D pt, Rectangle2D bounds) {
-        double epsilon = EPSILON;
-        if (pt.getX() < (bounds.getMinX() - epsilon)) return false;
-        if (pt.getX() > (bounds.getMaxX() + epsilon)) return false;
-        if (pt.getY() < (bounds.getMinY() - epsilon)) return false;
-        if (pt.getY() > (bounds.getMaxY() + epsilon)) return false;
+        if (pt.getX() < (bounds.getMinX() - EPSILON)) return false;
+        if (pt.getX() > (bounds.getMaxX() + EPSILON)) return false;
+        if (pt.getY() < (bounds.getMinY() - EPSILON)) return false;
+        if (pt.getY() > (bounds.getMaxY() + EPSILON)) return false;
         return true;
     }
 
@@ -80,18 +79,26 @@ public class DBMath extends GenMath {
     }
 
 	/**
+	 * Method to determine if first value is greater than second but counting for
+	 * rounding error
+	 * @param a the first number.
+	 * @param b the second number.
+	 * @return true if first number is greater.
+	 */
+	public static boolean isGreater(double a, double b) {
+		double actual = DBMath.round(a - b);
+		return (actual > 0);
+	}
+	
+	/**
 	 * pre: x >= 0.0 and -15 <= n <= 15
 	 * @param x
 	 * @return the return value is an approximation of x rounded to n digits
 	 */
 	public static double round(double x)
 	{
-		double result = 0;
         double pow10 = Math.pow(10, NDECIMALS);
-
-        result = Math.floor(x*pow10 + 0.5) / pow10;
-
-        return result;
+        return (Math.floor(x*pow10 + 0.5) / pow10);
 	}
 
     /**

@@ -1985,16 +1985,29 @@ public class Quick
 		Cell cell = geom.getParent();
 		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
 		if (minWidthRule == null) return false;
-		double minWidth = minWidthRule.value;
+		//double minWidth = minWidthRule.value;
 
 		// simpler analysis if manhattan
 		Rectangle2D bounds = poly.getBox();
 		if (bounds != null)
 		{
-			if (bounds.getWidth() >= minWidth && bounds.getHeight() >= minWidth) return false;
+			boolean tooSmallWidth = DBMath.isGreater(minWidthRule.value, bounds.getWidth());
+			boolean tooSmallHeight = DBMath.isGreater(minWidthRule.value, bounds.getHeight());
+			if (bounds.getWidth() >= minWidthRule.value && bounds.getHeight() >= minWidthRule.value)
+			{
+				if (Main.getDebug() && (tooSmallWidth || tooSmallHeight))
+					System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
+				return false;
+			}
+			if (!tooSmallWidth && !tooSmallHeight)
+			{
+				if (Main.getDebug()) System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
+				return false;
+			}
+
 			double actual = 0;
 			Point2D left1, left2, left3, right1, right2, right3;
-			if (bounds.getWidth() < minWidth)
+			if (bounds.getWidth() < minWidthRule.value)
 			{
 				actual = bounds.getWidth();
 				left1 = new Point2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY());
@@ -2041,7 +2054,7 @@ public class Quick
 				rule = null;
 			}
 
-			reportError(errorType, extraMsg, cell, minWidth, actual, rule,
+			reportError(errorType, extraMsg, cell, minWidthRule.value, actual, rule,
 			        (onlyOne) ? null : poly, geom, layer, null, null, null);
 			return !overlapLayer;
 		}
@@ -2055,9 +2068,9 @@ public class Quick
 		// simple check of nonmanhattan polygon for minimum width
 		bounds = poly.getBounds2D();
 		double actual = Math.min(bounds.getWidth(), bounds.getHeight());
-		if (actual < minWidth)
+		if (actual < minWidthRule.value)
 		{
-			reportError(MINWIDTHERROR, null, cell, minWidth, actual, minWidthRule.rule,
+			reportError(MINWIDTHERROR, null, cell, minWidthRule.value, actual, minWidthRule.rule,
 				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
@@ -2106,16 +2119,16 @@ public class Quick
 				// becuase this is done in integer, accuracy may suffer
 //				actual += 2;
 
-				if (actual < minWidth)
+				if (actual < minWidthRule.value)
 				{
 					// look between the points to see if it is minimum width or notch
 					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
 					{
-						reportError(MINWIDTHERROR, null, cell, minWidth,
+						reportError(MINWIDTHERROR, null, cell, minWidthRule.value,
 							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, null, null, null);
 					} else
 					{
-						reportError(NOTCHERROR, null, cell, minWidth,
+						reportError(NOTCHERROR, null, cell, minWidthRule.value,
 							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
 					}
 					return true;
@@ -2178,9 +2191,13 @@ public class Quick
 
 						if (minRule == null) continue;
 
+						/*
 						double actual = DBMath.round(area - minRule.value);
 
 						if (actual >= 0) continue;
+                        */
+						// isGreater doesn't consider equals condition therefore negate condition is used
+						if (!DBMath.isGreater(minRule.value, area)) continue;
 
 						errorFound = true;
 						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;

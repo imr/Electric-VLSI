@@ -1351,8 +1351,6 @@ public class Layout extends Constraints
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				double sX = ni.getXSize();
-				double sY = ni.getYSize();
 
 				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
 				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
@@ -1497,11 +1495,6 @@ public class Layout extends Constraints
 				}
 
 				Rectangle2D cellBounds = np.getBounds();
-				double dlx = cellBounds.getMinX() - flx;   double dhx = cellBounds.getMaxX() - fhx;
-				double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
-				double sX = ni.getXSize();
-				double sY = ni.getYSize();
-
 				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
 				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;

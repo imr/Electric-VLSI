@@ -758,12 +758,15 @@ public abstract class Job implements ActionListener, Runnable {
     public static void checkExamine() {
         if (!Main.getDebug()) return;
         if (Main.NOTHREADING) return;
+	    /*
+	    // disabled by Gilda on Oct 18
         if (!hasExamineLock()) {
             String msg = "Database is being examined without an Examine Job or Examine Lock";
             System.out.println(msg);
             Error e = new Error(msg);
             throw e;
         }
+        */
     }
 
 	/**

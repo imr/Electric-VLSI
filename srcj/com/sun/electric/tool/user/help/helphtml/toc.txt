@@ -185,4 +185,5 @@ Tools
   Pad Frame Generation               =chap08-07-01
   Other Generators                   =chap08-07-02
  Logical Effort                      =chap08-08
+ Parasitic Extraction                =chap08-09
 
