@@ -29,9 +29,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * The PortInst class represents an instance of a Port.  It is the
@@ -181,10 +179,32 @@ public class PortInst extends ElectricObject
             return (false);
 
         PortInst no = (PortInst)obj;
+        Set noCheckAgain = new HashSet();
+		for (Iterator it = getConnections(); it.hasNext(); )
+		{
+			Connection c = (Connection)it.next();
+			boolean found = false;
+			for (Iterator noIt = no.getConnections(); noIt.hasNext(); )
+			{
+				Connection noC = (Connection)noIt  .next();
+				if (noCheckAgain.contains(noC)) continue;
+				if (c.getLocation().equals(noC.getLocation()))
+				{
+					found = true;
+                    noCheckAgain.add(noC);
+                    break;
+				}
+			}
 
-		Iterator it = getConnections();
-		Iterator noIt = no.getConnections();
-
+            // No correspoding NodeInst found
+            if (!found)
+            {
+	            if (buffer != null)
+	                buffer.append("No corresponding port " + this + " found in " + no + "\n");
+	            return (false);
+            }
+		}
+        
 		// @TODO GVG Check this
 		// Just compare connections?? or just poly for now?
 		Poly poly = getPoly();

@@ -850,7 +850,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				}
 			}
 
-			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);
+			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null, ni.getTechSpecific());
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
 				newNi.setHardSelect();
@@ -868,7 +868,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				}
 			} else
 			{
-				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
+				//if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 				if (np == Schematics.tech.resistorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_RESISTANCE, "100");

@@ -889,7 +889,7 @@ public class PadGenerator {
 
                 //corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
                 Point2D pointCenter = new Point2D.Double(centerX, centerY);
-                NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), angle, framecell, null);
+                NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), angle, framecell, null, 0);
                 if (ni == null) {
                     err("problem creating" + cell.describe() + " instance");
                     continue;
@@ -996,7 +996,7 @@ public class PadGenerator {
                     EditWindow.gridAlign(center);
 
                     SizeOffset so = corenp.getProtoSizeOffset();
-                    NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, framecell, null);
+                    NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, framecell, null, 0);
 
                     for (Iterator ocit = orderedCommands.iterator(); ocit.hasNext();) {
                         Object obj = ocit.next();
@@ -1051,7 +1051,7 @@ public class PadGenerator {
                 NodeInst bbNi = null;
                 if (User.isIconGenDrawBody()) {
                     //bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
-                    bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null);
+                    bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null, 0);
                     if (bbNi == null) return;
                     bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
@@ -1117,7 +1117,7 @@ public class PadGenerator {
                         !User.isIconGenDrawLeads() &&
                         User.isPlaceCellCenter() &&
                         total <= 1) {
-                    NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null);
+                    NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null, 0);
                 }
 
                 // place an icon in the schematic
@@ -1144,7 +1144,7 @@ public class PadGenerator {
                 EditWindow.gridAlign(iconPos);
                 double px = iconCell.getBounds().getWidth();
                 double py = iconCell.getBounds().getHeight();
-                NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, framecell, null);
+                NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, framecell, null, 0);
             }
         }
     }

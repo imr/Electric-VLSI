@@ -217,7 +217,7 @@ class NetCell
 			if (ni.getNameKey().isBus()) {
 				String msg = "Network: Layout cell " + cell.describe() + " has arrayed node " + ni.describe();
                 System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                 log.addGeom(ni, true, cell, null);
             }
 		}
@@ -230,7 +230,7 @@ class NetCell
 					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 						" " + np.describe() + " nodes";
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
                         log.addGeom(ni, true, cell, null);
@@ -242,7 +242,7 @@ class NetCell
 				String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 					" " + np.describe() + " nodes";
                 System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                 for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                     NodeInst ni = (NodeInst)nit.next();
                     log.addGeom(ni, true, cell, null);
@@ -254,7 +254,7 @@ class NetCell
 					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 						" " + np.describe() + " nodes";
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
                         log.addGeom(ni, true, cell, null);
@@ -440,7 +440,7 @@ class NetCell
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
-                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                         log.addPoly(pi.getPoly(), true, cell);
                     }
 					continue;
@@ -450,7 +450,7 @@ class NetCell
 				if (np.getFunction() == NodeProto.Function.PIN) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				addToDrawn(pi);
@@ -514,7 +514,7 @@ class NetCell
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                 log.addGeom(ai, true, cell, null);
             }
 			if (ai.isUsernamed())
@@ -641,7 +641,7 @@ class NetCell
 			if (netNamesToNet[nn.index] == network) return;
 			String msg = "Network: Layout cell " + cell.describe() + " has nets with same name " + name;
             System.out.println(msg);
-            ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+            ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
             // because this should be an infrequent event that the user will fix, let's
             // put all the work here
             int numPorts = cell.getNumPorts();

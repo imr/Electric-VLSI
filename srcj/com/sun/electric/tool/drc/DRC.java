@@ -189,7 +189,7 @@ public class DRC extends Listener
 			long endTime = System.currentTimeMillis();
 			if (errorsFound > 0)
 			{
-				System.out.println("Incremental DRC found " + errorsFound + " errors in cell "+cell.describe());
+				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+cell.describe());
 			}
 			incrementalRunning = false;
 			doIncrementalDRCTask();
@@ -326,10 +326,15 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			int errorsFound = Quick.checkDesignRules(cell, 0, null, null, bounds);
-			long endTime = System.currentTimeMillis();
-			System.out.println(errorsFound + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			return true;
+            int errorCount = 0, warnCount = 0;
+            if (Quick.checkDesignRules(cell, 0, null, null, bounds) > 0)
+            {
+                errorCount = ErrorLogger.getCurrent().getNumErrors();
+                warnCount = ErrorLogger.getCurrent().getNumWarnings();
+            }
+            long endTime = System.currentTimeMillis();
+            System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+            return true;
 		}
 	}
 
@@ -356,8 +361,8 @@ public class DRC extends Listener
 			long startTime = System.currentTimeMillis();
 			Schematic.doCheck(cell);
 			long endTime = System.currentTimeMillis();
-			int errorcount = ErrorLogger.getCurrent().numErrors();
-			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+			int errorCount = ErrorLogger.getCurrent().getNumErrors();
+			System.out.println(errorCount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
 		}
 	}

@@ -90,8 +90,8 @@ public class CIF extends Geometry
 		if (out.writeCell(cell, context, visitor)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
-		if (out.errorLogger.numErrors() != 0)
-			System.out.println(out.errorLogger.numErrors() + " CIF RESOLUTION ERRORS FOUND");
+		if (out.errorLogger.getNumErrors() != 0)
+			System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
 		out.errorLogger.termLogging(true);
 	}
 
@@ -374,7 +374,7 @@ public class CIF extends Geometry
 		{
 			// there was an error, for now print error
 			Layer layer = poly.getLayer();
-			ErrorLogger.ErrorLog err = null;
+			ErrorLogger.MessageLog err = null;
 			if (layer == null)
 			{
 				err = errorLogger.logError("Unknown layer", cell, layer.getIndex());

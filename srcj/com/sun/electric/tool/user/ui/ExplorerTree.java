@@ -410,9 +410,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			ErrorLogger el = (ErrorLogger)nodeInfo;
 			return el.describe();
 		}
-        if (nodeInfo instanceof ErrorLogger.ErrorLog)
+        if (nodeInfo instanceof ErrorLogger.MessageLog)
         {
-            ErrorLogger.ErrorLog el = (ErrorLogger.ErrorLog)nodeInfo;
+            ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeInfo;
             return el.describeError();
         }
 		if (nodeInfo instanceof Simulation.SimSignal)
@@ -659,10 +659,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (currentSelectedObject instanceof ErrorLogger.ErrorLog)
+				if (currentSelectedObject instanceof ErrorLogger.MessageLog)
 				{
-					ErrorLogger.ErrorLog el = (ErrorLogger.ErrorLog)currentSelectedObject;
-					String msg = el.reportError(true, null);
+					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)currentSelectedObject;
+					String msg = el.reportLog(true, null);
 					System.out.println(msg);
 					return;
 				}

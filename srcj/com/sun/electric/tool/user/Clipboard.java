@@ -634,7 +634,7 @@ public class Clipboard
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-					width, height, ni.getAngle(), toCell, name);
+					width, height, ni.getAngle(), toCell, name, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
@@ -686,7 +686,7 @@ public class Clipboard
 					name = ElectricObject.uniqueObjectName(ai.getName(), toCell, ArcInst.class);
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, new Point2D.Double(ai.getHead().getLocation().getX() + dX, ai.getHead().getLocation().getY() + dY),
-					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dX, ai.getTail().getLocation().getY() + dY), name);
+					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dX, ai.getTail().getLocation().getY() + dY), name, ai.getAngle());
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");

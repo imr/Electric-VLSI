@@ -4307,7 +4307,7 @@ public class ROMGenerator
 			height = -height;
 			rot = (rot + 900) % 3600;
 		}
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, rot, parent, null);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, rot, parent, null, 0);
 		return ni;
 	}
 

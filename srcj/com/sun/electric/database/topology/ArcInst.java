@@ -157,7 +157,7 @@ public class ArcInst extends Geometric
 	public static ArcInst makeInstance(ArcProto type, double width,
 		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
 	{
-		ArcInst ai = newInstance(type, width, head, headPt, tail, tailPt, name);
+		ArcInst ai = newInstance(type, width, head, headPt, tail, tailPt, name, 0);
 		if (ai != null)
 		{
 			ai.setDefaultConstraints();
@@ -214,7 +214,7 @@ public class ArcInst extends Geometric
 	 */
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
 	{
-		return newInstance(type, width, head, null, tail, null, name);
+		return newInstance(type, width, head, null, tail, null, name, 0);
 	}
 
 	/**
@@ -227,10 +227,11 @@ public class ArcInst extends Geometric
 	 * @param tail the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param name the name of the new ArcInst
-	 * @return the newly created ArcInst, or null if there is an error.
+	 * @param defAngle default angle in case port points coincide
+     * @return the newly created ArcInst, or null if there is an error.
 	 */
 	public static ArcInst newInstance(ArcProto type, double width,
-		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
+                                      PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name, int defAngle)
 	{
         // if points are null, create them as would newInstance
         if (headPt == null) {
@@ -246,7 +247,7 @@ public class ArcInst extends Geometric
 		if (type == null || head == null || tail == null) return null;
 
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, 0)) return null;
+		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle)) return null;
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
@@ -330,7 +331,7 @@ public class ArcInst extends Geometric
 		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation(), null);
+		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation(), null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
@@ -884,8 +885,8 @@ public class ArcInst extends Geometric
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
 		length = Math.sqrt(dx * dx + dy * dy);
-		if (p1.equals(p2)) angle = defAngle; else
-			angle = DBMath.figureAngle(p1, p2);
+		if (p1.equals(p2)) angle = defAngle;
+        else angle = DBMath.figureAngle(p1, p2);
 
 		// compute the bounds
 		Poly poly = makePoly(length, width, Poly.Type.FILLED);
@@ -1442,8 +1443,11 @@ public class ArcInst extends Geometric
             // polyList[i] doesn't match any elem in noPolyList
             if (!found)
             {
+                // No message otherwise all comparisons are found in buffer
+                /*
 	            if (buffer != null)
 		            buffer.append("No corresponding geometry in " + getName() + " found in " + a.getName() + "\n");
+                    */
 	            return (false);
             }
         }

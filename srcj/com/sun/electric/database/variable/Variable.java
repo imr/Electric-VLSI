@@ -157,6 +157,28 @@ public class Variable
 	}
 
 	/**
+	 * This function is to compare Variable elements. Initiative CrossLibCopy
+ 	 * @param obj Object to compare to
+	 * @param buffer To store comparison messages in case of failure
+	 * @return True if objects represent same PortInst
+	 */
+    public boolean compare(Object obj, StringBuffer buffer)
+	{
+		if (this == obj) return (true);
+
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        Variable var = (Variable)obj;
+       	boolean check = var.getTextDescriptor().compare(getTextDescriptor());
+
+		if (!check && buffer != null)
+			buffer.append("No same variables detected in " + var + " and " + this + "\n");
+        return (check);
+    }
+
+	/**
 	 * Method to check if this Variable can be changed.
 	 */
 	public final void checkChanging()

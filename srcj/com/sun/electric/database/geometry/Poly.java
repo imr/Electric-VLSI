@@ -1921,7 +1921,8 @@ public class Poly implements Shape
 		        */
 	        return (false);
         }
-        if (layer.getFunction() != poly.getLayer().getFunction()) return (false);
+        // It should be covered by previous comparison
+        //if (layer.getFunction() != poly.getLayer().getFunction()) return (false);
 
 	    boolean geometryCheck = polySame(poly);
 

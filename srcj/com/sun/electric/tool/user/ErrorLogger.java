@@ -101,14 +101,14 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /**
      * Create a Log of a single Error
      */
-    public static class ErrorLog implements Comparable {
+    public static class MessageLog implements Comparable {
         private String message;
         private int    sortKey;
         private int    index;
         private Cell    logCell;                // cell associated with log (not really used)
         private List   highlights;
 
-        private ErrorLog(String message, int sortKey) {
+        private MessageLog(String message, int sortKey) {
             this.message = message;
             this.sortKey = sortKey;
             index = 0;
@@ -124,7 +124,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 		 */
 	    public int compareTo(Object o1)
 	    {
-		    ErrorLog log1 = (ErrorLog)o1;
+		    MessageLog log1 = (MessageLog)o1;
 		    return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
 	    }
 
@@ -291,7 +291,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
          * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
          * with associated geometry modules (if nonzero).
          */
-        public String reportError(boolean showhigh, Geometric [] gPair)
+        public String reportLog(boolean showhigh, Geometric [] gPair)
         {
             // if two highlights are requested, find them
             if (gPair != null)
@@ -409,11 +409,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /** List of all loggers */          private static List allLoggers = new ArrayList();
 
 	private boolean alreadyExplained;
-
-    private int trueNumErrors;
     private int errorLimit;
     private List allErrors;
-    private int currentErrorNumber;
+	private List allWarnings;
+    private int currentLogNumber;
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
@@ -443,9 +442,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList();
-        logger.trueNumErrors = 0;
+	    logger.allWarnings = new ArrayList();
         logger.limitExceeded = false;
-        logger.currentErrorNumber = -1;
+        logger.currentLogNumber = -1;
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
@@ -464,16 +463,14 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * with the given text "message" applying to cell "cell".
      * Returns a pointer to the message (0 on error) which can be used to add highlights.
      */
-    public synchronized ErrorLog logError(String message, Cell cell, int sortKey)
+    public synchronized MessageLog logError(String message, Cell cell, int sortKey)
     {
         if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
         }
 
-        trueNumErrors++;
-
         // if too many errors, don't save it
-        if (errorLimit > 0 && numErrors() >= errorLimit)
+        if (errorLimit > 0 && getNumErrors() >= errorLimit)
         {
             if (!limitExceeded)
             {
@@ -484,7 +481,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
         // create a new ErrorLog object
-        ErrorLog el = new ErrorLog(message, sortKey);
+        MessageLog el = new MessageLog(message, sortKey);
 
         // store information about the error
         el.message = message;
@@ -494,7 +491,45 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
         // add the ErrorLog into the global list
         allErrors.add(el);
-        currentErrorNumber = allErrors.size()-1;
+        currentLogNumber = allErrors.size()-1;
+
+        if (persistent) WindowFrame.wantToRedoErrorTree();
+        return el;
+    }
+
+    /**
+     * Factory method to create a warning message and log.
+     * with the given text "message" applying to cell "cell".
+     * Returns a pointer to the message which can be used to add highlights.
+     */
+    public synchronized MessageLog logWarning(String message, Cell cell, int sortKey)
+    {
+        if (terminated && !persistent) {
+            System.out.println("WARNING: "+errorSystem+" already terminated, should not log new warning");
+        }
+
+        // if too many errors, don't save it
+        if (errorLimit > 0 && getNumWarnings() >= errorLimit)
+        {
+            if (!limitExceeded)
+            {
+                System.out.println("WARNING: more than " + errorLimit + " warnings found, ignoring the rest");
+                limitExceeded = true;
+            }
+            return null;
+        }
+
+        // create a new ErrorLog object
+        MessageLog el = new MessageLog(message, sortKey);
+
+        // store information about the error
+        el.message = message;
+        el.sortKey = sortKey;
+        el.logCell = cell;
+        el.highlights = new ArrayList();
+
+        // add the ErrorLog into the global list
+        allWarnings.add(el);
 
         if (persistent) WindowFrame.wantToRedoErrorTree();
         return el;
@@ -502,19 +537,25 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
 	/**
 	 * Method to determine if existing report was not looged already
+	 * as error or warning
 	 * @param cell
 	 * @param geom1
 	 * @param cell2
 	 * @param geom2
 	 * @return
 	 */
-	public synchronized boolean findError(Cell cell, Geometric geom1, Cell cell2, Geometric geom2)
+	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2)
 	{
-		boolean found = false;
-
 		for (int i = 0; i < allErrors.size(); i++)
 		{
-			ErrorLog el = (ErrorLog)allErrors.get(i);
+			MessageLog el = (MessageLog)allErrors.get(i);
+
+			if (el.findGeometries(geom1, cell, geom2, cell2))
+				return (true);
+		}
+		for (int i = 0; i < allWarnings.size(); i++)
+		{
+			MessageLog el = (MessageLog)allWarnings.get(i);
 
 			if (el.findGeometries(geom1, cell, geom2, cell2))
 				return (true);
@@ -527,9 +568,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	 */
 	public synchronized void clearAllErrors() {
         allErrors.clear();
-        trueNumErrors = 0;
+		allWarnings.clear();
         limitExceeded = false;
-        currentErrorNumber = -1;
+        currentLogNumber = -1;
     }
 
     /** Get the current logger */
@@ -547,12 +588,11 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public synchronized void clearErrors(Cell cell) {
         ArrayList trimmedErrors = new ArrayList();
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
-            ErrorLog log = (ErrorLog)it.next();
+            MessageLog log = (MessageLog)it.next();
             if (log.logCell != cell) trimmedErrors.add(log);
         }
         allErrors = trimmedErrors;
-        trueNumErrors = allErrors.size();
-        currentErrorNumber = allErrors.size()-1;
+        currentLogNumber = allErrors.size()-1;
     }
 
     /** Delete this logger */
@@ -561,8 +601,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         if (persistent) {
             // just clear errors
             allErrors.clear();
-            trueNumErrors = 0;
-            currentErrorNumber = -1;
+			allWarnings.clear();
+            currentLogNumber = -1;
             WindowFrame.wantToRedoErrorTree();
             return;
         }
@@ -595,7 +635,12 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         int errs = 0;
         for(Iterator it = allErrors.iterator(); it.hasNext(); )
         {
-            ErrorLog el = (ErrorLog)it.next();
+            MessageLog el = (MessageLog)it.next();
+            el.index = ++errs;
+        }
+	    for(Iterator it = allWarnings.iterator(); it.hasNext(); )
+        {
+            MessageLog el = (MessageLog)it.next();
             el.index = ++errs;
         }
 
@@ -608,11 +653,14 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
         if (errs > 0 && explain)
         {
-            //System.out.println(errorSystem+" FOUND "+numErrors()+" ERRORS");
+            //System.out.println(errorSystem+" FOUND "+getNumErrors()+" ERRORS");
             if (!alreadyExplained)
             {
 				alreadyExplained = true;
-	            System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
+                String extraMsg = "errors/warnings";
+                if (getNumErrors() == 0) extraMsg = "warnings";
+                else  if (getNumWarnings() == 0) extraMsg = "errors";
+	            System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
             }
         }
         SwingUtilities.invokeLater(new Runnable() {
@@ -630,17 +678,18 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * Method to sort the errors by their "key" (a value provided to "logerror()").
      * Obviously, this should be called after all errors have been reported.
      */
-    public synchronized void sortErrors()
+    public synchronized void sortLogs()
     {
         Collections.sort(allErrors, new ErrorLogOrder());
+	    Collections.sort(allWarnings, new ErrorLogOrder());
     }
 
     private static class ErrorLogOrder implements Comparator
     {
         public int compare(Object o1, Object o2)
         {
-            ErrorLog el1 = (ErrorLog)o1;
-            ErrorLog el2 = (ErrorLog)o2;
+            MessageLog el1 = (MessageLog)o1;
+            MessageLog el2 = (MessageLog)o2;
 	        int sortedKey = el1.sortKey - el2.sortKey;
 	        if (sortedKey == 0) // Identical, compare lexicographically
 	            sortedKey = el1.compareTo(el2);
@@ -649,86 +698,90 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     }
 
     /**
-     * Method to return the number of logged errors.
+     * Method to advance to the next error and report it.
      */
-    public synchronized int numErrors()
+    public static String reportNextMessage()
     {
-        return trueNumErrors;
+        return reportNextMessage(true, null);
     }
 
     /**
      * Method to advance to the next error and report it.
      */
-    public static String reportNextError()
-    {
-        return reportNextError(true, null);
-    }
-
-    /**
-     * Method to advance to the next error and report it.
-     */
-    public static String reportNextError(boolean showhigh, Geometric [] gPair)
+    private static String reportNextMessage(boolean showhigh, Geometric [] gPair)
     {
         ErrorLogger logger;
         synchronized(allLoggers) {
             if (currentLogger == null) return "No errors to report";
             logger = currentLogger;
         }
-        return logger.reportNextError_(showhigh, gPair);
+        return logger.reportNextMessage_(showhigh, gPair);
     }
 
-    private synchronized String reportNextError_(boolean showHigh, Geometric [] gPair) {
-        if (currentErrorNumber < allErrors.size()-1)
+    private synchronized String reportNextMessage_(boolean showHigh, Geometric [] gPair) {
+        if (currentLogNumber < getNumLogs()-1)
         {
-            currentErrorNumber++;
+            currentLogNumber++;
         } else
         {
-            if (allErrors.size() <= 0) return "No "+errorSystem+" errors";
-            currentErrorNumber = 0;
+            if (getNumLogs() <= 0) return "No "+errorSystem+" errors";
+            currentLogNumber = 0;
         }
-        return reportError(currentErrorNumber, showHigh, gPair);
+        return reportLog(currentLogNumber, showHigh, gPair);
     }
 
     /**
      * Method to back up to the previous error and report it.
      */
-    public static String reportPrevError()
+    public static String reportPrevMessage()
     {
         ErrorLogger logger;
         synchronized(allLoggers) {
             if (currentLogger == null) return "No errors to report";
             logger = currentLogger;
         }
-        return logger.reportPrevError_();
+        return logger.reportPrevMessage_();
     }
 
-    private synchronized String reportPrevError_() {
-        if (currentErrorNumber > 0)
+    private synchronized String reportPrevMessage_() {
+        if (currentLogNumber > 0)
         {
-            currentErrorNumber--;
+            currentLogNumber--;
         } else
         {
-            if (allErrors.size() <= 0) return "No "+errorSystem+" errors";
-            currentErrorNumber = allErrors.size() - 1;
+            if (getNumLogs() <= 0) return "No "+errorSystem+" errors";
+            currentLogNumber = getNumLogs() - 1;
         }
-        return reportError(currentErrorNumber, true, null);
+        return reportLog(currentLogNumber, true, null);
     }
 
     /**
      * Report an error
-     * @param errorNumber
+     * @param logNumber
      * @param showHigh
      * @param gPair
      * @return
      */
-    private synchronized String reportError(int errorNumber, boolean showHigh, Geometric [] gPair) {
+    private synchronized String reportLog(int logNumber, boolean showHigh, Geometric [] gPair) {
 
-        if (errorNumber < 0 || (errorNumber >= allErrors.size())) {
-            return errorSystem + ": no such error "+(errorNumber+1)+", only "+numErrors()+" errors.";
+        if (logNumber < 0 || (logNumber >= getNumLogs())) {
+            return errorSystem + ": no such error or warning "+(logNumber+1)+", only "+getNumLogs()+" errors.";
         }
-        ErrorLog el = (ErrorLog)allErrors.get(errorNumber);
-        String message = el.reportError(showHigh, gPair);
-        return (errorSystem + " error " + (errorNumber+1) + " of " + allErrors.size() + ": " + message);
+
+        MessageLog el = null;
+        String extraMsg = null;
+        if (logNumber < getNumErrors())
+        {
+            el = (MessageLog)allErrors.get(logNumber);
+            extraMsg = " error " + (logNumber+1) + " of " + allErrors.size();
+        }
+        else
+        {
+            el = (MessageLog)allWarnings.get(logNumber);
+            extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
+        }
+        String message = el.reportLog(showHigh, gPair);
+        return (errorSystem + extraMsg + ": " + message);
     }
 
     /**
@@ -738,25 +791,40 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public synchronized int getNumErrors() { return allErrors.size(); }
 
     /**
-     * Method to list all logged errors.
+     * Method to tell the number of logged errors.
+     * @return the number of "ErrorLog" objects logged.
+     */
+    public synchronized int getNumWarnings() { return allWarnings.size(); }
+
+    /**
+     * Method to tell the number of logged errors.
+     * @return the number of "ErrorLog" objects logged.
+     */
+    public synchronized int getNumLogs() { return getNumWarnings() + getNumErrors(); }
+
+    /**
+     * Method to list all logged errors and warnings.
      * @return an Iterator over all of the "ErrorLog" objects.
      */
-    public synchronized Iterator getErrors() {
+    private synchronized Iterator getLogs() {
         List copy = new ArrayList();
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
-	    //Collections.sort(copy);
+	    for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+            copy.add(it.next());
+        }
         return copy.iterator();
     }
 
-    public synchronized void deleteError(ErrorLog error) {
-        if (!allErrors.contains(error)) {
-            System.out.println(errorSystem+ ": Does not contain error to delete");
+    private synchronized void deleteLog(MessageLog error) {
+        boolean found = allErrors.remove(error);
+
+        found = (!found) ? allWarnings.remove(error) : found;
+        if (!found) {
+            System.out.println(errorSystem+ ": Does not contain error/warning to delete");
         }
-        allErrors.remove(error);
-        trueNumErrors--;
-        if (currentErrorNumber >= allErrors.size()) currentErrorNumber = 0;
+        if (currentLogNumber >= getNumLogs()) currentLogNumber = 0;
     }
 
 
@@ -776,11 +844,11 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
         for (Iterator eit = loggersCopy.iterator(); eit.hasNext(); ) {
             ErrorLogger logger = (ErrorLogger)eit.next();
-            if (logger.getNumErrors() == 0) continue;
+            if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
-            for (Iterator it = logger.getErrors(); it.hasNext();)
+            for (Iterator it = logger.getLogs(); it.hasNext();)
             {
-                ErrorLog el = (ErrorLog)it.next();
+                MessageLog el = (MessageLog)it.next();
                 DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
                 loggerNode.add(node);
             }
@@ -811,10 +879,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         // check if any errors need to be deleted
         boolean changed = false;
-        for (Iterator it = getErrors(); it.hasNext(); ) {
-            ErrorLog err = (ErrorLog)it.next();
+        for (Iterator it = getLogs(); it.hasNext(); ) {
+            MessageLog err = (MessageLog)it.next();
             if (!err.isValid()) {
-                deleteError(err);
+                deleteLog(err);
                 changed = true;
             }
         }

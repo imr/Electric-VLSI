@@ -345,7 +345,7 @@ public class WiringListener
 				{
 					// create the nodeInst
 					NodeInst newNi = NodeInst.makeInstance(wp.getNodeType(), wp.getNodeLocation(),
-						wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null);
+						wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null, 0);
 					if (newNi == null) return null;
 					added.add(newNi);
 					nodesCreated++;

@@ -167,7 +167,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
                 String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
-                    ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 2);
+                    ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 2);
                     log.addGeom(ni, true, ni.getParent(), inst.getContext());
                 }
             }
@@ -328,7 +328,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             var = ni.getVar("ATTR_width");
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
-                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
+                ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
                 log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
                 return false;
             }
@@ -336,7 +336,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             var = ni.getVar("ATTR_length");
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
-                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
+                ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
                 log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
                 return false;
             }
@@ -463,7 +463,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             if (exp != null && lePortError.get(exp) == null) {
                 String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
                 System.out.println(msg);
-                ErrorLogger.ErrorLog log = errorLogger.logError(msg, cell, 0);
+                ErrorLogger.MessageLog log = errorLogger.logError(msg, cell, 0);
                 log.addExport(exp, true, cell, info.getContext().push(ni));
                 lePortError.put(exp, exp);
             }

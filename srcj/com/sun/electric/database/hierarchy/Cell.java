@@ -62,15 +62,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.swing.JOptionPane;
 
@@ -370,7 +362,7 @@ public class Cell extends NodeProto implements Comparable
 		{
 			NodeProto cellCenterProto = Generic.tech.cellCenterNode;
 			NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
-				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null);
+				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null, 0);
             if (cellCenter != null)
             {
                 cellCenter.setVisInside();
@@ -529,7 +521,7 @@ public class Cell extends NodeProto implements Comparable
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-				scaleX, scaleY, ni.getAngle(), newCell, ni.getName());
+				scaleX, scaleY, ni.getAngle(), newCell, ni.getName(), 0);
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
@@ -592,7 +584,8 @@ public class Cell extends NodeProto implements Comparable
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
-			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1], ai.getTail().getLocation(), ai.getName());
+			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1],
+                    ai.getTail().getLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
 			// copy arcinst variables
@@ -2689,18 +2682,27 @@ public class Cell extends NodeProto implements Comparable
 		Cell toCompare = (Cell)obj;
 
         // Checking if they have same amount of children
+        // Better not return here otherwise no valid information is reported
+        /*
         if (getNumNodes() != toCompare.getNumNodes() ||
                 getNumArcs() != toCompare.getNumArcs() ||
-                getNumPorts() != toCompare.getNumPorts())
+                getNumPorts() != toCompare.getNumPorts() ||
+                getNumVariables() != toCompare.getNumVariables())
         {
+	        String msg = "";
+	        if (getNumNodes() != toCompare.getNumNodes()) msg += "nodes/";
+	        if (getNumArcs() != toCompare.getNumArcs()) msg += "arcs/";
+	        if (getNumPorts() != toCompare.getNumPorts()) msg += "ports/";
+	        if (getNumVariables() != toCompare.getNumVariables()) msg += "variables/";
 	        if (buffer != null)
-	            buffer.append("Different numbers of nodes/arcs/ports in " + getName() + " and " + toCompare.getName() + "\n");
+	            buffer.append("Different numbers of " + msg + "\n");
             return (false);
         }
+        */
 
         // Traversing nodes
         // @TODO GVG This should be removed if equals is implemented
-        List noCheckAgain = new ArrayList();
+        Set noCheckAgain = new HashSet();
         for (Iterator it = getNodes(); it.hasNext(); )
         {
             boolean found = false;
@@ -2727,7 +2729,7 @@ public class Cell extends NodeProto implements Comparable
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding node " + node.getName() + " found in " + toCompare.getName() + "\n");
+	                buffer.append("No corresponding node '" + node + "' found in '" + toCompare + "'\n");
 	            return (false);
             }
         }
@@ -2747,115 +2749,77 @@ public class Cell extends NodeProto implements Comparable
                 if (arc.compare(a, buffer))
                 {
                     found = true;
-                    // if node is found, remove elem from iterator
-                    // because it was found
-                    //@TODO GVG Check iterator functionality
-                    // Not sure if it could be done with iterators
                     noCheckAgain.add(a);
                     break;
                 }
             }
-            // No correspoding NodeInst found
+            // No correspoding ArcInst found
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding arc " + arc.getName() + " found in other cell" + "\n");
+	                buffer.append("No corresponding arc '" + arc + "' found in other cell" + "\n");
 	            return (false);
             }
         }
-		//@TODO GVG missing ports
-        /**
-////	/* make sure the nodes are the same */
-////	lambda1 = lambdaofcell(np1);
-//	lambda2 = lambdaofcell(np2);
-//	for(ni2 = np2->firstnodeinst; ni2 != NONODEINST; ni2 = ni2->nextnodeinst)
-//		ni2->temp1 = 0;
-//	for(ni1 = np1->firstnodeinst; ni1 != NONODEINST; ni1 = ni1->nextnodeinst)
-//	{
-//		/* find the node in the other cell */
-//		ni1->temp1 = 0;
-//		cx = (ni1->lowx + ni1->highx) / 2;
-//		cy = (ni1->lowy + ni1->highy) / 2;
-//		sea = initsearch(cx, cx, cy, cy, np2);
-//		for(;;)
-//		{
-//			geom = nextobject(sea);
-//			if (geom == NOGEOM) break;
-//			if (!geom->entryisnode) continue;
-//			ni2 = geom->entryaddr.ni;
-//			if (ni1->lowx != ni2->lowx || ni1->highx != ni2->highx ||
-//				ni1->lowy != ni2->lowy || ni1->highy != ni2->highy) continue;
-//			if (ni1->rotation != ni2->rotation || ni1->transpose != ni2->transpose) continue;
-//			if (ni1->proto->primindex != ni2->proto->primindex) continue;
-//			if (ni1->proto->primindex != 0)
-//			{
-//				/* make sure the two primitives are the same */
-//				if (ni1->proto != ni2->proto) continue;
-//			} else
-//			{
-//				/* make sure the two cells are the same */
-//				if (namesame(ni1->proto->protoname, ni2->proto->protoname) != 0)
-//					continue;
-//				if (ni1->proto->cellview != ni2->proto->cellview) continue;
-//			}
-//
-//			/* the nodes match */
-//			ni1->temp1 = (INTBIG)ni2;
-//			ni2->temp1 = (INTBIG)ni1;
-//			termsearch(sea);
-//			break;
-//		}
-//		if (ni1->temp1 == 0)
-//		{
-//			if (explain > 0)
-//				ttyputmsg(_("No equivalent to node %s at (%s,%s) in cell %s"),
-//					describenodeinst(ni1), latoa((ni1->lowx+ni1->highx)/2, lambda1),
-//						latoa((ni1->lowy+ni1->highy)/2, lambda1), describenodeproto(np1));
-//			return(FALSE);
-//		}
-//	}
-//	for(ni2 = np2->firstnodeinst; ni2 != NONODEINST; ni2 = ni2->nextnodeinst)
-//	{
-//		if (ni2->temp1 != 0) continue;
-//		if (explain > 0)
-//			ttyputmsg(_("No equivalent to node %s at (%s,%s) in cell %s"),
-//				describenodeinst(ni2), latoa((ni2->lowx+ni2->highx)/2, lambda2),
-//					latoa((ni2->lowy+ni2->highy)/2, lambda2), describenodeproto(np2));
-//		return(FALSE);
-//	}
 
-		// Traversing ports
+        // Traversing ports. This includes Exports
+        noCheckAgain.clear();
         for (Iterator it = getPorts(); it.hasNext(); )
         {
             boolean found = false;
-            PortInst port = (PortInst)it.next();
+            PortProto port = (PortProto)it.next();
 
             for (Iterator i = toCompare.getPorts(); i.hasNext();)
             {
-                PortInst p = (PortInst)i.next();
+                PortProto p = (PortProto)i.next();
 
                 if (noCheckAgain.contains(p)) continue;
 
                 if (port.compare(p, buffer))
                 {
                     found = true;
-                    // if node is found, remove elem from iterator
-                    // because it was found
-                    //@TODO GVG Check iterator functionality
-                    // Not sure if it could be done with iterators
                     noCheckAgain.add(p);
                     break;
                 }
             }
-            // No correspoding NodeInst found
+            // No correspoding PortProto found
             if (!found)
             {
-	            if (buffer != null)
-	                buffer.append("No corresponding port " + port.getPortProto().getName() + " found in other cell" + "\n");
-	            return (false);
+                if (buffer != null)
+                    buffer.append("No corresponding port '" + port.getName() + "' found in other cell" + "\n");
+                return (false);
             }
         }
-		return (true);
+
+        // Checking attributes
+        noCheckAgain.clear();
+        for (Iterator it = getVariables(); it.hasNext(); )
+        {
+            Variable var = (Variable)it.next();
+            boolean found = false;
+
+            for (Iterator i = toCompare.getVariables(); i.hasNext();)
+            {
+                Variable v = (Variable)i.next();
+
+                if (noCheckAgain.contains(v)) continue;
+
+                if (var.compare(v, buffer))
+                {
+                    found = true;
+                    noCheckAgain.add(v);
+                    break;
+                }
+            }
+            // No correspoding Variable found
+            if (!found)
+            {
+                if (buffer != null)
+                    buffer.append("No corresponding variable '" + var + "' found in other cell" + "\n");
+                return (false);
+            }
+        }
+        return (true);
 	}
 
     /**

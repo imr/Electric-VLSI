@@ -45,7 +45,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
@@ -199,7 +199,7 @@ public class ERCAntenna
 
 			// do the check for this level
 			checkThisCell(topCell, lay);
-			int i = errorLogger.numErrors();
+			int i = errorLogger.getNumErrors();
 			if (i != lasterrorcount)
 			{
 				System.out.println("  Found " + (i - lasterrorcount) + " errors");
@@ -208,7 +208,7 @@ public class ERCAntenna
 		}
 
 		long endTime = System.currentTimeMillis();
-		int errorCount = errorLogger.numErrors();
+		int errorCount = errorLogger.getNumErrors();
 		if (errorCount == 0)
 		{
 			System.out.println("No antenna errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
@@ -354,7 +354,7 @@ public class ERCAntenna
 							// error
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
-							ErrorLog err = errorLogger.logError(errMsg, cell, 0);
+							MessageLog err = errorLogger.logError(errMsg, cell, 0);
 							for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();

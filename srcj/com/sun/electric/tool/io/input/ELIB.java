@@ -1651,7 +1651,7 @@ public class ELIB extends LibraryFiles
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (np.getVar(IO_DUMMY_OBJECT) != null) {
-            ErrorLogger.ErrorLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
+            ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
             error.addGeom(ni, true, cell, null);
         }
 
@@ -1713,7 +1713,7 @@ public class ELIB extends LibraryFiles
                             String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
-                            ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
+                            ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
                             error.addGeom(ai, true, cell, null);
                             return pi;
                         }
@@ -1735,7 +1735,7 @@ public class ELIB extends LibraryFiles
                 expected = trans.transform(expected, expected);
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
                 PrimitiveNode pn = Generic.tech.universalPinNode;
-                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, 0, c, "");
+                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, 0, c, "", 0);
                 Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname);
                 if (ex != null) {
                     return node.findPortInst(portname);
@@ -1747,12 +1747,12 @@ public class ELIB extends LibraryFiles
         // create pin as new end point of arc
         String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
-        ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
+        ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
         error.addGeom(ai, true, cell, null);
 
         PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(),
-            pn.getDefHeight(), 0, cell, null);
+            pn.getDefHeight(), 0, cell, null, 0);
         error.addGeom(node, true, cell, null);
         return node.getOnlyPortInst();
     }
@@ -2152,7 +2152,7 @@ public class ELIB extends LibraryFiles
             double width = (highX - lowX) / lambda;
             double height = (highY - lowY) / lambda;
             Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null);
+            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null, 0);
             //PrimitiveNode cellCenter = Generic.tech.cellCenterNode;
             //NodeInst.newInstance(cellCenter, new Point2D.Double(0,0), cellCenter.getDefWidth(),
             //        cellCenter.getDefHeight(), 0, c, null);

@@ -45,7 +45,7 @@ import com.sun.electric.technology.DRCRules;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -221,7 +221,7 @@ public class ERCWellCheck
 				{
 					if (contactAction == 0)
 					{
-						ErrorLog err = errorLogger.logError(noContactError, cell, 0);
+						MessageLog err = errorLogger.logError(noContactError, cell, 0);
 						err.addPoly(wa.poly, true, cell);
 					}
 				}
@@ -236,7 +236,7 @@ public class ERCWellCheck
 				{
 					String errorMsg = "N-Well contact is floating";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
-					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
+					MessageLog err = errorLogger.logError(errorMsg, cell, 0);
 					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					continue;
 				}
@@ -246,14 +246,14 @@ public class ERCWellCheck
 					{
 						if (ERC.isMustConnectPWellToGround())
 						{
-							ErrorLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
+							MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					} else
 					{
 						if (ERC.isMustConnectNWellToPower())
 						{
-							ErrorLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
+							MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					}
@@ -268,7 +268,7 @@ public class ERCWellCheck
 					if (oWc.netNum == wc.netNum) continue;
 					String errorMsg = "N-Well contacts are not connected";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
-					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
+					MessageLog err = errorLogger.logError(errorMsg, cell, 0);
 					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
 					break;
@@ -286,7 +286,7 @@ public class ERCWellCheck
 				}
 				if (!found)
 				{
-					ErrorLog err = errorLogger.logError("No N-Well contact found in this cell", cell, 0);
+					MessageLog err = errorLogger.logError("No N-Well contact found in this cell", cell, 0);
 				}
 			}
 
@@ -301,7 +301,7 @@ public class ERCWellCheck
 				}
 				if (!found)
 				{
-					ErrorLog err = errorLogger.logError("No P-Well contact found in this cell", cell, 0);
+					MessageLog err = errorLogger.logError("No P-Well contact found in this cell", cell, 0);
 				}
 			}
 
@@ -327,7 +327,7 @@ public class ERCWellCheck
 					{
 						int layertype = getWellLayerType(wa.layer);
 						if (layertype == 0) continue;
-						ErrorLog err = errorLogger.logError(wa.layer.getName() + " areas too close (are "
+						MessageLog err = errorLogger.logError(wa.layer.getName() + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
 						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
@@ -433,7 +433,7 @@ public class ERCWellCheck
 
 			// report the number of errors found
 			long endTime = System.currentTimeMillis();
-			int errorCount = errorLogger.numErrors();
+			int errorCount = errorLogger.getNumErrors();
 			if (errorCount == 0)
 			{
 				System.out.println("No Well errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");

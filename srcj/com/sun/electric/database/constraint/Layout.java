@@ -1069,16 +1069,16 @@ public class Layout extends Constraints
 			double oldyA = (tailPt.getY()+headPt.getY()) / 2;
 			double oldyB = oldyA;
 			double oldxA = headPt.getX();   double oldxB = tailPt.getX();
-			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null);
-			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null);
+			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null, 0);
+			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null, 0);
 		} else
 		{
 			// assume horizontal arcinst
 			double oldyA = headPt.getY();   double oldyB = tailPt.getY();
 			double oldxA = (tailPt.getX()+headPt.getX()) / 2;
 			double oldxB = oldxA;
-			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null);
-			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null);
+			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null, 0);
+			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null, 0);
 		}
 		if (no1 == null || no2 == null)
 		{
@@ -1094,14 +1094,14 @@ public class Layout extends Constraints
 		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
-		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, headPt, no2pi, no2Pt, null);
+		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, headPt, no2pi, no2Pt, null, 0);
 		if (ar1 == null) return;
 		ar1.copyStateBits(ai);
 		if (ai.getHead().isNegated()) ar1.getHead().setNegated(true);
-		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null);
+		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null, 0);
 		if (ar2 == null) return;
 		ar2.copyStateBits(ai);
-		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tailPt, null);
+		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tailPt, null, 0);
 		if (ar3 == null) return;
 		ar3.copyStateBits(ai);
 		if (ai.getTail().isNegated()) ar3.getTail().setNegated(true);

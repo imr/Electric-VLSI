@@ -194,7 +194,7 @@ public class Quick
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
 	/** time stamp for numbering networks. */					private int checkTimeStamp;
 	/** for numbering networks. */								private int checkNetNumber;
-	/** total errors found in all threads. */					private int totalErrorsFound;
+	/** total errors found in all threads. */					private int totalMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
 	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
@@ -374,7 +374,7 @@ public class Quick
 		// now do the DRC
 		haveGoodDRCDate = false;
 		errorLogger = null;
-        int errorsFound = 0;
+        int logsFound = 0;
 		if (count == 0)
 		{
 			// just do full DRC here
@@ -384,7 +384,7 @@ public class Quick
 //			if (!dr_quickparalleldrc) endtraversehierarchy();
 
 			// sort the errors by layer
-			errorLogger.sortErrors();
+			errorLogger.sortLogs();
 		} else
 		{
 			// check only these "count" instances (either an incremental DRC or a quiet one...from Array command)
@@ -394,7 +394,7 @@ public class Quick
 				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
 				errorLoggerIncremental.clearErrors(cell);
 				errorLogger = errorLoggerIncremental;
-                errorsFound = errorLoggerIncremental.getNumErrors();
+                logsFound = errorLoggerIncremental.getNumLogs();
 			}
 
 			checkTheseGeometrics(cell, count, geomsToCheck, validity);
@@ -402,7 +402,7 @@ public class Quick
 
 		if (errorLogger != null) {
             errorLogger.termLogging(true);
-            errorsFound = errorLogger.getNumErrors() - errorsFound;
+            logsFound = errorLogger.getNumLogs() - logsFound;
         }
 
 		if (!Main.getDebug() && haveGoodDRCDate && count == 0)
@@ -410,7 +410,7 @@ public class Quick
 			// some cells were sucessfully checked: save that information in the database
 			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
 		}
-        return errorsFound;
+        return logsFound;
 	}
 
 	/**
@@ -504,11 +504,10 @@ public class Quick
 		System.out.println("Checking cell " + cell.describe());
 
 		// remember how many errors there are on entry
-		int errCount = 0;
-		if (errorLogger != null) errCount = errorLogger.numErrors();
+        int msgCount = (errorLogger != null) ? msgCount = errorLogger.getNumLogs() : 0;
 
 		// now look at every node and arc here
-		totalErrorsFound = 0;
+		totalMsgFound = 0;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -516,17 +515,12 @@ public class Quick
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
 			}
-			boolean ret = false;
-			if (ni.getProto() instanceof Cell)
-			{
-				ret = checkCellInst(ni, globalIndex);
-			} else
-			{
-				ret = checkNodeInst(ni, globalIndex);
-			}
+			boolean ret = (ni.getProto() instanceof Cell) ?
+			        checkCellInst(ni, globalIndex) :
+			        checkNodeInst(ni, globalIndex);
 			if (ret)
 			{
-				totalErrorsFound++;
+				totalMsgFound++;
 				if (onlyFirstError) break;
 			}
 		}
@@ -539,7 +533,7 @@ public class Quick
 			}
 			if (checkArcInst(cp, ai, globalIndex))
 			{
-				totalErrorsFound++;
+				totalMsgFound++;
 				if (onlyFirstError) break;
 			}
 		}
@@ -547,19 +541,23 @@ public class Quick
 		// if there were no errors, remember that
 		if (errorLogger != null)
 		{
-			int localErrors = errorLogger.numErrors() - errCount;
-			if (localErrors == 0)
+			int localErrors = errorLogger.getNumErrors();
+			int localWarnings = errorLogger.getNumWarnings();
+			if ((localErrors + localWarnings - msgCount) == 0)
 			{
 				goodDRCDate.put(cell, new Date());
 				haveGoodDRCDate = true;
 				System.out.println("   No errors/warnings found");
 			} else
 			{
-				System.out.println("   FOUND " + localErrors + " ERRORS/WARNINGS");
+				if (localErrors > 0)
+					System.out.println("   FOUND " + localErrors + " ERRORS");
+				if (localWarnings > 0)
+					System.out.println("   FOUND " + localWarnings + " WARNINGS");
 			}
 		}
 
-		return totalErrorsFound;
+		return totalMsgFound;
 	}
 
 	/**
@@ -779,7 +777,7 @@ public class Quick
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
 		Cell cell = (Cell)thisNi.getProto();
-		boolean errorsFound = false;
+		boolean logsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
 
 		// Need to transform bounds coordinates first otherwise it won't
@@ -840,7 +838,7 @@ public class Quick
 						if (ret)
 						{
 							if (onlyFirstError) return true;
-							errorsFound = true;
+							logsFound = true;
 						}
 					}
 				}
@@ -871,12 +869,12 @@ public class Quick
 					if (ret)
 					{
 						if (onlyFirstError) return true;
-						errorsFound = true;
+						logsFound = true;
 					}
 				}
 			}
 		}
-		return errorsFound;
+		return logsFound;
 	}
 
 	/**
@@ -3181,8 +3179,8 @@ public class Quick
 			errorMessage += ": ";
 			Cell np2 = geom2.getParent();
 
-			// Error already logged
-			if ( errorLogger.findError(cell, geom1, geom2.getParent(), geom2))
+			// Message already logged
+			if ( errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2))
 				return;
 
 			if (np1 != np2)
@@ -3266,7 +3264,10 @@ public class Quick
 		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
 		errorMessage += DRCexclusionMsg;
 
-		ErrorLogger.ErrorLog err = errorLogger.logError(errorMessage, cell, sortLayer);
+		ErrorLogger.MessageLog err = (errorType == ZEROLENGTHARCWARN) ?
+		        errorLogger.logWarning(errorMessage, cell, sortLayer) :
+		        errorLogger.logError(errorMessage, cell, sortLayer);
+
 		boolean showGeom = true;
 		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true, cell); }
 		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true, cell); }

@@ -158,7 +158,7 @@ public class LESizer {
                                     System.out.println(msg);
                                     NodeInst ni = inst.getNodable().getNodeInst();
                                     if (ni != null) {
-                                        ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 0);
+                                        ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 0);
                                         log.addGeom(ni, true, ni.getParent(), inst.getContext());
                                     }
                                 }
@@ -229,7 +229,7 @@ public class LESizer {
                             System.out.println(msg);
                             NodeInst ni = instance.getNodable().getNodeInst();
                             if (ni != null) {
-                                ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 0);
+                                ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 0);
                                 log.addGeom(ni, true, ni.getParent(), instance.getContext());
                             }
                         }
@@ -262,7 +262,7 @@ public class LESizer {
                             System.out.println(msg);
                             NodeInst ni = instance.getNodable().getNodeInst();
                             if (ni != null) {
-                                ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 1);
+                                ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 1);
                                 log.addGeom(ni, true, ni.getParent(), instance.getContext());
                             }
                         }

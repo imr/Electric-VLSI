@@ -154,12 +154,13 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param name name of new NodeInst
-	 * @return the newly created NodeInst, or null on error.
+	 * @param techBits bits associated to different technologies
+     * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
-		int angle, Cell parent, String name)
+                                        int angle, Cell parent, String name, int techBits)
 	{
-		NodeInst ni = newInstance(protoType, center, width, height, angle, parent, name);
+		NodeInst ni = newInstance(protoType, center, width, height, angle, parent, name, techBits);
 		if (ni != null)
 		{
 			// set default information from the prototype
@@ -202,10 +203,11 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param name name of new NodeInst
-	 * @return the newly created NodeInst, or null on error.
+	 * @param techBits bits associated to different technologies
+     * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
-		int angle, Cell parent, String name)
+                                       int angle, Cell parent, String name, int techBits)
 	{
         if (parent == null) return null;
         
@@ -237,6 +239,8 @@ public class NodeInst extends Geometric implements Nodable
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (name != null) ni.setName(name);
+        // before lowLevelLink, place where the name is assigned if original is null
+		ni.setTechSpecific(techBits);
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -401,7 +405,7 @@ public class NodeInst extends Geometric implements Nodable
         // see if nodeinst is mirrored
         if (getXSizeWithMirror() < 0) newXS *= -1;
         if (getYSizeWithMirror() < 0) newYS *= -1;
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null, 0);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate
@@ -567,16 +571,16 @@ public class NodeInst extends Geometric implements Nodable
 				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
-				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent(), null);
+				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent(), null, 0);
 				PortInst pinPi = pinNi.getOnlyPortInst();
 				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0],
-					pinPi, new Point2D.Double(cX, cY), null);
+					pinPi, new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi.getHead().setNegated(ai.getHead().isNegated());
 
 				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, new Point2D.Double(cX, cY),
-					newPortInst[1], newPoint[1], null);
+					newPortInst[1], newPoint[1], null, 0);
 				if (newAi2 == null) return null;
 				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi2.getTail().setNegated(ai.getTail().isNegated());
@@ -587,7 +591,7 @@ public class NodeInst extends Geometric implements Nodable
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1], null);
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1], null, 0);
 				if (newAi == null)
 				{
 					newNi.kill();
@@ -2637,7 +2641,7 @@ public class NodeInst extends Geometric implements Nodable
         if (getFunction() != no.getFunction())
         {
 	        if (buffer != null)
-	            buffer.append("Functions are not the same for " + getName() + " and " + no.getName() + "\n");
+	            buffer.append("Functions are not the same for '" + getName() + "' and '" + no.getName() + "'\n");
 	        return (false);
         }
 
@@ -2647,7 +2651,7 @@ public class NodeInst extends Geometric implements Nodable
         if (protoType.getClass() != noProtoType.getClass())
         {
 	        if (buffer != null)
-	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + "\n");
+	            buffer.append("Not the same node prototypes for '" + getName() + "' and '" + no.getName() + "'\n");
 	        return (false);
         }
 
@@ -2655,7 +2659,7 @@ public class NodeInst extends Geometric implements Nodable
         if (!rotateOut().equals(no.rotateOut()))
         {
 	        if (buffer != null)
-	            buffer.append("Not the same rotation for " + getName() + " and " + no.getName() + "\n");
+	            buffer.append("Not the same rotation for '" + getName() + "' and '" + no.getName() + "'\n");
 	        return (false);
         }
 
@@ -2674,7 +2678,7 @@ public class NodeInst extends Geometric implements Nodable
         if (function != noFunc)
         {
 	        if (buffer != null)
-	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + ":" + function.getName() + " v/s " + noFunc.getName() + "\n");
+	            buffer.append("Not the same node prototypes for '" + getName() + "' and '" + no.getName() + "':" + function.getName() + " v/s " + noFunc.getName() + "\n");
 	        return (false);
         }
         Poly[] polyList = np.getTechnology().getShapeOfNode(this);
@@ -2683,7 +2687,7 @@ public class NodeInst extends Geometric implements Nodable
         if (polyList.length != noPolyList.length)
         {
 	        if (buffer != null)
-	            buffer.append("Not same number of geometries in " + getName() + " and " + no.getName() + "\n");
+	            buffer.append("Not same number of geometries in '" + getName() + "' and '" + no.getName() + "'\n");
 	        return (false);
         }
 
@@ -2710,10 +2714,97 @@ public class NodeInst extends Geometric implements Nodable
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding geometry in " + getName() + " found in " + no.getName() + "\n");
+	                buffer.append("No corresponding geometry in '" + getName() + "' found in '" + no.getName() + "'\n");
 	            return (false);
             }
         }
+        // Ports comparison
+        // Not sure if this comparison is necessary
+        // @TODO simply these calls by a generic function or template
+        noCheckAgain.clear();
+        for (Iterator it = getPortInsts(); it.hasNext(); )
+        {
+            boolean found = false;
+            PortInst port = (PortInst)it.next();
+
+            for (Iterator i = no.getPortInsts(); i.hasNext();)
+            {
+                PortInst p = (PortInst)i.next();
+
+                if (noCheckAgain.contains(p)) continue;
+
+                if (port.compare(p, buffer))
+                {
+                    found = true;
+                    noCheckAgain.add(p);
+                    break;
+                }
+            }
+            // No correspoding PortInst found
+            if (!found)
+            {
+                if (buffer != null)
+                    buffer.append("No corresponding port '" + port.getPortProto().getName() + "' found in '" + no.getName() + "'\n");
+                return (false);
+            }
+        }
+
+        // Comparing Exports
+        noCheckAgain.clear();
+		for(Iterator it = getExports(); it.hasNext(); )
+		{
+			Export export = (Export)it.next();
+            boolean found = false;
+
+            for (Iterator i = no.getExports(); i.hasNext();)
+            {
+                Export p = (Export)i.next();
+
+                if (noCheckAgain.contains(p)) continue;
+
+                if (export.compare(p, buffer))
+                {
+                    found = true;
+                    noCheckAgain.add(p);
+                    break;
+                }
+            }
+            // No correspoding Export found
+            if (!found)
+            {
+                if (buffer != null)
+                    buffer.append("No corresponding export '" + export.getName() + "' found in '" + no.getName() + "'\n");
+                return (false);
+            }
+		}
+
+        noCheckAgain.clear();
+		for(Iterator it = getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+            boolean found = false;
+
+            for (Iterator i = no.getVariables(); i.hasNext();)
+            {
+                Variable p = (Variable)i.next();
+
+                if (noCheckAgain.contains(p)) continue;
+
+                if (var.compare(p, buffer))
+                {
+                    found = true;
+                    noCheckAgain.add(p);
+                    break;
+                }
+            }
+            // No correspoding Variable found
+            if (!found)
+            {
+                if (buffer != null)
+                    buffer.append("No corresponding variable '" + var + "' found in '" + no.getName() + "'\n");
+                return (false);
+            }
+		}
 
         return (true);
     }

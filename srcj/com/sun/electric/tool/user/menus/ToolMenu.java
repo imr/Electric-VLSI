@@ -1153,7 +1153,7 @@ public class ToolMenu {
                                 Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
                                 PrimitiveNode priNode = layer.getPureLayerNode();
                                 // Adding the new implant. New implant not assigned to any local variable                                .
-                                NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
+                                NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null, 0);
                                 if (highlighter != null)
                                     highlighter.addElectricObject(node, curCell);
 

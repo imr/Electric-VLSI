@@ -186,7 +186,7 @@ public class AnnularRing extends EDialog
 			double sY = hY - lY;
 
 			Point2D center = new Point2D.Double(0, 0);
-			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, 0, dialog.cell, null);
+			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, 0, dialog.cell, null, 0);
 			ni.newVar(NodeInst.TRACE, points);
 			return true;
 		}

@@ -182,7 +182,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + name;
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
 				}
 			}
@@ -207,7 +207,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + key.getName();
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
 				}
 			}
@@ -235,7 +235,7 @@ class NetSchem extends NetCell {
                     String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
                         "> with ambigouos definition of parameter " + name;
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
                 }
             }
@@ -364,7 +364,7 @@ class NetSchem extends NetCell {
                     String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
                         "> with ambigouos definition of variable " + v.getKey().getName();
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
                 }
             }
@@ -439,7 +439,7 @@ class NetSchem extends NetCell {
 			if (equivIndex < 0) {
 				String msg = cell + ": Icon port <"+e.getNameKey()+"> has no equivalent port";
 				System.out.println(msg);
-				ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortPorts);
+				ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortPorts);
 				log.addExport(e, true, cell, null);
 			}
 		}
@@ -449,7 +449,7 @@ class NetSchem extends NetCell {
 				if (e.getEquivalentPort(cell) == null) {
 					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell.describe();
 					System.out.println(msg);
-					ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, c, Network.errorSortPorts);
+					ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, c, Network.errorSortPorts);
 					log.addExport(e, true, c, null);
 				}
 			}
@@ -612,7 +612,7 @@ class NetSchem extends NetCell {
 				if (ni.getNameKey().hasDuplicates()) {
 					String msg = cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames";
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				nodeOffsets[i] = ~nodeProxiesOffset;
@@ -621,7 +621,7 @@ class NetSchem extends NetCell {
 				if (ni.getNameKey().isBus()) {
 					String msg = cell + ": Array name <"+ni.getNameKey()+"> can be assigned only to icon nodes";
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				nodeOffsets[i] = 0;
@@ -633,7 +633,7 @@ class NetSchem extends NetCell {
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                         // TODO: what to highlight?
                         // log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
@@ -652,7 +652,7 @@ class NetSchem extends NetCell {
 							String msg = "Network: Cell " + cell.describe() + " has global " + g.getName() +
 								" with unknown characteristic bits";
                             System.out.println(msg);
-                            ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                            ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                             log.addGeom(ni, true, cell, null);
 							characteristic = PortProto.Characteristic.UNKNOWN;
 						}
@@ -661,7 +661,7 @@ class NetSchem extends NetCell {
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                         //log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
 				}
@@ -716,14 +716,14 @@ class NetSchem extends NetCell {
 								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
 									" with same name <" + name + ">";
                                 System.out.println(msg);
-                                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
 							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
 								Network.getNetCell(namedIconCell).getSchem() != netSchem) {
 								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
 									namedIconCell.describe() + " with same name <" + name + ">";
                                 System.out.println(msg);
-                                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
                                 log.addGeom(namedProxy.nodeInst, true, cell, null);
 							} else {
@@ -852,7 +852,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Schematic cell " + cell.describe() + " has net <" +
 						drawnNames[drawn] + "> with width conflict in connection " + pi.describe();
                     System.out.println(msg);
-                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                     log.addPoly(pi.getPoly(), true, cell);
                 }
 			}
@@ -874,7 +874,7 @@ class NetSchem extends NetCell {
         String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
                            firstname + "> and <" + badname + ">";
         System.out.println(msg);
-        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
 
         boolean originalFound = false;
         for (int i = 0; i < numPorts; i++) {
@@ -1004,7 +1004,7 @@ class NetSchem extends NetCell {
 				String msg = "Network: Schematic cell " + cell.describe() + " has connector " + ni.describe() +
 					" which merges more than two arcs";
                 System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
                 log.addGeom(ni, true, cell, null);
 				return;
 			}

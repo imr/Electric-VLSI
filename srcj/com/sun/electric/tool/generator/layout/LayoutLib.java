@@ -327,7 +327,7 @@ public class LayoutLib {
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y),
 										   width, height,
 										   (int)Math.round(angle*10),
-										   parent, null);
+										   parent, null, 0);
 		error(ni==null, "newNodeInst failed");								
 
 		// adjust position so that translation is Cell-Center relative
@@ -440,7 +440,7 @@ public class LayoutLib {
 		ArcInst ai = ArcInst.newInstance(ap, width, 
 		                                 head, new Point2D.Double(hX, hY),
 										 tail, new Point2D.Double(tX, tY), 
-										 null);
+										 null, 0);
 		ai.setFixedAngle(true);
 		error(ai==null, "newArcInst failed");
 		return ai;

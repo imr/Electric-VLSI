@@ -928,7 +928,7 @@ public class EditMenu {
 	 */
 	public static void showNextErrorCommand()
 	{
-		String msg = ErrorLogger.reportNextError();
+		String msg = ErrorLogger.reportNextMessage();
 		System.out.println(msg);
 	}
 
@@ -938,7 +938,7 @@ public class EditMenu {
 	 */
 	public static void showPrevErrorCommand()
 	{
-		String msg = ErrorLogger.reportPrevError();
+		String msg = ErrorLogger.reportPrevMessage();
 		System.out.println(msg);
 	}
 
@@ -1102,14 +1102,14 @@ public class EditMenu {
                 NodeProto np = ((PrimitiveArc)ap).findPinProto();
                 if (np == null) return false;
                 NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
-                    0, ai.getParent(), null);
+                    0, ai.getParent(), null, 0);
                 if (ni == null)
                 {
                     System.out.println("Cannot create pin " + np.describe());
                     return false;
                 }
                 NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
-                    0, ai.getParent(), null);
+                    0, ai.getParent(), null, 0);
                 if (ni2 == null)
                 {
                     System.out.println("Cannot create pin " + np.describe());

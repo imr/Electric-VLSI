@@ -161,7 +161,7 @@ public class LayoutText extends EDialog
 				Point2D center = new Point2D.Double(x*scale, -y*scale);
 				double wid = scale - separation;
 				double hei = scale - separation;
-				NodeInst ni = NodeInst.newInstance(primNode, center, wid, hei, 0, curCell, null);
+				NodeInst ni = NodeInst.newInstance(primNode, center, wid, hei, 0, curCell, null, 0);
 			}
 		}
 	}

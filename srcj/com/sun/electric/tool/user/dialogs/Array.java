@@ -483,7 +483,7 @@ public class Array extends EDialog
 					}
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-						new Point2D.Double(xPos, yPos), sx, sy, ro, cell, null);
+						new Point2D.Double(xPos, yPos), sx, sy, ro, cell, null, 0);
 					if (newNi == null) continue;
 					newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 					newNi.setNameTextDescriptor(ni.getNameTextDescriptor());

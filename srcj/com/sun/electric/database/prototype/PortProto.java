@@ -855,4 +855,36 @@ public abstract class PortProto extends ElectricObject
 	{
 		return "PortProto " + protoName;
 	}
+    /**
+     * This function is to compare PortProto elements. Initiative CrossLibCopy
+      * @param obj Object to compare to
+     * @param buffer To store comparison messages in case of failure
+     * @return True if objects represent same PortProto
+     */
+    public boolean compare(Object obj, StringBuffer buffer)
+    {
+        if (this == obj) return (true);
+
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        PortProto no = (PortProto)obj;
+        // getNameKey is required to call proper Name.equals()
+        if (!protoName.equals(no.getNameKey()))
+        {
+            if (buffer != null)
+                buffer.append("'" + this + "' and '" + no + "' do not have same name\n");
+            return (false);
+        }
+        Characteristic noC = no.getCharacteristic();
+
+        if (!getCharacteristic().getName().equals(noC.getName()))
+        {
+            if (buffer != null)
+                buffer.append("'" + this + "' and '" + no + "' do not have same characteristic\n");
+            return (false);
+        }
+        return (true);
+    }    
 }
