@@ -410,30 +410,7 @@ public class OutlineListener
 
 			// get the extent of the data
 			NodeInst ni = listener.outlineNode;
-			double lX = newPoints[0].getX();
-			double hX = lX;
-			double lY = newPoints[0].getY();
-			double hY = lY;
-			for(int i=1; i<newPoints.length; i++)
-			{
-				double x = newPoints[i].getX();
-				if (x < lX) lX = x;
-				if (x > hX) hX = x;
-				double y = newPoints[i].getY();
-				if (y < lY) lY = y;
-				if (y > hY) hY = y;
-			}
-			double newCX = (lX + hX) / 2;
-			double newCY = (lY + hY) / 2;
-			double newSX = hX - lX;
-			double newSY = hY - lY;
-			for(int i=0; i<newPoints.length; i++)
-				newPoints[i].setLocation(newPoints[i].getX() - newCX, newPoints[i].getY() - newCY);
-
-			// update the points
-			ni.newVar(NodeInst.TRACE, newPoints);
-			ni.modifyInstance(newCX-ni.getAnchorCenterX(),newCY-ni.getAnchorCenterY(), newSX-ni.getXSize(),
-				newSY-ni.getYSize(), -ni.getAngle());
+			ni.setTrace(newPoints);
 			listener.high.setPoint(listener.point = newPoint);
 			return true;
 		}

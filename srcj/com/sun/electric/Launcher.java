@@ -116,7 +116,7 @@ public final class Launcher
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
 		command += " -mx" + maxMemWanted + "m com.sun.electric.Main";
-        System.out.println("Rerunning Electric with memory footprint of "+maxMemWanted+"m because "+maxMem+"m is too small");
+        System.out.println("Current Java memory limit of "+maxMem+"MEG is too small, rerunning Electric with a memory limit of "+maxMemWanted+"MEG");
         for (int i=0; i<args.length; i++) command += " " + args[i];
         //System.out.println("exec: "+command);
 		try

@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;
@@ -204,6 +205,54 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to determine whether a polygon exists in the merge.
+	 * @param layer the layer being tested.
+	 * @param poly the polygon being tested.
+	 * @return true if all of the polygon is inside of the merge on the given layer.
+	 */
+	public boolean contains(Layer layer, PolyBase poly)
+	{
+		// find the area for the given layer
+		Area area = (Area)allLayers.get(layer);
+		if (area == null) return false;
+
+		// create an area that is the new polygon minus the original area
+		Area polyArea = new Area(poly);
+		polyArea.subtract(area);
+		
+		// if the new area is empty, then the poly is completely contained in the merge
+		if (polyArea.isEmpty()) return true;
+		double remainingArea = getAreaOfArea(polyArea);
+		if (DBMath.areEquals(remainingArea, 0)) return true;
+		return false;
+	}
+
+	private double getAreaOfArea(Area area)
+	{
+		List pointList = getAreaPoints(area, null, true);
+		double totalArea = 0;
+		for(Iterator iit=pointList.iterator(); iit.hasNext(); )
+		{
+			PolyBase p = (PolyBase)iit.next();
+			totalArea += p.getArea();
+		}
+		return totalArea;
+	}
+
+	/**
+	 * Method to determine whether a point exists in the merge.
+	 * @param layer the layer being tested.
+	 * @param pt the point being tested.
+	 * @return true if the point is inside of the merge on the given layer.
+	 */
+	public boolean contains(Layer layer, Point2D pt)
+	{
+		Area area = (Area)allLayers.get(layer);
+		if (area == null) return false;
+		return area.contains(pt);
+	}
+
+	/**
 	 * Method to return an Iterator over all of the Layers used in this Merge.
 	 * @return an Iterator over all of the Layers used in this Merge.
 	 */
@@ -229,7 +278,11 @@ public class PolyMerge
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null) return null;
-
+		return getAreaPoints(area, layer, simple);
+	}
+   
+    private List getAreaPoints(Area area, Layer layer, boolean simple)
+    {
 		List polyList = new ArrayList();
 		double [] coords = new double[6];
 		List pointList = new ArrayList();

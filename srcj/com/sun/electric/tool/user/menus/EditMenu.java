@@ -59,11 +59,13 @@ import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoOutline;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -496,7 +498,17 @@ public class EditMenu {
 			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
-				if (nodeCount == 1) GetInfoNode.showDialog();
+				if (nodeCount == 1)
+				{
+					// if in outline-edit mode, show that dialog
+			        if (WindowFrame.getListener() == OutlineListener.theOne)
+			        {
+			        	GetInfoOutline.showOutlinePropertiesDialog();
+			        } else
+			        {
+			        	GetInfoNode.showDialog();
+			        }
+				}
 				if (exportCount == 1)
 				{
 					if (doubleClick)

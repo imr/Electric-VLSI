@@ -130,7 +130,6 @@ public class TextUtils
 		{
             Number n = parsePostFixNumber(text);
 			v = n.doubleValue();
-
 		} catch (NumberFormatException ex)
 		{
 			int start = 0;
@@ -162,7 +161,13 @@ public class TextUtils
                 if (defaultVal != null) return defaultVal.doubleValue();
                 return 0;
             }
-			v = Double.parseDouble(text.substring(start, end-start));
+			try
+			{
+				v = Double.parseDouble(text.substring(start, end-start));
+			} catch (NumberFormatException e)
+			{
+				v = 0;
+			}
 		}
 		return v;
 	}

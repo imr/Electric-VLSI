@@ -1790,7 +1790,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * used by pure-layer nodes in all layout technologies to allow
 	 * them to take any shape.  It is even used by many MOS
 	 * transistors to allow a precise gate path to be specified.
-	 * @return an array of Point2D.
+	 * @return an array of Point2D in database coordinates.
 	 */
 	public Point2D [] getTrace()
 	{
@@ -1799,6 +1799,44 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		Object obj = var.getObject();
 		if (obj instanceof Object[]) return (Point2D []) obj;
 		return null;
+	}
+
+	/**
+	 * Method to set the "outline" information on this NodeInst.
+	 * Outline information is a set of coordinate points that further
+	 * refines the NodeInst description.  It is typically used in
+	 * Artwork primitives to give them a precise shape.  It is also
+	 * used by pure-layer nodes in all layout technologies to allow
+	 * them to take any shape.  It is even used by many MOS
+	 * transistors to allow a precise gate path to be specified.
+	 * @param points an array of Point2D values in database coordinates.
+	 */
+	public void setTrace(Point2D [] points)
+	{
+		double lX = points[0].getX();
+		double hX = lX;
+		double lY = points[0].getY();
+		double hY = lY;
+		for(int i=1; i<points.length; i++)
+		{
+			double x = points[i].getX();
+			if (x < lX) lX = x;
+			if (x > hX) hX = x;
+			double y = points[i].getY();
+			if (y < lY) lY = y;
+			if (y > hY) hY = y;
+		}
+		double newCX = (lX + hX) / 2;
+		double newCY = (lY + hY) / 2;
+		double newSX = hX - lX;
+		double newSY = hY - lY;
+		for(int i=0; i<points.length; i++)
+			points[i].setLocation(points[i].getX() - newCX, points[i].getY() - newCY);
+
+		// update the points
+		newVar(NodeInst.TRACE, points);
+		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSize(),
+			newSY-getYSize(), -getAngle());
 	}
 
 	/**

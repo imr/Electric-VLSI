@@ -4,7 +4,7 @@
  *
  * File: Extract.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,17 +80,17 @@ public class Extract extends Listener
 	
     /****************************** OPTIONS ******************************/
 
-	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", Extract.tool.prefs, true);
-	/**
-	 * Method to tell whether DRC should be done incrementally.
-	 * The default is "true".
-	 * @return true if DRC should be done incrementally.
-	 */
-	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
-	/**
-	 * Method to set whether DRC should be done incrementally.
-	 * @param on true if DRC should be done incrementally.
-	 */
-	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
+//	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", Extract.tool.prefs, true);
+//	/**
+//	 * Method to tell whether DRC should be done incrementally.
+//	 * The default is "true".
+//	 * @return true if DRC should be done incrementally.
+//	 */
+//	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
+//	/**
+//	 * Method to set whether DRC should be done incrementally.
+//	 * @param on true if DRC should be done incrementally.
+//	 */
+//	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
 }

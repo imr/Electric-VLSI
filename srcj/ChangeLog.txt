@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/14/05, SMR) Added special properties dialog for nodes with outline information
+     (shown when doing a "Properties" command on such a node).
+
 BUG: (01/14/04, DN) Thunder and lightning when highlighted networks are not ready (Bug #155).
 FIX: In "Highlighter.getHighlightedNetworks" use "acwireUserNetlist" instead of "getUserNetlist".
      Text message is printed when getUserNetlist is called in GUI thread.
