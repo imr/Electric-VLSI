@@ -81,6 +81,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     /** Hash table of hash of lists of prefixed key bindings */ private HashMap prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
     /** where to store Preferences */               private Preferences prefs;
+    /** prefix on pref key, if desired */           private String prefPrefix;
     /** Hash table of lists of default key bindings*/ private HashMap defaultActionMap;
 
     // ----------------------------- global stuff ----------------------------------
@@ -91,7 +92,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      * Construct a new KeyBindingManager that can act as a KeyListener
      * on a Component.
      */
-    public KeyBindingManager(Preferences prefs) {
+    public KeyBindingManager(String prefPrefix, Preferences prefs) {
         inputMap = new HashMap();
         actionMap = new HashMap();
         prefixedInputMapMaps = new HashMap();
@@ -99,6 +100,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         lastPrefix = null;
         prefixAction = new PrefixAction(this);
         this.prefs = prefs;
+        this.prefPrefix = prefPrefix;
 
         // add prefix action to action map
         List prefixList = new ArrayList();
@@ -232,8 +234,8 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) return false;
 
 
-        System.out.println("last Prefix key is "+lastPrefix);
-        System.out.println("got event (consumed="+e.isConsumed()+")"+e);
+        //System.out.println("last Prefix key is "+lastPrefix);
+        //System.out.println("got event (consumed="+e.isConsumed()+")"+e);
         // ignore if consumed
         if (e.isConsumed()) {
             lastPrefix = null;              // someone did something with it, null prefix key
@@ -255,43 +257,50 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         ActionEvent evt = new ActionEvent(e, ActionEvent.ACTION_PERFORMED, stroke.toString(), stroke.getModifiers());
 
         boolean actionPerformed = false;
+        boolean prefixActionPerformed = false;
         // get list of action strings, iterate over them
         List keyBindingList = (List)inputMapToUse.get(stroke);
-        if (keyBindingList == null) { lastPrefix = null; return false; }            // nothing bound to key
-        for (Iterator it = keyBindingList.iterator(); it.hasNext(); ) {
-            String actionDesc = (String)it.next();
+        if (keyBindingList != null) {
+            for (Iterator it = keyBindingList.iterator(); it.hasNext(); ) {
+                String actionDesc = (String)it.next();
 
-            // get KeyBinding object from action map, activate its action
-            // note that if this is a prefixed action, this could actually be a
-            // PrefixAction object instead of a KeyBinding object.
-            List list = (List)actionMap.get(actionDesc);
-            // only activate first object
-            if (list != null && (list.size() > 0)) {
-                action = (ActionListener)list.get(0);
-                if (action instanceof PrefixAction) {
-                    action.actionPerformed(evt);
-                } else {
-                    action.actionPerformed(evt);
-                    lastPrefix = null;
+                // get KeyBinding object from action map, activate its action
+                // note that if this is a prefixed action, this could actually be a
+                // PrefixAction object instead of a KeyBinding object.
+                List list = (List)actionMap.get(actionDesc);
+                // only activate first object
+                if (list != null && (list.size() > 0)) {
+                    action = (ActionListener)list.get(0);
+                    if (action instanceof PrefixAction) {
+                        if (!prefixActionPerformed) {
+                            action.actionPerformed(evt);
+                            prefixActionPerformed = true;
+                        }
+                    } else {
+                        action.actionPerformed(evt);
+                        lastPrefix = null;
+                    }
+                    actionPerformed = true;
                 }
-                e.consume();                // consume event
-                actionPerformed = true;
             }
         }
-
-        System.out.println(" actionPerformed="+actionPerformed);
-        // if no action performed, perhaps the user hit a prefix key, then
-        // decided to start another prefix-key-combo (that does not result in
-        // a valid binding with the first prefix, obviously).  We'll be nice
-        // and check for this case
         if (!actionPerformed) {
+            // if no action to perform, perhaps the user hit a prefix key, then
+            // decided to start another prefix-key-combo (that does not result in
+            // a valid binding with the first prefix, obviously).  We'll be nice
+            // and check for this case
             HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(stroke);
             if (prefixMap != null) {
                 // valid prefix key, fire prefix event
                 prefixAction.actionPerformed(evt);
                 actionPerformed = true;
+            } else {
+                lastPrefix = null;
+                // return false;  // fall thru
             }
         }
+
+        //System.out.println(" actionPerformed="+actionPerformed);
 
         if (actionPerformed) {
             e.consume();                // consume event if we did something useful with it
@@ -642,7 +651,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
             prefs.put(actionDesc, "");            // write empty list, basically
             return;
         }
-        prefs.put(actionDesc, keyBindingsToString(keyBindings));
+        prefs.put(prefPrefix+actionDesc, keyBindingsToString(keyBindings));
     }
 
 
@@ -660,7 +669,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     private synchronized List getBindingsFromPrefs(String actionDesc) {
         if (prefs == null) return null;
 
-        String keys = prefs.get(actionDesc, null);
+        String keys = prefs.get(prefPrefix+actionDesc, null);
         return stringToKeyBindings(actionDesc, keys);
     }
 

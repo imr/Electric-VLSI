@@ -64,7 +64,7 @@ public class MenuManager
     /** Preferences for User Bindings */                            private static Preferences prefs = Preferences.userNodeForPackage(Menu.class);
     /** All menu items created, stores as ArrayLists in HashMap */  private static HashMap menuItems = new HashMap(40);
     /** global object to be used as listener */                     public static MenuUpdater updater = new MenuUpdater();
-    /** Key Binding Manager for menu items */                       public static KeyBindingManager keyBindingManager = new KeyBindingManager(prefs);
+    /** Key Binding Manager for menu items */                       public static KeyBindingManager keyBindingManager = new KeyBindingManager("MenuKeyBinding-", prefs);
 
     /**
      * Common Interface for all MenuItem types:
@@ -279,6 +279,35 @@ public class MenuManager
         }
     }
 
+    /**
+     * Override JMenuBar to change the way JMenuBar handles KeyEvents.
+     */
+    public static class MenuBar extends JMenuBar
+    {
+        /**
+         * Overrides JMenuBar's processKeyBinding, which distributes event
+         * to it's menu items.  Instead, we pass the event to the keyBindingManager
+         * to process the event.
+         * @param ks the KeyStroke of the event
+         * @param e the KeyEvent
+         * @param condition condition (focused/not etc)
+         * @param pressed
+         * @return
+         */
+        protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
+                                            int condition, boolean pressed) {
+            // see if we have a local binding (InputMap on JComponent)
+            //boolean retValue = processKeyBinding(ks, e, condition, pressed);
+            boolean retValue = false;
+            // otherwise, pass to our keyBindingManager
+            if (!retValue)
+                retValue = keyBindingManager.processKeyEvent(e);
+            // *do not* pass it to menus
+
+            return retValue;
+        }
+    }
+    
     //------------------------------ Manager Methods -------------------------------
 
     public static List getKeyBindingsFor(JMenuItem item) {

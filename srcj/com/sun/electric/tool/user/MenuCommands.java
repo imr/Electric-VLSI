@@ -146,7 +146,7 @@ public final class MenuCommands
 	public static JMenuBar createMenuBar()
 	{
 		// create the menu bar
-		JMenuBar menuBar = new JMenuBar();
+		JMenuBar menuBar = new MenuManager.MenuBar();
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE FILE MENU ******************************/
