@@ -119,8 +119,12 @@ public class WindowMenu {
 
         if (!TopLevel.isMDIMode()) {
             windowMenu.addSeparator();
-            windowMenu.addMenuItem("Move to Other Display", null,
+            m = windowMenu.addMenuItem("Move to Other Display", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
+            if (getAllGraphicsDevices().length < 2) {
+                // only 1 screen, disable menu
+                m.setEnabled(false);
+            }
         }
 
         windowMenu.addSeparator();
@@ -540,6 +544,12 @@ public class WindowMenu {
         TopLevel.getPaletteFrame().loadForTechnology();
     }
 
+    private static GraphicsDevice [] getAllGraphicsDevices() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        return gs;
+    }
+
     public static void moveToOtherDisplayCommand()
     {
         // this only works in SDI mode
@@ -552,8 +562,7 @@ public class WindowMenu {
         GraphicsDevice curDevice = curConfig.getDevice();
 
         // get all screens
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice[] gs = ge.getScreenDevices();
+        GraphicsDevice[] gs = getAllGraphicsDevices();
         // find screen after current screen
         int i;
         for (i=0; i<gs.length; i++) {
