@@ -62,7 +62,6 @@ public class LETool extends Tool {
     
     /** The Logical Effort tool */              public static LETool tool = new LETool();
     /** The Logical Effort tool Thread */       private Thread toolThread = null;
-    /** LESizer object */                       private LESizer lesizer = null;
     /** if the tool has been paused */          private boolean paused = false;
 
     private static final boolean DEBUG = false;
@@ -246,8 +245,8 @@ public class LETool extends Tool {
     }
 
     /** Analyze Cell called from menu */
-    public void analyzeCell(Cell cell, VarContext context, EditWindow wnd) {
-        AnalyzeCell acjob = new AnalyzeCell(cell, context, wnd);
+    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow wnd) {
+        AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, wnd);
 //        acjob.start();
     }
     
@@ -257,16 +256,18 @@ public class LETool extends Tool {
         /** progress */                         private String progress;
         /** cell to analyze */                  private Cell cell;
         /** var context */                      private VarContext context;
-        /** lesizer */                          private LESizer lesizer;
         /** EditWindow */                       private EditWindow wnd;
-        
-        protected AnalyzeCell(Cell cell, VarContext context, EditWindow wnd) {
+        /** algorithm type */                   private LESizer.Alg algorithm;
+        /** netlist */                          private LENetlister netlister;
+
+        protected AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd) {
             super("Analyze Cell "+cell.describe(), tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             progress = null;
+            this.algorithm = algorithm;
             this.cell = cell;
             this.context = context;
             this.wnd = wnd;
-			this.startJob();
+			this.startJob(true, false);
         }
         
         public void doIt() {
@@ -283,8 +284,7 @@ public class LETool extends Tool {
 //            } catch (InterruptedException e) {}
 
             // get sizer and netlister
-            lesizer = new LESizer((OutputStream)System.out);
-            LENetlister netlister = new LENetlister(lesizer, (OutputStream)System.out);
+            netlister = new LENetlister(algorithm, this);
             netlister.netlist(cell, context);
 
             // calculate statistics
@@ -293,14 +293,14 @@ public class LETool extends Tool {
             System.out.println("done ("+elapsed+")");
 
             // if user aborted, return, and do not run sizer
-            if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
+            if (checkAbort(null)) return;
 
             System.out.println("Starting iterations: ");
             setProgress("iterating");
             boolean success = netlister.size();
 
             // if user aborted, return, and do not update sizes
-            if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
+            if (checkAbort(null)) return;
 
             if (success) {
                 netlister.updateSizes();
@@ -309,14 +309,34 @@ public class LETool extends Tool {
             }
             wnd.repaintContents();
         }
-        
+
+        /**
+         * Check if we are scheduled to abort. If so, print msg if non null
+         * and return true.
+         * @param msg message to print if we are aborted
+         * @return true on abort, false otherwise
+         */
+        protected boolean checkAbort(String msg) {
+            if (getScheduledToAbort()) {
+                if (msg != null) System.out.println("LETool aborted: "+msg);
+                else System.out.println("LETool aborted: no changes made");
+                setAborted();                   // Job has been aborted
+                return true;
+            }
+            return false;
+        }
+
         // add more info to default getInfo
         public String getInfo() {
 
             StringBuffer buf = new StringBuffer();
             buf.append(super.getInfo());
-            buf.append("  Gates sized: "+lesizer.getNumGates()+"\n");
-            buf.append("  Total Drive Strength: "+lesizer.getTotalSize()+"\n");
+            if (getScheduledToAbort())
+                buf.append("  Job aborted, no changes made\n");
+            else {
+                buf.append("  Gates sized: "+netlister.getNumGates()+"\n");
+                buf.append("  Total Drive Strength: "+netlister.getTotalSize()+"\n");
+            }
             return buf.toString();
         }
     }

@@ -363,12 +363,12 @@ public abstract class Job implements ActionListener, Runnable {
         }
     }
 
-    protected void setProgress(String progress) {
+    protected synchronized void setProgress(String progress) {
         this.progress = progress;
         WindowFrame.wantToRedoJobTree();        
     }        
     
-    private String getProgress() { return progress; }
+    private synchronized String getProgress() { return progress; }
 
     /** Return run status */
     public boolean isFinished() { return finished; }
@@ -376,7 +376,7 @@ public abstract class Job implements ActionListener, Runnable {
     /** Tell thread to abort. Extending class should check
      * abort when/where applicable
      */
-    public void abort() { 
+    public synchronized void abort() {
         if (aborted) { 
             System.out.println("Job already aborted: "+getStatus());
             return;
@@ -386,11 +386,11 @@ public abstract class Job implements ActionListener, Runnable {
     }
 
 	/** Confirmation that thread is aborted */
-    protected void setAborted() { aborted = true; WindowFrame.wantToRedoJobTree(); }
+    protected synchronized void setAborted() { aborted = true; WindowFrame.wantToRedoJobTree(); }
     /** get scheduled to abort status */
-    protected boolean getScheduledToAbort() { return scheduledToAbort; }
+    protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */
-    public boolean getAborted() { return aborted; }
+    public synchronized boolean getAborted() { return aborted; }
     /** get display status */
     public boolean getDisplay() { return display; }
     /** get deleteWhenDone status */

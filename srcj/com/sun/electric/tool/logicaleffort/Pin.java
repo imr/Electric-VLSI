@@ -37,10 +37,7 @@ import java.util.ArrayList;
  * A Pin's direction is relative to the node (Instance, etc) it
  * connects to, not the network it connects to.
  *
- * NOTE: the only 'Electric' objects used are in LENetlister,
- * any objects referenced in this file are from the logicaleffort
- * package, although their names may imply otherwise.  Their names
- * are as such because their names match PNP's naming scheme.
+ * <p>This should only be used in the context of the Logical Effort Tool.
  *
  * @author  gainsley
  */

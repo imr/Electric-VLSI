@@ -33,10 +33,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.logicaleffort.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Collection;
+import java.util.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -55,95 +52,36 @@ import java.io.OutputStream;
  */
 public class LESizer {
     
-    /** all networks */                             private HashMap allNets;
-    /** all instances (LEGATES, not loads) */       private HashMap allInstances;
     /** which algorithm to use */                   private Alg optimizationAlg;
     /** Where to direct output */                   private PrintStream out;
-   
+    /** What job we are part of */                  private Job job;
+    /** Netlist */                                  private LENetlister netlist;
+
     /** Alg is a typesafe enum class that describes the algorithm to be used */
     protected static class Alg {
         private final String name;
         private Alg(String name) { this.name = name; }
         public String toString() { return name; }
         
-        /** The simple algorithm, ignores all parasitics */
-        protected static final Alg SIMPLE = new Alg("simple");
-        /** Algorithm includes capacitive side loads */
-        protected static final Alg CAPLOADS = new Alg("caploads");
-        /** Algorithm includes capacitive and resistive loads in tree form, but ignores mesh structures */
-        protected static final Alg RCTREE = new Alg("rctree");
-        /** Algorithm includes capacitive and resistive loads in both tree and mesh topologies */
-        protected static final Alg RCMESH = new Alg("rcmesh");
+        /** Sizes all gates for user specified equal gate delay */
+        protected static final Alg EQUALGATEDELAYS = new Alg("Equal Gate Delays");
+        /** Sizes for optimal path delay */
+        protected static final Alg PATHDELAY = new Alg("Path Delay");
     }
         
     /** Creates a new instance of LESizer */
-    protected LESizer(OutputStream ostream) {
-        allNets = new HashMap();
-        allInstances = new HashMap();
-        optimizationAlg = Alg.SIMPLE;
-        
-        out = new PrintStream(ostream);
+    protected LESizer(Alg alg, LENetlister netlist, Job job) {
+        optimizationAlg = alg;
+        this.netlist = netlist;
+        this.job = job;
+
+        out = new PrintStream(System.out);
     }
-   
-    /** Set the optimization type */
-    public void setAlg(Alg alg) { optimizationAlg = alg; }
-    
-    /** Get the optimization type */
-    public Alg getAlg() { return optimizationAlg; }
-    
-    /** Clear LE data */
-    public void clear() {
-        allNets.clear();
-        allInstances.clear();
-    }
-    
-    /** 
-	 * Add new instance to design
-	 * @param name name of the instance
-	 * param leGate true if this is an LEGate
-	 * @param leX size
-	 * @param pins list of pins on instance
-	 *
-	 * @return the new instance added, null if error
-	 */
-	protected Instance addInstance(String name, Instance.Type type, float leSU, 
-		float leX, ArrayList pins)
-	{
-		if (allInstances.containsKey(name)) {
-			out.println("Error: Instance "+name+" already exists.");
-			return null;
-		}
-		// create instance
-		Instance instance = new Instance(name, type, leSU, leX);
-		
-		// create each net if necessary, from pin.
-		Iterator iter = pins.iterator();
-		while (iter.hasNext()) {
-			Pin pin = (Pin)iter.next();
-			String netname = pin.getNetName();
 
-			// check to see if net had already been added to the design
-			Net net = (Net)allNets.get(netname);
-			if (net != null) {
-				pin.setNet(net);
-				pin.setInstance(instance);
-				net.addPin(pin);
-			} else {
-				// create new net
-				net = new Net(netname);
-				allNets.put(netname, net);
-				pin.setNet(net);
-				pin.setInstance(instance);
-				net.addPin(pin);
-			}
-		}
-		instance.setPins(pins);
 
-		allInstances.put(name, instance);
-		return instance;				
-	}
+    // ============================ Sizing For Equal Gate Delays ==========================
 
-	/** 
+	/**
 	 * Optimize using loop algorithm;
 	 * @param maxDeltaX maximum tolerance allowed in X
 	 * @param N maximum number of loops
@@ -166,14 +104,18 @@ public class LESizer {
 		int loopcount = 0;
 		
 		while ((currentLoopDeltaX > maxDeltaX) && (loopcount < N)) {
+
+            // check for aborted state of job
+            if (((LETool.AnalyzeCell)job).checkAbort(null)) return false;
+
 			currentLoopDeltaX = 0;
             startTime = System.currentTimeMillis();
             System.out.print("  Iteration "+loopcount);
             if (verbose) System.out.println(":");
             
 			// iterate through each instance
-			Iterator instancesIter = allInstances.values().iterator();
-			Iterator netsIter = allNets.values().iterator();
+			Iterator instancesIter = netlist.getAllInstances().values().iterator();
+			Iterator netsIter = netlist.getAllNets().values().iterator();
 			
 			while (instancesIter.hasNext()) {
 				Instance instance = (Instance)instancesIter.next();
@@ -238,7 +180,30 @@ public class LESizer {
 		} // while (currentLoopDeltaX ... )
         return true;
 	}
-	   
+
+
+
+    // ========================== Sizing for Path Optimization =====================
+
+    protected List getEndNets() {
+
+        List endNets = new ArrayList();
+
+        Iterator netIter = netlist.getAllNets().values().iterator();
+        while (netIter.hasNext()) {
+            Net net = (Net)netIter.next();
+
+        }
+        return null;
+    }
+
+
+
+    // =============================== Statistics ==================================
+
+
+    // ============================== Design Printing ===============================
+
     /**
      * Dump the design information for debugging purposes
      */
@@ -246,7 +211,7 @@ public class LESizer {
 	{
 		out.println("Instances in design are:");
 		        
-		Iterator instancesIter = allInstances.values().iterator();
+		Iterator instancesIter = netlist.getAllInstances().values().iterator();
 		while (instancesIter.hasNext()) {
 			Instance instance = (Instance)instancesIter.next();
 			String instanceName = instance.getName();
@@ -274,7 +239,7 @@ public class LESizer {
 			FileWriter fileWriter = new FileWriter(filename); // throws IOException
 			
 			// iterate through all instances
-			Iterator instancesIter = allInstances.values().iterator();
+			Iterator instancesIter = netlist.getAllInstances().values().iterator();
 			while (instancesIter.hasNext()) {
 				Instance instance = (Instance)instancesIter.next();
 				String instanceName = instance.getName();
@@ -311,20 +276,6 @@ public class LESizer {
 		// nothing here
 	}
    
-    /** return number of gates sized */
-    protected int getNumGates() { return allInstances.size(); }
-    
-    /** return total size of all sized gates */
-    protected float getTotalSize() {
-        Collection instances = allInstances.values();
-        float totalsize = 0f;
-        for (Iterator it = instances.iterator(); it.hasNext();) {
-            Instance inst = (Instance)it.next();
-            totalsize += inst.getLeX();
-        }
-        return totalsize;
-    }
-    
     //---------------------------------------TEST---------------------------------------
     //---------------------------------------TEST---------------------------------------
     
@@ -335,7 +286,7 @@ public class LESizer {
         System.out.println("=========================");
         
         float su = (float)4.0;
-        LESizer lesizer = new LESizer((OutputStream)System.out);
+        LENetlister netlist = new LENetlister(Alg.EQUALGATEDELAYS, null);
                 
         {
         // inv1
@@ -344,7 +295,7 @@ public class LESizer {
         ArrayList pins = new ArrayList();
         pins.add(pin_a);
         pins.add(pin_y);
-        lesizer.addInstance("inv1", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("inv1", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
 
         {
@@ -354,7 +305,7 @@ public class LESizer {
         ArrayList pins = new ArrayList();
         pins.add(pin_a);
         pins.add(pin_y);
-        lesizer.addInstance("inv2", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("inv2", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
 
         {
@@ -364,7 +315,7 @@ public class LESizer {
         ArrayList pins = new ArrayList();
         pins.add(pin_a);
         pins.add(pin_y);
-        lesizer.addInstance("inv3", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("inv3", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
         
         {
@@ -376,7 +327,7 @@ public class LESizer {
         pins.add(pin_a);
         pins.add(pin_b);
         pins.add(pin_y);
-        lesizer.addInstance("nand1", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("nand1", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
 
         {
@@ -386,7 +337,7 @@ public class LESizer {
         ArrayList pins = new ArrayList();
         pins.add(pin_g);
         pins.add(pin_d);
-        lesizer.addInstance("pu", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("pu", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
 
         {
@@ -396,7 +347,7 @@ public class LESizer {
         ArrayList pins = new ArrayList();
         pins.add(pin_g);
         pins.add(pin_d);
-        lesizer.addInstance("pd", Instance.Type.LEGATE, su, (float)1.0, pins);
+        netlist.addInstance("pd", Instance.Type.LEGATE, su, (float)1.0, pins);
         }
 
         {
@@ -404,7 +355,7 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pd_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap1", Instance.Type.NOTSIZEABLE, su, (float)0.0, pins);
+        netlist.addInstance("cap1", Instance.Type.LOAD, su, (float)0.0, pins);
         }
 
         {
@@ -412,7 +363,7 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pu_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap2", Instance.Type.NOTSIZEABLE, su, (float)0.0, pins);
+        netlist.addInstance("cap2", Instance.Type.LOAD, su, (float)0.0, pins);
         }
 
         {
@@ -420,12 +371,12 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "inv1_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap3", Instance.Type.NOTSIZEABLE, su, (float)100.0, pins);
+        netlist.addInstance("cap3", Instance.Type.LOAD, su, (float)100.0, pins);
         }
 
-        lesizer.printDesign();
-        lesizer.optimizeLoops((float)0.01, 30, true, (float)0.7, (float)0.1);
+        netlist.getSizer().printDesign();
+        netlist.getSizer().optimizeLoops((float)0.01, 30, true, (float)0.7, (float)0.1);
         System.out.println("After optimization:");
-        lesizer.printDesign();
+        netlist.getSizer().printDesign();
     }
 }

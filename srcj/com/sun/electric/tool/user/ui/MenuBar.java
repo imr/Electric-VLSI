@@ -413,6 +413,8 @@ public class MenuBar extends JMenuBar
         }
         item.addActionListener(menuBarGroup);
         item.addActionListener(ToolBarButton.updater);
+        // update with any user defined bindings
+        updateAccelerator(item.getText());
     }
 
     /**

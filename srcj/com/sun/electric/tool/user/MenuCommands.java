@@ -656,8 +656,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
-		logEffortSubMenu.addMenuItem("Analyze Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
+		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
 		Menu routingSubMenu = new Menu("Routing", 'R');
@@ -2229,7 +2229,7 @@ public final class MenuCommands
 	// ---------------------- THE TOOLS MENU -----------------
 
 	// Logical Effort Tool
-	public static void analyzeCellCommand()
+	public static void optimizeEqualGateDelaysCommand()
 	{
 		EditWindow curEdit = EditWindow.getCurrent();
 		if (curEdit == null) {
@@ -2244,8 +2244,8 @@ public final class MenuCommands
         // set current cell to use global context
         curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
 
-        // analyze cell
-		letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
+        // optimize cell for equal gate delays
+		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}
 
 	public static void redoNetworkNumberingCommand()

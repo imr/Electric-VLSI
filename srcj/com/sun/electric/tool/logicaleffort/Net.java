@@ -31,13 +31,13 @@ package com.sun.electric.tool.logicaleffort;
 import com.sun.electric.tool.logicaleffort.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
- * NOTE: the only 'Electric' objects used are in LENetlister,
- * any objects referenced in this file are from the logicaleffort
- * package, although their names may imply otherwise.  Their names
- * are as such because their names match PNP's naming scheme.
+ * Stores information about a Net for the Logical Effort Tool.
+ *
+ * <p>This should only be used in the context of the Logical Effort Tool.
  *
  * @author  gainsley
  */
@@ -64,6 +64,17 @@ public class Net {
 		this.name = name;
         pins = new ArrayList();
 	}
+
+    protected boolean isDrivenByGate() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (inst.getType() == Instance.Type.LOAD) {
+                // has a load
+            }
+        }
+        return false;
+    }
 
     /** Add a pin to the net */
     protected void addPin(Pin pin) { pins.add(pin); pin.setNet(this); }

@@ -36,13 +36,8 @@ import java.util.Iterator;
 
 /**
  * An Instance represents a logical effort node.
- * Note that this object is protected, and should only 
- * be instantiated/used by other logical effort classes.
  *
- * NOTE: the only 'Electric' objects used are in LENetlister,
- * any objects referenced in this file are from the logicaleffort
- * package, although their names may imply otherwise.  Their names
- * are as such because their names match PNP's naming scheme.
+ * <p>This should only be used in the context of the Logical Effort Tool.
  *
  * @author  gainsley
  */
@@ -58,7 +53,7 @@ public class Instance {
     
     /** Context */                                  private VarContext context;
     /** parallel group number (0 is no group) */    private int parallelGroup;
-    /** m-factor */                                 private int mfactor;
+    /** m-factor */                                 private double mfactor;
 
     /** Type is a typesafe enum class that describes the type of Instance this is */
     protected static class Type {
@@ -66,7 +61,8 @@ public class Instance {
         private Type(String name) { this.name = name; }
         public String toString() { return name; }
 
-        /** NotSizeable */  protected static final Type NOTSIZEABLE = new Type("notSizable");
+        /** NotSizeable */  protected static final Type STATICGATE = new Type("staticGate");
+        /** NotSizeable */  protected static final Type LOAD = new Type("load");
         /** LeGate */       protected static final Type LEGATE = new Type("leGate");
         /** LeKeeper */     protected static final Type LEKEEPER = new Type("leKeeper");
     }
@@ -132,9 +128,9 @@ public class Instance {
     protected void setParallelGroup(int group) { parallelGroup = group; }
 
     /** Get mfactor */
-    protected int getMfactor() { return mfactor; }
+    protected double getMfactor() { return mfactor; }
     /** Set mfactor */
-    protected void setMfactor(int m) { mfactor = m; }
+    protected void setMfactor(double m) { mfactor = m; }
 
     /** Set the pin list */
     protected void setPins(ArrayList pins) { 
