@@ -804,7 +804,7 @@ public final class MenuCommands
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
@@ -907,10 +907,10 @@ public final class MenuCommands
         /****************************** Gilda's TEST MENU ******************************/
 		Menu gildaMenu = new Menu("Gilda", 'G');
 		menuBar.add(gildaMenu);
-		gildaMenu.addMenuItem("Covering Implants", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true);}});
+		gildaMenu.addMenuItem("Merge Polyons", null,
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, true);}});
 		gildaMenu.addMenuItem("Covering Implants Old", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false);}});
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
 		gildaMenu.addMenuItem("List Layer Coverage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
 
@@ -1688,7 +1688,7 @@ public final class MenuCommands
 
 				// Coverage implants are pure primitive nodes
 				// and they are ignored.
-				if ( !Main.getDebug() && node.getFunction() == NodeProto.Function.NODE ) continue;
+				if (node.getFunction() == NodeProto.Function.NODE) continue;
 
 				NodeProto protoType = node.getProto();
 				if (protoType instanceof Cell)
@@ -1708,7 +1708,7 @@ public final class MenuCommands
 						Layer.Function func = layer.getFunction();
 
 						// Only checking poly or metal
-						if (!Main.getDebug() && !func.isPoly() && !func.isMetal()) continue;
+						if (!func.isPoly() && !func.isMetal()) continue;
 
 						poly.transform(transform);
 						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
@@ -3524,14 +3524,14 @@ public final class MenuCommands
 	}
 
     // ---------------------- Gilda's Stuff MENU -----------------
-	public static void implantGeneratorCommand(boolean newIdea) {
+	public static void implantGeneratorCommand(boolean newIdea, boolean test) {
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
         Job job = null;
 
 	    if (newIdea)
 	    {
-			job = new CoverImplant(curCell);
+			job = new CoverImplant(curCell, test);
 	    }
 	    else
 	    {
@@ -3542,11 +3542,13 @@ public final class MenuCommands
 	protected static class CoverImplant extends Job
 	{
 		private Cell curCell;
+        private boolean testMerge = false;
 
-		protected CoverImplant(Cell cell)
+		protected CoverImplant(Cell cell, boolean test)
 		{
 			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+            this.testMerge = test;
 			setReportExecutionFlag(true);
 			startJob();
 		}
