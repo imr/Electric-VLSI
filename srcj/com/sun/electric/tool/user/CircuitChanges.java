@@ -1725,7 +1725,7 @@ public class CircuitChanges
 		if (confirm)
 		{
 			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-				"Are you sure you want to delete cell " + cell.describe() + "?");
+				"Are you sure you want to delete cell '" + cell.describe() + "'?", "Delete Cell Dialog", JOptionPane.YES_NO_OPTION);
 			if (response != JOptionPane.YES_OPTION) return false;
 		}
 

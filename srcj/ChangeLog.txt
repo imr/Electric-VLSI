@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (01/09/05,GVG)YES_NO dialog for deleting cells in Explorer instead of YES_NO_CANCEL type
+
 IMP: (01/09/05, DN) Settors are removed from TextDescriptor class. Database TextDescriptors are almost
 readonly (except low-level methods). MutableTextDescriptor class is
 used for TextDescriptors out of database, it has both gettors and settors.
