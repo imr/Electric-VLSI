@@ -66,7 +66,7 @@ public class ThreeDTab extends PreferencePanel
     {
         ThreeDTab tab = null;
 
-        Class plugin = Resources.get3DClass("JThreeDTab");
+        Class plugin = Resources.get3DClass("ui.JThreeDTab");
         if (plugin != null)
         {
             try
