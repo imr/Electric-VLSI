@@ -3679,7 +3679,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive) {}
+	public void initTextSearch(String search, boolean caseSensitive,
+	                           boolean regExp, Set whatToSearch) {
+		System.out.println("Text search not implemented for waveform windows");
+	}
 
 	/**
 	 * Method to find the next occurrence of a string.

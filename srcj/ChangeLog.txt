@@ -2,6 +2,10 @@
 
 ************************* Version 8.01: Released  *************************
 
+IMP: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
+
+BUG: (7/20/04, RK) Fix button (it did nothing). Exports weren't being searched.
+
 BUG: (7/19/04, GVG) XSize and YSize in Mult-Object Properties window not correctly calculated. Offset was missing.
 FIX: Offset added if objects are instance of NodeInst.
 

@@ -41,6 +41,10 @@ import java.awt.GridBagConstraints;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+import java.util.prefs.Preferences;
 import javax.swing.JDialog;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -62,10 +66,40 @@ import javax.swing.JSeparator;
  */
 public class FindText extends EDialog
 {
-	private static String lastFindTextMessage = null;
-	private static String lastReplaceTextMessage = null;
-	private static boolean iniCaseSensitive = false;
-	private static boolean iniFindReverse = false;
+	/** What kind of text string to search */
+	public static class WhatToSearch {
+		public static final WhatToSearch 
+		ARC_NAME = new WhatToSearch("Arc Name"),
+		ARC_VAR = new WhatToSearch("Arc Variable"),
+		NODE_NAME = new WhatToSearch("Node Name"),
+		NODE_VAR = new WhatToSearch("Node Variable"),
+		EXPORT_NAME = new WhatToSearch("Export Name"),
+		EXPORT_VAR = new WhatToSearch("Export Variable"),
+		CELL_VAR = new WhatToSearch("Cell Name"),
+		TEMP_NAMES = new WhatToSearch(null);
+    
+		private String descriptionOfObjectFound;
+
+		private WhatToSearch(String descriptionOfObjectFound) {
+			this.descriptionOfObjectFound = descriptionOfObjectFound;
+		}
+		public String toString() {return descriptionOfObjectFound;}
+	}
+	private static Preferences prefs = Preferences.userNodeForPackage(FindText.class);
+	private static Pref
+		prefCaseSensitive = Pref.makeBooleanPref("FindText_caseSensitive", prefs, false),
+		prefFindTextMessage = Pref.makeStringPref("FindText_findTextMessage", prefs, ""),
+		prefReplaceTextMessage = Pref.makeStringPref("FindText_ReplaceTextMessage", prefs, ""),
+	    prefFindReverse = Pref.makeBooleanPref("FindText_findReverse", prefs, false),
+	    prefRegExp = Pref.makeBooleanPref("FindText_regExp", prefs, false),
+	    prefSearchNodeNames = Pref.makeBooleanPref("FindText_searchNodeNames", prefs, true),
+	    prefSearchNodeVars = Pref.makeBooleanPref("FindText_searchNodeVars", prefs, true),
+	    prefSearchArcNames = Pref.makeBooleanPref("FindText_searchArcNames", prefs, true),
+	    prefSearchArcVars = Pref.makeBooleanPref("FindText_searchArcVars", prefs, true),
+	    prefSearchExportNames = Pref.makeBooleanPref("FindText_searchExportNames", prefs, true),
+	    prefSearchExportVars = Pref.makeBooleanPref("FindText_searchExportVars", prefs, true),
+	    prefSearchCellVars = Pref.makeBooleanPref("FindText_searchCellVars", prefs, true),
+	    prefSearchTempNames = Pref.makeBooleanPref("FindText_searchTempNames", prefs, false);
 	private String lastSearch = null;
 
 	public static void findTextDialog()
@@ -79,14 +113,44 @@ public class FindText extends EDialog
 	{
 		super(parent, modal);
 		initComponents();
-		if (lastFindTextMessage != null)
-			findString.setText(lastFindTextMessage);
-		if (lastReplaceTextMessage != null)
-			replaceString.setText(lastReplaceTextMessage);
-		caseSensitive.setSelected(iniCaseSensitive);
-		findReverse.setSelected(iniFindReverse);
+		findString.setText(prefFindTextMessage.getString());
+		replaceString.setText(prefReplaceTextMessage.getString());
+		caseSensitive.setSelected(prefCaseSensitive.getBoolean());
+		findReverse.setSelected(prefFindReverse.getBoolean());
+		regExp.setSelected(prefRegExp.getBoolean());
+		searchNodeNames.setSelected(prefSearchNodeNames.getBoolean());
+		searchNodeVars.setSelected(prefSearchNodeVars.getBoolean());
+		searchArcNames.setSelected(prefSearchArcNames.getBoolean());
+		searchArcVars.setSelected(prefSearchArcVars.getBoolean());
+		searchExportNames.setSelected(prefSearchExportNames.getBoolean());
+		searchExportVars.setSelected(prefSearchExportVars.getBoolean());
+		searchCellVars.setSelected(prefSearchCellVars.getBoolean());
+		searchTempNames.setSelected(prefSearchTempNames.getBoolean());
+
 		getRootPane().setDefaultButton(find);
 	}
+    private boolean badRegExpSyntax() {
+        if (!regExp.isSelected()) return false;
+        try {
+            Pattern.compile(findString.getText());
+            return false;
+        } catch (Exception e) {
+			System.out.println("Regular Expression error in Find string. Operation aborted.");
+            return true;
+        }
+    }
+    private Set getWhatToSearch() {
+    	Set whatToSearch = new HashSet();
+		if (searchNodeNames.isSelected()) whatToSearch.add(WhatToSearch.NODE_NAME);
+		if (searchNodeVars.isSelected()) whatToSearch.add(WhatToSearch.NODE_VAR);
+		if (searchArcNames.isSelected()) whatToSearch.add(WhatToSearch.ARC_NAME);
+		if (searchArcVars.isSelected()) whatToSearch.add(WhatToSearch.ARC_VAR);
+		if (searchExportNames.isSelected()) whatToSearch.add(WhatToSearch.EXPORT_NAME);
+		if (searchExportVars.isSelected()) whatToSearch.add(WhatToSearch.EXPORT_VAR);
+		if (searchCellVars.isSelected()) whatToSearch.add(WhatToSearch.CELL_VAR);
+		if (searchTempNames.isSelected()) whatToSearch.add(WhatToSearch.TEMP_NAMES);
+		return whatToSearch;
+    }
 
 	protected void escapePressed() { doneActionPerformed(null); }
 
@@ -99,7 +163,7 @@ public class FindText extends EDialog
         java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel4 = new javax.swing.JLabel();
-        done = new javax.swing.JButton();
+        Done = new javax.swing.JButton();
         findString = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         replaceString = new javax.swing.JTextField();
@@ -112,6 +176,16 @@ public class FindText extends EDialog
         lineNumber = new javax.swing.JTextField();
         find = new javax.swing.JButton();
         goToLine = new javax.swing.JButton();
+        regExp = new javax.swing.JCheckBox();
+        whatToSearch = new javax.swing.JPanel();
+        searchNodeNames = new javax.swing.JCheckBox();
+        searchNodeVars = new javax.swing.JCheckBox();
+        searchArcNames = new javax.swing.JCheckBox();
+        searchArcVars = new javax.swing.JCheckBox();
+        searchExportNames = new javax.swing.JCheckBox();
+        searchExportVars = new javax.swing.JCheckBox();
+        searchCellVars = new javax.swing.JCheckBox();
+        searchTempNames = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -131,8 +205,9 @@ public class FindText extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
 
-        done.setText("Done");
-        done.addActionListener(new java.awt.event.ActionListener() {
+        Done.setText("Done");
+        Done.setActionCommand("done");
+        Done.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 doneActionPerformed(evt);
             }
@@ -142,7 +217,7 @@ public class FindText extends EDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(done, gridBagConstraints);
+        getContentPane().add(Done, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -179,9 +254,8 @@ public class FindText extends EDialog
 
         findReverse.setText("Find Reverse");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(findReverse, gridBagConstraints);
 
@@ -265,10 +339,82 @@ public class FindText extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(goToLine, gridBagConstraints);
 
+        regExp.setText("Regular Expressions");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        getContentPane().add(regExp, gridBagConstraints);
+
+        whatToSearch.setLayout(new java.awt.GridBagLayout());
+
+        whatToSearch.setBorder(new javax.swing.border.TitledBorder("Objects to Search"));
+        searchNodeNames.setText("Node Names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchNodeNames, gridBagConstraints);
+
+        searchNodeVars.setText("Node Variables");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchNodeVars, gridBagConstraints);
+
+        searchArcNames.setText("Arc Names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchArcNames, gridBagConstraints);
+
+        searchArcVars.setText("Arc Variables");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchArcVars, gridBagConstraints);
+
+        searchExportNames.setText("Export Names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchExportNames, gridBagConstraints);
+
+        searchExportVars.setText("Export Variables");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchExportVars, gridBagConstraints);
+
+        searchCellVars.setText("Cell Variables");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchCellVars, gridBagConstraints);
+
+        searchTempNames.setText("Automatically Generated Node and Arc Names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 4;
+        whatToSearch.add(searchTempNames, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 4;
+        getContentPane().add(whatToSearch, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
+        // TODO add your handling code here:
         closeDialog(null);
     }//GEN-LAST:event_doneActionPerformed
 
@@ -294,13 +440,16 @@ public class FindText extends EDialog
 		String search = findString.getText();
 		String replace = replaceString.getText();
 		WindowContent content = wf.getContent();
-		content.initTextSearch(search, caseSensitive.isSelected());
+		content.initTextSearch(search, caseSensitive.isSelected(),
+		                       regExp.isSelected(),
+		                       getWhatToSearch());
 		content.replaceAllText(replace);
 
 	}//GEN-LAST:event_replaceAllActionPerformed
 
 	private void replaceAndFindActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_replaceAndFindActionPerformed
 	{//GEN-HEADEREND:event_replaceAndFindActionPerformed
+                if (badRegExpSyntax()) return;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		if (lastSearch == null) return;
@@ -312,7 +461,8 @@ public class FindText extends EDialog
 
 	private void replaceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_replaceActionPerformed
 	{//GEN-HEADEREND:event_replaceActionPerformed
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                if (badRegExpSyntax()) return;
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		if (lastSearch == null) return;
 		WindowContent content = wf.getContent();
@@ -322,6 +472,7 @@ public class FindText extends EDialog
 
 	private void findActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_findActionPerformed
 	{//GEN-HEADEREND:event_findActionPerformed
+                if (badRegExpSyntax()) return;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		String search = findString.getText();
@@ -332,7 +483,9 @@ public class FindText extends EDialog
 		}
 		if (lastSearch == null)
 		{
-			content.initTextSearch(search, caseSensitive.isSelected());
+			content.initTextSearch(search, caseSensitive.isSelected(), 
+			                       regExp.isSelected(),
+			                       getWhatToSearch());
 		}
 		lastSearch = search;
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;
@@ -341,18 +494,27 @@ public class FindText extends EDialog
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
-		lastFindTextMessage = findString.getText();
-		lastReplaceTextMessage = replaceString.getText();
-		iniCaseSensitive = caseSensitive.isSelected();
-		iniFindReverse = findReverse.isSelected();
+		prefFindTextMessage.setString(findString.getText());
+		prefReplaceTextMessage.setString(replaceString.getText());
+		prefCaseSensitive.setBoolean(caseSensitive.isSelected());
+		prefFindReverse.setBoolean(findReverse.isSelected());
+		prefRegExp.setBoolean(regExp.isSelected());
+		prefSearchNodeNames.setBoolean(searchNodeNames.isSelected());
+		prefSearchNodeVars.setBoolean(searchNodeVars.isSelected());
+		prefSearchArcNames.setBoolean(searchArcNames.isSelected());
+		prefSearchArcVars.setBoolean(searchArcVars.isSelected());
+		prefSearchExportNames.setBoolean(searchExportNames.isSelected());
+		prefSearchExportVars.setBoolean(searchExportVars.isSelected());
+		prefSearchCellVars.setBoolean(searchCellVars.isSelected());
+		prefSearchTempNames.setBoolean(searchTempNames.isSelected());
 
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton Done;
     private javax.swing.JCheckBox caseSensitive;
-    private javax.swing.JButton done;
     private javax.swing.JButton find;
     private javax.swing.JCheckBox findReverse;
     private javax.swing.JTextField findString;
@@ -361,9 +523,19 @@ public class FindText extends EDialog
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JTextField lineNumber;
+    private javax.swing.JCheckBox regExp;
     private javax.swing.JButton replace;
     private javax.swing.JButton replaceAll;
     private javax.swing.JButton replaceAndFind;
     private javax.swing.JTextField replaceString;
+    private javax.swing.JCheckBox searchArcNames;
+    private javax.swing.JCheckBox searchArcVars;
+    private javax.swing.JCheckBox searchCellVars;
+    private javax.swing.JCheckBox searchExportNames;
+    private javax.swing.JCheckBox searchExportVars;
+    private javax.swing.JCheckBox searchNodeNames;
+    private javax.swing.JCheckBox searchNodeVars;
+    private javax.swing.JCheckBox searchTempNames;
+    private javax.swing.JPanel whatToSearch;
     // End of variables declaration//GEN-END:variables
 }

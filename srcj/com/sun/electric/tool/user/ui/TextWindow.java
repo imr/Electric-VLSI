@@ -59,6 +59,7 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
@@ -543,8 +544,12 @@ public class TextWindow extends JTextArea
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive)
+	public void initTextSearch(String search, boolean caseSensitive, 
+	                           boolean regExp, Set whatToSearch)
 	{
+		if (regExp) {
+			System.out.println("Text windows don't yet implement Regular Expression matching");
+		}
 		searchString = search;
 		searchCaseSensitive = caseSensitive;
 	}

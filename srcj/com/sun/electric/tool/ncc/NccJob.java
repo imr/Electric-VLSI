@@ -131,8 +131,8 @@ public class NccJob extends Job {
 			ok = nccTwoCells(cellCtxts, options);
 		}
 		
-		if (ok) System.out.print("Ncc done: no mismatches");
-		else  System.out.print("Ncc done: comparison failed");
+		if (ok) System.out.println("Ncc done: no mismatches");
+		else  System.out.println("Ncc done: comparison failed");
 		return ok;
     }
 

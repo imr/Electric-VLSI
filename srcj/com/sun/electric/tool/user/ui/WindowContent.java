@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-
+import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -39,7 +39,8 @@ public interface WindowContent
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
-	public abstract void initTextSearch(String search, boolean caseSensitive);
+	public abstract void initTextSearch(String search, boolean caseSensitive, 
+	                                    boolean regExp, Set whatToSearch);
 
 	/**
 	 * Method to find the next occurrence of a string.
