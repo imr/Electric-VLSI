@@ -91,7 +91,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, true); } });
 		fileMenu.addMenuItem("Save Library as...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
@@ -108,11 +108,11 @@ public class FileMenu {
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("Readable Dump...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
 		exportSubMenu.addMenuItem("Version 8 JELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true, false); } });
 		exportSubMenu.addMenuItem("Version 6 ELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
 
 		fileMenu.addSeparator();
 
@@ -377,7 +377,7 @@ public class FileMenu {
      * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true if library saved, false otherwise.
      */
-    public static boolean saveLibraryCommand(Library lib, OpenFile.Type type, boolean compatibleWith6)
+    public static boolean saveLibraryCommand(Library lib, OpenFile.Type type, boolean compatibleWith6, boolean forceToType)
     {
         String [] extensions = type.getExtensions();
         String extension = extensions[0];
@@ -388,6 +388,12 @@ public class FileMenu {
         		(type == OpenFile.Type.ELIB && !compatibleWith6))
 	        {
 	            fileName = lib.getLibFile().getPath();
+	            if (forceToType)
+	            {
+					if (fileName.endsWith(".elib")) type = OpenFile.Type.ELIB; else
+					if (fileName.endsWith(".jelib")) type = OpenFile.Type.JELIB; else
+					if (fileName.endsWith(".txt")) type = OpenFile.Type.READABLEDUMP;
+	            }
 	        }
         }
         if (fileName == null)
@@ -470,7 +476,7 @@ public class FileMenu {
     public static void saveAsLibraryCommand(Library lib)
     {
         lib.clearFromDisk();
-        saveLibraryCommand(lib, OpenFile.Type.ELIB, false);
+        saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true);
         WindowFrame.wantToRedoTitleNames();
     }
 
@@ -484,7 +490,7 @@ public class FileMenu {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-            if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false)) break;
+            if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true)) break;
         }
     }
 
@@ -781,7 +787,7 @@ public class FileMenu {
             if (ret == 0)
             {
                 // save the library
-                if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false))
+                if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true))
                     saveCancelled = true;
                 continue;
             }

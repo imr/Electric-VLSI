@@ -198,9 +198,10 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER);
+        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
-        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER);
+        highlighter.addHighlightListener(WaveformWindow.getStaticHighlightListener());
+        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
         mouseOverHighlighter.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
@@ -330,7 +331,7 @@ public class EditWindow extends JPanel
 
 	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
 
-    public void highlightChanged() {
+    public void highlightChanged(Highlighter which) {
         repaint();
     }
 
@@ -524,6 +525,7 @@ public class EditWindow extends JPanel
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
         highlighter.removeHighlightListener(this);
+		highlighter.removeHighlightListener(WaveformWindow.getStaticHighlightListener());
         mouseOverHighlighter.removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
         highlighter.delete();
@@ -2602,24 +2604,24 @@ public class EditWindow extends JPanel
 	 * Method to find the size in database units for text of a given point size in this EditWindow.
 	 * The scale of this EditWindow is used to determine the acutal unit size.
 	 * @param pointSize the size of the text in points.
-	 * @return the relative size (in units) of the text.
+	 * @return the database size (in grid units) of the text.
 	 */
-	public double getTextUnitSize(int pointSize)
+	public double getTextUnitSize(double pointSize)
 	{
-		Point2D pt = deltaScreenToDatabase(pointSize, pointSize);
-		return pt.getX();
+//		Point2D pt = deltaScreenToDatabase(pointSize, pointSize);
+//		return pt.getX();
+		return pointSize / scale;
 	}
 
 	/**
-	 * Method to find the size in database units for text of a given point size in this EditWindow.
-	 * The scale of this EditWindow is used to determine the acutal unit size.
-	 * @param pointSize the size of the text in points.
-	 * @return the relative size (in units) of the text.
+	 * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow.
+	 * The scale of this EditWindow is used to determine the acutal screen size.
+	 * @param dbSize the size of the text in database grid-units.
+	 * @return the screen size (in points) of the text.
 	 */
-	public int getTextPointSize(double pointSize)
+	public double getTextScreenSize(double dbSize)
 	{
-		Point pt = deltaDatabaseToScreen(pointSize, pointSize);
-		return pt.x;
+		return dbSize * scale;
 	}
 
 	public static int getDefaultFontSize() { return 14; }
@@ -2636,7 +2638,7 @@ public class EditWindow extends JPanel
 		String fontName = User.getDefaultFont();
 		if (descript != null)
 		{
-			size = descript.getTrueSize(this);
+			size = (int)descript.getTrueSize(this);
 			if (size <= 0) size = 1;
 			if (descript.isItalic()) fontStyle |= Font.ITALIC;
 			if (descript.isBold()) fontStyle |= Font.BOLD;

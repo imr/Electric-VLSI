@@ -87,7 +87,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	/**
 	 * Reloads the dialog when Highlights change
 	 */
-	public void highlightChanged()
+	public void highlightChanged(Highlighter which)
 	{
         if (!isVisible()) return;
 		loadMultiInfo();

@@ -1976,18 +1976,18 @@ public class PixelDrawing
 				Color full = EGraphics.getColorFromIndex(colorIndex);
 				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
-			size = descript.getTrueSize(wnd);
+			double dSize = descript.getTrueSize(wnd);
+			size = (int)dSize;
 			if (size < MINIMUMTEXTSIZE)
 			{
 				// text too small: make it "greek"
-				if (size < 1) size = 1;
 				int sizeIndent = (size+1) / 4;
-				int fakeWidth = len * size;
+				int fakeWidth = (int)(len * dSize * 0.75);
 				Point pt = getTextCorner(fakeWidth, size, style, rect, rotation);
 
 				// do clipping
 				int lX = pt.x;   int hX = lX + fakeWidth;
-				int lY = pt.y + sizeIndent;   int hY = pt.y + size - sizeIndent;
+				int lY = pt.y + sizeIndent;   int hY = lY;
 				if (lX < 0) lX = 0;
 				if (hX >= sz.width) hX = sz.width-1;
 				if (lY < 0) lY = 0;

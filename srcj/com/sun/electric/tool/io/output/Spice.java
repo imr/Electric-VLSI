@@ -114,7 +114,7 @@ public class Spice extends Topology
         public void processFinished(Exec.FinishedEvent e) {
             URL fileURL = TextUtils.makeURLToFile(file);
 
-			// smr added this line for jg:
+			// create a new waveform window
             WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
 
             Simulate.plotSimulationResults(type, cell, fileURL, ww);

@@ -230,8 +230,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             pointsSize.setText("");
             if (wnd != null)
             {
-                int pointSize = wnd.getTextPointSize(initialSize.getSize());
-                pointsSize.setText(Integer.toString(pointSize));
+                double pointSize = wnd.getTextScreenSize(initialSize.getSize());
+                pointsSize.setText(TextUtils.formatDouble(pointSize));
             }
         }
 

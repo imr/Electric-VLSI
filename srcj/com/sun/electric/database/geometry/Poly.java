@@ -880,13 +880,14 @@ public class Poly implements Shape
 		Font font = wnd.getFont(descript);
 		if (font == null)
 		{
-			int size = EditWindow.getDefaultFontSize();
+			double size = EditWindow.getDefaultFontSize();
 			if (descript != null) size = descript.getTrueSize(wnd);
+			size = wnd.getTextUnitSize(size);
 			if (size <= 0) size = 1;
 			double cX = getBounds2D().getCenterX();
 			double cY = getBounds2D().getCenterY();
-			int sizeIndent = (size+1) / 4;
-			int fakeWidth = theString.length() * size;
+			double sizeIndent = size / 4;
+			double fakeWidth = theString.length() * size * 0.75;
 			Point2D pt = getTextCorner(style, cX, cY, fakeWidth, size);
 			cX = pt.getX();   cY = pt.getY();
 			points = new Point2D.Double[] {

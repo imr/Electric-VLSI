@@ -62,7 +62,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         this.startDepth = startDepth;
         this.endDepth = endDepth;
         currentDepth = 0;
-        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER);
+        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, null);
     }
 
     /**

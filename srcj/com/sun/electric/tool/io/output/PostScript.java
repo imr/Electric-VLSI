@@ -974,7 +974,7 @@ public class PostScript extends Output
 	{
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
-		int size = td.getTrueSize(wnd) * PSSCALE;
+		int size = (int)(td.getTrueSize(wnd) * PSSCALE);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size

@@ -33,7 +33,7 @@ public interface HighlightListener {
      * Called by the Highlight manager when highlights have changed
      * and will be updated on the screen.
      */
-    public void highlightChanged();
+    public void highlightChanged(Highlighter which);
 
     /**
      * Called when by a Highlighter when it loses focus. The argument

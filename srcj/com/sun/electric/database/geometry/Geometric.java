@@ -789,7 +789,12 @@ public abstract class Geometric extends ElectricObject
 			result = (parnt.getRTree()).findGeomAnywhere(this);
 			if (result == null)
 			{
-				System.out.println("Internal error: cannot find " + describe() + " in R-Tree of " + parnt.describe());
+				System.out.println("Internal error: Cell " + parnt.describe() + " cannot find " + describe() + " in R-Tree...Rebuilding R-Tree");
+				parnt.setRTree(Geometric.RTNode.makeTopLevel());
+				for(Iterator it = parnt.getArcs(); it.hasNext(); )
+					((Geometric)it.next()).linkGeom(parnt);
+				for(Iterator it = parnt.getNodes(); it.hasNext(); )
+					((Geometric)it.next()).linkGeom(parnt);
 				return;
 			}
 			whichRTN = (RTNode)result[0];

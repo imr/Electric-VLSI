@@ -32,8 +32,10 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -949,14 +951,16 @@ public class EditMenu {
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (!(wf.getContent() instanceof EditWindow)) return;
         EditWindow wnd = (EditWindow)wf.getContent();
-		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
+
+		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+		WaveformWindow ww = wwLoc.getWaveformWindow();
 		if (ww == null)
 		{
-			System.out.println("Cannot add selected signals to the waveform window: this cell has no waveform window");
+			System.out.println("Cannot add selected signals to the waveform window: no waveform window is associated with this cell");
 			return;
 		}
 		Set nets = wnd.getHighlighter().getHighlightedNetworks();
-		ww.showSignals(nets, true);
+		ww.showSignals(nets, wwLoc.getContext(), true);
 	}
 
 	/**
@@ -968,14 +972,15 @@ public class EditMenu {
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (!(wf.getContent() instanceof EditWindow)) return;
         EditWindow wnd = (EditWindow)wf.getContent();
-		WaveformWindow ww = WaveformWindow.findWaveformWindow(wf.getContent().getCell());
+		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+		WaveformWindow ww = wwLoc.getWaveformWindow();
 		if (ww == null)
 		{
-			System.out.println("Cannot overlay selected signals to the waveform window: this cell has no waveform window");
+			System.out.println("Cannot overlay selected signals to the waveform window: no waveform window is associated with this cell");
 			return;
 		}
 		Set nets = wnd.getHighlighter().getHighlightedNetworks();
-		ww.showSignals(nets, false);
+		ww.showSignals(nets, wwLoc.getContext(), false);
 	}
 
     /**

@@ -23,46 +23,41 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
 
 /*
  * Class for highlighting of objects on the display.

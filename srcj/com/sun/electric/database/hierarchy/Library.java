@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -41,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
 
@@ -72,10 +74,12 @@ public class Library extends ElectricObject
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** list of Cells in this library */					private ArrayList cells;
-	/** Cell currently being edited */						private Cell curCell;
+//	/** Cell currently being edited */						private Cell curCell;
+	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
     /** list of referenced libs */                          private List referencedLibs;
+	/** preferences for all libraries */					private static Preferences prefs = null;
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
 	/** the current library in Electric */					private static Library curLib = null;
@@ -88,6 +92,7 @@ public class Library extends ElectricObject
 	 */
 	private Library()
 	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
         setLinked(false);
 	}
 
@@ -124,7 +129,8 @@ public class Library extends ElectricObject
 		// create the library
 		Library lib = new Library();
 		lib.cells = new ArrayList();
-		lib.curCell = null;
+//		lib.curCell = null;
+		lib.curCellPref = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
         lib.referencedLibs = new ArrayList();
@@ -801,18 +807,40 @@ public class Library extends ElectricObject
 
 	// ----------------- cells --------------------
 
+	private void getCurCellPref()
+	{
+		if (curCellPref == null)
+		{
+			curCellPref = Pref.makeStringPref("CurrentCellLibrary" + libName, prefs, "");
+		}
+	}
+
 	/**
 	 * Method to get the current Cell in this Library.
 	 * @return the current Cell in this Library.
 	 * Returns NULL if there is no current Cell.
 	 */
-	public Cell getCurCell() { return curCell; }
+	public Cell getCurCell()
+	{
+		getCurCellPref();
+		String cellName = curCellPref.getString();
+		Cell cell = this.findNodeProto(cellName);
+		return cell;
+//		return curCell;
+	}
 
 	/**
 	 * Method to set the current Cell in this Library.
 	 * @param curCell the new current Cell in this Library.
 	 */
-	public void setCurCell(Cell curCell) { this.curCell = curCell; }
+	public void setCurCell(Cell curCell)
+	{
+		getCurCellPref();
+		String cellName = "";
+		if (curCell != null) cellName = curCell.noLibDescribe();
+		curCellPref.setString(cellName);
+//		this.curCell = curCell;
+	}
 
 	/**
 	 * Method to find the Cell with the given name in this Library.

@@ -30,6 +30,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -38,7 +39,12 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -111,8 +117,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
  */
-public class WaveformWindow implements WindowContent, HighlightListener
+public class WaveformWindow implements WindowContent
 {
+
 	private static int panelSizeDigital = 25;
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
@@ -155,9 +162,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** default range along horozintal axis */				private double minTime, maxTime;
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
-	/** true if click in waveform changes highlights */		private boolean highlightChangedByWaveform = false;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
-    /** the highlighter */                                  private Highlighter highlighter;
+	/** The highlighter for this waveform window. */		private Highlighter highlighter;
+	private static boolean freezeWaveformHighlighting = false;
+	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
 
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
@@ -1677,7 +1685,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					for(Iterator it = sourcePanel.waveSignals.values().iterator(); it.hasNext(); )
 					{
 						Signal ws = (Signal)it.next();
-						if (!ws.sSig.getSignalName().equals(signalName)) continue;
+						if (!ws.sSig.getFullName().equals(signalName)) continue;
 						sSig = ws.sSig;
 						oldColor = ws.color;
 						sourcePanel.removeHighlightedSignal(ws);
@@ -1957,6 +1965,141 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		}
 	}
 
+	// ************************************* CLASS TO ASSOCIATE WAVEFORM WINDOWS WITH EDIT WINDOWS *************************************
+
+	/**
+	 * Class to find the WaveformWindow associated with the cell in a given EditWindow.
+	 * May have to climb the hierarchy to find the top-level cell that is being simulated.
+	 */
+	public static class Locator
+	{
+		private WaveformWindow ww;
+		private String context;
+
+		/**
+		 * The constructor takes an EditWindow and locates the associated WaveformWindow.
+		 * It may have to climb the hierarchy to find it.
+		 * @param wnd the EditWindow that is being simulated.
+		 */
+		public Locator(EditWindow wnd)
+		{
+			Cell cellInWindow = wnd.getCell();
+			VarContext curContext = wnd.getVarContext();
+			ww = null;
+			context = "";
+			for(;;)
+			{
+				ww = WaveformWindow.findWaveformWindow(cellInWindow);
+				if (ww != null) break;
+				Nodable no = curContext.getNodable();
+				if (no == null) break;
+				cellInWindow = no.getParent();
+				curContext = curContext.pop();
+				context = no.getName() + "." + context;
+			}
+		}
+
+		/**
+		 * The constructor takes an EditWindow and a WaveformWindow and determines whether they are associated.
+		 * It may have to climb the hierarchy to find out.
+		 * @param wnd the EditWindow that is being simulated.
+		 * @param wantWW the WaveformWindow that is being associated.
+		 */
+		public Locator(EditWindow wnd, WaveformWindow wantWW)
+		{
+			Cell cellInWindow = wnd.getCell();
+			VarContext curContext = wnd.getVarContext();
+			ww = null;
+			context = "";
+			for(;;)
+			{
+				if (wantWW.getCell() == cellInWindow) { ww = wantWW;   break; }
+				Nodable no = curContext.getNodable();
+				if (no == null) break;
+				cellInWindow = no.getParent();
+				curContext = curContext.pop();
+				context = no.getName() + "." + context;
+			}
+		}
+
+		/**
+		 * Method to return the WaveformWindow found by this locator class.
+		 * @return the WaveformWindow associated with the EditWindow given to the contructor.
+		 * Returns null if no WaveformWindow could be found.
+		 */
+		public WaveformWindow getWaveformWindow() { return ww; }
+
+		/**
+		 * Method to return the context of all signals in the EditWindow given to the constructor.
+		 * @return the context to prepend to all signals in the EditWindow.
+		 * If the EditWindow is directly associated with a WaveformWindow, returns "".
+		 */
+		public String getContext() { return context.toLowerCase().replace('@', '_'); }
+	}
+
+	// ************************************* HIGHLIGHT LISTENER FOR ALL WAVEFORM WINDOWS *************************************
+
+	public static class WaveformWindowHighlightListener implements HighlightListener
+	{
+		/**
+		 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.
+		 * Method is called when any edit window changes its highlighting.
+		 */
+		public void highlightChanged(Highlighter which)
+		{
+			if (freezeWaveformHighlighting) return;
+			EditWindow wnd = null;
+			WindowFrame highWF = which.getWindowFrame();
+			if (highWF != null)
+			{
+				if (highWF.getContent() instanceof EditWindow)
+					wnd = (EditWindow)highWF.getContent();
+			}
+			if (wnd == null) return;
+
+			// loop through all windows, looking for waveform windows
+			for(Iterator wIt = WindowFrame.getWindows(); wIt.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)wIt.next();
+				if (!(wf.getContent() instanceof WaveformWindow)) continue;
+				WaveformWindow ww = (WaveformWindow)wf.getContent();
+
+				// start by removing all highlighting in the waveform
+				for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
+				{
+					Panel wp = (Panel)it.next();
+					wp.clearHighlightedSignals();
+				}
+	
+				Set highSet = which.getHighlightedNetworks();
+				if (highSet.size() == 1)
+				{
+					Locator loc = new Locator(wnd, ww);
+					if (loc.getWaveformWindow() != ww) continue;
+					JNetwork net = (JNetwork)highSet.iterator().next();
+					String netName = loc.getContext() + net.describe();
+					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
+					if (sSig == null) return;
+	
+					Signal ws = ww.findDisplayedSignal(sSig);
+					if (ws != null)
+					{
+						ws.wavePanel.addHighlightedSignal(ws);
+						ww.repaint();
+						return;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Called when by a Highlighter when it loses focus. The argument
+		 * is the Highlighter that has gained focus (may be null).
+		 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+		 */
+		public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+	}
+
     // ************************************* CONTROL *************************************
 
 	private static class WaveComponentListener implements ComponentListener
@@ -1982,8 +2125,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
 
-        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER);
-		highlighter.addHighlightListener(this);
+        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
 		// the total panel in the waveform window
 		overall = new OnePanel(null, this);
@@ -2342,32 +2484,42 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 */
 	public void showSelectedNetworksInSchematic()
 	{
-		WindowFrame wf = findSchematicsWindow();
-		if (wf == null) return;
-
-		Cell cell = wf.getContent().getCell();
-		Netlist netlist = cell.getUserNetlist();
-
-		highlightChangedByWaveform = true;
-		highlighter.clear();
-		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		// highlight the net in any associated edit windows
+		freezeWaveformHighlighting = true;
+		for(Iterator wIt = WindowFrame.getWindows(); wIt.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
-			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+			WindowFrame wf = (WindowFrame)wIt.next();
+			if (!(wf.getContent() instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)wf.getContent();
+			Cell cell = wnd.getCell();
+			if (cell == null) continue;
+			Netlist netlist = cell.getUserNetlist();
+			Highlighter hl = wnd.getHighlighter();
+
+			Locator loc = new Locator(wnd, this);
+			if (loc.getWaveformWindow() != this) continue;
+			String context = loc.getContext();
+
+			hl.clear();
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
-				Signal ws = (Signal)pIt.next();
-				if (!ws.highlighted) continue;
-				String want = ws.sSig.getSignalName();
-		
-				JNetwork net = findNetwork(netlist, want);
-				if (net != null)
+				Panel wp = (Panel)it.next();
+				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 				{
-					highlighter.addNetwork(net, cell);
+					Signal ws = (Signal)pIt.next();
+					if (!ws.highlighted) continue;
+					String want = ws.sSig.getFullName();
+					if (context.length() > 0 && !want.startsWith(context)) continue;
+					JNetwork net = findNetwork(netlist, want.substring(context.length()));
+					if (net != null)
+					{
+						hl.addNetwork(net, cell);
+					}
 				}
 			}
+			hl.finished();
 		}
-		highlighter.finished();
-		highlightChangedByWaveform = false;
+		freezeWaveformHighlighting = false;
 	}
 
 	private void addMainTimePanel()
@@ -2613,6 +2765,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
      */
     public Highlighter getHighlighter() { return highlighter; }
 
+	/**
+	 * Method to return the static HighlightListener to use for all waveform windows.
+	 * @return the static HighlightListener to use for all waveform windows.
+	 */
+	public static HighlightListener getStaticHighlightListener() { return waveHighlighter; }
+
 	private void rebuildPanelList()
 	{
 		rebuildingSignalNameList = true;
@@ -2704,7 +2862,15 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
-			if (net.describe().equals(name)) return net;
+			if (net.describe().equalsIgnoreCase(name)) return net;
+		}
+
+		// try converting "@" in network names
+		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
+		{
+			JNetwork net = (JNetwork)nIt.next();
+			String convertedName = net.describe().replace('@', '_');
+			if (convertedName.equalsIgnoreCase(name)) return net;
 		}
 		return null;
 	}
@@ -2712,9 +2878,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/**
 	 * Method to add a set of JNetworks to the waveform display.
 	 * @param nets the Set of JNetworks to add.
+	 * @param context the context of these networks
+	 * (a string to prepend to them to get the actual simulation signal name).
 	 * @param newPanel true to create new panels for each signal.
 	 */
-	public void showSignals(Set nets, boolean newPanel)
+	public void showSignals(Set nets, String context, boolean newPanel)
 	{
 		// determine the current panel
 		Panel wp = null;
@@ -2738,40 +2906,42 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();
-			Simulation.SimSignal sSig = sd.findSignalForNetwork(net);
-			if (sSig == null) continue;
-			Signal subWs = findDisplayedSignal(sSig);
-			if (subWs == null)
+			String netName = context + net.describe();
+			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
+			if (sSig == null)
 			{
-				// add the signal
-				if (newPanel)
-				{
-					boolean isAnalog = false;
-					if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
-					wp = new Panel(this, isAnalog);
-					if (isAnalog)
-					{
-						Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
-						double lowValue = 0, highValue = 0;
-						for(int i=0; i<as.getNumEvents(); i++)
-						{
-							double val = as.getValue(i);
-							if (i == 0) lowValue = highValue = val; else
-							{
-								if (val < lowValue) lowValue = val;
-								if (val > highValue) highValue = val;
-							}
-						}
-						double range = highValue - lowValue;
-						if (range == 0) range = 2;
-						double rangeExtra = range / 10;
-						wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
-					}
-				}
-				Signal wsig = new Signal(wp, sSig);
-				added = true;
-				wp.repaint();
+				System.out.println("Unable to find a signal named " + netName);
+				continue;
 			}
+
+			// add the signal
+			if (newPanel)
+			{
+				boolean isAnalog = false;
+				if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
+				wp = new Panel(this, isAnalog);
+				if (isAnalog)
+				{
+					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
+					double lowValue = 0, highValue = 0;
+					for(int i=0; i<as.getNumEvents(); i++)
+					{
+						double val = as.getValue(i);
+						if (i == 0) lowValue = highValue = val; else
+						{
+							if (val < lowValue) lowValue = val;
+							if (val > highValue) highValue = val;
+						}
+					}
+					double range = highValue - lowValue;
+					if (range == 0) range = 2;
+					double rangeExtra = range / 10;
+					wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+				}
+			}
+			Signal wsig = new Signal(wp, sSig);
+			added = true;
+			wp.repaint();
 		}
 		if (added)
 		{
@@ -2800,45 +2970,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		return null;
 	}
 
-	/**
-	 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.
-	 */
-	public void highlightChanged()
-	{
-		if (highlightChangedByWaveform) return;
-
-		// start by removing all highlighting in the waveform
-		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
-		{
-			Panel wp = (Panel)it.next();
-			wp.clearHighlightedSignals();
-		}
-
-		Set highSet = highlighter.getHighlightedNetworks();
-		if (highSet.size() == 1)
-		{
-			JNetwork net = (JNetwork)highSet.iterator().next();
-			String netName = net.describe();
-			Simulation.SimSignal sSig = sd.findSignalForNetwork(net);
-			if (sSig == null) return;
-
-			Signal ws = findDisplayedSignal(sSig);
-			if (ws != null)
-			{
-				ws.wavePanel.addHighlightedSignal(ws);
-				repaint();
-				return;
-			}
-		}
-	}
-
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
-    
 	/**
 	 * Method to get a Set of currently highlighted networks in this WaveformWindow.
 	 */
@@ -3082,7 +3213,9 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					return negative + timeleft + "." + timeright/10 + secType;
 				} else
 				{
-					return negative + timeleft + "." + timeright + secType;
+					String tensDigit = "";
+					if (timeright < 10) tensDigit = "0";
+					return negative + timeleft + "." + tensDigit + timeright + secType;
 				}
 			}
 		}

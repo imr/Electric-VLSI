@@ -80,7 +80,8 @@ public class Highlighter implements DatabaseChangeListener {
     /** List of HighlightListeners */                           private List highlightListeners;
     /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
     /** what was the last level of "showNetwork" */             private int showNetworkLevel;
-    /** the type of highlighter */                              private int type;
+	/** the type of highlighter */                              private int type;
+	/** the WindowFrame associated with the highlighter */      private WindowFrame wf;
 
     /** the selection highlighter type */       public static final int SELECT_HIGHLIGHTER = 0;
     /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
@@ -91,7 +92,7 @@ public class Highlighter implements DatabaseChangeListener {
      * Create a new Highlighter object
      * @param type
      */
-    public Highlighter(int type) {
+    public Highlighter(int type, WindowFrame wf) {
         highOffX = highOffY = 0;
         highlightList = new ArrayList();
         highlightStack = new ArrayList();
@@ -101,7 +102,8 @@ public class Highlighter implements DatabaseChangeListener {
         if (currentHighlighter == null) currentHighlighter = this;
         lastHighlightListEndObj = null;
         showNetworkLevel = 0;
-        this.type = type;
+		this.type = type;
+		this.wf = wf;
     }
 
     /**
@@ -445,6 +447,12 @@ public class Highlighter implements DatabaseChangeListener {
         }
     }
 
+	/**
+	 * Method to return the WindowFrame associated with this Highlighter.
+	 * @return the WindowFrame associated with this Highlighter.
+	 * Returns null if no WindowFrame is associated.
+	 */
+	public WindowFrame getWindowFrame() { return wf; }
 
     /** Add a Highlight listener */
     public synchronized void addHighlightListener(HighlightListener l) {
@@ -461,7 +469,7 @@ public class Highlighter implements DatabaseChangeListener {
         List listenersCopy = new ArrayList(highlightListeners);
         for (Iterator it = listenersCopy.iterator(); it.hasNext(); ) {
             HighlightListener l = (HighlightListener)it.next();
-            l.highlightChanged();
+            l.highlightChanged(this);
         }
         changed = false;
     }

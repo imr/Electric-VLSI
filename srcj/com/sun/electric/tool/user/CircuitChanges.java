@@ -38,6 +38,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -2302,8 +2303,11 @@ public class CircuitChanges
 				if (!(look instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)look;
 
+				String name = null;
+				Name oldName = ni.getNameKey();
+				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), ni.getAngle(), cell, ni.getName());
+					ni.getXSize(), ni.getYSize(), ni.getAngle(), cell, name);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
@@ -2337,8 +2341,11 @@ public class CircuitChanges
 				PortInst piTail = niTail.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 				PortInst piHead = niHead.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
 
+				String name = null;
+				Name oldName = ai.getNameKey();
+				if (!oldName.isTempname()) name = oldName.toString();
 				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
-					piTail, ai.getTail().getLocation(), ai.getName());
+					piTail, ai.getTail().getLocation(), name);
 				if (newAi == null) return false;
 				newAi.copyProperties(ai);
 			}
@@ -2426,7 +2433,10 @@ public class CircuitChanges
 			if (ni.isXMirrored() == ni.isYMirrored()) newAngle += topno.getAngle(); else
 				newAngle = newAngle + 3600 - topno.getAngle();
 			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
-			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), newAngle, cell, ni.getName());
+			String name = null;
+			if (ni.isUsernamed())
+				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
+			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), newAngle, cell, name);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
@@ -2473,7 +2483,10 @@ public class CircuitChanges
 				ptTail.setLocation(polyTail.getCenterX(), polyTail.getCenterY());
 			}
 
-			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, ai.getName());
+			String name = null;
+			if (ai.isUsernamed())
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
+			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, name);
 			if (newAi == null) return;
 			newAi.copyProperties(ai);
 		}
@@ -2491,7 +2504,9 @@ public class CircuitChanges
 //			if ((ai->userbits&DEADA) != 0) continue;
 			ArcProto ap = ai.getProto();
 			double wid = ai.getWidth();
-			String name = ai.getName();
+			String name = null;
+			if (ai.isUsernamed())
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
 			PortInst [] pis = new PortInst[2];
 			Point2D [] pts = new Point2D[2];
 			for(int i=0; i<2; i++)

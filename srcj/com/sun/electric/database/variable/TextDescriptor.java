@@ -1211,7 +1211,7 @@ public class TextDescriptor
 	 * @param wnd the EditWindow in which drawing will occur.
 	 * @return the point size of the text described by this TextDescriptor.
 	 */
-	public int getTrueSize(EditWindow wnd)
+	public double getTrueSize(EditWindow wnd)
 	{
 		Size s = getSize();
 		if (s == null) return 14;
@@ -1223,7 +1223,7 @@ public class TextDescriptor
 		double height = s.getSize();
 
 		// convert to screen units
-		return wnd.getTextPointSize(height);
+		return wnd.getTextScreenSize(height);
 	}
 
 	/**

@@ -1332,7 +1332,7 @@ public class Cell extends NodeProto implements Comparable
 	{
 		checkChanging();
 		NodeUsage nu = ni.getNodeUsage();
-		if (!nu.contains(ni))
+		if (nu == null || !nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
 			return;

@@ -87,7 +87,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Reloads the dialog when Highlights change
      */
-    public void highlightChanged()
+    public void highlightChanged(Highlighter which)
 	{
         if (!isVisible()) return;
 		loadInfo();

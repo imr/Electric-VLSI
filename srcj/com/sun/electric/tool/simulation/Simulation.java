@@ -193,20 +193,20 @@ public class Simulation extends Tool
 		/**
 		 * Method to return the signal that corresponds to a given JNetwork.
 		 * @param net the JNetwork to find.
+		 * @param context the context of these networks
+		 * (a string to prepend to them to get the actual simulation signal name).
 		 * @return the SimSignal that corresponds with the JNetwork.
 		 * Returns null if none can be found.
 		 */
-		public SimSignal findSignalForNetwork(JNetwork net)
+		public SimSignal findSignalForNetwork(String netName)
 		{
-			String netName = net.describe();
-	
 			// look at all signal names in the cell
 			for(Iterator it = getSignals().iterator(); it.hasNext(); )
 			{
 				SimSignal sSig = (SimSignal)it.next();
 
-				String signalName = sSig.getSignalName();
-				if (netName.equals(signalName)) return sSig;
+				String signalName = sSig.getFullName();
+				if (netName.equalsIgnoreCase(signalName)) return sSig;
 
 				// if the signal name has underscores, see if all alphabetic characters match
 				if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
@@ -225,7 +225,8 @@ public class Simulation extends Tool
 							matches = false;
 							break;
 						}
-						if (Character.isLetterOrDigit(sigChar) && sigChar != netChar)
+						if (Character.isLetterOrDigit(sigChar) &&
+							Character.toLowerCase(sigChar) != Character.toLowerCase(netChar))
 						{
 							matches = false;
 							break;

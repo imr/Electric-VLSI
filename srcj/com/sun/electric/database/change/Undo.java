@@ -1590,6 +1590,7 @@ public class Undo
 	 */
 	public static boolean recordChange()
 	{
+		if (currentBatch == null) return false;
         boolean recordChange = !doChangesQuietly;
         if (doNextChangeQuietly != doChangesQuietly) {
             // the next change state overrides the changesquietly state

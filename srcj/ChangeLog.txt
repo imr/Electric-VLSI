@@ -4,6 +4,10 @@ IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
 
 ************************* Version 8.01l: *********************************
 
+IMP: (9/8/04, SMR) Waveform window lets you cross-probe at lower levels of hierarchy.
+
+IMP: (9/8/04, SMR) Can now add signals multiple times to the waveform window.
+
 IMP/MAN: (9/8/04, JKG) Added cancel button to Change CellGroup dialog
 
 BUG: (9/8/04, JKG) Window focus problems in MDI mode
@@ -14,6 +18,20 @@ FIX: (9/8/04, JKG) Fixes to logical effort algorithms: mfactors on uncached
 
 FIX: (9/8/04, JKG) CellGroup changes now in Undo system; explorer tree
      redraws on change; cell group dialog sorts groups list
+
+IMP: (9/7/04, SMR) Now save the current cell in the Preferences.
+
+BUG: (9/7/04, SMR) Cell extraction may create duplicate temporary names.
+FIX: In CircuitChanges.extractOneNode(), do not use existing name: use either null
+     or a unique name.
+
+IMP: (9/3/04, SMR) Added ".jelib" reader and writer.
+
+BUG: (9/3/04, SMR) Rotating or mirroring may distort layout.
+FIX: The constraint system in Layout.java records two types of changes to
+     a node: a size or a position change.  Size changes were somehow considered
+     less important.  There was inconsistent use of this information, causing trouble.
+     By removing the distinction, the code works correctly.
 
 IMP: (9/2/04, SMR) Small text is now drawn "greek" and is selectable.
 

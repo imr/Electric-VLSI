@@ -184,7 +184,7 @@ public class Change extends EDialog implements HighlightListener
 	/**
 	 * Reloads the dialog when Highlights change
 	 */
-	public void highlightChanged()
+	public void highlightChanged(Highlighter which)
 	{
 		if (!isVisible()) return;
 		loadInfo();

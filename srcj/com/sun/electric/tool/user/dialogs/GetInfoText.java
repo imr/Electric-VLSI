@@ -209,7 +209,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
     /**
      * Reloads the dialog when Highlights change
      */
-    public void highlightChanged()
+    public void highlightChanged(Highlighter which)
     {
         if (!isVisible()) return;
         loadTextInfo();
@@ -390,6 +390,12 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
 		// get text description
 		Font theFont = curWnd.getFont(cti.td);
+		if (theFont == null)
+		{
+			// text too small to draw (or edit), show the dialog
+			showDialog();
+			return;
+		}
 		Point2D [] points = Highlighter.describeHighlightText(curWnd, cti.owner, cti.var, cti.shownText.getName());
 		int lowX=0, highX=0, lowY=0, highY=0;
 		for(int i=0; i<points.length; i++)
@@ -416,6 +422,25 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		EditInPlaceListener eip = new EditInPlaceListener(cti, curWnd, theFont, highX - lowX, highY - lowY, lowX, lowY);
 	}
 
+	static private class EIPTextField extends JTextField
+	{
+		private boolean first = true;
+
+		EIPTextField(String text) { super(text); }
+
+		public void paint(Graphics g)
+		{
+			if (first)
+			{
+				selectAll();
+				repaint();
+				System.out.println("First paint");
+				first = false;
+			}
+			super.paint(g);
+		}
+	}
+
 	/**
 	 * Class to handle edit-in-place of text.
 	 */
@@ -440,7 +465,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				height *= 2;
 			} else
 			{
-				JTextField tf = new JTextField(cti.initialText);
+				EIPTextField tf = new EIPTextField(cti.initialText);
 				tf.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent evt) { closeEditInPlace(); }
@@ -453,8 +478,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
 			if (theFont != null) tc.setFont(theFont);
-			javax.swing.text.Document doc = tc.getDocument();
-			System.out.println("Document is "+doc);
+//			javax.swing.text.Document doc = tc.getDocument();
 			tc.selectAll();
 
 			wnd.add(tc);

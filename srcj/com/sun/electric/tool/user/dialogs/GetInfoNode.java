@@ -118,7 +118,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     /**
      * Reloads the dialog when Highlights change
      */
-    public void highlightChanged()
+    public void highlightChanged(Highlighter which)
 	{
         if (!isVisible()) return;
 		loadInfo();

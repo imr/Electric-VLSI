@@ -86,7 +86,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     /**
      * Reloads the dialog when Highlights change
      */
-    public void highlightChanged()
+    public void highlightChanged(Highlighter which)
 	{
         if (!isVisible()) return;
 		loadExportInfo();

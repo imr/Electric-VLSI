@@ -242,6 +242,9 @@ public class ArcInst extends Geometric
             tailPt = new Point2D.Double(tailBounds.getCenterX(), tailBounds.getCenterY());
         }
 
+		// make sure fields are valid
+		if (type == null || head == null || tail == null) return null;
+
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, 0)) return null;
 		if (!ai.stillInPort(ai.getHead(), headPt, false))

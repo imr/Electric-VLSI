@@ -114,6 +114,19 @@ public class HSpiceOut extends Simulate
 				PA0Line pl = new PA0Line();
 				pl.number = TextUtils.atoi(trimLine, 0, 10);
 				pl.string = trimLine.substring(spacePos+1).trim();
+
+				// remove all of the "x" characters at the start of every instance name
+				int dotPos = -1;
+				for(;;)
+				{
+					int xPos = dotPos + 1;
+					if (pl.string.length() > xPos && pl.string.charAt(xPos) == 'x')
+					{
+						pl.string = pl.string.substring(0, xPos) + pl.string.substring(xPos+1);
+					}
+					dotPos = pl.string.indexOf('.', xPos);
+					if (dotPos < 0) break;
+				}
 				pa0List.add(pl);
 			}
 		}

@@ -74,9 +74,8 @@ public class Layout extends Constraints
 	 * ai.getChangeClock() == changeClock-1  unmodified unrigid arcs
 	 * ai.getChangeClock() == changeClock      modified rigid   arcs
 	 * ai.getChangeClock() == changeClock+1    modified unrigid arcs
-	 * ni.getChangeClock() <  changeClock-1  unmodified         nodes
-	 * ni.getChangeClock() == changeClock-1  size-changed       nodes
-	 * ni.getChangeClock() == changeClock    position-changed   nodes
+	 * ni.getChangeClock() <  changeClock    unmodified         nodes
+	 * ni.getChangeClock() == changeClock    modified           nodes
 	 */
 	private static int changeClock = 10;
 
@@ -327,15 +326,15 @@ public class Layout extends Constraints
 	private static boolean alterNodeInst(NodeInst ni, double deltaCX, double deltaCY, double deltaSX,
 		double deltaSY, int dAngle, boolean announce)
 	{
-		// determine whether this is a position or size change
-		int change = -1;
-		if (deltaSX == 0 && deltaSY == 0)
-		{
-			if (deltaCX != 0 || deltaCY != 0 || dAngle != 0) change = 0;
-		}
+//		// determine whether this is a position or size change
+//		int change = -1;
+//		if (deltaSX == 0 && deltaSY == 0)
+//		{
+//			if (deltaCX != 0 || deltaCY != 0 || dAngle != 0) change = 0;
+//		}
 
 		// reject if this change has already been done
-		if (ni.getChangeClock() >= changeClock+change) return false;
+		if (ni.getChangeClock() >= changeClock) return false;
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		boolean flipX = ni.isMirroredAboutXAxis();
@@ -343,7 +342,6 @@ public class Layout extends Constraints
 		boolean flipY = ni.isMirroredAboutYAxis();
 		if ((ni.getYSizeWithMirror() + deltaSY) * ni.getYSizeWithMirror() < 0) flipY = !flipY;
 		if (flipX ^ flipY) dAngle = (3600 - dAngle) % 3600;
-		if (DEBUG) System.out.println("Moving node "+ni.describe()+" by ("+deltaCX+","+deltaCY+")");
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
@@ -351,15 +349,17 @@ public class Layout extends Constraints
 		double oldCY = ni.getAnchorCenterY();
 		double oldSX = ni.getXSizeWithMirror();
 		double oldSY = ni.getYSizeWithMirror();
+		if (DEBUG) System.out.println("Moving node "+ni.describe()+" [is "+oldSX+"x"+oldSY+" at ("+oldCX+","+oldCY+") rot "+oldang+
+			"] change is dx="+deltaCX+" dy="+deltaCY+" dwid="+deltaSX+" dhei="+deltaSY+") drot="+dAngle);
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
 
 		// mark that this nodeinst has changed
-		if (ni.getChangeClock() < changeClock-1)
+		if (ni.getChangeClock() != changeClock)
 		{
 			Undo.modifyNodeInst(ni, oldCX, oldCY, oldSX, oldSY, oldang);
 		}
 
-		ni.setChangeClock(changeClock + change);
+		ni.setChangeClock(changeClock);
 
 		// see if this nodeinst is a port of the current cell
 		if (ni.getNumExports() == 0) return false;
@@ -491,12 +491,12 @@ public class Layout extends Constraints
 			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 			ai.clearRigidModified();
-			if (DEBUG) System.out.println("  Modifying Rigid arc "+ai.describe());
+			if (DEBUG) System.out.println("  From node " + ni.describe() + " Modifying Rigid arc "+ai.describe());
 
 			// if rigid arcinst has already been changed check its connectivity
 			if (ai.getChangeClock() == changeClock)
 			{
-				if (DEBUG) System.out.println("  Arc already changed");
+				if (DEBUG) System.out.println("    Arc already changed");
 				ensureArcInst(ai, 0);
 				continue;
 			}
@@ -510,10 +510,14 @@ public class Layout extends Constraints
 				thatEnd = ai.getHead();   thatEndIndex = 0;
 			}
 
+			NodeInst ono = thatEnd.getPortInst().getNodeInst();
+			PortProto opt = thatEnd.getPortInst().getPortProto();
+
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
 			if (change != null && change.getType() != Undo.Type.NODEINSTNEW)
 			{
+				// node "ni" changed, so adjust the offset
 				ox = change.getA1();
 				oy = change.getA2();
 				adjustMatrix(ni, thisEnd.getPortInst().getPortProto(), trans);
@@ -528,12 +532,10 @@ public class Layout extends Constraints
 			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
 
-			NodeInst ono = thatEnd.getPortInst().getNodeInst();
-			PortProto opt = thatEnd.getPortInst().getPortProto();
-
 			// figure out the new location of that arcinst connection
 			src.setLocation(thatEnd.getLocation().getX()-ox, thatEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thatEndIndex]);
+
 			// see if other nodeinst has changed
 			boolean locked = false;
 			if (ono.getChangeClock() == changeClock) locked = true; else
@@ -555,11 +557,12 @@ public class Layout extends Constraints
 				// compute port motion within the other nodeinst (is this right? !!!)
 				Poly oldPoly = oldPortPosition(ono, opt);
 				//Point2D onoPt = oldPortPosition(ono, opt);
-				Point2D onoPt = new Point2D.Double(oldPoly.getCenterX(), oldPoly.getCenterY());
+				double oldX = oldPoly.getCenterX();
+				double oldY = oldPoly.getCenterY();
 				Poly oPoly = thatEnd.getPortInst().getPoly();
 				double dx = oPoly.getCenterX();   double dy = oPoly.getCenterY();
-				double othX = dx - onoPt.getX();
-				double othY = dy - onoPt.getY();
+				double othX = dx - oldX;
+				double othY = dy - oldY;
 
 				// figure out the new location of the other nodeinst
 				src.setLocation(ono.getAnchorCenterX()-ox, ono.getAnchorCenterY()-oy);
@@ -571,15 +574,26 @@ public class Layout extends Constraints
 
 				// move the other nodeinst
 				int nextAngle = dAngle;
+
+				boolean thisWasTranspose = false;
+				if (change != null && change.getType() != Undo.Type.NODEINSTNEW)
+				{
+					thisWasTranspose = (change.getA3() < 0) ^ (change.getA4() < 0);
+				}
+				boolean onoTranspose = ono.isMirroredAboutXAxis() ^ ono.isMirroredAboutYAxis();
+				boolean dTrans = flipX ^ flipY;
 				boolean oFlipX = ono.isMirroredAboutXAxis(); if (flipX) oFlipX = !oFlipX;
 				boolean oFlipY = ono.isMirroredAboutYAxis(); if (flipY) oFlipY = !oFlipY;
-				if (oFlipX ^ oFlipY) nextAngle = (3600 - nextAngle) % 3600;
+				if (dTrans && (onoTranspose != thisWasTranspose))
+				{
+					nextAngle = (3600 - nextAngle) % 3600;
+				}
 
 				// ignore null motion on nodes that have already been examined
-				if (dx != 0 || dy != 0 || nextAngle != 0 || ono.getChangeClock() != changeClock-1)
+				if (dx != 0 || dy != 0 || nextAngle != 0 || ono.getChangeClock() != changeClock)
 				{
 					ai.setRigidModified();
-					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
+					if (DEBUG) System.out.println("    Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
 					double changeSX = 0, changeSY = 0;
 					if (oFlipX) changeSX = -ono.getXSizeWithMirror() * 2;
 					if (oFlipY) changeSY = -ono.getYSizeWithMirror() * 2;
@@ -589,7 +603,7 @@ public class Layout extends Constraints
 			}
 
 			// move the arcinst
-			if (DEBUG) System.out.println("  Altering arc, end moves to "+newPts[0]+" tail moves to "+newPts[1]);
+			if (DEBUG) System.out.println("    Altering arc, end moves to "+newPts[0]+" tail moves to "+newPts[1]);
 			doMoveArcInst(ai, newPts[0], newPts[1], 0);
 		}
 
@@ -611,7 +625,7 @@ public class Layout extends Constraints
 
 			int nextAngle = dAngle;
 			if (ono.isMirroredAboutXAxis() ^ ono.isMirroredAboutYAxis()) nextAngle = (3600 - nextAngle) % 3600;
-			if (DEBUG) System.out.println("Propagating to other node "+ono.describe());
+			if (DEBUG) System.out.println("  Node " + ni.describe() + " re-examining arc " + ai.describe() + " to other node "+ono.describe());
 			if (modNodeArcs(ono, nextAngle, 0, 0, flipX, flipY)) examineCell = true;
 		}
 		return examineCell;
@@ -782,7 +796,7 @@ public class Layout extends Constraints
 							dx = odx = 0;
 
 						// if other node already moved, don't move it any more
-						if (ono.getChangeClock() >= changeClock) dx = odx = 0;
+						if (ono.getChangeClock() == changeClock) dx = odx = 0;
 
 						if (dx != odx)
 						{
@@ -813,7 +827,7 @@ public class Layout extends Constraints
 							dy = ody = 0;
 
 					// if other node already moved, don't move it any more
-					if (ono.getChangeClock() >= changeClock) dx = odx = 0;
+					if (ono.getChangeClock() == changeClock) dx = odx = 0;
 
 					if (!DBMath.doublesEqual(dy, ody))
 					{
@@ -840,7 +854,7 @@ public class Layout extends Constraints
 				updateArc(ai, newPts[0], newPts[1], 1);
 
 				// if other node already moved, don't move it any more
-				if (ono.getChangeClock() >= changeClock) dx = dy = 0;
+				if (ono.getChangeClock() == changeClock) dx = dy = 0;
 
 				if (dx != 0 || dy != 0)
 				{
@@ -1147,7 +1161,6 @@ public class Layout extends Constraints
 		if (change.getA3() * ni.getXSizeWithMirror() >= 0 && change.getA4() * ni.getYSizeWithMirror() >= 0 && change.getI1() == ni.getAngle())
 		{
 			// nodeinst did not rotate or mirror: adjust for port motion
-			//Point2D ono = oldPortPosition(ni, pp);
 			Poly oldPoly = oldPortPosition(ni, pp);
 			Point2D ono = new Point2D.Double(oldPoly.getCenterX(), oldPoly.getCenterY());
 			Poly curPoly = ni.getShapeOfPort(pp);
@@ -1155,6 +1168,7 @@ public class Layout extends Constraints
 			double dy = curPoly.getCenterY();
 			double ox = change.getA1();
 			double oy = change.getA2();
+
 			// Zero means flat port or artwork. Valid for new technology
 			if (oldPoly.getBounds2D().getWidth() > 0)
 				m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
@@ -1220,11 +1234,6 @@ public class Layout extends Constraints
 		Poly poly = tech.getShapeOfPort(bottomNi, (PrimitivePort)bottomPP);
 		poly.transform(subrot);
 		return (poly);
-		/*
-		double x = poly.getCenterX();
-		double y = poly.getCenterY();
-		return new Point2D.Double(x, y);
-		*/
 	}
 
 	private static AffineTransform makeOldRot(NodeInst ni)
