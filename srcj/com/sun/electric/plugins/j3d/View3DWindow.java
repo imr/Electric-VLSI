@@ -1412,8 +1412,6 @@ public class View3DWindow extends JPanel
 			double factor = (out) ? (0.5/z_factor) : (2*z_factor);
 			double factor1 = (out) ? (1/z_factor) : (z_factor);
 
-			System.out.println("Factor " + factor + " Fa " + factor1);
-
 			double dy = currXform.getScale() * factor1;
 			currXform.setScale(dy);
 
