@@ -51,18 +51,19 @@ public class Tech {
 	// Electric Nodes and Arcs.  This information isn't otherwise
 	// available from Jose.
 	//private static HashMap infos = new HashMap();
-	private static String[] layerNms =
-		{
-			"Polysilicon-1",
-			"Metal-1",
-			"Metal-2",
-			"Metal-3",
-			"Metal-4",
-			"Metal-5",
-			"Metal-6" };
+	private static String[] layerNms = {
+		"Polysilicon-1",
+		"Metal-1",
+		"Metal-2",
+		"Metal-3",
+		"Metal-4",
+		"Metal-5",
+		"Metal-6" 
+	};
 	private static int nbLay = layerNms.length;
 	private static PrimitiveArc[] layers = new PrimitiveArc[nbLay];
 	private static PrimitiveNode[] vias = new PrimitiveNode[nbLay - 1];
+	private static HashMap viaMap = new HashMap();
 
 	//----------------------------- public data ----------------------------------
 	/** layers 
@@ -124,25 +125,6 @@ public class Tech {
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
-	/*
-	// Temporary: protoSizeOffset doesn't yet exist in Jose
-	private static double invisWid(NodeProto proto) {
-	  Info info = (Info) infos.get(proto);
-	  return info==null ? 0 : info.invisWidth;    
-	}
-	private static double invisHei(NodeProto proto) {
-	  Info info = (Info) infos.get(proto);
-	  return info==null ? 0 : info.invisHeight;
-	}
-	private static double invisWid(ArcProto proto) {
-	  Info info = (Info) infos.get(proto);
-	  return info==null ? 0 : info.invisWidth;    
-	}
-	private static boolean isVia(NodeProto proto) {
-	  Info info = (Info) infos.get(proto);
-	  return info!=null ? info.isVia : false;
-	}
-	*/
 	static {
 		Technology tech = Technology.findTechnology("mocmos");
 
@@ -160,9 +142,6 @@ public class Tech {
 		m6 = layers[6];
 		pdiff = tech.findArcProto("P-Active");
 		ndiff = tech.findArcProto("N-Active");
-		//                       (isVia, invisWid, invisHeight)
-		//infos.put(ndiff, new Info(false, 12,       0));
-		//infos.put(pdiff, new Info(false, 12,       0));
 
 		pdpin = pdiff.findPinProto();
 		ndpin = ndiff.findPinProto();
@@ -192,49 +171,13 @@ public class Tech {
 		nwm1 = tech.findNodeProto("Metal-1-N-Well-Con");
 		pwm1 = tech.findNodeProto("Metal-1-P-Well-Con");
 
-		// The default width of vias reported by via.getBounds() is larger
-		// than the width of the visible layers.  From the GUI I determined
-		// the width of the visible layers for default sized vias.
-		//      default          default         visible
-		//      bound box        visible          layer
-		//       width            layer           width
-		//                        width        with 2 cuts
-		// p1m1      10            10               10
-		// m1m2      10             9               9
-		// m2m3      12            10               9
-		// m3m4      12            10               9               
-		// m4m5      14            11               9
-		// m5m6      16            13               12
-		//                     (isVia, invisWid, invisHeight)
-		/*
-		infos.put(ndm1, new Info(true, 12,       12));
-		infos.put(pdm1, new Info(true, 12,       12));
-		infos.put(nwm1, new Info(true, 12,       12));
-		infos.put(pwm1, new Info(true, 12,       12));
-		infos.put(p1m1, new Info(true, 0,        0));
-		infos.put(m1m2, new Info(true, 1,        1));
-		infos.put(m2m3, new Info(true, 2,        2));
-		infos.put(m3m4, new Info(true, 2,        2));
-		infos.put(m4m5, new Info(true, 3,        3));
-		infos.put(m5m6, new Info(true, 3,        3));
-		*/
-
 		// initialize transistors
 		nmos = tech.findNodeProto("N-Transistor");
 		pmos = tech.findNodeProto("P-Transistor");
-		// for scale=1 reported NMOS width = 15 lambda, length = 22 lambda    
-		//               actual NMOS width = 3 lambda, length = 2 lambda
-		// adjust length by 20, width by 12
-		//                      (isVia, invisWid, invisHeight)
-		//infos.put(nmos, new Info(false, 12,       20));
-		//infos.put(pmos, new Info(false, 12,       20));
 
 		// intialize well
 		nwell = tech.findNodeProto("N-Well-Node");
 		pwell = tech.findNodeProto("P-Well-Node");
-		//                      (isVia, invisWid, invisHeight)
-		//infos.put(nwell,new Info(false, 0,        0));
-		//infos.put(pwell,new Info(false, 0,        0));
 
 		// Layer Nodes
 		m1Node = tech.findNodeProto("Metal-1-Node");
@@ -255,15 +198,21 @@ public class Tech {
 		facetCenter = generic.findNodeProto("Facet-Center");
 
 		universalArc = generic.findArcProto("Universal");
+
+		// initialize map from layers to vias
+		viaMap.put(new Integer(m1.hashCode() * m2.hashCode()), m1m2);
+		viaMap.put(new Integer(m2.hashCode() * m3.hashCode()), m2m3);
+		viaMap.put(new Integer(m3.hashCode() * m4.hashCode()), m3m4);
+		viaMap.put(new Integer(m4.hashCode() * m5.hashCode()), m4m5);
+		viaMap.put(new Integer(m5.hashCode() * m6.hashCode()), m5m6);
+
+		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
+		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
+		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
 	}
 
 	//----------------------------- public methods  ------------------------------
 	/*
-	public static int lambda2base(double lam) {
-	  return (int) Math.round(lam*200);
-	}
-	public static double base2lambda(int base) {return (double) base/200;}
-	
 	// this is useful for debugging only
 	public static void dumpPoly(Poly p) {
 	  // dump the poly
@@ -292,6 +241,11 @@ public class Tech {
 	  System.out.println("End Polygon");
 	}
 	*/
+
+	public static PrimitiveNode getViaFor(PrimitiveArc a1, PrimitiveArc a2) {
+		int code = a1.hashCode() * a2.hashCode();
+		return (PrimitiveNode) viaMap.get(new Integer(code));		
+	}
 
 	/** layer may only be poly or metal */
 	public static ArcProto closestLayer(PortProto port, ArcProto layer) {

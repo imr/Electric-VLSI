@@ -715,7 +715,7 @@ public final class MenuCommands
 		menuBar.add(russMenu);
 		russMenu.addMenuItem("Fill Cell Generator", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.FillCell();
+				new com.sun.electric.tool.generator.layout.FillLibGen();
 			}
 		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
