@@ -681,9 +681,12 @@ public class NodeInst extends Geometric implements Nodable
 		if (checkAndRepair() > 0) return true;
 
 		// add to linked lists
+        linkGeom(parent);
         nodeUsage = parent.addNode(this);
-        if (nodeUsage == null) return true;
-		linkGeom(parent);
+        if (nodeUsage == null) {
+            unLinkGeom(parent);
+            return true;
+        }
         setLinked(true);
 		return false;
 	}
