@@ -56,7 +56,7 @@ public class NccResult {
 	/** No problem was found */
 	public boolean match() {return exportMatch && topologyMatch && sizeMatch;}
 	
-	NetEquivalence getNetEquivalence() {
+	public NetEquivalence getNetEquivalence() {
 		return new NetEquivalence(globalData.getEquivalentNets());
 	}
 	

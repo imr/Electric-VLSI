@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
@@ -1330,4 +1331,16 @@ public class TextUtils
 			return s1.compareToIgnoreCase(s2);
 		}
 	}
+
+    public static class NetworksByName implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            Network n1 = (Network)o1;
+            Network n2 = (Network)o2;
+            String s1 = n1.describe();
+            String s2 = n2.describe();
+            return s1.compareToIgnoreCase(s2);
+        }
+    }
 }

@@ -100,6 +100,7 @@ public final class HierarchyEnumerator {
 			super(context, sep);
 			this.net = net;
 		}
+        public Network getNet() { return net; }
 	}
 	public static class NodableNameProxy extends NameProxy {
 		private Nodable node;

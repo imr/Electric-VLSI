@@ -46,6 +46,11 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.Ncc;
+import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.NccResult;
+import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
@@ -248,6 +253,8 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
 		networkSubMenu.addMenuItem("List Geometry on Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
+        networkSubMenu.addMenuItem("List Total Wire Lengths on All Networks", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
 		networkSubMenu.addSeparator();
 		networkSubMenu.addMenuItem("Show Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
@@ -265,6 +272,8 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
 		logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
+        logEffortSubMenu.addMenuItem("Back Annotate Wire Lengths for Current Cell", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { backAnnotateCommand(); }});
 		logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node(s)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
 		logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
@@ -393,6 +402,91 @@ public class ToolMenu {
 		}
 
 	}
+
+    public static void backAnnotateCommand() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+
+        BackAnnotateJob job = new BackAnnotateJob(cell);
+        job.startJob();
+    }
+
+    public static class BackAnnotateJob extends Job {
+        private Cell cell;
+        public BackAnnotateJob(Cell cell) {
+            super("BackAnnotate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+        }
+
+        public boolean doIt() {
+            Cell[] schLayCells = NccUtils.findSchematicAndLayout(cell);
+            if (schLayCells == null) {
+                System.out.println("Could not find schematic and layout cells for "+cell.describe());
+                return false;
+            }
+            if (cell.getView() == View.LAYOUT) {
+                // check if layout cells match, if not, replace
+                schLayCells[1] = cell;
+            }
+
+            // run NCC, get results
+            NccOptions options = new NccOptions();
+            NccResult result = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options);
+            if (result == null) {
+                System.out.println("Ncc failed, can't back-annotate");
+                return false;
+            }
+
+            // find all wire models in schematic
+            int wiresUpdated = 0;
+            ArrayList networks = new ArrayList();
+            HashMap map = new HashMap();        // map of networks to associated wire model nodeinst
+            for (Iterator it = schLayCells[0].getNodes(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                Variable var = ni.getVar("ATTR_LEWIRE");
+                if (var == null) continue;
+                var = ni.getVar("ATTR_L");
+                if (var == null) {
+                    System.out.println("No attribute L on wire model "+ni.describe()+", ignoring it.");
+                    continue;
+                }
+                // grab network wire model is on
+                PortInst pi = ni.getPortInst(0);
+                if (pi == null) continue;
+                Netlist netlist = schLayCells[0].getNetlist(true);
+                Network schNet = netlist.getNetwork(pi);
+                networks.add(schNet);
+                map.put(schNet, ni);
+            }
+            // sort networks by name
+            Collections.sort(networks, new TextUtils.NetworksByName());
+
+            // update wire models
+            for (Iterator it = networks.iterator(); it.hasNext(); ) {
+                Network schNet = (Network)it.next();
+                Netlist netlist = schLayCells[0].getNetlist(true);
+                // find equivalent network in layouy
+                NetEquivalence equiv = result.getNetEquivalence();
+                HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet, 0);
+                Network layNet = proxy.getNet();
+                // get wire length
+                HashSet nets = new HashSet();
+                nets.add(layNet);
+                GeometryOnNetwork geoms = listGeometryOnNetworks(schLayCells[1], nets);
+                double length = geoms.getTotalWireLength();
+
+                // update wire length
+                NodeInst ni = (NodeInst)map.get(schNet);
+                ni.updateVar("ATTR_L", new Double(length));
+                wiresUpdated++;
+                System.out.println("Updated wire model "+ni.getName()+" on network "+proxy.toString()+" to: "+length+" lambda");
+            }
+            System.out.println("Updated "+wiresUpdated+" wire models in "+schLayCells[0].describe()+" from layout "+schLayCells[1].describe());
+            return true;
+        }
+    }
 
 	public static void clearSizesNodableCommand() {
 		EditWindow wnd = EditWindow.needCurrent();
@@ -706,27 +800,50 @@ public class ToolMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
-	    Netlist netlist = cell.getUserNetlist();
-
-	    if (nets.isEmpty())
-	    {
-		    System.out.println("No network in cell '" + cell.describe() + "' selected");
-		    return;
-	    }
-
-        for(Iterator it = nets.iterator(); it.hasNext(); )
+        HashSet nets = (HashSet)highlighter.getHighlightedNetworks();
+        if (nets.isEmpty())
         {
-	        Network net = (Network)it.next();
-	        System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
+            System.out.println("No network in cell '" + cell.describe() + "' selected");
+            return;
         }
+        GeometryOnNetwork geoms = listGeometryOnNetworks(cell, nets);
+        geoms.print();
+    }
+
+    public static void listGeomsAllNetworksCommand() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+        Netlist netlist = cell.getNetlist(true);
+        ArrayList networks = new ArrayList();
+        for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+            networks.add(it.next());
+        }
+        // sort list of networks by name
+        Collections.sort(networks, new TextUtils.NetworksByName());
+        for (Iterator it = networks.iterator(); it.hasNext(); ) {
+            Network net = (Network)it.next();
+            HashSet nets = new HashSet();
+            nets.add(net);
+            ToolMenu.GeometryOnNetwork geoms = ToolMenu.listGeometryOnNetworks(cell, nets);
+            if (geoms.getTotalWireLength() == 0) continue;
+            System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+        }
+    }
+
+    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets) {
+        if (cell == null || nets == null || nets.isEmpty()) return null;
+	    Netlist netlist = ((Network)nets.iterator().next()).getNetlist();
+
 	    long startTime = System.currentTimeMillis();
         PolyQTree tree = new PolyQTree(cell.getBounds());
 	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK, null, nets);
 	    HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, visitor);
 
-		double totalWire = 0;
         double lambda = 1; // lambdaofcell(np);
+        GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda);
+        geoms.setStartTime(startTime);
 
 		// Traversing tree with merged geometry
 		for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
@@ -746,22 +863,73 @@ public class ToolMenu {
 			layerArea /= lambda;
 			perimeter /= 2;
 
-			Layer.Function func = layer.getFunction();
-
-			/* accumulate total wire length on all metal/poly layers */
-			if (func.isPoly() && !func.isGatePoly() || func.isMetal())
-				totalWire += perimeter;
-
-			System.out.println("Layer " + layer.getName()
-			        + ":\t area " + TextUtils.formatDouble(layerArea)
-			        + "\t half-perimeter " + TextUtils.formatDouble(perimeter)
-			        + "\t ratio " + TextUtils.formatDouble(layerArea/perimeter));
+            geoms.addLayer(layer, layerArea, perimeter);
 		}
 	    long endTime = System.currentTimeMillis();
-	    if (totalWire > 0)
-		    System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda) + " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        geoms.setEndTime(endTime);
+        return geoms;
 
 		// @TODO GVG lambda and ratio ==0 (when is the case?)
+    }
+
+    public static class GeometryOnNetwork {
+        public final Cell cell;
+        private Set nets;
+        private double lambda;
+        private long startTime;
+        private long endTime;
+
+        // these lists tie together a layer, its area, and its half-perimeter
+        private ArrayList layers;
+        private ArrayList areas;
+        private ArrayList halfPerimeters;
+        private double totalWire;
+
+        private GeometryOnNetwork(Cell cell, Set nets, double lambda) {
+            this.cell = cell;
+            this.nets = nets;
+            this.lambda = lambda;
+            layers = new ArrayList();
+            areas = new ArrayList();
+            halfPerimeters = new ArrayList();
+            totalWire = 0;
+            startTime = endTime = 0;
+        }
+        private void setStartTime(long startTime) { this.startTime = startTime; }
+        private void setEndTime(long endTime) { this.endTime = endTime; }
+        public double getTotalWireLength() { return totalWire; }
+
+        private void addLayer(Layer layer, double area, double halfperimeter) {
+            layers.add(layer);
+            areas.add(new Double(area));
+            halfPerimeters.add(new Double(halfperimeter));
+
+            Layer.Function func = layer.getFunction();
+            /* accumulate total wire length on all metal/poly layers */
+            if (func.isPoly() && !func.isGatePoly() || func.isMetal())
+                totalWire += halfperimeter;
+        }
+
+        public void print() {
+            for(Iterator it = nets.iterator(); it.hasNext(); )
+            {
+                Network net = (Network)it.next();
+                System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
+            }
+            for (int i=0; i<layers.size(); i++) {
+                Layer layer = (Layer)layers.get(i);
+                Double area = (Double)areas.get(i);
+                Double halfperim = (Double)halfPerimeters.get(i);
+
+                System.out.println("Layer " + layer.getName()
+                        + ":\t area " + TextUtils.formatDouble(area.doubleValue())
+                        + "\t half-perimeter " + TextUtils.formatDouble(halfperim.doubleValue())
+                        + "\t ratio " + TextUtils.formatDouble(area.doubleValue()/halfperim.doubleValue()));
+            }
+            if (totalWire > 0)
+                System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda) +
+                        " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        }
     }
 
     public static void showPowerAndGround()
