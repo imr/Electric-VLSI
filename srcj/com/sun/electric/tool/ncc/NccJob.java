@@ -57,7 +57,7 @@ public class NccJob extends Job {
 		} 
 		Cell[] schLay = NccUtils.findSchematicAndLayout(curCellCtxt.cell);
 		if (schLay==null) {
-			System.out.println("current Cell doesn't have both schematic and layout views");
+			System.out.println("current Cell Group doesn't have both schematic and layout Cells");
 			return null;
 		}
 		CellContext[] cc = {

@@ -52,25 +52,35 @@ public class StratCheckSizes extends Strategy {
     private void checkWidthMismatch() {
 		double relWidErr = (maxWidth - minWidth) / minWidth;
 		double absWidErr = maxWidth - minWidth;
+		boolean isCap = minWidMos.isCapacitor(); 
 		if (absWidErr>absTol && relWidErr>relTol) {
-			System.out.println("MOS widths don't match. "+
-							   " relativeError="+relWidErr+" absoluteError="+absWidErr);
-			System.out.println("   minimumWidth="+minWidth+" maximumWidth="+maxWidth);
-			System.out.println("   narrowMOS="+minWidMos.toString());
-			System.out.println("   wideMOS="+maxWidMos.toString());
-			matches = false;
+			if (isCap) {
+				System.out.print("Warning: MOS capacitor widths don't match. ");
+			} else {
+				System.out.print("MOS widths don't match. ");
+			}
+			System.out.println(" relativeError="+relWidErr+" absoluteError="+absWidErr);
+			System.out.println("   W="+minWidth+" for "+minWidMos.toString());
+			System.out.println("   W="+maxWidth+" for "+maxWidMos.toString());
+			// Capacitor mismatches deserve warnings not errors
+			if (!isCap)  matches = false;
 		}
     }
     private void checkLengthMismatch() {
 		double relLenErr = (maxLength - minLength) / minLength;
     	double absLenErr = maxLength - minLength;
     	if (absLenErr>absTol && relLenErr>relTol) {
-			System.out.println("MOS lengths don't match. "+
-							   " relativeError="+relLenErr+" absoluteError="+absLenErr);
-			System.out.println("   minimumLength="+minLength+" maximumLength="+maxLength);
-			System.out.println("   shortMOS="+minLenMos.toString());
-			System.out.println("   longMOS="+maxLenMos.toString());
-			matches = false;
+			boolean isCap = minLenMos.isCapacitor(); 
+			if (isCap) {
+				System.out.print("Warning: MOS capacitor widths don't match. ");
+			} else {
+				System.out.print("MOS widths don't match. ");
+			}
+			System.out.println(" relativeError="+relLenErr+" absoluteError="+absLenErr);
+			System.out.println("   L="+minLength+" for "+minLenMos.toString());
+			System.out.println("   L="+maxLength+" for "+maxLenMos.toString());
+			// Capacitor mismatches deserve warnings not errors
+			if (!isCap)  matches = false;
     	}
     }
 

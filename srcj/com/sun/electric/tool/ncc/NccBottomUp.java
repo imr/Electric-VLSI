@@ -127,6 +127,10 @@ public class NccBottomUp {
 		// group. In that case avoid blowing up.
 		if (cellsInGroup.size()<2) return result;
 		
+		// notSubcircuit means check it but don't use it as a subcircuit
+		if (hierInfo!=null && dontTreatAsSubcircuit(cellsInGroup))  
+			hierInfo.purgeCurrentCellGroup();
+
 		Cell refCell = selectAndRemoveReferenceCell(cellsInGroup);
 
 		if (hierInfo!=null)  hierInfo.beginNextCellGroup(groupName);
@@ -209,7 +213,7 @@ public class NccBottomUp {
 			List cellsInGroup = getUsedCellsInGroup(cell, use1, use2);
 			String grpNm = cell.getLibrary().getName()+":"+cell.getName();
 
-			if (hierarchical && dontTreatAsSubcircuit(cellsInGroup))  continue;
+//			if (hierarchical && dontTreatAsSubcircuit(cellsInGroup))  continue;
 
 			result.and(compareCellsInGroup(cellsInGroup, grpNm, hierInfo,options));
 
@@ -233,8 +237,6 @@ public class NccBottomUp {
 	
 	public static NccResult compare(Cell c1, Cell c2, boolean hierarchical, 
 	                                NccOptions options) {
-		// size checking not useful when we're doing all cells
-		options.checkSizes = false;
 		NccBottomUp ncch = new NccBottomUp();
 		return ncch.compareCells(c1, c2, hierarchical, options);
 	}

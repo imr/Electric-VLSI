@@ -124,7 +124,7 @@ public class NccEngine {
 			if (expNamesOK) {
 				expCheck.saveInfoNeededToMakeMeASubcircuit(hierInfo);
 			} else { 
-				if (hierInfo!=null) hierInfo.exportNameMismatchInCellGroup();
+				if (hierInfo!=null) hierInfo.purgeCurrentCellGroup();
 			}
 			// Useless so far
 			//expCheck.printExportTypeWarnings();

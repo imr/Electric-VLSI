@@ -34,7 +34,7 @@ public class NccOptions {
 	public double relativeSizeTolerance;
 
 	/** merge parallel Cells into one. For Russell Kao use only! */
-	public boolean mergeParallelCells = false;
+	//public boolean mergeParallelCells = false;
 
 	/** print lots of progress messages. For Russell Kao use only! */
 	public boolean verbose = false;

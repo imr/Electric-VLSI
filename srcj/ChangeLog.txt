@@ -1,5 +1,7 @@
 			Java Electric change log
 
+FIX (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
+
 ************************* Version 8.01g: *********************************
 
 IMP: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case

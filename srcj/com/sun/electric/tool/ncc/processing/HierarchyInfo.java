@@ -38,9 +38,9 @@ public class HierarchyInfo {
 	private int cellGroupID=0;
 	/** the Cells we've added to the current CellGroup */
 	private List cellsInCellGroup = new ArrayList();
-	/** flag indicating that at least one comparison has revealed an Export
-	 * name mismatch for the current CellGroup */
-	private boolean exportNameMismatchInCellGroup;
+	/** flag indicating that we must remove SubcircuitInfo for all Cells in the 
+	 * current Cell Group. */
+	private boolean purgeCurrentCellGroup;
 	/** information for all Cells in all the CellGroups we've encountered 
 	 * so far */
 	private Map cellToSubcktInfo = new HashMap();
@@ -48,12 +48,12 @@ public class HierarchyInfo {
 	/** You must call this before you begin comparing Cells in a new CellGroup.
 	 * Then for each Cell in the CellGroup you must call addSubcircuitInfo().
 	 * However, if a comparison reveals an Export name mismatch then you must
-	 * call exportNameMismatchInCellGroup() after which it doesn't matter what 
+	 * call purgeCurrentCellGroup() after which it doesn't matter what 
 	 * you do for the rest of the CellGroup. */
 	public void beginNextCellGroup(String subcktName) {
 		this.subcktName = subcktName;
 		cellGroupID++;
-		exportNameMismatchInCellGroup = false;
+		purgeCurrentCellGroup = false;
 		cellsInCellGroup.clear();
 	}
 	/** Add new subcircuit information for each Cell in the CellGroup so the
@@ -61,10 +61,10 @@ public class HierarchyInfo {
 	 * hierarchical comparison at a higher level. This method must be called
 	 * for each Cell in the Cell group. 
 	 * <p>However, if a comparison reveals an Export name mismatch then you must
-	 * call exportNameMismatchInCellGroup() after which it doesn't matter what 
+	 * call purgeCurrentCellGroup() after which it doesn't matter what 
 	 * you do. */
 	public void addSubcircuitInfo(Cell c, SubcircuitInfo subcktInfo) {
-		if (exportNameMismatchInCellGroup) return;
+		if (purgeCurrentCellGroup) return;
 		LayoutLib.error(cellToSubcktInfo.containsKey(c),
 						"SubcircuitInfo already exists for Cell");
 		cellsInCellGroup.add(c);
@@ -76,8 +76,8 @@ public class HierarchyInfo {
 	 * information related to Cells in this CellGroup so that we will flatten 
 	 * through this Cell group when comparing from higher levels in the 
 	 * hierarchy. */
-	public void exportNameMismatchInCellGroup() {
-		exportNameMismatchInCellGroup = true;
+	public void purgeCurrentCellGroup() {
+		purgeCurrentCellGroup = true;
 		for (Iterator it=cellsInCellGroup.iterator(); it.hasNext();) {
 			Cell c = (Cell) it.next();
 			LayoutLib.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
