@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -115,13 +116,22 @@ public class View3DWindow extends JPanel
 	private JMouseTranslate translateB;
 	private OffScreenCanvas3D offScreenCanvas3D;
 
-    Alpha alpha = new Alpha (-1,Alpha.INCREASING_ENABLE,0,0,1000,0,0,0,0,0);
-    Interpolator splineInterpolator;
+    Alpha alpha = new Alpha (-1,
+           	Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
+			0,
+			0,
+			2500, // 25000
+			400,  // 4000
+			100,
+			2000,  //20000
+			5000,
+			50 );
+    KBRotPosScaleSplinePathInterpolator splineInterpolator;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
 	/** the cell that is in the window */					private Cell cell;
-    /** scale factor in Z axis */                           private double scale = User.get3DFactor();
+    /** scale3D factor in Z axis */                         private double scale3D = User.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
@@ -518,8 +528,8 @@ public class View3DWindow extends JPanel
 			values[0] = Double.MAX_VALUE;
 			values[1] = Double.MIN_VALUE;
 			cell.getZValues(values);
-			values[0] *= scale;
-			values[1] *= scale;
+			values[0] *= scale3D;
+			values[1] *= scale3D;
 			Poly pol = new Poly(rect);			list = new ArrayList(1);
 
 			pol.transform(transform);
@@ -583,8 +593,8 @@ public class View3DWindow extends JPanel
 	            double dist1 = p0.distance(p1);
 	            double dist2 = p0.distance(p2);
 				Layer layer = polys[gate].getLayer();
-				double dist = (layer.getDistance() + layer.getThickness()) * scale;
-				double distPoly = (polys[poly].getLayer().getDistance()) * scale;
+				double dist = (layer.getDistance() + layer.getThickness()) * scale3D;
+				double distPoly = (polys[poly].getLayer().getDistance()) * scale3D;
                 Point2D pointDist, pointClose;
                 List topList = new ArrayList();
 		        List bottomList = new ArrayList();
@@ -949,8 +959,8 @@ public class View3DWindow extends JPanel
             if (layer.getTechnology() == null) continue; // Non-layout technology. E.g Artwork
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
-			double thickness = layer.getThickness() * scale;
-			double distance = layer.getDistance() * scale;
+			double thickness = layer.getThickness() * scale3D;
+			double distance = layer.getDistance() * scale3D;
 
 			if (thickness == 0) continue; // Skip zero-thickness layers
 
@@ -1091,6 +1101,12 @@ public class View3DWindow extends JPanel
         View3DWindow wnd = (View3DWindow)content;
 
         boolean state = wnd.splineInterpolator.getEnable();
+        Transform3D yAxis = new Transform3D();
+        wnd.u.getViewingPlatform().getViewPlatformTransform().getTransform(yAxis);
+//        wnd.objTrans.getTransform(yAxis);
+//        wnd.translateB.getTransformGroup().getTransform(yAxis);
+//        wnd.rotateB.getTransformGroup().getTransform(yAxis);
+        wnd.splineInterpolator.setTransformAxis(yAxis);
         wnd.splineInterpolator.setEnable(!state);
     }
 
@@ -1113,7 +1129,7 @@ public class View3DWindow extends JPanel
 				offScreenCanvas3D = new OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
 				// attach the offscreen canvas to the view
 				u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
-				// Set the off-screen size based on a scale factor times the
+				// Set the off-screen size based on a scale3D factor times the
 				// on-screen size
 				Screen3D sOn = canvas.getScreen3D();
 				Screen3D sOff = offScreenCanvas3D.getScreen3D();
@@ -1355,8 +1371,8 @@ public class View3DWindow extends JPanel
 	{
 		double dbX = 0, dbY = 0;
 		/*
-		= (screenX - sz.width/2) / scale + offx;
-		double dbY = (sz.height/2 - screenY) / scale + offy;
+		= (screenX - sz.width/2) / scale3D + offx;
+		double dbY = (sz.height/2 - screenY) / scale3D + offy;
 
 		*/
 		return new Point2D.Double(dbX, dbY);
@@ -1516,15 +1532,40 @@ public class View3DWindow extends JPanel
 
     // Setting Camera functions
 
+    private static class ThreeDDemoKnot
+    {
+        float xValue;
+        float yValue;
+        float zValue;
+        float scale;
+        float heading; // Sets the camera's heading. This automatically modifies the target's position.
+        float pitch; // Sets the camera's pitch in degrees. This automatically modifies the target's position.
+        float bank; // Sets the camera's bank in degrees. The angle is relative to the horizon.
+
+        public ThreeDDemoKnot(double xValue, double yValue, double zValue, double scale,
+                              double heading, double pitch, double bank)
+        {
+            this.xValue = (float)xValue;
+            this.yValue = (float)yValue;
+            this.zValue = (float)zValue;
+            this.scale = (float)scale;
+            this.heading = (float)heading;
+            this.pitch = (float)pitch;
+            this.bank = (float)bank;
+        }
+    }
+
     private void setInterpolator(BoundingSphere infiniteBounds)
     {
-        //KBKeyFrame[] splineKeyFrames = new KBKeyFrame[6];
         BranchGroup behaviorBranch = new BranchGroup();
-
-        //setupSplineKeyFrames (splineKeyFrames);
         Transform3D yAxis = new Transform3D();
         List polys = new ArrayList();
 
+        double [] zValues = new double[2];
+        cell.getZValues(zValues);
+        double zCenter = (zValues[0] + zValues[1])/2;
+        int count = 0;
+        
         for (Iterator it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = (NodeInst)it.next();
@@ -1533,14 +1574,32 @@ public class View3DWindow extends JPanel
                 Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
                 System.out.println("Art " + ni.getBounds() + " " +
                         polyList[0].getCenterX() + " " + polyList[0].getCenterY());
-                polys.add(polyList[0]);
+                Poly poly = polyList[0];
+                int sequence = count++;
+                Variable var = (Variable)ni.getVar("3D_Z_VALUE");
+                double zValue = (var == null) ? zCenter : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_SCALE_VALUE");
+                double scale = (var == null) ? 1 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_HEADING_VALUE");
+                double heading = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_PITCH_VALUE");
+                double pitch = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                var = (Variable)ni.getVar("3D_BANK_VALUE");
+                double bank = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
+                ThreeDDemoKnot knot = new ThreeDDemoKnot(poly.getCenterX(), poly.getCenterY(),
+                        zValue, scale, heading, pitch, bank);
+                polys.add(knot);
             }
         }
 
+        if (polys.size() == 0) return; // nothing to create
+
+        objTrans.getTransform(yAxis);
         KBKeyFrame[] splineKeyFrames = new KBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)
         {
-            splineKeyFrames[i] = getNextKeyFrame((float)((float)i/(polys.size()-1)), (Poly)polys.get(i));
+            ThreeDDemoKnot knot = (ThreeDDemoKnot)polys.get(i);
+            splineKeyFrames[i] = getNextKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
         splineInterpolator = new KBRotPosScaleSplinePathInterpolator(alpha, objTrans,
                                                   yAxis, splineKeyFrames);
@@ -1553,20 +1612,22 @@ public class View3DWindow extends JPanel
     /**
      * Method to generate each individual frame key for the interporlation
      * based on Poly information
-     * @param value
-     * @param poly
+     * @param ratio
+     * @param knot
      * @return
      */
-    private static KBKeyFrame getNextKeyFrame(float value, Poly poly)
+    private static KBKeyFrame getNextKeyFrame(float ratio, ThreeDDemoKnot knot)
     {
         // Prepare spline keyframe data
-        Vector3f pos = new Vector3f ((float)poly.getCenterX(), (float)poly.getCenterY(), 0);
-        Point3f p   = new Point3f (pos);            // position
+        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
+        Point3f point   = new Point3f (pos);            // position
         float head  = 0.0f; //(float)Math.PI/2.0f;           // heading
         float pitch = 0.0f;                          // pitch
         float bank  = 0.0f;                          // bank
-        Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale
-        KBKeyFrame key = new KBKeyFrame(value, 1, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+        Point3f scale   = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
+        KBKeyFrame key = new KBKeyFrame(ratio, 1, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
+
+        System.out.println("Mov " + pos);
         return key;
     }
 
@@ -1583,7 +1644,7 @@ public class View3DWindow extends JPanel
       float head  = (float)Math.PI/2.0f;           // heading
       float pitch = 0.0f;                          // pitch
       float bank  = 0.0f;                          // bank
-      Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale
+      Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale3D
       splineKeyFrames[0] =
          new KBKeyFrame(0.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
 
@@ -1591,7 +1652,7 @@ public class View3DWindow extends JPanel
       head  = 0.0f;                               // heading
       pitch = 0.0f;                               // pitch
       bank  = (float)-Math.PI/2.0f;               // bank
-      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale
+      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale3D
       splineKeyFrames[1] =
          new KBKeyFrame(0.2f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
 
@@ -1599,7 +1660,7 @@ public class View3DWindow extends JPanel
       head  = 0.0f;                               // heading
       pitch = 0.0f;                               // pitch
       bank  = 0.0f;                               // bank
-      s = new Point3f(0.7f, 0.7f, 0.7f);          // uniform scale
+      s = new Point3f(0.7f, 0.7f, 0.7f);          // uniform scale3D
       splineKeyFrames[2] =
          new KBKeyFrame(0.4f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
 
@@ -1607,7 +1668,7 @@ public class View3DWindow extends JPanel
       head  = (float)Math.PI/2.0f;                // heading
       pitch = 0.0f;                               // pitch
       bank  = (float)Math.PI/2.0f;                // bank
-      s = new Point3f(0.5f, 0.5f, 0.5f);          // uniform scale
+      s = new Point3f(0.5f, 0.5f, 0.5f);          // uniform scale3D
       splineKeyFrames[3] =
          new KBKeyFrame(0.6f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
 
@@ -1615,7 +1676,7 @@ public class View3DWindow extends JPanel
       head  = (float)-Math.PI/2.0f;               // heading
       pitch = (float)-Math.PI/2.0f;               // pitch
       bank  = (float)Math.PI/2.0f;                // bank
-      s = new Point3f(0.4f, 0.4f, 0.4f);          // uniform scale
+      s = new Point3f(0.4f, 0.4f, 0.4f);          // uniform scale3D
       splineKeyFrames[4] =
          new KBKeyFrame(0.8f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
 
@@ -1623,7 +1684,7 @@ public class View3DWindow extends JPanel
       head  = 0.0f;                               // heading
       pitch = 0.0f;                               // pitch
       bank  = 0.0f;                               // bank
-      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale
+      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale3D
       splineKeyFrames[5] =
          new KBKeyFrame(1.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
     }
