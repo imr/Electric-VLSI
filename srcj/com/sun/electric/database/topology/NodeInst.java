@@ -2024,6 +2024,16 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public NodeProto getProto() { return protoType; }
 
+    // JKG: trying this out
+    /**
+     * Implements Nodable.contains(NodeInst ni).
+     * True if ni is the same as this.  False otherwise
+     */
+    public boolean contains(NodeInst ni) {
+        if (ni == this) return true;
+        return false;
+    }
+
 	/**
 	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.

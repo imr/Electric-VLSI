@@ -75,4 +75,15 @@ public interface Nodable
 	 */
 	public String toString();
 
+    // JKG: trying this out
+    /**
+     * Returns true if this Nodable wraps NodeInst ni.
+     * Note that this Nodable may actually *be* ni, or
+     * it may simply wrap it and other NodeInsts and act
+     * as a proxy.
+     * @param ni a NodeInst
+     * @return true if this Nodable contains ni, false otherwise
+     */
+    public boolean contains(NodeInst ni);
+
 }

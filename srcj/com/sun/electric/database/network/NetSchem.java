@@ -267,6 +267,12 @@ class NetSchem extends NetCell {
 		 */
 		public String toString() { return "NetSchem.Proxy " + getName(); }
 
+        // JKG: trying this out
+        public boolean contains(NodeInst ni) {
+            if (nodeInst == ni) return true;
+            return false;
+        }
+
 	}
 
 	/** Node offsets. */											int[] nodeOffsets;

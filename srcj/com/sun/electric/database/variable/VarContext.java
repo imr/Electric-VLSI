@@ -131,6 +131,7 @@ public class VarContext
     /** Same as evalVar, except an additional object 'info'
      * is passed to the evaluator.  'info' may be or contain 
      * additional information necessary for proper evaluation.
+     * Usually info is the NodeInst on which the var exists.
      */
     public Object evalVar(Variable var, Object info)
     {

@@ -38,6 +38,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -108,16 +110,32 @@ public class LETool extends Tool {
      * @return
      */
     public Object subdrive(String nodeName, String parName) {
+        Object info = EvalJavaBsh.tool.getCurrentInfo();            // when eval called on instances, info is that nodeinst
+        if (!(info instanceof Nodable)) return "subdrive(): bad info";
+        Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
+        if (no == null) return "subdrive(): null info";
+        if (no instanceof NodeInst) {
+            // networks have not been evaluated, calling no.getProto()
+            // is going to give us icon cell, not equivalent schematic cell
+            // We need to re-evaluate networks to get equivalent schematic cell
+            NodeInst ni = (NodeInst)no;
+            Cell parent = no.getParent();                               // Cell in which inst which has LE.subdrive is
+            if (parent == null) return "subdrive(): null parent";
+            no = Netlist.getNodableFor(ni);
+            if (no == null) return "subdrive(): can't get equivalent schematic";
+
+        }
         VarContext context = EvalJavaBsh.tool.getCurrentContext();  // get current context
-        Nodable no = context.getNodable();                          // get instance which has subdrive call on it
-        if (no == null) return "?";
+        if (context == null) return "subdrive(): null context";
         NodeProto np = no.getProto();                               // get contents of instance
-        if (!(np instanceof Cell)) return "?";
+        if (np == null) return "subdrive(): null nodeProto";
+        if (!(np instanceof Cell)) return "subdrive(): NodeProto not a Cell";
         Cell cell = (Cell)np;
-        NodeInst ni = cell.findNode(nodeName);                      // find nodeinst
-        if (ni == null) return "?";
+        NodeInst ni = cell.findNode(nodeName);                      // find nodeinst that has variable on it
+        if (ni == null) return "subdrive(): no nodeInst of name "+nodeName;
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
-        if (var == null) return "?";
+        if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
+        if (var == null) return "subdrive(): no variable of name "+parName;
         return context.push(no).evalVar(var);                       // evaluate variable and return it
     }
 

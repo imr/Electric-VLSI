@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 // import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.NodeInst;
 // import com.sun.electric.database.variable.ElectricObject;
 // import com.sun.electric.database.variable.TextDescriptor;
 // import com.sun.electric.database.variable.Variable;
@@ -185,6 +186,17 @@ public class Netlist
 	}
 
 	// ---------------------- public methods -----------------
+
+    // JKG: trying this out
+    public static Nodable getNodableFor(NodeInst ni) {
+        Cell parent = ni.getParent();
+        Netlist netlist = Network.getUserNetlist(parent);
+        for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
+            Nodable no = (Nodable)it.next();
+            if (no.contains(ni)) return no;
+        }
+        return null;
+    }
 
 	/**
 	 * Get an iterator over all of the Nodables of this Cell.
