@@ -33,10 +33,10 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 /** Compare potentially multiple cells in a hierarchy. 
  * <p>This is the class that should be used by programs wishing to perform
  * netlist comparison. */
-public class NCC {
+public class Ncc {
 	private void prln(String s) {System.out.println(s);}
 
-	private NCC() {}
+	private Ncc() {}
 	
     private NccResult compare1(Cell cell1, VarContext ctxt1,
     		                   Cell cell2, VarContext ctxt2,
@@ -75,7 +75,7 @@ public class NCC {
     public static NccResult compare(Cell cell1, VarContext ctxt1, 
     		                        Cell cell2, VarContext ctxt2, 
 									NccOptions options) {
-    	NCC ncc = new NCC();
+    	Ncc ncc = new Ncc();
     	return ncc.compare1(cell1, ctxt1, cell2, ctxt2, options);
     }
 }
