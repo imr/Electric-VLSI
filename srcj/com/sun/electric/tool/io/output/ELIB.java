@@ -730,10 +730,13 @@ public class ELIB extends Output
 		writeBigInteger(highY);
 
 		// write anchor point too
-		int anchorX = (int)(ni.getAnchorCenterX() * tech.getScale() * 2);
-		int anchorY = (int)(ni.getAnchorCenterY() * tech.getScale() * 2);
-		writeBigInteger(anchorX);
-		writeBigInteger(anchorY);
+		if (np instanceof Cell)
+		{
+			int anchorX = (int)(ni.getAnchorCenterX() * tech.getScale() * 2);
+			int anchorY = (int)(ni.getAnchorCenterY() * tech.getScale() * 2);
+			writeBigInteger(anchorX);
+			writeBigInteger(anchorY);
+		}
 
 		int transpose = 0;
 		int rotation = ni.getAngle();
