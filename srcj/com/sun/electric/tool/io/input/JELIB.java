@@ -85,13 +85,15 @@ public class JELIB extends LibraryFiles
 	private static String[] revisions =
 	{
 		// Revision 1
-		"8.01az"
+		"8.01aw"
 	};
 
 	private LinkedHashMap allCells = new LinkedHashMap();
 	private HashMap externalCells;
+	private HashMap externalExports;
 	private Version version;
 	private int revision;
+	private char escapeChar = '\\';
 	private String curLibName;
 //	/** The number of lines that have been "processed" so far. */	private int numProcessed;
 //	/** The number of lines that must be "processed". */			private int numToProcess;
@@ -151,9 +153,11 @@ public class JELIB extends LibraryFiles
 		version = null;
 		revision = revisions.length;
 		String curExternalLibName = "";
+		String curExternalCellName = "";
 		Technology curTech = null;
 		PrimitiveNode curPrim = null;
 		externalCells = new HashMap();
+		externalExports = new HashMap();
 		for(;;)
 		{
 			// get keyword from file
@@ -169,13 +173,18 @@ public class JELIB extends LibraryFiles
 			{
 				// grab a cell description
 				List pieces = parseLine(line);
-				if (pieces.size() < 7)
+				int numPieces = revision >= 1 ? 5 : 7;
+				if (pieces.size() < numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cell declaration needs 7 fields: " + line, null, -1);
+						", Cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
-				String name = unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+				String name;
+				if (revision >= 1)
+					name = unQuote((String)pieces.get(0));
+				else
+					name = unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
 				Cell newCell = Cell.newInstance(lib, name);
 				if (newCell == null)
 				{
@@ -183,15 +192,15 @@ public class JELIB extends LibraryFiles
 						", Unable to create cell " + name, null, -1);
 					continue;
 				}
-				Technology tech = Technology.findTechnology(unQuote((String)pieces.get(3)));
+				Technology tech = Technology.findTechnology(unQuote((String)pieces.get(numPieces-4)));
 				newCell.setTechnology(tech);
-				long cDate = Long.parseLong((String)pieces.get(4));
-				long rDate = Long.parseLong((String)pieces.get(5));
+				long cDate = Long.parseLong((String)pieces.get(numPieces-3));
+				long rDate = Long.parseLong((String)pieces.get(numPieces-2));
 				newCell.lowLevelSetCreationDate(new Date(cDate));
 				newCell.lowLevelSetRevisionDate(new Date(rDate));
 
 				// parse state information in field 6
-				String stateInfo = (String)pieces.get(6);
+				String stateInfo = (String)pieces.get(numPieces-1);
 				boolean expanded = false, allLocked = false, instLocked = false,
 					cellLib = false, techLib = false;
 				for(int i=0; i<stateInfo.length(); i++)
@@ -210,7 +219,7 @@ public class JELIB extends LibraryFiles
 				if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
 
 				// add variables in fields 7 and up
-				addVariables(newCell, pieces, 7, filePath, lineReader.getLineNumber());
+				addVariables(newCell, pieces, numPieces, filePath, lineReader.getLineNumber());
 
 				// gather the contents of the cell into a list of Strings
 				CellContents cc = new CellContents();
@@ -254,19 +263,42 @@ public class JELIB extends LibraryFiles
 			{
 				// cross-library cell information
 				List pieces = parseLine(line);
-				if (pieces.size() != 5)
+				int numPieces = revision >= 1 ? 7 : 5;
+				if (pieces.size() != numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External cell declaration needs 5 fields: " + line, null, -1);
+						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
 				double lowX = TextUtils.atof((String)pieces.get(1));
 				double highX = TextUtils.atof((String)pieces.get(2));
 				double lowY = TextUtils.atof((String)pieces.get(3));
 				double highY = TextUtils.atof((String)pieces.get(4));
+				if (revision >= 1)
+				{
+					long cDate = Long.parseLong((String)pieces.get(5));
+					long rDate = Long.parseLong((String)pieces.get(6));
+				}
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
-				String cellName = curExternalLibName + ":" + unQuote((String)pieces.get(0));
-				externalCells.put(cellName, bounds);
+				curExternalCellName = curExternalLibName + ":" + unQuote((String)pieces.get(0));
+				externalCells.put(curExternalCellName, bounds);
+				continue;
+			}
+
+			if (first == 'F')
+			{
+				// cross-library export information
+				List pieces = parseLine(line);
+				if (pieces.size() != 3)
+				{
+					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+						", External export declaration needs 3 fields: " + line, null, -1);
+					continue;
+				}
+				String exportName = unQuote((String)pieces.get(0));
+				double posX = TextUtils.atof((String)pieces.get(1));
+				double posY = TextUtils.atof((String)pieces.get(1));
+				externalExports.put(curExternalCellName + ":" + exportName, new Point2D.Double(posX, posY));
 				continue;
 			}
 
@@ -280,7 +312,6 @@ public class JELIB extends LibraryFiles
 						", Library declaration needs 2 fields: " + line, null, -1);
 					continue;
 				}
-				curLibName = unQuote((String)pieces.get(0));
 				version = Version.parseVersion((String)pieces.get(1));
 				if (version == null)
 				{
@@ -288,14 +319,20 @@ public class JELIB extends LibraryFiles
 						", Badly formed version: " + pieces.get(1), null, -1);
 					continue;
 				}
+				for (revision = 0; revision < revisions.length; revision++)
+				{
+					if (version.compareTo(Version.parseVersion(revisions[revision])) < 0) break;
+				}
+				if (revision < 1)
+				{
+					escapeChar = '^';
+					pieces = parseLine(line);
+				}
+				curLibName = unQuote((String)pieces.get(0));
 				if (version.compareTo(Version.getVersion()) > 0)
 				{
 					Input.errorLogger.logWarning(filePath + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
-				}
-				for (revision = 0; revision < revisions.length; revision++)
-				{
-					if (version.compareTo(Version.parseVersion(revisions[revision])) < 0) break;
 				}
 				addVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
 
@@ -367,7 +404,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			if (first == 'D' && revision < 1)
+			if (first == 'D')
 			{
 				// parse PrimitiveNode information
 				List pieces = parseLine(line);
@@ -378,7 +415,7 @@ public class JELIB extends LibraryFiles
 						", Primitive node " + primName + " has no technology before it", null, -1);
 					continue;
 				}
-				curPrim = curTech.findNodeProto(primName);
+				curPrim = findPrimitiveNode(curTech, primName);
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -391,7 +428,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			if (first == 'P' && revision < 1)
+			if (first == 'P')
 			{
 				// parse PrimitivePort information
 				List pieces = parseLine(line);
@@ -416,7 +453,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			if (first == 'W' && revision < 1)
+			if (first == 'W')
 			{
 				// parse ArcProto information
 				List pieces = parseLine(line);
@@ -593,7 +630,7 @@ public class JELIB extends LibraryFiles
 			}
 			String protoName = unQuote((String)pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = unQuote((String)pieces.get(1));
+			String diskNodeName = (String)pieces.get(1);
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -603,6 +640,7 @@ public class JELIB extends LibraryFiles
 					nodeName = nodeName.substring(1, lastQuote);
 				}
 			}
+			nodeName = unQuote(nodeName);
 			String nameTextDescriptorInfo = (String)pieces.get(2);
 			double x = TextUtils.atof((String)pieces.get(3));
 			double y = TextUtils.atof((String)pieces.get(4));
@@ -616,7 +654,7 @@ public class JELIB extends LibraryFiles
 				if (firstChar == 'I' || revision < 1)
 					np = lib.findNodeProto(protoName);
 				else if (cell.getTechnology() != null)
-					np = cell.getTechnology().findNodeProto(protoName);
+					np = findPrimitiveNode(cell.getTechnology(), protoName);
 			} else
 			{
 				prefixName = protoName.substring(0, colonPos);
@@ -624,7 +662,7 @@ public class JELIB extends LibraryFiles
 				if (firstChar == 'N')
 				{
 					Technology tech = Technology.findTechnology(prefixName);
-					if (tech != null) np = tech.findNodeProto(protoName);
+					if (tech != null) np = findPrimitiveNode(tech, protoName);
 				}
 				if (firstChar == 'I' || revision < 1 && np == null)
 				{
@@ -654,7 +692,7 @@ public class JELIB extends LibraryFiles
 				}
 			}
 
-			double wid, hei;
+			double wid = 0, hei = 0;
 			String orientString;
 			String stateInfo;
 			String textDescriptorInfo = null;
@@ -674,15 +712,12 @@ public class JELIB extends LibraryFiles
 					textDescriptorInfo = (String)pieces.get(9);
 			} else
 			{
-				if (np == null)
+				if (np != null)
 				{
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-						", Unable to create dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
-					continue;
+					Rectangle2D bounds = ((Cell)np).getBounds();
+					wid = bounds.getWidth();
+					hei = bounds.getHeight();
 				}
-				Rectangle2D bounds = ((Cell)np).getBounds();
-				wid = bounds.getWidth();
-				hei = bounds.getHeight();
 				orientString = (String)pieces.get(5);
 				stateInfo = (String)pieces.get(6);
 				textDescriptorInfo = (String)pieces.get(7);
@@ -809,18 +844,24 @@ public class JELIB extends LibraryFiles
 
 			// parse the export line
 			List pieces = parseLine(cellString);
-			if (pieces.size() < 7)
+			int numPieces = revision >= 1 ? 5 : 7;
+			if (pieces.size() < numPieces)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					", Export needs 7 fields, has " + pieces.size() + ": " + cellString, cell, -1);
+					", Export needs " + numPieces + " fields, has " + pieces.size() + ": " + cellString, cell, -1);
 				continue;
 			}
 			String exportName = unQuote((String)pieces.get(0));
-			String nodeName = unQuote((String)pieces.get(2));
+			String nodeName = (String)pieces.get(2);
 			String portName = unQuote((String)pieces.get(3));
-			double x = TextUtils.atof((String)pieces.get(4));
-			double y = TextUtils.atof((String)pieces.get(5));
-			PortInst pi = figureOutPortInst(cell, portName, nodeName, x, y, diskName, cc.fileName, cc.lineNumber + line);
+			Point2D pos = null;
+			if (revision < 1)
+			{
+				double x = TextUtils.atof((String)pieces.get(4));
+				double y = TextUtils.atof((String)pieces.get(5));
+				pos = new Point2D.Double(x, y);
+			}
+			PortInst pi = figureOutPortInst(cell, portName, nodeName, pos, diskName, cc.fileName, cc.lineNumber + line);
 			if (pi == null) continue;
 
 			// create the export
@@ -838,7 +879,7 @@ public class JELIB extends LibraryFiles
 			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptorInfo, cc.fileName, cc.lineNumber + line);
 
 			// parse state information in field 6
-			String stateInfo = (String)pieces.get(6);
+			String stateInfo = (String)pieces.get(numPieces - 1);
 			int slashPos = stateInfo.indexOf('/');
 			if (slashPos >= 0)
 			{
@@ -855,7 +896,7 @@ public class JELIB extends LibraryFiles
 			pp.setCharacteristic(ch);
 
 			// add variables in fields 7 and up
-			addVariables(pp, pieces, 7, cc.fileName, cc.lineNumber + line);
+			addVariables(pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
 		}
 
 		// next place all arcs
@@ -889,18 +930,18 @@ public class JELIB extends LibraryFiles
 			String arcName = unQuote((String)pieces.get(1));
 			double wid = TextUtils.atof((String)pieces.get(3));
 
-			String headNodeName = unQuote((String)pieces.get(5));
+			String headNodeName = (String)pieces.get(5);
 			String headPortName = unQuote((String)pieces.get(6));
 			double headX = TextUtils.atof((String)pieces.get(7));
 			double headY = TextUtils.atof((String)pieces.get(8));
-			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, headX, headY, diskName, cc.fileName, cc.lineNumber + line);
+			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, new Point2D.Double(headX, headY), diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
-			String tailNodeName = unQuote((String)pieces.get(9));
+			String tailNodeName = (String)pieces.get(9);
 			String tailPortName = unQuote((String)pieces.get(10));
 			double tailX = TextUtils.atof((String)pieces.get(11));
 			double tailY = TextUtils.atof((String)pieces.get(12));
-			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, tailX, tailY, diskName, cc.fileName, cc.lineNumber + line);
+			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, new Point2D.Double(tailX, tailY), diskName, cc.fileName, cc.lineNumber + line);
 			if (tailPI == null) continue;
 
 			// parse state information in field 4
@@ -971,13 +1012,12 @@ public class JELIB extends LibraryFiles
 	 * @param cell the cell in which this all resides.
 	 * @param portName the name of the port (may be an empty string if there is only 1 port).
 	 * @param nodeName the name of the node.
-	 * @param xPos the X coordinate of the port on the node.
-	 * @param yPos the Y coordinate of the port on the node.
+	 * @param pos the position of the port on the node.
 	 * @param diskName a HashMap that maps node names to actual nodes.
 	 * @param lineNumber the line number in the file being read (for error reporting).
 	 * @return the PortInst specified (null if none can be found).
 	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, double xPos, double yPos, HashMap diskName, String fileName, int lineNumber)
+	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, Point2D pos, HashMap diskName, String fileName, int lineNumber)
 	{
 		NodeInst ni = (NodeInst)diskName.get(nodeName);
 		if (ni == null)
@@ -1002,17 +1042,16 @@ public class JELIB extends LibraryFiles
 //		if (np instanceof PrimitiveNode) return pi;
 
 		// make sure the port can handle the position
-		Point2D headPt = new Point2D.Double(xPos, yPos);
-		if (pi != null)
+		if (pi != null && pos != null)
 		{
 			Poly poly = pi.getPoly();
-			if (!(poly.isInside(headPt) || poly.polyDistance(xPos, yPos) < TINYDISTANCE))
+			if (!(poly.isInside(pos) || poly.polyDistance(pos.getX(), pos.getY()) < TINYDISTANCE))
 			{
 				NodeProto np = ni.getProto();
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					" (cell " + cell.describe() + ") point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+					" (cell " + cell.describe() + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in port " +
 					pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", cell, -1);
-				log.addPoint(headPt.getX(), headPt.getY(), cell);
+				log.addPoint(pos.getX(), pos.getY(), cell);
 				if (np instanceof Cell)
 					pi = null;
 			}
@@ -1025,7 +1064,8 @@ public class JELIB extends LibraryFiles
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
-			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, cell);
+			NodeInst portNI = null;
+			if (pos != null) NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1033,19 +1073,24 @@ public class JELIB extends LibraryFiles
 				return null;
 			}
 			ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Arc end and port discrepancy at ("+headPt.getX()+","+headPt.getY()+"), port "+portName+" on node "+nodeName+" in cell " + cell.describe(), cell, -1);
+				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in cell " + cell.describe(), cell, -1);
             log.addGeom(portNI, true, cell, null);
 			return portNI.getOnlyPortInst();
 		}
 
 		// a dummy cell: create a dummy export on it to fit this
+		if (pos == null)
+		{
+			pos = (Point2D)externalExports.get(subCell.getCellName().toString() + ":" + portName);
+			if (pos == null) return null;
+		}
 		String name = portName;
 		if (name.length() == 0) name = "X";
-		AffineTransform unRot = ni.rotateIn();
-		unRot.transform(headPt, headPt);
-		AffineTransform unTrans = ni.translateIn();
-		unTrans.transform(headPt, headPt);
-		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, subCell);
+// 		AffineTransform unRot = ni.rotateIn();
+// 		unRot.transform(pos, pos);
+// 		AffineTransform unTrans = ni.translateIn();
+// 		unTrans.transform(pos, pos);
+		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, subCell);
 		if (portNI == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1070,7 +1115,7 @@ public class JELIB extends LibraryFiles
 	/**
 	 * Method to parse a line from the file, breaking it into a List of Strings.
 	 * Each field in the file is separated by "|".
-	 * Quoted strings are handled properly, as are the escape character, "^".
+	 * Quoted strings are handled properly, as are the escape character.
 	 * @param line the text from the file.
 	 * @return a List of Strings.
 	 */
@@ -1079,46 +1124,55 @@ public class JELIB extends LibraryFiles
 		List stringPieces = new ArrayList();
 		int len = line.length();
 		int pos = 1;
-		StringBuffer sb = new StringBuffer();
+		int startPos = 1;
 		boolean inQuote = false;
 		while (pos < len)
 		{
 			char chr = line.charAt(pos++);
-			if (chr == '^')
+			if (chr == escapeChar)
 			{
-				sb.append(chr);
-				sb.append(line.charAt(pos++));
+				pos++;
 				continue;
 			}
 			if (chr == '"') inQuote = !inQuote;
 			if (chr == '|' && !inQuote)
 			{
-				String piece = sb.toString();
-				stringPieces.add(piece);
-				sb = new StringBuffer();
-			} else
-			{
-				sb.append(chr);
+				stringPieces.add(line.substring(startPos, pos - 1));
+				startPos = pos;
 			}
 		}
-		String piece = sb.toString();
-		stringPieces.add(piece);
+		if (pos > len) pos = len;
+		stringPieces.add(line.substring(startPos, pos));
 		return stringPieces;
 	}
 
 	private String unQuote(String line)
 	{
-		if (line.indexOf('^') < 0) return line;
-		StringBuffer sb = new StringBuffer();
 		int len = line.length();
+		if (revision >= 1)
+		{
+			if (len < 2 || line.charAt(0) != '"') return line;
+			int lastQuote = line.lastIndexOf('"');
+			if (lastQuote != len - 1)
+				return unQuote(line.substring(0, lastQuote + 1)) + line.substring(lastQuote + 1);
+			line = line.substring(1, len - 1);
+			len -= 2;
+		} else
+		{
+			if (line.indexOf(escapeChar) < 0) return line;
+		}
+		StringBuffer sb = new StringBuffer();
+		assert len == line.length();
 		for(int i=0; i<len; i++)
 		{
 			char chr = line.charAt(i);
-			if (chr == '^')
+			if (chr == escapeChar)
 			{
 				i++;
 				if (i >= len) break;
 				chr = line.charAt(i);
+				if (chr == 'n' && revision >= 1) chr = '\n';
+				if (chr == 'r' && revision >= 1) chr = '\r';
 			}
 			sb.append(chr);
 		}
@@ -1140,11 +1194,13 @@ public class JELIB extends LibraryFiles
 		{
 			String piece = (String)pieces.get(i);
 			int openPos = 0;
+			boolean inQuote = false;
 			for(; openPos < piece.length(); openPos++)
 			{
 				char chr = piece.charAt(openPos);
-				if (chr == '^') { openPos++;   continue; }
-				if (chr == '(') break;
+				if (chr == escapeChar) { openPos++;   continue; }
+				if (chr == '"') inQuote = !inQuote;
+				if (chr == '(' && !inQuote) break;
 			}
 			if (openPos >= piece.length())
 			{
@@ -1152,7 +1208,7 @@ public class JELIB extends LibraryFiles
 					", Badly formed variable (no open parenthesis): " + piece, null, -1);
 				continue;
 			}
-			String varName = piece.substring(0, openPos);
+			String varName = unQuote(piece.substring(0, openPos));
 			Variable.Key varKey = ElectricObject.newKey(varName);
 			if (eObj.isDeprecatedVariable(varKey)) continue;
 			int closePos = piece.indexOf(')', openPos);
@@ -1209,12 +1265,12 @@ public class JELIB extends LibraryFiles
 				while (objectPos < piece.length())
 				{
 					int start = objectPos;
-					boolean inQuote = false;
+					inQuote = false;
 					while (objectPos < piece.length())
 					{
 						if (inQuote)
 						{
-							if (piece.charAt(objectPos) == '^')
+							if (piece.charAt(objectPos) == escapeChar)
 							{
 								objectPos++;
 							} else if (piece.charAt(objectPos) == '"')
@@ -1231,7 +1287,7 @@ public class JELIB extends LibraryFiles
 						}
 						objectPos++;
 					}
-					Object oneObj = getVariableValue(piece.substring(start, objectPos), 0, varType, fileName, lineNumber);
+					Object oneObj = getVariableValue(piece.substring(start, objectPos), varType, fileName, lineNumber);
 					objList.add(oneObj);
 					if (piece.charAt(objectPos) == ']') break;
 					objectPos++;
@@ -1277,7 +1333,7 @@ public class JELIB extends LibraryFiles
 			} else
 			{
 				// a scalar Variable
-				obj = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
+				obj = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
 			}
 
 			// create the variable
@@ -1317,11 +1373,13 @@ public class JELIB extends LibraryFiles
 		{
 			String piece = (String)pieces.get(i);
 			int openPos = 0;
+			boolean inQuote = false;
 			for(; openPos < piece.length(); openPos++)
 			{
 				char chr = piece.charAt(openPos);
-				if (chr == '^') { openPos++;   continue; }
-				if (chr == '(') break;
+				if (chr == escapeChar) { openPos++;   continue; }
+				if (chr == '"') inQuote = !inQuote;
+				if (chr == '(' && !inQuote) break;
 			}
 			if (openPos >= piece.length())
 			{
@@ -1329,7 +1387,7 @@ public class JELIB extends LibraryFiles
 					", Badly formed meaning preference (no open parenthesis): " + piece, null, -1);
 				continue;
 			}
-			String varName = piece.substring(0, openPos);
+			String varName = unQuote(piece.substring(0, openPos));
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)
 			{
@@ -1371,7 +1429,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 			// a scalar Variable
-			Object value = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
+			Object value = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
 
 			// change "meaning option"
 			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
@@ -1582,16 +1640,12 @@ public class JELIB extends LibraryFiles
 	/**
 	 * Method to convert a String to an Object so that it can be stored in a Variable.
 	 * @param piece the String to be converted.
-	 * @param objectPos the character number in the string to consider.
-	 * Note that the string may be larger than the object description, both by having characters
-	 * before it, and also by having characters after it.
-	 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
 	 * @param varType the type of the object to convert (a letter from the file).
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
 	 * @return the Object representation of the given String.
 	 */
-	private Object getVariableValue(String piece, int objectPos, char varType, String fileName, int lineNumber)
+	private Object getVariableValue(String piece, char varType, String fileName, int lineNumber)
 	{
 		int colonPos;
 		String libName;
@@ -1601,17 +1655,20 @@ public class JELIB extends LibraryFiles
 		Cell cell;
 		int commaPos;
 
+		if (revision >= 1)
+			piece = unQuote(piece);
+
 		switch (varType)
 		{
 // 			case 'A':		// ArcInst (should delay analysis until database is built!!!)
-// 				int colonPos = piece.indexOf(':', objectPos);
+// 				int colonPos = piece.indexOf(':');
 // 				if (colonPos < 0)
 // 				{
 // 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 // 						", Badly formed Export (missing library colon): " + piece, null, -1);
 // 					break;
 // 				}
-// 				String libName = piece.substring(objectPos, colonPos);
+// 				String libName = piece.substring(0, colonPos);
 // 				Library lib = Library.findLibrary(libName);
 // 				if (lib == null)
 // 				{
@@ -1643,16 +1700,16 @@ public class JELIB extends LibraryFiles
 // 						", Unknown ArcInst: " + piece, null, -1);
 // 				return ai;
 			case 'B':		// Boolean
-				return new Boolean(piece.charAt(objectPos)=='T' ? true : false);
+				return new Boolean(piece.charAt(0)=='T' ? true : false);
 			case 'C':		// Cell (should delay analysis until database is built!!!)
-				colonPos = piece.indexOf(':', objectPos);
+				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Badly formed ArcProto (missing colon): " + piece, null, -1);
 					break;
 				}
-				libName = piece.substring(objectPos, colonPos);
+				libName = piece.substring(0, colonPos);
 				lib = Library.findLibrary(libName);
 				if (lib == null)
 				{
@@ -1669,16 +1726,16 @@ public class JELIB extends LibraryFiles
 						", Unknown Cell: " + piece, null, -1);
 				return cell;
 			case 'D':		// Double
-				return new Double(TextUtils.atof(piece.substring(objectPos)));
+				return new Double(TextUtils.atof(piece));
 			case 'E':		// Export (should delay analysis until database is built!!!)
-				colonPos = piece.indexOf(':', objectPos);
+				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Badly formed Export (missing library colon): " + piece, null, -1);
 					break;
 				}
-				libName = piece.substring(objectPos, colonPos);
+				libName = piece.substring(0, colonPos);
 				lib = Library.findLibrary(libName);
 				if (lib == null)
 				{
@@ -1710,15 +1767,15 @@ public class JELIB extends LibraryFiles
 						", Unknown Export: " + piece, null, -1);
 				return pp;
 			case 'F':		// Float
-				return new Float((float)TextUtils.atof(piece.substring(objectPos)));
+				return new Float((float)TextUtils.atof(piece));
 			case 'G':		// Long
-				return new Long(TextUtils.atoi(piece.substring(objectPos)));
+				return new Long(TextUtils.atoi(piece));
 			case 'H':		// Short
-				return new Short((short)TextUtils.atoi(piece.substring(objectPos)));
+				return new Short((short)TextUtils.atoi(piece));
 			case 'I':		// Integer
-				return new Integer(TextUtils.atoi(piece.substring(objectPos)));
+				return new Integer(TextUtils.atoi(piece));
 			case 'L':		// Library (should delay analysis until database is built!!!)
-				libName = piece.substring(objectPos);
+				libName = piece;
 				commaPos = libName.indexOf(',');
 				if (commaPos >= 0) libName = libName.substring(0, commaPos);
 				lib = Library.findLibrary(libName);
@@ -1727,14 +1784,14 @@ public class JELIB extends LibraryFiles
 						", Unknown Library: " + piece, null, -1);
 				return lib;
 // 			case 'N':		// NodeInst (should delay analysis until database is built!!!)
-// 				colonPos = piece.indexOf(':', objectPos);
+// 				colonPos = piece.indexOf(':');
 // 				if (colonPos < 0)
 // 				{
 // 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 // 						", Badly formed Export (missing library colon): " + piece, null, -1);
 // 					break;
 // 				}
-// 				libName = piece.substring(objectPos, colonPos);
+// 				libName = piece.substring(0, colonPos);
 // 				lib = Library.findLibrary(libName);
 // 				if (lib == null)
 // 				{
@@ -1766,7 +1823,7 @@ public class JELIB extends LibraryFiles
 // 						", Unknown NodeInst: " + piece, null, -1);
 // 				return ni;
 			case 'O':		// Tool
-				String toolName = piece.substring(objectPos);
+				String toolName = piece;
 				commaPos = toolName.indexOf(',');
 				if (commaPos >= 0) toolName = toolName.substring(0, commaPos);
 				Tool tool = Tool.findTool(toolName);
@@ -1775,14 +1832,14 @@ public class JELIB extends LibraryFiles
 						", Unknown Tool: " + piece, null, -1);
 				return tool;
 			case 'P':		// PrimitiveNode
-				colonPos = piece.indexOf(':', objectPos);
+				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Badly formed PrimitiveNode (missing colon): " + piece, null, -1);
 					break;
 				}
-				String techName = piece.substring(objectPos, colonPos);
+				String techName = piece.substring(0, colonPos);
 				Technology tech = Technology.findTechnology(techName);
 				if (tech == null)
 				{
@@ -1793,20 +1850,20 @@ public class JELIB extends LibraryFiles
 				String nodeName = piece.substring(colonPos+1);
 				commaPos = nodeName.indexOf(',');
 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
-				PrimitiveNode np = tech.findNodeProto(nodeName);
+				PrimitiveNode np = findPrimitiveNode(tech, nodeName);
 				if (np == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown PrimitiveNode: " + piece, null, -1);
 				return np;
 			case 'R':		// ArcProto
-				colonPos = piece.indexOf(':', objectPos);
+				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Badly formed ArcProto (missing colon): " + piece, null, -1);
 					break;
 				}
-				techName = piece.substring(objectPos, colonPos);
+				techName = piece.substring(0, colonPos);
 				tech = Technology.findTechnology(techName);
 				if (tech == null)
 				{
@@ -1823,7 +1880,8 @@ public class JELIB extends LibraryFiles
 						", Unknown ArcProto: " + piece, null, -1);
 				return ap;
 			case 'S':		// String
-				if (piece.charAt(objectPos) != '"')
+				if (revision >= 1) return piece;
+				if (piece.charAt(0) != '"')
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Badly formed string variable (missing open quote): " + piece, null, -1);
@@ -1831,6 +1889,7 @@ public class JELIB extends LibraryFiles
 				}
 				StringBuffer sb = new StringBuffer();
 				int len = piece.length();
+				int objectPos = 0;
 				while (objectPos < len)
 				{
 					objectPos++;
@@ -1849,7 +1908,7 @@ public class JELIB extends LibraryFiles
 				}
 				return sb.toString();
 			case 'T':		// Technology
-				techName = piece.substring(objectPos);
+				techName = piece;
 				commaPos = techName.indexOf(',');
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);
 				tech = Technology.findTechnology(techName);
@@ -1858,8 +1917,8 @@ public class JELIB extends LibraryFiles
 						", Unknown Technology: " + piece, null, -1);
 				return tech;
 			case 'V':		// Point2D
-				double x = TextUtils.atof(piece.substring(objectPos));
-				int slashPos = piece.indexOf('/', objectPos);
+				double x = TextUtils.atof(piece);
+				int slashPos = piece.indexOf('/');
 				if (slashPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1869,8 +1928,15 @@ public class JELIB extends LibraryFiles
 				double y = TextUtils.atof(piece.substring(slashPos+1));
 				return new Point2D.Double(x, y);
 			case 'Y':		// Byte
-				return new Byte((byte)TextUtils.atoi(piece.substring(objectPos)));
+				return new Byte((byte)TextUtils.atoi(piece));
 		}
 		return null;
+	}
+
+	PrimitiveNode findPrimitiveNode(Technology tech, String name)
+	{
+		PrimitiveNode pn = (PrimitiveNode)tech.findNodeProto(name);
+		if (pn != null) return pn;
+		return tech.convertOldNodeName(name);
 	}
 }

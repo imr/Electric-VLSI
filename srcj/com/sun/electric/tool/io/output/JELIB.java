@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -68,8 +69,7 @@ import java.util.TreeSet;
  */
 public class JELIB extends Output
 {
-	private static final boolean NEWREVISION = false;
-
+	private static final boolean NEWREVISION = Version.getVersion().compareTo(Version.parseVersion("8.01aw")) >= 0;
 	private HashMap abbreviationMap;
 	private HashSet externalObjs;
 	private static Comparator nodesComparator = new TextUtils.NodesByName();
@@ -151,6 +151,7 @@ public class JELIB extends Output
 				String libFile = eLib.getLibFile().toString();
 //				if (libFile.endsWith(".elib")) libFile = libFile.substring(0, libFile.length()-5) + ".jelib"; else
 //				if (libFile.endsWith(".txt")) libFile = libFile.substring(0, libFile.length()-4) + ".jelib";
+				if (NEWREVISION) printWriter.println();
 				printWriter.print("L" + convertString(eLib.getName()) + "|" + convertString(libFile) + "\n");
 				TreeMap externalCells = new TreeMap();
 				for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
@@ -162,12 +163,25 @@ public class JELIB extends Output
 				{
 					Cell cell = (Cell)cIt.next();
 					Rectangle2D bounds = cell.getBounds();
-					printWriter.print("R" + convertString(cell.getName()) + ";" + cell.getVersion() +
-						"{" + convertString(cell.getView().getAbbreviation()) + "}" +
-						"|" + TextUtils.formatDouble(bounds.getMinX(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMaxX(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMinY(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMaxY(),0) + "\n");
+					if (NEWREVISION)
+					{
+						printWriter.print("R" + convertString(cell.getCellName().toString()) +
+							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
+							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
+							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
+							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
+							"|" + cell.getCreationDate().getTime() +
+							"|" + cell.getRevisionDate().getTime() +
+							"\n");
+					} else
+					{
+						printWriter.print("R" + convertString(cell.getName()) + ";" + cell.getVersion() +
+							"{" + convertString(cell.getView().getAbbreviation()) + "}" +
+							"|" + TextUtils.formatDouble(bounds.getMinX(),0) +
+							"|" + TextUtils.formatDouble(bounds.getMaxX(),0) +
+							"|" + TextUtils.formatDouble(bounds.getMinY(),0) +
+							"|" + TextUtils.formatDouble(bounds.getMaxY(),0) + "\n");
+					}
 					List sortedExports = new ArrayList();
 					for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 					{
@@ -178,24 +192,33 @@ public class JELIB extends Output
 					for (Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
 					{
 						Export export = (Export)eIt.next();
-						printWriter.print("#" + convertString(export.getName()));
-						printWriter.print("|" + describeDescriptor(null, export.getTextDescriptor()));
-						PortOriginal po = new PortOriginal(export.getOriginalPort());
-						PrimitivePort pp = po.getBottomPortProto();
-						PrimitiveNode pn = (PrimitiveNode)pp.getParent();
-						printWriter.print("|" + pn.getFullName() + "|");
-						if (pn.getNumPorts() > 1)
-							printWriter.print(pp.getName());
-						// port information
-						Poly poly = export.getOriginalPort().getPoly();
-						printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
-										  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
-						int angle = po.getAngleToTop();
-						printWriter.print(angle != 0 ? "|" + angle : "|");
-						printWriter.print("|" + export.getCharacteristic().getShortName());
-						if (export.isAlwaysDrawn()) printWriter.print("/A");
-						if (export.isBodyOnly()) printWriter.print("/B");
-						printWriter.print("\n");
+						if (NEWREVISION)
+						{
+							Poly poly = export.getOriginalPort().getPoly();
+							printWriter.println("F" + convertString(export.getName()) +
+								"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
+								"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
+						} else
+						{
+							printWriter.print("#" + convertString(export.getName()));
+							printWriter.print("|" + describeDescriptor(null, export.getTextDescriptor()));
+							PortOriginal po = new PortOriginal(export.getOriginalPort());
+							PrimitivePort pp = po.getBottomPortProto();
+							PrimitiveNode pn = (PrimitiveNode)pp.getParent();
+							printWriter.print("|" + pn.getFullName() + "|");
+							if (pn.getNumPorts() > 1)
+								printWriter.print(pp.getName());
+							// port information
+							Poly poly = export.getOriginalPort().getPoly();
+							printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
+											  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
+							int angle = po.getAngleToTop();
+							printWriter.print(angle != 0 ? "|" + angle : "|");
+							printWriter.print("|" + export.getCharacteristic().getShortName());
+							if (export.isAlwaysDrawn()) printWriter.print("/A");
+							if (export.isBodyOnly()) printWriter.print("/B");
+							printWriter.print("\n");
+						}
 					}
 				}
 			}
@@ -291,9 +314,15 @@ public class JELIB extends Output
 			if (!groups.contains(cell.getCellGroup()))
 				groups.add(cell.getCellGroup());
 			printWriter.print("\n# Cell " + cell.describe() + "\n");
-			printWriter.print("C" + convertString(cell.getName()));
-			printWriter.print("|" + convertString(cell.getView().getAbbreviation()));
-			printWriter.print("|" + cell.getVersion());
+			if (NEWREVISION)
+			{
+				printWriter.print("C" + convertString(cell.getCellName().toString()));
+			} else
+			{
+				printWriter.print("C" + convertString(cell.getName()));
+				printWriter.print("|" + convertString(cell.getView().getAbbreviation()));
+				printWriter.print("|" + cell.getVersion());
+			}
 			printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
 			printWriter.print("|" + cell.getCreationDate().getTime());
 			printWriter.print("|" + cell.getRevisionDate().getTime());
@@ -355,9 +384,9 @@ public class JELIB extends Output
 					} else {
 						PrimitiveNode prim = (PrimitiveNode)np;
 						if (cell.getTechnology() == prim.getTechnology())
-							printWriter.print("N" + prim.getName());
+							printWriter.print("N" + convertString(prim.getName()));
 						else
-							printWriter.print("N" + prim.getFullName());
+							printWriter.print("N" + convertString(prim.getFullName()));
 					}
 				} else
 				{
@@ -366,7 +395,7 @@ public class JELIB extends Output
 					String nodeTypeName = (String)abbreviationMap.get(np);
 					printWriter.print(nodeTypeName);
 				}
-				printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");
+				printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getNameTextDescriptor()));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
@@ -385,7 +414,7 @@ public class JELIB extends Output
 					if (angle == 900 || angle == -2700) printWriter.print("R");
 					else if (angle == 1800 || angle == -1800) printWriter.print("RR");
 					else if (angle == 2700 || angle == -900) printWriter.print("RRR");
-					else printWriter.print(angle);
+					else if (angle != 0) printWriter.print(angle);
 				} else
 				{
 					printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror(), 0));
@@ -434,9 +463,9 @@ public class JELIB extends Output
 				if (NEWREVISION)
 				{
 					if (cell.getTechnology() == ap.getTechnology())
-						printWriter.print("A" + ap.getName());
+						printWriter.print("A" + convertString(ap.getName()));
 					else
-						printWriter.print("A" + ap.getFullName());
+						printWriter.print("A" + convertString(ap.getFullName()));
 				} else {
 					printWriter.print("A" + convertString(ap.getTechnology().getTechName()) + ":" + convertString(ap.getName()));
 				}
@@ -462,7 +491,7 @@ public class JELIB extends Output
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst ni = con.getPortInst().getNodeInst();
-					printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");
+					printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
 					PortProto pp = con.getPortInst().getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
@@ -487,14 +516,17 @@ public class JELIB extends Output
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();
 				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + convertString(getNodeName(subNI, sortedNodeIndices)) + "|");
+				printWriter.print("|" + getNodeName(subNI, sortedNodeIndices) + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
 
 				// port information
-				Poly poly = subPI.getPoly();
-				printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
-					"|" + TextUtils.formatDouble(poly.getCenterY(), 0));
+				if (!NEWREVISION)
+				{
+					Poly poly = subPI.getPoly();
+					printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
+									  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
+				}
 
 				printWriter.print("|" + pp.getCharacteristic().getShortName());
 				if (pp.isAlwaysDrawn()) printWriter.print("/A");
@@ -519,7 +551,15 @@ public class JELIB extends Output
 			// if there is a main schematic cell, write that first
 			Cell main = group.getMainSchematics();
 			if (main != null)
-				printWriter.print(convertString(main.describe()));
+			{
+				if (NEWREVISION)
+				{
+					printWriter.print(convertString(main.getCellName().toString()));
+				} else
+				{
+					printWriter.print(convertString(main.describe()));
+				}
+			}
 
 			TreeMap groupCells = new TreeMap();
 			for(Iterator cIt = group.getCells(); cIt.hasNext(); )
@@ -531,7 +571,13 @@ public class JELIB extends Output
 			{
 				Cell cell = (Cell)cIt.next();
 				printWriter.print("|");
-				printWriter.print(convertString(cell.describe()));
+				if (NEWREVISION)
+				{
+					printWriter.print(convertString(cell.getCellName().toString()));
+				} else
+				{
+					printWriter.print(convertString(cell.describe()));
+				}
 			}
 			printWriter.print("\n");
 		}
@@ -557,10 +603,10 @@ public class JELIB extends Output
 
 	private String getNodeName(NodeInst ni, HashMap indices)
 	{
-		if (indices == null) return ni.getName();
+		if (indices == null) return convertString(ni.getName());
 		Integer index = (Integer)indices.get(ni);
-		if (index != null) return "\"" + ni.getName() + "\"" + index;
-		return ni.getName();
+		if (index != null) return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
+		return convertString(ni.getName());
 	}
 
 	/**
@@ -625,20 +671,15 @@ public class JELIB extends Output
 		externalObjs.add(cell);
 		externalObjs.add(cell.getLibrary());
 		externalObjs.add(cell.getView());
+		abbreviationMap.put(cell, convertString(getCellName(cell, full)));
+	}
 
-		StringBuffer sb = new StringBuffer();
+	private String getCellName(Cell cell, boolean full)
+	{
 		if (full)
-		{
-			sb.append(convertString(cell.getLibrary().getName()));
-			sb.append(":");
-		}
-		sb.append(convertString(cell.getName()));
-		sb.append(";");
-		sb.append(cell.getVersion());
-		sb.append("{");
-		sb.append(convertString(cell.getView().getAbbreviation()));
-		sb.append("}");
-		abbreviationMap.put(cell, sb.toString());
+			return cell.getLibrary().getName() + ":" + cell.getCellName();
+		else
+			return cell.getCellName().toString();
 	}
 
 	/**
@@ -889,13 +930,13 @@ public class JELIB extends Output
 					infstr.append(getVarType(oneObj));
 					infstr.append("[");
 				}					
-				makeStringVar(infstr, oneObj, curCell);
+				makeStringVar(infstr, oneObj, curCell, true);
 			}
 			infstr.append("]");
 		} else
 		{
 			infstr.append(getVarType(obj));
-			makeStringVar(infstr, obj, curCell);
+			makeStringVar(infstr, obj, curCell, false);
 		}
 		return infstr.toString();
 	}
@@ -904,7 +945,7 @@ public class JELIB extends Output
 	 * Method to make a string from the value in "addr" which has a type in
 	 * "type".
 	 */
-	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell)
+	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell, boolean inArray)
 	{
 		if (obj instanceof Integer)
 		{
@@ -923,9 +964,15 @@ public class JELIB extends Output
 		}
 		if (obj instanceof String)
 		{
-			infstr.append("\"");
-			infstr.append(convertQuotedString((String)obj));
-			infstr.append("\"");
+			if (NEWREVISION)
+			{
+				infstr.append(convertString((String)obj, inArray));
+			} else
+			{
+				infstr.append("\"");
+				infstr.append(convertQuotedString((String)obj));
+				infstr.append("\"");
+			}
 			return;
 		}
 		if (obj instanceof Float)
@@ -957,25 +1004,25 @@ public class JELIB extends Output
 		if (obj instanceof Technology)
 		{
 			Technology tech = (Technology)obj;
-			infstr.append(convertString(tech.getTechName()));
+			infstr.append(convertString(tech.getTechName(), inArray));
 			return;
 		}
 		if (obj instanceof Library)
 		{
 			Library lib = (Library)obj;
-			infstr.append(convertString(lib.getName()));
+			infstr.append(convertString(lib.getName(), inArray));
 			return;
 		}
 		if (obj instanceof Tool)
 		{
 			Tool tool = (Tool)obj;
-			infstr.append(convertString(tool.getName()));
+			infstr.append(convertString(tool.getName(), inArray));
 			return;
 		}
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			infstr.append(convertString(ni.getParent().libDescribe()) + ":" + convertString(ni.getName()));
+			infstr.append(convertString(getCellName(ni.getParent(), true) + ":" + ni.getName(), inArray));
 			return;
 		}
 		if (obj instanceof ArcInst)
@@ -986,31 +1033,31 @@ public class JELIB extends Output
 			{
 				System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe() + ":" + ai.describe());
 			}
-			infstr.append(convertString(ai.getParent().libDescribe()) + ":" + convertString(arcName));
+			infstr.append(convertString(getCellName(ai.getParent(), true) + ":" + arcName, inArray));
 			return;
 		}
 		if (obj instanceof Cell)
 		{
 			Cell cell = (Cell)obj;
-			infstr.append(convertString(cell.libDescribe()));
+			infstr.append(convertString(getCellName(cell, true), inArray));
 			return;
 		}
 		if (obj instanceof PrimitiveNode)
 		{
 			PrimitiveNode np = (PrimitiveNode)obj;
-			infstr.append(convertString(np.getTechnology().getTechName()) + ":" + convertString(np.getName()));
+			infstr.append(convertString(np.getFullName(), inArray));
 			return;
 		}
-		if (obj instanceof ArcProto)
+		if (obj instanceof PrimitiveArc)
 		{
-			ArcProto ap = (ArcProto)obj;
-			infstr.append(convertString(ap.getTechnology().getTechName()) + ":" + convertString(ap.getName()));
+			PrimitiveArc ap = (PrimitiveArc)obj;
+			infstr.append(convertString(ap.getFullName(), inArray));
 			return;
 		}
 		if (obj instanceof Export)
 		{
 			Export pp = (Export)obj;
-			infstr.append(convertString(((Cell)pp.getParent()).libDescribe()) + ":" + convertString(pp.getName()));
+			infstr.append(convertString(getCellName((Cell)pp.getParent(), true) + ":" + pp.getName(), inArray));
 			return;
 		}
 	}
@@ -1021,7 +1068,7 @@ public class JELIB extends Output
 	 */
 	private String getVarType(Object obj)
 	{
-		if (obj instanceof ArcInst) return "A";
+		if (obj instanceof ArcInst) return "S"; // "A"
 		if (obj instanceof Boolean) return "B";
 		if (obj instanceof Cell) return "C";
 		if (obj instanceof Double) return "D";
@@ -1031,7 +1078,7 @@ public class JELIB extends Output
 		if (obj instanceof Short) return "H";
 		if (obj instanceof Integer) return "I";
 		if (obj instanceof Library) return "L";
-		if (obj instanceof NodeInst) return "N";
+		if (obj instanceof NodeInst) return "S"; // "N"
 		if (obj instanceof Tool) return "O";
 		if (obj instanceof PrimitiveNode) return "P";
 		if (obj instanceof ArcProto) return "R";
@@ -1054,13 +1101,26 @@ public class JELIB extends Output
 	{
 		StringBuffer infstr = new StringBuffer();
 		int len = str.length();
-		for(int i=0; i<len; i++)
+		if (NEWREVISION)
 		{
-			char ch = str.charAt(i);
-			if (ch == '\n') { infstr.append("^\\n");   continue; }
-			if (ch == '"' || ch == '^')
-				infstr.append('^');
-			infstr.append(ch);
+			for(int i=0; i<len; i++)
+			{
+				char ch = str.charAt(i);
+				if (ch == '\n') { infstr.append("\\n");   continue; }
+				if (ch == '\r') { infstr.append("\\r");   continue; }
+				if (ch == '"' || ch == '\\')
+					infstr.append('\\');
+				infstr.append(ch);
+			}
+		} else {
+			for(int i=0; i<len; i++)
+			{
+				char ch = str.charAt(i);
+				if (ch == '\n') { infstr.append("^\\n");   continue; }
+				if (ch == '"' || ch == '^')
+					infstr.append('^');
+				infstr.append(ch);
+			}
 		}
 		return infstr.toString();
 	}
@@ -1075,6 +1135,7 @@ public class JELIB extends Output
 	 */
 	private String convertString(String str)
 	{
+		if (NEWREVISION) return convertString(str, (char)0, (char)0);
 		StringBuffer infstr = new StringBuffer();
 		int len = str.length();
 		for(int i=0; i<len; i++)
@@ -1089,15 +1150,38 @@ public class JELIB extends Output
 	}
 
 	/**
-	 * Method convert a string that is a variable name.
-	 * Inserts a quote character (^) before any separator (|), quotation character ("), open parenthesis, or quote character (^) in the string.
+	 * Method convert a string that is not going to be quoted.
+	 * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
 	 * Converts newlines to spaces.
+	 * @param str the string to convert.
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private String convertString(String str, char delim1, char delim2)
+	{
+		if (str.length() != 0 &&
+			str.indexOf('\n') < 0 &&
+			str.indexOf('\r') < 0 &&
+			str.indexOf('\\') < 0 &&
+			str.indexOf('"') < 0 &&
+			str.indexOf('|') < 0 &&
+			(delim1 == 0 || str.indexOf(delim1) < 0) &&
+			(delim2 == 0 || str.indexOf(delim2) < 0))
+			return str;
+		return '"' + convertQuotedString(str) + '"';
+	}
+
+	/**
+	 * Method convert a string that is a variable name.
+	 * If string contains end-of-lines, backslashes, bars, quotation characters, open parenthesis,
+	 * encloses string in quotational characters.
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
 	 */
 	private String convertVariableName(String str)
 	{
+		if (NEWREVISION) return convertString(str, '(', (char)0);
 		StringBuffer infstr = new StringBuffer();
 		int len = str.length();
 		for(int i=0; i<len; i++)
@@ -1109,5 +1193,19 @@ public class JELIB extends Output
 			infstr.append(ch);
 		}
 		return infstr.toString();
+	}
+
+	/**
+	 * Method convert a string that is a variable value.
+	 * If string contains end-of-lines, backslashes, bars, quotation characters, comma,
+	 * close bracket, returns string enclosed in quotational characters.
+	 * @param str the string to convert.
+	 * @param inArray true if string is element of array/
+	 * @return the string with the appropriate quote characters.
+	 * If no conversion is necessary, the input string is returned.
+	 */
+	private String convertString(String str, boolean inArray)
+	{
+		return NEWREVISION && inArray ? convertString(str, ',', ']') : convertString(str, (char)0, (char)0);
 	}
 }

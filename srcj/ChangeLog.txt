@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+IMP: (12/13/04, DN) Revision of JELIB format. JELIB writer will change
+format when the Electric version becomes "8.01aw". JELIB reader will
+read files after "8.01aw" in a new format.
+
 BUG: (12/10/04, GVG) No reporting min errors for negative notches (Bug #85)
 FIX: Put code back (decomissioned long time ago) and amended.
 
