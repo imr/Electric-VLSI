@@ -34,6 +34,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
@@ -129,12 +131,12 @@ public class GDS extends Geometry
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
 	 */
-	public static void writeGDSFile(Cell cell, String filePath)
+	public static void writeGDSFile(Cell cell, VarContext context, String filePath)
 	{
 		GDS out = new GDS();
 		if (out.openBinaryOutputStream(filePath)) return;
 		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, visitor)) return;
+		if (out.writeCell(cell, context, visitor)) return;
 		if (out.closeBinaryOutputStream()) return;
 		System.out.println(filePath + " written");
 	}

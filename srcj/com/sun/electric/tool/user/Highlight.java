@@ -1432,7 +1432,8 @@ public class Highlight
 					{
 						Poly poly = polys[i];
 						poly.setExactTextBounds(wnd);
-						if (areaMustEnclose)
+                        // ignore areaMustEnclose if bounds is size 0,0
+						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
 							if (!poly.isInside(bounds)) continue;
 						} else
@@ -1461,7 +1462,8 @@ public class Highlight
 					Poly poly = polys[i];
 					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
-					if (areaMustEnclose)
+                    // ignore areaMustEnclose if bounds is size 0,0
+					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 					{
 						if (!poly.isInside(bounds)) continue;
 					} else
@@ -1504,7 +1506,8 @@ public class Highlight
 					{
 						Poly poly = polys[i];
 						poly.setExactTextBounds(wnd);
-						if (areaMustEnclose)
+                        // ignore areaMustEnclose if bounds is size 0,0
+                        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
 							if (!poly.isInside(bounds)) continue;
 						} else
@@ -1598,7 +1601,8 @@ public class Highlight
 	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
-		if (areaMustEnclose)
+        // ignore areaMustEnclose if bounds is size 0,0
+        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 		{
 			Rectangle2D geomBounds = geom.getBounds();
 			Poly poly = new Poly(geomBounds);
@@ -1737,7 +1741,8 @@ public class Highlight
 					Layer.Function lf = layer.getFunction();
 					if (!lf.isPoly() && !lf.isDiff()) continue;
 					poly.transform(trans);
-//					if (areaMustEnclose)
+                    // ignore areaMustEnclose if bounds is size 0,0
+//					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 //					{
 //						if (!poly.isInside(bounds)) continue;
 //					} else

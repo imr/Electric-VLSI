@@ -70,6 +70,14 @@ public class Variable
 		 * @return the name of this Key object.
 		 */
 		public String getName() { return name; }
+
+        /**
+         * Method to determine if two Keys are equal.
+         * Compares by name (case sensitive).
+         * @param k the Key to compare to
+         * @return true if equal, false otherwise.
+         */
+        public boolean equals(Key k) { return name.equals(k.getName()); }
 	}
 
 	private Object addr;
@@ -313,13 +321,22 @@ public class Variable
 		return name;
 	}
 
-    /** number format */ private static final DecimalFormat df = new DecimalFormat("#######.##");
-    /** field position */ private static final FieldPosition fp = new FieldPosition(NumberFormat.INTEGER_FIELD);
+    private static NumberFormat numberFormat = NumberFormat.getInstance();
+
     /** Truncate a Number to something sensible that can be printed */
-    public static String truncate(Number num) {
-        StringBuffer buf = new StringBuffer();
-        df.format(num.doubleValue(), buf, fp);
-        return buf.toString();
+    public static Number format(Number num, int numFractions) {
+
+        numberFormat.setMaximumFractionDigits(numFractions);
+        numberFormat.setMinimumFractionDigits(numFractions);
+        if (num instanceof Double) {
+            String n = numberFormat.format(num.doubleValue());
+            return new Double(n);
+        }
+        if (num instanceof Float) {
+            String n = numberFormat.format(num.floatValue());
+            return new Float(n);
+        }
+        return num;
     }
 
 	/**
@@ -437,9 +454,9 @@ public class Variable
 		if (addr instanceof Integer)
 			return ((Integer)addr).toString();
 		if (addr instanceof Float)
-			return (truncate((Float)addr)); // only display limited # of significant figures
+			return (format((Float)addr, 3).toString()); // only display limited # of significant figures
 		if (addr instanceof Double)
-			return (truncate((Double)addr));  // only display limited # of significant figures
+			return (format((Double)addr, 3).toString());  // only display limited # of significant figures
 		if (addr instanceof Short)
 			return ((Short)addr).toString();
 		if (addr instanceof Byte)

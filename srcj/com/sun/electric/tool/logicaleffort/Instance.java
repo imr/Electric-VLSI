@@ -57,7 +57,9 @@ public class Instance {
     /** if an LEGate */                             private boolean leGate;
     
     /** Context */                                  private VarContext context;
-    
+    /** parallel group number (0 is no group) */    private int parallelGroup;
+    /** m-factor */                                 private int mfactor;
+
     /** Type is a typesafe enum class that describes the type of Instance this is */
     protected static class Type {
         private final String name;
@@ -75,6 +77,8 @@ public class Instance {
         this.type = type;
         this.leSU = leSU;
         this.leX = leX;
+        this.parallelGroup = 0;
+        this.mfactor = 1;
         pins = new ArrayList();
         leGate = false;
         if (type == Type.LEGATE || type == Type.LEKEEPER)
@@ -121,7 +125,17 @@ public class Instance {
     protected VarContext getContext() { return context; }
     /** Set VarContext */
     protected void setContext(VarContext context) { this.context = context; }
-    
+
+    /** Get parallelGroup */
+    protected int getParallelGroup() { return parallelGroup; }
+    /** Set parallelGroup */
+    protected void setParallelGroup(int group) { parallelGroup = group; }
+
+    /** Get mfactor */
+    protected int getMfactor() { return mfactor; }
+    /** Set mfactor */
+    protected void setMfactor(int m) { mfactor = m; }
+
     /** Set the pin list */
     protected void setPins(ArrayList pins) { 
         this.pins = pins;

@@ -68,7 +68,11 @@ public class ElectricObject
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
-	public Variable getVar(String name) { Variable.Key key = findKey(name); return key != null ? getVar(key) : null; }
+	public Variable getVar(String name)
+    {
+        Variable.Key key = findKey(name);
+        return key != null ? getVar(key) : null;
+    }
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key.
@@ -88,7 +92,11 @@ public class ElectricObject
 	 * @param type the required type of the Variable.
 	 * @return the Variable with that name and type, or null if there is no such Variable.
 	 */
-	public Variable getVar(String name, Class type) { Variable.Key key = findKey(name); return key != null ? getVar(key, type) : null; }
+	public Variable getVar(String name, Class type)
+    {
+        Variable.Key key = findKey(name);
+        return key != null ? getVar(key, type) : null;
+    }
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key and type.
@@ -784,6 +792,8 @@ public class ElectricObject
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
+            TextDescriptor td = val.getTextDescriptor();
+            String par = td.isParam() ? "(param)" : "";
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;
@@ -800,10 +810,10 @@ public class ElectricObject
 					if (ary[i] instanceof String) System.out.print("\"");
 					if (i < ary.length-1) System.out.print(", ");
 				}
-				System.out.println("]");
+				System.out.println("] "+par);
 			} else
 			{
-				System.out.println("   " + key.getName() + "= " + addr);
+				System.out.println("   " + key.getName() + "= " + addr + " "+par);
 			}
 		}
 	}

@@ -1386,8 +1386,6 @@ public class EditWindow
     /** Restores cell state from history record */
     private void setCellByHistory(int location) {
 
-        // TODO: remove cells that have been deleted from the database
-
         // fire property changes if back/forward buttons should change state
         if (cellHistoryLocation == (cellHistory.size()-1)) {
             // was at end, forward button was disabled
@@ -1412,6 +1410,15 @@ public class EditWindow
 
         // get cell history to go to
         CellHistory history = (CellHistory)cellHistory.get(location);
+
+        // see if cell still valid part of database. If not, nullify entry
+        if (!cell.isLinked()) {
+            history.cell = null;
+            history.context = VarContext.globalContext;
+            history.offset = new Point2D.Double(0,0);
+            history.highlights = new ArrayList();
+            history.highlightOffset = new Point2D.Double(0,0);
+        }
 
         // update current cell
         setCell(history.cell, history.context, false);

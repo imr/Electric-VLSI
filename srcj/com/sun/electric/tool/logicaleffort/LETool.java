@@ -65,6 +65,8 @@ public class LETool extends Tool {
     /** LESizer object */                       private LESizer lesizer = null;
     /** if the tool has been paused */          private boolean paused = false;
 
+    private static final boolean DEBUG = true;
+
     /** Creates a new instance of LETool */
     private LETool() {
         super("logical effort");
@@ -85,14 +87,20 @@ public class LETool extends Tool {
      * @return
      */
     public Object getdrive() {
+
+        // info should be the node on which there is the variable with the getDrive() call
         Object info = EvalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable)) return "Not enough hierarchy";
         VarContext context = EvalJavaBsh.getCurrentContext();
         if (context == null) return "null VarContext";
         Nodable ni = (Nodable)info;
-        String ledrive = LETool.makeDriveStr(context.push(ni));
-        if (ledrive == null) return "No var name";
-        Variable var = ni.getVar(ledrive);
+
+        // Try to find drive strength
+        Variable var = getLEDRIVE(ni, context.push(ni));
+        if (var == null) {
+            // none found, try to find drive strength using old format from C-Electric
+            var = getLEDRIVE_old(ni, context.push(ni));
+        }
         //if (var == null) return "No variable "+ledrive;
         if (var == null) return "?";
         Object val = var.getObject();
@@ -107,10 +115,13 @@ public class LETool extends Tool {
      * @return
      */
     public Object subdrive(String nodeName, String parName) {
-        Object info = EvalJavaBsh.getCurrentInfo();            // when eval called on instances, info is that nodeinst
+
+        // info should be the node on which there is the variable with the subDrive() call
+        Object info = EvalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable)) return "subdrive(): Not enough hierarchy information";
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
         if (no == null) return "subdrive(): Not enough hierarchy information";
+
         if (no instanceof NodeInst) {
             // networks have not been evaluated, calling no.getProto()
             // is going to give us icon cell, not equivalent schematic cell
@@ -118,19 +129,22 @@ public class LETool extends Tool {
             NodeInst ni = (NodeInst)no;
             Cell parent = no.getParent();                               // Cell in which inst which has LE.subdrive is
             if (parent == null) return "subdrive(): null parent";
-			int arrayIndex = 0; // Which array index ?
+			int arrayIndex = 0;                                         // just use first index
             no = Netlist.getNodableFor(ni, arrayIndex);
             if (no == null) return "subdrive(): can't get equivalent schematic";
-
         }
+
         VarContext context = EvalJavaBsh.getCurrentContext();  // get current context
         if (context == null) return "subdrive(): null context";
+
         NodeProto np = no.getProto();                               // get contents of instance
         if (np == null) return "subdrive(): null nodeProto";
         if (!(np instanceof Cell)) return "subdrive(): NodeProto not a Cell";
         Cell cell = (Cell)np;
+
         NodeInst ni = cell.findNode(nodeName);                      // find nodeinst that has variable on it
         if (ni == null) return "subdrive(): no nodeInst of name "+nodeName;
+
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
         //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
@@ -138,16 +152,81 @@ public class LETool extends Tool {
         return context.push(no).evalVar(var);                       // evaluate variable and return it
     }
 
+    /**
+     * Attempt to get old style LEDRIVE off of <CODE>no</CODE> based
+     * on the VarContext <CODE>context</CODE>.
+     * Attemps to compensate for the situation when the user
+     * had added extra hierarchy to the top of the hierarchy.
+     * It cannot compensate for the user has less hierarchy than
+     * is required to create the correct Variable name.
+     * @param no nodable on which LEDRIVE_ var exists
+     * @param context context of <CODE>no</CODE>
+     * @return a variable if found, null otherwise
+     */
+    private Variable getLEDRIVE_old(Nodable no, VarContext context) {
+        String drive = makeDriveStrOLDRecurse(context);
+        Variable var = null;
+        while (!drive.equals("")) {
+            if (DEBUG) System.out.println("  Looking for: LEDRIVE_"+drive+";0;S");
+            var = no.getVar("LEDRIVE_"+drive+";0;S");
+            if (var != null) return var;            // look for var
+            int i = drive.indexOf(';');
+            if (i == -1) return null;
+            drive = drive.substring(i+1);             // remove top level of hierarchy
+        }
+        return null;
+    }
+
+    /**
+     * Attempt to get LEDRIVE off of <CODE>no</CODE> based
+     * on the VarContext <CODE>context</CODE>.
+     * Attemps to compensate for the situation when the user
+     * had added extra hierarchy to the top of the hierarchy.
+     * It cannot compensate for the user has less hierarchy than
+     * is required to create the correct Variable name.
+     * @param no nodable on which LEDRIVE_ var exists
+     * @param context context of <CODE>no</CODE>
+     * @return a variable if found, null otherwise
+     */
+    private Variable getLEDRIVE(Nodable no, VarContext context) {
+        String drive = context.getInstPath(".");
+        Variable var = null;
+        while (!drive.equals("")) {
+            if (DEBUG) System.out.println("  Looking for: LEDRIVE_"+drive);
+            var = no.getVar("LEDRIVE_"+drive);
+            if (var != null) return var;            // look for var
+            int i = drive.indexOf('.');
+            if (i == -1) return null;
+            drive = drive.substring(i+1);             // remove top level of hierarchy
+        }
+        return null;
+    }
+
+    /**
+     * Makes a string denoting hierarchy path.
+     * @param context var context of node
+     * @return  a string denoting hierarchical path of node
+     */
     private static String makeDriveStr(VarContext context) {
-        String s = "LEDRIVE_"+makeDriveStrRecurse(context.pop())+";0;S";
+        return "LEDRIVE_" + context.getInstPath(".");
+    }
+
+    /**
+     * Makes a string denoting hierarchy path.
+     * This is the old version compatible with Java Electric.
+     * @param context var context of node
+     * @return  a string denoting hierarchical path of node
+     */
+    private static String makeDriveStrOLD(VarContext context) {
+        String s = "LEDRIVE_"+makeDriveStrOLDRecurse(context.pop())+";0;S";
         //System.out.println("name is "+s);
         return s;
     }
 
-    private static String makeDriveStrRecurse(VarContext context) {
+    private static String makeDriveStrOLDRecurse(VarContext context) {
         if (context == VarContext.globalContext) return "";
 
-        String prefix = context.pop() == VarContext.globalContext ? "" : makeDriveStrRecurse(context.pop());
+        String prefix = context.pop() == VarContext.globalContext ? "" : makeDriveStrOLDRecurse(context.pop());
         Nodable no = context.getNodable();
         if (no == null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
@@ -158,7 +237,7 @@ public class LETool extends Tool {
             // no array info, assume zeroth index
             me = no.getName() + ",0";
         } else {
-            // not sure what to do here
+            // TODO: not sure what to do here
             me = no.getName() + ",0";
         }
 
@@ -193,40 +272,47 @@ public class LETool extends Tool {
         public void doIt() {
             setProgress("building equations");
             System.out.print("Building equations...");
-            try {
-                boolean donesleeping = false;
-                while(!donesleeping) {
-                    Thread.sleep(1);
-                    donesleeping = true;
-                }
-            } catch (InterruptedException e) {}
+
+            // sleep for testing purposes only, remove later
+//            try {
+//                boolean donesleeping = false;
+//                while(!donesleeping) {
+//                    Thread.sleep(1);
+//                    donesleeping = true;
+//                }
+//            } catch (InterruptedException e) {}
+
+            // get sizer and netlister
             lesizer = new LESizer((OutputStream)System.out);
             LENetlister netlister = new LENetlister(lesizer, (OutputStream)System.out);
             netlister.netlist(cell, context);
+
+            // calculate statistics
             long equationsDone = System.currentTimeMillis();
             String elapsed = TextUtils.getElapsedTime(equationsDone-startTime);
             System.out.println("done ("+elapsed+")");
+
+            // if user aborted, return, and do not run sizer
             if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
+
             System.out.println("Starting iterations: ");
             setProgress("iterating");
             boolean success = netlister.size();
+
+            // if user aborted, return, and do not update sizes
+            if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
+
             if (success) {
                 netlister.updateSizes();
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
             }
-            try {
-                boolean donesleeping = false;
-                while(!donesleeping) {
-                    Thread.sleep(1);
-                    donesleeping = true;
-                }
-            } catch (InterruptedException e) {}
             wnd.repaintContents();
         }
         
         // add more info to default getInfo
         public String getInfo() {
+
             StringBuffer buf = new StringBuffer();
             buf.append(super.getInfo());
             buf.append("  Gates sized: "+lesizer.getNumGates()+"\n");

@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
@@ -74,13 +75,13 @@ public class CIF extends Geometry
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
 	 */
-	public static void writeCIFFile(Cell cell, String filePath)
+	public static void writeCIFFile(Cell cell, VarContext context, String filePath)
 	{
 		ErrorLog.initLogging("CIF resolution");
 		CIF out = new CIF();
 		if (out.openTextOutputStream(filePath)) return;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, visitor)) return;
+		if (out.writeCell(cell, context, visitor)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
 		if (ErrorLog.numErrors() != 0)

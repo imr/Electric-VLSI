@@ -26,6 +26,8 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.network.Netlist;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -251,11 +253,15 @@ public class VarContext
         if (this==globalContext) return "";
 
         String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
-        Nodable ni = getNodable();
-        if (ni==null) {
+        Nodable no = getNodable();
+        if (no==null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
-        String me = ni.getName();
+        if (no instanceof NodeInst) {
+            // nodeInst, we want netlisted name, assume zero index of arrayed node
+            no = Netlist.getNodableFor((NodeInst)no, 0);
+        }
+        String me = no.getName();
 //         if (me==null) {
 //             //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
 //             me = ni.describe();

@@ -101,12 +101,12 @@ public class Spice extends Topology
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create with Spice.
 	 */
-	public static void writeSpiceFile(Cell cell, String filePath, boolean cdl)
+	public static void writeSpiceFile(Cell cell, VarContext context, String filePath, boolean cdl)
 	{
 		Spice out = new Spice();
 		out.useCDL = cdl;
 		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
 
@@ -536,7 +536,10 @@ public class Spice extends Topology
 							Variable attrVar = no.getVar(varName);
 							if (attrVar == null) infstr.append("??"); else
 							{
-								infstr.append(attrVar.getPureValue(-1, -1));
+                                if (attrVar.isJava() || attrVar.isTCL() || attrVar.isLisp())
+                                    infstr.append(context.evalVar(attrVar));
+                                else
+								    infstr.append(attrVar.getPureValue(-1, -1));
 							}
 						}
 					}

@@ -70,11 +70,11 @@ public class Verilog extends Topology
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create with Verilog.
 	 */
-	public static void writeVerilogFile(Cell cell, String filePath)
+	public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
 	{
 		Verilog out = new Verilog();
 		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell)) return;
+		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
 	}

@@ -63,9 +63,9 @@ public abstract class Geometry extends Output
      * Write cell to file
      * @return true on error
      */
-    public boolean writeCell(Cell cell) 
+    public boolean writeCell(Cell cell, VarContext context)
     {
-		writeCell(cell, new Visitor(this, getMaxHierDepth(cell)));
+		writeCell(cell, context, new Visitor(this, getMaxHierDepth(cell)));
 		return false;
 	}
 
@@ -73,7 +73,7 @@ public abstract class Geometry extends Output
      * Write cell to file
      * @return true on error
      */
-    public boolean writeCell(Cell cell, Visitor visitor) 
+    public boolean writeCell(Cell cell, VarContext context, Visitor visitor)
     {
 		// see how many cells we have to write, for progress indication
 		numVisited = 0;
@@ -83,7 +83,7 @@ public abstract class Geometry extends Output
 
 		// write out cells
 		start();
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 		done();
 		return false;
     }

@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -91,9 +92,10 @@ public class Output extends IOTool
      * This method is never called.
      * Instead, it is always overridden by the appropriate write subclass.
      * @param cell the Cell to be written.
+     * @param context the VarContext of the cell (for parameter evaluation)
      * @return true on error.
      */
-    protected boolean writeCell(Cell cell) { return true; }
+    protected boolean writeCell(Cell cell, VarContext context) { return true; }
 
 	/**
 	 * Method to write an entire Library with a particular format.
@@ -194,29 +196,29 @@ public class Output extends IOTool
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
      */
-    public static void writeCell(Cell cell, String filePath, OpenFile.Type type)
+    public static void writeCell(Cell cell, VarContext context, String filePath, OpenFile.Type type)
     {
 		if (type == OpenFile.Type.CDL)
 		{
-			Spice.writeSpiceFile(cell, filePath, true);
+			Spice.writeSpiceFile(cell, context, filePath, true);
 		} else if (type == OpenFile.Type.CIF)
 		{
-			CIF.writeCIFFile(cell, filePath);
+			CIF.writeCIFFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.GDS)
 		{
-			GDS.writeGDSFile(cell, filePath);
+			GDS.writeGDSFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.MAXWELL)
 		{
-			Maxwell.writeMaxwellFile(cell, filePath);
+			Maxwell.writeMaxwellFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.POSTSCRIPT)
 		{
-			PostScript.writePostScriptFile(cell, filePath);
+			PostScript.writePostScriptFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.SPICE)
 		{
-			Spice.writeSpiceFile(cell, filePath, false);
+			Spice.writeSpiceFile(cell, context, filePath, false);
 		} else if (type == OpenFile.Type.VERILOG)
 		{
-			Verilog.writeVerilogFile(cell, filePath);
+			Verilog.writeVerilogFile(cell, context, filePath);
 		}
         
 //		if (error)

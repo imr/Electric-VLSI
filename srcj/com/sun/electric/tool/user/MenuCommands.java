@@ -1012,22 +1012,26 @@ public final class MenuCommands
 		{
 			if (PostScript.syncAll()) return;
 		}
-		Cell cell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.getCurrent();
+		//Cell cell = Library.needCurCell();
+        Cell cell = wnd.getCell();
+        VarContext context = wnd.getVarContext();
+
 		if (cell == null) return;
 
 		String [] extensions = type.getExtensions();
 		String filePath = OpenFile.chooseOutputFile(type, null, cell.getProtoName() + "." + extensions[0]);
 		if (filePath == null) return;
 
-		exportCellCommand(cell, filePath, type);
+		exportCellCommand(cell, context, filePath, type);
 	}
 
 	/**
 	 * This is the non-interactive version of exportCellCommand
 	 */
-	public static void exportCellCommand(Cell cell, String filePath, OpenFile.Type type)
+	public static void exportCellCommand(Cell cell, VarContext context, String filePath, OpenFile.Type type)
 	{
-		ExportCell job = new ExportCell(cell, filePath, type);
+		ExportCell job = new ExportCell(cell, context, filePath, type);
 	}
 	
 	/**
@@ -1039,13 +1043,15 @@ public final class MenuCommands
 	protected static class ExportCell extends Job
 	{
 		Cell cell;
+        VarContext context;
 		String filePath;
 		OpenFile.Type type;
 		
-		public ExportCell(Cell cell, String filePath, OpenFile.Type type)
+		public ExportCell(Cell cell, VarContext context, String filePath, OpenFile.Type type)
 		{
 			super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
+            this.context = context;
 			this.filePath = filePath;
 			this.type = type;
 			startJob();
@@ -1053,7 +1059,7 @@ public final class MenuCommands
 		
 		public void doIt() 
 		{
-			Output.writeCell(cell, filePath, type);
+			Output.writeCell(cell, context, filePath, type);
 		}
 		
 	}
@@ -2189,6 +2195,10 @@ public final class MenuCommands
 			System.out.println("Logical Effort tool not found");
 			return;
 		}
+        // set current cell to use global context
+        curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
+
+        // analyze cell
 		letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}
 

@@ -68,9 +68,9 @@ public abstract class Topology extends Output
 	 * Write cell to file
 	 * @return true on error
 	 */
-	public boolean writeCell(Cell cell) 
+	public boolean writeCell(Cell cell, VarContext context)
 	{
-		writeCell(cell, new Visitor(this));
+		writeCell(cell, context, new Visitor(this));
 		return false;
 	}
 
@@ -78,7 +78,7 @@ public abstract class Topology extends Output
 	 * Write cell to file
 	 * @return true on error
 	 */
-	public boolean writeCell(Cell cell, Visitor visitor) 
+	public boolean writeCell(Cell cell, VarContext context, Visitor visitor)
 	{
 		// remember the top-level cell
 		topCell = cell;
@@ -91,7 +91,7 @@ public abstract class Topology extends Output
 
 		// write out cells
 		start();
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 		done();
 		return false;
 	}

@@ -176,6 +176,10 @@ public class EvalJavaBsh
             contextStack.pop();                     // pop context
             infoStack.pop();                        // pop info
             //System.out.println("BSH: "+expr.toString()+" --> "+ret);
+            if (ret instanceof Number) {
+                // get rid of lots of decimal places on floats and doubles
+                ret = Variable.format((Number)ret, 3);
+            }
             return ret;
         } catch (bsh.EvalError e) {
             // filter out Operator: "'x'" inappropriate for objects, and

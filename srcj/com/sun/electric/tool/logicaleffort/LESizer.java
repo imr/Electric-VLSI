@@ -204,7 +204,8 @@ public class LESizer {
                         if (netpin.getDir() == Pin.Dir.OUTPUT) load *= alpha;
                         totalcap += load;
                     }
-						
+
+                    // compute new size
                     float newX = totalcap / instance.getLeSU();
                     float currentX = instance.getLeX();
                     if (currentX == 0) currentX = 0.001f;
@@ -212,8 +213,8 @@ public class LESizer {
                     currentLoopDeltaX = (deltaX > currentLoopDeltaX) ? deltaX : currentLoopDeltaX;
                     if (verbose) {
                         out.println("Optimized "+instanceName+": size:  "+
-                            Variable.truncate(new Float(instance.getLeX()))+
-                            "x ==> "+Variable.truncate(new Float(newX))+"x");
+                            Variable.format(new Float(instance.getLeX()), 3)+
+                            "x ==> "+Variable.format(new Float(newX), 3)+"x");
                     }
                     instance.setLeX(newX);
 
@@ -250,7 +251,7 @@ public class LESizer {
 			Instance instance = (Instance)instancesIter.next();
 			String instanceName = instance.getName();
             StringBuffer buf = new StringBuffer();
-			out.println("\t"+instanceName+" ==> "+Variable.truncate(new Float(instance.getLeX()))+"x");
+			out.println("\t"+instanceName+" ==> "+Variable.format(new Float(instance.getLeX()), 3)+"x");
 			ArrayList pins = instance.getAllPins();
 			
 			// now print out pinname ==> netname

@@ -52,6 +52,9 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -72,6 +75,7 @@ public class Change extends javax.swing.JDialog
 	private static boolean nodesAndArcs = false;
 	private static int whatToChange = CHANGE_SELECTED;
 	private static Geometric geomToChange;
+    private static String libSelected = null;
 	private JList changeList;
 	private DefaultListModel changeListModel;
 
@@ -107,12 +111,16 @@ public class Change extends javax.swing.JDialog
 
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();
+        int curIndex = libList.indexOf(Library.getCurrent());
 		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			librariesPopup.addItem(lib.getLibName());
+            if (lib.getLibName().equals(libSelected)) {
+                curIndex = -1;                          // won't set to current library now
+                librariesPopup.setSelectedItem(libSelected);
+            }
 		}
-		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) librariesPopup.setSelectedIndex(curIndex);
 		librariesPopup.addActionListener(new ActionListener()
 		{
@@ -220,6 +228,8 @@ public class Change extends javax.swing.JDialog
 		}
 	}
 
+    private static final Pattern dummyName = Pattern.compile("(.*?)FROM(.*?)\\{(.*)");
+
 	private void reload()
 	{
 		changeListModel.clear();
@@ -238,6 +248,18 @@ public class Change extends javax.swing.JDialog
 					changeListModel.addElement(cell.noLibDescribe());
 				}
 //				(void)us_setscrolltocurrentcell(DCHG_ALTLIST, TRUE, FALSE, FALSE, FALSE, dia);
+                changeList.setSelectedIndex(0);
+                String geomName = ((NodeInst)geomToChange).getProto().describe();
+                // if replacing dummy facet, name will be [cellname]FROM[libname][{view}]
+                Matcher mat = dummyName.matcher(geomName);
+                if (mat.matches()) {
+                    // try to select items.  Nothing will happen if they are not in list.
+                    changeList.setSelectedValue(mat.group(1)+"{"+mat.group(3), true);
+                    librariesPopup.setSelectedItem(mat.group(2));
+                } else {
+                    // otherwise, try to match name
+                    changeList.setSelectedValue(geomName, true);
+                }
 			}
 			if (showPrimitives.isSelected())
 			{
@@ -253,6 +275,7 @@ public class Change extends javax.swing.JDialog
 					changeListModel.addElement("Generic:Invisible-Pin");
 					changeListModel.addElement("Generic:Unrouted-Pin");
 				}
+                changeList.setSelectedIndex(0);
 			}
 		} else
 		{
@@ -297,8 +320,8 @@ public class Change extends javax.swing.JDialog
 					changeListModel.addElement(ap.describe());
 				}
 			}
+            changeList.setSelectedIndex(0);
 		}
-		changeList.setSelectedIndex(0);
 	}
 
 	private void doTheChange()
@@ -333,8 +356,14 @@ public class Change extends javax.swing.JDialog
 				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return;
 
 				// get nodeproto to replace it with
-				String line = (String)dialog.changeList.getSelectedValue();
-				NodeProto np = NodeProto.findNodeProto(line);
+                String line = dialog.getLibSelected();
+                Library library = Library.findLibrary(line);
+                if (library == null) return;
+				line = (String)dialog.changeList.getSelectedValue();
+                Cell c = library.findNodeProto(line);
+                if (!(c instanceof NodeProto)) return;
+                NodeProto np = (NodeProto)c;
+				//NodeProto np = NodeProto.findNodeProto(line);
 				if (np == null) return;
 
 				// sanity check
@@ -944,6 +973,11 @@ public class Change extends javax.swing.JDialog
 
 	}
 
+    protected String getLibSelected()
+    {
+        return (String)librariesPopup.getSelectedItem();
+    }
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -1146,6 +1180,7 @@ public class Change extends javax.swing.JDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		doTheChange();
+        libSelected = (String)librariesPopup.getSelectedItem();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 

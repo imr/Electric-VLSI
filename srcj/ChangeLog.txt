@@ -2,13 +2,17 @@
 
 ************************* Version 8.00a: Released  *************************
 
+BUG: (5/10/04, JKG) DraggingMustEncloseEntire object did not allow object selection
+FIX: in Highlight, areaMustEnclose is ignored if bounds size is (0,0) (single click)
+
+IMP: (5/10/04, JKG) Fixed and improved Edit->Change.
+
 IMP: (5/10/04, SR) Put "IO Options" under "File" and "Tool Options" under "Tool".
 
 BUG: (5/10/04, SR) "IO Options" crashes if there are libraries read in.
 FIX: In "Layer.getLayerPref()" make sure "factory" is not null.
 
-BUG: (5/6/04, JKG) Delete Key Bindings and Reset Key Bindings didn't do anything.
-FIX: fixed.
+FIX: (5/6/04, JKG) Delete Key Bindings and Reset Key Bindings didn't do anything; fixed.
 
 IMP: (5/6/04, JKG) Added ability to ignore some or all key bindings, via MenuBar.
 

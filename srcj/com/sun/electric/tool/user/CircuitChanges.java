@@ -2925,7 +2925,7 @@ public class CircuitChanges
 			} else
 			{
 				// remove parameters that don't exist on the new object
-				Cell newCell = (Cell)newNp;
+/*				Cell newCell = (Cell)newNp;
 				List varList = new ArrayList();
 				for(Iterator it = newNi.getVariables(); it.hasNext(); )
 					varList.add(it.next());
@@ -2940,14 +2940,14 @@ public class CircuitChanges
 					for(Iterator cIt = cNp.getVariables(); it.hasNext(); )
 					{
 						Variable cVar = (Variable)cIt.next();
-						if (var.getKey() != cVar.getKey()) continue;
+						if (!(var.getKey().equals(cVar.getKey()))) continue;
 						if (cVar.getTextDescriptor().isParam())
 						{
 							newNi.delVar(var.getKey());
 							break;
 						}
 					}
-				}
+				}*/
 			}
 
 			// now inherit parameters that now do exist
@@ -3022,20 +3022,24 @@ public class CircuitChanges
 			while (found)
 			{
 				found = false;
+                // look through all parameters on instance
 				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
 					if (!var.getTextDescriptor().isParam()) continue;
 					Variable oVar = null;
-					for(Iterator oIt = cNp.getVariables(); oIt.hasNext(); )
+                    // try to find equivalent in all parameters on prototype
+                    Iterator oIt = cNp.getVariables();
+                    boolean delete = true;
+					while (oIt.hasNext())
 					{
 						oVar = (Variable)oIt.next();
 						if (!oVar.getTextDescriptor().isParam()) continue;
-						if (oVar.getKey() == var.getKey()) break;
-						oVar = null;
+						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
 					}
-					if (oVar != null)
+					if (delete)
 					{
+                        // no matching parameter on prototype found, so delete
 						ni.delVar(var.getKey());
 						found = true;
 						break;

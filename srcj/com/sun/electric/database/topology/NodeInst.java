@@ -362,7 +362,10 @@ public class NodeInst extends Geometric implements Nodable
 		// check for recursion
 		if (np instanceof Cell)
 		{
-			if (getParent().isAChildOf((Cell)np)) return null;
+			if (getParent().isAChildOf((Cell)np)) {
+                System.out.println("Cannot replace because it would be recursive");
+                return null;
+            }
 		}
 
 		// get the location of the cell-center on the old NodeInst

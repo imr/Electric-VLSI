@@ -184,9 +184,9 @@ class NetSchem extends NetCell {
 		}
 
 		/**
-		 * Method to return the Variable on this Nodable with a given name.
-		 * @param name the name of the Variable.
-		 * @return the Variable with that name, or null if there is no such Variable.
+         * Method to return the Variable on this ElectricObject with a given key.
+         * @param key the key of the Variable.
+         * @return the Variable with that key, or null if there is no such Variable.
 		 */
 		public Variable getVar(Variable.Key key) {
 			if (shared == null)
@@ -204,6 +204,55 @@ class NetSchem extends NetCell {
 			}
 			return var;
 		}
+
+        /**
+         * Method to create a Variable on this ElectricObject with the specified values.
+         * @param name the name of the Variable.
+         * @param value the object to store in the Variable.
+         * @return the Variable that has been created.
+         */
+        public Variable newVar(String name, Object value) {
+            if (shared == null)
+                return nodeInst.newVar(name, value);
+            // just create new var on first of shared nodeInsts
+            Variable v = shared[0].nodeInst.newVar(name, value);
+            return v;
+        }
+
+        /**
+         * Method to create a Variable on this ElectricObject with the specified values.
+         * @param key the key of the Variable.
+         * @param value the object to store in the Variable.
+         * @return the Variable that has been created.
+         */
+        public Variable newVar(Variable.Key key, Object value) {
+            if (shared == null)
+                return nodeInst.newVar(key, value);
+            // just create new var on first of shared nodeInsts
+            Variable v = shared[0].nodeInst.newVar(key, value);
+            return v;
+        }
+
+        /**
+         * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
+         * @param key the key of the arrayed Variable.
+         * @param value the object to store in an entry of the arrayed Variable.
+         * @param index the location in the arrayed Variable to store the value.
+         */
+        public void setVar(Variable.Key key, Object value, int index) {
+            if (shared == null)
+                nodeInst.setVar(key, value, index);
+            else {
+                // find which one has var on it
+                for (int i=0; i < shared.length; i++) {
+                    if (shared[i].nodeInst.getVar(key) != null) {
+                        shared[i].nodeInst.setVar(key, value, index);
+                        return;
+                    }
+                }
+                // if none had var on them, nothing is done (conforms to ElectricObject.setVar())
+            }
+        }
 
 		/**
 		 * Method to return an iterator over all Variables on this Nodable.

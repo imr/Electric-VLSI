@@ -95,13 +95,13 @@ public class PostScript extends Output
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
 	 */
-	public static void writePostScriptFile(Cell cell, String filePath)
+	public static void writePostScriptFile(Cell cell, VarContext context, String filePath)
 	{
 		// just do this file
-		writeCellToFile(cell, filePath);
+		writeCellToFile(cell, context, filePath);
 	}
 
-	private static boolean writeCellToFile(Cell cell, String filePath)
+	private static boolean writeCellToFile(Cell cell, VarContext context, String filePath)
 	{
 		boolean error = false;
 		PostScript out = new PostScript();
@@ -657,7 +657,8 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-				boolean err = writeCellToFile(oCell, syncFileName);
+                // TODO: where to get right context from?
+				boolean err = writeCellToFile(oCell, VarContext.globalContext, syncFileName);
 				if (err) return true;
 				numSyncs++;
 			}

@@ -135,12 +135,14 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Instance inst = (Instance)entry.getKey();
             Nodable no = (Nodable)entry.getValue();
             String varName = "LEDRIVE_" + inst.getName();
+            no.newVar(varName, new Float(inst.getLeX()));
+            /*
             if (no instanceof NodeInst) {
                 ((NodeInst)no).newVar(varName, new Float(inst.getLeX()));
             } else {
                 // TODO: figure out how to update sizes on Nodables/multipart icons
                 System.out.println("Can't handle NodeInst Proxies on update sizes yet");
-            }
+            }*/
         }
     }
         
@@ -184,18 +186,13 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
         // build leGate instance
         ArrayList pins = new ArrayList();
-        //Cell schCell = ni.getProtoEquivalent();
 		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
-//      for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
-//          PortInst pi = (PortInst)piIt.next();
-//          PortProto pp = pi.getProtoEquivalent();
             Variable var = pp.getVar("ATTR_le");
             // Note default 'le' value should be one
             float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
             String netName = info.getUniqueNetName(info.getNetID(netlist.getNetwork(ni,pp,0)), ".");
-//            String netName = info.getUniqueNetName(pi.getNetwork(), ".");
             Pin.Dir dir = Pin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
@@ -203,9 +200,25 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
             if (type == Instance.Type.NOTSIZEABLE) break;    // this is LEWIRE, only add one pin of it
         }
+
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
         Instance inst = lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
+
+        // set instance parameters
+        Variable var = ni.getVar("ATTR_LEPARALLGRP");
+        if (var != null) {
+            // set parallel group number
+            int g = VarContext.objectToInt(info.getContext().evalVar(var), 0);
+            inst.setParallelGroup(g);
+        }
+        var = ni.getVar("ATTR_M");
+        if (var != null) {
+            // set mfactor
+            int m = VarContext.objectToInt(info.getContext().evalVar(var), 1);
+            inst.setMfactor(m);
+        }
+
         if (DEBUG) {
             if (wire) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
             else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);

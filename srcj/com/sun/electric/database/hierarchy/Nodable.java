@@ -85,11 +85,11 @@ public interface Nodable
 	 */
 	public Variable getVar(String name);
 
-	/**
-	 * Method to return the Variable on this Nodable with a given name.
-	 * @param name the name of the Variable.
-	 * @return the Variable with that name, or null if there is no such Variable.
-	 */
+    /**
+     * Method to return the Variable on this ElectricObject with a given key.
+     * @param key the key of the Variable.
+     * @return the Variable with that key, or null if there is no such Variable.
+     */
 	public Variable getVar(Variable.Key key);
 
 	/**
@@ -97,6 +97,30 @@ public interface Nodable
 	 * @return an iterator over all Variables on this Nodable.
 	 */
 	public Iterator getVariables();
+
+    /**
+     * Method to create a Variable on this ElectricObject with the specified values.
+     * @param name the name of the Variable.
+     * @param value the object to store in the Variable.
+     * @return the Variable that has been created.
+     */
+    public Variable newVar(String name, Object value);
+
+    /**
+     * Method to create a Variable on this ElectricObject with the specified values.
+     * @param key the key of the Variable.
+     * @param value the object to store in the Variable.
+     * @return the Variable that has been created.
+     */
+    public Variable newVar(Variable.Key key, Object value);
+
+    /**
+     * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
+     * @param key the key of the arrayed Variable.
+     * @param value the object to store in an entry of the arrayed Variable.
+     * @param index the location in the arrayed Variable to store the value.
+     */
+    public void setVar(Variable.Key key, Object value, int index);
 
 	/**
 	 * Returns a printable version of this Nodable.
