@@ -61,10 +61,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This is the Simulation Interface tool.
@@ -1080,6 +1077,18 @@ public class Spice extends Topology
     /** Abstract method to decide whether export names take precedence over
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return false; }
+
+    /** If the netlister has requirments not to netlist certain cells and their
+     * subcells, override this method.
+     * If this cell has a spice template, skip it
+     */
+    protected boolean skipCellAndSubcells(Cell cell) {
+        Variable varTemplate = cell.getVar(preferedEgnineTemplateKey);
+        if (varTemplate == null)
+            varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        if (varTemplate != null) return true;
+        return false;
+    }
 
 	/**
 	 * Method to adjust a network name to be safe for Spice output.
