@@ -75,7 +75,7 @@ public class J3DServerApp
                 System.out.println("It contained data '" + inData + "'");
                 if (inData.equalsIgnoreCase("quit")) finished = true;
                 String outData = lineReader.readLine();
-                try {Runtime.getRuntime().wait(timeout);} catch (Exception e) {e.printStackTrace();}
+                try {lineReader.wait(timeout);} catch (Exception e) {e.printStackTrace();}
                 System.out.println(outData);
                 if (outData != null)
                 {
