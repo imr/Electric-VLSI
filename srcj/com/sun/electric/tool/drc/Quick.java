@@ -1429,10 +1429,13 @@ public class Quick
 				// if they touch, it is acceptable
 				if (pd <= 0) return false;
 
+				/*
 				if (!Main.LOCALDEBUGFLAG && net1 == net2)
 				{
 					return (false);
 				}
+				*/
+				
 				// see if the notch is filled
 				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
 				if (Main.LOCALDEBUGFLAG)
@@ -1470,12 +1473,14 @@ public class Quick
 				}
 				if (newR) return false;
 
+				/*
 				if (net1 == net2)
 				{
 					if (Main.LOCALDEBUGFLAG)
 						System.out.println("Should I return false before?");
 					return (false);
 				}
+				*/
 
 				// look further if on the same net and diagonally separate (1 intervening point)
 				//if (net1 == net2 && intervening == 1) return false;

@@ -1082,20 +1082,20 @@ public abstract class Geometric extends ElectricObject
 	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be set on this Geometric.
 	 */
-	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
+	public void setBit(FlagSet set) { if (set != null) flagBits = flagBits | set.getMask(); }
 
 	/**
 	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be cleared on this Geometric.
 	 */
-	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
+	public void clearBit(FlagSet set) { if (set != null) flagBits = flagBits & set.getUnmask(); }
 
 	/**
 	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be set on this Geometric.
 	 * @param value the value to be set on this Geometric.
 	 */
-	public void setFlagValue(FlagSet set, int value) { flagBits = (flagBits & set.getUnmask()) | ((value << set.getShift()) & set.getMask()); }
+	public void setFlagValue(FlagSet set, int value) { if (set != null) flagBits = (flagBits & set.getUnmask()) | ((value << set.getShift()) & set.getMask()); }
 
 	/**
 	 * Method to return the specified flag bits on this Geometric.

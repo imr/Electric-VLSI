@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ao: *********************************
 
+IMP: (11/15/04, GVG) Prevent NullException in clearSetBit
+
+BUG: (11/15/04, GVG) Rolling back changes to fix "BUG: (11/9/04, GVG) DRC and notch errors".
+
 BUG: (11/15/04, GVG) Transistor poly layer was assigned to silicide block node (errors in TSMC180 and 90 techs).
 FIX: Switched to silicide layer
 
