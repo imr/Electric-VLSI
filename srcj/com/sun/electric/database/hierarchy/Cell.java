@@ -2,15 +2,16 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.technology.Technology;
-import com.sun.electric.database.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.technologies.TecGeneric;
+import com.sun.electric.technology.technologies.TecGeneric;
+import com.sun.electric.database.text.CellName;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -116,54 +117,6 @@ public class Cell extends NodeProto
 //		cellGroup.merge(nxtCellGrp);
 	}
 
-	public static class Name
-	{
-		String name;
-		View   view;
-		int    version;
-		
-		private Name() {}
-		
-		public static Name parseName(String name)
-		{
-			// figure out the view and version of the cell
-			Name n = new Name();
-			n.view = null;
-			int openCurly = name.indexOf('{');
-			int closeCurly = name.lastIndexOf('}');
-			if (openCurly != -1 && closeCurly != -1)
-			{
-				String viewName = name.substring(openCurly+1, closeCurly);
-				n.view = View.getView(viewName);
-				if (n.view == null)
-				{
-					System.out.println("Unknown view: " + viewName);
-					return null;
-				}
-			}
-
-			// figure out the version
-			n.version = 0;
-			int semicolon = name.indexOf(';');
-			if (semicolon != -1)
-			{
-				n.version = Integer.parseInt(name.substring(semicolon));
-				if (n.version <= 0)
-				{
-					System.out.println("Cell versions must be positive, this is " + n.version);
-					return null;
-				}
-			}
-
-			// get the pure cell name
-			if (semicolon == -1) semicolon = name.length();
-			if (openCurly == -1) openCurly = name.length();
-			int nameEnd = Math.min(semicolon, openCurly);
-			n.name = name.substring(0, nameEnd);
-			return n;
-		}
-	}
-
 	/**
 	 * Create a new Cell in library "lib" named "name".
 	 * The name should be something like "foo;2{sch}".
@@ -178,17 +131,18 @@ public class Cell extends NodeProto
 			return(null);
 		}
 
-		Name n = Name.parseName(name);
+		CellName n = CellName.parseName(name);
 		if (n == null) return null;
+		int version = n.getVersion();
 
 		// make sure this version isn't in use
-		if (n.version > 0)
+		if (version > 0)
 		{
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.name.equals(c.getProtoName()) && n.view == c.getView() &&
-					n.version == c.getVersion())
+				if (n.getName().equals(c.getProtoName()) && n.getView() == c.getView() &&
+					version == c.getVersion())
 				{
 					System.out.println("Already a cell with this version");
 					return null;
@@ -197,17 +151,17 @@ public class Cell extends NodeProto
 		} else
 		{
 			// find a new version
-			n.version = 1;
+			version = 1;
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.name.equals(c.getProtoName()) && n.view == c.getView() &&
-					c.getVersion() >= n.version)
-						n.version = c.getVersion() + 1;
+				if (n.getName().equals(c.getProtoName()) && n.getView() == c.getView() &&
+					c.getVersion() >= version)
+						version = c.getVersion() + 1;
 			}
 		}
 
-		Cell c = new Cell(lib, n.name, n.version, n.view);
+		Cell c = new Cell(lib, n.getName(), version, n.getView());
 		return c;
 	}
 

@@ -26,6 +26,7 @@
         <!-- Main-Class: com.sun.electric.user.Electric -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec>
+        <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>

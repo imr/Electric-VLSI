@@ -2,7 +2,10 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * A view is simply an object with a name that represents a representation
@@ -19,7 +22,9 @@ public class View extends ElectricObject
 	/** the full name of the view */						private String fullName;
 	/** the abbreviation of the view */						private String shortName;
 	/** flag bits for the view */							private int type;
-	/** a list of all views in existence */					private static HashMap views = new HashMap();
+	/** temporary integer for the view */					private int temp1;
+	/** a list of all views in existence */					private static List views = new ArrayList();
+	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
 
 	// -------------------------- public data -----------------------------
 
@@ -65,23 +70,27 @@ public class View extends ElectricObject
 		this.type = type;
 
 		// enter both the full and short names into the hash table
-		views.put(fullName, this);
-		views.put(shortName, this);
+		viewNames.put(fullName, this);
+		viewNames.put(shortName, this);
+		views.add(this);
 	}
 
-	private static View makeInstance(String fullName, String shortName, int type)
+	public static View makeInstance(String fullName, String shortName, int type)
 	{
 		// make sure the view doesn't already exist
-		if (views.get(shortName) != null)
+		if (viewNames.get(shortName) != null)
 		{
 			System.out.println("multiple views with same name: " + shortName);
 			return null;
 		}
-		if (views.get(fullName) != null)
+		if (viewNames.get(fullName) != null)
 		{
 			System.out.println("multiple views with same name: " + fullName);
 			return null;
 		}
+
+		if (fullName.toLowerCase().startsWith("schematic-page-"))
+			type |= View.MULTIPAGEVIEW;
 
 		// create the view
 		View v = new View(fullName, shortName, type);
@@ -106,7 +115,7 @@ public class View extends ElectricObject
 	 */
 	public static View getView(String name)
 	{
-		return (View) views.get(name);
+		return (View) viewNames.get(name);
 	}
 
 	/**
@@ -122,6 +131,9 @@ public class View extends ElectricObject
 	 */
 	public String getShortName() { return shortName; }
 
+	public void setTemp1(int temp1) { this.temp1 = temp1; }
+	public int getTemp1() { return temp1; }
+
 	/** Get the Text-view bit */
 	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
 
@@ -130,6 +142,12 @@ public class View extends ElectricObject
 
 	/** Get the ermanent-view bit */
 	public boolean isPermanentView() { return (type & PERMANENTVIEW) != 0; }
+
+	/** Get an ordered array of the views. */
+	public static Iterator getViews()
+	{
+		return views.iterator();
+	}
 
 	public String toString()
 	{

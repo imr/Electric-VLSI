@@ -5,7 +5,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.technology.PrimitivePort;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.database.network.JNetwork;
 
 import java.awt.geom.AffineTransform;

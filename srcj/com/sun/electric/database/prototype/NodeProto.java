@@ -3,10 +3,10 @@ package com.sun.electric.database.prototype;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.technology.Technology;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.Point;
 import java.awt.Rectangle;

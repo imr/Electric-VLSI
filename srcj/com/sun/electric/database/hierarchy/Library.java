@@ -1,10 +1,10 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.text.CellName;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -222,15 +222,15 @@ public class Library extends ElectricObject
 	 */
 	public Cell findNodeProto(String name)
 	{
-		Cell.Name n = Cell.Name.parseName(name);
+		CellName n = CellName.parseName(name);
 		if (n == null) return null;
 
 		for (Iterator it = cells.iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
-			if (!n.name.equalsIgnoreCase(c.getProtoName())) continue;
-			if (n.view != c.getView()) continue;
-			if (n.version > 0 && n.version != c.getVersion()) continue;
+			if (!n.getName().equalsIgnoreCase(c.getProtoName())) continue;
+			if (n.getView() != c.getView()) continue;
+			if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
 			return c;
 		}
 		return null;

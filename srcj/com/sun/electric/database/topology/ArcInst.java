@@ -5,7 +5,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.technology.PrimitivePort;
+import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;

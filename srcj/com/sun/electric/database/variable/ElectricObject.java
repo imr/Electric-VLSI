@@ -1,7 +1,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.VarContext;
-import com.sun.electric.user.Electric;
+import com.sun.electric.tool.user.Electric;
 
 import java.util.ArrayList;
 import java.util.HashMap;

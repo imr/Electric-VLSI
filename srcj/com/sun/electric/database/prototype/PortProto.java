@@ -5,7 +5,7 @@ import com.sun.electric.database.network.Networkable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.technology.PrimitivePort;
+import com.sun.electric.technology.PrimitivePort;
 
 /**
  * A PortProto object lives at the PrimitiveNode level as a PrimitivePort,
