@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+BUG: (01/24/04, JKG) HierarchyEnumerator.getNetworkInParent() did not handle
+    globals correctly, because they are not explicitly exported.
+FIX: check for globals
+
+BUG: (01/24/04, JKG) Additional windows (with menu bars) was causing duplicate
+    key bindings.
+FIX: boolean check for initialization to occur only once.
+
 ************************* Version 8.02d: *********************************
 
 BUG: (01/24/04, JKG) The Font Association String[] var was being incorrectly
