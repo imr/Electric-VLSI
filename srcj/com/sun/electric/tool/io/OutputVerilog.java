@@ -817,14 +817,7 @@ public class OutputVerilog extends OutputTopology
 				if (j != start)
 					infstr.append(", ");
 				CellSignal cs = outerSignalList[j-lowIndex];
-//				if (cs.isPower()) infstr.append("vdd"); else
-//				{
-//					if (cs.isGround()) infstr.append("gnd"); else
-//					{
-//						if (cs.isGlobal()) infstr.append("glbl.");
-						infstr.append(cs.getName());
-//					}
-//				}
+				infstr.append(cs.getName());
 				if (j == end) break;
 			}
 			infstr.append("}");

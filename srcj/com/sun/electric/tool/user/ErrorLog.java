@@ -559,8 +559,8 @@ public class ErrorLog
 						break;
 					case ERRORTYPEPOINT:
 						double consize = 5;
-						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x2+consize, eh.y2+consize), cell);
-						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x2+consize, eh.y2-consize), cell);
+						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x1+consize, eh.y1+consize), cell);
+						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x1+consize, eh.y1-consize), cell);
 						break;
 				}
 

@@ -223,13 +223,15 @@ public class OutputSpice extends OutputTopology
 		{
 			if (globalSize > 0)
 			{
-				printWriter.print("\n.global");
+				StringBuffer infstr = new StringBuffer();
+				infstr.append("\n.global");
 				for(int i=0; i<globalSize; i++)
 				{
 					Global global = (Global)globals.get(i);
-					printWriter.print(" " + global.getName());
+					infstr.append(" " + global.getName());
 				}
-				printWriter.print("\n");
+				infstr.append("\n");
+				multiLinePrint(false, infstr.toString());
 			}
 		}
 	}
@@ -330,31 +332,35 @@ public class OutputSpice extends OutputTopology
 			for(Iterator lIt = spNet.merge.getLayersUsed(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
-				Poly poly = spNet.merge.getMergedPoints(layer);
-				if (poly == null) continue;
-				Point2D [] pointList = poly.getPoints();
-				int count = pointList.length;
+				List polyList = spNet.merge.getMergedPoints(layer);
+				if (polyList == null) continue;
+				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+				{
+					Poly poly = (Poly)pIt.next();
+					Point2D [] pointList = poly.getPoints();
+					int count = pointList.length;
 
-				// compute perimeter and area
-				double perim = 0;
-				for(int i=0; i<count; i++)
-				{
-					int j = i - 1;
-					if (j < 0) j = count - 1;
-					perim += pointList[i].distance(pointList[j]);
-				}
-				double area = Poly.areaPoints(pointList);
+					// compute perimeter and area
+					double perim = 0;
+					for(int i=0; i<count; i++)
+					{
+						int j = i - 1;
+						if (j < 0) j = count - 1;
+						perim += pointList[i].distance(pointList[j]);
+					}
+					double area = Poly.areaPoints(pointList);
 
-				// accumulate this information
-				if (layerIsDiff(layer))
-				{
-					spNet.diffArea += area * maskScale * maskScale;
-					spNet.diffPerim += perim * maskScale;
-				} else
-				{
-					System.out.println("area="+area+" capacitance="+layer.getCapacitance());
-					spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
-					spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
+					// accumulate this information
+					if (layerIsDiff(layer))
+					{
+						spNet.diffArea += area * maskScale * maskScale;
+						spNet.diffPerim += perim * maskScale;
+					} else
+					{
+						System.out.println("area="+area+" capacitance="+layer.getCapacitance());
+						spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
+						spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
+					}
 				}
 			}		
 		}
@@ -397,7 +403,8 @@ public class OutputSpice extends OutputTopology
 		{
 			String cellName = cni.getParameterizedName();
 			multiLinePrint(false, "\n*** CELL: " + cell.describe() + "\n");
-			multiLinePrint(false, ".SUBCKT " + cellName);
+			StringBuffer infstr = new StringBuffer();
+			infstr.append(".SUBCKT " + cellName);
 			for(Iterator sIt = cni.getCellAggregateSignals(); sIt.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
@@ -411,19 +418,19 @@ public class OutputSpice extends OutputTopology
 				{
 //					// if this is output and the last was input (or visa-versa), insert "/"
 //					if (i > 0 && netlist[i-1]->temp2 != net->temp2)
-//						multiLinePrint(false, " /");
+//						infstr.append(" /");
 				}
 
 				int low = cas.getLowIndex(), high = cas.getHighIndex();
 				if (low > high)
 				{
 					// single signal
-					multiLinePrint(false, " " + cas.getName());
+					infstr.append(" " + cas.getName());
 				} else
 				{
 					for(int j=low; j<=high; j++)
 					{
-						multiLinePrint(false, " " + cas.getName() + "[" + j + "]");
+						infstr.append(" " + cas.getName() + "[" + j + "]");
 					}
 				}
 			}
@@ -438,7 +445,7 @@ public class OutputSpice extends OutputTopology
 					int netIndex = netList.getNetIndex(global);
 					JNetwork net = netList.getNetwork(netIndex);
 					CellSignal cs = cni.getCellSignal(net);
-					printWriter.print(" " + cs.getName());
+					infstr.append(" " + cs.getName());
 				}
 			}
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
@@ -448,10 +455,11 @@ public class OutputSpice extends OutputTopology
 				{
 					Variable paramVar = (Variable)it.next();
 					if (!paramVar.getTextDescriptor().isParam()) continue;
-					multiLinePrint(false, " " + var.getTrueName() + "=" + var.getPureValue(-1, -1));
+					infstr.append(" " + var.getTrueName() + "=" + var.getPureValue(-1, -1));
 				}
 			}
-			multiLinePrint(false, "\n");
+			infstr.append("\n");
+			multiLinePrint(false, infstr.toString());
 
 			// generate pin descriptions for reference (when not using node names)
 			for(int i=0; i<globalSize; i++)
@@ -549,7 +557,8 @@ public class OutputSpice extends OutputTopology
 
 				String modelChar = "X";
 				if (no.getName() != null) modelChar += getSafeNetName(no.getName());
-				multiLinePrint(false, modelChar);
+				StringBuffer infstr = new StringBuffer();
+				infstr.append(modelChar);
 				for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 				{
 					CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
@@ -564,14 +573,14 @@ public class OutputSpice extends OutputTopology
 						// single signal
 						JNetwork net = netList.getNetwork(no, pp, 0);
 						CellSignal cs = cni.getCellSignal(net);
-						multiLinePrint(false, " " + cs.getName());
+						infstr.append(" " + cs.getName());
 					} else
 					{
 						for(int j=low; j<=high; j++)
 						{
 							JNetwork net = netList.getNetwork(no, cas.getExport(), j-low);
 							CellSignal cs = cni.getCellSignal(net);
-							multiLinePrint(false, " " + cs.getName());
+							infstr.append(" " + cs.getName());
 						}
 					}
 				}
@@ -583,10 +592,10 @@ public class OutputSpice extends OutputTopology
 					for(int i=0; i<globalSize; i++)
 					{
 						Global global = globals.get(i);
-						multiLinePrint(false, " " + global.getName());
+						infstr.append(" " + global.getName());
 					}
 				}
-				multiLinePrint(false, " " + subCni.getParameterizedName());
+				infstr.append(" " + subCni.getParameterizedName());
 
 				if (!useCDL && Simulation.isSpiceUseCellParameters())
 				{
@@ -598,10 +607,11 @@ public class OutputSpice extends OutputTopology
 						Variable instVar = no.getVar(paramVar.getKey());
 						String paramStr = "??";
 						if (instVar != null) paramStr = instVar.describe(-1, -1);
-						multiLinePrint(false, " " + paramStr);
+						infstr.append(" " + paramStr);
 					}
 				}
-				multiLinePrint(false, "\n");
+				infstr.append("\n");
+				multiLinePrint(false, infstr.toString());
 				continue;
 			}
 
@@ -784,9 +794,10 @@ public class OutputSpice extends OutputTopology
 //				biasn = subnet != NOSPNET ? subnet : 0;
 			}
 			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName());
-			multiLinePrint(false, modelChar + " " + drainCs.getName() + " " + gateCs.getName() + " " + sourceCs.getName());
-			if (biasCs != null) multiLinePrint(false, " " + biasCs.getName());
-			if (modelName != null) multiLinePrint(false, " " + modelName);
+			StringBuffer infstr = new StringBuffer();
+			infstr.append(modelChar + " " + drainCs.getName() + " " + gateCs.getName() + " " + sourceCs.getName());
+			if (biasCs != null) infstr.append(" " + biasCs.getName());
+			if (modelName != null) infstr.append(" " + modelName);
 
 			// compute length and width (or area for nonMOS transistors)
 			Dimension size = ni.getTransistorSize(context);
@@ -808,14 +819,14 @@ public class OutputSpice extends OutputTopology
 					  fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRAEMES) &&
 					  spiceEngine == Simulation.SPICE_ENGINE_H))
 				{
-					multiLinePrint(false, " L=" + TextUtils.formatDouble(l, 2) + "U");
-					multiLinePrint(false, " W=" + TextUtils.formatDouble(w, 2) + "U");
+					infstr.append(" L=" + TextUtils.formatDouble(l, 2) + "U");
+					infstr.append(" W=" + TextUtils.formatDouble(w, 2) + "U");
 				}
 				if (fun != NodeProto.Function.TRANMOS && fun != NodeProto.Function.TRA4NMOS &&
 					fun != NodeProto.Function.TRAPMOS && fun != NodeProto.Function.TRA4PMOS &&
 					fun != NodeProto.Function.TRADMOS && fun != NodeProto.Function.TRA4DMOS)
 				{
-					multiLinePrint(false, " AREA=" + TextUtils.formatDouble(l*w, 2) + "P");
+					infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2) + "P");
 				}
 			}
 
@@ -853,13 +864,14 @@ public class OutputSpice extends OutputTopology
 							pd *= layoutTechnology.getScale() / 1000.0;
 						}
 					}
-					if (as > 0.0) multiLinePrint(false, " AS=" + TextUtils.formatDouble(as, 2) + "P");
-					if (ad > 0.0) multiLinePrint(false, " AD=" + TextUtils.formatDouble(ad, 2) + "P");
-					if (ps > 0.0) multiLinePrint(false, " PS=" + TextUtils.formatDouble(ps, 2) + "U");
-					if (pd > 0.0) multiLinePrint(false, " PD=" + TextUtils.formatDouble(pd, 2) + "U");
+					if (as > 0.0) infstr.append(" AS=" + TextUtils.formatDouble(as, 2) + "P");
+					if (ad > 0.0) infstr.append(" AD=" + TextUtils.formatDouble(ad, 2) + "P");
+					if (ps > 0.0) infstr.append(" PS=" + TextUtils.formatDouble(ps, 2) + "U");
+					if (pd > 0.0) infstr.append(" PD=" + TextUtils.formatDouble(pd, 2) + "U");
 				}
 			}
-			multiLinePrint(false, "\n");
+			infstr.append("\n");
+			multiLinePrint(false, infstr.toString());
 		}
 
 		// print resistances and capacitances
@@ -1153,8 +1165,7 @@ public class OutputSpice extends OutputTopology
 		}
 
 		if (ni.getName() != null) partName += getSafeNetName(ni.getName());
-		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName());
-		multiLinePrint(false, " " + extra + "\n");
+		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + extra + "\n");
 	}
 
 	/******************** PARASITIC CALCULATIONS ********************/

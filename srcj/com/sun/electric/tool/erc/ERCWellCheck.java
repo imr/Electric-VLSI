@@ -68,8 +68,10 @@ public class ERCWellCheck
 		boolean            onProperRail;
 		NodeProto.Function fun;
 		NodeProto          np;
+		int                index;
 	};
 	private static List wellCons;
+	private static int wellConIndex;
 
 	// well areas
 	static class WellArea
@@ -78,6 +80,7 @@ public class ERCWellCheck
 		Poly        poly;
 		Layer       layer;
 		int         netNum;
+		int         index;
 	};
 	private static List wellAreas;
 
@@ -112,16 +115,9 @@ public class ERCWellCheck
 			// announce start of analysis
 			System.out.println("Checking Wells and Substrates...");
 
-//			erc_progressdialog = DiaInitProgress(_("Preparing to analyze..."), 0);
-//			if (erc_progressdialog == 0)
-//			{
-//				termerrorlogging(TRUE);
-//				return;
-//			}
-//			DiaSetProgress(erc_progressdialog, 0, 1);
-
 			// make a list of well and substrate contacts
 			wellCons = new ArrayList();
+			wellConIndex = 0;
 
 			// make a map of merge information in each cell
 			cellMerges = new HashMap();
@@ -133,14 +129,23 @@ public class ERCWellCheck
 			// make a list of well and substrate areas
 			PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
 			wellAreas = new ArrayList();
+			int wellIndex = 0;
 			for(Iterator it = topMerge.getLayersUsed(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				WellArea wa = new WellArea();
-				wa.poly = topMerge.getMergedPoints(layer);
-				wa.bounds = wa.poly.getBounds2D();
-				wa.layer = layer;
-				wellAreas.add(wa);
+				List polyList = topMerge.getMergedPoints(layer);
+				if (polyList != null)
+				{
+					for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+					{
+						WellArea wa = new WellArea();
+						wa.poly = (Poly)pIt.next();
+						wa.bounds = wa.poly.getBounds2D();
+						wa.layer = layer;
+						wa.index = wellIndex++;
+						wellAreas.add(wa);
+					}
+				}
 			}
 
 			// number the well areas according to topology of contacts in them
@@ -154,7 +159,7 @@ public class ERCWellCheck
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
-				int wellType = erc_welllayer(wa.layer);
+				int wellType = getWellLayerType(wa.layer);
 				if (wellType != 1 && wellType != 2) continue;
 
 				// presume N-well
@@ -226,7 +231,7 @@ public class ERCWellCheck
 				for(Iterator oIt = wellCons.iterator(); oIt.hasNext(); )
 				{
 					WellCon oWc = (WellCon)oIt.next();
-					if (oWc == wc) continue;
+					if (oWc.index <= wc.index) continue;
 
 					if (oWc.netNum == 0) continue;
 					if (oWc.fun != wc.fun) continue;
@@ -277,6 +282,7 @@ public class ERCWellCheck
 				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
 				{
 					WellArea oWa = (WellArea)oIt.next();
+					if (wa.index <= oWa.index) continue;
 					if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
@@ -289,7 +295,7 @@ public class ERCWellCheck
 					double dist = wa.poly.separation(oWa.poly);
 					if (dist < rule.distance)
 					{
-						int layertype = erc_welllayer(wa.layer);
+						int layertype = getWellLayerType(wa.layer);
 						if (layertype == 0) continue;
 						String areaType = null;
 						switch (layertype)
@@ -320,7 +326,7 @@ public class ERCWellCheck
 				{
 					WellArea wa = (WellArea)it.next();
 
-					int wellType = erc_welllayer(wa.layer);
+					int wellType = getWellLayerType(wa.layer);
 					if (wellType != 1 && wellType != 2) continue;
 					NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
 					if (wellType == 1) desiredContact = NodeProto.Function.WELL;
@@ -411,6 +417,7 @@ public class ERCWellCheck
 			{
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
+			ErrorLog.termLogging(true);
 		}
 	}
 
@@ -451,9 +458,8 @@ public class ERCWellCheck
 						{
 							Poly poly = nodeInstPolyList[i];
 							Layer layer = poly.getLayer();
-							if (erc_welllayer(layer) == 0) continue;
+							if (getWellLayerType(layer) == 0) continue;
 							poly.transform(trans);
-//							poly.transform(info.getTransformToRoot());
 							merge.addPolygon(layer, poly);
 						}
 					} else
@@ -462,7 +468,9 @@ public class ERCWellCheck
 						PolyMerge subMerge = (PolyMerge)cellMerges.get(subNp);
 						if (subMerge != null)
 						{
-							merge.addMerge(subMerge, trans);
+							AffineTransform tTrans = ni.translateOut();
+							tTrans.concatenate(trans);
+							merge.addMerge(subMerge, tTrans);
 						}
 					}
 				}
@@ -477,8 +485,7 @@ public class ERCWellCheck
 					{
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
-						if (erc_welllayer(layer) == 0) continue;
-//						poly.transform(info.getTransformToRoot());
+						if (getWellLayerType(layer) == 0) continue;
 						merge.addPolygon(layer, poly);
 					}
 				}
@@ -498,6 +505,7 @@ public class ERCWellCheck
 					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 					wc.np = ni.getProto();
 					wc.fun = fun;
+					wc.index = wellConIndex++;
 					PortInst pi = ni.getOnlyPortInst();
 					Netlist netList = info.getNetlist();
 					JNetwork net = netList.getNetwork(pi);
@@ -546,7 +554,7 @@ public class ERCWellCheck
 	 *   3: P-Select
 	 *   4: N-Select
 	 */
-	private static int erc_welllayer(Layer layer)
+	private static int getWellLayerType(Layer layer)
 	{
 		Layer.Function fun = layer.getFunction();
 		int extra = layer.getFunctionExtras();

@@ -731,6 +731,7 @@ public abstract class OutputTopology extends Output
 				Variable.Key key = (Variable.Key)it.next();
 				Variable var = no.getVar(key.getName());
 				Object eval = context.evalVar(var, no);
+				if (eval == null) continue;
 				uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
 			}
 		}

@@ -57,7 +57,7 @@ import java.util.HashMap;
  * <P>
  * At end of merging, call:<BR>
  *    merge.getMergedPoints(layer)<BR>
- * for each layer, and it returns an array of points on that layer.
+ * for each layer, and it returns an array of Polys on that layer.
  */
 public class PolyMerge
 {
@@ -137,10 +137,12 @@ public class PolyMerge
 	 * Method to return a merged Poly for a given layer.
 	 * THIS CANNOT BE RIGHT, BECAUSE THERE MAY BE MULTIPLE POLYGONS.
 	 */
-	public Poly getMergedPoints(Layer layer)
+	public List getMergedPoints(Layer layer)
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null) return null;
+
+		List polyList = new ArrayList();
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
 		Point2D lastMoveTo = null;
@@ -150,9 +152,17 @@ public class PolyMerge
 			if (type == PathIterator.SEG_CLOSE)
 			{
 				if (lastMoveTo != null) pointList.add(lastMoveTo);
-				break;
-			}
-			if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+				Point2D [] points = new Point2D[pointList.size()];
+				int i = 0;
+				for(Iterator it = pointList.iterator(); it.hasNext(); )
+					points[i++] = (Point2D)it.next();
+				Poly poly = new Poly(points);
+				poly.setLayer(layer);
+				poly.setStyle(Poly.Type.FILLED);
+				polyList.add(poly);
+				pointList.clear();
+				lastMoveTo = null;
+			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
 			{
 				Point2D pt = new Point2D.Double(coords[0], coords[1]);
 				pointList.add(pt);
@@ -160,20 +170,6 @@ public class PolyMerge
 			}
 			pIt.next();
 		}
-		Point2D [] points = new Point2D[pointList.size()];
-		int i = 0;
-		for(Iterator it = pointList.iterator(); it.hasNext(); )
-			points[i++] = (Point2D)it.next();
-		Poly poly = new Poly(points);
-		poly.setLayer(layer);
-		return poly;
+		return polyList;
 	}
-
-	/*
-	 * Method to return the bounding box of the merged polygon "vmerge" in (lx,hx,ly,hy).
-	 * Returns FALSE if there is no valid polygon.
-	 */
-//	public BOOLEAN mergebbox(void *vmerge, INTBIG *lx, INTBIG *hx, INTBIG *ly, INTBIG *hy)
-//	{
-//	}
 }

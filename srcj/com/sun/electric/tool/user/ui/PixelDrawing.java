@@ -53,6 +53,7 @@ import java.awt.Point;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Dimension;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
@@ -2109,16 +2110,14 @@ public class PixelDrawing
 		}
 
 		// convert the text to a GlyphVector
-		FontRenderContext frc = new FontRenderContext(null, true, false);
+		FontRenderContext frc = new FontRenderContext(null, true, true);
 		GlyphVector gv = theFont.createGlyphVector(frc, msg);
 		LineMetrics lm = theFont.getLineMetrics(msg, frc);
 
 		// allocate space for the rendered text
-		Rectangle rect = gv.getPixelBounds(frc, 0, (float)(lm.getAscent()-lm.getLeading()));
+//		Rectangle rect = gv.getPixelBounds(frc, 0, (float)(lm.getAscent()-lm.getLeading()));
+		Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
 		int width = rect.width;
-
-		// ugly hack for the Mac: why do we need more room?
-//		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH) width += rect.width/5;
 
 		int height = (int)(lm.getHeight()+0.5);
 		if (width <= 0 || height <= 0) return null;
@@ -2146,6 +2145,7 @@ public class PixelDrawing
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2.setColor(new Color(255,255,255));
 		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
