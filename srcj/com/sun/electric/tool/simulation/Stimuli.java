@@ -54,15 +54,16 @@ public class Stimuli
 	public static final int GATE_STRENGTH = 010;
 	public static final int VDD_STRENGTH  = 014;
 
-	private Cell cell;
-	private FileType type;
-	private URL fileURL;
-	private List signals;
-	private List sweeps;
-	private char separatorChar;
-	private double [] commonTime;
-	private List sweepCommonTime;
-	private WaveformWindow ww;
+	/** the WaveformWindow associated with this Stimuli */		private WaveformWindow ww;
+	/** the cell attached to this Stimuli information */		private Cell cell;
+	/** the type of data in this Stimuli */						private FileType type;
+	/** the disk file associated with this Stimuli */			private URL fileURL;
+	/** a list of all signals in this Stimuli */				private List signals;
+	/** a list of all bussed signals in this Stimuli */			private List allBussedSignals;
+	/** all sweeps in this Stimuli */							private List sweeps;
+	/** the separator character that breaks names */			private char separatorChar;
+	/** the common time array (if there is common time) */		private double [] commonTime;
+	/** a list of time arrays for each sweep */					private List sweepCommonTime;
 
 	/**
 	 * Class to define a signal in the simulation waveform window.
@@ -70,16 +71,19 @@ public class Stimuli
 	 */
 	public static class Signal
 	{
-		private String signalName;
-		private String signalContext;
-		private Stimuli sd;
-		private boolean useCommonTime;
-		protected Rectangle2D bounds;
-		private boolean boundsCurrent;
-		private double [] time;
-		private List bussedSignals;
-		public List tempList;		// used only in the Verilog reader
-		private boolean partOfBus;
+		/** the name of this signal */									private String signalName;
+		/** the context of this signal (qualifications to name) */		private String signalContext;
+		/** the Stimuli object in which this Signal resides. */			private Stimuli sd;
+		/** true to use the common time array in the Stimuli */			private boolean useCommonTime;
+		/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
+		/** true if the bounds data is valid */							private boolean boundsCurrent;
+		/** an array of time values on this signal (if not common) */	private double [] time;
+		/** an array of control points on this signal */				private double [] controlPoints;
+		/** a list of signals on this bussed signal */					private List bussedSignals;
+		/** the number of busses that reference this signal */			private int busCount;
+		/** application-specific object associated with this signal */	private Object appObject;
+		/** application-specific flags for this signal */				public int flags;
+		/** used only in the Verilog reader */							public List tempList;
 
 		/**
 		 * Constructor for a simulation signal.
@@ -90,7 +94,8 @@ public class Stimuli
 			this.sd = sd;
 			useCommonTime = true;
 			boundsCurrent = false;
-			partOfBus = false;
+			busCount = 0;
+			controlPoints = null;
 			if (sd != null) sd.signals.add(this);
 		}
 
@@ -132,7 +137,7 @@ public class Stimuli
 		 */
 		public String getFullName()
 		{
-			if (signalContext != null) return signalContext + "." + signalName;
+			if (signalContext != null) return signalContext + sd.separatorChar + signalName;
 			return signalName;
 		}
 
@@ -148,7 +153,11 @@ public class Stimuli
 		 * Method to request that this signal be a bus.
 		 * Builds the necessary data structures to hold bus information.
 		 */
-		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
+		public void buildBussedSignalList()
+		{
+			bussedSignals = new ArrayList();
+			sd.allBussedSignals.add(this);
+		}
 
 		/**
 		 * Method to return a List of signals on this bus signal.
@@ -158,20 +167,62 @@ public class Stimuli
 		public List getBussedSignals() { return bussedSignals; }
 
 		/**
+		 * Method to request that this bussed signal be cleared of all signals on it.
+		 */
+		public void clearBussedSignalList()
+		{
+			for(Iterator it = bussedSignals.iterator(); it.hasNext(); )
+			{
+				Signal sig = (Signal)it.next();
+				sig.busCount--;
+			}
+			bussedSignals.clear();
+		}
+
+		/**
 		 * Method to add a signal to this bus signal.
 		 * @param ws a single-wire signal to be added to this bus signal.
 		 */
 		public void addToBussedSignalList(Signal ws)
 		{
 			bussedSignals.add(ws);
-			ws.partOfBus = true;
+			ws.busCount++;
 		}
 
 		/**
 		 * Method to tell whether this signal is part of a bus.
 		 * @return true if this signal is part of a bus.
 		 */
-		public boolean isInBus() { return partOfBus; }
+		public boolean isInBus() { return busCount != 0; }
+
+		/**
+		 * Method to set a list of control points associated with this signal.
+		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+		 * These points can be selected for change of the stimuli.
+		 * @param cp an array of times where there are control points.
+		 */
+		public void setControlPoints(double [] controlPoints) { this.controlPoints = controlPoints; }
+
+		/**
+		 * Method to return a list of control points associated with this signal.
+		 * Control points are places where the user has added stimuli to the signal (set a level or strength).
+		 * These points can be selected for change of the stimuli.
+		 * @return an array of times where there are control points.
+		 * Null if no control points are defined.
+		 */
+		public double [] getControlPoints() { return controlPoints; }
+
+		/**
+		 * Method to set an application-specific object pointer on this Signal.
+		 * @param appObject an application-specific object pointer on this Signal.
+		 */
+		public void setAppObject(Object appObject) { this.appObject = appObject; }
+
+		/**
+		 * Method to get an application-specific object pointer on this Signal.
+		 * @return the application-specific object pointer on this Signal.
+		 */
+		public Object getAppObject() { return appObject; }
 
 		/**
 		 * Method to build a time vector for this signal.
@@ -679,6 +730,7 @@ public class Stimuli
 	{
 		signals = new ArrayList();
 		sweeps = new ArrayList();
+		allBussedSignals = new ArrayList();
 		sweepCommonTime = new ArrayList();
 		separatorChar = '.';
 	}
@@ -688,6 +740,12 @@ public class Stimuli
 	 * @return a List of signals.
 	 */
 	public List getSignals() { return signals; }
+
+	/**
+	 * Method to get the list of bussed signals in this Simulation Data object.
+	 * @return a List of signals.
+	 */
+	public List getBussedSignals() { return allBussedSignals; }
 
 	/**
 	 * Method to add a new signal to this Simulation Data object.

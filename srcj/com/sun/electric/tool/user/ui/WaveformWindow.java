@@ -1053,6 +1053,22 @@ public class WaveformWindow implements WindowContent
 			int wid = sz.width;
 			int hei = sz.height;
 
+			// show control points
+			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)it.next();
+				double [] points = ws.sSig.getControlPoints();
+				if (points != null)
+				{
+					if (g != null) g.setColor(ws.color);
+					for(int i=0; i<points.length; i++)
+					{
+						double time = points[i];
+						int x = scaleTimeToX(time);
+						if (processABox(g, x-8, hei-16, x+8, hei, bounds, result, ws)) break;
+					}
+				}
+			}
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)it.next();
@@ -3386,6 +3402,12 @@ public class WaveformWindow implements WindowContent
 		wf.wantToRedoSignalTree();
 		System.out.println("Simulation data refreshed from disk");
 	}
+
+	/**
+	 * Method to return the stimulus information associated with this WaveformWindow.
+	 * @return the stimulus information associated with this WaveformWindow.
+	 */
+	public Stimuli getSimData() { return sd; }
 
 	/**
 	 * Method to return the top-level JPanel for this WaveformWindow.

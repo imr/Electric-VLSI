@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  * The Analyzer class is the top-level class for IRSIM simulation.
@@ -59,7 +60,7 @@ import java.util.List;
  */
 public class Analyzer extends Engine
 {
-	static final String simVersion = "9.5j";
+	private static final String simVersion = "9.5j";
 
 	// the meaning of SimVector.command
 	/** a command that isn't interpreted */				private static final int VECTORCOMMAND    =  0;
@@ -77,54 +78,74 @@ public class Analyzer extends Engine
 	/** the "!" command to print gate info */			private static final int VECTOREXCL       = 12;
 	/** the "?" command to print source/drain info */	private static final int VECTORQUESTION   = 13;
 	/** the "t" command to trace */						private static final int VECTORTRACE      = 14;
+	/** the "ana" command */							private static final int VECTORANALYZER   = 15;
+	/** the "w" command */								private static final int VECTORWATCH      = 16;
+	/** the "path" command */							private static final int VECTORPATH       = 17;
+	/** the "stop" command */							private static final int VECTORSTOP       = 18;
 
-	/** default simulation steps per screen */			private static final int    DEF_STEPS         = 4;
+	/** default simulation steps per screen */			private static final int    DEF_STEPS     = 4;
 	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;
 
+	/** maximum width of print line */					private static final int	MAXCOL        = 80;
+
+	/** set of potential characters */					private static final String potChars = "luxh.";
+
+	/**
+	 * Class that defines a single low-level IRSIM control command.
+	 */
 	private static class SimVector
 	{
-		/** index of command */				int       command;
-		/** parameters to the command */	String [] parameters;
-		/** next in list of vectors */		SimVector next;
+		/** index of command */						int               command;
+		/** parameters to the command */			String []         parameters;
+		/** actual signals named in command */		Stimuli.Signal [] sigs;
+		/** duration of step, where appropriate */	double            value;
+		/** next in list of vectors */				SimVector         next;
 	};
 
-	private static class TraceEnt
+	public static class AssertWhen
 	{
-		/** name stripped of path */		String      name;
-											Sim.Node    waveformData;
-		/** what makes up this trace */		Sim.Node    nd;
-		/** window start */					Sim.HistEnt wind;
-		/** cursor value */					Sim.HistEnt cursor;
+		/** which node we will check */				Sim.Node          node;
+		/** what value has the node */				char	          val;
+		/** next in list of assertions */			AssertWhen        nxt;
 	};
 
-	private static class Bits
+	private static class ClockSequence
 	{
-		/** next bit vector in chain */				Bits     next;
-		/** name of this vector of bits */			String   name;
-		/** <>0 if this vector is being traced */	int      traced;
-		/** number of bits in this vector */		int      nBits;
-		/** pointers to the bits (nodes) */			Sim.Node nodes[];
+		/** signal to clock */						Stimuli.Signal    sig;
+		/** array of values */						String  []        values;
 	};
 
 	private SimVector firstVector = null;
 	private SimVector lastVector = null;
 	private long      stepSize = 50000;
 
-	private List      traceList;
 	private long      firstTime;
 	private long      lastTime;
 	private long      startTime;
 	private long      stepsTime;
 	private long      endTime;
-	private long      lastStart;		/* last redisplay starting time */
+	private long      lastStart;					/** last redisplay starting time */
 
 	private double [] traceTime;
 	private short  [] traceState;
 	private int       traceTotal = 0;
 
-	// the simulation engine
-	private Sim       theSim;
-	private WaveformWindow ww;
+	/** vectors which make up clock */				private List      xClock;
+	/** longest clock sequence defined */			private int		  maxClock = 0;
+
+	/** current output column */					private int		  column = 0;
+
+	private List  [] listTbl = new List[8];
+
+	/** list of nodes to be driven high */			public List  hInputs = new ArrayList();
+	/** list of nodes to be driven low */			public List  lIinputs = new ArrayList();
+	/** list of nodes to be driven X */				public List  uInputs = new ArrayList();
+	/** list of nodes to be removed from input */	public List  xInputs = new ArrayList();
+
+	/** set when analyzer is running */				public boolean  analyzerON = false;
+
+	/** the simulation engine */					private Sim            theSim;
+	/** the waveform window */						private WaveformWindow ww;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -166,7 +187,6 @@ public class Analyzer extends Engine
         	Sim sim = analyzer.theSim;
 
         	analyzer.firstVector = null;
-        	analyzer.traceList = new ArrayList();
 
     		// now initialize the simulator
     		System.out.println("IRSIM, version " + simVersion);
@@ -219,7 +239,7 @@ public class Analyzer extends Engine
     			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
 
     			// make a signal for it
-				Stimuli.DigitalSignal sig = new Stimuli.DigitalSignal(null);
+				Stimuli.DigitalSignal sig = new Stimuli.DigitalSignal(sd);
 				n.sig = sig;
 				int slashPos = n.nName.lastIndexOf('/');
 				if (slashPos >= 0)
@@ -230,7 +250,7 @@ public class Analyzer extends Engine
 				{
 					sig.setSignalName(n.nName);
 				}
-				sd.addSignal(sig);
+				sig.setAppObject(n);
 
 				sig.buildTime(2);
     			sig.buildState(2);
@@ -286,7 +306,7 @@ public class Analyzer extends Engine
 			{
 				Stimuli.Signal sig = (Stimuli.Signal)it.next();
 				parameters[0] = sig.getFullName().replace('.', '/');
-				newVector(veccmd, parameters, ww.getMainTimeCursor());
+				newVector(veccmd, parameters, ww.getMainTimeCursor(), false);
 			}
 			if (Simulation.isIRSIMResimulateEach())
 				playVectors();
@@ -343,8 +363,8 @@ public class Analyzer extends Engine
 			for(Iterator it = signals.iterator(); it.hasNext(); )
 			{
 				Stimuli.Signal sig = (Stimuli.Signal)it.next();
-				issueCommand("! " + sig.getFullName().replace('.', '/'));
-				issueCommand("? " + sig.getFullName().replace('.', '/'));
+				issueCommand("! " + sig.getFullName().replace('.', '/'), null);
+				issueCommand("? " + sig.getFullName().replace('.', '/'), null);
 			}
 			return;
 		}
@@ -372,11 +392,7 @@ public class Analyzer extends Engine
 			System.out.println("can't watch node " + nd.nName);
 			return;
 		}
-		TraceEnt t = new TraceEnt();
-		t.name = nd.nName;
-		t.nd = nd;
-		t.wind = t.cursor = nd.head;
-		traceList.add(t);
+		nd.wind = nd.cursor = nd.head;
 	}
 
 	private void displayTraces(boolean isMapped)
@@ -392,10 +408,10 @@ public class Analyzer extends Engine
 
 	private void restartAnalyzer(long firstTime, long lastTime, int sameHist)
 	{
-		for(Iterator it = traceList.iterator(); it.hasNext(); )
+		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
-			TraceEnt t = (TraceEnt)it.next();
-			t.wind = t.cursor = t.nd.head;
+			Sim.Node n = (Sim.Node)it.next();
+			n.wind = n.cursor = n.head;
 		}
 
 		// should set "lastTime" to the width of the screen
@@ -415,11 +431,11 @@ public class Analyzer extends Engine
 	 * Initialize the display times so that when first called the last time is
 	 * shown on the screen.  Default width is DEF_STEPS (simulation) steps.
 	 */
-	private void initTimes(long firstT, long stepSize, long lastT)
+	private void initTimes(long firstT, long stepSze, long lastT)
 	{
 		firstTime = firstT;
 		lastTime = lastT;
-		stepsTime = 4 * stepSize;
+		stepsTime = 4 * stepSze;
 
 		if (startTime <= firstTime)
 		{
@@ -442,13 +458,13 @@ public class Analyzer extends Engine
 				if (endT > endTime) endTime = endT;
 			} else
 			{
-				endTime = lastT + 2 * stepSize;
+				endTime = lastT + 2 * stepSze;
 				startTime = endTime - stepsTime;
 				if (startTime < firstTime)
 				{
-					stepSize = firstTime - startTime;
-					startTime += stepSize;
-					endTime += stepSize;
+					stepSze = firstTime - startTime;
+					startTime += stepSze;
+					endTime += stepSze;
 				}
 			}
 		}
@@ -463,25 +479,25 @@ public class Analyzer extends Engine
 		long startT = startTime;
 		long cursT = firstTime;
 		int n = 0;
-		for(Iterator it = traceList.iterator(); it.hasNext(); )
+		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
-			TraceEnt t = (TraceEnt)it.next();
+			Sim.Node nd = (Sim.Node)it.next();
 			if (n < firstTrace)
 				continue;
 
-			Sim.HistEnt p = t.wind;
-			Sim.HistEnt h = t.cursor;
+			Sim.HistEnt p = nd.wind;
+			Sim.HistEnt h = nd.cursor;
 			Sim.HistEnt nextH = Sim.getNextHist(h);
 			if (h.hTime > cursT || nextH.hTime <= cursT)
 			{
 				if (p.hTime <= cursT)
-					t.cursor = p;
+					nd.cursor = p;
 				else
-					t.cursor = t.nd.head;
+					nd.cursor = nd.head;
 			}
 
 			if (startT <= p.hTime)
-				p = t.nd.head;
+				p = nd.head;
 
 			h = Sim.getNextHist(p);
 			while (h.hTime < startT)
@@ -489,16 +505,16 @@ public class Analyzer extends Engine
 				p = h;
 				h = Sim.getNextHist(h);
 			}
-			t.wind = p;
+			nd.wind = p;
 
-			p = t.cursor;
+			p = nd.cursor;
 			h = Sim.getNextHist(p);
 			while (h.hTime <= cursT)
 			{
 				p = h;
 				h = Sim.getNextHist(h);
 			}
-			t.cursor = p;
+			nd.cursor = p;
 		}
 	}
 
@@ -516,28 +532,28 @@ public class Analyzer extends Engine
 		{
 			long startT = startTime;
 			boolean begin = (startT < lastStart);
-			for(Iterator it = traceList.iterator(); it.hasNext(); )
+			for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
 			{
-				TraceEnt t = (TraceEnt)it.next();
-				Sim.HistEnt p = begin ? t.nd.head : t.wind;
+				Sim.Node nd = (Sim.Node)it.next();
+				Sim.HistEnt p = begin ? nd.head : nd.wind;
 				Sim.HistEnt h = Sim.getNextHist(p);
 				while (h.hTime < startT)
 				{
 					p = h;
 					h = Sim.getNextHist(h);
 				}
-				t.wind = p;
+				nd.wind = p;
 			}
 			lastStart = startTime;
 		}
 
-		for(Iterator it = traceList.iterator(); it.hasNext(); )
+		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
 		{
-			TraceEnt t = (TraceEnt)it.next();
-			if (t.waveformData.sig == null) continue;
+			Sim.Node nd = (Sim.Node)it.next();
+			if (nd.sig == null) continue;
 
 			if (t1 >= lastTime) continue;
-			Sim.HistEnt h = t.wind;
+			Sim.HistEnt h = nd.wind;
 			int count = 0;
 			long curT = 0;
 			long endT = t2;
@@ -597,8 +613,8 @@ public class Analyzer extends Engine
 				timeVector[i] = traceTime[i];
 				stateVector[i] = traceState[i];
 			}
-			t.waveformData.sig.setTimeVector(timeVector);
-			t.waveformData.sig.setStateVector(stateVector);
+			nd.sig.setTimeVector(timeVector);
+			nd.sig.setStateVector(stateVector);
 		}
 		ww.repaint();
 	}
@@ -618,20 +634,6 @@ public class Analyzer extends Engine
 		long lastT = lastTime;
 		lastTime = endT;
 
-		for(Iterator it = traceList.iterator(); it.hasNext(); )
-		{
-			TraceEnt t = (TraceEnt)it.next();
-    		for(Iterator nIt = theSim.getNodeList().iterator(); nIt.hasNext(); )
-    		{
-    			Sim.Node n = (Sim.Node)nIt.next();
-				if (t.name.equals(n.nName))
-				{
-					t.waveformData = n;
-					break;
-				}
-			}
-		}
-
 		if (endT <= endTime)
 		{
 			if (lastT >= startTime)
@@ -647,20 +649,166 @@ public class Analyzer extends Engine
 
 	/************************** SIMULATION VECTORS **************************/
 
+	private Stimuli.Signal [] getTargetNodes(String [] params, int low)
+	{
+		int size = params.length - low;
+		List nodeList = new ArrayList();
+		for(int i=0; i<size; i++)
+		{
+			String name = params[i+low];
+			if (name.indexOf('*') >= 0)
+			{
+				for(Iterator it = ww.getSimData().getSignals().iterator(); it.hasNext(); )
+				{
+					Stimuli.Signal sig = (Stimuli.Signal)it.next();
+					if (strMatch(name, sig.getFullName()))
+					{
+						nodeList.add(sig);
+					}
+				}
+			} else
+			{
+				// no wildcards: just find the name
+				Stimuli.Signal sig = this.findName(name);
+				if (sig == null)
+				{
+					System.out.println("Cannot find node named '" + name + "'");
+					continue;
+				}
+				nodeList.add(sig);
+			}
+		}
+
+		int total = nodeList.size();
+		Stimuli.Signal [] arr = new Stimuli.Signal[total];
+		for(int i=0; i<total; i++)
+			arr[i] = (Stimuli.Signal)nodeList.get(i);
+		return arr;
+	}
+
+	/**
+	 * compare pattern with string, case doesn't matter.  "*" wildcard accepted
+	 */
+	private boolean strMatch(String pStr, String sStr)
+	{
+		int p = 0, s = 0;
+		for(;;)
+		{
+			if (getCh(pStr, p) == '*')
+			{
+				// skip past multiple wildcards
+				do
+					p++;
+				while(getCh(pStr, p) == '*');
+
+				// if pattern ends with wild card, automatic match
+				if (p >= pStr.length())
+					return true;
+
+				/* *p now points to first non-wildcard character, find matching
+				 * character in string, then recursively match remaining pattern.
+				 * if recursive match fails, assume current '*' matches more...
+				 */
+				while(s < sStr.length())
+				{
+					while(getCh(sStr, s) != getCh(pStr, p))
+					{
+						s++;
+						if (s >= sStr.length()) return false;
+					}
+					s++;
+					if (strMatch(pStr.substring(p+1), sStr.substring(s)))
+						return true;
+				}
+
+				// couldn't find matching character after '*', no match
+				return false;
+			}
+			else if (p >= pStr.length())
+				return s >= sStr.length();
+			else if (getCh(pStr, p++) != getCh(sStr, s++))
+				break;
+		}
+		return false;
+	}
+
 	/**
 	 * Method to create a new simulation vector at time "time", on signal "sig",
 	 * with state "state".  The vector is inserted into the play list in the proper
 	 * order.
 	 */
-	private void newVector(int command, String [] params, double insertTime)
+	private SimVector newVector(int command, String [] params, double insertTime, boolean justAppend)
 	{
 		SimVector newsv = new SimVector();
 		newsv.command = command;
 		newsv.parameters = params;
 
+		// precompute the nodes that apply to this command
+		if (command == VECTORS)
+		{
+			double newSize = Sim.deltaToNS(stepSize);
+			if (params.length == 2)
+			{
+				double timeNS = TextUtils.atof(params[1]);
+				newSize = timeNS;
+				long lNewSize = Sim.nsToDelta(timeNS);
+				if (lNewSize <= 0)
+				{
+					System.out.println("Bad step size: " + TextUtils.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
+					return null;
+				}
+				newsv.parameters = new String[1];
+				newsv.parameters[0] = params[1];
+			} else newsv.parameters = null;
+			newsv.value = newSize;
+		}
+		if (command == VECTORL || command == VECTORH || command == VECTORX ||
+			command == VECTORANALYZER || command == VECTOREXCL || command == VECTORQUESTION ||
+			command == VECTORTRACE || command == VECTORWATCH || command == VECTORPATH || command == VECTORSTOP)
+		{
+			newsv.sigs = getTargetNodes(params, 0);
+
+			if (command == VECTORL || command == VECTORH || command == VECTORX)
+			{
+				// add this moment in time to the control points for the signal
+				double cInsertTime = insertTime * 100.0;
+				for(int i=0; i<newsv.sigs.length; i++)
+				{
+					Stimuli.Signal sig = newsv.sigs[i];
+					Sim.Node aNode = (Sim.Node)sig.getAppObject();
+					double [] cps = sig.getControlPoints();
+					if (cps == null)
+					{
+						cps = new double[1];
+						cps[0] = cInsertTime;
+						aNode.sig.setControlPoints(cps);
+					} else
+					{
+						boolean found = false;
+						for(int j=0; j<cps.length; j++)
+						{
+							if (cps[j] == cInsertTime)
+							{
+								found = true;
+								break;
+							}
+						}
+						if (!found)
+						{
+							double [] newcps = new double[cps.length+1];
+							for(int j=0; j<cps.length; j++)
+								newcps[j] = cps[j];
+							newcps[cps.length] = cInsertTime;
+							aNode.sig.setControlPoints(newcps);
+						}
+					}
+				}
+			}
+		}
+
 		// insert the vector */
 		SimVector lastSV = null;
-		if (insertTime < 0.0)
+		if (justAppend || insertTime < 0.0)
 		{
 			lastSV = lastVector;
 		} else
@@ -676,30 +824,37 @@ public class Analyzer extends Engine
 						clockPhases = sv.parameters.length - 1;
 						break;
 					case VECTORS:
-						double stepSize = defaultStepSize;
-						if (sv.parameters.length > 0)
-							stepSize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
-						if (GenMath.doublesLessThan(insertTime, curTime+stepSize))
+						double stepSze = defaultStepSize;
+						if (sv.value != 0) stepSze = sv.value / 1000000000.0; else
+						{
+							if (sv.parameters.length > 0)
+								stepSze = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+						}
+						long ss = Sim.nsToDelta(((curTime + stepSze) - insertTime) * 1000000000.0);
+						if (ss != 0 && GenMath.doublesLessThan(insertTime, curTime+stepSze))
 						{
 							// splitting step at "insertTime"
 							sv.parameters = new String[1];
 							sv.parameters[0] = TextUtils.formatDouble((insertTime-curTime) * 1000000000.0);
+							sv.value = (insertTime-curTime) * 1000000000.0;
 
 							// create second step to advance after this signal
 							SimVector afterSV = new SimVector();
 							afterSV.command = VECTORS;
 							afterSV.parameters = new String[1];
-							afterSV.parameters[0] = TextUtils.formatDouble((curTime+stepSize-insertTime) * 1000000000.0);
+							double intTime = (curTime+stepSze-insertTime) * 1000000000.0;
+							afterSV.parameters[0] = TextUtils.formatDouble(intTime);
+							afterSV.value = intTime;
 							afterSV.next = sv.next;
 							sv.next = afterSV;
 						}
-						curTime += stepSize;
+						curTime += stepSze;
 						break;
 					case VECTORC:
-						stepSize = defaultStepSize;
+						stepSze = defaultStepSize;
 						if (sv.parameters.length > 0)
-							stepSize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
-						curTime += stepSize * clockPhases;
+							stepSze = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+						curTime += stepSze * clockPhases;
 						break;
 					case VECTORSTEPSIZE:
 						if (sv.parameters.length > 0)
@@ -719,6 +874,7 @@ public class Analyzer extends Engine
 					afterSV.command = VECTORS;
 					afterSV.parameters = new String[1];
 					afterSV.parameters[0] = TextUtils.formatDouble(thisStep);
+					afterSV.value = thisStep;
 					if (lastSV == null)
 					{
 						afterSV.next = firstVector;
@@ -745,6 +901,7 @@ public class Analyzer extends Engine
 		{
 			lastVector = newsv;
 		}
+		return newsv;
 	}
 
 
@@ -764,16 +921,19 @@ public class Analyzer extends Engine
 					clockPhases = sv.parameters.length - 1;
 					break;
 				case VECTORS:
-					double stepsize = defaultStepSize;
-					if (sv.parameters.length > 0)
-						stepsize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
-					curTime += stepsize;
+					double stepSze = defaultStepSize;
+					if (sv.value != 0) stepSze = sv.value; else
+					{
+						if (sv.parameters != null && sv.parameters.length > 0)
+							stepSze = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+					}
+					curTime += stepSze;
 					break;
 				case VECTORC:
-					stepsize = defaultStepSize;
+					stepSze = defaultStepSize;
 					if (sv.parameters.length > 0)
-						stepsize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
-					curTime += stepsize * clockPhases;
+						stepSze = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+					curTime += stepSze * clockPhases;
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
@@ -789,8 +949,8 @@ public class Analyzer extends Engine
 	 */
 	private void playVectors()
 	{
-		issueCommand("back 0");
-//		issueCommand("flush");
+		issueCommand("back 0", null);
+//		issueCommand("flush", null);
 
 		double curTime = 0;
 		analyzerON = false;
@@ -799,15 +959,18 @@ public class Analyzer extends Engine
 			if (sv.command == VECTORCOMMENT) continue;
 			String infstr = commandName(sv.command);
 			boolean addSpace = infstr.length() > 0;
-			for(int i=0; i<sv.parameters.length; i++)
+			if (sv.parameters != null)
 			{
-				if (addSpace) infstr += " ";
-				addSpace = true;
-				infstr += sv.parameters[i];
+				for(int i=0; i<sv.parameters.length; i++)
+				{
+					if (addSpace) infstr += " ";
+					addSpace = true;
+					infstr += sv.parameters[i];
+				}
 			}
-			issueCommand(infstr);
+			issueCommand(infstr, sv);
 		}
-		issueCommand("s");
+		issueCommand("s", null);
 		analyzerON = true;
 		updateWindow(theSim.curDelta);
 
@@ -835,6 +998,10 @@ public class Analyzer extends Engine
 			case VECTOREXCL:     return "!";
 			case VECTORQUESTION: return "?";
 			case VECTORTRACE:    return "t";
+			case VECTORANALYZER: return "ana";
+			case VECTORWATCH:    return "watch";
+			case VECTORPATH:     return "path";
+			case VECTORSTOP:     return "stop";
 		}
 		return "";
 	}
@@ -865,24 +1032,23 @@ public class Analyzer extends Engine
 			LineNumberReader lineReader = new LineNumberReader(is);
 
 			// remove all vectors
-			while (firstVector != null)
-			{
-				SimVector sv = firstVector;
-				firstVector = sv.next;
-			}
+			firstVector = null;
 			lastVector = null;
 			System.out.println("Reading " + fileName);
+			double time = 0;
 			for(;;)
 			{
 				String buf = lineReader.readLine();
 				if (buf == null) break;
+
+				double currentTime = time / 100000000000.0;
 
 				// ignore comments
 				if (buf.startsWith("|"))
 				{
 					String [] par = new String[1];
 					par[0] = buf;
-					newVector(VECTORCOMMENT, par, -1.0);
+					newVector(VECTORCOMMENT, par, currentTime, true);
 					continue;
 				}
 
@@ -900,32 +1066,70 @@ public class Analyzer extends Engine
 					for(int i=1; i<targ.length; i++)
 					{
 						par[0] = targ[i];
-						newVector(command, par, -1.0);
+						newVector(command, par, currentTime, true);
 					}
+					continue;
+				}
+
+				// handle level setting on signals
+				if (targ[0].equals("s"))
+				{
+					SimVector sv = newVector(VECTORS, targ, currentTime, true);
+					if (sv != null) time += sv.value;
+					continue;
+				}
+				if (targ[0].equals("vector"))
+				{
+					SimVector sv = newVector(VECTORVECTOR, targ, currentTime, true);
+
+					// find this vector name in the list of vectors
+					Stimuli.DigitalSignal busSig = null;
+					Stimuli sd = ww.getSimData();
+					for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
+					{
+						Stimuli.DigitalSignal sig = (Stimuli.DigitalSignal)it.next();
+						if (sig.getSignalName().equals(targ[1]))
+						{
+							busSig = sig;
+							busSig.clearBussedSignalList();
+							break;
+						}
+					}
+					if (busSig == null)
+					{
+						busSig = new Stimuli.DigitalSignal(sd);
+						busSig.setSignalName(targ[1]);
+						busSig.buildBussedSignalList();
+					}
+					Stimuli.Signal [] sigs = getTargetNodes(targ, 2);
+					for(int k=0; k<sigs.length; k++)
+						busSig.addToBussedSignalList(sigs[k]);
 					continue;
 				}
 
 				// handle commands
 				int command;
 				if (targ[0].equals("clock")) command = VECTORCLOCK; else
-				if (targ[0].equals("vector")) command = VECTORVECTOR; else
 				if (targ[0].equals("c")) command = VECTORC; else
 				if (targ[0].equals("assert")) command = VECTORASSERT; else
 				if (targ[0].equals("stepsize")) command = VECTORSTEPSIZE; else
-				if (targ[0].equals("s")) command = VECTORS; else
 				if (targ[0].equals("!")) command = VECTOREXCL; else
 				if (targ[0].equals("?")) command = VECTORQUESTION; else
 				if (targ[0].equals("t")) command = VECTORTRACE; else
+				if (targ[0].equals("ana")) command = VECTORANALYZER; else
 				if (targ[0].equals("set")) command = VECTORSET; else
+				if (targ[0].equals("watch")) command = VECTORWATCH; else
+				if (targ[0].equals("path")) command = VECTORPATH; else
+				if (targ[0].equals("stop")) command = VECTORSTOP; else
 				{
 					// ignore commands that need no interpretation
-					newVector(VECTORCOMMAND, targ, -1.0);
+					newVector(VECTORCOMMAND, targ, currentTime, true);
 					continue;
 				}
 
 				String [] justParams = new String[targ.length-1];
 				for(int i=1; i<targ.length; i++) justParams[i-1] = targ[i];
-				newVector(command, justParams, -1.0);
+				newVector(command, justParams, currentTime, true);
 
 				// update the display if this is a "vector" command
 				if (command == VECTORVECTOR)
@@ -1007,60 +1211,9 @@ public class Analyzer extends Engine
 
 	/******************************************** RSIM *****************************************/
 
-	public static class AssertWhen
-	{
-		Sim.Node   node; /* which node we will check */
-		char	   val;  /* what value has the node */
-		AssertWhen nxt;
-	};
-
-
-	/* front end for mos simulator -- Chris Terman (6/84) */
-	/* sunbstantial changes: Arturo Salz (88) */
-
-	private static final int	MAXARGS      = 100;	/* maximum number of command-line arguments */
-	private static final int	MAXCOL        = 80;	/* maximum width of print line */
-
-	private static class Sequence
-	{
-		Sequence next;			/* next vector in linked list */
-		int      which;			/* 0 => node; 1 => vector */
-	//	union {
-		Sim.Node n;
-		Bits     b;
-	//	} ptr;					/* pointer to node/vector */
-		int      vSize;			/* size of each value */
-		int      nValues;		/* number of values specified */
-		char  [] values;		/* array of values */
-	};
-
-	private Bits bList = null;				/* list of vectors */
-
-	private Sequence sList = null;				/* list of sequences */
-	private int		maxSequence = 0;			/* longest sequence defined */
-
-	private Sequence xClock = null;				/* vectors which make up clock */
-	private int		maxClock = 0;				/* longest clock sequence defined */
-
-	private int		column = 0;					/* current output column */
-
-	private final String potChars = "luxh.";			/* set of potential characters */
-
-	private List  [] listTbl = new List[8];
-
-	public boolean  analyzerON = false;	/* set when analyzer is running */
-
-	public List  hInputs = new ArrayList();	/* list of nodes to be driven high */
-	public List  lIinputs = new ArrayList();	/* list of nodes to be driven low */
-	public List  uInputs = new ArrayList();	/* list of nodes to be driven X */
-	public List  xInputs = new ArrayList();	/* list of nodes to be removed from input */
-
 	private void initRSim()
 	{
-		bList = null;
-		sList = null;
-		maxSequence = 0;
-		xClock = null;
+		xClock = new ArrayList();
 		maxClock = 0;
 		column = 0;
 		analyzerON = false;
@@ -1071,24 +1224,19 @@ public class Analyzer extends Engine
 		listTbl[Sim.inputNumber(Sim.X_INPUT)] = xInputs;
 	}
 
-	private void issueCommand(String command)
+	private void issueCommand(String command, SimVector sv)
 	{
 		if (Simulation.isIRSIMShowsCommands()) System.out.println("> " + command);
-		String [] strings = Sim.parseLine(command, true);
-		if (strings.length > 0) execCmd(strings);
-	}
+		String [] args = Sim.parseLine(command, true);
+		if (args.length == 0) return;
 
-	/**
-	 * Execute a builtin command or read commands from a '.cmd' file.
-	 */
-	private void execCmd(String [] args)
-	{
 		// search command table, dispatch to handler, if any
 		String cmdName = args[0];
-		if (cmdName.equals("!")) { quest(args);   return; }
-		if (cmdName.equals("?")) { quest(args);   return; }
+		if (cmdName.equals("!")) { quest(args, sv);   return; }
+		if (cmdName.equals("?")) { quest(args, sv);   return; }
 		if (cmdName.equals("activity")) { doActivity(args);   return; }
 		if (cmdName.equals("alias")) { doPrintAlias(args);   return; }
+		if (cmdName.equals("ana")) { doAnalyzer(args, sv);   return; }
 		if (cmdName.equals("assert")) { doAssert(args);   return; }
 		if (cmdName.equals("assertWhen")) { doAssertWhen(args);   return; }
 		if (cmdName.equals("back")) { backTime(args);   return; }
@@ -1097,162 +1245,40 @@ public class Analyzer extends Engine
 		if (cmdName.equals("clock")) { setClock(args);   return; }
 		if (cmdName.equals("debug")) { setDbg(args);   return; }
 		if (cmdName.equals("decay")) { setDecay(args);   return; }
-		if (cmdName.equals("h")) { setValue(args);   return; }
-		if (cmdName.equals("l")) { setValue(args);   return; }
-		if (cmdName.equals("u")) { setValue(args);   return; }
-		if (cmdName.equals("x")) { setValue(args);   return; }
+		if (cmdName.equals("h")) { setValue(args, sv);   return; }
+		if (cmdName.equals("l")) { setValue(args, sv);   return; }
+		if (cmdName.equals("u")) { setValue(args, sv);   return; }
+		if (cmdName.equals("x")) { setValue(args, sv);   return; }
 		if (cmdName.equals("inputs")) { inputs(args);   return; }
 		if (cmdName.equals("p")) { doPhase(args);   return; }
-		if (cmdName.equals("path")) { doPath(args);   return; }
+		if (cmdName.equals("path")) { doPath(args, sv);   return; }
 		if (cmdName.equals("print")) { doMsg(args);   return; }
 		if (cmdName.equals("printx")) { doPrintX(args);   return; }
 		if (cmdName.equals("R")) { runSeq(args);   return; }
 		if (cmdName.equals("report")) { setReport(args);   return; }
-		if (cmdName.equals("s")) { doStep(args);   return; }
+		if (cmdName.equals("s")) { doStep(args, sv);   return; }
 		if (cmdName.equals("set")) { setVector(args);   return; }
 		if (cmdName.equals("stats")) { doStats(args);   return; }
 		if (cmdName.equals("stepsize")) { setStep(args);   return; }
-		if (cmdName.equals("stop")) { setStop(args);   return; }
-		if (cmdName.equals("t")) { setTrace(args);   return; }
+		if (cmdName.equals("stop")) { setStop(args, sv);   return; }
+		if (cmdName.equals("t")) { setTrace(args, sv);   return; }
 		if (cmdName.equals("tcap")) { printTCap(args);   return; }
 		if (cmdName.equals("unitdelay")) { setUnit(args);   return; }
 		if (cmdName.equals("until")) { doUntil(args);   return; }
-		if (cmdName.equals("w")) { display(args);   return; }
+		if (cmdName.equals("vector")) { return; }
+		if (cmdName.equals("w")) { display(args, sv);   return; }
 
 		System.out.println("unrecognized command: " + cmdName);
-	}
-
-
-	static final int SETIN_CALL      = 1;
-	static final int SETTRACE_CALL   = 2;
-	static final int SETSTOP_CALL    = 3;
-	static final int QUEST_CALL      = 4;
-	static final int PATH_CALL       = 5;
-	static final int FINDONE_CALL    = 6;
-	static final int ASSERTWHEN_CALL = 7;
-	static final int WATCH_CALL      = 8;
-
-	/**
-	 * Apply given function to each argument on the command line.
-	 * Arguments are checked first to ensure they are the name of a node or
-	 * vector; wild-card patterns are allowed as names.
-	 * Either 'fun' or 'vfunc' is called with the node/vector as 1st argument:
-	 *	'fun' is called if name refers to a node.
-	 *	'vfun' is called if name refers to a vector.  If 'vfun' is null
-	 *	then 'fun' is called on each node of the vector.
-	 * The parameter (2nd argument) passed to the specified function will be:
-	 *	If 'arg' is the special constant '+' then
-	 *	    if the name is preceded by a '-' pass a pointer to '-'
-	 *	    otherwise pass a pointer to '+'.
-	 *	else 'arg' is passed as is.
-	 */
-	private Object apply(int fun, int vFun, String[] args, int applyStart, int applyEnd)
-	{
-		Find1Arg f = null;
-		if (fun == FINDONE_CALL)
-		{
-			f = new Find1Arg();
-			f.num = 0;
-			f.vec = null;
-			f.node = null;
-		}
-		for(int i = applyStart; i < applyEnd; i += 1)
-		{
-			String p = args[i];
-			boolean pos = true;
-			if (args[applyStart].equals("-"))
-			{
-				pos = false;
-				applyStart++;
-			}
-
-			int found = 0;
-//			if (wildCard[i])
-//			{
-//				for(Bits b = bList; b != null; b = b.next)
-//					if (strMatch(p, b.name))
-//				{
-//					if (vFun != null)
-//						((int(*)(Bits,CHAR*))(*vFun))(b, flag);
-//					else
-//						for(j = 0; j < b.nBits; j += 1)
-//							((int(*)(Sim.Node,CHAR*))(*fun))(b.nodes[j], flag);
-//					found = 1;
-//				}
-//				found += matchNet(p, (int(*)(Sim.Node, CHAR*))fun, flag);
-//			} else
-			{
-				Sim.Node n = theSim.findNode(p);
-
-				if (n != null)
-				{
-					switch (fun)
-					{
-						case SETIN_CALL:
-							found += setIn(n, args[0]);
-							break;
-						case SETTRACE_CALL:
-							found += xTrace(n, pos);
-							break;
-						case SETSTOP_CALL:
-							found += nStop(n, pos);
-							break;
-						case QUEST_CALL:
-							found += getInfo(n, args[0]);
-							break;
-						case PATH_CALL:
-							found += doCPath(n);
-							break;
-						case FINDONE_CALL:
-							f.node = n;
-							f.num++;
-							found = 1;
-							break;
-						case ASSERTWHEN_CALL:
-							setupAssertWhen(n, args[0]);
-							break;
-						case WATCH_CALL:
-							found += xWatch(n, pos);
-							break;
-					}
-				} else
-				{
-					for(Bits b = bList; b != null; b = b.next)
-						if (p.equalsIgnoreCase(b.name))
-					{
-						switch (fun)
-						{
-							case SETTRACE_CALL:
-								vTrace(b, pos);
-								break;
-							case SETSTOP_CALL:
-								found += vStop(b, pos);
-								break;
-							case FINDONE_CALL:
-								f.vec = b;
-								f.num++;
-								break;
-						}
-						found = 1;
-						break;
-					}
-				}
-			}
-			if (found == 0)
-				System.out.println(p + ": No such node or vector");
-		}
-		return f;
 	}
 
 	/**
 	 * set/clear input status of node and add/remove it to/from corresponding list.
 	 */
-	private int setIn(Sim.Node n, String which)
+	private int setIn(Sim.Node n, char wChar)
 	{
 		while((n.nFlags & Sim.ALIAS) != 0)
 			n = n.nLink;
 
-		char wChar = which.charAt(0);
 		if ((n.nFlags & (Sim.POWER_RAIL | Sim.MERGED)) != 0)	// Gnd, Vdd, or merged node
 		{
 			String pots = "lxuh";
@@ -1261,7 +1287,7 @@ public class Analyzer extends Engine
 		} else
 		{
 			List list = listTbl[Sim.inputNumber((int)n.nFlags)];
-
+//System.out.println("***SET NODE "+n.nName+" TO "+wChar);
 			switch (wChar)
 			{
 				case 'h':
@@ -1491,69 +1517,6 @@ public class Analyzer extends Engine
 		return infstr;
 	}
 
-//	/* visit each node in network, calling function passed as arg with any node
-//	 * whose name matches pattern
-//	 */
-//	private int matchNet(CHAR *pattern, int (*fun)(Sim.Node, CHAR*), CHAR *arg)
-//	{
-//		int   index;
-//		Sim.Node  n;
-//		int            total = 0;
-//
-//		for(index = 0; index < HASHSIZE; index++)
-//			for(n = hash[index]; n; n = n.hnext)
-//				if (strMatch(pattern, n.nName))
-//					total += (*fun)(n, arg);
-//
-//		return total;
-//	}
-
-	/**
-	 * compare pattern with string, case doesn't matter.  "*" wildcard accepted
-	 */
-	private boolean strMatch(String pStr, String sStr)
-	{
-		int p = 0, s = 0;
-		for(;;)
-		{
-			if (getCh(pStr, p) == '*')
-			{
-				// skip past multiple wildcards
-				do
-					p++;
-				while(getCh(pStr, p) == '*');
-
-				// if pattern ends with wild card, automatic match
-				if (p >= pStr.length())
-					return true;
-
-				/* *p now points to first non-wildcard character, find matching
-				 * character in string, then recursively match remaining pattern.
-				 * if recursive match fails, assume current '*' matches more...
-				 */
-				while(s < sStr.length())
-				{
-					while(getCh(sStr, s) != getCh(pStr, p))
-					{
-						s++;
-						if (s >= sStr.length()) return false;
-					}
-					s++;
-					if (strMatch(pStr.substring(p+1), sStr.substring(s)))
-						return true;
-				}
-
-				// couldn't find matching character after '*', no match
-				return false;
-			}
-			else if (p >= pStr.length())
-				return s >= sStr.length();
-			else if (getCh(pStr, p++) != getCh(sStr, s++))
-				break;
-		}
-		return false;
-	}
-
 	private int getCh(String s, int index)
 	{
 		if (index >= s.length()) return 0;
@@ -1583,35 +1546,35 @@ public class Analyzer extends Engine
 	/**
 	 * Set value of a node/vector to the requested value (hlux).
 	 */
-	private void setValue(String [] args)
+	private void setValue(String [] args, SimVector sv)
 	{
-		apply(SETIN_CALL, 0, args, 1, args.length);
+		if (sv.sigs == null) return;
+
+		for(int i=0; i<sv.sigs.length; i++)
+		{
+			Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+			setIn(n, args[0].charAt(0));
+		}
 	}
 
 	/**
 	 * Set watch of a node/vector.
 	 */
-	private void display(String [] args)
+	private void display(String [] args, SimVector sv)
 	{
-		apply(WATCH_CALL, 0, args, 1, args.length);
-	}
-
-	/**
-	 * display bit vector.
-	 */
-	private void dVec(Bits b)
-	{
-		int i = b.name.length() + 2 + b.nBits;
-		if (column + i >= MAXCOL)
+		if (sv.sigs == null) return;
+		for(int i=0; i<sv.sigs.length; i++)
 		{
-			column = 0;
+			Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+			n = unAlias(n);
+			if ((n.nFlags & Sim.MERGED) == 0)
+			{
+//				if (true)
+//					iinsert_once(n, &wlist);
+//				else
+//					wlist.remove(n);
+			}
 		}
-		column += i;
-		String bits = "";
-		for(i = 0; i < b.nBits; i++)
-			bits += Sim.vChars.charAt(b.nodes[i].nPot);
-
-		System.out.println(b.name + "=" + bits + " ");
 	}
 
 	/**
@@ -1623,59 +1586,58 @@ public class Analyzer extends Engine
 	}
 
 	/**
-	 * set/clear trace bit in node
+	 * mark nodes and vectors for tracing
 	 */
-	private int xTrace(Sim.Node n, boolean flag)
+	private void setTrace(String [] args, SimVector sv)
 	{
-		n = unAlias(n);
-
-		if ((n.nFlags & Sim.MERGED) != 0)
+		if (sv.sigs != null)
 		{
-			System.out.println("can't trace " + n.nName);
-			return 1;
-		}
+			for(int i=0; i<sv.sigs.length; i++)
+			{
+				Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+				n = unAlias(n);
 
-		if (flag)
-			n.nFlags |= Sim.WATCHED;
-		else if ((n.nFlags & Sim.WATCHED) != 0)
-		{
-			System.out.println(n.nName + " was watched; not any more");
-			n.nFlags &= ~Sim.WATCHED;
-		}
+				if ((n.nFlags & Sim.MERGED) != 0)
+				{
+					System.out.println("can't trace " + n.nName);
+					continue;
+				}
 
-		return 1;
+				if (true)
+				{
+					n.nFlags |= Sim.WATCHED;
+				} else if ((n.nFlags & Sim.WATCHED) != 0)
+				{
+					System.out.println(n.nName + " was watched; not any more");
+					n.nFlags &= ~Sim.WATCHED;
+				}
+
+			}
+		}
+		setVecNodes(Sim.WATCHVECTOR);
 	}
 
 	/**
-	 * add/delete node to/from display list.
+	 * mark nodes and vectors for stoping
 	 */
-	private int xWatch(Sim.Node n, boolean flag)
+	private void setStop(String [] args, SimVector sv)
 	{
-//		unAlias(n);
-//
-//		if ((n.nFlags & Sim.MERGED) == 0)
-//		{
-//			if (flag)
-//				iinsert_once(n, &wlist);
-//			else
-//				wlist.remove(n);
-//		}
-		return 1;
-	}
-
-	/**
-	 * set/clear trace bit in vector
-	 */
-	private void vTrace(Bits b, boolean flag)
-	{
-		if (flag)
-			b.traced |= Sim.WATCHVECTOR;
-		else
+		if (sv.sigs != null)
 		{
-			for(int i = 0; i < b.nBits; i += 1)
-				b.nodes[i].nFlags &= ~Sim.WATCHVECTOR;
-			b.traced &= ~Sim.WATCHVECTOR;
+			for(int i=0; i<sv.sigs.length; i++)
+			{
+				Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+				n = unAlias(n);
+				if ((n.nFlags & Sim.MERGED) != 0) continue;
+
+				if (true)
+					n.nFlags &= ~Sim.STOPONCHANGE;
+				else
+					n.nFlags |= Sim.STOPONCHANGE;
+			}
 		}
+		setVecNodes(Sim.WATCHVECTOR);
+		setVecNodes(Sim.STOPVECCHANGE);
 	}
 
 	/**
@@ -1684,61 +1646,21 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
-		for(Bits b = bList; b != null; b = b.next)
-			if ((b.traced & flag) != 0)
-				for(int i = 0; i < b.nBits; i += 1)
-					b.nodes[i].nFlags |= flag;
-	}
-
-	/**
-	 * set/clear stop bit in node
-	 */
-	private int nStop(Sim.Node n, boolean flag)
-	{
-		n = unAlias(n);
-
-		if ((n.nFlags & Sim.MERGED) != 0)
-			return 1;
-
-		if (flag)
-			n.nFlags &= ~Sim.STOPONCHANGE;
-		else
-			n.nFlags |= Sim.STOPONCHANGE;
-		return 1;
-	}
-
-	/**
-	 * set/clear stop bit in vector
-	 */
-	private int vStop(Bits b, boolean flag)
-	{
-		if (flag)
-			b.traced |= Sim.STOPVECCHANGE;
-		else
+		Stimuli sd = ww.getSimData();
+		for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
-			for(int i = 0; i < b.nBits; i += 1)
-				b.nodes[i].nFlags &= ~Sim.STOPVECCHANGE;
-			b.traced &= ~Sim.STOPVECCHANGE;
+			Stimuli.Signal sig = (Stimuli.Signal)it.next();
+			if ((sig.flags & flag) != 0)
+			{
+				List sigsOnBus = sig.getBussedSignals();
+				for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+				{
+					Stimuli.Signal bSig = (Stimuli.Signal)sIt.next();
+					Sim.Node n = (Sim.Node)bSig.getAppObject();
+					n.nFlags |= flag;
+				}
+			}
 		}
-		return 1;
-	}
-
-	/**
-	 * mark nodes and vectors for tracing
-	 */
-	private void setTrace(String [] args)
-	{
-		apply(SETTRACE_CALL, 0, args, 1, args.length);
-		setVecNodes(Sim.WATCHVECTOR);
-	}
-
-	/**
-	 * mark nodes and vectors for stoping
-	 */
-	private void setStop(String [] args)
-	{
-		apply(SETSTOP_CALL, 0, args, 1, args.length);
-		setVecNodes(Sim.STOPVECCHANGE);
 	}
 
 	/**
@@ -1746,38 +1668,30 @@ public class Analyzer extends Engine
 	 */
 	private void setVector(String [] args)
 	{
-//		CHAR           *val = targv[2];
-//
-//		// find vector
-//		boolean found = false;
-//		Bits b;
-//		for(b = bList; b != null; b = b.next)
-//		{
-//			if (b.name.equalsIgnoreCase(args[1]))
-//			{
-//				found = true;
-//				break;
-//			}
-//		}
-//		if (!found)
-//		{
-//			Sim.reportError(filename, lineno, args[1] + ": No such vector");
-//			return 0;
-//		}
-//
-//		// set nodes
-//		if (args[2].length() != b.nBits)
-//		{
-//			Sim.reportError(filename, lineno, "wrong number of bits for this vector");
-//			return 0;
-//		}
-//		for(int i = 0; i < b.nBits; i++)
-//		{
-//			if ((val[i] = potChars.charAt(chToPot(val[i]))) == '.')
-//				return 0;
-//		}
-//		for(int i = 0; i < b.nBits; i++)
-//			setIn(b.nodes[i], val++);
+		Stimuli.Signal sig = findName(args[1]);
+		if (sig == null)
+		{
+			System.out.println("Cannot find signal: " + args[1]);
+			return;
+		}
+
+		List sigsOnBus = sig.getBussedSignals();
+		if (sigsOnBus == null)
+		{
+			System.out.println("Signal: " + args[1] + " is not a bus");
+			return;			
+		}
+
+		if (sigsOnBus.size() != args[2].length())
+		{
+			System.out.println("Wrong number of bits for this vector");
+			return;
+		}
+		for(int i = 0; i < sigsOnBus.size(); i++)
+		{
+			Sim.Node n = (Sim.Node)((Stimuli.Signal)sigsOnBus.get(i)).getAppObject();
+			setIn(n, args[2].charAt(i));
+		}
 	}
 
 
@@ -1808,12 +1722,43 @@ public class Analyzer extends Engine
 		return 0;
 	}
 
-	private static class Find1Arg
+	private boolean anyAnalyzerCommands = false;
+
+	private void doAnalyzer(String [] args, SimVector sv)
 	{
-		Sim.Node node;
-		Bits     vec;
-		int      num;
-	};
+		if (!anyAnalyzerCommands)
+		{
+			// clear the stimuli on the first time
+			anyAnalyzerCommands = true;
+			ww.clearHighlighting();
+			List allPanels = new ArrayList();
+			for(Iterator it = ww.getPanels(); it.hasNext(); )
+				allPanels.add(it.next());
+			for(Iterator it = allPanels.iterator(); it.hasNext(); )
+			{
+				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+				wp.closePanel();
+			}
+		}
+		for(int i=0; i< sv.sigs.length; i++)
+		{
+			Stimuli.Signal sig = sv.sigs[i];
+			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
+			wp.makeSelectedPanel();
+			new WaveformWindow.WaveSignal(wp, sig);
+		}
+	}
+
+	private Stimuli.Signal findName(String name)
+	{
+		Stimuli sd = ww.getSimData();
+		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+		{
+			Stimuli.Signal sig = (Stimuli.Signal)it.next();
+			if (sig.getFullName().equals(name)) return sig;
+		}
+		return null;
+	}
 
 	/* assert a bit vector */
 	private void doAssert(String [] args)
@@ -1829,34 +1774,39 @@ public class Analyzer extends Engine
 			value = new StringBuffer(args[2]);
 		}
 
-		Find1Arg f = (Find1Arg)apply(FINDONE_CALL, 0, args, 1, args.length-1);
+		Stimuli.Signal sig = findName(args[1]);
+		if (sig == null)
+		{
+			System.out.println("ASSERT statement cannot find signal: " + args[1]);
+			return;
+		}
 
-		int comp = 0, nBits = 0;
+		int comp = 0, nBits = 1;
 		String name = null;
 		Sim.Node [] nodes = null;
-		if (f.num > 1)
-			System.out.println(args[1] + " matches more than one node or vector");
-		else if (f.node != null)
+		if (sig.getBussedSignals() == null)
 		{
-			name = f.node.nName;
-			f.node = unAlias(f.node);
+			Sim.Node n = (Sim.Node)sig.getAppObject();
+			name = n.nName;
+			n = unAlias(n);
 			Sim.Node [] nodeList = new Sim.Node[1];
-			nodeList[0] = f.node;
+			nodeList[0] = n;
 			comp = compareVector(nodeList, name, 1, mask, value.toString());
 			nodes = nodeList;
-			nBits = 1;
-		}
-		else if (f.vec != null)
+		} else
 		{
-			comp = compareVector(f.vec.nodes, f.vec.name, f.vec.nBits, mask, value.toString());
-			name = f.vec.name;
-			nBits = f.vec.nBits;
-			nodes = f.vec.nodes;
+			List sigsOnBus = sig.getBussedSignals();
+			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
+			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Stimuli.Signal)sigsOnBus.get(i)).getAppObject();
+			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
+			name = sig.getSignalName();
+			nBits = sigsOnBus.size();
+			nodes = nodeList;
 		}
 		if (comp != 0)
 		{
 			String infstr = "";
-			for(int i = 0; i < nBits; i++)
+			for(int i = 0; i < nodes.length; i++)
 			{
 				if (mask != null && i < mask.length() && mask.charAt(i) != '0')
 				{
@@ -1887,19 +1837,24 @@ public class Analyzer extends Engine
 			cCount = TextUtils.atoi(args[3]);
 		}
 
-		Find1Arg f = (Find1Arg)apply(FINDONE_CALL, 0, args, 1, args.length);
+		Stimuli.Signal sig = findName(args[1]);
+		if (sig == null)
+		{
+			System.out.println("UNTIL statement cannot find signal: " + args[1]);
+			return;
+		}
+
 		String name = null;
 		int comp = 0;
-		int nBits = 0;
+		int nBits = 1;
 		Sim.Node [] nodes = null;
-		if (f.num > 1)
-			System.out.println(args[1] + " matches more than one node or vector");
-		else if (f.node != null)
+		if (sig.getBussedSignals() == null)
 		{
-			name = f.node.nName;
-			f.node = unAlias(f.node);
+			Sim.Node n = (Sim.Node)sig.getAppObject();
+			name = sig.getFullName();
+			n = unAlias(n);
 			Sim.Node [] nodeList = new Sim.Node[1];
-			nodeList[0] = f.node;
+			nodeList[0] = n;
 			int cnt = 0;
 			while ((cnt <= cCount) && (comp = compareVector(nodeList, name, 1, mask, value.toString())) != 0)
 			{
@@ -1907,21 +1862,22 @@ public class Analyzer extends Engine
 				clockIt(1);
 			}
 			nodes = new Sim.Node[1];
-			nodes[0] = f.node;
-			nBits = 1;
-		}
-		else if (f.vec != null)
+			nodes[0] = n;
+		} else
 		{
+			List sigsOnBus = sig.getBussedSignals();
+			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
+			for(int i=0; i<sigsOnBus.size(); i++) nodeList[i] = (Sim.Node)((Stimuli.Signal)sigsOnBus.get(i)).getAppObject();
+
 			int cnt = 0;
-			while ((cnt <= cCount) && (comp = compareVector(f.vec.nodes, f.vec.name, f.vec.nBits, mask,
-				value.toString())) != 0)
+			while ((cnt <= cCount) && (comp = compareVector(nodeList, sig.getFullName(), sigsOnBus.size(), mask, value.toString())) != 0)
 			{
 				cnt++;
 				clockIt(1);
 			}
-			name = f.vec.name;
-			nBits = f.vec.nBits;
-			nodes = f.vec.nodes;
+			name = sig.getFullName();
+			nBits = sigsOnBus.size();
+			nodes = nodeList;
 		}
 		if (comp != 0)
 		{
@@ -1943,6 +1899,36 @@ public class Analyzer extends Engine
 	private Sim.Node awTrig; /* keeps current AssertWhen trigger */
 	private AssertWhen awP;   /* track pointer on the current AssertWhen list */
 
+	private void doAssertWhen(String [] args)
+	{
+		Stimuli.Signal sig = findName(args[1]);
+		if (sig == null)
+		{
+			System.out.println("ASSERTWHEN statement cannot find signal: " + args[1]);
+			return;
+		}
+
+		if (sig.getBussedSignals() == null)
+		{
+			Sim.Node n = (Sim.Node)sig.getAppObject();
+			n = unAlias(n);
+			awTrig = n;
+			awTrig.awPot = (short)chToPot(args[2].charAt(0));
+
+			Stimuli.Signal oSig = findName(args[3]);
+			if (oSig == null)
+			{
+				System.out.println("ASSERTWHEN statement cannot find other signal: " + args[3]);
+				return;
+			}
+
+			setupAssertWhen((Sim.Node)oSig.getAppObject(), args[0]);
+		} else
+		{
+			System.out.println("trigger to assertWhen " + args[1] + " can't be a vector");
+		}
+	}
+
 	private void setupAssertWhen(Sim.Node n, String val)
 	{
 		AssertWhen p = new AssertWhen();
@@ -1961,23 +1947,6 @@ public class Analyzer extends Engine
 			awP.nxt = p;
 			awP = p;
 		}
-	}
-
-	private void doAssertWhen(String [] args)
-	{
-		Find1Arg trig = (Find1Arg)apply(FINDONE_CALL, 0, args, 1, args.length);
-
-		if (trig.num > 1)
-			System.out.println(args[1] + " matches more than one node or vector");
-		else if (trig.node != null)
-		{
-			trig.node = unAlias(trig.node);
-			awTrig = trig.node;
-			awTrig.awPot = (short)chToPot(args[2].charAt(0));
-			apply(ASSERTWHEN_CALL, 0, args, 3, args.length);
-		}
-		else if (trig.vec != null)
-			System.out.println("trigger to assertWhen " + args[1] + " can't be a vector");
 	}
 
 	public void evalAssertWhen(Sim.Node n)
@@ -2079,17 +2048,47 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		for(Bits b = bList; b != null; b = b.next)
+		Stimuli sd = ww.getSimData();
+		for(Iterator it = sd.getBussedSignals().iterator(); it.hasNext(); )
 		{
-			if ((b.traced & which) == 0)
-				continue;
+			Stimuli.Signal sig = (Stimuli.Signal)it.next();
+			if ((sig.flags & which) == 0) continue;
 			int i;
-			for(i = b.nBits - 1; i >= 0; i--)
-				if (b.nodes[i].getTime() == theSim.curDelta)
-					break;
-			if (i >= 0)
-				dVec(b);
+			List sigsOnBus = sig.getBussedSignals();
+			boolean found = false;
+			for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+			{
+				Stimuli.Signal bSig = (Stimuli.Signal)sIt.next();
+				Sim.Node n = (Sim.Node)bSig.getAppObject();
+				if (n.getTime() == theSim.curDelta)
+					{ found = true;   break; }
+			}
+			if (found)
+				dVec(sig);
 		}
+	}
+
+	/**
+	 * display bit vector.
+	 */
+	private void dVec(Stimuli.Signal sig)
+	{
+		List sigsOnBus = sig.getBussedSignals();
+		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
+		if (column + i >= MAXCOL)
+		{
+			column = 0;
+		}
+		column += i;
+		String bits = "";
+		for(Iterator sIt = sigsOnBus.iterator(); sIt.hasNext(); )
+		{
+			Stimuli.Signal bSig = (Stimuli.Signal)sIt.next();
+			Sim.Node n = (Sim.Node)bSig.getAppObject();
+			bits += Sim.vChars.charAt(n.nPot);
+		}
+
+		System.out.println(sig.getSignalName() + "=" + bits + " ");
 	}
 
 	/**
@@ -2099,7 +2098,11 @@ public class Analyzer extends Engine
 	 */
 	private long relax(long stopTime)
 	{
-		while (theSim.getModel().step(stopTime)) ;
+		for(;;)
+		{
+			boolean repeat = theSim.getModel().step(stopTime);
+			if (!repeat) break;
+		}
 
 		return theSim.curDelta - stopTime;
 	}
@@ -2107,147 +2110,54 @@ public class Analyzer extends Engine
 	/**
 	 * relax network, optionally set stepsize
 	 */
-	private void doStep(String [] args)
+	private void doStep(String [] args, SimVector sv)
 	{
-		long newSize = stepSize;
-		if (args.length == 2)
+		double newSize = Sim.deltaToNS(stepSize);
+		if (sv != null)
 		{
-			double timeNS = TextUtils.atof(args[1]);
-			newSize = Sim.nsToDelta(timeNS);
-			if (newSize <= 0)
+			newSize = sv.value;
+		} else
+		{
+			if (args.length == 2)
 			{
-				System.out.println("Bad step size: " + TextUtils.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
-				return;
+				double timeNS = TextUtils.atof(args[1]);
+				newSize = timeNS;
+				if (newSize <= 0)
+				{
+					System.out.println("Bad step size: " + TextUtils.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
+					return;
+				}
 			}
 		}
 
-		relax(theSim.curDelta + newSize);
+		long lNewSize = Sim.nsToDelta(newSize);
+		if (lNewSize <= 0) return;
+		relax(theSim.curDelta + lNewSize);
 		pnWatchList();
 	}
 
 	/**
-	 * destroy sequence for given node/vector: update sequence list and length.
-	 * return -1 if we can't destroy the sequence (in stopped state).
+	 * set each node/vector in a clock sequence to its next value
 	 */
-	private Sequence undefSeq(Object p, Sequence list, GenMath.MutableInteger lmax)
+	private void vecValue(int index)
 	{
-		Sequence u, t;
-		for(u=null, t = list; t != null; u = t, t = t.next)
-			if (t.n == p)
-				break;
-		if (t != null)
+		for(Iterator it = xClock.iterator(); it.hasNext(); )
 		{
-			if (u == null)
-				list = t.next;
-			else
-				u.next = t.next;
-			int i = 0;
-			for(t = list; t != null; t = t.next)
-				if (t.nValues > i) i = t.nValues;
-					lmax.setValue(i);
-		}
-		return list;
-	}
-
-	/**
-	 * process command line to yield a sequence structure.  first arg is the
-	 * name of the node/vector for which the sequence is to be defined, second
-	 * and following args are the values.
-	 */
-	private Sequence defSequence(String [] args, Sequence list, GenMath.MutableInteger lMax)
-	{
-		// if no arguments, get rid of all the sequences we have defined
-		if (args.length == 1)
-		{
-			while (list != null)
-				list = undefSeq(list.n, list, lMax);
-			return list;
-		}
-
-		// see if we can determine if name is for node or vector
-		boolean isOK = false;
-		int which = 0, size = 0;
-		Bits b = null;
-		Sim.Node n = null;
-		for(b = bList; b != null; b = b.next)
-			if (b.name.equalsIgnoreCase(args[1]))
-		{
-			which = 1;    size = b.nBits;    isOK = true;   break;
-		}
-		if (!isOK)
-		{
-			n = theSim.findNode(args[1]);
-			if (n == null)
+			ClockSequence cs = (ClockSequence)it.next();
+			String v = cs.values[index % cs.values.length];
+			if (cs.sig.getBussedSignals() == null)
 			{
-				System.out.println(args[0] + ": No such node or vector");
-				return list;
-			}
-			n = unAlias(n);
-			if ((n.nFlags & Sim.MERGED) != 0)
+				Sim.Node n = (Sim.Node)cs.sig.getAppObject();
+				setIn(n, v.charAt(0));
+			} else
 			{
-				System.out.println(n.nName + " can't be part of a sequence");
-				return list;
+				List sigsOnBus = cs.sig.getBussedSignals();
+				for(int i=0; i<sigsOnBus.size(); i++)
+				{
+					Sim.Node n = (Sim.Node)((Stimuli.Signal)sigsOnBus.get(i)).getAppObject();
+					setIn(n, v.charAt(i));
+				}
 			}
-			which = 0; size = 1;
-		}
-
-		if (args.length == 2)	// just destroy the given sequence
-		{
-            Object objB = b;
-            Object objN = n;
-			list = undefSeq((which != 0) ? objB : objN, list, lMax);
-			return list;
-		}
-
-		// make sure each value specification is the right length
-		for(int i = 2; i < args.length; i += 1)
-			if (args[i].length() != size)
-		{
-			System.out.println("value \"" + args[i] + "\" is not compatible with size of " + args[2] + " (" + size + ")");
-			return list;
-		}
-
-		Sequence s = new Sequence();
-		s.values = new char[args.length-1];
-		s.which = which;
-		s.vSize = size;
-		s.nValues = args.length - 2;
-		if (which != 0)	s.b = b;
-			else s.n = n;
-
-		// process each value specification saving results in sequence
-		int q = 0;
-		for(int i = 2; i < args.length; i += 1)
-		{
-			for(int p=0; p<args[i].length(); p++)
-				if ((s.values[q++] = potChars.charAt(chToPot(args[i].charAt(p)))) == '.')
-			{
-				return list;
-			}
-		}
-
-		// all done!  remove any old sequences for this node or vector.
-		list = undefSeq(s.n, list, lMax);
-
-		// insert result onto list
-		s.next = list;
-		list = s;
-		if (s.nValues > lMax.intValue())
-			lMax.setValue(s.nValues);
-		return list;
-	}
-
-	/**
-	 * set each node/vector in sequence list to its next value
-	 */
-	private void vecValue(Sequence list, int index)
-	{
-		for(; list != null; list = list.next)
-		{
-			int offset = list.vSize * (index % list.nValues);
-//			Sim.Node n = (list.which == 0) ? list.n : list.b.nodes;
-//			for(int i = 0; i < list.vSize; i++)
-//				setIn(*n++, &list.values[offset++]);
 		}
 	}
 
@@ -2257,25 +2167,104 @@ public class Analyzer extends Engine
 	private void setClock(String [] args)
 	{
 		// process sequence and add to clock list
-		GenMath.MutableInteger mi = new GenMath.MutableInteger(maxClock);
-		xClock = defSequence(args, xClock, mi);
-		maxClock = mi.intValue();
+		defSequence(args);
+
+		// compute the maximum clock size
+		maxClock = 0;
+		for(Iterator it = xClock.iterator(); it.hasNext(); )
+		{
+			ClockSequence t = (ClockSequence)it.next();
+			if (t.values.length > maxClock) maxClock = t.values.length;
+		}
+	}
+
+	/**
+	 * process command line to yield a sequence structure.  first arg is the
+	 * name of the node/vector for which the sequence is to be defined, second
+	 * and following args are the values.
+	 */
+	private void defSequence(String [] args)
+	{
+		// if no arguments, get rid of all the sequences we have defined
+		if (args.length == 1)
+		{
+			xClock.clear();
+			return;
+		}
+
+		Stimuli.Signal sig = findName(args[1]);
+		if (sig == null)
+		{
+			System.out.println(args[1] + ": No such node or vector");
+			return;
+		}
+		int len = 1;
+		if (sig.getBussedSignals() != null)
+			len = sig.getBussedSignals().size();
+
+		Sim.Node n = (Sim.Node)sig.getAppObject();
+		if (sig.getBussedSignals() == null)
+		{
+			n = unAlias(n);
+			if ((n.nFlags & Sim.MERGED) != 0)
+			{
+				System.out.println(n.nName + " can't be part of a sequence");
+				return;
+			}
+		}
+
+		if (args.length == 2)	// just destroy the given sequence
+		{
+			xClock.remove(sig);
+			return;
+		}
+
+		// make sure each value specification is the right length
+		for(int i = 2; i < args.length; i += 1)
+			if (args[i].length() != len)
+		{
+			System.out.println("value \"" + args[i] + "\" is not compatible with size of " + args[2] + " (" + len + ")");
+			return;
+		}
+
+		ClockSequence s = new ClockSequence();
+		s.values = new String[args.length-2];
+		s.sig = sig;
+		sig.setAppObject(n);
+
+		// process each value specification saving results in sequence
+		for(int i = 2; i < args.length; i += 1)
+		{
+			StringBuffer sb = new StringBuffer();
+			for(int p=0; p<args[i].length(); p++)
+			{
+				sb.append(potChars.charAt(chToPot(args[i].charAt(p))));
+			}
+			s.values[i-2] = sb.toString();
+		}
+
+		// all done!  remove any old sequences for this node or vector.
+		xClock.remove(sig);
+
+		// insert result onto list
+		xClock.add(s);
 	}
 
 	private int whichPhase = 0;
+
 	/**
 	 * Step each clock node through one simulation step
 	 */
-	private int stepPhase()
+	private boolean stepPhase()
 	{
-		vecValue(xClock, whichPhase);
-		if (relax(theSim.curDelta + stepSize) != 0)
-			return 1;
-		whichPhase = (whichPhase + 1) % maxClock;
-		return 0;
+		vecValue(whichPhase++);
+		if (relax(theSim.curDelta + stepSize) != 0) return true;
+		return false;
 	}
 
-	/* Do one simulation step */
+	/**
+	 * Do one simulation step
+	 */
 	private void doPhase(String [] args)
 	{
 		stepPhase();
@@ -2285,34 +2274,36 @@ public class Analyzer extends Engine
 	/**
 	 * clock circuit specified number of times
 	 */
-	private int clockIt(int n)
+	private boolean clockIt(int n)
 	{
 		int  i = 0;
 
-		if (xClock == null)
+		if (xClock.size() == 0)
 		{
 			System.out.println("no clock nodes defined!");
-		} else
+			return false;
+		}
+
+		/* run 'em by setting each clock node to successive values of its
+		 * associated sequence until all phases have been run.
+		 */
+		boolean interrupted = false;
+		for(int cycle = 0; cycle < n; cycle++)
 		{
-			/* run 'em by setting each clock node to successive values of its
-			 * associated sequence until all phases have been run.
-			 */
-			while (n-- > 0)
+			for(i = 0; i < maxClock; i += 1)
 			{
-				for(i = 0; i < maxClock; i += 1)
+				if (stepPhase())
 				{
-					if (stepPhase() != 0)
-					{
-						n = 0;
-						break;
-					}
+					interrupted = true;
+					break;
 				}
 			}
-
-			// finally display results if requested to do so
-			pnWatchList();
+			if (interrupted) break;
 		}
-		return maxClock - i;
+
+		// finally display results if requested to do so
+		pnWatchList();
+		return interrupted;
 	}
 
 	/**
@@ -2325,24 +2316,33 @@ public class Analyzer extends Engine
 		if (args.length == 2)
 		{
 			n = TextUtils.atoi(args[1]);
-			if (n <= 0)
-				n = 1;
+			if (n <= 0) n = 1;
 		}
 
-		/* run 'em by setting each input node to successive values of its
-		 * associated sequence.
-		 */
-		if (sList == null)
+		// run 'em by setting each input node to successive values of its associated sequence
+		if (xClock.size() == 0)
 		{
 			System.out.println("no input vectors defined!");
-		} else
-			while (n-- > 0)
-				for(int i = 0; i < maxSequence; i += 1)
+			return;
+		}
+
+		// determine the longest sequence
+		int maxSeq = 0;
+		for(Iterator it = xClock.iterator(); it.hasNext(); )
 		{
-			vecValue(sList, i);
-			if (clockIt(1) != 0)
-				return;
-			pnWatchList();
+			ClockSequence cs = (ClockSequence)it.next();
+			if (cs.values.length > maxSeq) maxSeq = cs.values.length;
+		}
+
+		// run it
+		for(int cycle = 0; cycle < n; cycle++)
+		{
+			for(int i = 0; i < maxSeq; i += 1)
+			{
+				vecValue(i);
+				if (clockIt(1)) return;
+				pnWatchList();
+			}
 		}
 	}
 
@@ -2356,8 +2356,7 @@ public class Analyzer extends Engine
 		if (args.length == 2)
 		{
 			n = TextUtils.atoi(args[1]);
-			if (n <= 0)
-				n = 1;
+			if (n <= 0) n = 1;
 		}
 
 		clockIt(n);		// do the hard work
@@ -2380,9 +2379,14 @@ public class Analyzer extends Engine
 	/**
 	 * display info about a node
 	 */
-	private void quest(String [] args)
+	private void quest(String [] args, SimVector sv)
 	{
-		apply(QUEST_CALL, 0, args, 1, args.length);
+		if (sv.sigs == null) return;
+		for(int i=0; i<sv.sigs.length; i++)
+		{
+			Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+			getInfo(n, args[0]);
+		}
 	}
 
 	/**
@@ -2406,17 +2410,14 @@ public class Analyzer extends Engine
 
 	private void setDbg(String [] args)
 	{
-        if (args.length == 1) {
-            theSim.irDebug = 0;
-        } else {
-            if (args[1].equalsIgnoreCase("ev")) theSim.irDebug |= Sim.DEBUG_EV; else
-                if (args[1].equalsIgnoreCase("dc")) theSim.irDebug |= Sim.DEBUG_DC; else
-                    if (args[1].equalsIgnoreCase("tau")) theSim.irDebug |= Sim.DEBUG_TAU; else
-                        if (args[1].equalsIgnoreCase("taup")) theSim.irDebug |= Sim.DEBUG_TAUP; else
-                            if (args[1].equalsIgnoreCase("spk")) theSim.irDebug |= Sim.DEBUG_SPK; else
-                                if (args[1].equalsIgnoreCase("tw")) theSim.irDebug |= Sim.DEBUG_TW; else
-                                    if (args[1].equalsIgnoreCase("off")) theSim.irDebug = 0;
-        }
+		if (args.length < 1) theSim.irDebug = 0; else
+			if (args[1].equalsIgnoreCase("ev")) theSim.irDebug |= Sim.DEBUG_EV; else
+				if (args[1].equalsIgnoreCase("dc")) theSim.irDebug |= Sim.DEBUG_DC; else
+					if (args[1].equalsIgnoreCase("tau")) theSim.irDebug |= Sim.DEBUG_TAU; else
+						if (args[1].equalsIgnoreCase("taup")) theSim.irDebug |= Sim.DEBUG_TAUP; else
+							if (args[1].equalsIgnoreCase("spk")) theSim.irDebug |= Sim.DEBUG_SPK; else
+								if (args[1].equalsIgnoreCase("tw")) theSim.irDebug |= Sim.DEBUG_TW; else
+									if (args[1].equalsIgnoreCase("off")) theSim.irDebug = 0;
 		System.out.print("Debugging");
 		if (theSim.irDebug == 0) System.out.println(" OFF"); else
 		{
@@ -2521,20 +2522,19 @@ public class Analyzer extends Engine
 		}
 	}
 
-	private int doCPath(Sim.Node n)
-	{
-		System.out.println("critical path for last transition of " + n.nName + ":");
-		n = unAlias(n);
-		cPath(n, 0);
-		return 1;
-	}
-
 	/**
 	 * discover and print critical path for node's last transistion
 	 */
-	private void doPath(String [] args)
+	private void doPath(String [] args, SimVector sv)
 	{
-		apply(PATH_CALL, 0, args, 1, args.length);
+		if (sv.sigs == null) return;
+		for(int i=0; i<sv.sigs.length; i++)
+		{
+			Sim.Node n = (Sim.Node)sv.sigs[i].getAppObject();
+			System.out.println("Critical path for last transition of " + n.nName + ":");
+			n = unAlias(n);
+			cPath(n, 0);
+		}
 	}
 
 	/** number of buckets in histogram */	private static final int NBUCKETS = 20;

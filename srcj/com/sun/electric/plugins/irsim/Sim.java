@@ -67,6 +67,8 @@ public class Sim
 		/** potential for pending AssertWhen */					short          awPot;
 		/** pending asswertWhen list */							Analyzer.AssertWhen awPending;
 		/** index of this node (a unique value) */				int            index;
+		/** Analyzer: window start */							HistEnt        wind;
+		/** Analyzer: cursor value */							HistEnt        cursor;
 
 		Node(Sim theSim)
 		{
