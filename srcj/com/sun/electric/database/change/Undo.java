@@ -1744,8 +1744,9 @@ public class Undo
 		if (highlighter != null)
 		{
 			highlighter.setHighlightList(highlights);
-			highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
-				(int)batch.startHighlightsOffset.getY());
+			if (batch.startHighlightsOffset != null)
+				highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+											   (int)batch.startHighlightsOffset.getY());
 			highlighter.finished();
 		}
 

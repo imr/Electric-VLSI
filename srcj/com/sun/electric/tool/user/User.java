@@ -85,6 +85,8 @@ public class User extends Listener
 		// the user interface tool is always on
 		setOn();
 		setIncremental();
+
+		Clipboard.clear(); // To initialize Clibpoard Cell
 	}
 
 	/**
