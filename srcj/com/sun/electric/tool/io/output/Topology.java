@@ -128,6 +128,9 @@ public abstract class Topology extends Output
 	/** Abstract method to decide whether library names are always prepended to cell names. */
 	protected abstract boolean isLibraryNameAlwaysAddedToCellName();
 
+	/** Abstract method to decide whether aggregate names (busses) are used. */
+	protected abstract boolean isAggregateNamesSupported();
+
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method. */
     protected boolean skipCellAndSubcells(Cell cell) { return false; }
@@ -219,6 +222,9 @@ public abstract class Topology extends Output
 
 	//---------------------------- Utility Methods --------------------------------------
 
+	/**
+	 * Class to describe a single signal in a Cell.
+	 */
 	protected static class CellSignal
 	{
 		/** name to use for this network. */		private String name;
@@ -243,6 +249,16 @@ public abstract class Topology extends Output
 		protected boolean isExported() { return pp != null; }
 	}
 
+	/**
+	 * Class to describe an aggregate signal (a bus) in a Cell.
+	 * The difference between aggregate signals and busses is that aggregate signals
+	 * are more sensitive to variations.  For example, a bus may be X[1,2,4,5] but
+	 * there must be two aggregate signals describing it because of the noncontinuity
+	 * of the indices (thus, the aggregate signals will be X[1:2] and X_1[4:5]).
+	 * Other factors that cause busses to be broken into multiple aggregate signals are:
+	 * (1) differences in port direction (mixes of input and output, for example)
+	 * (2) differences in port type (power, ground, global, etc.)
+	 */
 	protected static class CellAggregateSignal
 	{
 		private String name;
@@ -277,17 +293,22 @@ public abstract class Topology extends Output
 		}
 	}
 
+	/**
+	 * Class to describe the networks in a Cell.
+	 * This contains all of the CellSignal and CellAggregateSignal information.
+	 */
 	protected static class CellNetInfo
 	{
 		private String paramName;
 		private HashMap cellSignals;
+		private List cellSignalsSorted;
 		private List cellAggretateSignals;
 		private JNetwork pwrNet;
 		private JNetwork gndNet;
 		private Netlist netList;
 
 		protected CellSignal getCellSignal(JNetwork net) { return (CellSignal)cellSignals.get(net); }
-		protected Iterator getCellSignals() { return cellSignals.values().iterator(); }
+		protected Iterator getCellSignals() { return cellSignalsSorted.iterator(); }
 		protected Iterator getCellAggregateSignals() { return cellAggretateSignals.iterator(); }
 		protected String getParameterizedName() { return paramName; }
 		protected JNetwork getPowerNet() { return pwrNet; }
@@ -299,17 +320,20 @@ public abstract class Topology extends Output
 	{
 		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName);
 //printWriter.print("********Decomposition of cell " + cell.describe() + "\n");
-//printWriter.print(" Have " + cni.cellSignals.size() + " signals:\n");
-//for(Iterator it = cni.cellSignals.values().iterator(); it.hasNext(); )
+//printWriter.print("** Have " + cni.cellSignalsSorted.size() + " signals:\n");
+//for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 //{
 //	CellSignal cs = (CellSignal)it.next();
-//	printWriter.print("   Name="+cs.name+" export="+cs.pp+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
+//	printWriter.print("**   Name="+cs.name+" export="+cs.pp+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
 //}
-//printWriter.print(" Have " + cni.cellAggretateSignals.size() + " aggregate signals:\n");
-//for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
+//if (isAggregateNamesSupported())
 //{
-//	CellAggregateSignal cas = (CellAggregateSignal)it.next();
-//	printWriter.print("   Name="+cas.name+", export="+cas.pp+", low="+cas.low+", high="+cas.high+"\n");
+//	printWriter.print("** Have " + cni.cellAggretateSignals.size() + " aggregate signals:\n");
+//	for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
+//	{
+//		CellAggregateSignal cas = (CellAggregateSignal)it.next();
+//		printWriter.print("**   Name="+cas.name+", export="+cas.pp+", low="+cas.low+", high="+cas.high+"\n");
+//	}
 //}
 //printWriter.print("********DONE WITH CELL " + cell.describe() + "\n");
 		return cni;
@@ -372,8 +396,7 @@ public abstract class Topology extends Output
 			}
 
 			// save it in the map of signals
-            //System.out.println("Adding signal "+cs.name+" on net "+net);
-			cni.cellSignals.put(net, cs);
+ 			cni.cellSignals.put(net, cs);
 		}
 
 		// mark exported networks
@@ -582,118 +605,122 @@ public abstract class Topology extends Output
 		}
 
 		// make an array of the CellSignals
-		List cellSignalArray = new ArrayList();
+		cni.cellSignalsSorted = new ArrayList();
 		for(Iterator it = cni.cellSignals.values().iterator(); it.hasNext(); )
-			cellSignalArray.add(it.next());
+		cni.cellSignalsSorted.add(it.next());
 
 		// sort the networks by characteristic and name
-		Collections.sort(cellSignalArray, new SortNetsByName());
+		Collections.sort(cni.cellSignalsSorted, new SortNetsByName());
 
-		// organize by name and index order
-		cni.cellAggretateSignals = new ArrayList();
-		int total = cellSignalArray.size();
-		int emptyName = 1;
-		for(int i=0; i<total; i++)
+		// create aggregate signals if needed
+		if (isAggregateNamesSupported())
 		{
-			CellSignal cs = (CellSignal)cellSignalArray.get(i);
+			// organize by name and index order
+			cni.cellAggretateSignals = new ArrayList();
+			int total = cni.cellSignalsSorted.size();
+			int emptyName = 1;
+			for(int i=0; i<total; i++)
+			{
+				CellSignal cs = (CellSignal)cni.cellSignalsSorted.get(i);
 
-            //System.out.println("aggregating signal "+cs.name);
-			CellAggregateSignal cas = new CellAggregateSignal();
-			cas.name = unIndexedName(cs.name);
-			cas.pp = cs.pp;
-            cas.ppIndex = cs.ppIndex;
-			cas.supply = cs.power | cs.ground;
-			cas.descending = cs.descending;
-			cas.flags = 0;
-			cs.aggregateSignal = cas;
-			if (cs.name.equals(cas.name))
-			{
-				// single wire: set range to show that
-                //System.out.println("   ...single signal");
-				cas.low = 1;
-				cas.high = 0;
-				cas.signals = new CellSignal[1];
-				cas.signals[0] = cs;
-			} else
-			{
-				cas.high = cas.low = TextUtils.atoi(cs.name.substring(cas.name.length()+1));
-				int start = i;
-				for(int j=i+1; j<total; j++)
+	            //System.out.println("aggregating signal "+cs.name);
+				CellAggregateSignal cas = new CellAggregateSignal();
+				cas.name = unIndexedName(cs.name);
+				cas.pp = cs.pp;
+	            cas.ppIndex = cs.ppIndex;
+				cas.supply = cs.power | cs.ground;
+				cas.descending = cs.descending;
+				cas.flags = 0;
+				cs.aggregateSignal = cas;
+				if (cs.name.equals(cas.name))
 				{
-					CellSignal csEnd = (CellSignal)cellSignalArray.get(j);
-					if (csEnd.descending != cs.descending) break;
-					if (csEnd.pp != cs.pp) break;
-					if (csEnd.globalSignal != cs.globalSignal) break;
-					String endName = csEnd.name;
-					String ept = unIndexedName(endName);
-					if (ept.equals(endName)) break;
-					int index = TextUtils.atoi(endName.substring(ept.length()+1));
+					// single wire: set range to show that
+	                //System.out.println("   ...single signal");
+					cas.low = 1;
+					cas.high = 0;
+					cas.signals = new CellSignal[1];
+					cas.signals[0] = cs;
+				} else
+				{
+					cas.high = cas.low = TextUtils.atoi(cs.name.substring(cas.name.length()+1));
+					int start = i;
+					for(int j=i+1; j<total; j++)
+					{
+						CellSignal csEnd = (CellSignal)cni.cellSignalsSorted.get(j);
+						if (csEnd.descending != cs.descending) break;
+						if (csEnd.pp != cs.pp) break;
+						if (csEnd.globalSignal != cs.globalSignal) break;
+						String endName = csEnd.name;
+						String ept = unIndexedName(endName);
+						if (ept.equals(endName)) break;
+						int index = TextUtils.atoi(endName.substring(ept.length()+1));
 
-					// make sure export indices go in order
-					if (index != cas.high+1) break;
-					if (index > cas.high) cas.high = index;
-					i = j;
-					csEnd.aggregateSignal = cas;
+						// make sure export indices go in order
+						if (index != cas.high+1) break;
+						if (index > cas.high) cas.high = index;
+						i = j;
+						csEnd.aggregateSignal = cas;
+					}
+					cas.signals = new CellSignal[i-start+1];
+					for(int j=start; j<=i; j++)
+					{
+						CellSignal csEnd = (CellSignal)cni.cellSignalsSorted.get(j);
+	                    //System.out.println("  ...added signal "+csEnd.name+ " at "+(j-start));
+						cas.signals[j-start] = csEnd;
+					}
 				}
-				cas.signals = new CellSignal[i-start+1];
-				for(int j=start; j<=i; j++)
+				cni.cellAggretateSignals.add(cas);
+			}
+
+			// give all signals a safe name
+			for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
+			{
+				CellAggregateSignal cas = (CellAggregateSignal)it.next();
+				cas.name = getSafeNetName(cas.name);
+//				if (cas.low == cas.high) cas.name = cas.name + "_" + cas.low + "_";
+			}
+
+			// make sure all names are unique
+			int numNameList = cni.cellAggretateSignals.size();
+			for(int i=1; i<numNameList; i++)
+			{
+				// single signal: give it that name
+				CellAggregateSignal cas = (CellAggregateSignal)cni.cellAggretateSignals.get(i);
+
+				// see if the name clashes
+				for(int k=0; k<1000; k++)
 				{
-					CellSignal csEnd = (CellSignal)cellSignalArray.get(j);
-                    //System.out.println("  ...added signal "+csEnd.name+ " at "+(j-start));
-					cas.signals[j-start] = csEnd;
+					String ninName = cas.name;
+					if (k > 0) ninName = ninName + "_" + k;
+					boolean found = false;
+					for(int j=0; j<i; j++)
+					{
+						CellAggregateSignal oCas = (CellAggregateSignal)cni.cellAggretateSignals.get(j);
+						if (ninName.equals(oCas.name)) { found = true;   break; }
+					}
+					if (!found)
+					{
+						if (k > 0) cas.name = ninName;
+						break;
+					}
 				}
 			}
-			cni.cellAggretateSignals.add(cas);
-		}
 
-		// give all signals a safe name
-		for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
-		{
-			CellAggregateSignal cas = (CellAggregateSignal)it.next();
-			cas.name = getSafeNetName(cas.name);
-//			if (cas.low == cas.high) cas.name = cas.name + "_" + cas.low + "_";
-		}
-
-		// make sure all names are unique
-		int numNameList = cni.cellAggretateSignals.size();
-		for(int i=1; i<numNameList; i++)
-		{
-			// single signal: give it that name
-			CellAggregateSignal cas = (CellAggregateSignal)cni.cellAggretateSignals.get(i);
-
-			// see if the name clashes
-			for(int k=0; k<1000; k++)
+			// put names back onto the signals
+			for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 			{
-				String ninName = cas.name;
-				if (k > 0) ninName = ninName + "_" + k;
-				boolean found = false;
-				for(int j=0; j<i; j++)
+				CellAggregateSignal cas = (CellAggregateSignal)it.next();
+				if (cas.low > cas.high)
 				{
-					CellAggregateSignal oCas = (CellAggregateSignal)cni.cellAggretateSignals.get(j);
-					if (ninName.equals(oCas.name)) { found = true;   break; }
-				}
-				if (!found)
+					CellSignal cs = cas.signals[0];
+					cs.name = cas.name;
+				} else
 				{
-					if (k > 0) cas.name = ninName;
-					break;
-				}
-			}
-		}
-
-		// put names back onto the signals
-		for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
-		{
-			CellAggregateSignal cas = (CellAggregateSignal)it.next();
-			if (cas.low > cas.high)
-			{
-				CellSignal cs = cas.signals[0];
-				cs.name = cas.name;
-			} else
-			{
-				for(int k=cas.low; k<=cas.high; k++)
-				{
-					CellSignal cs = cas.signals[k-cas.low];
-					cs.name = cas.name + "[" + k + "]";
+					for(int k=cas.low; k<=cas.high; k++)
+					{
+						CellSignal cs = cas.signals[k-cas.low];
+						cs.name = cas.name + "[" + k + "]";
+					}
 				}
 			}
 		}

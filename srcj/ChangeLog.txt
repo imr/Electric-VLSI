@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+BUG: (9/13/04, SMR) Spice output gets indexed names wrong.
+FIX: In tool.io.output.Spice, do not use aggregated names (an interface option in tool.io.output.Topology).
+
 IMP: (9/13/04, GVG) DRC will highligh Geometric instead of Poly whenenver is possible
 
 BUG: (9/13/04, SMR) Extracting cells doesn't handle mirroring right.

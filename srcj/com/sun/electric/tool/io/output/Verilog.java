@@ -986,21 +986,24 @@ public class Verilog extends Topology
 		return getSafeNetName(name);
 	}
 
-	/** Abstract method to return the proper name of Power */
+	/** Method to return the proper name of Power */
 	protected String getPowerName() { return "vdd"; }
 
-	/** Abstract method to return the proper name of Ground */
+	/** Method to return the proper name of Ground */
 	protected String getGroundName() { return "gnd"; }
 
-	/** Abstract method to return the proper name of a Global signal */
+	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return "glbl." + glob.getName(); }
 
-    /** Abstract method to decide whether export names take precedence over
+    /** Method to report that export names DO take precedence over
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return true; }
 
-	/** Abstract method to decide whether library names are always prepended to cell names. */
+	/** Method to report that library names ARE always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return true; }
+
+	/** Method to report that aggregate names (busses) ARE used. */
+	protected boolean isAggregateNamesSupported() { return true; }
 
 	/*
 	 * Method to adjust a network name to be safe for Verilog output.

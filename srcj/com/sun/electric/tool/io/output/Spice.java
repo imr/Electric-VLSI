@@ -488,15 +488,15 @@ public class Spice extends Topology
 			multiLinePrint(false, "\n*** CELL: " + cell.describe() + "\n");
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(".SUBCKT " + cellName);
-			for(Iterator sIt = cni.getCellAggregateSignals(); sIt.hasNext(); )
+			for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
 			{
-				CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+				CellSignal cs = (CellSignal)sIt.next();
 
 				// ignore networks that aren't exported
-				PortProto pp = cas.getExport();
+				PortProto pp = cs.getExport();
 				if (pp == null) continue;
 
-				if (cas.isGlobal()) continue;
+				if (cs.isGlobal()) continue;
 				if (useCDL)
 				{
 //					// if this is output and the last was input (or visa-versa), insert "/"
@@ -504,18 +504,7 @@ public class Spice extends Topology
 //						infstr.append(" /");
 				}
 
-				int low = cas.getLowIndex(), high = cas.getHighIndex();
-				if (low > high)
-				{
-					// single signal
-					infstr.append(" " + cas.getName());
-				} else
-				{
-					for(int j=low; j<=high; j++)
-					{
-						infstr.append(" " + cas.getName() + "[" + j + "]");
-					}
-				}
+				infstr.append(" " + cs.getName());
 			}
 
 			Global.Set globals = netList.getGlobals();
@@ -557,25 +546,16 @@ public class Spice extends Topology
 			}
 
 			// write exports to this cell
-			for(Iterator sIt = cni.getCellAggregateSignals(); sIt.hasNext(); )
+			for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
 			{
-				CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+				CellSignal cs = (CellSignal)sIt.next();
 
 				// ignore networks that aren't exported
-				PortProto pp = cas.getExport();
+				PortProto pp = cs.getExport();
 				if (pp == null) continue;
 
-				if (cas.isGlobal()) continue;
-
-				int low = cas.getLowIndex(), high = cas.getHighIndex();
-				if (low > high)
-				{
-					// single signal
-					multiLinePrint(true, "** PORT " + cas.getName() + "\n");
-				} else
-				{
-					multiLinePrint(true, "** PORT " + cas.getName() + "[" + low + ":" + high + "]\n");
-				}
+				if (cs.isGlobal()) continue;
+				multiLinePrint(true, "** PORT " + cs.getName() + "\n");
 			}
 		}
 
@@ -650,30 +630,17 @@ public class Spice extends Topology
 				if (no.getName() != null) modelChar += getSafeNetName(no.getName());
 				StringBuffer infstr = new StringBuffer();
 				infstr.append(modelChar);
-				for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
+				for(Iterator sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
-					CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+					CellSignal subCS = (CellSignal)sIt.next();
 
 					// ignore networks that aren't exported
-					PortProto pp = cas.getExport();
+					PortProto pp = subCS.getExport();
 					if (pp == null) continue;
 
-					int low = cas.getLowIndex(), high = cas.getHighIndex();
-					if (low > high)
-					{
-						// single signal
-						JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
-						CellSignal cs = cni.getCellSignal(net);
-						infstr.append(" " + cs.getName());
-					} else
-					{
-						for(int j=low; j<=high; j++)
-						{
-							JNetwork net = netList.getNetwork(no, cas.getExport(), j-low);
-							CellSignal cs = cni.getCellSignal(net);
-							infstr.append(" " + cs.getName());
-						}
-					}
+					JNetwork net = netList.getNetwork(no, pp, subCS.getExportIndex());
+					CellSignal cs = cni.getCellSignal(net);
+					infstr.append(" " + cs.getName());
 				}
 
 				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
@@ -1155,21 +1122,24 @@ public class Spice extends Topology
 		return getSafeNetName(name);
 	}
 
-	/** Abstract method to return the proper name of Power */
+	/** Method to return the proper name of Power */
 	protected String getPowerName() { return "vdd"; }
 
-	/** Abstract method to return the proper name of Ground */
+	/** Method to return the proper name of Ground */
 	protected String getGroundName() { return "gnd"; }
 
-	/** Abstract method to return the proper name of a Global signal */
+	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }
 
-    /** Abstract method to decide whether export names take precedence over
+    /** Method to report that export names do NOT take precedence over
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return false; }
 
-	/** Abstract method to decide whether library names are always prepended to cell names. */
+	/** Method to report that library names are NOT always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }
+
+	/** Method to report that aggregate names (busses) are not used. */
+	protected boolean isAggregateNamesSupported() { return false; }
 
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method.
