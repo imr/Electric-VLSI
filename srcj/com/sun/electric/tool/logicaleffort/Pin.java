@@ -27,8 +27,6 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.tool.logicaleffort.*;
-
 import java.util.ArrayList;
 
 /**

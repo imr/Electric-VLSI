@@ -28,13 +28,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Aug 30, 2004
- * Time: 1:18:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface LENetlister {
 
     /** Call to start netlisting */

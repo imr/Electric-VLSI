@@ -690,12 +690,6 @@ public class PrimitiveNode implements NodeProto
 	public int getDefPlacementAngle()
 	{
 		int defAngle = User.getNewNodeRotation();
-// 		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
-// 		if (var != null)
-// 		{
-// 			Integer rot = (Integer)var.getObject();
-// 			defAngle = rot.intValue();
-// 		}
 		return defAngle;
 	}
 

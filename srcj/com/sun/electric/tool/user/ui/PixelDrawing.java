@@ -1190,11 +1190,6 @@ public class PixelDrawing
 	private void copyBits(PixelDrawing srcOffscreen, Rectangle screenBounds)
 	{
 		if (srcOffscreen == null) return;
-//		if (srcOffscreen.layerBitMaps == null)
-//		{
-//			System.out.println("Null bitmaps, at "+screenBounds);
-//			return;
-//		}
 		Dimension dim = srcOffscreen.sz;
 
 		// copy the opaque and transparent layers
@@ -1432,7 +1427,6 @@ public class PixelDrawing
 				if (hX >= sz.width) hX = sz.width-1;
 				if (lY < 0) lY = 0;
 				if (hY >= sz.height) hY = sz.height-1;
-//				if (lX > hX || lY > hY) return;
 
 				// draw the box
 				drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: KeyBindings.java
+ * Written by: Jonathan Gainsley, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,20 +24,16 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import javax.swing.*;
-import java.util.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.util.List;
+
+import javax.swing.KeyStroke;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Apr 6, 2004
- * Time: 1:16:12 PM
- *
- * <p>The KeyBindings object holds information about an action's key bindings.
+ * The KeyBindings object holds information about an action's key bindings.
  * There can be 0 or more default bindings which are set by the program.
  * There can be 0 or more user defined bindings which are stored as preferences by
  * the KeyBindingManager. Finally, there is a set of action listeners that get

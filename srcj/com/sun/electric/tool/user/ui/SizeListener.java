@@ -642,12 +642,6 @@ public class SizeListener
 			// make sure scaling the node is allowed
 			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
-//			if (newCenter.getX() != stretchNode.getAnchorCenterX() ||
-//				newCenter.getY() != stretchNode.getAnchorCenterY())
-//			{
-//				stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
-//					newCenter.getY() - stretchNode.getAnchorCenterY(), 0, 0, 0);
-//			}
 			double dWid = stretchNode.getXSizeWithMirror();
 			if (dWid < 0) dWid = -newWidth - dWid; else
 				dWid = newWidth - dWid;

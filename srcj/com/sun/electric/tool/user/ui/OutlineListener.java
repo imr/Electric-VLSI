@@ -226,8 +226,6 @@ public class OutlineListener
 				if (origPoints != null)
 				{
 					doingMotionDrag = true;
-//					oldX = outlineNode.getAnchorCenterX() + origPoints[point].getX();
-//					oldY = outlineNode.getAnchorCenterY() + origPoints[point].getY();
 					EditWindow.gridAlign(pt);
 					oldX = pt.getX();
 					oldY = pt.getY();

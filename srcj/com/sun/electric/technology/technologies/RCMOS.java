@@ -1041,21 +1041,6 @@ public class RCMOS extends Technology
 		passivation_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		// The pure layer nodes
-//		XXXX_lay.setPureLayerNode(metal1Pin_node);		// Metal-1-Pin
-//		XXXX_lay.setPureLayerNode(metal2Pin_node);		// Metal-2-Pin
-//		XXXX_lay.setPureLayerNode(polysiliconPin_node);		// Polysilicon-Pin
-//		XXXX_lay.setPureLayerNode(sActivePin_node);		// S-Active-Pin
-//		XXXX_lay.setPureLayerNode(dActivePin_node);		// D-Active-Pin
-//		XXXX_lay.setPureLayerNode(substrateActivePin_node);		// Substrate-Active-Pin
-//		XXXX_lay.setPureLayerNode(wellActivePin_node);		// Well-Active-Pin
-//		XXXX_lay.setPureLayerNode(sTransistorPin_node);		// S-Transistor
-//		XXXX_lay.setPureLayerNode(dTransistorPin_node);		// D-Transistor
-//		XXXX_lay.setPureLayerNode(metal1SActiveCon_node);		// Metal-1-S-Active-Con
-//		XXXX_lay.setPureLayerNode(metal1DActiveCon_node);		// Metal-1-D-Active-Con
-//		XXXX_lay.setPureLayerNode(metal1PolyCon_node);		// Metal-1-Polysilicon-Con
-//		XXXX_lay.setPureLayerNode(metal1Metal2Con_node);		// Metal-1-Metal-2-Con
-//		XXXX_lay.setPureLayerNode(metal1WellCon_node);		// Metal-1-Well-Con
-//		XXXX_lay.setPureLayerNode(metal1SubstrateCon_node);		// Metal-1-Substrate-Con
 		metal1_lay.setPureLayerNode(metal1_node);		// Metal-1-Node
 		metal2_lay.setPureLayerNode(metal2_node);		// Metal-2-Node
 		polysilicon_lay.setPureLayerNode(polysilicon_node);		// Polysilicon-Node

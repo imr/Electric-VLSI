@@ -27,27 +27,34 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.tool.logicaleffort.*;
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.MessagesWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.geom.AffineTransform;
-import java.awt.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.

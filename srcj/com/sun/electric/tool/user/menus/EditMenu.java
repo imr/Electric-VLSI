@@ -24,38 +24,75 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.user.*;
-import com.sun.electric.tool.user.dialogs.*;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.misc.LayerCoverageJob;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Clipboard;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.Array;
+import com.sun.electric.tool.user.dialogs.ArtworkLook;
+import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.dialogs.Change;
+import com.sun.electric.tool.user.dialogs.ChangeText;
+import com.sun.electric.tool.user.dialogs.EditKeyBindings;
+import com.sun.electric.tool.user.dialogs.FindText;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.MoveBy;
+import com.sun.electric.tool.user.dialogs.SelectObject;
+import com.sun.electric.tool.user.dialogs.Spread;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Edit" pulldown menu.
@@ -158,12 +195,6 @@ public class EditMenu {
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
-/*
-		editMenu.addSeparator();
-
-		editMenu.addMenuItem("Key Bindings...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
-*/
 		editMenu.addSeparator();
 
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'V');
@@ -232,14 +263,6 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
         ToolBar.CursorMode cm = ToolBar.getCursorMode();
         if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true);
-//        if (ToolBar.secondaryInputModes) {
-//			cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
-//				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
-//			cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
-//				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
-//            if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
-//            if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
-//        }
 
 		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
@@ -370,8 +393,6 @@ public class EditMenu {
 
 		public boolean doIt()
 		{
-		  //Highlight.clear();
-		  //Highlight.finished();
 			if (!Undo.undoABatch())
 				System.out.println("Undo failed!");
 			return true;
@@ -1073,21 +1094,13 @@ public class EditMenu {
             return insert;
         }
 
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
+        public void mouseWheelMoved(MouseWheelEvent e) {}
 
-        public void keyPressed(KeyEvent e) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
+        public void keyPressed(KeyEvent e) {}
 
-        public void keyReleased(KeyEvent e) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
+        public void keyReleased(KeyEvent e) {}
 
-        public void keyTyped(KeyEvent e) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
+        public void keyTyped(KeyEvent e) {}
 
         private static class InsertJogPoint extends Job
         {
@@ -1204,15 +1217,6 @@ public class EditMenu {
     {
         Undo.showHistoryList();
     }
-
-//	public static void showRTreeCommand()
-//	{
-//		Library curLib = Library.getCurrent();
-//		Cell curCell = curLib.getCurCell();
-//		System.out.println("Current cell is " + curCell.describe());
-//		if (curCell == null) return;
-//		curCell.getRTree().printRTree(0);
-//	}
 
     public static void describeTechnologyCommand()
     {

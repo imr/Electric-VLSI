@@ -23,39 +23,44 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.*;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
-import com.sun.electric.tool.user.dialogs.AnnularRing;
-import com.sun.electric.tool.user.dialogs.LayoutText;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.SwingExamineTask;
-import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.Main;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.AnnularRing;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.LayoutText;
+import com.sun.electric.tool.user.menus.CellMenu;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -65,23 +70,33 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.geom.Point2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.util.*;
-import java.util.List;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: root
- * Date: Aug 14, 2004
- * Time: 11:58:34 AM
- * To change this template use File | Settings | File Templates.
- */
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
         KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
 

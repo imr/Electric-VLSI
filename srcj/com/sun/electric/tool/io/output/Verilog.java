@@ -459,12 +459,7 @@ public class Verilog extends Topology
 
 							// see if this end is negated
 							boolean isNegated = false;
-//							if (ai.isNegated())
-//							{
-//								if (ai.getTail().getPortInst() == pi && !ai.isReverseEnds() ||
-//									ai.getHead().getPortInst() == pi && ai.isReverseEnds())
-//										isNegated = true;
-//							}
+							if (ai.getTail().isNegated() || ai.getHead().isNegated()) isNegated = true;
 
 							// write the port name
 							if (i == 0)

@@ -25,13 +25,20 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.technology.*;
-import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.utils.MOSRules;
 
 import java.awt.Color;
 

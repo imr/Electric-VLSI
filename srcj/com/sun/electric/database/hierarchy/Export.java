@@ -41,9 +41,9 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -413,7 +413,6 @@ public class Export extends ElectricObject implements PortProto
 		TextDescriptor.Position pos = td.getPos();
 		Poly.Type style = pos.getPolyType();
 		Point2D [] pointList = new Point2D.Double[1];
-//		pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 
 		// must untransform the node to apply the offset
 		NodeInst ni = getOriginalPort().getNodeInst();

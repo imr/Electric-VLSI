@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.parasitic.ParasiticTool;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
 /**
  * ParasiticTab.java

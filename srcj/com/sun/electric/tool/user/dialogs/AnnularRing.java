@@ -26,23 +26,21 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.EventListener;
-import javax.swing.*;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Annular Ring" dialog.

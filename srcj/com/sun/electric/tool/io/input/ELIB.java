@@ -25,45 +25,50 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -245,47 +250,21 @@ public class ELIB extends LibraryFiles
 		if (magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
-// 		emajor = version.getMajor();
-// 		eminor = version.getMinor();
-// 		edetail = version.getDetail();
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		convertMosisCmosTechnologies = version.compareTo(Version.parseVersion("6.03q")) < 0;
-// 		convertMosisCmosTechnologies = false;
-// 		if (emajor < 6 ||
-// 			(emajor == 6 && eminor < 3) ||
-// 			(emajor == 6 && eminor == 3 && edetail < 17))
-// 		{
-// 			convertMosisCmosTechnologies = true;
-// 		}
 
 		// for versions before 6.04c, convert text descriptor values
 		convertTextDescriptors = version.compareTo(Version.parseVersion("6.04c")) < 0;
-// 		convertTextDescriptors = false;
-// 		if (emajor < 6 ||
-// 			(emajor == 6 && eminor < 4) ||
-// 			(emajor == 6 && eminor == 4 && edetail < 3))
-// 		{
-// 			convertTextDescriptors = true;
-// 		}
 
 		// for versions 6.05x and later, always have text descriptor values
 		alwaysTextDescriptors = version.compareTo(Version.parseVersion("6.05x")) >= 0;
-// 		alwaysTextDescriptors = true;
-// 		if (emajor < 6 ||
-// 			(emajor == 6 && eminor < 5) ||
-// 			(emajor == 6 && eminor == 5 && edetail < 24))
-// 		{
-// 			alwaysTextDescriptors = false;
-// 		}
 
 		// for Electric version 4 or earlier, scale lambda by 20
 		scaleLambdaBy20 = version.compareTo(Version.parseVersion("5")) < 0;
-// 		if (emajor <= 4) lambda *= 20;
 
 		// mirror bits
 		rotationMirrorBits = version.compareTo(Version.parseVersion("7.01")) >= 0;
-//		if (emajor > 7 || (emajor == 7 && eminor >= 1))
 
 		// get the newly created views (version 9 and later)
 		viewMapping = new HashMap();
@@ -750,7 +729,6 @@ public class ELIB extends LibraryFiles
 
 			// for Electric version 4 or earlier, scale lambda by 20
 			if (scaleLambdaBy20) lambda *= 20;
-// 			if (emajor <= 4) lambda *= 20;
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;

@@ -148,14 +148,6 @@ public class PAL extends Output
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun != PrimitiveNode.Function.GATEAND && fun != PrimitiveNode.Function.GATEOR &&
 				fun != PrimitiveNode.Function.GATEXOR && fun != PrimitiveNode.Function.BUFFER) return false;
-//Netlist nl = info.getNetlist();
-//System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
-//for(Iterator it = nl.getNetworks(); it.hasNext(); )
-//{
-//	Network net = (Network)it.next();
-//	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
-//}
-//if (fun != PrimitiveNode.Function.PIN) return false;
 
 			String funName = "";
 			if (fun == PrimitiveNode.Function.GATEAND) funName = "&"; else

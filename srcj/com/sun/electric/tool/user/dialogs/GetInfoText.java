@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -52,6 +53,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.font.GlyphVector;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -434,7 +436,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			Rectangle2D glyphBounds = gv.getVisualBounds();
 			lowX = highX - (int)glyphBounds.getWidth();
 		}
-		EditInPlaceListener eip = new EditInPlaceListener(cti, curWnd, theFont, highX - lowX, highY - lowY, lowX, lowY);
+
+		EditInPlaceListener eip = new EditInPlaceListener(cti, curWnd, theFont, lowX, lowY);
 	}
 
 	/**
@@ -478,7 +481,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private JTextComponent tc;
 		private MenuBar mb;
 
-		public EditInPlaceListener(CachedTextInfo cti, EditWindow wnd, Font theFont, int width, int height, int lowX, int lowY)
+		public EditInPlaceListener(CachedTextInfo cti, EditWindow wnd, Font theFont, int lowX, int lowY)
 		{
 			this.cti = cti;
 			this.wnd = wnd;
@@ -488,7 +491,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			{
 				EIPEditorPane ep = new EIPEditorPane(cti.initialText);
 				tc = ep;
-				height *= 2;
 			} else
 			{
 				EIPTextField tf = new EIPTextField(cti.initialText);
@@ -498,9 +500,9 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				});
 				tc = tf;
 			}
-			width += 4;
 
-			tc.setSize(new Dimension(width, height));
+			tc.addKeyListener(this);
+			tc.setSize(figureSize());
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
 			if (theFont != null) tc.setFont(theFont);
@@ -516,6 +518,33 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
 			mb = top.getTheMenuBar();
 			mb.setIgnoreTextEditKeys(true);
+		}
+
+		/**
+		 * Method to determine the size of the in-place edit.
+		 * @return the size of the in-place edit.
+		 */
+		private Dimension figureSize()
+		{
+			Font theFont = wnd.getFont(cti.td);
+			double size = EditWindow.getDefaultFontSize();
+			if (cti.td != null) size = cti.td.getTrueSize(wnd);
+			if (size <= 0) size = 1;
+			size = theFont.getSize();
+	
+			String[] textArray = tc.getText().split("\\n");
+			double totalHeight = 0;
+			double totalWidth = 0;
+			for (int i=0; i<textArray.length; i++)
+			{
+				String str = textArray[i];
+				GlyphVector gv = wnd.getGlyphs(str, theFont);
+				Rectangle2D glyphBounds = gv.getVisualBounds();
+				totalHeight += size;
+				if (glyphBounds.getWidth() > totalWidth) totalWidth = glyphBounds.getWidth();
+			}
+			if (textArray.length > 1) totalHeight *= 2;
+			return new Dimension((int)totalWidth+5, (int)totalHeight+5);
 		}
 
 		private void closeEditInPlace()
@@ -569,7 +598,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
 		// the KeyListener events
 		public void keyPressed(KeyEvent evt) {}
-		public void keyReleased(KeyEvent evt) {}
+		public void keyReleased(KeyEvent evt) { tc.setSize(figureSize()); }
 		public void keyTyped(KeyEvent evt) {}
 	}
 

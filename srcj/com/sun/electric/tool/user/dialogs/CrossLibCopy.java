@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -32,9 +32,16 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
+
+import javax.swing.BoundedRangeModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.JScrollBar;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 
 /**

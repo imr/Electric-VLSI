@@ -23,11 +23,32 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.menus.FileMenu;
+
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
-import java.awt.Cursor;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -37,27 +58,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JInternalFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.Main;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -66,7 +79,6 @@ public class WindowFrame
 {
 	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the text edit window part */					private JTextArea textWnd;
-//	/** the text edit window component. */				private JScrollPane textPanel;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
@@ -210,7 +222,6 @@ public class WindowFrame
 		content.loadExplorerTree(rootNode);
 		treeModel = new DefaultTreeModel(rootNode);
 		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
-		//wantToRedoLibraryTree();
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the split pane
@@ -225,9 +236,6 @@ public class WindowFrame
 		createJFrame(cellDescription, gc);
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
-
-		// Put everything into the frame
-//		js.requestFocusInWindow();
 
 		// accumulate a list of current windows
 		synchronized(windowList) {
@@ -531,20 +539,6 @@ public class WindowFrame
 	}
 
 	//******************************** INTERFACE ********************************
-
-	/**
-	 * Method to set the content of this window.
-	 * The content is the object in the right side (EditWindow, WaveformWindow, etc.)
-	 * @param content the new content object.
-	 */
-//	public void setContent(WindowContent content)
-//	{
-//		this.content = content;
-//
-//		rootNode.removeAllChildren();
-//		content.loadExplorerTree(rootNode);
-//		js.setRightComponent(content.getPanel());
-//	}
 
 	/**
 	 * Method to get the content of this window.

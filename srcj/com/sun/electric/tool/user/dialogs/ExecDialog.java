@@ -24,16 +24,19 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Exec;
 
-import javax.swing.*;
-import java.io.OutputStream;
-import java.io.IOException;
+import java.awt.Rectangle;
 import java.io.File;
-import java.awt.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 /**
  * A Dialog for running and interacting with an external process. Usage:

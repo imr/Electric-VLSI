@@ -27,11 +27,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 
-import java.util.Set;
-import java.awt.*;
-import java.awt.image.ImageObserver;
 import java.awt.image.BufferedImage;
-import java.awt.print.PageFormat;
+import java.util.Set;
+
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -66,11 +64,6 @@ public interface WindowContent
 	 * @param replace the new text to replace everywhere.
 	 */
 	public abstract void replaceAllText(String replace);
-
-	// the "flags" for searchText():
-//	/** set to replace all occurrences. */					public static final int REPLACE_ALL = 2;
-//	/** set if search is case-sensitive. */					public static final int CASE_SENSITIVE = 4;
-//	/** set search backwards. */							public static final int FIND_REVERSE = 8;
 
 	public abstract void finished();
 	public abstract void repaint();

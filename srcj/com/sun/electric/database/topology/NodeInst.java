@@ -26,10 +26,12 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -40,23 +42,21 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.Job;
 
-import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -272,7 +272,6 @@ public class NodeInst extends Geometric implements Nodable
 		if (protoType instanceof Cell)
 		{
             if (Cell.isInstantiationRecursive((Cell)protoType, parent))
-			//if (((Cell)protoType).isAChildOf(parent))
 			{
 				System.out.println("Cannot create instance of " + protoType.describe() + " in cell " + parent.describe() +
 					" because it is recursive");
@@ -297,7 +296,8 @@ public class NodeInst extends Geometric implements Nodable
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (name != null) ni.setName(name);
-        // before lowLevelLink, place where the name is assigned if original is null
+
+		// before lowLevelLink, place where the name is assigned if original is null
 		ni.setTechSpecific(techBits);
 		if (ni.lowLevelLink()) return null;
 
@@ -823,11 +823,6 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isIconOfParent()
 	{
 		return nodeUsage.isIconOfParent();
-// 		NodeProto np = getProto();
-// 		if (!(np instanceof Cell))
-// 			return false;
-
-// 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
 
 	/**
@@ -1139,7 +1134,6 @@ public class NodeInst extends Geometric implements Nodable
 			fAddr[1] = new Float(curvature);
 			newVar(Artwork.ART_DEGREES, fAddr);
 		}
-//		redoGeometric();
 	}
 
 	/**
@@ -1227,28 +1221,8 @@ public class NodeInst extends Geometric implements Nodable
 				else
 					Rectangle2D.union(poly.getBounds2D(), visBounds, visBounds);
 			}
-//  			System.out.println(this + " in " + parent + " calcBound=" + visBounds + " center=" + center +
-//  							   " sX=" + sX + " sY=" + sY);
 			return;
 		}
-// 		if (pn.isHoldsOutline())
-// 		{
-// 			Point2D [] outline = getTrace();
-// 			if (outline != null)
-// 			{
-// 				Point2D [] pointList = new Point2D.Double[outline.length];
-// 				for(int i=0; i<outline.length; i++)
-// 				{
-// 					pointList[i] = new Point2D.Double(getAnchorCenterX() + outline[i].getX(),
-// 					getAnchorCenterY() + outline[i].getY());
-// 				}
-// 				Poly poly = new Poly(pointList);
-// 				poly.setStyle(Poly.Type.OPENED);
-// 				poly.transform(rotateOut());
-// 				visBounds.setRect(poly.getBounds2D());
-// 				return;
-// 			}
-// 		}
 
 		// normal bounds computation
 		Poly poly = new Poly(center.getX(), center.getY(), Math.abs(sX), Math.abs(sY));

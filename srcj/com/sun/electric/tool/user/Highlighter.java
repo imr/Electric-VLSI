@@ -23,54 +23,51 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.routing.Router;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.Router;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
-import java.util.*;
-import java.util.List;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Aug 5, 2004
- * Time: 9:25:46 AM
- * To change this template use File | Settings | File Templates.
- */
+import javax.swing.SwingUtilities;
+
 public class Highlighter implements DatabaseChangeListener {
 
-    //public static Highlighter global = new Highlighter();
     private static Highlighter currentHighlighter = null;
 
     /** Screen offset for display of highlighting. */			private int highOffX; private int highOffY;

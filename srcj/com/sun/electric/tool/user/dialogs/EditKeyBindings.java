@@ -24,31 +24,25 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.KeyBindings;
-import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
+import com.sun.electric.tool.user.ui.KeyBindings;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputMethodListener;
-import java.awt.event.InputMethodEvent;
-import java.util.List;
-import java.util.Iterator;
 import java.util.ArrayList;
-import javax.swing.*;
-import javax.swing.event.TreeModelListener;
+import java.util.Iterator;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 
 

@@ -50,7 +50,18 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -93,7 +104,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -2246,7 +2269,6 @@ public class WaveformWindow implements WindowContent
                 contextStack.push(no);
 				cellInWindow = no.getParent();
 				curContext = curContext.pop();
-				//context = no.getName() + "." + context;
 			}
             context = VarContext.globalContext;
             while (!contextStack.isEmpty()) {
@@ -4351,8 +4373,6 @@ public class WaveformWindow implements WindowContent
 		}
 		if (mainTimePanel != null)
 			mainTimePanel.repaint();
-		// redo the explorer tree if it changed
-		//wf.redoExplorerTreeIfRequested();
 	}
 
 	public void fireCellHistoryStatus()

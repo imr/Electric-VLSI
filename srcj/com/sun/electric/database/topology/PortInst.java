@@ -24,19 +24,19 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The PortInst class represents an instance of a Port.  It is the

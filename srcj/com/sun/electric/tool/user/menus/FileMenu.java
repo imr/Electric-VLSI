@@ -24,40 +24,54 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.PreferencesFrame;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.Main;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.io.output.PostScript;
 import com.sun.electric.tool.io.output.PNG;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.Main;
+import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
+import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.io.File;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.Set;
+
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.print.PrinterJob;
-import java.awt.print.PrinterException;
-import java.awt.print.PageFormat;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.net.URL;
-import java.util.*;
-import java.io.File;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.RepaintManager;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the commands in the "File" pulldown menu.
@@ -150,12 +164,6 @@ public class FileMenu {
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
-//		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, false, false); } });
-//        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(FileType.ELIB, false, false); } });
-//		exportSubMenu.addMenuItem("Readable Dump...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.READABLEDUMP, false, false); } });
 
 		fileMenu.addSeparator();
 
@@ -449,8 +457,6 @@ public class FileMenu {
 	    }
 	    if (preventLoss(lib, 1)) return;
 
-//        int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getName() + "?");
-//        if (response != JOptionPane.YES_OPTION) return;
         String libName = lib.getName();
         WindowFrame.removeLibraryReferences(lib);
         CloseLibrary job = new CloseLibrary(lib);
@@ -673,7 +679,6 @@ public class FileMenu {
             if (PostScript.syncAll()) return;
             if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
         }
-        //EditWindow wnd = EditWindow.needCurrent();
 	    WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 	    WindowContent wnd = (wf != null) ? wf.getContent() : null;
 

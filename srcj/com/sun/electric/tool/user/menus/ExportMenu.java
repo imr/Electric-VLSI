@@ -26,10 +26,11 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ExportChanges;
 
-import javax.swing.*;
-import java.awt.event.ActionListener;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.*;
+import java.awt.event.ActionListener;
+
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Export" pulldown menu.

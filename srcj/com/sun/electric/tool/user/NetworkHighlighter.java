@@ -23,23 +23,24 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 
-import java.util.List;
-import java.util.HashMap;
+import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.geom.AffineTransform;
-import java.awt.*;
+import java.util.List;
 
 /**
  * This class is used for hierarchical highlighting of networks

@@ -26,15 +26,15 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 
-import java.util.*;
 import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class CachedCell {
 

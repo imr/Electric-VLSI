@@ -61,7 +61,6 @@ public class User extends Listener
 	// ---------------------- private and protected methods -----------------
 
 	/** the User Interface tool. */		public static User tool = new User();
-//	/** key of Variable holding rotation overrides for primitives. */	public static final Variable.Key PLACEMENT_ANGLE = ElectricObject.newKey("USER_placement_angle");
 	/** key of Variable holding cell frame information. */				public static final Variable.Key FRAME_SIZE = ElectricObject.newKey("FACET_schematic_page_size");
 	/** key of Variable holding cell company name. */					public static final Variable.Key FRAME_COMPANY_NAME = ElectricObject.newKey("USER_drawing_company_name");
 	/** key of Variable holding cell designer name. */					public static final Variable.Key FRAME_DESIGNER_NAME = ElectricObject.newKey("USER_drawing_designer_name");
@@ -209,9 +208,6 @@ public class User extends Listener
 
 			PixelDrawing.forceRedraw(cell);
 		}
-
-		// update live dialogs and status bar
-		//updateInformationAreas();
 	}
 
 	private static AudioClip clickSound = null;

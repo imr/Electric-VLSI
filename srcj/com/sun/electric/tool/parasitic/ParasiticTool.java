@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ParasiticTool.java
+ * Written by: Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -24,35 +25,32 @@
 
 package com.sun.electric.tool.parasitic;
 
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.Job;
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Gilda Garreton
- * To change this template use File | Settings | File Templates.
- */
 public class ParasiticTool extends Tool{
 
     /** The Parasitic Extraction tool */              private static ParasiticTool tool = new ParasiticTool();

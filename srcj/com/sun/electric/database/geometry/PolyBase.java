@@ -26,24 +26,26 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.Main;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * The Poly class describes an extended set of points
@@ -212,7 +214,6 @@ public class PolyBase implements Shape
 			}
 		}
 		af.transform(points, 0, points, 0, points.length);
-//		af.transform(points, points);
 		bounds = null;
 	}
 
@@ -612,12 +613,6 @@ public class PolyBase implements Shape
 		angle = (angle + xAngle) % 3600;
 
 		Poly.Type style = Poly.Type.getTextTypeFromAngle(angle);
-//		Type revert = unRotateType(style, eObj);
-//		if (revert != origType)
-//		{
-//			System.out.println("Rotating "+origType.name+" on node with angle="+nodeAngle+" MX="+ni.isMirroredAboutXAxis()+" MY="+ni.isMirroredAboutYAxis()+
-//				" produces type="+style.name+" but unrotation gives type="+revert.name);
-//		}
 		return style;
 	}
 
@@ -866,7 +861,6 @@ public class PolyBase implements Shape
 				return Math.abs(dist-odist);
 			} else
 			{
-//System.out.println("Testing circle at ("+points[0].getX()+","+points[0].getY()+") against "+otherBounds);
 				if (points[0].getX() + dist < otherBounds.getMinX()) return dist;
 				if (points[0].getX() - dist > otherBounds.getMaxX()) return dist;
 				if (points[0].getY() + dist < otherBounds.getMinY()) return dist;
@@ -1745,12 +1739,10 @@ public class PolyBase implements Shape
 		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return -2;
         if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
 		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return -2;
 
 		// if the box to be cropped is within the other, say so
-		//if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
         boolean blX = !DBMath.isGreaterThan(bX, lX);
 		boolean uhX = !DBMath.isGreaterThan(hX, uX);
 		boolean blY = !DBMath.isGreaterThan(bY, lY);
@@ -1782,7 +1774,6 @@ public class PolyBase implements Shape
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
 
 		// if the two boxes don't touch, just return
-		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
         if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
 		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return 0;
 
@@ -1793,47 +1784,37 @@ public class PolyBase implements Shape
 		boolean uhY = !DBMath.isGreaterThan(hY, uY);
 
 		if (blX && uhX && blY && uhY)
-        //if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
 		{
 			double lxe = lX - bX;   double hxe = uX - hX;
 			double lye = lY - bY;   double hye = uY - hY;
 			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
-			//if (biggestExt == 0) return 1;
             if (DBMath.areEquals(biggestExt, 0)) return 1;
-			//if (lxe == biggestExt)
             if (DBMath.areEquals(lxe, biggestExt))
 			{
 				lX = (lX + uX) / 2;
 				if (!DBMath.isGreaterThan(hX, lX)) return 1;
-                //if (lX >= hX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
-			//if (hxe == biggestExt)
             if (DBMath.areEquals(hxe, biggestExt))
 			{
 				hX = (hX + bX) / 2;
 				if (!DBMath.isGreaterThan(hX, lX)) return 1;
-                //if (hX <= lX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
 
-            //if (lye == biggestExt)
 			if (DBMath.areEquals(lye, biggestExt))
 			{
 				lY = (lY + uY) / 2;
 				if (!DBMath.isGreaterThan(hY, lY)) return 1;
-                //if (lY >= hY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
-            //if (hye == biggestExt)
 			if (DBMath.areEquals(hye, biggestExt))
 			{
 				hY = (hY + bY) / 2;
 				if (!DBMath.isGreaterThan(hY, lY)) return 1;
-                //if (hY <= lY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
@@ -1841,23 +1822,17 @@ public class PolyBase implements Shape
 
 		// reduce (lx-hx,lY-hy) bY (bX-uX,bY-uY)
 		boolean crops = false;
-        //if (bX <= lX && uX >= hX)
 		if (blX && uhX)
 		{
 			// it covers in X...crop in Y
-			//if (uY >= hY) hY = (hY + bY) / 2;
-			//if (bY <= lY) lY = (lY + uY) / 2;
             if (!DBMath.isGreaterThan(hY, uY)) hY = (hY + bY) / 2;
 			if (blY) lY = (lY + uY) / 2;
 			bounds.setRect(lX, lY, hX-lX, hY-lY);
 			crops = true;
 		}
         if (blY && uhY)
-		//if (bY <= lY && uY >= hY)
 		{
 			// it covers in Y...crop in X
-			//if (uX >= hX) hX = (hX + bX) / 2;
-			//if (bX <= lX) lX = (lX + uX) / 2;
             if (!DBMath.isGreaterThan(hX, uX)) hX = (hX + bX) / 2;
 			if (blX) lX = (lX + uX) / 2;
 			bounds.setRect(lX, lY, hX-lX, hY-lY);

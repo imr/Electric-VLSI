@@ -23,12 +23,11 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import javax.swing.*;
-import java.util.HashMap;
-import java.util.StringTokenizer;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import java.awt.*;
+import java.util.HashMap;
+
+import javax.swing.KeyStroke;
 
 /**
  * User: gainsley

@@ -27,7 +27,6 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.tool.logicaleffort.*;
 import com.sun.electric.database.network.Network;
 
 import java.util.ArrayList;

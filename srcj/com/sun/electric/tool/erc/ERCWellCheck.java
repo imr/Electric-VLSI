@@ -23,35 +23,42 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.Main;
+import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Electrical Rule Checker tool.

@@ -28,39 +28,38 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
 
-import java.awt.*;
-import java.awt.image.ImageObserver;
-import java.awt.image.BufferedImage;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.awt.event.FocusListener;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
 import java.awt.event.FocusEvent;
-import java.io.InputStream;
+import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.Set;
+
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
-import javax.swing.event.DocumentListener;
+import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
-import javax.swing.text.BadLocationException;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * This class defines a text window for displaying text cells.
@@ -113,9 +112,6 @@ public class TextWindow
 		if (cell != null && cell == WindowFrame.getCurrentCell())
 			textArea.requestFocus();
 
-		// redo the explorer tree if it changed
-		//wf.redoExplorerTreeIfRequested();
-//System.out.println("REPAINT");
 		textArea.paint(g);
 	}
 
@@ -147,7 +143,6 @@ public class TextWindow
 
 	private void textWindowContentChanged()
 	{
-//System.out.println("DIRTY");
 		if (cell != null) cell.getLibrary().setChangedMajor();
 		dirty = true;
 	}
@@ -258,12 +253,10 @@ public class TextWindow
 		this.cell = cell;
 		String [] lines = (cell != null) ? cell.getTextViewContents() : null;
 		String oneLine = (lines != null) ? oneLine = makeOneString(lines) : "";
-//System.out.println("Setting text to "+oneLine);
 		textArea.setText(oneLine);
 		textArea.setSelectionStart(0);
 		textArea.setSelectionEnd(0);
 		dirty = false;
-//System.out.println("CLEAN");
 		setWindowTitle();
 	}
 

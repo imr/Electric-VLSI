@@ -24,20 +24,15 @@
 
 package com.sun.electric.database.variable;
 
-import com.sun.electric.tool.Tool;
+import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.Main;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.lang.reflect.Method;
 import java.util.Stack;
-import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Used for evaluating Java expressions in Variables

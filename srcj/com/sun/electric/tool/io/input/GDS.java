@@ -453,8 +453,6 @@ public class GDS extends Input
 		getToken();
 		double meterUnit = tokenValueDouble;
 		theScale = meterUnit * 1000000.0 * TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
-		// C sez:    DB=0.001 METER=0.000000001 SCALE = 2
-		// Java sez: DB=0.001 METER=0.000000001 SCALE=4.999998889776976E-12
 	}
 
 	private void readStructure()
@@ -585,11 +583,6 @@ public class GDS extends Input
 					angle = ost.getJAngle();
 					boolean mX = ost.isJMirrorX();
 					boolean mY = ost.isJMirrorY();
-//					if (trans)
-//					{
-//						mY = true;
-//						angle = (angle + 900) % 3600;
-//					}
 
 					new MakeInstance(theCell, (Cell)theNodeProto, loc, mX, mY, angle);
 				}

@@ -1573,10 +1573,7 @@ public class Maze
 	{
 		// get the polygons of the arcinst, force line for path generation?
 		Technology tech = ai.getProto().getTechnology();
-//		double width = ai->width;
-//		ai->width = 0;
 		Poly [] polys = tech.getShapeOfArc(ai);
-//		ai->width = width;
 		int total = polys.length;
 		for (int j = 0; j < total; j++)
 		{

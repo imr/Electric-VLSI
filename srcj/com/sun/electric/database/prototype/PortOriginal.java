@@ -167,4 +167,3 @@ public class PortOriginal
 	 */
 	public int getAngleToTop() { return angle; }
 }
-

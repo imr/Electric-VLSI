@@ -315,11 +315,6 @@ public class HSpiceOut extends Simulate
 				if (!isTR0Binary && i == '\n') { j--;   continue; }
 			}
 		}
-//		if (numnoi > 0)
-//		{
-//			for(int k=0; k<numnoi; k++)
-//				System.out.println("Special signal: "+signalNames[nodcnt-numnoi+k]);
-//		}
 
 		// read the end-of-header marker
 		line = new StringBuffer();
@@ -353,7 +348,6 @@ public class HSpiceOut extends Simulate
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
-//System.out.println("SIGNAL NAMED: "+signalNames[k]+" DOT AT "+lastDotPos);
 			if (lastDotPos >= 0)
 			{
 				as.setSignalContext(signalNames[k].substring(0, lastDotPos));

@@ -26,13 +26,13 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -51,8 +51,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
@@ -64,7 +64,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is the Simulation Interface tool.
@@ -447,7 +451,6 @@ public class Spice extends Topology
 					double perim = poly.getPerimeter();
 					double area = poly.getArea();
 
-                    //System.out.println("Layer "+layer.getFunction().toString()+" (lambda): area="+(area*maskScale*maskScale)+", perim="+(perim*maskScale));
 					// accumulate this information
                     double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
                     if (layerIsDiff(layer)) {
@@ -458,7 +461,6 @@ public class Spice extends Topology
                         perim = perim * scale / 1000;           // perim in microns
                         spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
                         spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
-                        //System.out.println("Layer "+layer.getFunction().toString()+" (microns): area="+(area*maskScale*maskScale)+", perim="+(perim*maskScale));
                     }
 				}
 			}		

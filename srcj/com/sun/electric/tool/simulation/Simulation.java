@@ -942,7 +942,6 @@ public class Simulation extends Tool
 	 */
 	public void init()
 	{
-//		setOn();
 	}
 
 	/**

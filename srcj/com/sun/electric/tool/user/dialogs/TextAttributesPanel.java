@@ -25,16 +25,12 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
-import java.awt.*;
 
 /**
  * A Panel to display Code, Units, ShowStyle, and isParameter/isInherits

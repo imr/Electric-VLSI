@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: MoCMOSGenerator.java
+ * Written by: Jonathan Gainsley, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -26,13 +27,6 @@ package com.sun.electric.tool.generator.layout.gates;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.database.hierarchy.Cell;
 
-/**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Oct 29, 2004
- * Time: 5:22:58 PM
- * To change this template use File | Settings | File Templates.
- */
 public class MoCMOSGenerator {
 
 

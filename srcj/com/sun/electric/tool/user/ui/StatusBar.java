@@ -23,30 +23,31 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 
 
@@ -55,7 +56,6 @@ import javax.swing.border.BevelBorder;
  */
 public class StatusBar extends JPanel implements HighlightListener, DatabaseChangeListener
 {
-	//private int fillPosition;
 	private WindowFrame frame;
 	private String coords = null;
 	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords;
@@ -65,13 +65,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 
 	public StatusBar(WindowFrame frame)
 	{
-		//super(new SpringLayout());
 		super(new GridBagLayout());
 
 		setBorder(new BevelBorder(BevelBorder.LOWERED));
-        //SpringLayout layout = (SpringLayout)this.getLayout();
 
-		//fillPosition = 0;
 		this.frame = frame;
 		addField(fieldSelected = new JLabel(), 0);
         Dimension d = new Dimension(140, 16);

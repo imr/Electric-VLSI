@@ -1845,10 +1845,6 @@ public class EDIF extends Input
 						{
 							// create the new page
 							curCellPage = ++pageNumber;
-//							String viewName = "p" + curCellPage;
-//							if (View.findMultiPageSchematicView(pageNumber) == null)
-//								View.newMultiPageSchematicInstance(pageNumber);
-//							String nodeName = cellName + "{" + viewName + "}";
 							String nodeName = cellName + "{sch}";
 							if (curCellPage == 1)
 							{
@@ -2332,9 +2328,6 @@ public class EDIF extends Input
 			checkName();
 
 			curCellPage = ++pageNumber;
-//			String view = "p" + curCellPage;
-//			if (View.findMultiPageSchematicView(pageNumber) == null)
-//				View.newMultiPageSchematicInstance(pageNumber);
 
 			// locate this in the list of cells
 			Cell proto = null;

@@ -60,7 +60,12 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
@@ -349,7 +354,6 @@ public class Technology
 			this.representation = representation;
 			this.points = points;
 			descriptor = new TextDescriptor(null);
-//			descriptor = new TextDescriptor(layer.getTechnology());
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -2776,9 +2780,6 @@ public class Technology
 					lastColor[2] = b / 255.0;
 					normalizeColor(lastColor);
 
-//					// dim the previous color
-//					for(int k=0; k<3; k++) lastColor[k] *= 0.5;
-
 					// get the current color
 					double [] curColor = new double[3];
 					curColor[0] = layers[j].getRed() / 255.0;
@@ -2874,27 +2875,6 @@ public class Technology
 		}
 		return true;
 	}
-
-//	/**
-//	 * Method to write a description of this Technology.
-//	 * Displays the description in the Messages Window.
-//	 */
-//	public void getInfo()
-//	{
-//		System.out.println(" Name: " + techName);
-//		System.out.println(" Description: " + techDesc);
-//		System.out.println(" Nodes (" + nodes.size() + ")");
-//		for (int i = 0; i < nodes.size(); i++)
-//		{
-//			System.out.println("     " + nodes.get(i));
-//		}
-//		System.out.println(" Arcs (" + arcs.size() + ")");
-//		for (int i = 0; i < arcs.size(); i++)
-//		{
-//			System.out.println("     " + arcs.get(i));
-//		}
-//		super.getInfo();
-//	}
 
 	/**
 	 * Method to determine the appropriate Technology to use for a Cell.
@@ -3096,42 +3076,6 @@ public class Technology
 		}
 
 		// give up and report the generic technology
-//System.out.println("Cell "+cell.describe()+" is "+retTech.getTechName()+" bestlayout="+bestLayoutTech+" best="+bestTech);
-//if (retTech == Artwork.tech)
-//{
-//	if (nodeProtoList != null)
-//	{
-//		// iterate over the NodeProtos in the list
-//		for(int i=startNodeProto; i<endNodeProto; i++)
-//		{
-//			NodeProto np = nodeProtoList[i];
-//			if (np == null) continue;
-//			Technology nodeTech = np.getTechnology();
-//			if (np instanceof Cell)
-//			{
-//				Cell subCell = (Cell)np;
-//				if (subCell.isIcon())
-//					nodeTech = Schematics.tech;
-//			}
-//System.out.println("  has node "+np.describe()+" which is technology "+nodeTech);
-//		}
-//	} else
-//	{
-//		for(Iterator it = ((Cell)cell).getNodes(); it.hasNext(); )
-//		{
-//			NodeInst ni = (NodeInst)it.next();
-//			NodeProto np = ni.getProto();
-//			Technology nodeTech = np.getTechnology();
-//			if (np instanceof Cell)
-//			{
-//				Cell subCell = (Cell)np;
-//				if (subCell.isIcon())
-//					nodeTech = Schematics.tech;
-//			}
-//			System.out.println("  has nodeinst "+ni.describe()+" which is technology "+nodeTech);
-//		}
-//	}
-//}
 		return retTech;
 	}
 

@@ -23,21 +23,28 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Version;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.ui.ToolBarButton;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.*;
-import java.io.*;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Date;
 import java.awt.geom.Point2D;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
 public class ActivityLogger {
 

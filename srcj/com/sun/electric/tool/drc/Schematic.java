@@ -432,7 +432,7 @@ public class Schematic
 		}
 	}
 
-	/*
+	/**
 	 * Method to check whether polygon "poly" from object "geom" has a DRC violation
 	 * with a neighboring object.  Returns TRUE if an error was found.
 	 */
@@ -566,7 +566,7 @@ public class Schematic
 		return true;
 	}
 
-	/*
+	/**
 	 * Check polygon "poly" from object "geom" against
 	 * geom "oGeom" transformed by "otrans" (and really on top-level object "oTopGeom").
 	 * Returns TRUE if an error was found.
@@ -627,7 +627,7 @@ public class Schematic
 		return false;
 	}
 
-	/*
+	/**
 	 * Check polygon "poly" from object "geom" against
 	 * polygon "opoly" from object "oGeom".
 	 * If "canCross" is TRUE, they can cross each other (but an endpoint cannot touch).
@@ -669,7 +669,7 @@ public class Schematic
 		return true;
 	}
 
-	/*
+	/**
 	 * Method to check whether arc "ai" is colinear with another.
 	 * Returns TRUE if an error was found.
 	 */

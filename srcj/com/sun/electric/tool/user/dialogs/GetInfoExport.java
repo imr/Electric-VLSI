@@ -23,30 +23,25 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
-import java.util.List;
 import java.util.Iterator;
-import javax.swing.*;
+import java.util.List;
+
+import javax.swing.JFrame;
 
 
 /**

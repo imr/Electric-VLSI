@@ -27,17 +27,13 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
-import java.util.*;
 
 /**
  * User: gainsley

@@ -954,8 +954,8 @@ public final class ExportChanges
 	 */
 	private static class RenameExport extends Job
 	{
-		Export pp;
-		String newName;
+		private Export pp;
+		private String newName;
 
 		protected RenameExport(Export pp, String newName)
 		{

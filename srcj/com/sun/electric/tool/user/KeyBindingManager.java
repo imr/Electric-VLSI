@@ -25,19 +25,22 @@
 package com.sun.electric.tool.user;
 
 
-import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.KeyBindings;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
 
-import javax.swing.*;
-import java.util.*;
-import java.util.List;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
-import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.ActionListener;
-import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 
 /**
  * The KeyBindingManager manages key bindings and their associated actions. It

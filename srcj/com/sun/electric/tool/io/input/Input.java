@@ -169,34 +169,8 @@ public class Input
 		// get the name of the imported library
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
 
-// 		// see if it already exists
-// 		Library deleteThis = null;
-// 		Library lib = Library.findLibrary(libName);
-// 		if (lib != null)
-// 		{
-// 			// library already exists, prompt for save
-// 			if (FileMenu.preventLoss(lib, 2)) return null;
-// 			WindowFrame.removeLibraryReferences(lib);
-
-// 			// see if the former library can be deleted
-// 			if (Library.getNumLibraries() > 1)
-// 			{
-// 				if (!lib.kill()) return null;
-// 			} else
-// 			{
-// 				// cannot delete last library: must delete it later
-// 				deleteThis = lib;
-
-// 				// mangle the name so that the new one can be created
-// 				lib.setName("FORMERVERSIONOF" + lib.getName());
-// 			}
-// 		}
-
 		// create a new library
 		Library lib = Library.newInstance(libName, fileURL);
-
-// 		// delete any former library with the same name
-// 		if (deleteThis != null) deleteThis.kill();
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
@@ -324,33 +298,8 @@ public class Input
 
 		if (lib == null)
 		{
-// 			Library deleteThis = null;
-// 			lib = Library.findLibrary(libName);
-// 			if (lib != null)
-// 			{
-// 				// library already exists, prompt for save
-// 				if (FileMenu.preventLoss(lib, 2)) return null;
-// 				WindowFrame.removeLibraryReferences(lib);
-
-// 				// see if the former library can be deleted
-// 				if (Library.getNumLibraries() > 1)
-// 				{
-// 					if (!lib.kill()) return null;
-// 				} else
-// 				{
-// 					// cannot delete last library: must delete it later
-// 					deleteThis = lib;
-
-// 					// mangle the name so that the new one can be created
-// 					lib.setName("FORMERVERSIONOF" + lib.getName());
-// 				}
-// 			}
-
 			// create a new library
 			lib = Library.newInstance(libName, fileURL);
-
-// 			// delete former library with the same name
-// 			if (deleteThis != null) deleteThis.kill();
 		}
 
 		in.lib = lib;

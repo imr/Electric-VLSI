@@ -153,9 +153,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		initDND();
 
-//		setEditable(true);
-//		setDragEnabled(true);
-
 		// single selection as default
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
@@ -163,9 +160,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		setRootVisible(false);
 		setShowsRootHandles(true);
 		setToggleClickCount(3);
-
-		// show one level of indentation
-		//	collapseRow(1);
 
 		// enable tool tips - we'll use these to display useful info
 		ToolTipManager.sharedInstance().registerComponent(this);
@@ -793,9 +787,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			tree.addSelectionPath(originalPath);
 			tree.addSelectionPath(currentPath);
 			tree.updateUI();
-
-//			tree.treeDidChange();
-//			EditWindow.repaintAll();
 		}
 
 		private void cacheEvent(MouseEvent e)
@@ -1328,19 +1319,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         private void showAlphabeticallyAction()
 		{
 			howToShow = SHOWALPHABETICALLY;
-			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByGroupAction()
 		{
 			howToShow = SHOWBYCELLGROUP;
-			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByHierarchyAction()
 		{
 			howToShow = SHOWBYHIERARCHY;
-			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 	}

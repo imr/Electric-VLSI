@@ -843,13 +843,11 @@ public class AutoStitch
 		double y = (oPortCenter.getY() + portCenter.getY()) / 2;
 
 		// run the wire
-//			List added = WiringListener.makeConnection(ni, pp, oNi, opp, new Point2D.Double(x,y), true, true);
         PortInst pi = ni.findPortInstFromProto(pp);
         PortInst opi = oNi.findPortInstFromProto(opp);
         Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y));
         if (route.size() == 0) return false;
         allRoutes.add(route);
-        //Router.createRouteNoJob(route, ni.getParent(), false);
 
         // if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
         if (ni.getFunction() == PrimitiveNode.Function.PIN && ni.getNumExports() == 0 && ni.getNumConnections() == 0) {

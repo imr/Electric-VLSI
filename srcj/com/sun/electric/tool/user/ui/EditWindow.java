@@ -923,9 +923,6 @@ public class EditWindow extends JPanel
 		if (wf == WindowFrame.getCurrentWindowFrame())
 			requestFocus();
 
-		// redo the explorer tree if it changed
-		//wf.redoExplorerTreeIfRequested();
-
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setScreenSize(getSize());

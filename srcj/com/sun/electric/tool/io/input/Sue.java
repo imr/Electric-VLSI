@@ -531,11 +531,6 @@ public class Sue extends Input
 				parP.rot = ost.getJAngle();
 				if (ost.isJMirrorX()) wid = -wid;
 				if (ost.isJMirrorY()) hei = -hei;
-//				if (parP.trn)
-//				{
-//					parP.rot = (parP.rot + 900) % 3600;
-//					hei = -hei;
-//				}
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
 					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct));
 				if (ni == null) continue;

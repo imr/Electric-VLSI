@@ -23,39 +23,32 @@
  */
 package com.sun.electric.tool.user.menus;
 
-/*
- * Created on Sep 30, 2003
- *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
-
-import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.ui.ToolBarButton;
+import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.ToolBarButton;
 
-
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Stack;
-import java.util.Collection;
 import java.util.prefs.Preferences;
-import javax.swing.JComponent;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JCheckBoxMenuItem;
+
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 
 /**

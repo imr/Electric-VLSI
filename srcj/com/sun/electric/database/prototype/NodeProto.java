@@ -23,23 +23,12 @@
  */
 package com.sun.electric.database.prototype;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.technology.Technology;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * The NodeProto interface defines a type of NodeInst.

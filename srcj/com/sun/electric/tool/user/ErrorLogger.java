@@ -23,29 +23,39 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.Main;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.*;
-import java.util.*;
-import java.awt.geom.Point2D;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.io.*;
+import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * Class for logging errors.

@@ -24,24 +24,17 @@
  */
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Schematics;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Aug 27, 2004
- * Time: 3:57:13 PM
- * To change this template use File | Settings | File Templates.
- */
 public class LENodable {
 
     /** Type is a typesafe enum class that describes the type of Instance this is */

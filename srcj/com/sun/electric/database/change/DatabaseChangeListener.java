@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.change;
 
-import java.util.List;
 
 /**
  * The Undo class handles logging and broadcasting of changes to the database.

@@ -24,32 +24,40 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.EditMenu;
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.*;
-import java.util.List;
-import java.util.Iterator;
-import java.util.EventListener;
 import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.Iterator;
+import java.util.List;
 import java.util.prefs.Preferences;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 /**
  * Handles Selection, Zooming, and Wiring.

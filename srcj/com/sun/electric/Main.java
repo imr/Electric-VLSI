@@ -23,43 +23,52 @@
  */
 package com.sun.electric;
 
+import com.apple.eawt.Application;
+import com.apple.eawt.ApplicationAdapter;
+import com.apple.eawt.ApplicationEvent;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
+import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
-import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.*;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.TimerTask;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-
-// these may not exist on non-Macintosh platforms, and are stubbed-out in "AppleJavaExtensions.jar"
-import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationAdapter;
-import com.apple.eawt.ApplicationEvent;
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -75,7 +84,8 @@ import com.apple.eawt.ApplicationEvent;
  * <P> <CODE>         -version: version information </CODE>
  * <P> <CODE>         -v: brief version information </CODE>
  * <P> <CODE>         -debug: debug mode. Extra information is available </CODE>
- * <P> <CODE>        -help: this message </CODE>
+ * <P> <CODE>         -pulldowns: show list of all pulldown menus in Electric </CODE>
+ * <P> <CODE>         -help: this message </CODE>
  * <P> <P>
  * See manual for more instructions.
  */
@@ -288,11 +298,9 @@ public final class Main
             if (url == null) continue;
             fileURLs.add(url);
         }
+
         // open any libraries but only when there is at least one
-	    //if (fileURLs.size() > 0)
-	    {
-            FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
-	    }
+        FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
     }
 
     /**
@@ -359,9 +367,6 @@ public final class Main
 				// initialize the constraint system
 				Layout con = Layout.getConstraint();
 				Constraints.setCurrent(con);
-
-				// run script
-				//if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
 			} finally {
 				Undo.changesQuiet(false);
 			}
@@ -439,36 +444,6 @@ public final class Main
             ActivityLogger.logThreadMessage(buf.toString());
         }
     }
-
-	/**
-	 * Generic registration with the Mac OS X application menu.
-	 * Attempts to register with the Apple EAWT.
-	 * This method calls OSXAdapter.registerMacOSXApplication().
-	 */
-//	private static void macOSXRegistration()
-//	{
-//		try
-//		{
-//			Class osxAdapter = Class.forName("com.sun.electric.Main.MacOSXInterface");
-//			Class[] defArgs = {};
-//			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
-//			if (registerMethod != null)
-//			{
-//				Object[] args = {};
-//				registerMethod.invoke(osxAdapter, args);
-//			}
-//		} catch (NoClassDefFoundError e)
-//		{
-//			System.err.println("This version of Mac OS X does not support the Apple EAWT (" + e + ")");
-//		} catch (ClassNotFoundException e)
-//		{
-//			// If the class is not found, then perhaps this isn't a Macintosh, and we should stop
-//		} catch (Exception e)
-//		{
-//			System.err.println("Exception while loading the OSXAdapter:");
-//			e.printStackTrace();
-//		}
-//	}
 
 	/**
 	 * Class for initializing the Macintosh OS X world.

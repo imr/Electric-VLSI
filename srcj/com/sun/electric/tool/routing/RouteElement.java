@@ -23,29 +23,9 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * A Route describes a new connection to be made.

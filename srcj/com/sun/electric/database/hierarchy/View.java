@@ -26,12 +26,12 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Comparator;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * A View is an object that represents a style of design, for example schematic, layout, etc.
@@ -401,4 +401,4 @@ public class View implements Comparable
 		return "View " + fullName;
 	}
 
-} // end of class View
+}

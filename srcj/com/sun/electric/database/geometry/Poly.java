@@ -23,24 +23,17 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.Font;
+import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.*;
-import java.awt.font.GlyphVector;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Sep 27, 2004
- * Time: 1:30:15 PM
- * To change this template use File | Settings | File Templates.
- */
 public class Poly extends PolyBase {
 
 	/** the string (if of type TEXT) */						private String string;

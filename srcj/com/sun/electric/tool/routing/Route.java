@@ -24,7 +24,9 @@
 
 package com.sun.electric.tool.routing;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Specifies a route to be created.  Note that the order if items

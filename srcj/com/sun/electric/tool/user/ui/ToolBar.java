@@ -213,23 +213,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.add(clickZoomWireButton);
         modeGroup.add(clickZoomWireButton);
 
-//			selectButton = ToolBarButton.newInstance(cursorSelectName,
-//				Resources.getResource(toolbar.getClass(), "ButtonSelect.gif"));
-//			selectButton.addActionListener(
-//				new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
-//			selectButton.setToolTipText(cursorSelectName);
-//			toolbar.add(selectButton);
-//			modeGroup.add(selectButton);
-//
-//			// the "Wiring" button
-//			wireButton = ToolBarButton.newInstance(cursorWiringName,
-//				Resources.getResource(toolbar.getClass(), "ButtonWiring.gif"));
-//			wireButton.addActionListener(
-//				new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
-//			wireButton.setToolTipText(cursorWiringName);
-//			toolbar.add(wireButton);
-//			modeGroup.add(wireButton);
-
 		// the "Pan mode" button
 		panButton = ToolBarButton.newInstance(cursorPanName,
             Resources.getResource(toolbar.getClass(), "ButtonPan.gif"));
@@ -341,23 +324,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		preferencesButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         toolbar.add(preferencesButton);
 
-//
-//		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options",
-//            Resources.getResource(toolbar.getClass(), "ButtonOptionTool.gif")));
-//		toolOptionButton.addActionListener(
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
-//		toolOptionButton.setToolTipText("Tool Options");
-//        toolOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-//		toolbar.add(toolOptionButton);
-//
-//		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options",
-//            Resources.getResource(toolbar.getClass(), "ButtonOptionIO.gif")));
-//		ioOptionButton.addActionListener(
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
-//		ioOptionButton.setToolTipText("I/O Options");
-//        ioOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-//		toolbar.add(ioOptionButton);
-
         toolbar.addSeparator();
 
         // the Undo button
@@ -465,31 +431,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         curMode = CursorMode.CLICKZOOMWIRE;
     }
-//	/**
-//	 * Method called when the "select" button is pressed.
-//	 */
-//	public static void selectCommand()
-//	{
-//		WindowFrame.setListener(ClickAndDragListener.theOne);
-//		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-//		curMode = CursorMode.SELECT;
-//	}
-
-//	/**
-//	 * Method called when the "wiring" button is pressed.
-//	 */
-//	public static void wiringCommand()
-//	{
-//        if (WindowFrame.getListener() == WiringListener.theOne) {
-//            // switch back to click zoom wire listener
-//            setCursorMode(CursorMode.CLICKZOOMWIRE);
-//            return;
-//        }
-//		WindowFrame.setListener(WiringListener.theOne);
-//		//makeCursors();
-//		TopLevel.setCurrentCursor(wiringCursor);
-//		curMode = CursorMode.WIRE;
-//	}
 
     /**
      * Method called to toggle the state of the "select special"
@@ -625,8 +566,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     public static void setCursorMode(CursorMode mode)
     {
         if (mode == CursorMode.CLICKZOOMWIRE) ToolBarButton.doClick(cursorClickZoomWireName);
-//        else if (mode == CursorMode.SELECT) ToolBarButton.doClick(cursorSelectName);
-//        else if (mode == CursorMode.WIRE) ToolBarButton.doClick(cursorWiringName);
         else if (mode == CursorMode.PAN) ToolBarButton.doClick(cursorPanName);
         else if (mode == CursorMode.ZOOM) ToolBarButton.doClick(cursorZoomName);
 		else if (mode == CursorMode.OUTLINE) ToolBarButton.doClick(cursorOutlineName);
@@ -782,29 +721,17 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         }
     }
 
-    public void internalFrameClosed(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameClosed(InternalFrameEvent e) {}
 
-    public void internalFrameClosing(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameClosing(InternalFrameEvent e) {}
 
-    public void internalFrameDeactivated(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameDeactivated(InternalFrameEvent e) {}
 
-    public void internalFrameDeiconified(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameDeiconified(InternalFrameEvent e) {}
 
-    public void internalFrameIconified(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameIconified(InternalFrameEvent e) {}
 
-    public void internalFrameOpened(InternalFrameEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void internalFrameOpened(InternalFrameEvent e) {}
 
     public void setEnabled(String name, boolean flag)
     {

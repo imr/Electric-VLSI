@@ -214,11 +214,6 @@ public class CIF extends Geometry
 			}
 		}
 		// write all instances
-//		for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
-//		{
-//			Nodable no = (Nodable)noIt.next();
-//			writeNodable(no);
-//		}
 		for (Iterator noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)noIt.next();

@@ -23,16 +23,21 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.Main;
 
-import java.util.*;
-import java.util.prefs.Preferences;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * This class manages options.

@@ -271,14 +271,6 @@ public class Compaction extends Listener
 			for(Line curLine = lineComp; curLine != null; curLine = curLine.nextLine)
 				computeLineHiAndLow(curLine);
 
-//for(Line curLine = lineComp; curLine != null; curLine = curLine.nextLine)
-//{
-//	System.out.print("Line " + curLine.index + " FROM "+curLine.low+" TO "+curLine.high+":");
-//	for(GeomObj o = curLine.firstObject; o != null; o = o.nextObject)
-//		System.out.print(" "+o.inst.describe());
-//	System.out.println();
-//}
-
 			// do the compaction
 			lowBound = findLeastLow(lineComp);
 			boolean change = lineupFirstRow(lineComp, lineStretch, lowBound);
@@ -576,9 +568,7 @@ public class Compaction extends Listener
 				if (curObject.inst instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)curObject.inst;
-//System.out.println("FINALLY, MOVE NODE "+ni.describe()+" BY ("+(-moveX)+","+(-moveY)+")");
 					ni.modifyInstance(-moveX, -moveY, 0, 0, 0);
-//					flushBatch();
 					break;
 				}
 			}

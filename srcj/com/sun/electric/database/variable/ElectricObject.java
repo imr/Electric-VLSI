@@ -406,7 +406,6 @@ public abstract class ElectricObject
 				poly.setStyle(style);
 				if (geom instanceof NodeInst)
 				{
-//					poly.transform(((NodeInst)geom).rotateOut());
 					poly.transform(((NodeInst)geom).rotateOutAboutTrueCenter());
 				}
 				poly.setTextDescriptor(td);
@@ -417,15 +416,6 @@ public abstract class ElectricObject
 				{
 					Export pp = (Export)this;
 					poly = pp.getNamePoly();
-//					Rectangle2D bounds = pp.getOriginalPort().getBounds();
-//					TextDescriptor td = pp.getTextDescriptor();
-//					Poly.Type style = td.getPos().getPolyType();
-//					Point2D [] pointList = new Point2D.Double[1];
-//					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
-//					poly = new Poly(pointList);
-//					poly.setStyle(style);
-//					poly.setTextDescriptor(td);
-//					poly.setString(pp.getName());
 				} else
 				{
 					// cell instance name
@@ -482,38 +472,31 @@ public abstract class ElectricObject
 		if (varLength > 1)
 		{
 			// compute text height
-//			font = wnd.getFont(td);
-//			if (font == null)
-//			{
-//				varLength = 0;
-//			} else
+			if (font == null) height = 1 / scale; else
+				height = font.getSize2D() / scale;
+			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
-				if (font == null) height = 1 / scale; else
-					height = font.getSize2D() / scale;
-				if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
-				{
-					headerString = true;
-					varLength++;
-				}
-				if (multipleStrings)
-				{
-					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-						style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-							cY += height * (varLength-1) / 2;
-					if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
-						cY += height * (varLength-1);
-//					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-//						cY -= height*2;
-				} else
-				{
-					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-						style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-							cY -= height * (varLength-1) / 2;
-					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-						cY -= height * (varLength-1);
-					varLength = 1;
-					headerString = false;
-				}
+				headerString = true;
+				varLength++;
+			}
+			if (multipleStrings)
+			{
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY += height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+					cY += height * (varLength-1);
+//				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+//					cY -= height*2;
+			} else
+			{
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY -= height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+					cY -= height * (varLength-1);
+				varLength = 1;
+				headerString = false;
 			}
 		}
 
@@ -552,7 +535,6 @@ public abstract class ElectricObject
 				{
 					// text too small: make it "greek"
 					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / scale;
-//System.out.println("Greek text "+fakeWidth+" wide but window scale is "+wnd.getScale());
 					pointList = new Point2D.Double[2];
 					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
 					pointList[1] = new Point2D.Double(cX+offX+fakeWidth/2, cY+offY);
@@ -837,27 +819,6 @@ public abstract class ElectricObject
                 }
             }
         }
-
-
-		// variables may affect geometry size
-//		if (this instanceof NodeInst || this instanceof ArcInst)
-//		{
-//			if (this instanceof NodeInst)
-//			{
-//				NodeInst ni = (NodeInst)this;
-//				geom = ni->geom;
-//				Cell np = ni.getParent();
-//			} else
-//			{
-//				ArcInst ai = (ArcInst)this;
-//				geom = ai->geom;
-//				Cell np = ai.getParent();
-//			}
-//			boundobj(geom, &lx, &hx, &ly, &hy);
-//			if (lx != geom->lowx || hx != geom->highx ||
-//				ly != geom->lowy || hy != geom->highy)
-//					updategeom(geom, np);
-//		}
 	}
 
 	private static class ArrayName

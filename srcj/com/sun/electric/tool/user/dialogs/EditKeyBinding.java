@@ -24,17 +24,19 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.ui.KeyBindings;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
 
-import javax.swing.*;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.*;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 
 /**
  *

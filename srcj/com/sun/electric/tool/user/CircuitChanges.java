@@ -1137,10 +1137,6 @@ public class CircuitChanges
 						localStrings[i] = subNet.describe();
 				}
 
-				// turn off highlighting
-				//Highlighter.global.clear();
-				//Highlighter.global.finished();
-
 				double sxw = Schematics.tech.wirePinNode.getDefWidth();
 				double syw = Schematics.tech.wirePinNode.getDefHeight();
 				double sxb = Schematics.tech.busPinNode.getDefWidth();
@@ -1789,10 +1785,7 @@ public class CircuitChanges
 			}
 		}
 
-//		prevversion = cell->prevversion;
-//		toolturnoff(net_tool, FALSE);
 		cell.kill();
-//		toolturnon(net_tool);
 
 //		// see if this was the latest version of a cell
 //		if (prevversion != NONODEPROTO)
@@ -3922,7 +3915,6 @@ public class CircuitChanges
 						{
 							Export pp = (Export)eobj;
 							TextDescriptor td = pp.getTextDescriptor();
-//							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
 							adjustTextDescriptor(td, pp.getOriginalPort().getNodeInst());
 						}
 					}
@@ -4429,7 +4421,6 @@ public class CircuitChanges
 					Cell cell = (Cell)np;
 
 					// allow cross-library references to stay
-//					if (cell.getLibrary() != fromCell.getLibrary()) continue;
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there

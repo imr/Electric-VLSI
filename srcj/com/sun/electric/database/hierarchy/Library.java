@@ -25,7 +25,11 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.*;
+import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -126,7 +130,6 @@ public class Library extends ElectricObject
 		// create the library
 		Library lib = new Library();
 		lib.cells = new ArrayList();
-//		lib.curCell = null;
 		lib.curCellPref = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
@@ -263,7 +266,6 @@ public class Library extends ElectricObject
             }
 			cells.add(c);
 		}
-		//WindowFrame.wantToRedoLibraryTree();
 	}
 
 	/**
@@ -282,7 +284,6 @@ public class Library extends ElectricObject
             }
 			cells.remove(c);
 		}
-		//WindowFrame.wantToRedoLibraryTree();
 	}
 
     /**
@@ -555,19 +556,6 @@ public class Library extends ElectricObject
 	 */
 	public boolean isHidden() { return (userBits & HIDDENLIBRARY) != 0; }
 
-//	/**
-//	 * Method to set the Units value for this Library.
-//	 * The Units indicate which display units to use for distance, voltage, current, etc.
-//	 */
-//	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
-//
-//	/**
-//	 * Method to get the Units value for this Library.
-//	 * The Units indicate which display units to use for distance, voltage, current, etc.
-//	 * @return the Units value for this Library.
-//	 */
-//	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
-
 	/**
 	 * Method to return the current Library.
 	 * @return the current Library.
@@ -806,7 +794,6 @@ public class Library extends ElectricObject
 		String extension = TextUtils.getExtension(libFile);
 		if (extension.length() > 0) newLibFile += "." + extension;
 		this.libFile = TextUtils.makeURLToFile(newLibFile);
-		//WindowFrame.wantToRedoLibraryTree();
 	}
 
 	/**

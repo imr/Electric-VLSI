@@ -25,8 +25,8 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
-import java.util.Iterator;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * To handle merge operation. Two different classes have been proposed

@@ -274,7 +274,6 @@ public class Layout extends Constraints
 		// change the arcs on the nodeinst
 		boolean flipX = (oldSX * ni.getXSizeWithMirror()) < 0;
 		boolean flipY = (oldSY * ni.getYSizeWithMirror()) < 0;
-//System.out.println("Node "+ni.describe()+" was "+oldSX+"x"+oldSY+" and is now "+ni.getXSizeWithMirror()+"x"+ni.getYSizeWithMirror()+" so fx="+flipX+" and fy="+flipY);
 		if (modNodeArcs(ni, dRot, dSX, dSY, flipX, flipY))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
@@ -612,8 +611,8 @@ public class Layout extends Constraints
 					ai.setRigidModified();
 					if (DEBUG) System.out.println("    Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
 					double changeSX = 0, changeSY = 0;
-if (oFlipX != ono.isXMirrored()) changeSX = -ono.getXSizeWithMirror() * 2;
-if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
+					if (oFlipX != ono.isXMirrored()) changeSX = -ono.getXSizeWithMirror() * 2;
+					if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 					if (alterNodeInst(ono, dx, dy, changeSX, changeSY, nextAngle, true))
 						examineCell = true;
 				}
@@ -1137,17 +1136,6 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 		ar3.setChangeClock(changeClock + arctyp);
 
 		// now kill the arcinst
-//		if ((CHANGE *)ai->changeaddr != NOCHANGE)
-//		{
-//			ai->end[0].xpos = ((CHANGE *)ai->changeaddr)->p1;
-//			ai->end[0].ypos = ((CHANGE *)ai->changeaddr)->p2;
-//			ai->end[1].xpos = ((CHANGE *)ai->changeaddr)->p3;
-//			ai->end[1].ypos = ((CHANGE *)ai->changeaddr)->p4;
-//			ai->length = computedistance(ai->end[0].xpos, ai->end[0].ypos,
-//				ai->end[1].xpos, ai->end[1].ypos);
-//			ai->width = ((CHANGE *)ai->changeaddr)->p5;
-//			determineangle(ai);
-//		}
 		deletedArcs.add(ai);
 		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
 		ai.kill();
@@ -1195,8 +1183,6 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 				m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
 			if (oldPoly.getBounds2D().getHeight() >0)
 				m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
-			//m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
-			//m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
 			m02 = dx - ono.getX() + ox;   m12 = dy - ono.getY() + oy;
 		}
 		trans.setTransform(m00, m10, m01, m11, m02, m12);
@@ -1424,9 +1410,6 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 				markNode.remove(ni);
 				Cell subCell = (Cell)ni.getProto();
 
-//				// ignore recursive references (showing icon in contents)
-//				if (ni.isIconOfParent()) continue;
-
 				// if this nodeinst is to change, mark the parent cell also
 				if (cellModFlag.contains(subCell)) cellModFlag.add(start);
 
@@ -1455,7 +1438,6 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 			touchNode.remove(ni);
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
-//			if (ni.isIconOfParent()) continue;
 			if (!cellModFlag.contains(subCell)) continue;
 			markNode.add(ni);
 			touchNode.add(ni);

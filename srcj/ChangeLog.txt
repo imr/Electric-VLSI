@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/17/04, SMR) Cleaned up code (removed irrelevant commented-out sections),
+     converted wildcard imports.
+
+BUG: (12/17/04, SMR) Edit in-place does not grow as new text is typed (Bug #125).
+FIX: In GetInfoText.EditInPlaceListener, fill in keyReleased() and have it resize the text area.
+
+IMP: (12/17/04, GVG) Fixed compilation warnings on Java-1.5.
+
 BUG: (12/17/04, GVG) 3D view: problems with zoom in/zoom out (Bug #23)
 FIX: Change factor calculation and now we are just setting a new transformation scale.
 

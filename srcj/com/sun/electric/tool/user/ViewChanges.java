@@ -843,8 +843,6 @@ public class ViewChanges
 				if (equivCell == null)
 					equivCell = convertSchematicCell(proto);
 
-//				Cell equivCell = proto.getEquivalent();
-//System.out.println("Equivalent of subcell "+proto.describe()+" is "+equivCell.describe());
 				schemNI = makeSchematicNode(equivCell, mosNI, equivCell.getDefWidth(), equivCell.getDefHeight(), mosNI.getAngle(), 0, newCell);
 			} else
 			{
@@ -1485,8 +1483,6 @@ public class ViewChanges
 				+ oldPp.getName() + " and " + newNi.getProto().describe());
 			return newNi.getProto().getPort(0);
 		}
-
 	}
 
 }
-

@@ -544,11 +544,6 @@ public class CIF extends Input
 		if (ost.isJMirrorX()) sX = -sX;
 		if (ost.isJMirrorY()) sY = -sY;
 		rot = ost.getJAngle();
-//		if (trans)
-//		{
-//			sY = -sY;
-//			rot = (rot + 900) % 3600;
-//		}
 		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0);
 		if (ni == null)
 		{

@@ -3389,18 +3389,6 @@ public class ROMGenerator
 	
 		} else
 		{
-	//		for (i=0; i<outs/2; i++) {
-	//			ap1 = pwellpins[i];
-	//			apport1 = pwellports[i];
-	//			appos1 = getCStylePortPosition(ap1, apport1);
-	//			ap2 = gndpins[i];
-	//			apport2 = gndports[i];
-	//			appos2 = getCStylePortPosition(ap2, apport2);
-	//			makeCStyleArcInst(m1arc, 4*lambda, 0, ap1, apport1, appos1[0],
-	//								appos1[1], ap2, apport2,
-	//								appos2[0], appos2[1],invp);
-	//		}
-	
 			// metal 1 midvddpins to vddpins
 			for (i=0; i<outs/2; i++)
 			{

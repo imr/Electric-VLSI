@@ -25,7 +25,6 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -33,7 +32,6 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -41,13 +39,19 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Dimension;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1803,10 +1807,6 @@ public class Schematics extends Technology
 			double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
 			double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
 			double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
-// 			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
-// 			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
-// 			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
-// 			double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
 			double portX = (portLowX + portHighX) / 2;
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
@@ -2084,8 +2084,6 @@ public class Schematics extends Technology
                 if (width != -1)
                     widthObj = new Double(width);
             }
-			//Dimension2D dim = new Dimension2D.Double(width, length);
-	        //return dim;
             TransistorSize size = new TransistorSize(widthObj, lengthObj);
             return size;
 		}
@@ -2095,8 +2093,6 @@ public class Schematics extends Technology
             double area = VarContext.objectToDouble(areaObj, -1);
             if (area != -1) areaObj = new Double(area);
         }
-		//Dimension2D dim = new Dimension2D.Double(area, 0);
-		//return dim;
         TransistorSize size = new TransistorSize(areaObj, new Double(0));
         return size;
     }
@@ -2220,9 +2216,6 @@ public class Schematics extends Technology
 			if (tech == Schematics.tech || tech == Generic.tech ||
 				tech.isNonElectrical() || tech.isNoPrimitiveNodes()) mi.setValue(-1);
 		}
-
-//		// if the desired technology is possible, use it
-//		if (deftech->temp2 >= 0) return(deftech);
 
 		// figure out the most popular technology
 		int bestAmount = -1;

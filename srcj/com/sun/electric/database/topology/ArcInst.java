@@ -898,8 +898,8 @@ public class ArcInst extends Geometric
 		}
 		if (poly.isInside(pt)) return true;
 		if (poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE) return true;
+
 		// no good
-//System.out.println("NOT STILL IN PORT BECAUSE pt="+pt+" reduce="+reduceForArc+" poly ctr=("+poly.getCenterX()+","+poly.getCenterY()+")");
 		return false;
 	}
 
@@ -917,24 +917,6 @@ public class ArcInst extends Geometric
 		if (key == ARC_NAME) return true;
 		return super.isDeprecatedVariable(key);
 	}
-
-	/**
-	 * Method to write a description of this ArcInst.
-	 * Displays the description in the Messages Window.
-	 */
-//	public void getInfo()
-//	{
-//		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
-//		Point2D loc = ends[HEADEND].getLocation();
-//		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
-//			" at (" + loc.getX() + "," + loc.getY() + ")");
-//
-//		loc = ends[TAILEND].getLocation();
-//		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
-//			" at (" + loc.getX() + "," + loc.getY() + ")");
-//		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
-//		super.getInfo();
-//	}
 
 	/**
 	 * Method to describe this ArcInst as a string.
@@ -1101,18 +1083,6 @@ public class ArcInst extends Geometric
      */
     public void copyConstraintsFrom(ArcInst fromAi) {
         if (fromAi == null) return;
-        /*
-        setRigid(fromAi.isRigid());
-        setFixedAngle(fromAi.isFixedAngle());
-        setSlidable(fromAi.isSlidable());
-        setExtended(fromAi.isExtended());
-        setDirectional(fromAi.isDirectional());
-        setSkipHead(fromAi.isSkipHead());
-        setSkipTail(fromAi.isSkipTail());
-        setReverseEnds(fromAi.isReverseEnds());
-        setHardSelect(fromAi.isHardSelect());
-        */
-        // equivalent:
         lowLevelSetUserbits(fromAi.lowLevelGetUserbits());
 		getHead().setNegated(fromAi.getHead().isNegated());
 		getTail().setNegated(fromAi.getTail().isNegated());

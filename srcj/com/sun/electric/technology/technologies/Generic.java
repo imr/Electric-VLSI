@@ -210,7 +210,6 @@ public class Generic extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
-//				new Technology.NodeLayer(glyph_lay, 0, 3, Poly.Type.OPENED, Technology.NodeLayer.POINTS, Technology.TechPoint.makeFullBox())
 			});
 		portNode.addPrimitivePorts(new PrimitivePort []
 			{

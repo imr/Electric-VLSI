@@ -809,26 +809,18 @@ public class Clipboard
 	 */
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
-        // always replace with a new object.
-        // otherwise, can't undo lowLevelSetUserBits at end of this method.
-        //
-		// if they do not have the same type, replace one with the other
-		//if (destNode.getProto() != srcNode.getProto())
-		//{
-			destNode = CircuitChanges.replaceNodeInst(destNode, srcNode.getProto(), true, false);
+		destNode = CircuitChanges.replaceNodeInst(destNode, srcNode.getProto(), true, false);
         if (destNode == null) return null;
 
-            destNode.clearExpanded();
-            if (srcNode.isExpanded()) destNode.setExpanded();
+        destNode.clearExpanded();
+        if (srcNode.isExpanded()) destNode.setExpanded();
 
-            if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
-                if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
-                    Technology tech = srcNode.getProto().getTechnology();
-                    tech.setPrimitiveFunction(destNode, srcNode.getFunction());
-                }
+        if ((destNode.getProto() instanceof PrimitiveNode) && (srcNode.getProto() instanceof PrimitiveNode)) {
+            if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
+                Technology tech = srcNode.getProto().getTechnology();
+                tech.setPrimitiveFunction(destNode, srcNode.getFunction());
             }
-		//	return destNode;
-		//}
+        }
 
 		// make the sizes the same if they are primitives
 		if (destNode.getProto() instanceof PrimitiveNode)
