@@ -15,13 +15,13 @@ JAVAPURESRC = \
 JAVA_SRCS = $(JAVAPURESRC)
 JAVA_OBJS = $(JAVA_SRCS:%.java=%.class)
 
-all: isim.jar diode
+all: isim.jar
 
 isim.jar: $(JAVA_SRCS)
 	javac $(JAVAFLAGS) $(JAVA_SRCS)
 	jar -cf isim.jar $(JAVA_OBJS)
 
-tests: t wrapping trick
+tests: wrapping trick diode
 
 wrapping: isim.jar
 	java -classpath .:$(BEANSHELLLOC):$(JARLOC):isim.jar IntervalExp

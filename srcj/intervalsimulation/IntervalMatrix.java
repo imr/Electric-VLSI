@@ -1,4 +1,5 @@
 import Jama.*;
+import net.sourceforge.interval.ia_math.*;
 
 /**
  * An Interval Matrix is a matrix of real intervals.
@@ -94,5 +95,58 @@ class IntervalMatrix {
 
     IntervalMatrix times(double s) {
 	return new IntervalMatrix(center.times(s), delta.times(Math.abs(s)));
+    }
+
+    boolean isPositive()
+	/* try to prove that summetric interval matrix is always positively defined
+	   using Cholesky's algorithm
+	*/
+    {
+	if (getColumnDimension() != getRowDimension()) {
+	    throw new IllegalArgumentException("Square matrix expected");
+	}
+	int n = getColumnDimension();
+	double[][] c = center.getArray();
+	double[][] d = delta.getArray();
+
+	RealInterval l[][] = new RealInterval[n][n];
+	for (int i = 0; i < n; i++) {
+	    for (int j = 0; j <= i; j++) {
+		double cij = c[i][j];
+		double dij = d[i][j];
+		if (c[j][i] != cij || d[j][i] != dij) {
+		    throw new IllegalArgumentException("Symmetric matrix expected");
+		}
+		l[i][j] = new RealInterval(cij - dij, cij + dij);
+	    }
+	}
+	for (int i = 0; i < n; i++)
+	{
+	    RealInterval s = l[i][i];
+	    for (int p = 0; p < i; p++)
+	    {
+		RealInterval lip = l[i][p];
+		RealInterval sq;
+		if (lip.lo() < 0 && lip.hi() > 0) {
+		    double amax = Math.max(-lip.lo(), lip.hi());
+		    sq = new RealInterval(0, amax*amax);
+		} else {
+		    sq = IAMath.mul(lip,lip);
+		}
+		s = IAMath.sub(s,sq);
+	    }
+	    if (s.lo() <= 0) return false;
+	    l[i][i] = new RealInterval(Math.sqrt(s.lo()), Math.sqrt(s.hi()));
+	    for (int j = i + 1; j < n; j++) {
+		s = l[j][i];
+		for (int p = 0; p < i; p++) {
+		    RealInterval lip = l[i][p];
+		    RealInterval ljp = l[j][p];
+		    s = IAMath.sub(s, IAMath.mul(lip, ljp));
+		}
+		l[j][i] = IAMath.div(s, l[i][i]);
+	    }
+	}
+	return true;
     }
 }

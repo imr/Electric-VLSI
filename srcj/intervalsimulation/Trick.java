@@ -162,6 +162,44 @@ public class Trick {
 	return Voff.times(expDt).times(Voff1);
     }
 
+    static void energy()
+    {
+	double E[] = new double[3];
+	for (int i = 0; i < 3; i++)
+	{
+	    double v1 = Voff.get(0,i);
+	    double v2 = Voff.get(1,i);
+	    double j = Voff.get(2,i);
+	    E[i] = (v1*v1*1e-3 + v2*v2*1e-3 + j*j*0.1)*0.5;
+	    System.out.println("E"+i+" = "+E[i]);
+	}
+	Matrix scale = new Matrix(3,3);
+	double scale0 = 1/Math.sqrt(E[0]*2);
+	double scale1 = 1.0/Math.sqrt(E[1]+E[2]);
+	scale.set(0, 0, scale0);
+	scale.set(1, 1, scale1);
+	scale.set(2, 2, scale1);
+
+	Matrix S = Voff.times(scale);
+	Matrix D = S.inverse().transpose().times(S.inverse());
+	printM("energy=",D);
+	    
+	Matrix Xoff = S.inverse().times(Aoff).times(S);
+	eigens("Xoff", Xoff.plus(Xoff.transpose()));
+	
+	Matrix Xon = S.inverse().times(Aon).times(S);
+	eigens("Xon", Xon.plus(Xon.transpose()));
+
+	double lam = 0.4929626;
+
+	Matrix Yoff = Aoff.transpose().times(D).plus(D.times(Aoff)).plus(D.times(lam));
+	eigens("Yoff",Yoff);
+
+	Matrix Yon = Aon.transpose().times(D).plus(D.times(Aon)).plus(D.times(lam));
+	eigens("Yon",Yon);
+
+    }
+
     static double omega = 2*Math.PI*50.0;
     static Matrix ec, es;
 
@@ -475,6 +513,7 @@ public class Trick {
        }
        printM("Voff=", Voff);
        printM("Voff1=", Voff1);
+       energy();
        excitement();
       
        makeList();
