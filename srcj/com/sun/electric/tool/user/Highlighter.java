@@ -283,19 +283,25 @@ public class Highlighter implements DatabaseChangeListener {
     /**
 	 * Method to clear the list of all highlighted objects in
 	 */
-	public synchronized void clear()
+	public void clear()
 	{
+        clear(true);
+    }
+
+    private synchronized void clear(boolean resetLastHighlightListEndObj) {
         highOffX = highOffY = 0;
         showNetworkLevel = 0;
 
         if (highlightList.size() == 0) return;
 
         // save last selected
-        lastHighlightListEndObj = (Highlight)highlightList.get(highlightList.size()-1);
+        if (resetLastHighlightListEndObj)
+            lastHighlightListEndObj = (Highlight)highlightList.get(highlightList.size()-1);
         // clear
         highlightList.clear();
         changed = true;
 	}
+
 
     /**
 	 * Method to indicate that changes to highlighting are finished.
@@ -346,22 +352,24 @@ public class Highlighter implements DatabaseChangeListener {
 	}
 
     /**
-     * Get the last object that was selected
-     * @param ignore a list of Highlights to ignore
+     * Get the last object that was selected. If underCursor is not null,
+     * if any of the Highlights in underCursor are currently highlighted, then
+     * the last thing highlighted will be the last thing selected before the last
+     * clear(). This is to be able to properly cycle through objects under the cursor.
+     * @param underCursor a list of Highlights underCursor.
      * @return the last object that was selected
      */
-    private synchronized Highlight getLastSelected(List ignore) {
+    private synchronized Highlight getLastSelected(List underCursor) {
         List currentHighlights = getHighlights();               // not that this is a copy
 
-        // remove stuff from ignore list
-        for (Iterator igIt = ignore.iterator(); igIt.hasNext(); ) {
+        // check underCursor list
+        for (Iterator igIt = underCursor.iterator(); igIt.hasNext(); ) {
             Highlight h = (Highlight)igIt.next();
-            // remove it from current highlights if it is there
+
             for (Iterator it = currentHighlights.iterator(); it.hasNext(); ) {
                 Highlight curHigh = (Highlight)it.next();
                 if (h.sameThing(curHigh)) {
-                    currentHighlights.remove(curHigh);
-                    break;
+                    return lastHighlightListEndObj;
                 }
             }
         }
@@ -1179,6 +1187,7 @@ public class Highlighter implements DatabaseChangeListener {
         Highlight lastSelected = getLastSelected(underCursor);
 
         if (lastSelected != null) {
+            //printHighlightList(underCursor);
             // sort under cursor by relevance to lastSelected. first object is most relevant.
             List newUnderCursor = new ArrayList();
             while (!underCursor.isEmpty()) {
@@ -1206,7 +1215,7 @@ public class Highlighter implements DatabaseChangeListener {
 							remove(oldHigh);
 						} else
 						{
-							clear();
+							clear(false);
 						}
 						if (i < underCursor.size()-1)
 						{
@@ -1252,6 +1261,15 @@ public class Highlighter implements DatabaseChangeListener {
 //					curhigh->fromvar = evalvar(curhigh->fromvarnoeval, 0, 0);
 		return 1;
 	}
+
+    private void printHighlightList(List highs) {
+        int i = 0;
+        for (Iterator it = highs.iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            System.out.println("highlight "+i+": "+h.getElectricObject());
+            i++;
+        }
+    }
 
     /**
 	 * Method to search a Cell for all objects at a point.
