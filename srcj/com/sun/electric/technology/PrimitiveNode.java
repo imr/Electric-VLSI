@@ -393,9 +393,9 @@ public class PrimitiveNode extends NodeProto
 	 * <LI>for MULTICUT:
 	 *   <UL>
 	 *   <LI>cut size is [0] x [1]
-	 *   <LI>cut indented [2]x[3] from highlighting
-	 *   <LI>cuts spaced [4] apart for 2-neiboring CO
-	 *   <LI>cuts spaced [5] apar for 3-neighboring CO or more
+	 *   <LI>cut indented [2] x [3] from highlighting
+	 *   <LI>cuts spaced [4] apart for 2-neighboring CO
+	 *   <LI>cuts spaced [5] apart for 3-neighboring CO or more
 	 *   </UL>
 	 * <LI>for SERPTRANS:
 	 *   <UL>

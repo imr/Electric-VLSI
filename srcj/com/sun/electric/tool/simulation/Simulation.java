@@ -523,12 +523,23 @@ public class Simulation extends Tool
 		 */
 		public SimAnalogSignal(SimData sd) { super(sd); }
 
+		/**
+		 * Method to initialize this as a basic simulation signal with a specified number of events.
+		 * Allocates an array to hold those events.
+		 * @param numEvents the number of events in this signal.
+		 */
 		public void buildValues(int numEvents)
 		{
 			signalType = BASICSIGNAL;
 			values = new double[numEvents];
 		}
 
+		/**
+		 * Method to initialize this as a sweep simulation signal with a specified number of sweeps and events.
+		 * Allocates arrays to hold those events.
+		 * @param numSweeps the number of sweeps in this signal.
+		 * @param numEvents the number of events in this signal.
+		 */
 		public void buildSweepValues(int numSweeps, int numEvents)
 		{
 			signalType = SWEEPSIGNAL;
@@ -536,6 +547,11 @@ public class Simulation extends Tool
 			for(int i=0; i<numSweeps; i++) sweepValues[i] = new double[numEvents];
 		}
 
+		/**
+		 * Method to initialize this as an interval simulation signal with a specified number of events.
+		 * Allocates arrays to hold those events.
+		 * @param numEvents the number of events in this signal.
+		 */
 		public void buildIntervalValues(int numEvents)
 		{
 			signalType = INTERVALSIGNAL;
@@ -543,6 +559,12 @@ public class Simulation extends Tool
 			highIntervalValues = new double[numEvents];
 		}
 
+		/**
+		 * Method to set the value of this signal at a given event index.
+		 * @param index the event index (0-based).
+		 * @param value the value to set at the given event index.
+		 * If this signal is not a basic signal, print an error message.
+		 */
 		public void setValue(int index, double value)
 		{
 			if (signalType != BASICSIGNAL)
@@ -553,6 +575,13 @@ public class Simulation extends Tool
 			values[index] = value;
 		}
 
+		/**
+		 * Method to set the value of this signal at a given sweep and event index.
+		 * @param sweep the sweep number (0-based).
+		 * @param index the event index (0-based).
+		 * @param value the value to set at the given sweep and event index.
+		 * If this signal is not a sweep signal, print an error message.
+		 */
 		public void setSweepValue(int sweep, int index, double value)
 		{
 			if (signalType != SWEEPSIGNAL)
@@ -563,6 +592,13 @@ public class Simulation extends Tool
 			sweepValues[sweep][index] = value;
 		}
 
+		/**
+		 * Method to set the low and high values of this signal at a given event index.
+		 * @param index the event index (0-based).
+		 * @param lowValue the low value to set at the given event index.
+		 * @param highValue the high value to set at the given event index.
+		 * If this signal is not an interval signal, print an error message.
+		 */
 		public void setIntervalValue(int index, double lowValue, double highValue)
 		{
 			if (signalType != INTERVALSIGNAL)
@@ -574,6 +610,12 @@ public class Simulation extends Tool
 			highIntervalValues[index] = highValue;
 		}
 
+		/**
+		 * Method to return the value of this signal at a given event index.
+		 * @param index the event index (0-based).
+		 * @return the value of this signal at the given event index.
+		 * If this signal is not a basic signal, return 0 and print an error message.
+		 */
 		public double getValue(int index)
 		{
 			if (signalType != BASICSIGNAL)
@@ -584,6 +626,13 @@ public class Simulation extends Tool
 			return values[index];
 		}
 
+		/**
+		 * Method to return the value of this signal for a given sweep and event index.
+		 * @param sweep the sweep number (0-based).
+		 * @param index the event index (0-based).
+		 * @return the value of this signal at the given sweep and event index.
+		 * If this signal is not a sweep signal, return 0 and print an error message.
+		 */
 		public double getSweepValue(int sweep, int index)
 		{
 			if (signalType != SWEEPSIGNAL)
@@ -594,6 +643,12 @@ public class Simulation extends Tool
 			return sweepValues[sweep][index];
 		}
 
+		/**
+		 * Method to return the low end of the interval range for this signal at a given event index.
+		 * @param index the event index (0-based).
+		 * @return the low end of the interval range at that event index.
+		 * If this signal is not an interval signal, return 0 and print an error message.
+		 */
 		public double getIntervalLowValue(int index)
 		{
 			if (signalType != INTERVALSIGNAL)
@@ -604,6 +659,12 @@ public class Simulation extends Tool
 			return values[index];
 		}
 
+		/**
+		 * Method to return the high end of the interval range for this signal at a given event index.
+		 * @param index the event index (0-based).
+		 * @return the high end of the interval range at that event index.
+		 * If this signal is not an interval signal, return 0 and print an error message.
+		 */
 		public double getIntervalHighValue(int index)
 		{
 			if (signalType != INTERVALSIGNAL)
@@ -633,18 +694,42 @@ public class Simulation extends Tool
 			return 0;
 		}
 
+		/**
+		 * Method to return the number of sweeps in this signal.
+		 * @return the number of sweeps in this signal.
+		 * If this signal is not a sweep signal, returns 0.
+		 */
 		public int getNumSweeps()
 		{
 			if (signalType != SWEEPSIGNAL) return 0;
 			return sweepValues.length;
 		}
 
+		/**
+		 * Method to tell whether this signal is a basic analog waveform signal.
+		 * Signals can be basic (single value), sweep (multiple value), or interval (value range).
+		 * @return true if this is a basic analog waveform signal.
+		 */
 		public boolean isBasic() { return signalType == BASICSIGNAL; }
 
+		/**
+		 * Method to tell whether this signal is a sweep analog waveform signal.
+		 * Signals can be basic (single value), sweep (multiple value), or interval (value range).
+		 * @return true if this is a sweep analog waveform signal.
+		 */
 		public boolean isSweep() { return signalType == SWEEPSIGNAL; }
 
+		/**
+		 * Method to tell whether this signal is an interval analog waveform signal.
+		 * Signals can be basic (single value), sweep (multiple value), or interval (value range).
+		 * @return true if this is an interval analog waveform signal.
+		 */
 		public boolean isInterval() { return signalType == INTERVALSIGNAL; }
 
+		/**
+		 * Method to compute the low and high range of values on this signal.
+		 * @return a Point2D where X is the low value and Y is the high value.
+		 */
 		public Point2D getRangeOfValues()
 		{
 			double lowValue = 0, highValue = 0;
@@ -709,14 +794,37 @@ public class Simulation extends Tool
 		 */
 		public SimDigitalSignal(SimData sd) { super(sd); }
 
+		/**
+		 * Method to initialize this simulation signal with a specified number of events.
+		 * Allocates an array to hold those events.
+		 * @param numEvents the number of events in this signal.
+		 */
 		public void buildState(int numEvents) { state = new int[numEvents]; }
 
+		/**
+		 * Method to set the state of this signal at a given event.
+		 * @param index the event index (0-based).
+		 * @param st the state of the signal at that event.
+		 */
 		public void setState(int index, int st) { state[index] = st; }
 
+		/**
+		 * Method to get the state of this signal at a given event.
+		 * @param index the event index (0-based).
+		 * @return the state of the signal at that event.
+		 */
 		public int getState(int index) { return state[index]; }
 
+		/**
+		 * Method to return the state information for all events in this signal.
+		 * @return the state array for this signal.
+		 */
 		public int [] getStateVector() { return state; }
 
+		/**
+		 * Method to set the state information for all events in this signal.
+		 * @param state an array of state information for every event on this signal.
+		 */
 		public void setStateVector(int [] state) { this.state = state; }
 
 		/**

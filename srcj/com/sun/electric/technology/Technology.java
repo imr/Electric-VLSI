@@ -42,11 +42,13 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Bipolar;
 import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
+import com.sun.electric.technology.technologies.PCB;
 import com.sun.electric.technology.technologies.RCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.nMOS;
@@ -569,11 +571,13 @@ public class Technology extends ElectricObject
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Artwork.tech.setup();
+		Bipolar.tech.setup();
 		CMOS.tech.setup();
 		MoCMOS.tech.setup();
 		MoCMOSOld.tech.setup();
 		MoCMOSSub.tech.setup();
 		nMOS.tech.setup();
+		PCB.tech.setup();
 		RCMOS.tech.setup();
 		Schematics.tech.setup();
 		Generic.tech.setup();

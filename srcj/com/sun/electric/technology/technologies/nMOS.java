@@ -4,7 +4,7 @@
  *
  * File: nMOS.java
  * nmos technology description
- * Generated automatically from a library
+ * Generated automatically from C Electric
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
