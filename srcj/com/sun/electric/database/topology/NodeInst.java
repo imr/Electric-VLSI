@@ -770,6 +770,26 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean isLinked() { return nodeIndex >= 0; }
 
+    /**
+     * This method can be overridden by extending objects.
+     * For objects (such as instances) that have instance variables that are
+     * inherited from some Object that has the default variables, this gets
+     * the object that has the default variables. From that object the
+     * default values of the variables can then be found.
+     * @return the object that holds the default variables and values.
+     */
+    public ElectricObject getVarDefaultOwner() {
+        if (getProto() instanceof Cell) {
+            Cell proto = (Cell)getProto();
+            if (proto.getView() == View.ICON) {
+                // schematic has default vars
+                return proto.getCellGroup().getMainSchematics();
+            } else
+                return proto;
+        }
+        return this;
+    }
+
 	/****************************** GRAPHICS ******************************/
 
 	/**

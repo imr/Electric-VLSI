@@ -37,6 +37,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.geom.AffineTransform;
@@ -74,6 +75,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     /** Mapping between NodeInst and Instance */private HashMap instancesMap;
 
     /** True if we got aborted */               private boolean aborted;
+    /** for logging errors */                   private ErrorLogger errorLogger;
 
     private static final boolean DEBUG = false;
 
@@ -97,6 +99,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         this.instancesMap = new HashMap();
         this.out = new PrintStream((OutputStream)System.out);
 
+        errorLogger = null;
         aborted = false;
     }
     
@@ -105,6 +108,9 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
+        if (errorLogger != null) errorLogger.delete();
+        errorLogger = ErrorLogger.newInstance("LE Netlister");
+
         Netlist netlist = cell.getNetlist(true);
         
         // read schematic-specific sizing options
@@ -127,7 +133,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         //lesizer.printDesign();
         boolean verbose = false;
         // create a new sizer
-        sizer = new LESizer(algorithm, this, job);
+        sizer = new LESizer(algorithm, this, job, errorLogger);
         boolean success = sizer.optimizeLoops(epsilon, maxIterations, verbose, alpha, keeperRatio);
         //out.println("---------After optimization:------------");
         //lesizer.printDesign();
@@ -147,16 +153,28 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Map.Entry entry = (Map.Entry)it.next();
             Instance inst = (Instance)entry.getValue();
             Nodable no = inst.getNodable();
+            NodeInst ni = no.getNodeInst();
+            if (ni != null) no = ni;
 
             String varName = "LEDRIVE_" + inst.getName();
             no.newVar(varName, new Float(inst.getLeX()));
-            /*
-            if (no instanceof NodeInst) {
-                ((NodeInst)no).newVar(varName, new Float(inst.getLeX()));
-            } else {
-                System.out.println("Can't handle NodeInst Proxies on update sizes yet");
-            }*/
+
+            if (inst.getLeX() < 1.0f) {
+                String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";
+                System.out.println(msg);
+                if (ni != null) {
+                    ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 2);
+                    log.addGeom(ni, true, ni.getParent(), inst.getContext());
+                }
+            }
         }
+        printStatistics();
+        done();
+    }
+
+    public void done() {
+        errorLogger.termLogging(true);
+        errorLogger = null;
     }
 
     /** NodeInst should be an LESettings instance */
@@ -270,7 +288,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         // Check if this NodeInst is tagged as a logical effort node
         Instance.Type type = null;
         Variable var = null;
-        if ((var = ni.getVar("ATTR_LEGATE")) != null) {
+        if ((var = getVar(ni, "ATTR_LEGATE")) != null) {
             // assume it is LEGATE if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
@@ -278,7 +296,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             else
                 type = Instance.Type.STATICGATE;
         }
-        else if ((var = ni.getVar("ATTR_LEKEEPER")) != null) {
+        else if ((var = getVar(ni, "ATTR_LEKEEPER")) != null) {
             // assume it is LEKEEPER if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
@@ -286,7 +304,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             else
                 type = Instance.Type.STATICGATE;
         }
-        else if (ni.getVar("ATTR_LEWIRE") != null) {
+        else if (getVar(ni, "ATTR_LEWIRE") != null) {
             type = Instance.Type.WIRE;
             // Note that if inst is an LEWIRE, it will have no 'le' attributes.
             // we therefore assign pins to have default 'le' values of one.
@@ -306,12 +324,16 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             var = ni.getVar("ATTR_width");
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
+                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
+                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
                 return false;
             }
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
             var = ni.getVar("ATTR_length");
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
+                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
+                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
                 return false;
             }
             float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
@@ -386,12 +408,18 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
         if (DEBUG) {
             if (wire) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
-            else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+            else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type+", X="+leX);
         }
         instancesMap.put(ni, inst);
         return false;
     }
-            
+
+    private Variable getVar(Nodable no, String name) {
+        Variable var = no.getVar(name);
+        if (var == null) var = no.getVarDefaultOwner().getVar(name);
+        return var;
+    }
+
     /**
      * Nothing to do for exitCell
      */
@@ -444,25 +472,45 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         protected float getMFactor() { return mFactor; }
 
         protected float getSU() { return cellsu; }
+
     }
 
 
 
     // =============================== Statistics ==================================
 
+
     public void printStatistics() {
-        System.out.println("Total size of all instances (sized and loads): "+ getTotalSize());
+        Collection instances = getAllInstances().values();
+        float totalsize = 0f;
+        float instsize = 0f;
+        int numLEGates = 0;
+        for (Iterator it = instances.iterator(); it.hasNext();) {
+            Instance inst = (Instance)it.next();
+            totalsize += inst.getLeX();
+            if (inst.getType() == Instance.Type.LEGATE || inst.getType() == Instance.Type.LEKEEPER) {
+                numLEGates++;
+                instsize += inst.getLeX();
+            }
+        }
+        System.out.println("Number of LEGATEs: "+numLEGates);
+        System.out.println("Total size of all LEGATEs: "+instsize);
+        System.out.println("Total size of all instances (sized and loads): "+totalsize);
     }
 
     /**
-     * return total size of all sized gates
+     * return total size of all instances of the specified type
+     * if type is null, uses all types
      */
-    protected float getTotalSize() {
+    public float getTotalSize(Instance.Type type) {
         Collection instances = getAllInstances().values();
         float totalsize = 0f;
         for (Iterator it = instances.iterator(); it.hasNext();) {
             Instance inst = (Instance)it.next();
-            totalsize += inst.getLeX();
+            if (type == null)
+                totalsize += inst.getLeX();
+            else if (inst.getType() == type)
+                totalsize += inst.getLeX();
         }
         return totalsize;
     }

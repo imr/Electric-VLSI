@@ -312,20 +312,26 @@ public class LETool extends Tool {
             System.out.println("done ("+elapsed+")");
 
             // if user aborted, return, and do not run sizer
-            if (checkAbort(null)) return false;
+            if (checkAbort(null)) {
+                netlister.done();
+                return false;
+            }
 
             System.out.println("Starting iterations: ");
             setProgress("iterating");
             boolean success = netlister.size();
 
             // if user aborted, return, and do not update sizes
-            if (checkAbort(null)) return false;
+            if (checkAbort(null)) {
+                netlister.done();
+                return false;
+            }
 
             if (success) {
                 UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
-                netlister.printStatistics();
             } else {
                 System.out.println("Sizing failed, sizes unchanged");
+                netlister.done();
             }
 			return true;
        }
@@ -355,7 +361,7 @@ public class LETool extends Tool {
                 buf.append("  Job aborted, no changes made\n");
             else {
                 buf.append("  Gates sized: "+netlister.getNumGates()+"\n");
-                buf.append("  Total Drive Strength: "+netlister.getTotalSize()+"\n");
+                buf.append("  Total Drive Strength: "+netlister.getTotalSize(Instance.Type.LEGATE)+"\n");
             }
             return buf.toString();
         }

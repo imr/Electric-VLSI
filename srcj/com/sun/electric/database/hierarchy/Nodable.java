@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 
 import java.util.Iterator;
 
@@ -127,6 +128,16 @@ public interface Nodable
      * @param key the key of the Variable to delete.
      */
     public void delVar(Variable.Key key);
+
+    /**
+     * This method can be overridden by extending objects.
+     * For objects (such as instances) that have instance variables that are
+     * inherited from some Object that has the default variables, this gets
+     * the object that has the default variables. From that object the
+     * default values of the variables can then be found.
+     * @return the object that holds the default variables and values.
+     */
+    public ElectricObject getVarDefaultOwner();
 
 	/**
 	 * Returns a printable version of this Nodable.

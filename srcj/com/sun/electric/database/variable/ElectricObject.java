@@ -128,6 +128,18 @@ public class ElectricObject
 		return var;
 	}
 
+    /**
+     * This method can be overridden by extending objects.
+     * For objects (such as instances) that have instance variables that are
+     * inherited from some Object that has the default variables, this gets
+     * the object that has the default variables. From that object the
+     * default values of the variables can then be found.
+     * @return the object that holds the default variables and values.
+     */
+    public ElectricObject getVarDefaultOwner() {
+        return this;
+    }
+
 	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.

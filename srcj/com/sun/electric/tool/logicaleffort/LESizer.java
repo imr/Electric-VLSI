@@ -30,7 +30,10 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.logicaleffort.*;
 
 import java.util.*;
@@ -56,6 +59,7 @@ public class LESizer {
     /** Where to direct output */                   private PrintStream out;
     /** What job we are part of */                  private Job job;
     /** Netlist */                                  private LENetlister netlist;
+    /** error logger */                             private ErrorLogger errorLogger;
 
     /** Alg is a typesafe enum class that describes the algorithm to be used */
     protected static class Alg {
@@ -70,10 +74,11 @@ public class LESizer {
     }
         
     /** Creates a new instance of LESizer */
-    protected LESizer(Alg alg, LENetlister netlist, Job job) {
+    protected LESizer(Alg alg, LENetlister netlist, Job job, ErrorLogger errorLogger) {
         optimizationAlg = alg;
         this.netlist = netlist;
         this.job = job;
+        this.errorLogger = errorLogger;
 
         out = new PrintStream(System.out);
     }
@@ -100,9 +105,8 @@ public class LESizer {
         float lastLoopDeltaX = currentLoopDeltaX;
         int divergingIters = 0;                     // count number if iterations sizing is diverging
         long startTime;
-        
 		int loopcount = 0;
-		
+
 		while ((currentLoopDeltaX > maxDeltaX) && (loopcount < N)) {
 
             // check for aborted state of job
@@ -202,9 +206,16 @@ public class LESizer {
                             if (sizeX < smallestX) smallestX = sizeX;
                         }
 
-                        // if size is 0, no drivers found, issue warning
-                        if (smallestX == 0)
-                            System.out.println("Error: LEKEEPER \""+instance.getName()+"\" does not fight against any drivers");
+                        // if no drivers found, issue warning
+                        if (!keys.iterator().hasNext() && loopcount == 0) {
+                            String msg = "\nError: LEKEEPER \""+instance.getName()+"\" does not fight against any drivers";
+                            System.out.println(msg);
+                            NodeInst ni = instance.getNodable().getNodeInst();
+                            if (ni != null) {
+                                ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 0);
+                                log.addGeom(ni, true, ni.getParent(), VarContext.globalContext);
+                            }
+                        }
 
                         // For now, split effort equally amongst all drivers
                         newX = smallestX * netlist.getKeeperRatio() / drivers.size();
@@ -216,13 +227,31 @@ public class LESizer {
                         // compute total le*X (totalcap)
                         float totalcap = 0;
                         Iterator netpinsIter = netpins.iterator();
+                        int numLoads = 0;
                         while (netpinsIter.hasNext()) {
                             Pin netpin = (Pin)netpinsIter.next();
                             Instance netpinInstance = netpin.getInstance();
                             float load = netpinInstance.getLeX() * netpin.getLE() * (float)netpinInstance.getMfactor();
                             if (netpin.getDir() == Pin.Dir.OUTPUT) load *= alpha;
                             totalcap += load;
+                            // check to see if gate is only driving itself
+                            if (netpinInstance != instance)
+                                numLoads++;
                         }
+
+                        // create error if no loads only on first iteration
+                        if (numLoads == 0 && loopcount == 0) {
+                            String msg = "\nError: LEGATE \""+instance.getName()+"\" has no loads: will be ignored";
+                            System.out.println(msg);
+                            NodeInst ni = instance.getNodable().getNodeInst();
+                            if (ni != null) {
+                                ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 1);
+                                log.addGeom(ni, true, ni.getParent(), VarContext.globalContext);
+                            }
+                        }
+                        // ignore if no loads, on all iterations
+                        if (numLoads == 0)
+                            continue;
 
                         // For now, split effort equally amongst all drivers
                         // Group 0 drives individually
@@ -237,9 +266,17 @@ public class LESizer {
 
                     // determine change in size
                     float currentX = instance.getLeX();
-                    if (currentX == 0) currentX = 0.001f;
-                    float deltaX = Math.abs( (newX-currentX)/currentX);
+                    float deltaX;
+                    if (currentX == 0 && newX == 0) {
+                        // if before and after are 0, delta is 0
+                        deltaX = 0f;
+                    } else {
+                        // account for divide by 0
+                        if (currentX == 0) currentX = 0.001f;
+                        deltaX = Math.abs( (newX-currentX)/currentX);
+                    }
                     currentLoopDeltaX = (deltaX > currentLoopDeltaX) ? deltaX : currentLoopDeltaX;
+
                     if (verbose) {
                         out.println("Optimized "+instanceName+": size:  "+
                             TextUtils.formatDouble(instance.getLeX(), 3)+
@@ -268,6 +305,7 @@ public class LESizer {
             lastLoopDeltaX = currentLoopDeltaX;
 
 		} // while (currentLoopDeltaX ... )
+
         return true;
 	}
 
