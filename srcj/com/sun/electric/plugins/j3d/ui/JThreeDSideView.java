@@ -53,6 +53,10 @@ public class JThreeDSideView extends JPanel
         add("Center", canvas);
         canvas.addMouseListener(this);
 
+        // Set global highlight appearance before create the elements
+        J3DAppearance.setHighlightedAppearanceValues(this);
+
+        // Creating scene
         BranchGroup scene = createSceneGraph(canvas, J3DUtils.infiniteBounds);
 
 //        SimpleUniverse u = new SimpleUniverse(canvas);
@@ -133,9 +137,9 @@ public class JThreeDSideView extends JPanel
         // our behavior code can modify it at run time. Add it to
         // the root of the subgraph.
         	// Create a transform group node to scale and position the object.
-	Transform3D t = new Transform3D();
-	t.set(1, new Vector3d(0, -10, -40));
-	TransformGroup objTrans = new TransformGroup(t);
+        Transform3D t = new Transform3D();
+        t.set(1, new Vector3d(0, -10, -40));
+        TransformGroup objTrans = new TransformGroup(t);
         objRoot.addChild(objTrans);
 
         TransformGroup nodesGroup = new TransformGroup();
