@@ -914,6 +914,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setSweepAction(false); } });
 
+				menuItem = new JMenuItem("Highlight");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { highlightSweepAction(); } });
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
@@ -1089,6 +1093,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
 			if (ss == null) return;
 			ss.setIncluded(include);
+		}
+
+		private void highlightSweepAction()
+		{
+			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+			if (ss == null) return;
+			ss.highlight();
 		}
 
 		private void setAllSweepsAction(boolean include)

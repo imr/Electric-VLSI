@@ -832,11 +832,11 @@ public class JELIB extends LibraryFiles
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Unable to create dummy node on cell " + cell.describe() + " (cannot create source node)", cell, -1);
+					", Unable to create dummy node in cell " + cell.describe() + " (cannot create source node)", cell, -1);
 				return null;
 			}
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Creating dummy node on cell " + cell.describe(), cell, -1);
+				", Creating dummy node in cell " + cell.describe() + " to connect to node " + nodeName + ", port " + portName, cell, -1);
 			return portNI.getOnlyPortInst();
 		}
 

@@ -68,7 +68,8 @@ import com.apple.eawt.ApplicationEvent;
  * <P> <CODE>         -sdi: single document interface mode </CODE>
  * <P> <CODE>         -NOMINMEM: ignore minimum memory provided for JVM </CODE>
  * <P> <CODE>         -s script name: bean shell script to execute </CODE>
- * <P> <CODE>        -version: version information </CODE>
+ * <P> <CODE>         -version: version information </CODE>
+ * <P> <CODE>         -v: brief version information </CODE>
  * <P> <CODE>         -debug: debug mode. Extra information is available </CODE>
  * <P> <CODE>        -help: this message </CODE>
  * <P> <P>
@@ -99,9 +100,16 @@ public final class Main
 			System.out.println("\t"+Version.getAuthorInformation());
 			System.out.println("\t"+Version.getCopyrightInformation());
 			System.out.println("\t"+Version.getWarrantyInformation());
-
 			System.exit(0);
 		}
+
+		// -v (short version)
+		if (hasCommandLineOption(argsList, "-v"))
+		{
+			System.out.println(Version.getVersion());
+			System.exit(0);
+		}
+
 		// -help
         if (hasCommandLineOption(argsList, "-help"))
 		{
@@ -113,6 +121,7 @@ public final class Main
 	        System.out.println("\t-NOMINMEM: ignore minimum memory provided for JVM");
 	        System.out.println("\t-s <script name>: bean shell script to execute");
 	        System.out.println("\t-version: version information");
+	        System.out.println("\t-v: brief version information");
 	        System.out.println("\t-debug: debug mode. Extra information is available");
             System.out.println("\t-NOTHREADING: turn off Job threading.");
 	        System.out.println("\t-help: this message");
@@ -153,6 +162,8 @@ public final class Main
 		{
 			super();
 			setUndecorated(true);
+			setTitle("Electric Splash");
+			setIconImage(TopLevel.getFrameIcon().getImage());
 
 			JPanel whole = new JPanel();
 			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));

@@ -114,7 +114,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			JInternalFrame jInternalFrame = new JInternalFrame("Components", true, false, false, false);
 			palette.container = jInternalFrame;
 			jInternalFrame.setAutoscrolls(true);
-			jInternalFrame.setFrameIcon(Resources.getResource(palette.getClass(), "IconElectric.gif"));
+			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
 		} else
 		{
 			JFrame jFrame = new JFrame("Components");

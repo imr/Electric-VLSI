@@ -106,7 +106,7 @@ public class MessagesWindow
 			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
 			jf = jInternalFrame;
 			contentFrame = jInternalFrame.getContentPane();
-			jInternalFrame.setFrameIcon(Resources.getResource(getClass(), "IconElectric.gif"));
+			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
 		} else
 		{
 			JFrame jFrame = new JFrame("Electric Messages");

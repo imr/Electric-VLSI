@@ -194,100 +194,22 @@ public class Simulation extends Tool
 		public Rectangle2D getBounds()
 		{
 			// determine extent of the data
-			double lowTime=0, highTime=0, lowValue=0, highValue=0;
+			Rectangle2D bounds = new Rectangle2D.Double();
 			boolean first = true;
 			for(Iterator it = signals.iterator(); it.hasNext(); )
 			{
 				SimSignal sig = (SimSignal)it.next();
-				if (sig instanceof SimAnalogSignal)
+				Rectangle2D sigBounds = sig.getBounds();
+				if (first)
 				{
-					SimAnalogSignal as = (SimAnalogSignal)sig;
-					if (as.isBasic())
-					{
-						for(int i=0; i<as.values.length; i++)
-						{
-							double time = 0;
-							time = as.getTime(i);
-							if (first)
-							{
-								first = false;
-								lowTime = highTime = time;
-								lowValue = highValue = as.values[i];
-							} else
-							{
-								if (time < lowTime) lowTime = time;
-								if (time > highTime) highTime = time;
-								if (as.values[i] < lowValue) lowValue = as.values[i];
-								if (as.values[i] > highValue) highValue = as.values[i];
-							}
-						}
-					} else if (as.isSweep())
-					{
-						for(int s=0; s<as.sweepValues.length; s++)
-						{
-							for(int i=0; i<as.sweepValues[s].length; i++)
-							{
-								double time = 0;
-								time = as.getTime(i);
-								double value = as.sweepValues[s][i];
-								if (first)
-								{
-									first = false;
-									lowTime = highTime = time;
-									lowValue = highValue = value;
-								} else
-								{
-									if (time < lowTime) lowTime = time;
-									if (time > highTime) highTime = time;
-									if (value < lowValue) lowValue = value;
-									if (value > highValue) highValue = value;
-								}
-							}
-						}
-					} else if (as.isInterval())
-					{
-						for(int i=0; i<as.values.length; i++)
-						{
-							double time = 0;
-							time = as.getTime(i);
-							double lowVal = as.values[i];
-							double highVal = as.values[i];
-							if (first)
-							{
-								first = false;
-								lowTime = highTime = time;
-								lowValue = lowVal;
-								highValue = highVal;
-							} else
-							{
-								if (time < lowTime) lowTime = time;
-								if (time > highTime) highTime = time;
-								if (lowVal < lowValue) lowValue = lowVal;
-								if (highVal > highValue) highValue = highVal;
-							}
-						}
-					}
-				} else if (sig instanceof SimDigitalSignal)
+					bounds = sigBounds;
+					first = false;
+				} else
 				{
-					SimDigitalSignal ds = (SimDigitalSignal)sig;
-					if (ds.state == null) continue;
-					for(int i=0; i<ds.state.length; i++)
-					{
-						double time = 0;
-						time = ds.getTime(i);
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-						}
-					}
+					Rectangle2D.union(bounds, sigBounds, bounds);
 				}
 			}
-			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
+			return bounds;
 		}
 
 		/**
@@ -507,6 +429,108 @@ public class Simulation extends Tool
 		 * @param t the new value of time at this event.
 		 */
 		public void setTime(int entry, double t) { time[entry] = t; }
+
+		/**
+		 * Method to compute the time and value bounds of this simulation signal.
+		 * @return a Rectangle2D that has time bounds in the X part and
+		 * value bounds in the Y part.
+		 */
+		public Rectangle2D getBounds()
+		{
+			// determine extent of the data
+			double lowTime=0, highTime=0, lowValue=0, highValue=0;
+			boolean first = true;
+			if (this instanceof SimAnalogSignal)
+			{
+				SimAnalogSignal as = (SimAnalogSignal)this;
+				if (as.isBasic())
+				{
+					for(int i=0; i<as.values.length; i++)
+					{
+						double time = 0;
+						time = as.getTime(i);
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+							lowValue = highValue = as.values[i];
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+							if (as.values[i] < lowValue) lowValue = as.values[i];
+							if (as.values[i] > highValue) highValue = as.values[i];
+						}
+					}
+				} else if (as.isSweep())
+				{
+					for(int s=0; s<as.sweepValues.length; s++)
+					{
+						for(int i=0; i<as.sweepValues[s].length; i++)
+						{
+							double time = 0;
+							time = as.getTime(i);
+							double value = as.sweepValues[s][i];
+							if (first)
+							{
+								first = false;
+								lowTime = highTime = time;
+								lowValue = highValue = value;
+							} else
+							{
+								if (time < lowTime) lowTime = time;
+								if (time > highTime) highTime = time;
+								if (value < lowValue) lowValue = value;
+								if (value > highValue) highValue = value;
+							}
+						}
+					}
+				} else if (as.isInterval())
+				{
+					for(int i=0; i<as.values.length; i++)
+					{
+						double time = 0;
+						time = as.getTime(i);
+						double lowVal = as.values[i];
+						double highVal = as.values[i];
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+							lowValue = lowVal;
+							highValue = highVal;
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+							if (lowVal < lowValue) lowValue = lowVal;
+							if (highVal > highValue) highValue = highVal;
+						}
+					}
+				}
+			} else if (this instanceof SimDigitalSignal)
+			{
+				SimDigitalSignal ds = (SimDigitalSignal)this;
+				if (ds.state != null)
+				{
+					for(int i=0; i<ds.state.length; i++)
+					{
+						double time = 0;
+						time = ds.getTime(i);
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+						}
+					}
+				}
+			}
+			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
+		}
 	}
 
 	/**

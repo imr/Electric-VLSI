@@ -2,9 +2,21 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01y: *********************************
+
 ************************* Version 8.01x: *********************************
 
-IMP/MAN: (10/13/04, SMR) Added "maze routing".
+IMP: (10/15/04, SMR) Spice plotting allows partial files.
+
+IMP: (10/15/04, SMR) Waveform window handles "Fill Window" properly.
+
+IMP: (10/15/04, SMR) Waveform window can highlight individual sweeps.
+
+BUG: (10/14/04, SMR) Spice output gets confuses when a single-wire export connects to one member of a bus export.
+FIX: In "Topology.doGetNetworks()" sort networks by bus width as they are accumulated, not later.
+     Changed Spice output to favor export names (isNetworksUseExportedNames).
+
+IMP/MAN: (10/13/04, SMR) Added maze routing.
 
 IMP: (10/12/04, SMR) A holdover from "C Electric" is the "temporary object".  It is unsafe and wastes memory.
      Its use has been replaced with HashMaps, and it has been removed from Geometric, ArcProto, and Cell.

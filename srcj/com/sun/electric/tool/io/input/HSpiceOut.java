@@ -363,12 +363,12 @@ public class HSpiceOut extends Simulate
 			if (sweepcnt > 0)
 			{
 				float sweepValue = getHSpiceFloat();
+				if (eofReached) break;
 				sd.addSweep(new Double(sweepValue));
 			}
 	
 			// now read the data
 			List allTheData = new ArrayList();
-			eofReached = false;
 			for(;;)
 			{
 				float [] oneSetOfData = new float[numSignals+1];
@@ -391,6 +391,7 @@ public class HSpiceOut extends Simulate
 			theSweeps.add(allTheData);
 			sweepCounter--;
 			if (sweepCounter <= 0) break;
+			eofReached = false;
 		}
 		closeInput();
 
@@ -537,7 +538,7 @@ public class HSpiceOut extends Simulate
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to get the next character from the simulator (file or pipe).
 	 * Returns EOF at end of file.
 	 */
@@ -587,7 +588,7 @@ public class HSpiceOut extends Simulate
 		return TextUtils.atoi(line.toString().trim(), 0, 10);
 	}
 
-	/*
+	/**
 	 * Method to read the next floating point number from the HSpice file into "val".
 	 * Returns positive on error, negative on EOF, zero if OK.
 	 */
@@ -600,7 +601,10 @@ public class HSpiceOut extends Simulate
 			for(int j=0; j<11; j++)
 			{
 				int l = getByteFromFile();
-				if (l == -1) { eofReached = true;   return 0; }
+				if (l == -1)
+				{
+					eofReached = true;   return 0;
+				}
 				line.append((char)l);
 				if (l == '\n') j--;
 			}
@@ -610,10 +614,19 @@ public class HSpiceOut extends Simulate
 		}
 
 		// binary format
-		int fi0 = getByteFromFile() & 0xFF;
-		int fi1 = getByteFromFile() & 0xFF;
-		int fi2 = getByteFromFile() & 0xFF;
-		int fi3 = getByteFromFile() & 0xFF;
+		int fi0 = getByteFromFile();
+		int fi1 = getByteFromFile();
+		int fi2 = getByteFromFile();
+		int fi3 = getByteFromFile();
+		if (fi0 < 0 || fi1 < 0 || fi2 < 0 || fi3 < 0)
+		{
+			eofReached = true;
+			return 0;
+		}
+		fi0 &= 0xFF;
+		fi1 &= 0xFF;
+		fi2 &= 0xFF;
+		fi3 &= 0xFF;
 		int fi = 0;
 		if (isTR0BinarySwapped)
 		{

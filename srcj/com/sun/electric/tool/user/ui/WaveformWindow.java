@@ -165,6 +165,7 @@ public class WaveformWindow implements WindowContent
 	/** current "extension" time cursor */					private double extTime;
 	/** default range along horozintal axis */				private double minTime, maxTime;
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
+	private int highlightedSweep = -1;
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
@@ -659,6 +660,11 @@ public class WaveformWindow implements WindowContent
 		 */
 		public void setValueRange(double low, double high)
 		{
+			if (low == high)
+			{
+				low -= 0.5;
+				high += 0.5;
+			}
 			analogLowValue = low;
 			analogHighValue = high;
 			analogRange = analogHighValue - analogLowValue;
@@ -878,7 +884,7 @@ public class WaveformWindow implements WindowContent
 							int y = scaleValueToY(as.getValue(i));
 							if (i != 0)
 							{
-								if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+								if (processALine(g, lastX, lastY, x, y, bounds, result, ws, -1)) break;
 								if (waveWindow.showVertexPoints)
 								{
 									if (i < numEvents-1)
@@ -905,7 +911,7 @@ public class WaveformWindow implements WindowContent
 								int y = scaleValueToY(as.getSweepValue(s, i));
 								if (i != 0)
 								{
-									if (processALine(g, lastX, lastY, x, y, bounds, result, ws)) break;
+									if (processALine(g, lastX, lastY, x, y, bounds, result, ws, s)) break;
 									if (waveWindow.showVertexPoints)
 									{
 										if (i < numEvents-1)
@@ -929,10 +935,10 @@ public class WaveformWindow implements WindowContent
 							int highY = scaleValueToY(as.getIntervalHighValue(i));
 							if (i != 0)
 							{
-								if (processALine(g, lastX, lastLY, x, lowY, bounds, result, ws)) break;
-								if (processALine(g, lastX, lastHY, x, highY, bounds, result, ws)) break;
-								if (processALine(g, lastX, lastHY, x, lowY, bounds, result, ws)) break;
-								if (processALine(g, lastX, lastLY, x, highY, bounds, result, ws)) break;
+								if (processALine(g, lastX, lastLY, x, lowY, bounds, result, ws, -1)) break;
+								if (processALine(g, lastX, lastHY, x, highY, bounds, result, ws, -1)) break;
+								if (processALine(g, lastX, lastHY, x, lowY, bounds, result, ws, -1)) break;
+								if (processALine(g, lastX, lastLY, x, highY, bounds, result, ws, -1)) break;
 							}
 							lastX = x;
 							lastLY = lowY;
@@ -990,19 +996,19 @@ public class WaveformWindow implements WindowContent
 								if (x < VERTLABELWIDTH+5)
 								{
 									// on the left edge: just draw the "<"
-									if (processALine(g, x, hei/2, x+5, hei-5, bounds, result, ws)) return result;
-									if (processALine(g, x, hei/2, x+5, 5, bounds, result, ws)) return result;
+									if (processALine(g, x, hei/2, x+5, hei-5, bounds, result, ws, -1)) return result;
+									if (processALine(g, x, hei/2, x+5, 5, bounds, result, ws, -1)) return result;
 								} else
 								{
 									// bus change point: draw the "X"
-									if (processALine(g, x-5, 5, x+5, hei-5, bounds, result, ws)) return result;
-									if (processALine(g, x+5, 5, x-5, hei-5, bounds, result, ws)) return result;
+									if (processALine(g, x-5, 5, x+5, hei-5, bounds, result, ws, -1)) return result;
+									if (processALine(g, x+5, 5, x-5, hei-5, bounds, result, ws, -1)) return result;
 								}
 								if (lastX+5 < x-5)
 								{
 									// previous bus change point: draw horizontal bars to connect
-									if (processALine(g, lastX+5, 5, x-5, 5, bounds, result, ws)) return result;
-									if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, result, ws)) return result;
+									if (processALine(g, lastX+5, 5, x-5, 5, bounds, result, ws, -1)) return result;
+									if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, result, ws, -1)) return result;
 								}
 								if (g != null)
 								{
@@ -1022,8 +1028,8 @@ public class WaveformWindow implements WindowContent
 						if (lastX+5 < wid)
 						{
 							// run horizontal bars to the end
-							if (processALine(g, lastX+5, 5, wid, 5, bounds, result, ws)) return result;
-							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, result, ws)) return result;
+							if (processALine(g, lastX+5, 5, wid, 5, bounds, result, ws, -1)) return result;
+							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, result, ws, -1)) return result;
 						}
 						continue;
 					}
@@ -1051,12 +1057,12 @@ public class WaveformWindow implements WindowContent
 						{
 							if (state != lastState)
 							{
-								if (processALine(g, x, 5, x, hei-5, bounds, result, ws)) return result;
+								if (processALine(g, x, 5, x, hei-5, bounds, result, ws, -1)) return result;
 							}
 						}
 						if (lastLowy == lastHighy)
 						{
-							if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, result, ws)) return result;
+							if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, result, ws, -1)) return result;
 						} else
 						{
 							if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, result, ws)) return result;
@@ -1065,7 +1071,7 @@ public class WaveformWindow implements WindowContent
 						{
 							if (lowy == highy)
 							{
-								if (processALine(g, x, lowy, wid-1, lowy, bounds, result, ws)) return result;
+								if (processALine(g, x, lowy, wid-1, lowy, bounds, result, ws, -1)) return result;
 							} else
 							{
 								if (processABox(g, x, lowy, wid-1, highy, bounds, result, ws)) return result;
@@ -1097,7 +1103,7 @@ public class WaveformWindow implements WindowContent
 			return false;
 		}
 
-		private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds, List result, Signal ws)
+		private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds, List result, Signal ws, int sweepNum)
 		{
 			if (bounds != null)
 			{
@@ -1129,7 +1135,12 @@ public class WaveformWindow implements WindowContent
 			g.drawLine(fX, fY, tX, tY);
 
 			// highlight the line if requested
-			if (ws.highlighted)
+			boolean highlighted = ws.highlighted;
+			if (ws.wavePanel.waveWindow.highlightedSweep >= 0)
+			{
+				highlighted = ws.wavePanel.waveWindow.highlightedSweep == sweepNum;
+			}
+			if (highlighted)
 			{
 				if (fX == tX)
 				{
@@ -1252,6 +1263,7 @@ public class WaveformWindow implements WindowContent
 				if (ws.sigButton != null)
 					ws.sigButton.setBackground(background);
 			}
+			waveWindow.highlightedSweep = -1;
 			this.repaint();
 		}
 
@@ -1263,6 +1275,7 @@ public class WaveformWindow implements WindowContent
 				ws.sigButton.setBackground(Color.BLACK);
 			}
 			ws.highlighted = true;
+			waveWindow.highlightedSweep = -1;
 			this.repaint();
 		}
 
@@ -1271,6 +1284,7 @@ public class WaveformWindow implements WindowContent
 			ws.highlighted = false;
 			if (ws.sigButton != null)
 				ws.sigButton.setBackground(background);
+			waveWindow.highlightedSweep = -1;
 			this.repaint();
 		}
 
@@ -2055,12 +2069,14 @@ public class WaveformWindow implements WindowContent
 		private Object obj;
 		private WaveformWindow ww;
 		private boolean included;
+		private int sweepIndex;
 
 		public SweepSignal(Object obj, WaveformWindow ww)
 		{
 			this.obj = obj;
 			this.ww = ww;
 			this.included = true;
+			this.sweepIndex = ww.sweepSignals.size();
 			ww.sweepSignals.add(this);
 		}
 
@@ -2077,6 +2093,16 @@ public class WaveformWindow implements WindowContent
 		{
 			if (this.included == included) return;
 			this.included = included;
+			for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				wp.repaintWithTime();
+			}
+		}
+
+		public void highlight()
+		{
+			ww.highlightedSweep = sweepIndex;
 			for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
@@ -3976,16 +4002,35 @@ public class WaveformWindow implements WindowContent
 
 	public void fillScreen()
 	{
-		Rectangle2D bounds = sd.getBounds();
-		double lowTime = bounds.getMinX();
-		double highTime = bounds.getMaxX();
-		double lowValue = bounds.getMinY();
-		double highValue = bounds.getMaxY();
+		Rectangle2D timeBounds = sd.getBounds();
+		double lowTime = timeBounds.getMinX();
+		double highTime = timeBounds.getMaxX();
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			if (!timeLocked && !wp.selected) continue;
 
+			Rectangle2D bounds = new Rectangle2D.Double();
+			boolean first = true;
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+				Rectangle2D sigBounds = ws.sSig.getBounds();
+				if (first)
+				{
+					bounds = sigBounds;
+					first = false;
+				} else
+				{
+					Rectangle2D.union(bounds, sigBounds, bounds);
+				}
+			}
+			double lowValue = bounds.getMinY();
+			double highValue = bounds.getMaxY();
+			double valueRange = (highValue - lowValue) / 8;
+			if (valueRange == 0) valueRange = 0.5;
+			lowValue -= valueRange;
+			highValue += valueRange;
 			boolean repaint = false;
 			if (wp.minTime != lowTime || wp.maxTime != highTime)
 			{
@@ -3995,7 +4040,7 @@ public class WaveformWindow implements WindowContent
 			}
 			if (wp.isAnalog)
 			{
-				if (wp.minTime != lowValue || wp.maxTime != highValue)
+				if (wp.analogLowValue != lowValue || wp.analogHighValue != highValue)
 				{
 					wp.setValueRange(lowValue, highValue);
 					repaint = true;

@@ -82,9 +82,9 @@ public class Maze
 	/** draw all layers */				private static final int SCH_ALLLAYER  = 2;
 
 	// common bit masks
-	/** clear all bits */				private static final byte SR_GCLEAR = (byte)0xFF;
+//	/** clear all bits */				private static final byte SR_GCLEAR = (byte)0xFF;
 	/** grid set (permanent) */			private static final byte SR_GSET   = (byte)0x80;
-	/** no via is allowed */			private static final byte SR_GNOVIA = 0x40;
+//	/** no via is allowed */			private static final byte SR_GNOVIA = 0x40;
 	/** is a wavefront poin */			private static final byte SR_GWAVE  = 0x20;
 	/** is a port */					private static final byte SR_GPORT  = 0x10;
 
@@ -102,10 +102,10 @@ public class Maze
 
 	private ArcProto ro_mazevertwire, ro_mazehoriwire;
 	private NodeProto ro_mazesteiner;
-	private SRREGION  ro_theregion = null;
-	private int ro_mazegridx, ro_mazegridy;
-	private int ro_mazeoffsetx, ro_mazeoffsety;
-	private int ro_mazeboundary;
+	private SRREGION ro_theregion = null;
+	/** The netlist for the current cell being routed */	private Netlist netList;
+
+	/** Space around net to build search grid */	private int ro_mazeboundary = 20;
 
 	static class SRDIRECTION {}
 	SRDIRECTION SRVERTPREF = new SRDIRECTION();
@@ -114,7 +114,7 @@ public class Maze
 
 	static class SRMODE {}
 	SRMODE SR_MOR = new SRMODE();
-	SRMODE SR_MAND = new SRMODE();
+//	SRMODE SR_MAND = new SRMODE();
 	SRMODE SR_MSET = new SRMODE();
 
 	/**
@@ -123,9 +123,9 @@ public class Maze
 	 */
 	static class SREND {}
 	SREND SREPORT = new SREND();
-	SREND SREVIA = new SREND();
-	SREND SREVIAUP = new SREND();
-	SREND SREVIADN = new SREND();
+//	SREND SREVIA = new SREND();
+//	SREND SREVIAUP = new SREND();
+//	SREND SREVIADN = new SREND();
 	SREND SREEND = new SREND();
 
 	static class SRPTYPE {}
@@ -155,7 +155,6 @@ public class Maze
 		/** the layer mask */					long        mask;
 		/** translation value for grid */		int         transx, transy;
 		/** the width and height of the grid */	int         wid, hei;
-		/** the grid units */					int         gridx, gridy;
 		/** bounds of the current maze */		int         lx, ly, hx, hy;
 		/** the two dimensional grid array */	byte   [][] grids;
 		/** up/down pointer to next layer */	SRLAYER     up, down;
@@ -169,6 +168,7 @@ public class Maze
 	static class SRNET
 	{
 		/** route state flag */				boolean  routed;
+		/** the Network object */			Network  eNet;
 		/** the parent region */			SRREGION region;
 		/** the list of ports on the net */	SRPORT   ports;
 		/** the list of paths */			SRPATH   paths;
@@ -184,6 +184,7 @@ public class Maze
 	{
 		/** the port index */					int       index;
 		/** the layer mask */					long      layers;
+		/** true center of the port */			double    cX, cY;
 		/** bounds of the port */				int       lx, ly, hx, hy;
 		/** node that this port comes from */	NodeInst  ni;
 		/** port on the originating node */		PortProto pp;
@@ -198,7 +199,7 @@ public class Maze
 	static class SRPATH
 	{
 		/** end points of the path */		int []   x, y;
-		/** end pt in world units */		int []   wx, wy;
+		/** end pt in world units */		double []   wx, wy;
 		/** the layer of the path */		SRLAYER  layer;
 		/** end style of the path */		SREND [] end;
 		/** the type of path */				SRPTYPE  type;
@@ -209,8 +210,8 @@ public class Maze
 		{
 			x = new int[2];
 			y = new int[2];
-			wx = new int[2];
-			wy = new int[2];
+			wx = new double[2];
+			wy = new double[2];
 			end = new SREND[2];
 		}
 	};
@@ -264,11 +265,10 @@ public class Maze
 		Highlighter hi = wf.getContent().getHighlighter();
 		if (hi == null) return;
 
-		Netlist netList = cell.getUserNetlist();
+		netList = cell.getUserNetlist();
 		Set nets = hi.getHighlightedNetworks();
-		if (nets == null)
+		if (nets.size() == 0)
 		{
-			nets = new HashSet();
 			for(Iterator it = netList.getNetworks(); it.hasNext(); )
 			{
 				Network net = (Network)it.next();
@@ -276,34 +276,47 @@ public class Maze
 			}
 		}
 
+		// turn this into a list of ArcInsts on each net so that it survives renetlisting after each route
+		List arcsToRoute = new ArrayList();
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
+			for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+				arcsToRoute.add(ai);
+				break;
+			}
+		}
+
+		// now route each arc
+		for(Iterator it = arcsToRoute.iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			netList = cell.getUserNetlist();
+			Network net = netList.getNetwork(ai, 0);
 
 			// see if there are unrouted
-			if (ro_mazeroutenet(net, netList, hi)) return;
+			if (ro_mazeroutenet(net, hi)) continue;
 		}
 	}
 
 	/**
 	 * Method to reroute networks "net".  Returns true on error.
 	 */
-	private boolean ro_mazeroutenet(Network net, Netlist netList, Highlighter hi)
+	private boolean ro_mazeroutenet(Network net, Highlighter hi)
 	{
 		// get extent of net and mark nodes and arcs on it
 		HashSet arcsToDelete = new HashSet();
 		HashSet nodesToDelete = new HashSet();
 		List netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList);
 		int count = netEnds.size();
+		if (count == 0) return false;
 		if (count != 2)
 		{
 			System.out.println("Can only route nets with 2 ends, this has " + count);
 			return true;
 		}
-
-		// determine grid size
-		ro_mazegridy = ro_mazegridx = 1;
-		ro_mazeboundary = ro_mazegridx * 20;
 
 		// determine bounds of this networks
 		Cell cell = net.getParent();
@@ -350,7 +363,7 @@ public class Maze
 		if (region == null) return true;
 
 		// create the net in the region
-		SRNET srnet = ro_mazeadd_net(region);
+		SRNET srnet = ro_mazeadd_net(region, net);
 		if (srnet == null)
 		{
 			System.out.println("Could not allocate internal net");
@@ -362,15 +375,16 @@ public class Maze
 		{
 			PortInst pi = (PortInst)netEnds.get(i);
 			Poly poly = pi.getPoly();
-			double cX = poly.getCenterX();
-			double cY = poly.getCenterY();
-			SRPORT fsp = ro_mazeadd_port(srnet, ro_mazedetermine_dir(pi.getNodeInst(), cX, cY), lx, ly, hx, hy, pi);
+			double cXD = poly.getCenterX();
+			double cYD = poly.getCenterY();
+			SRPORT fsp = ro_mazeadd_port(srnet, ro_mazedetermine_dir(pi.getNodeInst(), cXD, cYD), cXD, cYD, pi);
 			if (fsp == null)
 			{
 				System.out.println("Port could not be defined");
 				return true;
 			}
 		}
+//		ro_mazedump_layer("BEFORE ROUTING", region, (byte)0xFF);
 
 		// do maze routing
 		if (ro_mazeroute_net(srnet))
@@ -395,24 +409,21 @@ public class Maze
 	{
 		// presume routing with the current arc
 		boolean ret = false;
-		ArcProto routingarc = User.tool.getCurrentArcProto();
-		if (routingarc == Generic.tech.unrouted_arc) routingarc = null;
-		if (routingarc != null)
+		ArcProto routingArc = User.tool.getCurrentArcProto();
+		if (routingArc == Generic.tech.unrouted_arc) routingArc = null;
+		if (routingArc != null)
 		{
 			// see if the default arc can be used to route
 			for(SRPORT port = net.ports; port != null; port = port.next)
 			{
 				PortProto pp = port.pp;
-				ArcProto [] connections = pp.getBasePort().getConnections();
-				boolean found = false;
-				for(int i = 0; i < connections.length; i++)
-					if (connections[i] == routingarc) { found = true;   break; }
-				if (!found) { routingarc = null;   break; }
+				boolean found = pp.getBasePort().connectsTo(routingArc);
+				if (!found) { routingArc = null;   break; }
 			}
 		}
 
 		// if current arc cannot run, look for any that can
-		if (routingarc == null)
+		if (routingArc == null)
 		{
 			// check out all arcs for use in this route
 			HashSet arcsUsed = new HashSet();
@@ -421,32 +432,43 @@ public class Maze
 				PortProto pp = port.pp;
 				ArcProto [] connections = pp.getBasePort().getConnections();
 				for(int i = 0; i < connections.length; i++)
-					arcsUsed.add(connections[i]);
-			}
-			for(Iterator it = arcsUsed.iterator(); it.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)it.next();
-				boolean allFound = true;
-				for(SRPORT port = net.ports; port != null; port = port.next)
 				{
-					PortProto pp = port.pp;
-					ArcProto [] connections = pp.getBasePort().getConnections();
-					boolean found = false;
-					for(int i = 0; i < connections.length; i++)
-						if (connections[i] == ap) { found = true;   break; }
-					if (!found) { allFound = false;   break; }
+					ArcProto ap = connections[i];
+					if (ap.getTechnology() == Generic.tech) continue;
+					arcsUsed.add(connections[i]);
 				}
-				if (allFound) { routingarc = ap;   break; }
+			}
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				if (tech == Generic.tech) continue;
+				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+				{
+					ArcProto ap = (ArcProto)aIt.next();
+					if (!arcsUsed.contains(ap)) continue;
+					boolean allFound = true;
+					for(SRPORT port = net.ports; port != null; port = port.next)
+					{
+						PortProto pp = port.pp;
+						if (!pp.getBasePort().connectsTo(ap)) { allFound = false;   break; }
+					}
+					if (allFound)
+					{
+						routingArc = ap;
+						break;
+					}
+				}
+				if (routingArc != null) break;
 			}
 		}
-		if (routingarc == null)
+		if (routingArc == null)
 		{
 			System.out.println("Cannot find wire to route");
 			return true;
 		}
-		ro_mazevertwire = routingarc;
-		ro_mazehoriwire = routingarc;
-		ro_mazesteiner = ((PrimitiveArc)routingarc).findPinProto();
+		ro_mazevertwire = routingArc;
+		ro_mazehoriwire = routingArc;
+		ro_mazesteiner = ((PrimitiveArc)routingArc).findPinProto();
 
 		// initialize all layers and ports for this route
 		for (int index = 0; index < SRMAXLAYERS; index++)
@@ -511,10 +533,12 @@ public class Maze
 		}
 
 		// prepare each port for routing
-		int pcount = 0;
+		int pCount = 0;
 		SRPORT port = null;
-		for (port = net.ports; port != null; port = port.next, pcount++)
+		for (port = net.ports; port != null; port = port.next, pCount++)
+		{
 			ro_mazecreate_wavefront(port);
+		}
 
 		// now begin routing until all ports merged
 		byte code = SR_GSTART;
@@ -540,7 +564,7 @@ public class Maze
 			{
 				// now clear routing region and restart expansion
 				ro_mazeclear_maze(net);
-				if (--pcount > 1)
+				if (--pCount > 1)
 				{
 					// prepare each port for routing
 					for (port = net.ports; port != null; port = port.next)
@@ -550,14 +574,14 @@ public class Maze
 			} else
 			{
 				// check for blocked net
-				if (blocked == pcount)
+				if (blocked == pCount)
 				{
 					ret = true;
 					ro_mazeclear_maze(net);
 					break;
 				}
 			}
-		} while (pcount > 1);
+		} while (pCount > 1);
 
 		// move all the port paths to the net
 		for (port = net.ports; port != null; port = port.next)
@@ -605,68 +629,68 @@ public class Maze
 				/*
 				 * added detection of immediate blockage ... smr
 				 */
-				boolean onedge = false;
+				boolean onEdge = false;
 				for (int x = lx; x <= hx; x++)
 				{
 					for (int y = ly; y <= hy; y++)
 					{
 						ro_mazeadd_wavept(master, layer, x, y, SR_GSTART);
-						if (x < layer.wid-1 && layer.grids[x+1][y] == 0) onedge = true;
-						if (x > 0 && layer.grids[x-1][y] == 0) onedge = true;
-						if (y < layer.hei-1 && layer.grids[x][y+1] == 0) onedge = true;
-						if (y > 0 && layer.grids[x][y-1] == 0) onedge = true;
+						if (x < layer.wid-1 && layer.grids[x+1][y] == 0) onEdge = true;
+						if (x > 0 && layer.grids[x-1][y] == 0) onEdge = true;
+						if (y < layer.hei-1 && layer.grids[x][y+1] == 0) onEdge = true;
+						if (y > 0 && layer.grids[x][y-1] == 0) onEdge = true;
 					}
 				}
-				if (!onedge)
+				if (!onEdge)
 				{
 					// port is inside of blocked area: search for opening
 					int cx = (lx + hx) / 2;
 					int cy = (ly + hy) / 2;
-					int angrange = port.pp.getBasePort().getAngleRange();
+					int angRange = port.pp.getBasePort().getAngleRange();
 					int ang = port.pp.getBasePort().getAngle();
 					ang += (port.ni.getAngle()+5) / 10;
 					if (port.ni.isMirroredAboutXAxis() != port.ni.isMirroredAboutYAxis()) { ang = 270 - ang; if (ang < 0) ang += 360; }
-					if (ro_anglediff(ang, 0) <= angrange)
+					if (ro_anglediff(ang, 0) <= angRange)
 					{
 						// port faces right
 						for(int spread=1; spread<BLOCKAGELIMIT; spread++)
 						{
 							if (hx+spread >= layer.wid) break;
-							if (layer.grids[hx+spread][cy] == 0) { onedge = true;   break; }
+							if (layer.grids[hx+spread][cy] == 0) { onEdge = true;   break; }
 							layer.grids[hx+spread][cy] = 0;
 						}
 					}
-					if (ro_anglediff(ang, 90) <= angrange)
+					if (ro_anglediff(ang, 90) <= angRange)
 					{
 						// port faces up
 						for(int spread=1; spread<BLOCKAGELIMIT; spread++)
 						{
 							if (hy+spread >= layer.hei) break;
-							if (layer.grids[cx][hy+spread] == 0) { onedge = true;   break; }
+							if (layer.grids[cx][hy+spread] == 0) { onEdge = true;   break; }
 							layer.grids[cx][hy+spread] = 0;
 						}
 					}
-					if (ro_anglediff(ang, 180) <= angrange)
+					if (ro_anglediff(ang, 180) <= angRange)
 					{
 						// port faces left
 						for(int spread=1; spread<BLOCKAGELIMIT; spread++)
 						{
 							if (lx-spread < 0) break;
-							if (layer.grids[lx-spread][cy] == 0) { onedge = true;   break; }
+							if (layer.grids[lx-spread][cy] == 0) { onEdge = true;   break; }
 							layer.grids[lx-spread][cy] = 0;
 						}
 					}
-					if (ro_anglediff(ang, 270) <= angrange)
+					if (ro_anglediff(ang, 270) <= angRange)
 					{
 						// port faces down
 						for(int spread=1; spread<BLOCKAGELIMIT; spread++)
 						{
 							if (ly-spread < 0) break;
-							if (layer.grids[cx][ly-spread] == 0) { onedge = true;   break; }
+							if (layer.grids[cx][ly-spread] == 0) { onEdge = true;   break; }
 							layer.grids[cx][ly-spread] = 0;
 						}
 					}
-					if (!onedge)
+					if (!onEdge)
 					{
 						System.out.println("Node %s is blocked" + port.ni.describe());
 						return;
@@ -719,13 +743,13 @@ public class Maze
 	/* routing commands */
 	private void ro_mazeadd_wavept(SRPORT port, SRLAYER layer, int x, int y, byte code)
 	{
-		SRWAVEPT wavept = new SRWAVEPT();
-		wavept.x = x;
-		wavept.y = y;
+		SRWAVEPT wavePt = new SRWAVEPT();
+		wavePt.x = x;
+		wavePt.y = y;
 
 		// set the grid
 		layer.grids[x][y] = (byte)((layer.grids[x][y] & ~SR_GMASK) | code | SR_GWAVE);
-		wavept.layer = layer;
+		wavePt.layer = layer;
 
 		// set maze bounds
 		if (layer.lx > x) layer.lx = x;
@@ -733,20 +757,20 @@ public class Maze
 		if (layer.ly > y) layer.ly = y;
 		if (layer.hy < y) layer.hy = y;
 
-		wavept.prev = null;
+		wavePt.prev = null;
 		if (port.master != null)
 		{
-			wavept.port = port.master;
-			wavept.next = port.master.wavefront;
-			port.master.wavefront = wavept;
+			wavePt.port = port.master;
+			wavePt.next = port.master.wavefront;
+			port.master.wavefront = wavePt;
 		} else
 		{
-			wavept.port = port;
-			wavept.next = port.wavefront;
-			port.wavefront = wavept;
+			wavePt.port = port;
+			wavePt.next = port.wavefront;
+			port.wavefront = wavePt;
 		}
-		if (wavept.next != null)
-			wavept.next.prev = wavept;
+		if (wavePt.next != null)
+			wavePt.next.prev = wavePt;
 	}
 
 	private int ro_anglediff(int ang1, int ang2)
@@ -760,175 +784,175 @@ public class Maze
 	{
 		// begin expansion of all wavepts
 		// disconnect wavepts from the port
-		SRWAVEPT wavept = port.wavefront;
-		if (wavept == null) return SRBLOCKED;
+		SRWAVEPT wavePt = port.wavefront;
+		if (wavePt == null) return SRBLOCKED;
 
 		SRWAVEPT next = null;
 		int status = SRSUCCESS;
 		boolean found = false;
 		int bx = 0, by = 0;
-		SRLAYER blayer = null;
-		SRWAVEPT bwavept = new SRWAVEPT();
-		for (wavept = port.wavefront; wavept != null ; wavept = next)
+		SRLAYER bLayer = null;
+		SRWAVEPT bWavePt = new SRWAVEPT();
+		for (wavePt = port.wavefront; wavePt != null ; wavePt = next)
 		{
 			boolean connected = false;
-			SRLAYER layer = wavept.layer;
+			SRLAYER layer = wavePt.layer;
 			if (layer.dir == SRALL || layer.dir == SRHORIPREF)
 			{
 				// try horizontal route
-				int x = wavept.x + 1;
+				int x = wavePt.x + 1;
 				if (x != layer.wid)
 				{
-					status = ro_mazeexamine_pt(port, layer, x, wavept.y, code);
+					status = ro_mazeexamine_pt(port, layer, x, wavePt.y, code);
 					if (status == SRROUTED)
 					{
-						// "bwavept" used in proper order
-						if (!found || (layer.hused[bwavept.y] & SR_GSET) != 0 ||
-							((layer.hused[wavept.y] & SR_GSET) == 0 &&
-							layer.hused[wavept.y] < layer.hused[bwavept.y]))
+						// "bWavePt" used in proper order
+						if (!found || (layer.hused[bWavePt.y] & SR_GSET) != 0 ||
+							((layer.hused[wavePt.y] & SR_GSET) == 0 &&
+							layer.hused[wavePt.y] < layer.hused[bWavePt.y]))
 						{
-							bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-							bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-							bx = x;  by = wavept.y;
-							blayer = layer;
+							bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+							bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+							bx = x;  by = wavePt.y;
+							bLayer = layer;
 						}
 						found = true;
 						connected = true;
-					} else if (status == SRERROR) return SRERROR;
+					}
 				}
-				if (!connected && (x = wavept.x - 1) >= 0)
+				if (!connected && (x = wavePt.x - 1) >= 0)
 				{
-					status = ro_mazeexamine_pt(port, layer, x, wavept.y, code);
+					status = ro_mazeexamine_pt(port, layer, x, wavePt.y, code);
 					if (status == SRROUTED)
 					{
 						if (!found ||
-							(layer.hused[bwavept.y] & SR_GSET) != 0  ||
-							((layer.hused[wavept.y] & SR_GSET) == 0 &&
-							layer.hused[wavept.y] < layer.hused[bwavept.y]))
+							(layer.hused[bWavePt.y] & SR_GSET) != 0  ||
+							((layer.hused[wavePt.y] & SR_GSET) == 0 &&
+							layer.hused[wavePt.y] < layer.hused[bWavePt.y]))
 						{
-							bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-							bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-							bx = x; by = wavept.y;
-							blayer = layer;
+							bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+							bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+							bx = x; by = wavePt.y;
+							bLayer = layer;
 						}
 						found = true;
 						connected = true;
-					} else if (status == SRERROR) return SRERROR;
+					}
 				}
 			}
 			if (layer.dir == SRALL || layer.dir == SRVERTPREF)
 			{
 				// try vertical route
-				int y = wavept.y + 1;
+				int y = wavePt.y + 1;
 				if (!connected && y != layer.hei)
 				{
-					status = ro_mazeexamine_pt(port, layer, wavept.x, y, code);
+					status = ro_mazeexamine_pt(port, layer, wavePt.x, y, code);
 					if (status == SRROUTED)
 					{
 						if (!found ||
-							(layer.vused[bwavept.x] & SR_GSET) != 0  ||
-							((layer.vused[wavept.x] & SR_GSET) == 0 &&
-							layer.vused[wavept.x] < layer.vused[bwavept.x]))
+							(layer.vused[bWavePt.x] & SR_GSET) != 0  ||
+							((layer.vused[wavePt.x] & SR_GSET) == 0 &&
+							layer.vused[wavePt.x] < layer.vused[bWavePt.x]))
 						{
-							bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-							bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-							bx = wavept.x; by = y;
-							blayer = layer;
+							bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+							bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+							bx = wavePt.x; by = y;
+							bLayer = layer;
 						}
 						found = true;
 						connected = true;
-					} else if (status == SRERROR) return SRERROR;
+					}
 				}
-				if (!connected && (y = wavept.y - 1) >= 0)
+				if (!connected && (y = wavePt.y - 1) >= 0)
 				{
-					status = ro_mazeexamine_pt(port, layer, wavept.x, y, code);
+					status = ro_mazeexamine_pt(port, layer, wavePt.x, y, code);
 					if (status == SRROUTED)
 					{
 						if (!found ||
-							(layer.vused[bwavept.x] & SR_GSET) != 0  ||
-							((layer.vused[wavept.x] & SR_GSET) == 0 &&
-							layer.vused[wavept.x] < layer.vused[bwavept.x]))
+							(layer.vused[bWavePt.x] & SR_GSET) != 0  ||
+							((layer.vused[wavePt.x] & SR_GSET) == 0 &&
+							layer.vused[wavePt.x] < layer.vused[bWavePt.x]))
 						{
-							bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-							bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-							bx = wavept.x; by = y;
-							blayer = layer;
+							bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+							bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+							bx = wavePt.x; by = y;
+							bLayer = layer;
 						}
 						found = true;
 						connected = true;
-					} else if (status == SRERROR) return SRERROR;
+					}
 				}
 			}
 			if (!connected && layer.up != null)
 			{
 				// try via up
-				status = ro_mazeexamine_pt(port, layer.up, wavept.x, wavept.y, code);
+				status = ro_mazeexamine_pt(port, layer.up, wavePt.x, wavePt.y, code);
 				if (status == SRROUTED)
 				{
 					if (!found)
 					{
-						bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-						bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-						bx = wavept.x; by = wavept.y;
-						blayer = layer.up;
+						bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+						bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+						bx = wavePt.x; by = wavePt.y;
+						bLayer = layer.up;
 					}
 					found = true;
 					connected = true;
-				} else if (status == SRERROR) return SRERROR;
+				}
 			}
 			if (!connected && layer.down != null)
 			{
 				// try via down
-				status = ro_mazeexamine_pt(port, layer.down, wavept.x, wavept.y, code);
+				status = ro_mazeexamine_pt(port, layer.down, wavePt.x, wavePt.y, code);
 				if (status == SRROUTED)
 				{
 					if (!found)
 					{
-						bwavept.x = wavept.x;   bwavept.y = wavept.y;   
-						bwavept.layer = wavept.layer;   bwavept.port = wavept.port;
-						bx = wavept.x; by = wavept.y;
-						blayer = layer.down;
+						bWavePt.x = wavePt.x;   bWavePt.y = wavePt.y;   
+						bWavePt.layer = wavePt.layer;   bWavePt.port = wavePt.port;
+						bx = wavePt.x; by = wavePt.y;
+						bLayer = layer.down;
 					}
 					found = true;
 					connected = true;
-				} else if (status == SRERROR) return SRERROR;
+				}
 			}
-			next = wavept.next;
+			next = wavePt.next;
 
 			// now release this wavept
-			if (wavept.prev == null)
+			if (wavePt.prev == null)
 			{
-				port.wavefront = wavept.next;
-				if (wavept.next != null)
-				wavept.next.prev = null;
+				port.wavefront = wavePt.next;
+				if (wavePt.next != null)
+					wavePt.next.prev = null;
 			} else
 			{
-				wavept.prev.next = wavept.next;
-				if (wavept.next != null)
-				wavept.next.prev = wavept.prev;
+				wavePt.prev.next = wavePt.next;
+				if (wavePt.next != null)
+					wavePt.next.prev = wavePt.prev;
 			}
 
 			// set the grid point to a core point
-			if (!connected) layer.grids[wavept.x][wavept.y] &= ~SR_GWAVE;
+			if (!connected) layer.grids[wavePt.x][wavePt.y] &= ~SR_GWAVE;
 		}
 
 		if (found)
-			return ro_mazeinit_path(port, blayer, bwavept, bx, by);
+			return ro_mazeinit_path(port, bLayer, bWavePt, bx, by);
 
 		if (port.wavefront == null) return SRBLOCKED;
 		return SRSUCCESS;
 	}
 
-	private int ro_mazeinit_path(SRPORT port, SRLAYER layer, SRWAVEPT wavept, int x, int y)
+	private int ro_mazeinit_path(SRPORT port, SRLAYER layer, SRWAVEPT wavePt, int x, int y)
 	{
 		// search for others
 		SRPORT target = null;
-		SRWAVEPT twavept = null;
+		SRWAVEPT tWavePt = null;
 		for (target = port.net.ports; target != null; target = target.next)
 		{
 			if (target == port || target.master != null) continue;
-			twavept = ro_mazesearch_wavefront(target, layer, x, y);
-			if (twavept != null) break;
+			tWavePt = ro_mazesearch_wavefront(target, layer, x, y);
+			if (tWavePt != null) break;
 		}
 		if (target == null) return SRERROR;
 
@@ -951,16 +975,15 @@ public class Maze
 
 		// connect the port with target
 		SRPATH path = null;
-		if (wavept.layer == twavept.layer)
+		if (wavePt.layer == tWavePt.layer)
 		{
-			path = ro_mazeget_path(port, layer, SREEND, SREEND, wavept.x, wavept.y,
-				twavept.x, twavept.y);
-			if (path == null) return SRERROR;
+System.out.println("INTERMEDIATE PATH...");
+			path = ro_mazeget_path(port, layer, SREEND, SREEND, wavePt.x, wavePt.y, tWavePt.x, tWavePt.y);
 		}
 
 		// now create paths to each target point
-		if (ro_mazefind_paths(wavept, path) != SRSUCCESS) return SRERROR;
-		if (ro_mazefind_paths(twavept, path) != SRSUCCESS) return SRERROR;
+		if (ro_mazefind_paths(wavePt, path) != SRSUCCESS) return SRERROR;
+		if (ro_mazefind_paths(tWavePt, path) != SRSUCCESS) return SRERROR;
 
 		// now set the target master
 		target.master = port;
@@ -992,17 +1015,17 @@ public class Maze
 	 * Method to find the path through the maze to the target point.
 	 * Will merge the starting point path with the first internal path if possible.
 	 */
-	private int ro_mazefind_paths(SRWAVEPT wavept, SRPATH path)
+	private int ro_mazefind_paths(SRWAVEPT wavePt, SRPATH path)
 	{
 		// Start scan from the first point
-		int sx = wavept.x;
-		int sy = wavept.y;
+		int sx = wavePt.x;
+		int sy = wavePt.y;
 
-		SRLAYER layer = wavept.layer;
+		SRLAYER layer = wavePt.layer;
 		byte code = (byte)(layer.grids[sx][sy] & SR_GMASK);
 		if (code == SR_GSTART) code = SR_GMAX;
 			else code--;
-		int pstart = 0;
+		int pStart = 0;
 		int ex = 0, ey = 0;
 		for(;;)
 		{
@@ -1011,7 +1034,7 @@ public class Maze
 			// scan around the point
 			for(;;)
 			{
-				if (pstart == 1)
+				if (pStart == 1)
 				{
 					// always try to jump layer after the first path
 					// now try jumping layers
@@ -1025,7 +1048,7 @@ public class Maze
 							layer = layer.up;
 							if (code == SR_GSTART) code = SR_GMAX;
 								else code--;
-							pstart = 2;
+							pStart = 2;
 							continue;
 						}
 					}
@@ -1039,7 +1062,7 @@ public class Maze
 							layer = layer.down;
 							if (code == SR_GSTART) code = SR_GMAX;
 								else code--;
-							pstart = 2;
+							pStart = 2;
 							continue;
 						}
 					}
@@ -1071,8 +1094,7 @@ public class Maze
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 								return SRSUCCESS;
 							}
-							if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, ex, ey) == null)
-								return SRERROR;
+							ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, ex, ey);
 							return SRSUCCESS;
 						} else if (status == SRSUCCESS)
 						{
@@ -1108,8 +1130,7 @@ public class Maze
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 								return SRSUCCESS;
 							}
-							if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, ex, ey) == null)
-								return SRERROR;
+							ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, ex, ey);
 							return SRSUCCESS;
 						} else if (status == SRSUCCESS)
 						{
@@ -1145,8 +1166,7 @@ public class Maze
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 								return SRSUCCESS;
 							}
-							if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, ex, ey) == null)
-								return SRERROR;
+							ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, ex, ey);
 							return SRSUCCESS;
 						} else if (status == SRSUCCESS)
 						{
@@ -1182,8 +1202,7 @@ public class Maze
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 								return SRSUCCESS;
 							}
-							if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, ex, ey) == null)
-								return SRERROR;
+							ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, ex, ey);
 							return SRSUCCESS;
 						} else if (status == SRSUCCESS)
 						{
@@ -1194,7 +1213,7 @@ public class Maze
 				}
 
 				// now try jumping layers
-				if (pstart == 0)
+				if (pStart == 0)
 				{
 					if (layer.up != null)
 					{
@@ -1229,7 +1248,7 @@ public class Maze
 			}
 
 			// set path started
-			pstart = 1;
+			pStart = 1;
 
 			// now continue scan until the end of the path
 			for(;;)
@@ -1263,8 +1282,7 @@ public class Maze
 								path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 							return SRSUCCESS;
 						}
-						if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, nx, ny) == null)
-							return SRERROR;
+						ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, nx, ny);
 						return SRSUCCESS;
 					} else if (status == SRSUCCESS)
 					{
@@ -1299,8 +1317,7 @@ public class Maze
 								path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 							return SRSUCCESS;
 						}
-						if (ro_mazeget_path(wavept.port, layer, SREEND, SREPORT, sx, sy, nx, ny) == null)
-							return SRERROR;
+						ro_mazeget_path(wavePt.port, layer, SREEND, SREPORT, sx, sy, nx, ny);
 						return SRSUCCESS;
 					} else if (status == SRSUCCESS)
 					{
@@ -1351,8 +1368,11 @@ public class Maze
 					ro_mazeset_line(path.layer, (byte)(SR_GPORT | SR_GSET),
 						path.wx[0], path.wy[0], path.wx[1], path.wy[1], SR_MOR);
 					path = null;
-				} else if (ro_mazeget_path(wavept.port, layer, SREEND, SREEND, sx, sy, ex, ey) == null)
-					return SRERROR;
+				} else
+				{
+System.out.println("DEFAULT INTERMEDIATE PATH...");
+					ro_mazeget_path(wavePt.port, layer, SREEND, SREEND, sx, sy, ex, ey);
+				}
 				sx = ex;
 				sy = ey;
 				break;
@@ -1386,6 +1406,7 @@ public class Maze
 		path.x[0] = x1; path.y[0] = y1;
 		path.x[1] = x2; path.y[1] = y2;
 		path.end[0] = e1; path.end[1] = e2;
+System.out.println("Creating path from ("+x1+","+y1+"), port="+(e1==SREPORT)+" to ("+x2+","+y2+"), port="+(e2==SREPORT));
 		path.layer = layer;
 		path.port = port;
 		path.type = SRPROUTED;
@@ -1464,24 +1485,24 @@ public class Maze
 
 	/************************************* CODE TO CREATE THE MAZE BUFFER *************************************/
 
-	private SRREGION ro_mazedefine_region(Cell cell, int lx, int ly, int hx, int hy)
+	private SRREGION ro_mazedefine_region(Cell cell, int lX, int lY, int hX, int hY)
 	{
 		// determine routing region bounds
-		lx = lx - ro_mazegridx - ro_mazeboundary;
-		hx = hx + ro_mazegridx + ro_mazeboundary;
-		ly = ly - ro_mazegridy - ro_mazeboundary;
-		hy = hy + ro_mazegridy + ro_mazeboundary;
+		lX = lX - ro_mazeboundary;
+		hX = hX + ro_mazeboundary;
+		lY = lY - ro_mazeboundary;
+		hY = hY + ro_mazeboundary;
 
 		// allocate region and layers
-		SRREGION region = ro_mazeget_region(lx, ly, hx, hy);
+		SRREGION region = ro_mazeget_region(lX, lY, hX, hY);
 		if (region == null)
 		{
-			System.out.println("Could not allocate routing region (" + lx + "<=X<=" + hx + " " + ly + "<=Y<=" + hy + ")");
+			System.out.println("Could not allocate routing region (" + lX + "<=X<=" + hX + " " + lY + "<=Y<=" + hY + ")");
 			return null;
 		}
 
 		// search region for nodes/arcs to add to database
-		Rectangle2D searchBounds = new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
+		Rectangle2D searchBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
@@ -1611,15 +1632,13 @@ public class Maze
 		}
 	}
 
-	private SRPORT ro_mazeadd_port(SRNET net, byte layers, int wx1, int wy1, int wx2, int wy2, PortInst pi)
+	private SRPORT ro_mazeadd_port(SRNET net, byte layers, double cX, double cY, PortInst pi)
 	{
 		SRPORT port = new SRPORT();
-
-		if (wx1 < wx2) { port.lx = wx1; port.hx = wx2; }
-			else { port.lx = wx2; port.hx = wx1; }
-		if (wy1 < wy2) { port.ly = wy1; port.hy = wy2; }
-			else { port.ly = wy2; port.hy = wy1; }
-
+		port.cX = cX;
+		port.cY = cY;
+		port.lx = (int)cX;   port.hx = (int)cX;
+		port.ly = (int)cY;   port.hy = (int)cY;
 		port.layers = layers;
 		port.wavefront = null;
 
@@ -1640,36 +1659,36 @@ public class Maze
 		port.net = net;
 		port.ni = pi.getNodeInst();
 		port.pp = pi.getPortProto();
-		SRPORT lport = net.ports;
+		SRPORT lPort = net.ports;
 		int index = 0;
-		if (lport == null)
+		if (lPort == null)
 		{
 			net.ports = port;
 		} else
 		{
 			index = 1;
-			while (lport.next != null) { index++; lport = lport.next; }
-			lport.next = port;
+			while (lPort.next != null) { index++;   lPort = lPort.next; }
+			lPort.next = port;
 		}
 		port.index = index;
 
 		return port;
 	}
 
-	private byte ro_mazedetermine_dir(NodeInst ni, double cx, double cy)
+	private byte ro_mazedetermine_dir(NodeInst ni, double cX, double cY)
 	{
 		if (ni == null) return 3;
 
 		// get the center of the NODEINST
-		double ncx = ni.getTrueCenterX();
-		double ncy = ni.getTrueCenterY();
+		double nCX = ni.getTrueCenterX();
+		double nCY = ni.getTrueCenterY();
 
 		// center, all edges
-		if (ncx == cx && ncy == cy) return 3; // all layers
-		double dx = ni.getBounds().getMaxX() - ncx;
-		double dy = ni.getBounds().getMaxY() - ncy;
-		double pdx = Math.abs(cx - ncx);
-		double pdy = Math.abs(cy - ncy);
+		if (nCX == cX && nCY == cY) return 3; // all layers
+		double dX = ni.getBounds().getMaxX() - nCX;
+		double dY = ni.getBounds().getMaxY() - nCY;
+		double pDX = Math.abs(cX - nCX);
+		double pDY = Math.abs(cY - nCY);
 
 		/* consider a point on a triangle, if left/right the seq center, port,
 		 * upper left/right edge will be counter-clockwise, if top/bottom the seq.
@@ -1677,7 +1696,7 @@ public class Maze
 		 * x1 * y2 + x2 * y3 + x3 * y1 - y1 * x2 - y2 * x3 - y3 * x1 == abs(area)
 		 * where area < 0 == clockwise, area > 0 == counter-clockwise
 		 */
-		double area = pdx * dy - pdy * dx;
+		double area = pDX * dY - pDY * dX;
 
 		if (area > 0.0) return 1;		// horizontal
 		if (area < 0.0) return 2;		// vertical
@@ -1687,21 +1706,22 @@ public class Maze
 	/**
 	 * routing definition functions
 	 */
-	private SRNET ro_mazeadd_net(SRREGION region)
+	private SRNET ro_mazeadd_net(SRREGION region, Network eNet)
 	{
-		SRNET net = new SRNET();
+		SRNET srNet = new SRNET();
 
-		net.routed = false;
-		net.ports = null;
-		net.paths = null;
-		net.lastpath = null;
-		net.region = region;
+		srNet.routed = false;
+		srNet.eNet = eNet;
+		srNet.ports = null;
+		srNet.paths = null;
+		srNet.lastpath = null;
+		srNet.region = region;
 
 		// link into region list
-		net.next = region.nets;
-		region.nets = net;
+		srNet.next = region.nets;
+		region.nets = srNet;
 
-		return net;
+		return srNet;
 	}
 
 	/**
@@ -1759,147 +1779,138 @@ public class Maze
 				return;
 			}
 
-			for (int i = 0; i < points.length; i++)
-				DRAW_LINE(points[i], points[i+1], layer, region);
+			for (int i = 1; i < points.length; i++)
+				DRAW_LINE(points[i-1], points[i], layer, region);
 			return;
 		}
 
 		if (obj.getStyle() == Poly.Type.VECTORS)
 		{
-			for (int i = 0; i < points.length; i += 2)
-				DRAW_LINE(points[i], points[i+1], layer, region);
+			for (int i = 1; i < points.length; i += 2)
+				DRAW_LINE(points[i-1], points[i], layer, region);
 			return;
 		}
 	}
 
 	private void DRAW_BOX(Rectangle2D box, int layer, SRREGION region)
 	{
-		int Mlx = (int)box.getMinX();
-		int Mhx = (int)box.getMaxX();
-		int Mly = (int)box.getMinY();
-		int Mhy = (int)box.getMaxY();
+		int lX = (int)box.getMinX();
+		int hX = (int)box.getMaxX();
+		int lY = (int)box.getMinY();
+		int hY = (int)box.getMaxY();
 		if (layer == SCH_HORILAYER || layer == SCH_ALLLAYER)
-			ro_mazeset_box(region.layers[SCH_HORILAYER], SR_GSET, Mlx, Mly, Mhx, Mhy, SR_MSET);
+			ro_mazeset_box(region.layers[SCH_HORILAYER], SR_GSET, lX, lY, hX, hY, SR_MSET);
 		if (layer == SCH_VERTLAYER || layer == SCH_ALLLAYER)
-			ro_mazeset_box(region.layers[SCH_VERTLAYER], SR_GSET, Mlx, Mly, Mhx, Mhy, SR_MSET);
+			ro_mazeset_box(region.layers[SCH_VERTLAYER], SR_GSET, lX, lY, hX, hY, SR_MSET);
 	}
 
 	private void DRAW_LINE(Point2D from, Point2D to, int layer, SRREGION region)
 	{
-		int wX1 = (int)from.getX();
-		int wY1 = (int)from.getY();
-		int wX2 = (int)to.getX();
-		int wY2 = (int)to.getY();
+		double wX1 = from.getX();
+		double wY1 = from.getY();
+		double wX2 = to.getX();
+		double wY2 = to.getY();
 		if (layer == SCH_HORILAYER || layer == SCH_ALLLAYER)
 			ro_mazeset_line(region.layers[SCH_HORILAYER], SR_GSET, wX1, wY1, wX2, wY2, SR_MSET);
 		if (layer == SCH_VERTLAYER || layer == SCH_ALLLAYER)
 			ro_mazeset_line(region.layers[SCH_VERTLAYER], SR_GSET, wX1, wY1, wX2, wY2, SR_MSET);
 	}
 
-	private void ro_mazeset_line(SRLAYER layer, byte type, int wx1, int wy1,
-		int wx2, int wy2, SRMODE mode)
+	private void ro_mazeset_line(SRLAYER layer, byte type, double wX1, double wY1, double wX2, double wY2, SRMODE mode)
 	{
 		// convert to grid coordinates
 		int [] x = new int[2];
 		int [] y = new int[2];
-		x[0] = GRIDX(wx1, layer);   x[1] = GRIDX(wx2, layer);
-		y[0] = GRIDY(wy1, layer);   y[1] = GRIDY(wy2, layer);
+		x[0] = GRIDX((int)wX1, layer);   x[1] = GRIDX((int)wX2, layer);
+		y[0] = GRIDY((int)wY1, layer);   y[1] = GRIDY((int)wY2, layer);
 		int lx = 1, hx = 0;
-		if (wx1 < wx2) { lx = 0; hx = 1; }
+		if (wX1 < wX2) { lx = 0; hx = 1; }
 		int ly = 1, hy = 0;
-		if (wy1 < wy2) { ly = 0; hy = 1; }
+		if (wY1 < wY2) { ly = 0; hy = 1; }
 
+		// do obvious clip if completely outside of an edge
 		if (x[hx] < 0 || x[lx] >= layer.wid || y[hy] < 0 || y[ly] >= layer.hei) return;
 
-		int dx = x[hx] - x[lx];
-		int dy = y[hy] - y[ly];
-
 		// clip x
-		int diff = -x[lx];
-		if (diff > 0)
+		if (x[lx] < 0)
 		{
-			y[lx] += (y[hx] - y[lx]) * diff / dx;
+			y[lx] -= (y[hx] - y[lx]) * x[lx] / (x[hx] - x[lx]);
 			x[lx] = 0;
 		}
-		diff = x[hx] - (layer.wid - 1);
-		if (diff > 0)
+		if (x[hx] >= layer.wid)
 		{
-			y[hx] -= (y[hx] - y[lx]) * diff / dx;
+			y[hx] -= (y[hx] - y[lx]) * (x[hx] - (layer.wid-1)) / (x[hx] - x[lx]);
 			x[hx] = layer.wid - 1;
 		}
 
 		// now clip y
-		diff = -y[ly];
-		if (diff > 0)
+		if (y[ly] < 0)
 		{
-			x[ly] += (x[hy] - x[ly]) * diff / dy;
+			x[ly] -= (x[hy] - x[ly]) * y[ly] / (y[hy] - y[ly]);
 			y[ly] = 0;
 		}
-		diff = y[hy] - (layer.hei - 1);
-		if (diff > 0)
+		if (y[hy] >= layer.hei)
 		{
-			x[hy] -= (x[hy] - x[ly]) * diff / dy;
+			x[hy] -= (x[hy] - x[ly]) * (y[hy] - (layer.hei - 1)) / (y[hy] - y[ly]);
 			y[hy] = layer.hei - 1;
 		}
 
-		// after clip ...
-		dx = x[hx] - x[lx];
-		dy = y[hy] - y[ly];
-
 		// use Bresenham's algorithm to set intersecting grid points
-		if (dy < dx)
+		int dX = x[hx] - x[lx];
+		int dY = y[hy] - y[ly];
+		if (dY < dX)
 		{
-			// for 0 <= dy <= dx
-			int e = (dy<<1) - dx;
+			// for 0 <= dY <= dX
+			int e = (dY<<1) - dX;
 			int yi = y[lx];
-			if (y[hx] - y[lx] < 0) diff = -1;
-				else diff = 1;
+			int diff = 1;
+			if (y[hx] < y[lx]) diff = -1;
 			for (int xi = x[lx]; xi <= x[hx]; xi++)
 			{
 				ro_mazeset_point(layer, type, xi, yi, mode);
 				if (e > 0)
 				{
 					yi += diff;
-					e = e + (dy<<1) - (dx<<1);
-				} else e = e + (dy<<1);
+					e = e + (dY<<1) - (dX<<1);
+				} else e = e + (dY<<1);
 			}
 		} else
 		{
-			// for 0 <= dx < dy
-			int e = (dx<<1) - dy;
+			// for 0 <= dX < dY
+			int e = (dX<<1) - dY;
 			int xi = x[ly];
-			if (x[hy] - x[ly] < 0) diff = -1;
-				else diff = 1;
+			int diff = 1;
+			if (x[hy] < x[ly]) diff = -1;
 			for (int yi = y[ly]; yi <= y[hy]; yi++)
 			{
 				ro_mazeset_point(layer, type, xi, yi, mode);
 				if (e > 0)
 				{
 					xi += diff;
-					e = e + (dx<<1) - (dy<<1);
-				} else e = e + (dx<<1);
+					e = e + (dX<<1) - (dY<<1);
+				} else e = e + (dX<<1);
 			}
 		}
 	}
 
-	private void ro_mazeset_box(SRLAYER layer, byte type, int wx1, int wy1, int wx2, int wy2, SRMODE mode)
+	private void ro_mazeset_box(SRLAYER layer, byte type, int wX1, int wY1, int wX2, int wY2, SRMODE mode)
 	{
-		int lx = GRIDX(wx1, layer);   int ly = GRIDY(wy1, layer);
-		int hx = GRIDX(wx2, layer);   int hy = GRIDY(wy2, layer);
-		if (lx > hx) { int x = lx; lx = hx; hx = x; }
-		if (ly > hy) { int y = ly; ly = hy; hy = y; }
+		int lX = GRIDX(wX1, layer);   int lY = GRIDY(wY1, layer);
+		int hX = GRIDX(wX2, layer);   int hY = GRIDY(wY2, layer);
+		if (lX > hX) { int x = lX; lX = hX; hX = x; }
+		if (lY > hY) { int y = lY; lY = hY; hY = y; }
 
-		if (hx < 0 || lx >= layer.wid || hy < 0 || ly >= layer.hei) return;
+		if (hX < 0 || lX >= layer.wid || hY < 0 || lY >= layer.hei) return;
 
 		// clip (simple orthogonal)
-		if (lx < 0) lx = 0;
-		if (hx >= layer.wid) hx = layer.wid - 1;
-		if (ly < 0) ly = 0;
-		if (hy >= layer.hei) hy = layer.hei - 1;
+		if (lX < 0) lX = 0;
+		if (hX >= layer.wid) hX = layer.wid - 1;
+		if (lY < 0) lY = 0;
+		if (hY >= layer.hei) hY = layer.hei - 1;
 
 		// now fill the box
-		for (int x = lx; x <= hx; x++)
-			for (int y = ly; y <= hy; y++)
+		for (int x = lX; x <= hX; x++)
+			for (int y = lY; y <= hY; y++)
 				ro_mazeset_point(layer, type, x, y, mode);
 	}
 
@@ -1915,13 +1926,13 @@ public class Maze
 			layer.hused[y] |= type;
 			return;
 		}
-		if (mode == SR_MAND)
-		{
-			layer.grids[x][y] &= type;
-			layer.vused[x] &= type;
-			layer.hused[y] &= type;
-			return;
-		}
+//		if (mode == SR_MAND)
+//		{
+//			layer.grids[x][y] &= type;
+//			layer.vused[x] &= type;
+//			layer.hused[y] &= type;
+//			return;
+//		}
 		if (mode == SR_MSET)
 		{
 			layer.grids[x][y] = type;
@@ -1932,9 +1943,9 @@ public class Maze
 	}
 
 	/* general control commands */
-	private SRREGION ro_mazeget_region(int wlx, int wly, int whx, int why)
+	private SRREGION ro_mazeget_region(int wLX, int wLY, int wHX, int wHY)
 	{
-		if (wlx > whx || wly > why) return null;
+		if (wLX > wHX || wLY > wHY) return null;
 
 		if (ro_theregion == null)
 		{
@@ -1948,20 +1959,18 @@ public class Maze
 		}
 
 		// now set bounds
-		ro_theregion.lx = wlx;
-		ro_theregion.hx = whx;
-		ro_theregion.ly = wly;
-		ro_theregion.hy = why;
+		ro_theregion.lx = wLX;
+		ro_theregion.hx = wHX;
+		ro_theregion.ly = wLY;
+		ro_theregion.hy = wHY;
 
-		SRLAYER hlayer = ro_mazeadd_layer(ro_theregion, SCH_HORILAYER, SRHORIPREF,
-			ro_mazegridx, ro_mazegridy, ro_mazeoffsetx, ro_mazeoffsety);
+		SRLAYER hlayer = ro_mazeadd_layer(ro_theregion, SCH_HORILAYER, SRHORIPREF);
 		if (hlayer == null)
 		{
 			System.out.println("Could not allocate horizontal layer");
 			return null;
 		}
-		SRLAYER vlayer = ro_mazeadd_layer(ro_theregion, SCH_VERTLAYER, SRVERTPREF,
-			ro_mazegridx, ro_mazegridy, ro_mazeoffsetx, ro_mazeoffsety);
+		SRLAYER vlayer = ro_mazeadd_layer(ro_theregion, SCH_VERTLAYER, SRVERTPREF);
 		if (vlayer == null)
 		{
 			System.out.println("Could not allocate vertical layer");
@@ -1976,10 +1985,13 @@ public class Maze
 		region.nets = null;
 	}
 
-	private SRLAYER ro_mazeadd_layer(SRREGION region, int index, SRDIRECTION direction,
-		int gridx, int gridy, int alignx, int aligny)
+	private SRLAYER ro_mazeadd_layer(SRREGION region, int index, SRDIRECTION direction)
 	{
 		// check for common index
+//		int gridX = 1;
+//		int gridY = 1;
+//		int alignX = 0;
+//		int alignY = 0;
 		SRLAYER layer = region.layers[index];
 		if (layer == null)
 		{
@@ -1995,26 +2007,24 @@ public class Maze
 		layer.mask = 1<<index;
 		layer.dir = direction;
 
-		// determine the range in grid units
-		int tx = alignx % gridx;
-		if (tx < 0) tx += gridx;
-		int ty = aligny % gridy;
-		if (ty < 0) ty += gridy;
+//		// determine the range in grid units
+//		int tX = alignX % gridX;
+//		if (tX < 0) tX += gridX;
+//		int tY = alignY % gridY;
+//		if (tY < 0) tY += gridY;
 
 		// determine the actual bounds of the world
 		// round low bounds up, high bounds down
-		int lx = ((region.lx - tx + gridx - 1) / gridx) * gridx + tx;
-		int ly = ((region.ly - ty + gridy - 1) / gridy) * gridy + ty;
-		int hx = ((region.hx - tx) / gridx) * gridx + tx;
-		int hy = ((region.hy - ty) / gridy) * gridy + ty;
+		int lX = region.lx - 1;
+		int lY = region.ly - 1;
+		int hX = region.hx + 1;
+		int hY = region.hy + 1;
 
 		// translate the region lx, ly into grid units
-		layer.wid = (hx - lx) / gridx + 1;
-		layer.hei = (hy - ly) / gridy + 1;
-		layer.transx = lx; // + tx;
-		layer.transy = ly; // + ty;
-		layer.gridx = gridx;
-		layer.gridy = gridy;
+		layer.wid = (hX - lX) + 1;
+		layer.hei = (hY - lY) + 1;
+		layer.transx = lX;
+		layer.transy = lY;
 
 		// sensibility check
 		if (layer.wid > MAXGRIDSIZE || layer.hei > MAXGRIDSIZE)
@@ -2072,13 +2082,13 @@ public class Maze
 		return layer;
 	}
 
-	private int GRIDX(int Mv, SRLAYER Ml) { return (((Mv) - Ml.transx) / Ml.gridx); }
+	private int GRIDX(int Mv, SRLAYER Ml) { return Mv - Ml.transx; }
 
-	private int GRIDY(int Mv, SRLAYER Ml) { return (((Mv) - Ml.transy) / Ml.gridy); }
+	private int GRIDY(int Mv, SRLAYER Ml) { return Mv - Ml.transy; }
 
-	private int WORLDX(int Mv, SRLAYER Ml) { return (((Mv) * Ml.gridx) + Ml.transx); }
+	private int WORLDX(int Mv, SRLAYER Ml) { return Mv + Ml.transx; }
 
-	private int WORLDY(int Mv, SRLAYER Ml) { return (((Mv) * Ml.gridy) + Ml.transy); }
+	private int WORLDY(int Mv, SRLAYER Ml) { return Mv + Ml.transy; }
 
 	/************************************* CODE TO CREATE RESULTS IN THE CIRCUIT *************************************/
 
@@ -2087,58 +2097,62 @@ public class Maze
 	 */
 	private boolean ro_mazeextract_paths(Cell parent, SRNET net)
 	{
+System.out.println("EXTRACTING PATHS");
 		// adjust paths to account for precise port location
-		int fx = 0, fy = 0;
+		double fX = 0, fY = 0;
 		for (SRPATH path = net.paths; path != null; path = path.next)
 		{
 			if (path.type == SRPFIXED) continue;
+System.out.println("     PATH FROM ("+path.wx[0]+","+path.wy[0]+") to ("+path.wx[1]+","+path.wy[1]+")");
 			SRPORT port = path.port;
-			fx = path.wx[0];   fy = path.wy[0];
-			int ofx = fx, ofy = fy;
+System.out.println("     END 0 PORT="+(path.end[0]==SREPORT)+" END 1 PORT="+(path.end[1]==SREPORT)+" NODE="+port.ni);
+			fX = path.wx[0];   fY = path.wy[0];
+			double oFX = fX, oFY = fY;
 			if (path.end[0] == SREPORT && port.ni != null)
 			{
-				if (fx < port.lx) fx = port.lx;
-				if (fx > port.hx) fx = port.hx;
-				if (fy < port.ly) fy = port.ly;
-				if (fy > port.hy) fy = port.hy;
-				if (fx != ofx || fy != ofy)
-					ro_mazeadjustpath(net.paths, path, 0, fx-ofx, fy-ofy);
+				fX = port.cX;   fY = port.cY;
+System.out.println("     ADJUSTING PORT END TO ("+fX+","+fY+")");
+				if (fX != oFX || fY != oFY)
+				{
+					ro_mazeadjustpath(net.paths, path, 0, fX-oFX, fY-oFY);
+				}
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? ro_mazevertwire : ro_mazehoriwire;
-				List portInstList = ro_mazefindport(parent, fx, fy, ap, true);
+				List portInstList = ro_mazefindport(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
 					PortInst pi = (PortInst)portInstList.get(0);
 					Poly portPoly = pi.getPoly();
-					Point2D closest = portPoly.closestPoint(new Point2D.Double(fx, fy));
-					if (closest.getX() != ofx || closest.getY() != ofy)
-						ro_mazeadjustpath(net.paths, path, 0, (int)(closest.getX()-ofx), (int)(closest.getY()-ofy));
+					Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
+					if (closest.getX() != oFX || closest.getY() != oFY)
+						ro_mazeadjustpath(net.paths, path, 0, (int)(closest.getX()-oFX), (int)(closest.getY()-oFY));
 				}
 			}
 
-			fx = ofx = path.wx[1];   fy = ofy = path.wy[1];
+			fX = oFX = path.wx[1];   fY = oFY = path.wy[1];
 			if (path.end[1] == SREPORT && port.ni != null)
 			{
-				if (fx < port.lx) fx = port.lx;
-				if (fx > port.hx) fx = port.hx;
-				if (fy < port.ly) fy = port.ly;
-				if (fy > port.hy) fy = port.hy;
-				if (fx != ofx || fy != ofy)
-					ro_mazeadjustpath(net.paths, path, 1, fx-ofx, fy-ofy);
+				fX = port.cX;   fY = port.cY;
+System.out.println("     ADJUSTING PORT END TO ("+fX+","+fY+")");
+				if (fX != oFX || fY != oFY)
+				{
+					ro_mazeadjustpath(net.paths, path, 1, fX-oFX, fY-oFY);
+				}
 			} else
 			{
 				ArcProto ap = path.layer.index != 0 ? ro_mazevertwire : ro_mazehoriwire;
-				List portInstList = ro_mazefindport(parent, fx, fy, ap, true);
+				List portInstList = ro_mazefindport(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
 					PortInst pi = (PortInst)portInstList.get(0);
 					Poly portPoly = pi.getPoly();
-					Point2D closest = portPoly.closestPoint(new Point2D.Double(fx, fy));
-					if (closest.getX() != ofx || closest.getY() != ofy)
-						ro_mazeadjustpath(net.paths, path, 1, (int)(closest.getX()-ofx), (int)(closest.getY()-ofy));
+					Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
+					if (closest.getX() != oFX || closest.getY() != oFY)
+						ro_mazeadjustpath(net.paths, path, 1, (int)(closest.getX()-oFX), (int)(closest.getY()-oFY));
 				}
 			}
+System.out.println("     BECOMES ("+path.wx[0]+","+path.wy[0]+") to ("+path.wx[1]+","+path.wy[1]+")");
 		}
 
 		for (SRPATH path = net.paths; path != null; path = path.next)
@@ -2147,14 +2161,15 @@ public class Maze
 			ArcProto ap = path.layer.index != 0 ? ro_mazevertwire : ro_mazehoriwire;
 
 			// create arc between the end points
-			fx = path.wx[0];   fy = path.wy[0];
-			List fromPortInstList = ro_mazefindport(parent, fx, fy, ap, false);
+			fX = path.wx[0];   fY = path.wy[0];
+			List fromPortInstList = ro_mazefindport(parent, fX, fY, ap, net, false);
 			if (fromPortInstList.size() == 0)
 			{
 				// create the from pin
-				double xs = ro_mazesteiner.getDefWidth();
-				double ys = ro_mazesteiner.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(ro_mazesteiner, new Point2D.Double(fx, fy), xs, ys, parent);
+				double xS = ro_mazesteiner.getDefWidth();
+				double yS = ro_mazesteiner.getDefHeight();
+System.out.println("Making FROM pin node at ("+fX+","+fY+")");
+				NodeInst ni = NodeInst.makeInstance(ro_mazesteiner, new Point2D.Double(fX, fY), xS, yS, parent);
 				if (ni == null)
 				{
 					System.out.println("Could not create pin");
@@ -2163,14 +2178,15 @@ public class Maze
 				fromPortInstList.add(ni.getPortInst(0));
 			}
 
-			int tx = path.wx[1];   int ty = path.wy[1];
-			List toPortInstList = ro_mazefindport(parent, tx, ty, ap, false);
+			double tX = path.wx[1];   double tY = path.wy[1];
+			List toPortInstList = ro_mazefindport(parent, tX, tY, ap, net, false);
 			if (toPortInstList.size() == 0)
 			{
 				// create the from pin
-				double xs = ro_mazesteiner.getDefWidth();
-				double ys = ro_mazesteiner.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(ro_mazesteiner, new Point2D.Double(tx, ty), xs, ys, parent);
+				double xS = ro_mazesteiner.getDefWidth();
+				double yS = ro_mazesteiner.getDefHeight();
+System.out.println("Making TO pin node at ("+tX+","+tY+")");
+				NodeInst ni = NodeInst.makeInstance(ro_mazesteiner, new Point2D.Double(tX, tY), xS, yS, parent);
 				if (ni == null)
 				{
 					System.out.println("Could not create pin");
@@ -2185,7 +2201,10 @@ public class Maze
 				// now make the connection (simple wire to wire for now)
 				PortInst fPi = (PortInst)fromPortInstList.get(0);
 				PortInst tPi = (PortInst)toPortInstList.get(0);
+System.out.println("Making " + ap.describe() + " arc");
 				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi);
+System.out.println("Made " + ap.describe() + " arc from ("+ai.getHead().getLocation().getX()+","+ai.getHead().getLocation().getY()+
+	") and ("+ai.getTail().getLocation().getX()+","+ai.getTail().getLocation().getY()+")");
 				if (ai == null)
 				{
 					System.out.println("Could not create path (arc)");
@@ -2202,54 +2221,54 @@ public class Maze
 	 * Method to recursively adjust paths to account for port positions that may not
 	 * be on the grid.
 	 */
-	private void ro_mazeadjustpath(SRPATH paths, SRPATH thispath, int end, int dx, int dy)
+	private void ro_mazeadjustpath(SRPATH paths, SRPATH thisPath, int end, double dX, double dY)
 	{
-		if (dx != 0)
+		if (dX != 0)
 		{
-			int formerthis = thispath.wx[end];
-			int formerother = thispath.wx[1-end];
-			thispath.wx[end] += dx;
-			if (formerthis == formerother)
+			double formerThis = thisPath.wx[end];
+			double formerOther = thisPath.wx[1-end];
+			thisPath.wx[end] += dX;
+			if (formerThis == formerOther)
 			{
-				int formerx = thispath.wx[1-end];
-				int formery = thispath.wy[1-end];
-				thispath.wx[1-end] += dx;
+				double formerX = thisPath.wx[1-end];
+				double formerY = thisPath.wy[1-end];
+				thisPath.wx[1-end] += dX;
 				for (SRPATH opath = paths; opath != null; opath = opath.next)
 				{
-					if (opath.wx[0] == formerx && opath.wy[0] == formery)
+					if (opath.wx[0] == formerX && opath.wy[0] == formerY)
 					{
-						ro_mazeadjustpath(paths, opath, 0, dx, 0);
+						ro_mazeadjustpath(paths, opath, 0, dX, 0);
 						break;
 					}
-					if (opath.wx[1] == formerx && opath.wy[1] == formery)
+					if (opath.wx[1] == formerX && opath.wy[1] == formerY)
 					{
-						ro_mazeadjustpath(paths, opath, 1, dx, 0);
+						ro_mazeadjustpath(paths, opath, 1, dX, 0);
 						break;
 					}
 				}
 			}
 		}
 
-		if (dy != 0)
+		if (dY != 0)
 		{
-			int formerthis = thispath.wy[end];
-			int formerother = thispath.wy[1-end];
-			thispath.wy[end] += dy;
-			if (formerthis == formerother)
+			double formerThis = thisPath.wy[end];
+			double formerOther = thisPath.wy[1-end];
+			thisPath.wy[end] += dY;
+			if (formerThis == formerOther)
 			{
-				int formerx = thispath.wx[1-end];
-				int formery = thispath.wy[1-end];
-				thispath.wy[1-end] += dy;
+				double formerX = thisPath.wx[1-end];
+				double formerY = thisPath.wy[1-end];
+				thisPath.wy[1-end] += dY;
 				for (SRPATH opath = paths; opath != null; opath = opath.next)
 				{
-					if (opath.wx[0] == formerx && opath.wy[0] == formery)
+					if (opath.wx[0] == formerX && opath.wy[0] == formerY)
 					{
-						ro_mazeadjustpath(paths, opath, 0, 0, dy);
+						ro_mazeadjustpath(paths, opath, 0, 0, dY);
 						break;
 					}
-					if (opath.wx[1] == formerx && opath.wy[1] == formery)
+					if (opath.wx[1] == formerX && opath.wy[1] == formerY)
 					{
-						ro_mazeadjustpath(paths, opath, 1, 0, dy);
+						ro_mazeadjustpath(paths, opath, 1, 0, dY);
 						break;
 					}
 				}
@@ -2257,66 +2276,66 @@ public class Maze
 		}
 	}
 
-	private List ro_mazefindport(Cell cell, int x, int y, ArcProto ap, boolean forcefind)
+	private List ro_mazefindport(Cell cell, double x, double y, ArcProto ap, SRNET srnet, boolean forceFind)
 	{
 		List portInstList = new ArrayList();
-		ArcInst ai = ro_mazefindport_geom(cell, x, y, ap, portInstList, forcefind);
-		if (portInstList.size() == 0 && ai != null)
-		{
-			// direct hit on an arc, verify connection
-			ArcProto nap = ai.getProto();
-			NodeProto np = ((PrimitiveArc)nap).findPinProto();
-			if (np == null) return null;
-			PortProto pp = np.getPort(0);
-			ArcProto [] connectList = pp.getBasePort().getConnections();
-			boolean found = false;
-			for (int j = 0; j < connectList.length; j++)
-				if (connectList[j] == ap) { found = true;   break; }
-			if (!found) return null;
-
-			// try to split arc (from us_getnodeonarcinst)*/
-			// break is at (prefx, prefy): save information about the arcinst
-			PortInst fpi = ai.getHead().getPortInst();
-			PortInst tpi = ai.getTail().getPortInst();
-			Point2D fPt = ai.getHead().getLocation();
-			Point2D tPt = ai.getTail().getLocation();
-			double wid = ai.getWidth();  Cell pnt = ai.getParent();
-
-			// create the splitting pin
-			double xs = np.getDefWidth();
-			double ys = np.getDefHeight();
-			Point2D loc = new Point2D.Double(x, y);
-			NodeInst ni = NodeInst.makeInstance(np, loc, xs, ys, pnt);
-			if (ni == null)
-			{
-				System.out.println("Cannot create splitting pin");
-				return null;
-			}
-
-			// set the node, and port
-			PortInst pi = ni.findPortInstFromProto(pp);
-			portInstList.add(pi);
-
-			// create the two new arcinsts
-			ArcInst ar1 = ArcInst.makeInstance(nap, wid, fpi, pi, fPt, loc, ai.getName());
-			ArcInst ar2 = ArcInst.makeInstance(nap, wid, pi, tpi, loc, tPt, ai.getName());
-			if (ar1 == null || ar2 == null)
-			{
-				System.out.println("Error creating the split arc parts");
-				return portInstList;
-			}
-			ar1.copyPropertiesFrom(ai);
-
-			if (GenMath.figureAngle(fPt, loc) != GenMath.figureAngle(loc, tPt))
-			{
-				ar1.setFixedAngle(false);
-				ar2.setFixedAngle(false);
-			}
-
-			// delete the old arcinst
-			ai.kill();
-		}
-
+		ArcInst ai = ro_mazefindport_geom(cell, x, y, ap, portInstList, srnet, forceFind);
+//		if (portInstList.size() == 0 && ai != null)
+//		{
+//			// direct hit on an arc, verify connection
+//			ArcProto nAp = ai.getProto();
+//			NodeProto np = ((PrimitiveArc)nAp).findPinProto();
+//			if (np == null) return null;
+//			PortProto pp = np.getPort(0);
+//			ArcProto [] connectList = pp.getBasePort().getConnections();
+//			boolean found = false;
+//			for (int j = 0; j < connectList.length; j++)
+//				if (connectList[j] == ap) { found = true;   break; }
+//			if (!found) return null;
+//
+//			// try to split arc (from us_getnodeonarcinst)*/
+//			// break is at (prefx, prefy): save information about the arcinst
+//			PortInst fPi = ai.getHead().getPortInst();
+//			PortInst tPi = ai.getTail().getPortInst();
+//			Point2D fPt = ai.getHead().getLocation();
+//			Point2D tPt = ai.getTail().getLocation();
+//			double wid = ai.getWidth();  Cell pnt = ai.getParent();
+//
+//			// create the splitting pin
+//			double xS = np.getDefWidth();
+//			double yS = np.getDefHeight();
+//			Point2D loc = new Point2D.Double(x, y);
+//			NodeInst ni = NodeInst.makeInstance(np, loc, xS, yS, pnt);
+//			if (ni == null)
+//			{
+//				System.out.println("Cannot create splitting pin");
+//				return null;
+//			}
+//
+//			// set the node, and port
+//			PortInst pi = ni.findPortInstFromProto(pp);
+//			portInstList.add(pi);
+//
+//			// create the two new arcinsts
+//			ArcInst ai1 = ArcInst.makeInstance(nAp, wid, fPi, pi, fPt, loc, ai.getName());
+//			ArcInst ai2 = ArcInst.makeInstance(nAp, wid, pi, tPi, loc, tPt, ai.getName());
+//			if (ai1 == null || ai2 == null)
+//			{
+//				System.out.println("Error creating the split arc parts");
+//				return portInstList;
+//			}
+//			ai1.copyPropertiesFrom(ai);
+//
+//			if (GenMath.figureAngle(fPt, loc) != GenMath.figureAngle(loc, tPt))
+//			{
+//				ai1.setFixedAngle(false);
+//				ai2.setFixedAngle(false);
+//			}
+//
+//			// delete the old arcinst
+//			ai.kill();
+//		}
+System.out.println("Looking for port at ("+x+","+y+") and found "+portInstList.size());
 		return portInstList;
 	}
 
@@ -2334,13 +2353,12 @@ public class Maze
 	 * ni = found ni instance
 	 * pp = found pp proto.
 	 */
-	private ArcInst ro_mazefindport_geom(Cell cell, int x, int y, ArcProto ap,
-		List portInstList, boolean forcefind)
+	private ArcInst ro_mazefindport_geom(Cell cell, double x, double y, ArcProto ap, List portInstList, SRNET srnet, boolean forceFind)
 	{
 		ArcInst foundAi = null;
 		Point2D searchPoint = new Point2D.Double(x, y);
-		double bestdist = 0;
-		PortInst closestpi = null;
+		double bestDist = 0;
+		PortInst closestPi = null;
 		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
 		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
 		{
@@ -2349,11 +2367,12 @@ public class Maze
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
-//				if (ni.getProto() instanceof PrimitiveNode &&
-//					(ni.getFunction() == PrimitiveNode.Function.PIN &&
-//					ni.getNumConnections() > 0 &&
-//					ni->firstportarcinst->conarcinst->network != null &&
-//					ni->firstportarcinst->conarcinst->network->temp1 < 2) break;
+				if (ni.getProto() instanceof PrimitiveNode && ni.getFunction() == PrimitiveNode.Function.PIN)
+				{
+//					PortInst pi = ni.getOnlyPortInst();
+//					Network eNet = netList.getNetwork(pi);
+//					if (eNet != srnet.eNet) continue;
+				}
 
 				// now locate a portproto
 				for(Iterator it = ni.getPortInsts(); it.hasNext(); )
@@ -2371,27 +2390,78 @@ public class Maze
 					{
 						double dist = portPoly.polyDistance(new Rectangle2D.Double(x, y, 0, 0));
 
-						// LINTED "bestdist" used in proper order
-						if (closestpi == null || dist < bestdist)
+						// LINTED "bestDist" used in proper order
+						if (closestPi == null || dist < bestDist)
 						{
-							bestdist = dist;
-							closestpi = pi;
+							bestDist = dist;
+							closestPi = pi;
 						}
 					}
 				}
 			} else
 			{
-				ArcInst ai = (ArcInst)geom;
-//				if (ai->network != null && ai->network->temp1 != 2) break;
-				foundAi = ai;
+//				ArcInst ai = (ArcInst)geom;
+//				Network eNet = netList.getNetwork(ai, 0);
+//				if (eNet != srnet.eNet) continue;
+//				foundAi = ai;
 			}
 		}
 
-		if (portInstList.size() == 0 && forcefind && closestpi != null && bestdist < ro_mazegridx)
+		if (portInstList.size() == 0 && forceFind && closestPi != null && bestDist < 1)
 		{
-			portInstList.add(closestpi);
+			portInstList.add(closestPi);
 		}
 		return foundAi;
+	}
+
+	/**
+	 * Debugging code to show the maze.
+	 */
+	private void ro_mazedump_layer(String message, SRREGION region, byte layers)
+	{
+		// scan for the first layer
+		SRLAYER layer = null;
+		for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
+		{
+			if ((mask & layers) == 0) continue;
+			layer = region.layers[index];
+			if (layer != null) break;
+		}
+		int hei = layer.hei;
+		int wid = layer.wid;
+		System.out.println("====================== " + message + " ======================");
+		System.out.print("   ");
+		for (int x = 0; x < wid; x++) System.out.print((x / 10));
+		System.out.print("\n   ");
+		for (int x = 0; x < wid; x++) System.out.print((x % 10));
+		System.out.println("");
+		for (int y = hei-1; y >= 0; y--)
+		{
+			System.out.print(y);
+			for (int x = 0; x < wid; x++)
+			{
+				char gpt = ' ';
+				for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
+				{
+					if ((mask & layers) == 0) continue;
+					layer = region.layers[index];
+					if (layer == null) continue;
+					if ((layer.grids[x][y] & SR_GSET) != 0)
+					{
+						if ((layer.grids[x][y] & SR_GPORT) != 0) gpt = 'P'; else
+							gpt = '*';
+					} else
+					{
+						if ((layer.grids[x][y] & SR_GWAVE) != 0) gpt = 'W'; else
+							if (layer.grids[x][y] != 0)
+								gpt = (char)('A' + (layer.grids[x][y] & SR_GMASK) - SR_GSTART);
+					}
+				}
+				System.out.print(gpt);
+			}
+			System.out.println("");
+		}
+		System.out.println("");
 	}
 
 }

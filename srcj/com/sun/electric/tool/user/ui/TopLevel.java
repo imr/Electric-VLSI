@@ -112,7 +112,7 @@ public class TopLevel extends JFrame
 		getContentPane().setLayout(new BorderLayout());
 
 		// set an icon on the window
-		setIconImage(Resources.getResource(getClass(), "IconElectric.gif").getImage());
+		setIconImage(getFrameIcon().getImage());
 
 		// create the menu bar
 		menuBar = MenuCommands.createMenuBar();
@@ -149,6 +149,15 @@ public class TopLevel extends JFrame
 		catch (Exception e) {
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * Method to return the Icon to use in windows.
+	 * @return the Icon to use in windows.
+	 */
+	public static ImageIcon getFrameIcon()
+	{
+		return Resources.getResource(TopLevel.class, "IconElectric.gif");
 	}
 
 	/**

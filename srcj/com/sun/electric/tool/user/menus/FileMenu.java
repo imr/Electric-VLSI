@@ -450,7 +450,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, OpenFile.Type type, boolean compatibleWith6)
         {
-            super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Write Library "+lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;
@@ -643,7 +643,10 @@ public class FileMenu {
  		if (pageFormat == null)
 			pageFormat = pj.defaultPage();
 
-		ElectricPrinter ep = new ElectricPrinter();
+ 		javax.print.attribute.PrintRequestAttributeSet pset = new javax.print.attribute.HashPrintRequestAttributeSet();
+ 		pset.add(new javax.print.attribute.standard.PrinterResolution(150, 150, javax.print.attribute.ResolutionSyntax.DPI));
+
+ 		ElectricPrinter ep = new ElectricPrinter();
 		ep.setPrintWindow(wf);
         pj.setPrintable(ep, pageFormat);
 
@@ -670,7 +673,7 @@ public class FileMenu {
             }
         }
 
-        if (pj.printDialog())
+        if (pj.printDialog(pset))
         {
 			// disable double-buffering so prints look better
 			JPanel overall = wf.getContent().getPanel();

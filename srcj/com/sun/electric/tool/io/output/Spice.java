@@ -1146,7 +1146,7 @@ public class Spice extends Topology
 
     /** Method to report that export names do NOT take precedence over
      * arc names when determining the name of the network. */
-    protected boolean isNetworksUseExportedNames() { return false; }
+    protected boolean isNetworksUseExportedNames() { return true; }
 
 	/** Method to report that library names are NOT always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }

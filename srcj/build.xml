@@ -41,26 +41,28 @@
     </target>
 
     <target name="jar" depends="init,compile" description="Make binary Jar file">
-        <property name="version" value=""/>
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
         <unjar dest="." src="${beanshell}"/> 
         <unjar dest="." src="${AppleJava}"/> 
         <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
+        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
             <exclude name="build.xml"/>
             <exclude name="ChangeLog.txt"/>
-            <exclude name="electric${version}.jar"/>
-            <exclude name="electric${version}.mf"/>
+            <exclude name="electric-${version}.jar"/>
+            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
             <exclude name="classes/"/>            
         </jar>
-        <delete file="electric${version}.mf"/>
+        <delete file="electric.mf"/>
         <delete dir="bsh"/>
         <delete dir="com/apple"/>
         <delete quiet="true">
@@ -96,8 +98,8 @@
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
+        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
@@ -105,13 +107,13 @@
             <exclude name="build.xml"/>
             <exclude name="ChangeLog.txt"/>
             <exclude name="electric${version}.jar"/>
-            <exclude name="electric${version}.mf"/>
+            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
             <exclude name="classes/"/>
         </jar>
-        <delete file="electric${version}.mf"/>
+        <delete file="electric.mf"/>
         <delete dir="bsh"/>
         <delete dir="com/apple"/>
         <delete quiet="true">
@@ -133,25 +135,27 @@
     </target>
 
     <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
-        <property name="version" value=""/>
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
         <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
+        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="packaging/electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
-            <exclude name="electric${version}.jar"/>
-            <exclude name="electric${version}.mf"/>
+            <exclude name="electric-${version}.jar"/>
+            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*"/>
+	        <exclude name="com/sun/electric/plugins/skill/*.*"/>
 	        <exclude name="com/sun/electric/tool/simulation/interval/*.*"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
-        <delete file="electric${version}.mf"/>
+        <delete file="electric.mf"/>
         <delete dir="com/apple"/>
         <delete quiet="true">
             <fileset dir="com">
@@ -161,21 +165,24 @@
     </target>
 
     <target name="jarGNUSource" depends="init,compile" description="Make source Jar file for GNU">
-        <property name="version" value=""/>
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
         <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
+        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="packaging/electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
-            <exclude name="electric${version}.jar"/>
-            <exclude name="electric${version}.mf"/>
+            <exclude name="electric-${version}.jar"/>
+            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*"/>
+	        <exclude name="com/sun/electric/plugins/skill/*.*"/>
         </jar>
-        <delete file="electric${version}.mf"/>
+        <delete file="electric.mf"/>
         <delete dir="com/apple"/>
         <delete quiet="true">
             <fileset dir="com">

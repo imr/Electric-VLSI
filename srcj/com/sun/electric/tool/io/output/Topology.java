@@ -421,10 +421,30 @@ public abstract class Topology extends Output
 				Network net = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 				if (cs == null) continue;
+
+				// if there is already an export on this signal, make sure that it is wider
+				if (cs.pp != null)
+				{
+					int oldPortWidth = cni.netList.getBusWidth(cs.pp);
+					if (isAggregateNamesSupported())
+					{
+						// with aggregate names, the widest bus is the best, so that long runs can be emitted
+						if (oldPortWidth >= portWidth) continue;
+					} else
+					{
+						// without aggregate names, individual signal names are more important
+						if (oldPortWidth == 1) continue;
+						if (portWidth != 1 && oldPortWidth >= portWidth) continue;
+					}
+				}
+
+				// save this export's information
 				cs.pp = pp;
+				cs.ppIndex = i;
 				if (useExportedName)
 				{
 					String rootName = pp.getName();
+					if (portWidth == 1) cs.name = rootName;
 					int openPos = rootName.indexOf('[');
 					if (openPos > 0)
 					{
@@ -438,12 +458,13 @@ public abstract class Topology extends Output
 							{
 								exportRootName = exportRootName.substring(0, openPos);
 								if (rootName.equals(exportRootName))
+								{
 									cs.name = rootName + exportNetName.substring(openPos);
+								}
 							}
 						}
 					}
 				}
-                cs.ppIndex = i;
 			}
 
 			if (portWidth <= 1) continue;
@@ -569,37 +590,37 @@ public abstract class Topology extends Output
 			cs.ground = true;
 		}
 
-		// find the widest export associated with each network
-		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
-		{
-			Network net = (Network)it.next();
-			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
-			if (cs.pp == null) continue;
-
-			// find the widest export that touches this network
-			int widestFound = cni.netList.getBusWidth(cs.pp);
-			Export widestPp = null;
-			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
-			{
-				Export pp = (Export)eIt.next();
-				int portWidth = cni.netList.getBusWidth(pp);
-				boolean found = false;
-				for(int j=0; j<portWidth; j++)
-				{
-					Network subNet = cni.netList.getNetwork(pp, j);
-					if (subNet == net) found = true;
-				}
-				if (found)
-				{
-					if (portWidth > widestFound)
-					{
-						widestFound = portWidth;
-						widestPp = pp;
-					}
-				}
-			}
-			if (widestPp != null) cs.pp = widestPp;
-		}
+//		// find the widest export associated with each network
+//		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
+//		{
+//			Network net = (Network)it.next();
+//			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
+//			if (cs.pp == null) continue;
+//
+//			// find the widest export that touches this network
+//			int widestFound = cni.netList.getBusWidth(cs.pp);
+//			Export widestPp = null;
+//			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
+//			{
+//				Export pp = (Export)eIt.next();
+//				int portWidth = cni.netList.getBusWidth(pp);
+//				boolean found = false;
+//				for(int j=0; j<portWidth; j++)
+//				{
+//					Network subNet = cni.netList.getNetwork(pp, j);
+//					if (subNet == net) found = true;
+//				}
+//				if (found)
+//				{
+//					if (portWidth > widestFound)
+//					{
+//						widestFound = portWidth;
+//						widestPp = pp;
+//					}
+//				}
+//			}
+//			if (widestPp != null) cs.pp = widestPp;
+//		}
 
 		// make an array of the CellSignals
 		cni.cellSignalsSorted = new ArrayList();

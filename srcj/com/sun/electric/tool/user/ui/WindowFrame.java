@@ -233,7 +233,7 @@ public class WindowFrame
 			windowList.add(this);
 		}
 	}
-    
+
 	/**
 	 * Create the JFrame that will hold all the Components in 
 	 * this WindowFrame.
@@ -248,7 +248,7 @@ public class WindowFrame
 			jif.setSize(frameSize);
 			jif.setLocation(windowOffset+150, windowOffset);
 			jif.setAutoscrolls(true);
-			jif.setFrameIcon(Resources.getResource(WindowFrame.class, "IconElectric.gif"));
+			jif.setFrameIcon(TopLevel.getFrameIcon());
 		} else
 		{
 			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
