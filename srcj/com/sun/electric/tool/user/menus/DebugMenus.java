@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -510,7 +511,67 @@ public class DebugMenus {
 	}
 
     public static void shakeDisplay() {
-        RedisplayTest job = new RedisplayTest(150);
+        //RedisplayTest job = new RedisplayTest(50);
+        //RedrawTest test = new RedrawTest();
+        long startTime = System.currentTimeMillis();
+
+        EditWindow wnd = EditWindow.getCurrent();
+        for (int i=0; i<100; i++) {
+            //wnd.redrawTestOnly();
+            //doWait();
+        }
+        long endTime = System.currentTimeMillis();
+
+        StringBuffer buf = new StringBuffer();
+        Date start = new Date(startTime);
+        buf.append("  start time: "+start+"\n");
+        Date end = new Date(endTime);
+        buf.append("  end time: "+end+"\n");
+        long time = endTime - startTime;
+        buf.append("  time taken: "+TextUtils.getElapsedTime(time)+"\n");
+        System.out.println(buf.toString());
+
+    }
+
+    private static class RedrawTest extends Job {
+
+        private RedrawTest() {
+            super("RedrawTest", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt() {
+            long startTime = System.currentTimeMillis();
+
+            EditWindow wnd = EditWindow.getCurrent();
+            for (int i=0; i<100; i++) {
+                if (getScheduledToAbort()) return false;
+                //wnd.redrawTestOnly();
+                //doWait();
+            }
+            long endTime = System.currentTimeMillis();
+
+            StringBuffer buf = new StringBuffer();
+            Date start = new Date(startTime);
+            buf.append("  start time: "+start+"\n");
+            Date end = new Date(endTime);
+            buf.append("  end time: "+end+"\n");
+            long time = endTime - startTime;
+            buf.append("  time taken: "+TextUtils.getElapsedTime(time)+"\n");
+            System.out.println(buf.toString());
+
+            return true;
+        }
+
+        private void doWait() {
+            try {
+                boolean donesleeping = false;
+                while (!donesleeping) {
+                    Thread.sleep(100);
+                    donesleeping = true;
+                }
+            } catch (InterruptedException e) {}
+        }
     }
 
     private static class RedisplayTest extends Job {
@@ -526,7 +587,7 @@ public class DebugMenus {
         public boolean doIt() {
             Random rand = new Random(143137493);
 
-            for (int i=0; i<100; i++) {
+            for (int i=0; i<200; i++) {
                 if (getScheduledToAbort()) return false;
 
                 WindowFrame wf = WindowFrame.getCurrentWindowFrame();
@@ -540,6 +601,7 @@ public class DebugMenus {
                 }
                 doWait();
             }
+            System.out.println(getInfo());
             return true;
         }
 

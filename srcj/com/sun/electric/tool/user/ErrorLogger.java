@@ -378,7 +378,7 @@ public class ErrorLogger implements ActionListener {
      * with the given text "message" applying to cell "cell".
      * Returns a pointer to the message (0 on error) which can be used to add highlights.
      */
-    public ErrorLog logError(String message, Cell cell, int sortKey)
+    public synchronized ErrorLog logError(String message, Cell cell, int sortKey)
     {
         if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
@@ -440,7 +440,7 @@ public class ErrorLogger implements ActionListener {
         WindowFrame.wantToRedoErrorTree();
     }
 
-    public String describe() {
+    public synchronized String describe() {
         if (currentLogger == this) return errorSystem + " [Current]";
         return errorSystem;
     }
@@ -448,7 +448,7 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method called when all errors are logged.  Initializes pointers for replay of errors.
      */
-    public void termLogging(boolean explain)
+    public synchronized void termLogging(boolean explain)
     {
         // enumerate the errors
         int errs = 0;
@@ -480,7 +480,7 @@ public class ErrorLogger implements ActionListener {
      * Method to sort the errors by their "key" (a value provided to "logerror()").
      * Obviously, this should be called after all errors have been reported.
      */
-    public void sortErrors()
+    public synchronized void sortErrors()
     {
         Collections.sort(allErrors, new ErrorLogOrder());
     }
@@ -498,7 +498,7 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method to return the number of logged errors.
      */
-    public int numErrors()
+    public synchronized int numErrors()
     {
         return trueNumErrors;
     }
@@ -514,13 +514,13 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method to advance to the next error and report it.
      */
-    public static String reportNextError(boolean showhigh, Geometric [] gPair)
+    public synchronized static String reportNextError(boolean showhigh, Geometric [] gPair)
     {
         if (currentLogger == null) return "No errors to report";
         return currentLogger.reportNextError_(showhigh, gPair);
     }
 
-    private String reportNextError_(boolean showHigh, Geometric [] gPair) {
+    private synchronized String reportNextError_(boolean showHigh, Geometric [] gPair) {
         if (currentErrorNumber < allErrors.size()-1)
         {
             currentErrorNumber++;
@@ -535,13 +535,13 @@ public class ErrorLogger implements ActionListener {
     /**
      * Method to back up to the previous error and report it.
      */
-    public static String reportPrevError()
+    public synchronized static String reportPrevError()
     {
         if (currentLogger == null) return "No errors to report";
         return currentLogger.reportPrevError_();
     }
 
-    private String reportPrevError_() {
+    private synchronized String reportPrevError_() {
         if (currentErrorNumber > 0)
         {
             currentErrorNumber--;
@@ -560,7 +560,7 @@ public class ErrorLogger implements ActionListener {
      * @param gPair
      * @return
      */
-    private String reportError(int errorNumber, boolean showHigh, Geometric [] gPair) {
+    private synchronized String reportError(int errorNumber, boolean showHigh, Geometric [] gPair) {
 
         if (errorNumber < 0 || (errorNumber >= allErrors.size())) {
             return errorSystem + ": no such error "+(errorNumber+1)+", only "+numErrors()+" errors.";
@@ -574,15 +574,21 @@ public class ErrorLogger implements ActionListener {
      * Method to tell the number of logged errors.
      * @return the number of "ErrorLog" objects logged.
      */
-    public int getNumErrors() { return allErrors.size(); }
+    public synchronized int getNumErrors() { return allErrors.size(); }
 
     /**
      * Method to list all logged errors.
      * @return an Iterator over all of the "ErrorLog" objects.
      */
-    public Iterator getErrors() { return allErrors.iterator(); }
+    public synchronized Iterator getErrors() {
+        List copy = new ArrayList();
+        for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+            copy.add(it.next());
+        }
+        return copy.iterator();
+    }
 
-    public void deleteError(ErrorLog error) {
+    public synchronized void deleteError(ErrorLog error) {
         if (!allErrors.contains(error)) {
             System.out.println(errorSystem+ ": Does not contain error to delete");
         }
