@@ -219,7 +219,7 @@ public class DesignRulesTab extends PreferencePanel
 		});
 
 		// load the dialog
-		drTechName.setText(drRules.techName);
+		drTechName.setText("'"+drRules.techName+"'");
 		designRulesSetupForLayersOrNodes();
 		designRulesGetSelectedLayerLoadDRCToList();
 	}

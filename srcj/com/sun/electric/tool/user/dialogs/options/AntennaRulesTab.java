@@ -77,7 +77,7 @@ public class AntennaRulesTab extends PreferencePanel
 		});
 		antMaxRatio.getDocument().addDocumentListener(new AntennaRatioDocumentListener(this));
 
-		antTechnology.setText(curTech.getTechName());
+		antTechnology.setText("'"+curTech.getTechName()+"'");
 		antennaOptions = new HashMap();
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
