@@ -395,7 +395,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /** Current Logger */               private static ErrorLogger currentLogger;
     /** List of all loggers */          private static List allLoggers = new ArrayList();
 
-	private static boolean alreadyExplained = false;
+	private boolean alreadyExplained;
 
     private int trueNumErrors;
     private int errorLimit;
@@ -437,6 +437,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
         logger.persistent = persistent;
+        logger.alreadyExplained = false;
         synchronized(allLoggers) {
             if (currentLogger == null) currentLogger = logger;
             allLoggers.add(logger);
