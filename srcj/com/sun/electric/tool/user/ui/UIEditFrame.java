@@ -105,7 +105,7 @@ public class UIEditFrame extends JInternalFrame
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{
 			UIEditFrame uif = (UIEditFrame)it.next();
-			uif.tree.repaint();
+			uif.tree.updateUI();
 		}
 	}
 

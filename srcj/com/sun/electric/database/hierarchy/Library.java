@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.tool.user.ui.UIEditFrame;
 
 import java.util.List;
 import java.util.Comparator;
@@ -396,10 +397,13 @@ public class Library extends ElectricObject
 		if (explorerTree == null)
 			explorerTree = new DefaultMutableTreeNode("CONTENTS VIEW");
 		explorerTree.removeAllChildren();
+		Library curLib = Library.getCurrent();
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode("Library " + lib.getLibName());
+			String nodeName = "Library " + lib.getLibName();
+			if (lib == curLib) nodeName = "Current " + nodeName;
+			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(nodeName);
 			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
@@ -408,7 +412,7 @@ public class Library extends ElectricObject
 			}
 			explorerTree.add(libTree);
 		}
-//		UIEditFrame.explorerTreeChanged();
+		UIEditFrame.explorerTreeChanged();
 		return explorerTree;
 	}
 

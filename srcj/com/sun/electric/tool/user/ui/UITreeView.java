@@ -52,7 +52,7 @@ public class UITreeView extends JTree
 		setShowsRootHandles(true);
 
 		// show one level of indentation
-		collapseRow(1);
+	//	collapseRow(1);
 	}
 
 	public static UITreeView CreateTreeView(TreeNode str, UIEdit wnd)
