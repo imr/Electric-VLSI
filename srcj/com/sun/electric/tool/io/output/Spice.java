@@ -347,7 +347,12 @@ public class Spice extends Topology
             return;
         }
 
-        infstr.append(" M=" + formatParam(value.toString()));
+        // CDL doesn't like single quotes around mfactor value.  In fact, it doesn't support
+        // parameters at all, but it seems to be ok with M factors.
+        if (useCDL)
+            infstr.append(" M=" + value.toString());
+        else
+            infstr.append(" M=" + formatParam(value.toString()));
     }
 
 	/**
@@ -1627,7 +1632,7 @@ public class Spice extends Topology
 		return false;
 	}
 
-    private static final boolean CELLISEMPTYDEBUG = true;
+    private static final boolean CELLISEMPTYDEBUG = false;
     private HashMap checkedCells = new HashMap();
     private boolean cellIsEmpty(Cell cell)
     {
