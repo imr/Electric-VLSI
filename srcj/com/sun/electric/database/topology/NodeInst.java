@@ -2348,7 +2348,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return the size of this transistor NodeInst.
      * @param context the VarContext in which any evaluations take place,
      * pass in VarContext.globalContext if no context needed.
-	 * @return the size of the NodeInst.
+	 * @return the size of the NodeInst if it is a transistor
 	 */
 	public TransistorSize getTransistorSize(VarContext context)
 	{

@@ -1176,7 +1176,7 @@ public class Technology extends ElectricObject
 	 * @return the PrimitiveNode.Function that describes the NodeInst.
 	 */
 	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
-
+	
 	/**
 	 * Method to return the size of a transistor NodeInst in this Technology.
      * You should most likely be calling NodeInst.getTransistorSize instead of this.

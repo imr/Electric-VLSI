@@ -52,7 +52,7 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.01ab";
+	private static final String CURRENT = "8.01ac";
     private static final String ROOTARNAME = "electric";
 
 	private int major;

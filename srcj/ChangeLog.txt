@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ac: *********************************
 
+BUG: (10/22/04, GVG) Out of bound in Cell.getName() as cell names don't have same length
+FIX: Skip cases where names don't have same length
+
 IMP: (10/22/04, GVG) Proper set of ErrorLog for Schematic DRC.
 
 IMP: (10/22/04, GVG) Cross-shaped contacts are default in TechPalette. For PrimitiveNode, default node
-(e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow.
+(e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow. Sizing of
+cross-shaped contacts based on cross section.
 
 IMP: (10/22/04, DN) Network calculation is always performed in change thread.
   GUI thread can either "getUserNetlist" and wait until it is ready, or

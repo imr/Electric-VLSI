@@ -1025,7 +1025,6 @@ public class Quick
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
-					//Rectangle2D subBound = new Rectangle2D.Double();     // Sept 30
 					subBound.setRect(bounds);
 					DBMath.transformRect(subBound, rTransI);
 
