@@ -456,7 +456,7 @@ public class ELIB extends Output
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			writeBigInteger((int)tech.getScale()*2);
+			writeBigInteger((int)Math.round(tech.getScale()*2));
 		}
 
 		// convert any PortInst variables to NodeInst Variables
@@ -700,10 +700,10 @@ public class ELIB extends Output
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();
 		Rectangle2D bounds = cell.getBounds();
-		int lowX = (int)(bounds.getMinX() * tech.getScale()*2);
-		int highX = (int)(bounds.getMaxX() * tech.getScale()*2);
-		int lowY = (int)(bounds.getMinY() * tech.getScale()*2);
-		int highY = (int)(bounds.getMaxY() * tech.getScale()*2);
+		int lowX = (int)Math.round((bounds.getMinX() * tech.getScale()*2));
+		int highX = (int)Math.round((bounds.getMaxX() * tech.getScale()*2));
+		int lowY = (int)Math.round((bounds.getMinY() * tech.getScale()*2));
+		int highY = (int)Math.round((bounds.getMaxY() * tech.getScale()*2));
 		writeBigInteger(lowX);
 		writeBigInteger(highX);
 		writeBigInteger(lowY);
@@ -789,16 +789,16 @@ public class ELIB extends Output
 		int lowX, highX, lowY, highY;
 		if (np instanceof Cell)
 		{
-			lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
-			highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
-			lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
-			highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+			lowX = (int)Math.round((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+			highX = (int)Math.round((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+			lowY = (int)Math.round((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+			highY = (int)Math.round((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		} else
 		{
-			lowX = (int)((ni.getAnchorCenterX() - ni.getXSize()/2) * tech.getScale()*2);
-			highX = (int)((ni.getAnchorCenterX() + ni.getXSize()/2) * tech.getScale()*2);
-			lowY = (int)((ni.getAnchorCenterY() - ni.getYSize()/2) * tech.getScale()*2);
-			highY = (int)((ni.getAnchorCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+			lowX = (int)Math.round((ni.getAnchorCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+			highX = (int)Math.round((ni.getAnchorCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+			lowY = (int)Math.round((ni.getAnchorCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+			highY = (int)Math.round((ni.getAnchorCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		}
 		writeBigInteger(lowX);
 		writeBigInteger(lowY);
@@ -808,8 +808,8 @@ public class ELIB extends Output
 		// write anchor point too
 		if (np instanceof Cell && !compatibleWith6)
 		{
-			int anchorX = (int)(ni.getAnchorCenterX() * tech.getScale() * 2);
-			int anchorY = (int)(ni.getAnchorCenterY() * tech.getScale() * 2);
+			int anchorX = (int)Math.round(ni.getAnchorCenterX() * tech.getScale() * 2);
+			int anchorY = (int)Math.round(ni.getAnchorCenterY() * tech.getScale() * 2);
 			writeBigInteger(anchorX);
 			writeBigInteger(anchorY);
 		}
@@ -937,18 +937,18 @@ public class ELIB extends Output
 
 		// write basic arcinst information
 		Technology tech = ai.getParent().getTechnology();
-		writeBigInteger((int)(ai.getWidth() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(ai.getWidth() * tech.getScale()*2));
 
 		// write the arcinst tail information
 		Point2D location = ai.getTail().getLocation();
-		writeBigInteger((int)(location.getX() * tech.getScale()*2));
-		writeBigInteger((int)(location.getY() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
 		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst head information
 		location = ai.getHead().getLocation();
-		writeBigInteger((int)(location.getX() * tech.getScale()*2));
-		writeBigInteger((int)(location.getY() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
 		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst's tool information
