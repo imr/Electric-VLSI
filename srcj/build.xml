@@ -80,6 +80,20 @@
         <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
     </target>
 
+    <target name="jar3D" depends="init" description="Make binary Jar plugin for #D View">
+        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
+            <include name="com/sun/electric/plugins/j3d/View3DWindow.java"/>
+	        <classpath><pathelement location="${Java3DCore}"/></classpath>
+	        <classpath><pathelement location="${Java3DUtils}"/></classpath>
+	        <classpath><pathelement location="${JavaVecMath}"/></classpath>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
+        </javac>
+        <jar basedir="." compress="true" jarfile="electric3d.jar">
+            <include name="com/sun/electric/plugins/j3d/View3DWindow.class"/>
+        </jar>
+        <delete file="com/sun/electric/plugins/j3d/View3DWindow.class"/>
+    </target>
+
     <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
         <property name="version" value=""/>
         <unjar dest="." src="${AppleJava}"/> 
@@ -176,47 +190,6 @@
         </delete>
         <delete file="electric.jar"/>
         <delete dir="apidoc"/>
-    </target>
-
-	<!-- Gilda's stuff: tests and 3D -->
-	<target name="compileGilda" depends="init" description="Compile">
-        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
-            <classpath><pathelement location="${beanshell}"/></classpath>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-	        <classpath><pathelement location="${Java3DCore}"/></classpath>
-	        <classpath><pathelement location="${Java3DUtils}"/></classpath>
-	        <classpath><pathelement location="${JavaVecMath}"/></classpath>
-	        <classpath><pathelement location="${JUnit}"/></classpath>
-            <exclude name="intervalsimulation/"/>
-        </javac>
-    </target>
-
-	<target name="jarGilda" depends="init,compileGilda" description="Make binary Jar file">
-        <property name="version" value=""/>
-        <unjar dest="." src="${beanshell}"/>
-        <unjar dest="." src="${AppleJava}"/>
-        <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
-            <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
-            <exclude name="packaging/"/>
-            <exclude name="build.xml"/>
-            <exclude name="ChangeLog.txt"/>
-            <exclude name="electric${version}.jar"/>
-            <exclude name="electric${version}.mf"/>
-            <exclude name="**/*.java"/>
-            <exclude name="**/*.form"/>
-        </jar>
-        <delete file="electric${version}.mf"/>
-        <delete dir="bsh"/>
-        <delete dir="com/apple"/>
-        <delete quiet="true">
-            <fileset dir="com">
-                <include name="**/*.class"/>
-            </fileset>
-        </delete>
     </target>
 
 </project>
