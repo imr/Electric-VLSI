@@ -76,11 +76,11 @@ public class Inv2i {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, buf);
+										fwP.gateWid, buf, stdCell);
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1,
-										fwN.gateWid, buf);
+										fwN.gateWid, buf, stdCell);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, buf);

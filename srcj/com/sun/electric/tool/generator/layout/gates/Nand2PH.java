@@ -88,17 +88,17 @@ public class Nand2PH {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, gate);
+										fwP.gateWid, gate, stdCell);
 		// weak NMOS B
 		double nmosWeakY = nmosTop - fwW.physWid/2;
 		FoldedMos nmosB = new FoldedNmos(mosX, nmosWeakY, fwW.nbFolds, 1,
-										 fwW.gateWid, gate);
+										 fwW.gateWid, gate, stdCell);
 		// reset NMOS
 		double nmosBRightX = StdCellParams.getRightDiffX(nmosB);
 		double nmosX = nmosBRightX + 11; 	// ndm1_ndm1_sp
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmosR = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, 1,
-										 fwN.gateWid, gate);
+										 fwN.gateWid, gate, stdCell);
 		
 		// weak NMOS A
 		double rstNmosRightX = StdCellParams.getRightDiffX(nmosR);
@@ -108,7 +108,7 @@ public class Nand2PH {
 		double nmosAX = Math.max(rstNmosRightX + 11,	// ndm1_ndm1_sp
 								 pmosRightX-fwW.nbFolds*8); // mos_diff_diff_sp
 		FoldedMos nmosA = new FoldedNmos(nmosAX, nmosWeakY, fwW.nbFolds, 1,
-										 fwW.gateWid, gate);
+										 fwW.gateWid, gate, stdCell);
 		
 		FoldedMos[] nmoss = new FoldedMos[] {nmosB, nmosR, nmosA};
 		

@@ -184,7 +184,7 @@ public class GateRegressionMocmos extends Job {
 		  LayoutLib.openLibForWrite("scratch", "scratch");
 
 		Tech.setTechnology("mocmos");
-		StdCellParams stdCell = new StdCellParams(scratchLib);
+		StdCellParams stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);

@@ -40,8 +40,12 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
+import com.sun.electric.plugins.tsmc90.TSMC90;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at
@@ -88,31 +92,44 @@ public class StdCellParams {
 
 	// -------------------------- private data ---------------------------------
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
-	private double nmosWellHeight = 70;
-	private double pmosWellHeight = 70;
-	private double gndY = -21.0;
-	private double vddY = 21.0;
-	private double gndWidth = 10;
-	private double vddWidth = 10;
-	private double trackPitch = 7;
-	private double trackWidth = 4;
-	private double metalSpace = 3;
+
+    // ===============================================================
+    /* These variable's initial values are Technology dependent */
+
+	private double nmosWellHeight;
+	private double pmosWellHeight;
+	private double gndY;
+	private double vddY;
+	private double gndWidth;
+	private double vddWidth;
+	private double trackPitch;
+	private double trackWidth;
+    private double m1TrackWidth;
+    private double m2TrackWidth;
+	private double metalSpace;
+    private double pmosTrackOffset;
+    private double nmosTrackOffset;
 	// An "enable" style Nand gate has a weak pullup. This is how much
 	// weaker than normal the PMOS is.
-	private double enableGateStrengthRatio = .1;
+	private double enableGateStrengthRatio;
 
 	// Separate well ties from power and ground to allow threshold
 	// control via substrate bias.
-	private boolean separateWellTies = false;
+	private boolean separateWellTies;
 	// maximum distance from well tie to any point in well
-	private double maxWellTieRadius = 300;
+	private double maxWellTieRadius;
 	private String pmosWellTieName = "vnw";
 	private String nmosWellTieName = "vsb";
 	private double nmosWellTieY, pmosWellTieY;
 
-	private double minGateWid = 3;
-	private double diffContWid = 5;
-	private double maxMosWidth = 45;
+	private double minGateWid;
+	private double diffContWid;
+	private double maxMosWidth;
+
+    /** This determines width of arcs connecting to diffusion contacts */
+    private double difWidHint;
+
+    // ======================================================
 
 	// Critera for reducing the number of distict sizes.
 	// Default to 10% error.
@@ -144,6 +161,76 @@ public class StdCellParams {
 		layoutLib = lib;
 		init();
 	}
+
+    private void initMoCMOS() {
+        nmosWellHeight = 70;
+        pmosWellHeight = 70;
+        gndY = -21.0;
+        vddY = 21.0;
+        gndWidth = 10;
+        vddWidth = 10;
+        trackPitch = 7;
+        trackWidth = 4;
+        m1TrackWidth = 4;
+        m2TrackWidth = 4;
+        metalSpace = 3;
+        pmosTrackOffset = trackPitch / 2;
+        nmosTrackOffset = -trackPitch / 2;
+        // An "enable" style Nand gate has a weak pullup. This is how much
+        // weaker than normal the PMOS is.
+        enableGateStrengthRatio = .1;
+
+        // Separate well ties from power and ground to allow threshold
+        // control via substrate bias.
+        separateWellTies = false;
+        // maximum distance from well tie to any point in well
+        maxWellTieRadius = 300;
+        pmosWellTieName = "vnw";
+        nmosWellTieName = "vsb";
+        nmosWellTieY = 0;
+        pmosWellTieY = 0;
+
+        minGateWid = 3;
+        diffContWid = 5;
+        maxMosWidth = 45;
+        difWidHint = 4;
+    }
+
+    private void initTSMC90() {
+        nmosWellHeight = 84;
+        pmosWellHeight = 84;
+        gndY = -24.5;
+        vddY = 24.5;
+        gndWidth = 9;
+        vddWidth = 9;
+        trackPitch = 7;
+        trackWidth = 3.4;
+        m1TrackWidth = 3.4;
+        m2TrackWidth = 2.8;
+        metalSpace = 2.4;
+        pmosTrackOffset = 7;
+        nmosTrackOffset = -77;
+        // An "enable" style Nand gate has a weak pullup. This is how much
+        // weaker than normal the PMOS is.
+        enableGateStrengthRatio = .1;
+
+        // Separate well ties from power and ground to allow threshold
+        // control via substrate bias.
+        separateWellTies = false;
+        // maximum distance from well tie to any point in well
+        maxWellTieRadius = 300;
+        pmosWellTieName = "vnw";
+        nmosWellTieName = "vsb";
+        nmosWellTieY = 0;
+        pmosWellTieY = 0;
+
+        minGateWid = 3;
+        diffContWid = 5;
+        maxMosWidth = 45;
+        difWidHint = 3.4;
+    }
+
+    /** Initialize Tracks after setting up parameters */
 	private void init() {
 		TrackBlockages blockages = new TrackBlockages(metalSpace);
 
@@ -179,13 +266,13 @@ public class StdCellParams {
 		pmosTracks.clear();
 
 		// tracks in PMOS region
-		for (double y = trackPitch / 2; y < pmosWellHeight; y += trackPitch) {
+		for (double y = pmosTrackOffset; y < pmosWellHeight; y += trackPitch) {
 			if (!blockages.isBlocked(y, trackWidth))
 				pmosTracks.add(new Double(y));
 		}
 
 		// tracks in NMOS region
-		for (double y = -trackPitch / 2;
+		for (double y = nmosTrackOffset;
 			y > -nmosWellHeight;
 			y -= trackPitch) {
 			if (!blockages.isBlocked(y, trackWidth))
@@ -221,6 +308,11 @@ public class StdCellParams {
 		// diffusion capacitance
 		if (nbGroups % 2 == 0)
 			return nbGroups;
+
+        // if totWid is less than maxAvailWid and groupSz is 1, just
+        // use 1 gate (no fingers)
+        if ((totWid < maxAvailWid) && (groupSz == 1))
+            return 1;
 
 		// try adding one more group to get an even number of fingers
 		int roundupGroups = nbGroups + 1;
@@ -357,6 +449,80 @@ public class StdCellParams {
 		maxMosWidth = wid;
 	}
 
+    /** Set the starting offset from 0 of the pmos tracks */
+    public void setPmosTrackOffset(double offset) {
+        pmosTrackOffset = offset;
+        init();
+    }
+
+    /** Set the starting offset from 0 of the nmos tracks */
+    public void setNmosTrackOffset(double offset) {
+        nmosTrackOffset = offset;
+        init();
+    }
+
+    /** Set the track width */
+    public void setTrackWidth(double width) {
+        trackWidth = width;
+        init();
+    }
+
+    /** Set the width of the Vdd track */
+    public void setVddWidth(double width) {
+        vddWidth = width;
+        init();
+    }
+
+    /** Set the width of the Gnd track */
+    public void setGndWidth(double width) {
+        gndWidth = width;
+        init();
+    }
+
+    public void setM1TrackWidth(double width) {
+        m1TrackWidth = width;
+    }
+    public double getM1TrackWidth() { return m1TrackWidth; }
+
+    public void setM2TrackWidth(double width) {
+        m2TrackWidth = width;
+    }
+    public double getM2TrackWidth() { return m2TrackWidth; }
+
+    public double getDifWidHint() { return difWidHint; }
+
+    /** Get the minimum diffusion contact width. This is the size reported by
+     * the GUI, not the pre-offset size.
+     */
+    public double getMinDifContWid() {
+        SizeOffset so = Tech.ndm1.getProtoSizeOffset();
+        return (Tech.ndm1.getMinHeight() - so.getHighYOffset() - so.getLowYOffset());
+    }
+
+    public double getWellOverhangDiff() {
+        if (Tech.isTSMC90()) return 8;
+        else return 6;
+    }
+
+    public double getViaToMosPitch() {
+        return 4;
+    }
+
+    /** This is the minimum pitch between gates that share src/drc without diffusion
+     * contacts in that shared src/drn area. */
+    public double getMosToMosPitch() {
+        if (Tech.isTSMC90()) return 6;//6
+        else return 5;
+    }
+
+    /** Get the fold pitch for folded transistor, given the number of series transistors */
+    public double getFoldPitch(int nbSeries) {
+        if (Tech.isTSMC90())
+            return (8 + (nbSeries - 1) * (3 + 2));
+        else
+            return (8 + (nbSeries - 1) * (3 + 2));
+    }
+
 	/** Turn on Network Consistency Checking after each gate is generated.
 	 *<p> This just checks topology and ignores sizes. */
 	public void enableNCC(String libName) {
@@ -384,7 +550,14 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Library lib) {
+	public StdCellParams(Library lib, String tech) {
+        if      (tech == Tech.TSMC90) initTSMC90();
+        else if (tech == Tech.MOCMOS) initMoCMOS();
+        else {
+            error(true, "Standard Cell Params does not understand technology "+tech+
+                ", using default values for "+MoCMOS.tech+" instead.");
+            initMoCMOS();
+        }
 		init(lib);
 	}
 

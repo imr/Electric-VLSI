@@ -77,11 +77,11 @@ public class MullerC_sy {
 		
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, nbSeries,
-										fwN.gateWid, mull);
+										fwN.gateWid, mull, stdCell);
 		
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, nbSeries,
-										fwP.gateWid, mull);
+										fwP.gateWid, mull, stdCell);
 		
 		// inb  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double inbX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;

@@ -95,10 +95,10 @@ public class Inv2_star {
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
 		double nmosY = -insideSpace - fwN.physWid / 2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1, 
-		                                fwN.gateWid, inv);
+		                                fwN.gateWid, inv, stdCell);
 		double pmosY = insideSpace + fwP.physWid / 2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-		                                fwP.gateWid, inv);
+		                                fwP.gateWid, inv, stdCell);
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;

@@ -79,7 +79,7 @@ public class Nand2LT {
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, nbStacked,
-										fwN.gateWid, nand);
+										fwN.gateWid, nand, stdCell);
 		
 		// PMOS FoldedMos.  Each FoldedMos has exactly 2 folds.
 		double pmosY = pmosBot + fwP.physWid/2;
@@ -87,7 +87,7 @@ public class Nand2LT {
 		for (int i=0; i<pmoss.length; i++) {
 			double pmosPitch = 26;
 			double pmosX = mosX + pmosPitch * i;
-			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand);
+			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand, stdCell);
 		}
 		stdCell.fillDiffNotches(pmoss);
 		

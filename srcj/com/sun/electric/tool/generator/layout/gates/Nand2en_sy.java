@@ -86,7 +86,7 @@ public class Nand2en_sy {
 		double nmosY = nmosTop - fwN.physWid/2;
 		int nbSeries = 2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, nbSeries,
-										fwN.gateWid, nand);
+										fwN.gateWid, nand, stdCell);
 		
 		// Create multiple FoldedPmos.  Each FoldedPmos has, at most, 2
 		// folds.
@@ -99,7 +99,7 @@ public class Nand2en_sy {
 			// pmos is shifted right by 2 lambda to allow weak PMOS to share drain
 			double pmosX = nmosX + 2 + pmosPitch * (nbFoldsP/2);
 			pmoss[nbFoldsP/2] = new FoldedPmos(pmosX, pmosY, nbFolds, nbSeries,
-											   fwP.gateWid, nand); 
+											   fwP.gateWid, nand, stdCell);
 		}
 		stdCell.fillDiffNotches(pmoss);
 		
@@ -109,7 +109,7 @@ public class Nand2en_sy {
 		double weakX = rightDiffX + 8.5;
 		double weakY = pmosBot + fwW.physWid/2;
 		FoldedMos weakPmos = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
-											fwW.gateWid, nand);
+											fwW.gateWid, nand, stdCell);
 		// create an array that holds all PMOS, strong and weak
 		FoldedMos[] stroWeakPmoss = new FoldedMos[pmoss.length+1];
 		for (int i=0; i<pmoss.length; i++) {

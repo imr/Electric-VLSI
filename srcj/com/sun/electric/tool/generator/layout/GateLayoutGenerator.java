@@ -33,54 +33,19 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.gates.Inv;
-import com.sun.electric.tool.generator.layout.gates.Inv2i;
-import com.sun.electric.tool.generator.layout.gates.Inv2iKn;
-import com.sun.electric.tool.generator.layout.gates.Inv2iKp;
-import com.sun.electric.tool.generator.layout.gates.InvCLK;
-import com.sun.electric.tool.generator.layout.gates.InvCTLn;
-import com.sun.electric.tool.generator.layout.gates.InvHT;
-import com.sun.electric.tool.generator.layout.gates.InvLT;
-import com.sun.electric.tool.generator.layout.gates.Inv_passgate;
-import com.sun.electric.tool.generator.layout.gates.MullerC_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand2;
-import com.sun.electric.tool.generator.layout.gates.Nand2HLT;
-import com.sun.electric.tool.generator.layout.gates.Nand2HLT_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand2LT;
-import com.sun.electric.tool.generator.layout.gates.Nand2LT_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand2PH;
-import com.sun.electric.tool.generator.layout.gates.Nand2PHfk;
-import com.sun.electric.tool.generator.layout.gates.Nand2_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand2en;
-import com.sun.electric.tool.generator.layout.gates.Nand2en_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand3;
-import com.sun.electric.tool.generator.layout.gates.Nand3LT;
-import com.sun.electric.tool.generator.layout.gates.Nand3LT_sy3;
-import com.sun.electric.tool.generator.layout.gates.Nand3LTen;
-import com.sun.electric.tool.generator.layout.gates.Nand3LTen_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand3LTen_sy3;
-import com.sun.electric.tool.generator.layout.gates.Nand3MLT;
-import com.sun.electric.tool.generator.layout.gates.Nand3_sy3;
-import com.sun.electric.tool.generator.layout.gates.Nand3en;
-import com.sun.electric.tool.generator.layout.gates.Nand3en_sy;
-import com.sun.electric.tool.generator.layout.gates.Nand3en_sy3;
-import com.sun.electric.tool.generator.layout.gates.Nms1;
-import com.sun.electric.tool.generator.layout.gates.Nms2;
-import com.sun.electric.tool.generator.layout.gates.Nms2_sy;
-import com.sun.electric.tool.generator.layout.gates.Nms3_sy3;
-import com.sun.electric.tool.generator.layout.gates.Nor2;
-import com.sun.electric.tool.generator.layout.gates.Nor2LT;
-import com.sun.electric.tool.generator.layout.gates.Nor2kresetV;
-import com.sun.electric.tool.generator.layout.gates.Pms1;
-import com.sun.electric.tool.generator.layout.gates.Pms2;
-import com.sun.electric.tool.generator.layout.gates.Pms2_sy;
+import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
+import com.sun.electric.tool.generator.layout.gates90nm.TSMC90Generator;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.plugins.tsmc90.TSMC90;
 
 /*
  * Regression test for gate generators
  */
 public class GateLayoutGenerator extends Job {
+    private Technology technology;
+
 	// specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
@@ -99,15 +64,23 @@ public class GateLayoutGenerator extends Job {
 		return c;
 	}
 	
-	private Library generateLayout(Library outLib, Cell cell) {
-		StdCellParams stdCell = locoParams(outLib);
-		
+	private Library generateLayout(Library outLib, Cell cell, Technology technology) {
+        StdCellParams stdCell;
+        if (technology == TSMC90.tech) {
+            Tech.setTechnology(Tech.TSMC90);
+            stdCell = sportParams(outLib);
+        } else {
+            Tech.setTechnology(Tech.MOCMOS);
+            stdCell = locoParams(outLib);
+        }
+
 		// Due to NCC deficiency in C-Electric, gates with "_pwr" suffix need 
 		// power bus assigned Characteristic "IN". This is my hack until I have 
 		// a properly functioning version of NCC.
 		StdCellParams stdCellPwr = locoParams(outLib);
-		stdCellPwr.setVddExportName("power");
-		stdCellPwr.setVddExportRole(PortCharacteristic.IN);
+        // JKG: NCC in Jelectric does not use "power" type: hack removed
+		//stdCellPwr.setVddExportName("power");
+		//stdCellPwr.setVddExportRole(PortCharacteristic.IN);
 
 		GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, stdCellPwr);
@@ -117,7 +90,7 @@ public class GateLayoutGenerator extends Job {
 	}
 	
 	private static StdCellParams locoParams(Library outLib) {
-		StdCellParams stdCell = new StdCellParams(outLib);
+		StdCellParams stdCell = new StdCellParams(outLib, Tech.MOCMOS);
 //		stdCell.enableNCC(
 //			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
 		stdCell.setSizeQuantizationError(0);
@@ -129,7 +102,19 @@ public class GateLayoutGenerator extends Job {
 		stdCell.setSimpleName(true);
 		return stdCell;
 	}
-	
+
+    private static StdCellParams sportParams(Library outLib) {
+        StdCellParams stdCell = new StdCellParams(outLib, Tech.TSMC90);
+        stdCell.setSizeQuantizationError(0);
+        stdCell.setMaxMosWidth(1000);
+        stdCell.setVddY(24.5);
+        stdCell.setGndY(-24.5);
+        stdCell.setNmosWellHeight(84);
+        stdCell.setPmosWellHeight(84);
+        stdCell.setSimpleName(true);
+        return stdCell;
+    }
+
 	public boolean doIt() {
 		String outLibNm = "autoGenLib";
 		String outLibDir = "";
@@ -152,16 +137,17 @@ public class GateLayoutGenerator extends Job {
 		System.out.println("Output goes to library: autoGenLib");
 		//Library outLib = cell.getLibrary();
 
-		generateLayout(outLib, cell);
+		generateLayout(outLib, cell, technology);
 		Cell gallery = Gallery.makeGallery(outLib);
 		DrcRings.addDrcRings(gallery, FILTER);
 		
 		System.out.println("done.");
 		return true;
 	}
-	public GateLayoutGenerator() {
+	public GateLayoutGenerator(Technology technology) {
 		super("Generate gate layouts", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
+        this.technology = technology;
 		startJob();
 	}
 }
@@ -210,53 +196,12 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 			pNm = pNm.substring(0, pwr);
 			sc = stdCellPwr;
 		}
-		
-		if (pNm.equals("inv"))           	  Inv.makePart(x, sc);
-		else if (pNm.equals("inv2i"))         Inv2i.makePart(x, sc);
-		else if (pNm.equals("inv2iKn"))       Inv2iKn.makePart(x, sc);
-		else if (pNm.equals("inv2iKp"))       Inv2iKp.makePart(x, sc);
-		else if (pNm.equals("invCLK"))        InvCLK.makePart(x, sc);
-		else if (pNm.equals("invCTLn"))       InvCTLn.makePart(x, sc);
-		else if (pNm.equals("invHT"))         InvHT.makePart(x, sc);
-		else if (pNm.equals("invLT"))         InvLT.makePart(x, sc);
-		else if (pNm.equals("inv_passgate"))  Inv_passgate.makePart(x, sc);
-		else if (pNm.equals("mullerC_sy"))	  MullerC_sy.makePart(x, sc);
-		else if (pNm.equals("nand2"))         Nand2.makePart(x, sc);
-		else if (pNm.equals("nand2k"))        Nand2.makePart(x, sc);
-		else if (pNm.equals("nand2HLT"))      Nand2HLT.makePart(x, sc);
-		else if (pNm.equals("nand2HLT_sy"))   Nand2HLT_sy.makePart(x, sc);
-		else if (pNm.equals("nand2LT"))       Nand2LT.makePart(x, sc);
-		else if (pNm.equals("nand2LT_sy"))    Nand2LT_sy.makePart(x, sc);
-		else if (pNm.equals("nand2PH"))       Nand2PH.makePart(x, sc);    
-		else if (pNm.equals("nand2PHfk"))     Nand2PHfk.makePart(x, sc);    
-		else if (pNm.equals("nand2_sy"))      Nand2_sy.makePart(x, sc);
-		else if (pNm.equals("nand2en"))       Nand2en.makePart(x, sc);
-		else if (pNm.equals("nand2en_sy"))    Nand2en_sy.makePart(x, sc);
-		else if (pNm.equals("nand3"))         Nand3.makePart(x, sc);
-		else if (pNm.equals("nand3LT"))       Nand3LT.makePart(x, sc);
-		else if (pNm.equals("nand3LT_sy3"))   Nand3LT_sy3.makePart(x, sc);
-		else if (pNm.equals("nand3LTen"))     Nand3LTen.makePart(x, sc);
-		else if (pNm.equals("nand3LTen_sy"))  Nand3LTen_sy.makePart(x, sc);
-		else if (pNm.equals("nand3LTen_sy3")) Nand3LTen_sy3.makePart(x, sc);
-		else if (pNm.equals("nand3MLT"))      Nand3MLT.makePart(x, sc);
-		else if (pNm.equals("nand3_sy3"))     Nand3_sy3.makePart(x, sc);
-		else if (pNm.equals("nand3en"))       Nand3en.makePart(x, sc);
-		else if (pNm.equals("nand3en_sy"))    Nand3en_sy.makePart(x, sc);
-		else if (pNm.equals("nand3en_sy3"))   Nand3en_sy3.makePart(x, sc);
-		else if (pNm.equals("nms1"))          Nms1.makePart(x, sc);
-		else if (pNm.equals("nms1K"))         Nms1.makePart(x, sc);
-		else if (pNm.equals("nms2"))          Nms2.makePart(x, sc);
-		else if (pNm.equals("nms2_sy"))       Nms2_sy.makePart(x, sc);
-		else if (pNm.equals("nms3_sy3"))      Nms3_sy3.makePart(x, sc);
-		else if (pNm.equals("nor2"))          Nor2.makePart(x, sc);
-		else if (pNm.equals("nor2LT"))        Nor2LT.makePart(x, sc);
-		else if (pNm.equals("nor2kresetV"))   Nor2kresetV.makePart(x, sc);
-		else if (pNm.equals("pms1"))          Pms1.makePart(x, sc);
-		else if (pNm.equals("pms1K"))         Pms1.makePart(x, sc);
-		else if (pNm.equals("pms2"))          Pms2.makePart(x, sc);
-		else if (pNm.equals("pms2_sy"))       Pms2_sy.makePart(x, sc);
-		else unknown = true;
-		
+
+        if (Tech.isTSMC90())
+            TSMC90Generator.makeGate(pNm, x, sc);
+        else
+            MoCMOSGenerator.makeGate(pNm, x, sc);
+
 		//if (!unknown) System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);
 	}
 

@@ -28,14 +28,14 @@ import com.sun.electric.database.hierarchy.Cell;
 public class FoldedNmos extends FoldedMos {
 	/** By default the FoldedNmos shifts the diffusion contact to the
 	 * top of the transistor */
-	public FoldedNmos(double x,	double y, int nbFolds, int nbSeries, 
-					  double gateWidth, Cell f) {
-		super('N', x, y, nbFolds, nbSeries, gateWidth, null, 'T', f);
+	public FoldedNmos(double x, double y, int nbFolds, int nbSeries,
+                      double gateWidth, Cell f, StdCellParams stdCell) {
+		super('N', x, y, nbFolds, nbSeries, gateWidth, null, 'T', f, stdCell);
 	}
-	public FoldedNmos(double x,	double y, int nbFolds, int nbSeries, 
-	                  double gateWidth, GateSpace gateSpace,
-	                  char justifyDiffCont, Cell f) {
+	public FoldedNmos(double x, double y, int nbFolds, int nbSeries,
+                      double gateWidth, GateSpace gateSpace,
+                      char justifyDiffCont, Cell f, StdCellParams stdCell) {
 		super('N', x, y, nbFolds, nbSeries, gateWidth, gateSpace, 
-		      justifyDiffCont, f);
+		      justifyDiffCont, f, stdCell);
 	}
 }

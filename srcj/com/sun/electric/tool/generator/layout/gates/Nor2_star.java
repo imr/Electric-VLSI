@@ -88,14 +88,14 @@ class Nor2_star {
 		double pmosX = nmosX + 3;
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, nbStackedP,
-										fwP.gateWid, nor);
+										fwP.gateWid, nor, stdCell);
 		
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos[] nmoss = new FoldedMos[fwN.nbFolds/2];
 		for (int nbFoldsN=0; nbFoldsN<fwN.nbFolds; nbFoldsN+=2) {
 			double nmosPitch = 26;
 			double x = nmosX + (nbFoldsN/2)*nmosPitch;
-			FoldedMos nmos = new FoldedNmos(x, nmosY, 2, 1, fwN.gateWid, nor);
+			FoldedMos nmos = new FoldedNmos(x, nmosY, 2, 1, fwN.gateWid, nor, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
 		stdCell.fillDiffNotches(nmoss);

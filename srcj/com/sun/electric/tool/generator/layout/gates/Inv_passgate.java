@@ -97,10 +97,10 @@ public class Inv_passgate {
 		double mosX = inX + wirePitch;
 		double nmosY = nmosTop - srcDrnWidN/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, nbPullDnFolds*2, 1,
-										gateWidN, inv);
+										gateWidN, inv, stdCell);
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, inv);
+										fwP.gateWid, inv, stdCell);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, inv);

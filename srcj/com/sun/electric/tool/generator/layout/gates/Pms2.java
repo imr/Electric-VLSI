@@ -75,7 +75,7 @@ public class Pms2 {
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		double pmosY = pmosBot + fw.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fw.nbFolds, nbStacked,
-										fw.gateWid, pms2);
+										fw.gateWid, pms2, stdCell);
 		
 		// g2  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double g2X = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;

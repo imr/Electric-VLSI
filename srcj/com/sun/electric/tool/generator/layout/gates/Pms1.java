@@ -73,7 +73,7 @@ public class Pms1 {
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		double pmosY = pmosBot + fw.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fw.nbFolds, 1,
-										fw.gateWid, pms1);
+										fw.gateWid, pms1, stdCell);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(pms1, "d", PortCharacteristic.OUT, Tech.m1,

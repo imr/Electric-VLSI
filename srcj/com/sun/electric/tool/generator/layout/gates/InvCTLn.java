@@ -87,7 +87,7 @@ public class InvCTLn {
 			double x = pmosX + (nbFoldsP/2)*pmosPitch;
 			int nbFolds = Math.min(2, fwP.nbFolds - nbFoldsP);
 			FoldedMos pmos = new FoldedPmos(x, pmosY, nbFolds, 1, fwP.gateWid,
-											inv);
+											inv, stdCell);
 			pmoss[nbFoldsP/2] = pmos;
 		}
 		stdCell.fillDiffNotches(pmoss);
@@ -96,7 +96,7 @@ public class InvCTLn {
 		double nmosX = pmosX + 8;
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, nbSeriesN,
-										fwN.gateWid, inv);
+										fwN.gateWid, inv, stdCell);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);

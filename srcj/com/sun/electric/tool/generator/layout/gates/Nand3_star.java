@@ -95,7 +95,7 @@ class Nand3_star {
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, nbStackedN,
-										fwN.gateWid, nand);
+										fwN.gateWid, nand, stdCell);
 
 		// PMOS Create multiple PMOS ORs.  
 		double pmosY = pmosBot + fwP.physWid/2;
@@ -104,7 +104,7 @@ class Nand3_star {
 			// magic offset makes gate contacts work
 			double pmosPitch = 36;
 			double pmosX = nmosX - 3.5 + i*pmosPitch;
-			pmoss[i] = new FoldedPmos(pmosX, pmosY, 3, 1, fwP.gateWid, nand);
+			pmoss[i] = new FoldedPmos(pmosX, pmosY, 3, 1, fwP.gateWid, nand, stdCell);
 		}
 		
 		// create vdd and gnd exports and connect to MOS source/drains

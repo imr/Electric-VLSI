@@ -77,7 +77,7 @@ public class Nms2_sy {
     
     double nmosY = nmosTop - fw.physWid/2;
     FoldedMos nmos = new FoldedNmos(mosX, nmosY, fw.nbFolds, nbStacked,
-				   fw.gateWid, nms2);
+				   fw.gateWid, nms2, stdCell);
     // g2  m1_wid/2 + m1_m1_sp + m1_wid/2
     double g2X = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
     LayoutLib.newExport(nms2, "g2", PortCharacteristic.IN, Tech.m1, 4,

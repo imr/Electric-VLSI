@@ -246,7 +246,7 @@ class Nand3_star_en_star {
 		// NMOS
 		FoldedMos nmos =
 			new FoldedNmos(mosX, nmosTop - fwN.physWid/2, fwN.nbFolds,
-						   nbStackedN, fwN.gateWid, nand);
+						   nbStackedN, fwN.gateWid, nand, stdCell);
 		// PMOS
 		// pmos pitch for 8 folds: 8 * 8 = 64
 		// nmos pitch for 4 folds: 4 * 18 = 72
@@ -258,7 +258,7 @@ class Nand3_star_en_star {
 			double pmosPitch = 72;
 			int nbFolds = Math.min(8, fwP.nbFolds - i*8);
 			pmoss[i] = new FoldedPmos(mosX + i*pmosPitch, pmosY, nbFolds, 1,
-									  fwP.gateWid, nand);
+									  fwP.gateWid, nand, stdCell);
 		}
 		
 		// Drop down a single PMOS pullup for ina
@@ -269,7 +269,7 @@ class Nand3_star_en_star {
 		double pmosaFromNmos = rightNdiffX - 8;
 		double pmosaX = Math.max(pmosaFromPmos, pmosaFromNmos);
 		FoldedMos pmosa = new FoldedPmos(pmosaX, stdCell.getVddY(), 1, 1, 5,
-										 nand);
+										 nand, stdCell);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);

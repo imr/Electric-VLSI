@@ -1126,8 +1126,8 @@ public class FillGenerator {
 		printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
-		stdCell = new StdCellParams(null);
-		stdCellP = new StdCellParams(null);
+		stdCell = new StdCellParams(null, Tech.MOCMOS);
+		stdCellP = new StdCellParams(null, Tech.MOCMOS);
 		stdCellP.setVddExportName("power");
 		stdCellP.setVddExportRole(PortCharacteristic.IN);
 		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);

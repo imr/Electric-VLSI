@@ -81,7 +81,7 @@ public class Nms3_sy3 {
 				fwN.nbFolds,
 				nbStackedN,
 				fwN.gateWid,
-				nand);
+				nand, stdCell);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);

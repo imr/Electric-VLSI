@@ -29,13 +29,13 @@ public class FoldedPmos extends FoldedMos {
 	/** By default the FoldedPmos shifts the diffusion contact to the
 	 * bottom of the transistor */
 	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
-					  double gateWidth, Cell f) {
-		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f);
+                      double gateWidth, Cell f, StdCellParams stdCell) {
+		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f, stdCell);
 	}
 	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
-					  double gateWidth, GateSpace gateSpace,
-					  char justifyDiffCont, Cell f) {
+                      double gateWidth, GateSpace gateSpace,
+                      char justifyDiffCont, Cell f, StdCellParams stdCell) {
 		super('P', x, y, nbFolds, nbSeries, gateWidth, gateSpace,
-			  justifyDiffCont, f);
+			  justifyDiffCont, f, stdCell);
 	}
 }

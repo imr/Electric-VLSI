@@ -42,7 +42,7 @@ public class DrcRings {
 		if (filter==null) filter = new Filter();
 		
 		Library lib = gallery.getLibrary();
-		StdCellParams stdCell = new StdCellParams(lib);
+		StdCellParams stdCell = new StdCellParams(lib, Tech.MOCMOS);
 		
 		// record original gates to avoid putting DrcRings around DrcRings
 		ArrayList gates = new ArrayList();

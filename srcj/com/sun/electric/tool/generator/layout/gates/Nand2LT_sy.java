@@ -78,7 +78,7 @@ public class Nand2LT_sy {
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, nbStacked,
-										fwN.gateWid, nand);
+										fwN.gateWid, nand, stdCell);
 		
 		// PMOS Create multiple PMOS ORs.  Align source of each OR with
 		// every other source of NMOS
@@ -87,7 +87,7 @@ public class Nand2LT_sy {
 		for (int i=0; i<pmoss.length; i++) {
 			double pmosPitch = 26;
 			double pmosX = mosX + pmosPitch * i;
-			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand);
+			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand, stdCell);
 		}
 		stdCell.fillDiffNotches(pmoss);
 

@@ -83,7 +83,7 @@ class Nand2_star_sy {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, nand);
+										fwP.gateWid, nand, stdCell);
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		
@@ -96,7 +96,7 @@ class Nand2_star_sy {
 			double nmosPitch = 32;
 			double nmosX = pmosX + (nbFoldsN/2)*nmosPitch;
 			FoldedMos nmos = new FoldedNmos(nmosX, nmosY, nbFolds, nbSeries,
-											fwN.gateWid, nand);
+											fwN.gateWid, nand, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
 		stdCell.fillDiffNotches(nmoss);

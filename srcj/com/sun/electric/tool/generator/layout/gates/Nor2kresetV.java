@@ -92,7 +92,7 @@ public class Nor2kresetV {
 		double pmosX = jogX + wirePitch;
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, nbSeriesP,
-										fwP.gateWid, nor);
+										fwP.gateWid, nor, stdCell);
 		
 		// Allocate two folds per FoldedNmos.  Align NMOS gate 0 with PMOS
 		// gate 1
@@ -104,7 +104,7 @@ public class Nor2kresetV {
 			double x = nmosX + (nbFoldsN/2)*nmosPitch;
 			int nbFolds = Math.min(2, fwN.nbFolds - nbFoldsN);
 			FoldedMos nmos = new FoldedNmos(x, nmosY, nbFolds, 1, fwN.gateWid,
-											nor);
+											nor, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
 		stdCell.fillDiffNotches(nmoss);
@@ -116,7 +116,7 @@ public class Nor2kresetV {
 		double bigNmosX = Math.max(rightPDiffX, rightNDiffX + 11);
 		double bigY = nmosTop - fwS.physWid/2;
 		FoldedMos bigMos = new FoldedNmos(bigNmosX, bigY, fwS.nbFolds, 1,
-										  fwS.gateWid, nor);
+										  fwS.gateWid, nor, stdCell);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);

@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
+import com.sun.electric.plugins.tsmc90.TSMC90;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
@@ -50,6 +51,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.parasitic.ParasiticTool;
@@ -58,10 +60,7 @@ import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
-import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -109,12 +108,18 @@ public class DebugMenus {
 
         MenuBar.Menu russMenu = new MenuBar.Menu("Russell", 'R');
         menuBar.add(russMenu);
-		russMenu.addMenuItem("Gate Generator Regression", null,
+		russMenu.addMenuItem("Gate Generator Regression (MoCMOS)", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateRegression();
+				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech);
 			}
 		});
+        russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
+                             new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new com.sun.electric.tool.generator.layout.GateRegression(TSMC90.tech);
+            }
+        });
 		russMenu.addMenuItem("Gate Generator MOCMOS Regression", null,
 				             new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -167,6 +172,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { causeStackOverflowJob(); }});
         jongMenu.addMenuItem("Time method calls", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { timeMethodCalls(); }});
+        jongMenu.addMenuItem("Delete layout cells in current library", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCells(View.LAYOUT); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 
@@ -1072,6 +1079,24 @@ public class DebugMenus {
         File dir = new File("/home/gainsley");
         d.startProcess("/bin/tcsh", null, dir);
     }
+
+    public static void deleteCells(View view) {
+        Library lib = Library.getCurrent();
+        int deleted = 0;
+        int notDeleted = 0;
+        for (Iterator it = lib.getCells(); it.hasNext(); ) {
+            Cell cell = (Cell)it.next();
+            if (cell.getView() != view) continue;
+            if (CircuitChanges.deleteCell(cell, false))
+                deleted++;
+            else
+                notDeleted++;
+        }
+        System.out.println("Deleted: "+deleted);
+        System.out.println("Not deleted: "+ notDeleted);
+    }
+
+
 
     public static void whitDiffieCommand()
     {

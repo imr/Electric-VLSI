@@ -94,8 +94,6 @@ public abstract class FoldedMos {
 	// The diffusion width is important because it will be used as a
 	// hint for the size of metal1 wires used to connect to the
 	// diffusion metal1 contact.
-	private static final double difWidHint = 4;
-	private static final double minDifContWid = 5;
 	private static final GateSpace useMinSp = new GateSpace() {
 		public double getExtraSpace(double requiredExtraSpace, int foldNdx, 
 		                            int nbFolds, int spaceNdx, int nbGates) {
@@ -164,22 +162,22 @@ public abstract class FoldedMos {
 	 * diffusion contact on grid and moves the MOS transistors slightly
 	 * up or down to get the MOS transistor on the same grid.
 	 * @param type 'N' or 'P' for NMOS or PMOS
-	 * @param x the middle of the left most diffusion contact
-	 * @param y the "middle" of the FoldedMos. If gateWidth is less than
+     * @param x the middle of the left most diffusion contact
+     * @param y the "middle" of the FoldedMos. If gateWidth is less than
 	 * the width of the minimum sized diffusion contact this will be the
 	 * middle of the diffusion contact. Otherwise this is the middle of
 	 * the MOS transistor.
-	 * @param nbFolds the number of folds. Each "fold" consists of a
+     * @param nbFolds the number of folds. Each "fold" consists of a
 	 * left diffusion contact, nbSeries transistors stacked in series,
 	 * and a right diffusion contact. Adjacent folds share diffusion
 	 * contacts.
-	 * @param nbSeries the number of transistors stacked in series for
+     * @param nbSeries the number of transistors stacked in series for
 	 * each fold
-	 * @param gateWidth the width of each gate
-	 * @param gateSpace allows the user to specify the space between
+     * @param gateWidth the width of each gate
+     * @param gateSpace allows the user to specify the space between
 	 * diffusion contacts and gates and between adjacent gates. null
 	 * means use the minimum spacing required by the design rules.
-	 * @param justifyDiffCont FoldedMos always makes diffusion contacts
+     * @param justifyDiffCont FoldedMos always makes diffusion contacts
 	 * a multiple of 5 lambda wide. If the gateWidth is not a multiple
 	 * of 5 lambda wide then this argument specifies how the diffusion
 	 * contact should be positioned within the diffusion. The choices
@@ -188,14 +186,15 @@ public abstract class FoldedMos {
 	 * transistor width was .5 + an integer then the diffusion contact
 	 * edges would not be on the same .5 lambda grid as any of the edges
 	 * of the transistor thereby leading to CIF resolution errors.
-	 * @param f the facet that will contain this FoldedMos */
-	FoldedMos(char type, double x, double y, int nbFolds, int nbSeries, 
-	          double gateWidth, GateSpace gateSpace, char justifyDiffCont, 
-	          Cell f) {
+     * @param f the facet that will contain this FoldedMos
+     * @param stdCell*/
+	FoldedMos(char type, double x, double y, int nbFolds, int nbSeries,
+              double gateWidth, GateSpace gateSpace, char justifyDiffCont,
+              Cell f, StdCellParams stdCell) {
 		error(type!='P' && type!='N',
 			  "FoldedMos: type must be 'P' or 'N': "+type);
 		this.gateWidth = gateWidth;
-		physWidth = Math.max(minDifContWid, gateWidth);
+		physWidth = Math.max(stdCell.getMinDifContWid(), gateWidth);
 		diffVias = new PortInst[nbFolds + 1];
 		moss = new MosInst[nbFolds * nbSeries];
 		internalDiffs = new PortInst[nbFolds * (nbSeries - 1)];
@@ -213,7 +212,7 @@ public abstract class FoldedMos {
 		// diffusion contact is always justified up or down and because it
 		// is always an integral number of lambdas high, it's edges and
 		// center are on the same .5 lambda grid as the transistor edges.
-		difContWid = Math.max(minDifContWid, ((int) gateWidth/5) * 5);
+		difContWid = Math.max(stdCell.getMinDifContWid(), ((int) gateWidth/5) * 5);
 		double difContSlop = Math.max(0, (gateWidth-difContWid)/2);
 		double difContY = y;
 		switch (justifyDiffCont) {
@@ -231,15 +230,15 @@ public abstract class FoldedMos {
 		// are also on a 0.5 lambda grid. I will do this by shifting the
 		// MOS transistor down until its bottom edge is on grid.
 		mosY = y;
-		if (gateWidth<minDifContWid) {
+		if (gateWidth<stdCell.getMinDifContWid()) {
 			double mosBotY = y - gateWidth / 2;
 			double misAlign = Math.IEEEremainder(mosBotY, 0.5);
 			mosY -= misAlign;
 		}
 
-		double extraDiffPolySpace = gateWidth >= minDifContWid ? 0. : .5;
-		double viaToMosPitch = 4;
-		double mosToMosPitch = 5;
+		double extraDiffPolySpace = gateWidth >= stdCell.getMinDifContWid() ? 0. : .5;
+		double viaToMosPitch = stdCell.getViaToMosPitch();
+		double mosToMosPitch = stdCell.getMosToMosPitch();
 
 		PortInst prevPort = null;
 		for (int i=0;; i++) {
@@ -250,7 +249,7 @@ public abstract class FoldedMos {
 			// Add redundant diffusion as a hint of the wire size to use to
 			// connect to this diffusion contact. Diffusion contact is
 			// always on grid.
-			LayoutLib.newArcInst(diff, difWidHint, newPort, newPort);
+			LayoutLib.newArcInst(diff, stdCell.getDifWidHint(), newPort, newPort);
 
 			diffVias[diffNdx++] = newPort;
 

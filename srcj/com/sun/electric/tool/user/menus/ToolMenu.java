@@ -72,6 +72,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.plugins.tsmc90.TSMC90;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -310,8 +312,10 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
-//		generationSubMenu.addMenuItem("Generate gate layouts", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(); }});
+		generationSubMenu.addMenuItem("Generate gate layouts (MoCMOS)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(TSMC90.tech); }});
+        generationSubMenu.addMenuItem("Generate gate layouts (TSMC90)", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
 
 		toolMenu.addSeparator();
 

@@ -88,7 +88,7 @@ public class Nand3_star_sy3 {
 		// NMOS
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosTop - fwN.physWid/2,
 										fwN.nbFolds, nbStackedN, fwN.gateWid,
-										nand);
+										nand, stdCell);
 		// PMOS
 		// pmos pitch for 12 folds: 8 * 12 = 96
 		// nmos pitch for 6 folds: (3 * 5 + 3) * 6 = 108
@@ -101,7 +101,7 @@ public class Nand3_star_sy3 {
 			double pmosX = nmosX + 6 + i*pmosPitch;
 			int nbFolds = Math.min(12, fwP.nbFolds - i*12);
 			pmoss[i] = new FoldedPmos(pmosX, pmosY, nbFolds, 1, fwP.gateWid,
-									  nand);
+									  nand, stdCell);
 		}
 		
 		// create vdd and gnd exports and connect to MOS source/drains

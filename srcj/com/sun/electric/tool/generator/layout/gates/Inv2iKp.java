@@ -117,17 +117,17 @@ public class Inv2iKp {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, null, 'B', buf);
+										fwP.gateWid, null, 'B', buf, stdCell);
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1,
-										fwN.gateWid, null, 'T', buf);
+										fwN.gateWid, null, 'T', buf, stdCell);
 		// weak NMOS overlaps strong NMOS
 		double rightSrcDrnX = StdCellParams.getRightDiffX(nmos);
 		boolean strongNmosOneFold = fwN.nbFolds==1;
 		nmosY = nmosTop - fwW.physWid/2;
 		FoldedMos nmosW = new FoldedNmos(rightSrcDrnX, nmosY, fwW.nbFolds, 1,
-										 fwW.gateWid, spaceFirstGate, 'T', buf);
+										 fwW.gateWid, spaceFirstGate, 'T', buf, stdCell);
 		FoldedMos[] nmoss = new FoldedMos[] {nmos, nmosW};
 		
 		// create vdd and gnd exports and connect to MOS source/drains

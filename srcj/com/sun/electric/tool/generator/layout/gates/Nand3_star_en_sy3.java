@@ -98,7 +98,7 @@ class Nand3_star_en_sy3 {
 		// NMOS
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosTop - fwN.physWid/2,
 										fwN.nbFolds, nbStackedN, fwN.gateWid,
-										nand);
+										nand, stdCell);
 		// PMOS
 		// pmos pitch for 12 folds: 8 * 12 = 96
 		// nmos pitch for 6 folds: (3 * 5 + 3) * 6 = 108
@@ -111,14 +111,14 @@ class Nand3_star_en_sy3 {
 			double pmosX = nmosX + 6 + i*pmosPitch;
 			int nbFolds = Math.min(12, fwP.nbFolds - i*12);
 			pmoss[i] = new FoldedPmos(pmosX, pmosY, nbFolds, 1, fwP.gateWid,
-									  nand);
+									  nand, stdCell);
 		}
 		
 		// Create one FoldedMos for weak PMOS
 		double weakX = StdCellParams.getRightDiffX(pmoss) + 12;// for now don't share
 		double weakY = weakBot + fwW.physWid/2;
 		FoldedMos weak = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
-										fwW.gateWid, nand);
+										fwW.gateWid, nand, stdCell);
 		
 		// create an array that holds all PMOS, strong and weak
 		FoldedMos[] stroWeakPmoss = new FoldedMos[pmoss.length+1];

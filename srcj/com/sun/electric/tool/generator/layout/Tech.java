@@ -98,9 +98,14 @@ public class Tech {
 	private static PrimitiveNode[] vias;
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
+    private static double wellOverhangDiff;
 
 	//----------------------------- public data ----------------------------------
-	/** layers 
+    /** valid Electric technologies understood */
+    public static final String MOCMOS = "mocmos";
+    public static final String TSMC90 = "tsmc90";
+
+	/** layers
 	 *
 	 * Poly and metal are considered to be routing layers.  In contrast
 	 * we assume we never want to route in diffusion or well.  This
@@ -184,7 +189,7 @@ public class Tech {
 		nbLay = layerNms.length;
 		layers = new PrimitiveArc[nbLay];
 		vias = new PrimitiveNode[nbLay - 1];
-		
+
 		// initialize layers
 		for (int i=0; i<nbLay; i++) {
 			layers[i] = tech.findArcProto(layerNms[i]);
@@ -267,6 +272,8 @@ public class Tech {
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
 	}
+
+    public static boolean isTSMC90() { return isTsmc90; }
 
 	public static PrimitiveNode getViaFor(PrimitiveArc a1, PrimitiveArc a2) {
 		int code = a1.hashCode() * a2.hashCode();
