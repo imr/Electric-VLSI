@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ac: *********************************
+
 ************************* Version 8.01ab: *********************************
 
 BUG: (10/21/04, GVG) DRC and cropping. After removing rounding in calcBound, cropping function was not working properly
