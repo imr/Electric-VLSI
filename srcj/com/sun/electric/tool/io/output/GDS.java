@@ -55,6 +55,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 import java.util.List;
+import java.util.Collection;
 
 /**
  * This class writes files in GDS format.
@@ -492,26 +493,25 @@ public class GDS extends Geometry
 
 	String makeUniqueName(Cell cell)
 	{
-		String name = makeGDSName(cell.getName());
+		String name = makeGDSName(cell.getName(), HDR_M_STRNAME);
 		if (cell.getNewestVersion() != cell)
 			name += "_" + cell.getVersion();
 
 		// see if the name is unique
 		String baseName = name;
+		Collection existing = cellNames.values();
 		for(int index = 1; ; index++)
 		{
-			boolean found = false;
-			for(Iterator it = cellNames.values().iterator(); it.hasNext(); )
-			{
-				String str = (String)it.next();
-				if (str.equals(name)) { found = true;   break; }
-			}
-			if (!found) break;
+			if (!existing.contains(name)) break;
 			name = baseName + "_" + index;
+			if (name.length() > HDR_M_STRNAME)
+			{
+				baseName = baseName.substring(0, baseName.length()-1);
+			}
 		}
 
 		// add this name to the list
-		cellNames.put(cell, name);
+//		cellNames.put(cell, name);
 		return name;
 	}
 
@@ -520,19 +520,21 @@ public class GDS extends Geometry
 	 * from input string str.
 	 * Uses only 'A'-'Z', '_', $, ?, and '0'-'9'
 	 */
-	private String makeGDSName(String str)
+	private String makeGDSName(String str, int maxLen)
 	{
 		// filter the name string for the GDS output cell
-		String ret = "";
-		for(int k=0; k<str.length(); k++)
+		StringBuffer ret = new StringBuffer();
+		int max = str.length();
+		if (max > maxLen-3) max = maxLen-3;
+		for(int k=0; k<max; k++)
 		{
 			char ch = str.charAt(k);
 			if (IOTool.isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
 			if (ch != '$' && !TextUtils.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
 				ch = '_';
-			ret += ch;
+			ret.append(ch);
 		}
-		return ret;
+		return ret.toString();
 	}
 
 	/*
@@ -581,7 +583,7 @@ public class GDS extends Geometry
 		outputHeader(HDR_BGNLIB, 0);
 		outputDate(cell.getCreationDate());
 		outputDate(cell.getRevisionDate());
-		outputName(HDR_LIBNAME, makeGDSName(cell.getName()), HDR_M_ASCII);
+		outputName(HDR_LIBNAME, makeGDSName(cell.getName(), HDR_M_ASCII), HDR_M_ASCII);
 		outputShort(HDR_N_UNITS);
 		outputShort(HDR_UNITS);
 		outputIntArray(units01, 2);

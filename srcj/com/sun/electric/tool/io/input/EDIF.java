@@ -299,6 +299,7 @@ public class EDIF extends Input
 	 */
 	protected boolean importALibrary(Library lib)
 	{
+		// setup keyword prerequisites
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
 		KAUTHOR.stateArray = new EDIFKEY [] {KWRITTEN};
 		KBOUNDINGBOX.stateArray = new EDIFKEY [] {KSYMBOL, KCONTENTS};
@@ -402,7 +403,7 @@ public class EDIF extends Input
 			io_edload_edif();
 		} catch (IOException e)
 		{
-			System.out.println("line #" + lineReader.getLineNumber() + ": " + e.getMessage());
+			System.out.println("line " + lineReader.getLineNumber() + ": " + e.getMessage());
 			return true;
 		}
 
@@ -411,14 +412,13 @@ public class EDIF extends Input
 
 		if (library.getCurCell() == null && library.getCells().hasNext())
 			library.setCurCell((Cell)library.getCells().next());
-
 		return false;
 	}
 
 	/**
 	 * Method to load the edif netlist into memory
 	 * Does a simple keyword lookup to load the lisp structured
-	 *		 EDIF language into Electric's database
+	 * EDIF language into Electric's database
 	 */
 	private void io_edload_edif()
 		throws IOException
@@ -435,7 +435,7 @@ public class EDIF extends Input
 			EDIFKEY key = (EDIFKEY)edifKeys.get(token.toLowerCase());
 			if (key == null)
 			{
-				System.out.println("Warning, line #" + lineReader.getLineNumber() + ": unknown keyword <" + token + ">");
+				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown keyword <" + token + ">");
 				warnings++;
 				kstack[kstack_ptr++] = state;
 				state = KUNKNOWN;
@@ -449,26 +449,13 @@ public class EDIF extends Input
 						if (key.stateArray[i] == state) { found = true;   break; }
 					if (!found)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": illegal state (" + state.name + ") for keyword <" + token + ">");
-//System.out.print("Stack has "+kstack_ptr+" entries:");
-//for(int i=0; i<kstack_ptr; i++) System.out.print(" "+kstack[i].name);
-//System.out.println("");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": illegal state (" + state.name + ") for keyword <" + token + ">");
 						errors++;
 					}
 				}
 
 				// call the function
 				kstack[kstack_ptr++] = state;
-if (token.equalsIgnoreCase("Figuregroupoverride"))
-{
-	System.out.println("FGO");
-}
-//String infstr = "Keyword " + token + " with stack:";
-//for(int w=0; w<kstack_ptr; w++)
-//{
-//	infstr += " " + kstack[w].name;
-//}
-//System.out.println(infstr);
 				state = key;
 				if (savestack >= kstack_ptr)
 				{
@@ -484,7 +471,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 		}
 		if (state != KINIT)
 		{
-			System.out.println("Error, line #" + lineReader.getLineNumber() + ": unexpected end-of-file encountered");
+			System.out.println("Error, line " + lineReader.getLineNumber() + ": unexpected end-of-file encountered");
 			errors++;
 		}
 	}
@@ -737,18 +724,17 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			}
 		}
 
-		int pos = layer_ptr;
-		nametbl[pos] = new NAMETABLE();
-		nametbl[pos].original = layer;
-		nametbl[pos].replace = nametbl[pos].original;
-		figure_group = nametbl[pos].node = Artwork.tech.boxNode;
-		arc_type = nametbl[pos].arc = Schematics.tech.wire_arc;
-		textheight = nametbl[pos].textheight = 0;
-		justification = nametbl[pos].justification = TextDescriptor.Position.DOWNRIGHT;
-		visible = nametbl[pos].visible = true;
+		nametbl[layer_ptr] = new NAMETABLE();
+		nametbl[layer_ptr].original = layer;
+		nametbl[layer_ptr].replace = nametbl[layer_ptr].original;
+		figure_group = nametbl[layer_ptr].node = Artwork.tech.boxNode;
+		arc_type = nametbl[layer_ptr].arc = Schematics.tech.wire_arc;
+		textheight = nametbl[layer_ptr].textheight = 0;
+		justification = nametbl[layer_ptr].justification = TextDescriptor.Position.DOWNRIGHT;
+		visible = nametbl[layer_ptr].visible = true;
 
 		// allow new definitions
-		cur_nametbl = nametbl[pos];
+		cur_nametbl = nametbl[layer_ptr];
 
 		// now sort the list
 		layer_ptr++;
@@ -1023,7 +1009,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			figure_group : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, current_cell, rot, null, 0);
 		if (ni == null)
 		{
-			System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create arc");
+			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create arc");
 			errors++;
 		} else
 		{
@@ -1181,7 +1167,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					} else
 					{
 						double dist = pt.distance(new Point2D.Double(poly.getCenterX(), poly.getCenterY()));
-						if (bestPi == null || dist < bestDist) bestPi = pi;
+						if (bestPi == null || dist < bestDist) { bestDist = dist;   bestPi = pi; }
 					}
 				}
 			} else
@@ -1290,6 +1276,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			}
 		}
 	}
+
 	private void doPoly()
 	{
 		if (points.size() == 0) return;
@@ -1317,11 +1304,15 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					np = Artwork.tech.openedPolygonNode;
 			}
 			Point2D size = getSizeAndMirror(np);
-			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double((lx+hx)/2, (ly+hy)/2), size.getX(), size.getY(),
+			double sX = hx - lx;
+			double sY = hy - ly;
+			if (getMirrorX(orientation)) sX = -sX;
+			if (getMirrorX(orientation)) sY = -sY;
+			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double((lx+hx)/2, (ly+hy)/2), sX, sY,
 				current_cell, io_edgetrot(orientation), null, 0);
 			if (ni == null)
 			{
-				System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create polygon");
+				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create polygon");
 				errors++;
 			} else
 			{
@@ -1345,8 +1336,8 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 
 	private class EDIFKEY
 	{
-		private String name;							/* the name of the keyword */
-		private EDIFKEY [] stateArray;						/* edif state */
+		/** the name of the keyword */	private String name;
+		/** edif state */				private EDIFKEY [] stateArray;
 
 		private EDIFKEY(String name)
 		{
@@ -1355,6 +1346,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 		}
 
 		protected void push() throws IOException {}
+
 		protected void pop() throws IOException {}
 	};
 
@@ -1567,7 +1559,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					sX, sY, current_cell, io_edgetrot(orientation), null, 0);
 				if (ni == null)
 				{
-					System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create circle");
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create circle");
 					errors++;
 				}
 			}
@@ -1696,7 +1688,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					NodeInst ni = io_edifiplacepin(cellRefProto, p0.x, p0.y, size.getX(), size.getY(), io_edgetrot(orientation), current_cell);
 					if (ni == null)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create pin");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
 						errors++;
 					}
 					String portname = eport.name;
@@ -1710,7 +1702,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					Export ppt = Export.newInstance(current_cell, pi, portname);
 					if (ppt == null)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
 						errors++;
 					} else
 					{
@@ -1726,7 +1718,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					new Point2D.Double(p0.x, p0.y), 0, 0, current_cell);
 				if (ni == null)
 				{
-					System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create rectangle");
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
 					errors++;
 				}
 			}
@@ -1784,16 +1776,14 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 		protected void push()
 			throws IOException
 		{
-			int pos = layer_ptr;
-
-			nametbl[pos] = new NAMETABLE();
+			nametbl[layer_ptr] = new NAMETABLE();
 
 			// first get the original and replacement layers
-			nametbl[pos].original = io_edget_token((char) 0);
-			nametbl[pos].replace = io_edget_token((char) 0);
-			nametbl[pos].textheight = 0;
-			nametbl[pos].justification = TextDescriptor.Position.DOWNRIGHT;
-			nametbl[pos].visible = true;
+			nametbl[layer_ptr].original = io_edget_token((char) 0);
+			nametbl[layer_ptr].replace = io_edget_token((char) 0);
+			nametbl[layer_ptr].textheight = 0;
+			nametbl[layer_ptr].justification = TextDescriptor.Position.DOWNRIGHT;
+			nametbl[layer_ptr].visible = true;
 
 			// now bump the position
 			layer_ptr++;
@@ -1866,17 +1856,15 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			}
 
 			// insert and resort the list
-			pos = layer_ptr;
+			nametbl[layer_ptr] = new NAMETABLE();
+			nametbl[layer_ptr].original = layer;
 
-			nametbl[pos] = new NAMETABLE();
-			nametbl[pos].original = layer;
-
-			nametbl[pos].replace = nametbl[pos].original;
-			figure_group = nametbl[pos].node = Artwork.tech.boxNode;
-			arc_type = nametbl[pos].arc = Schematics.tech.wire_arc;
-			textheight = nametbl[pos].textheight = 0;
-			justification = nametbl[pos].justification = TextDescriptor.Position.DOWNRIGHT;
-			visible = nametbl[pos].visible = true;
+			nametbl[layer_ptr].replace = nametbl[layer_ptr].original;
+			figure_group = nametbl[layer_ptr].node = Artwork.tech.boxNode;
+			arc_type = nametbl[layer_ptr].arc = Schematics.tech.wire_arc;
+			textheight = nametbl[layer_ptr].textheight = 0;
+			justification = nametbl[layer_ptr].justification = TextDescriptor.Position.DOWNRIGHT;
+			visible = nametbl[layer_ptr].visible = true;
 
 			// now sort the list
 			layer_ptr++;
@@ -1961,7 +1949,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						current_node = ni;
 						if (ni == null)
 						{
-							System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create instance");
+							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create instance");
 							errors++;
 							break;
 						} else
@@ -2115,7 +2103,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 				Cell nnp = ViewChanges.makeIconForCell(current_cell);
 				if (nnp == null)
 				{
-					System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create icon <" + current_cell.describe() + ">");
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon <" + current_cell.describe() + ">");
 					errors++;
 				}
 			}
@@ -2144,7 +2132,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			else if (val.equalsIgnoreCase("LOWERRIGHT")) justification = TextDescriptor.Position.DOWNLEFT;
 			else
 			{
-				System.out.println("Warning, line #" + lineReader.getLineNumber() + ": unknown keyword <" + val + ">");
+				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown keyword <" + val + ">");
 				warnings++;
 				return;
 			}
@@ -2395,7 +2383,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			else if (orient.equalsIgnoreCase("MXR90")) orientation = OMXR90;
 			else
 			{
-				System.out.println("Warning, line #" + lineReader.getLineNumber() + ": unknown orientation value <" + orient + ">");
+				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown orientation value <" + orient + ">");
 				warnings++;
 			}
 		}
@@ -2477,44 +2465,35 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			if (geometry == GBUS || isarray) np = Schematics.tech.busPinNode;
 			for(int i=0; i<points.size()-1; i++)
 			{
-				EPT point = (EPT)points.get(i);
-				EPT nextPoint = (EPT)points.get(i+1);
+				EPT fPoint = (EPT)points.get(i);
+				EPT tPoint = (EPT)points.get(i+1);
 				if (geometry == GNET || geometry == GBUS)
 				{
 					// create a pin to pin connection
 					if (fList.size() == 0)
 					{
 						// look for the first pin
-						fList = io_edfindport(current_cell, point.x, point.y, Schematics.tech.wire_arc);
+						fList = io_edfindport(current_cell, fPoint.x, fPoint.y, Schematics.tech.wire_arc);
 						if (fList.size() == 0)
 						{
 							// create the "from" pin
-							NodeInst ni = io_edifiplacepin(np, point.x, point.y, np.getDefWidth(), np.getDefHeight(), 0, current_cell);
-							if (ni != null)
-							{
-								PortInst pi = ni.findPortInstFromProto(geometry == GBUS || isarray ?
-									default_busport : default_port);
-								fList.add(pi);
-							}
+							NodeInst ni = io_edifiplacepin(np, fPoint.x, fPoint.y, np.getDefWidth(), np.getDefHeight(), 0, current_cell);
+							if (ni != null) fList.add(ni.getOnlyPortInst());
 						}
 					}
+
 					// now the second ...
-					List tList = io_edfindport(current_cell, nextPoint.x, nextPoint.y, Schematics.tech.wire_arc);
+					List tList = io_edfindport(current_cell, tPoint.x, tPoint.y, Schematics.tech.wire_arc);
 					if (tList.size() == 0)
 					{
 						// create the "to" pin
-						NodeInst ni = io_edifiplacepin(np, nextPoint.x, nextPoint.y, np.getDefWidth(), np.getDefHeight(), 0, current_cell);
-						if (ni != null)
-						{
-							PortInst pi = ni.findPortInstFromProto(geometry == GBUS || isarray ?
-								default_busport : default_port);
-							tList.add(pi);
-						}
+						NodeInst ni = io_edifiplacepin(np, tPoint.x, tPoint.y, np.getDefWidth(), np.getDefHeight(), 0, current_cell);
+						if (ni != null) tList.add(ni.getOnlyPortInst());
 					}
 
 					if (fList.size() == 0 || tList.size() == 0)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create path");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path");
 						errors++;
 					} else
 					{
@@ -2524,68 +2503,54 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						{
 							boolean fbus = false;
 							boolean tbus = false;
-							PortInst lastPi = null;
-							PortInst pi = null;
+							PortInst fPi = null;
+							PortInst tPi = null;
 							if (count < fList.size())
 							{
-								lastPi = (PortInst)fList.get(count);
-								NodeInst lastpin = lastPi.getNodeInst();
-								PortProto lastport = lastPi.getPortProto();
+								fPi = (PortInst)fList.get(count);
 
 								// check node for array variable
-								Variable var = lastpin.getVar("EDIF_array");
+								NodeInst ni = fPi.getNodeInst();
+								Variable var = ni.getVar("EDIF_array");
 								if (var != null) fbus = true; else
 								{
-									if (lastport.getName().endsWith("]")) fbus = true;
+									PortProto pp = fPi.getPortProto();
+									if (pp.getName().endsWith("]")) fbus = true;
 								}
 							}
 							if (count < tList.size())
 							{
-								pi = (PortInst)fList.get(count);
-								NodeInst ni = pi.getNodeInst();
-								PortProto pp = pi.getPortProto();
+								tPi = (PortInst)tList.get(count);
 
 								// check node for array variable
+								NodeInst ni = tPi.getNodeInst();
 								Variable var = ni.getVar("EDIF_array");
 								if (var != null) tbus = true; else
 								{
+									PortProto pp = tPi.getPortProto();
 									if (pp.getName().endsWith("]")) tbus = true;
 								}
 							}
 
 							// if bus to bus
 							ArcProto ap = Schematics.tech.wire_arc;
-							if ((lastPi.getPortProto() == default_busport || fbus) &&
-								(pi.getPortProto() == default_busport || tbus)) ap = Schematics.tech.bus_arc;
+							if ((fPi.getPortProto() == default_busport || fbus) &&
+								(tPi.getPortProto() == default_busport || tbus)) ap = Schematics.tech.bus_arc;
 
-							ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(),
-								lastPi, pi); //, new Point2D.Double(point.x, point.y), new Point2D.Double(nextPoint.x, nextPoint.y), null);
+							ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi,
+								new Point2D.Double(fPoint.x, fPoint.y), new Point2D.Double(tPoint.x, tPoint.y), null);
 							if (ai == null)
 							{
-								System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create path (arc)");
+								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path (arc)");
 								errors++;
 							} else if (geometry == GNET && i == 0)
 							{
-								if (net_reference.length() > 0)
-								{
-									ai.newVar("EDIF_name", net_reference);
-								}
-								if (net_name.length() > 0)
-								{
-									// set name of arc but don't display name
-									ai.setName(net_name);
-								}
-							} else if (geometry == GBUS && points == point)
+								if (net_reference.length() > 0) ai.newVar("EDIF_name", net_reference);
+								if (net_name.length() > 0) ai.setName(net_name);
+							} else if (geometry == GBUS && i == 0)
 							{
-								if (bundle_reference.length() > 0)
-								{
-									ai.newVar("EDIF_name", bundle_reference);
-								}
-								if (bundle_name.length() > 0)
-								{
-									// set bus' EDIF name but don't display name
-									ai.setName(bundle_name);
-								}
+								if (bundle_reference.length() > 0) ai.newVar("EDIF_name", bundle_reference);
+								if (bundle_name.length() > 0) ai.setName(bundle_name);
 							}
 						}
 						if (ai != null) current_arc = ai;
@@ -2595,14 +2560,14 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 				{
 					// rectalinear paths with some width
 					// create a path from here to there (orthogonal only now)
-					double lx = point.x;
-					double ly = point.y;
+					double lx = fPoint.x;
+					double ly = fPoint.y;
 					double hx = lx;
 					double hy = ly;
-					if (lx > nextPoint.x) lx = nextPoint.x;
-					if (hx < nextPoint.x) hx = nextPoint.x;
-					if (ly > nextPoint.y) ly = nextPoint.y;
-					if (hy < nextPoint.y) hy = nextPoint.y;
+					if (lx > tPoint.x) lx = tPoint.x;
+					if (hx < tPoint.x) hx = tPoint.x;
+					if (ly > tPoint.y) ly = tPoint.y;
+					if (hy < tPoint.y) hy = tPoint.y;
 					if (ly == hy || extend_end)
 					{
 						ly -= path_width/2;
@@ -2617,7 +2582,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						io_edgetrot(orientation), current_cell);
 					if (ni == null)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create path");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path");
 						errors++;
 					}
 				}
@@ -2707,7 +2672,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psx, psy, current_cell);
 			if (ni == null)
 			{
-				System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create external port");
+				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
 				errors++;
 				return;
 			}
@@ -2717,7 +2682,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 			Export ppt = Export.newInstance(current_cell, pi, ports.name);
 			if (ppt == null)
 			{
-				System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create port <" + ports.name + ">");
+				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + ports.name + ">");
 				errors++;
 			} else
 			{
@@ -2815,7 +2780,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						}
 						if (ni == null)
 						{
-							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not locate netlist node (" + nodename + ")");
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate netlist node (" + nodename + ")");
 							return;
 						}
 					} else
@@ -2831,7 +2796,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						}
 						if (ni == null)
 						{
-							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not locate schematic node '" +
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate schematic node '" +
 								nodename + "' in cell " + current_cell.describe());
 							return;
 						}
@@ -2843,7 +2808,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					pp = ni.getProto().findPortProto(port_reference);
 					if (pp == null)
 					{
-						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not locate port (" +
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port (" +
 							port_reference + ") on node (" + nodename + ")");
 						return;
 					}
@@ -2877,7 +2842,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 								lni = io_edifiplacepin(Schematics.tech.busPinNode, (lx+hx)/2, (ly+hy)/2, hx-lx, hy-ly, 0, np);
 								if (lni == null)
 								{
-									System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create bus pin");
+									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
 									return;
 								}
 							} else
@@ -2885,7 +2850,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 								lni = io_edifiplacepin(Schematics.tech.wirePinNode, (lx+hx)/2, (ly+hy)/2, hx-lx, hy-ly, 0, np);
 								if (lni == null)
 								{
-									System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create wire pin");
+									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
 									return;
 								}
 								lpp = default_port;
@@ -2895,7 +2860,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							PortInst tail = ni.findPortInstFromProto(pp);
 							current_arc = ArcInst.makeInstance(lap, lap.getDefaultWidth(), head, tail);
 							if (current_arc == null)
-								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create auto-path");
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
 							else
 								io_ednamearc(current_arc);
 						}
@@ -2915,7 +2880,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					}
 					if (np == null)
 					{
-						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not locate top level schematic");
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate top level schematic");
 						return;
 					}
 
@@ -2927,7 +2892,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							pp = np.findPortProto(original);
 						if (pp == null)
 						{
-							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not locate port '" + port_reference + "'");
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" + port_reference + "'");
 							return;
 						}
 					}
@@ -2949,7 +2914,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							Schematics.tech.busPinNode.getDefWidth(), Schematics.tech.busPinNode.getDefHeight(), 0, np);
 						if (ni == null)
 						{
-							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create bus pin");
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
 							return;
 						}
 						pp = default_busport;
@@ -2959,7 +2924,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), 0, np);
 						if (ni == null)
 						{
-							System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create wire pin");
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
 							return;
 						}
 						pp = default_port;
@@ -2973,7 +2938,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 				{
 					if (fni.getParent() != ni.getParent())
 					{
-						System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create path (arc) between cells " +
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) between cells " +
 							fni.getParent().describe() + " and " + ni.getParent().describe());
 					} else
 					{
@@ -2998,7 +2963,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							current_arc = ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, tail, headPt, tailPt, null);
 							if (current_arc == null)
 							{
-								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create path (arc) among cells");
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) among cells");
 							}
 						} else if (active_view == VNETLIST)
 						{
@@ -3006,7 +2971,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							current_arc = ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, tail, headPt, tailPt, null);
 							if (current_arc == null)
 							{
-								System.out.println("error, line #" + lineReader.getLineNumber() + ": could not create auto-path in portRef");
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path in portRef");
 							}
 						}
 
@@ -3188,7 +3153,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					new Point2D.Double((lx+hx)/2, (ly+hy)/2), sX, sY, current_cell, io_edgetrot(orientation), null, 0);
 				if (ni == null)
 				{
-					System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create rectangle");
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
 					errors++;
 				} else if (figure_group == Artwork.tech.openedDottedPolygonNode)
 				{
@@ -3212,7 +3177,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						io_edgetrot(orientation), current_cell);
 					if (ni == null)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create pin");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
 						errors++;
 					}
 					PortProto ppt = current_cell.findPortProto(name);
@@ -3223,7 +3188,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 					}
 					if (ppt == null)
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create port <" + name + ">");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + name + ">");
 						errors++;
 					}
 				}
@@ -3368,7 +3333,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 		{
 			if (kstack_ptr <= 1)
 			{
-				System.out.println("Error, line #" + lineReader.getLineNumber() + ": bad location for \"stringDisplay\"");
+				System.out.println("Error, line " + lineReader.getLineNumber() + ": bad location for \"stringDisplay\"");
 				errors++;
 			} else if (kstack[kstack_ptr-1] == KRENAME)
 			{
@@ -3446,7 +3411,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						td.setPos(justification);
 					} else
 					{
-						System.out.println("Error, line #" + lineReader.getLineNumber() + ": nothing to attach text to");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": nothing to attach text to");
 						errors++;
 					}
 				}
@@ -3525,15 +3490,14 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 				if (!found)
 				{
 					// add to the list
-					int pos = layer_ptr;
-					nametbl[pos] = new NAMETABLE();
-					nametbl[pos].original = "layer_" + gdsLayer;
-					nametbl[pos].replace = layer.getName();
-					figure_group = nametbl[pos].node = Artwork.tech.boxNode;
-					arc_type = nametbl[pos].arc = Schematics.tech.wire_arc;
-					textheight = nametbl[pos].textheight = 0;
-					justification = nametbl[pos].justification = TextDescriptor.Position.DOWNRIGHT;
-					visible = nametbl[pos].visible = true;
+					nametbl[layer_ptr] = new NAMETABLE();
+					nametbl[layer_ptr].original = "layer_" + gdsLayer;
+					nametbl[layer_ptr].replace = layer.getName();
+					figure_group = nametbl[layer_ptr].node = Artwork.tech.boxNode;
+					arc_type = nametbl[layer_ptr].arc = Schematics.tech.wire_arc;
+					textheight = nametbl[layer_ptr].textheight = 0;
+					justification = nametbl[layer_ptr].justification = TextDescriptor.Position.DOWNRIGHT;
+					visible = nametbl[layer_ptr].visible = true;
 					layer_ptr++;
 				}
 			}
@@ -3611,7 +3575,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 						current_node = ni;
 						if (ni == null)
 						{
-							System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create instance");
+							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create instance");
 							errors++;
 
 							// and exit for loop
@@ -3643,7 +3607,7 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 							Export ppt = Export.newInstance(current_cell, pi, portname);
 							if (ppt == null)
 							{
-								System.out.println("Error, line #" + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
+								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portname + ">");
 								errors++;
 							} else
 							{
@@ -3717,7 +3681,10 @@ if (token.equalsIgnoreCase("Figuregroupoverride"))
 									// convert to quarter lambda units
 									xoff = 4 * xoff;
 									yoff = 4 * yoff;
-
+//if (ni.getName().equalsIgnoreCase("i37"))
+//	System.out.println("I37 offset by ("+xoff+","+yoff+"), node at ("+ni.getAnchorCenterX()+","+ni.getAnchorCenterY()+") point at ("+sP0.x+","+sP0.y+")");
+// C SEZ:    I37 offset by (60,0), node at (5560000,3720000), point at (5620000,3720000)   diff=40,000 which is 10 lambda
+// JAVA SEZ: I37 offset by (100.0,0.0), node at (1380.5,930.5) point at (1405.5,930.5)     diff=25 units
 									/*
 									 * determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in
 									 * fonts range from 4 to 20 points
