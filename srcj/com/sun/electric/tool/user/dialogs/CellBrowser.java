@@ -459,7 +459,9 @@ public class CellBrowser extends EDialog {
             String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
                 cell.getProtoName());
             if (newName == null) return;
-            System.out.println("Can't rename yet");
+
+            System.out.println("Can't rename yet " + newName);
+            //CircuitChanges.
 
 
         } else if (action == DoAction.duplicateCell) {
@@ -551,6 +553,8 @@ public class CellBrowser extends EDialog {
         }
 
         jList1.setListData(cellListNames.toArray());
+		// if nothing selected or found, then disable the button
+		doAction.setEnabled(cellListNames.size()>0);
 
         // update JScrollPane's scroll bars for new size list
         jList1.setVisibleRowCount(jList1.getModel().getSize());
@@ -568,12 +572,13 @@ public class CellBrowser extends EDialog {
 
     /**
      * Get selected Cell by user in Cell List
-     * @return
+     * @return Cell index or -1 if no cell is selected
      */
     private Cell getSelectedCell()
     {
         int i = jList1.getSelectedIndex();
-        return (Cell)cellList.get(i);
+
+		return (i == -1)? null : (Cell)cellList.get(i);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
