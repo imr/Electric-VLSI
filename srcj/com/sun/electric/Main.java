@@ -29,7 +29,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
@@ -50,7 +49,6 @@ import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.prefs.Preferences;
 
 import javax.swing.*;
 
@@ -75,14 +73,42 @@ public final class Main
 	 */
 	public static void main(String[] args)
 	{
+		// convert args to array list
+        List argsList = new ArrayList();
+        for (int i=0; i<args.length; i++) argsList.add(args[i]);
+
+		// -version
+		if (hasCommandLineOption(argsList, "-version"))
+		{
+			System.out.println(Version.getApplicationInformation());
+			System.out.println("\t"+Version.getVersionInformation());
+			System.out.println("\t"+Version.getAuthorInformation());
+			System.out.println("\t"+Version.getCopyrightInformation());
+			System.out.println("\t"+Version.getWarrantyInformation());
+
+			System.exit(0);
+		}
+		// -help
+        if (hasCommandLineOption(argsList, "-help"))
+		{
+	        System.out.println("Usage:");
+	        System.out.println("  'java -jar electric.jar [electric-options]' without plugins");
+	        System.out.println("  'java -classpath electric.jar<delim>{list of plugins} com.sun.electric.Launcher [electric-options]' otherwise, where <delim> is OS-dependant separator");
+            System.out.println("\n\t-mdi: multiple document interface mode");
+	        System.out.println("\t-sdi: single document interface mode");
+	        System.out.println("\t-NOMINMEM: ignore minimum memory provided for JVM");
+	        System.out.println("\t-s <script name>: bean shell script to execute");
+	        System.out.println("\t-version: version information");
+	        System.out.println("\t-debug: debug mode. Extra information is available");
+	        System.out.println("\t-help: this message");
+
+			System.exit(0);
+		}
+
 		// initialize Mac OS 10 if applicable
 		MacOSXInterface.registerMacOSXApplication();
 
 		SplashWindow sw = new SplashWindow();
-
-		// convert args to array list
-        List argsList = new ArrayList();
-        for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;

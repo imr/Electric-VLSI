@@ -510,7 +510,7 @@ public class DRC extends Listener
 				{
 					// First found is valid
 					if (!searchFor) return (rule);
-					if (rule.maxW <= wideS && (maxR == null || (maxR.maxW < rule.maxW)))
+					if (rule.maxW < wideS && (maxR == null || (maxR.maxW < rule.maxW)))
 					{
 						maxR = rule;
 					}

@@ -54,7 +54,7 @@ public final class Launcher
         // ignore launcher if specified to do so
         for (int i=0; i<args.length; i++) {
             String str = args[i];
-            if (str.equals("-NOMINMEM")) {
+            if (str.equals("-NOMINMEM") || str.equals("-help") || str.equals("-version")) {
                 // just start electric
                 Main.main(args);
                 return;

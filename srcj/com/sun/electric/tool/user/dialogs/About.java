@@ -119,11 +119,11 @@ public class About extends EDialog
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
-        String versionText =  "Version " + Version.getVersion();
-        String buildText = Version.getBuildDate();
-        if (buildText != null)
-           versionText += " (built on " + buildText + ")";
-		version.setText(versionText);
+		version.setText(Version.getVersionInformation());
+        // Just in case we modify information in Version..
+		jLabel3.setText(Version.getAuthorInformation());
+		jLabel9.setText(Version.getWarrantyInformation());
+		jLabel8.setText(Version.getCopyrightInformation());
 
 		// setup the region popup
 		jComboBox1.addItem("N.America");

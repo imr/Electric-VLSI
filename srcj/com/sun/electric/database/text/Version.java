@@ -63,6 +63,43 @@ public class Version
 	private Version() {}
 
 	/**
+	 * Method to return author information
+	 * @return Steve M. Rubin
+	 */
+	public static String getAuthorInformation() { return "Written by Steven M. Rubin"; }
+
+	/**
+	 * Method to return official name of Electric
+	 * @return the official name
+	 */
+	public static String getApplicationInformation() { return "The Electric VLSI Design System"; }
+
+	/**
+	 * Method to return copyright information
+	 * @return  Sun Microsystems and Static Free Software
+	 */
+	public static String getCopyrightInformation() { return "Copyright (c) 2004 Sun Microsystems and Static Free Software"; }
+
+	/**
+	 * Method to return a short description of warranty
+	 * @return short description of warranty
+	 */
+	public static String getWarrantyInformation() { return "Electric comes with ABSOLUTELY NO WARRANTY"; }
+
+	/**
+	 * Method to return version and compilation date if available
+	 * @return string containing version number and date of jar file
+	 */
+	public static String getVersionInformation()
+	{
+		String versionText =  "Version " + getVersion();
+        String buildText = getBuildDate();
+        if (buildText != null)
+           versionText += " (built on " + buildText + ")";
+		return (versionText);
+	}
+
+	/**
 	 * Method to return the current Electric version.
 	 * @return the current Electric version.
 	 */

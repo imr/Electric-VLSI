@@ -2,6 +2,11 @@
 
 
 ************************* Version 8.01i: *********************************
+BUG: In DRC, wrong condition for wide wire rule (<= instead of <)
+FIX: Change <= by <
+
+IMP/MAN: -version and -help as command options
+
 FIX (8/19/04, GVG): Rounding error while creating a new Poly (width/height were not rounded). It was observed in new tech only.
 IMP (8/19/04, GVG): More area rules (DO.A.1)
 MAN (8/19/04, GVG): -m out? if yes, check documentation.
