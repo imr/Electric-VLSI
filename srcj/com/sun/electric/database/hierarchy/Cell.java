@@ -359,6 +359,7 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
+		setNetworksDirty();
 	}
 
 	/**
@@ -376,6 +377,7 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
+		setNetworksDirty();
 	}
 
 	/**
@@ -421,6 +423,7 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
+		setNetworksDirty();
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
@@ -451,6 +454,7 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
+		setNetworksDirty();
 
 		if (ni == referencePointNode)
 			referencePointNode = null;
@@ -1236,6 +1240,25 @@ public class Cell extends NodeProto
 		}
 	}
 
+	protected void connectEquivPorts(int[] newEquivPorts)
+	{
+		HashMap netToPort = new HashMap(); // subNet -> Integer
+		int i = 0;
+		for (Iterator it = getPorts(); it.hasNext(); i++)
+		{
+			PortProto pp = (PortProto) it.next();
+			JNetwork subNet = pp.getEquivalent().getNetwork();
+			Integer iOld = (Integer) netToPort.get(subNet);
+			if (iOld != null)
+			{
+				connectMap(newEquivPorts, iOld.intValue(), i);
+			} else
+			{
+				netToPort.put(subNet, new Integer(i));
+			}
+		}
+	}
+
 	private HashSet getNetsFromPortInsts()
 	{
 		HashSet nets = new HashSet();
@@ -1315,6 +1338,10 @@ public class Cell extends NodeProto
 		addExportNamesToNets();
 		mergeSameNameNets();
 		buildNetworkList();
+	}
+
+	public final void setNetworksDirty()
+	{
 	}
 
 }

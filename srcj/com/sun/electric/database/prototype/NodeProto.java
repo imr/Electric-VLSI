@@ -34,6 +34,7 @@ import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -362,6 +363,13 @@ public abstract class NodeProto extends ElectricObject
 	/** Internal flag bits. */								protected int userBits;
 	/** The function of this NodeProto. */					private Function function;
 
+	/**
+     * Equivalence of ports. equivPorts.size == ports.size.
+	 * equivPorts[i] contains minimal index among ports of its group.
+     */														private int[] equivPorts;
+	/** Time stamp when @equivPorts map was modified */		private int equivPortsUpdateTime;
+	/** Time stamp when @equivPorts map was checked */		private int equivPortsCheckTime;
+
 	/** The temporary integer value. */						private int tempInt;
 	/** The temporary Object. */							private Object tempObj;
 	/** The temporary flag bits. */							private int flagBits;
@@ -379,6 +387,7 @@ public abstract class NodeProto extends ElectricObject
 		instances = new ArrayList();
 		networks = new ArrayList();
 		function = Function.UNKNOWN;
+		equivPortsUpdateTime = equivPortsCheckTime = 0;
 		tempObj = null;
 	}
 
@@ -390,6 +399,7 @@ public abstract class NodeProto extends ElectricObject
 	void addPort(PortProto port)
 	{
 		ports.add(port);
+		notifyCellsNetworks();
 	}
 
 	/**
@@ -399,6 +409,7 @@ public abstract class NodeProto extends ElectricObject
 	void removePort(PortProto port)
 	{
 		ports.remove(port);
+		notifyCellsNetworks();
 	}
 
 	/**
@@ -481,6 +492,95 @@ public abstract class NodeProto extends ElectricObject
 	boolean containsPort(PortProto port)
 	{
 		return ports.contains(port);
+	}
+
+	/**
+	 * Notify all cells in which this NodeProto is the instance
+	 * about modification of interface of this NodeProto.
+	 */
+	private void notifyCellsNetworks()
+	{
+		if (this instanceof Cell) ((Cell)this).setNetworksDirty();
+		for (Iterator it = instances.iterator(); it.hasNext();)
+		{
+			NodeInst ni = (NodeInst) it.next();
+			ni.getParent().setNetworksDirty();
+		}
+	}
+
+	protected static void connectMap(int[] map, int a1, int a2)
+	{
+		int m1, m2, m;
+
+		for (m1 = a1; map[m1] != m1; m1 = map[m1]);
+		for (m2 = a2; map[m2] != m2; m2 = map[m2]);
+		m = m1 < m2 ? m1 : m2;
+
+		for (;;)
+		{
+			int k = map[a1];
+			map[a1] = m;
+			if (a1 == k) break;
+			a1 = k;
+		}
+		for (;;)
+		{
+			int k = map[a2];
+			map[a2] = m;
+			if (a2 == k) break;
+			a2 = k;
+		}
+	}
+
+	private static void closureMap(int[] map)
+	{
+		for (int i = 0; i < map.length; i++)
+		{
+			map[i] = map[map[i]];
+		}
+	}
+
+	protected void connectEquivPorts(int[] newEquivPorrs)
+	{
+	}
+
+	private void updateEquivPorts(HashMap userEquivPorts)
+	{
+		int[] newEquivPorts = new int[ports.size()];
+		int i;
+
+		i = 0;
+		for (Iterator it = ports.iterator(); it.hasNext(); i++)
+		{
+			PortProto pp = (PortProto)it.next();
+			pp.setTempInt(i);
+			newEquivPorts[i] = i;
+		}
+
+		/* Connect ports connected by node proto subnets */
+		connectEquivPorts(newEquivPorts);
+
+		/* Connect user equivalent ports */
+		HashMap listToPort = new HashMap(); // equivList -> Integer
+		i = 0;
+		for (Iterator it = ports.iterator(); it.hasNext(); i++)
+		{
+			PortProto pp = (PortProto) it.next();
+			Object equivList = userEquivPorts.get(pp.getEquivalent());
+			if (equivList != null)
+			{
+				Integer iOld = (Integer) listToPort.get(equivList);
+				if (iOld != null)
+				{
+					connectMap(newEquivPorts, iOld.intValue(), i);
+				} else
+				{
+					listToPort.put(equivList, new Integer(i));
+				}
+			}
+		}
+
+		closureMap(newEquivPorts);
 	}
 
 	// ----------------------- public methods -----------------------

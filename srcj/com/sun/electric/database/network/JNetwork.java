@@ -277,8 +277,8 @@ public class JNetwork
 		for (Iterator it = ((Cell) parent).getArcs(); it.hasNext();)
 		{
 			ArcInst ai = (ArcInst) it.next();
-			if (ai.getConnection(false).getPortInst().getNetwork() == this
-				|| ai.getConnection(false).getPortInst().getNetwork() == this)
+			if (ai.getHead().getPortInst().getNetwork() == this
+				|| ai.getTail().getPortInst().getNetwork() == this)
 			{
 				arcs.add(ai);
 			}

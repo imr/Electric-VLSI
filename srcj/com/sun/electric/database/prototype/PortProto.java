@@ -425,6 +425,16 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	public int getTempInt() { return tempInt; }
 
 	/**
+	 * Routine to return the PortProto that is equivalent to this in the
+	 * corresponding NodeProto. It is overrideen in Export.
+	 * @return the PortProto that is equivalent to this in the corresponding Cell.
+	 */
+	public PortProto getEquivalent()
+	{
+		return this;
+	}
+
+	/**
 	 * Returns a printable version of this PortProto.
 	 * @return a printable version of this PortProto.
 	 */
