@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.Main;
-import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
